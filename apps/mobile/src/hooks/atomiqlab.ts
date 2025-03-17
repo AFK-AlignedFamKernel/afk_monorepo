@@ -134,20 +134,33 @@ export const useAtomiqLab = () => {
 
         //Wait for the swap to conclude
         const result: boolean = await swap.waitForPayment();
+        let lnSecret: string | null = null;
+        let successAction: any | null = null;
         if (!result) {
             //Swap failed, money can be refunded
             await swap.refund();
         } else {
             //Swap successful, we can get the lightning payment secret pre-image, which acts as a proof of payment
             const lightningSecret = swap.getSecret();
+            lnSecret = lightningSecret;
             //In case the LNURL contained a success action, we can read it now and display it to user
             if (swap.hasSuccessAction()) {
                 //Contains a success action that should displayed to the user
                 const successMessage = swap?.getSuccessAction();
+                console.log("successMessage", successMessage)
+                successAction = successMessage?.description || ""; //Description of the message
                 const description: string = successMessage?.description || ""; //Description of the message
                 const text: (string | null) = successMessage?.text || null; //Main text of the message
                 const url: (string | null) = successMessage?.url || null; //URL link which should be displayed
             }
+        }
+
+        return {
+            success: result,
+            result: result,
+            lightningSecret: lnSecret,
+            successAction: successAction,
+            successUrl:successAction?.url,
         }
 
     }

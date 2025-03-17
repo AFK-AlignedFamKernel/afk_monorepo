@@ -48,6 +48,10 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
   const { showToast } = useToast();
   const account = useAccount();
   const walletModal = useWalletModal();
+  const [successAction, setSuccessAction] = useState<any | null>(null);
+  const [successMessage, setSuccessMessage] = useState<any | null>(null);
+  const [successUrl, setSuccessUrl] = useState<any | null>(null);
+  const [preimage, setPreimage] = useState<string | null>(null);
   // const sendTransaction = useTransaction({});
   const { sendTransaction } = useTransaction({});
   const { hide: hideTransactionModal } = useTransactionModal();
@@ -72,7 +76,7 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
     }
 
 
-    if(!amount) {
+    if (!amount) {
       showToast({ title: "No amount found", type: 'error' });
       return;
     }
@@ -90,7 +94,19 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
     // }
     // await handleConnect();
     // await handlePayInvoice(invoice?.paymentRequest)
-    await handlePayLnurl(profile?.lud16, Number(amount))
+    const res = await handlePayLnurl(profile?.lud16, Number(amount))
+
+    console.log("res", res)
+    if (res.success && res?.lightningSecret) {
+      setPreimage(res.lightningSecret)
+      setSuccessAction(res.successAction)
+      setSuccessUrl(res.successUrl)
+
+      showToast({
+        title: "Tip sent",
+        type: "success"
+      })
+    }
   };
 
   return (
@@ -134,7 +150,7 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
 
       <View style={styles.pickerContainer}>
         <View>
-          <Picker
+          {/* <Picker
             label="Please select a token"
             selectedValue={token}
             onValueChange={(itemValue) => setToken(itemValue as TokenSymbol)}
@@ -146,18 +162,18 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
                 value={tkn[CHAIN_ID].symbol}
               />
             ))}
-          </Picker>
+          </Picker> */}
 
-          {/* {TOKENS[TokenSymbol.STRK] === token && (
-          <View>
+
+          {token === TokenSymbol.STRK && (
             <Text>
-              {TOKENS[TokenSymbol.STRK]}
+              STRK
             </Text>
-          </View>
-         )} */}
+          )}
+
         </View>
 
-        <Input value={amount} onChangeText={setAmount} placeholder="Amount" />
+        <Input value={amount} onChangeText={setAmount} placeholder="Amount in SATS" />
       </View>
 
       <View style={styles.sending}>
