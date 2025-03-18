@@ -5,7 +5,6 @@ import {
     StarknetSigner,
     StarknetTokens
 } from "@atomiqlabs/chain-starknet";
-// import { SolanaInitializer, SolanaInitializerType } from '@atomiqlabs/chain-solana';
 import { BitcoinNetwork, ISwap, LNURLPay, LNURLWithdraw, Swapper, SwapperFactory, SwapperWithSigner, ToBTCLNSwap } from '@atomiqlabs/sdk';
 import { useAccount, useConnect, useProvider } from '@starknet-react/core';
 import { useEffect, useState } from 'react';
@@ -99,20 +98,42 @@ export const useAtomiqLab = () => {
 
         //Wait for the swap to conclude
         const result: boolean = await swap.waitForPayment();
+        let lnSecret: string | null = null;
+        let successAction: any | null = null;
         if (!result) {
             //Swap failed, money can be refunded
             await swap.refund();
         } else {
             //Swap successful, we can get the lightning payment secret pre-image, which acts as a proof of payment
             const lightningSecret = swap.getSecret();
+
+            lnSecret = lightningSecret;
+            if (swap.hasSuccessAction()) {
+                //Contains a success action that should displayed to the user
+                const successMessage = swap?.getSuccessAction();
+                console.log("successMessage", successMessage)
+                successAction = successMessage?.description || ""; //Description of the message
+                const description: string = successMessage?.description || ""; //Description of the message
+                const text: (string | null) = successMessage?.text || null; //Main text of the message
+                const url: (string | null) = successMessage?.url || null; //URL link which should be displayed
+            }
+        }
+
+
+        return {
+            success: result,
+            result: result,
+            lightningSecret: lnSecret,
+            successAction: successAction,
+            successUrl: successAction?.url,
         }
 
     }
 
-    const handlePayLnurl = async (lnurlOrIdentifier: string, amount:number) => {
+    const handlePayLnurl = async (lnurlOrIdentifier: string, amount: number) => {
 
         console.log("starknetSwapper", starknetSwapper)
-        let strkSwapper:SwapperWithSigner<{STARKNET: StarknetChainType}, "STARKNET"> | undefined = starknetSwapper
+        let strkSwapper: SwapperWithSigner<{ STARKNET: StarknetChainType }, "STARKNET"> | undefined = starknetSwapper
         if (!strkSwapper) {
             const { starknetSwapper } = await handleConnect()
             strkSwapper = starknetSwapper
@@ -160,7 +181,7 @@ export const useAtomiqLab = () => {
             result: result,
             lightningSecret: lnSecret,
             successAction: successAction,
-            successUrl:successAction?.url,
+            successUrl: successAction?.url,
         }
 
     }

@@ -149,31 +149,24 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
   };
 
   const handleReceive = async (): Promise<void> => {
-    try {
-      if (scannedData) {
-        setIsProcessing(true);
-        const response = await handleReceiveEcash(scannedData);
-        if (response) {
-          setModalVisible(false);
-          cleanup();
-          onClose();
-          onSuccess();
-        } else {
-          const key = randomUUID();
-          setModalToast({
-            title: 'Error processing payment.',
-            type: 'error',
-            key,
-          });
-          setShowModalToast(true);
-          setIsProcessing(false);
-        }
+    if (scannedData) {
+      setIsProcessing(true);
+      const response = await handleReceiveEcash(scannedData);
+      if (response) {
+        setModalVisible(false);
+        cleanup();
+        onClose();
+        onSuccess();
+      } else {
+        const key = randomUUID();
+        setModalToast({
+          title: 'Error processing payment.',
+          type: 'error',
+          key,
+        });
+        setShowModalToast(true);
+        setIsProcessing(false);
       }
-    } catch (error) {
-      console.log("handleReceive error", error)
-      showToast({ title: 'Error processing payment.', type: 'error' });
-    } finally {
-      setIsProcessing(false);
     }
   };
 
