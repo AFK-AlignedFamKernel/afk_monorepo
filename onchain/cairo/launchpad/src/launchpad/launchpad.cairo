@@ -1669,9 +1669,11 @@ pub mod LaunchpadMarketplace {
             // To always handle the same price as if default token is token1 
             // The quote token is our default token, leads that we want to price
             // The memcoin in the value of the quote token, the price ratio is <0,1) 
+            // Also this is not ideal way but will works as memecoin supply > default token supply
+            // Therefore we know that memecoin is less valued than default token
             if (is_token1_quote) {
                 initial_tick.mag = initial_tick.mag + 1; // We should keep complementary code 
-                initial_tick.sign = false;
+                initial_tick.sign = true; 
             }
             // let bound_spacing = 887272;
             // TODO check how used the correct tick spacing
@@ -1714,64 +1716,7 @@ pub mod LaunchpadMarketplace {
                 lower: i129 { mag: aligned_min_tick, sign: true },
                 upper: i129 { mag: aligned_max_tick, sign: false }
             };
-            // let mut full_range_bounds = Bounds {
-            //     lower: i129 { mag: aligned_bound_spacing, sign: true },
-            //     upper: i129 { mag: aligned_bound_spacing, sign: false }
-            // };
-
-            // TODO check full range bounds to used
-            // Create bounds ensuring they're multiples of tick spacing
-            // full_range_bounds = if is_token1_quote {
-            //     Bounds {
-            //         lower: i129 {
-            //             mag: aligned_bound_spacing,
-            //             sign: true
-            //         },
-            //         upper: i129 {
-            //             mag: aligned_bound_spacing,
-            //             sign: false
-            //         }
-            //     }
-            //     //     Bounds {
-            //     //    lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
-            //     //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(),
-            //     sign:
-            //     //         false }
-            //     //     }
-
-            // } else {
-            //     Bounds {
-            //         lower: i129 {
-            //             mag: aligned_bound_spacing,
-            //             sign: true
-            //         },
-            //         upper: i129 {
-            //             mag: aligned_bound_spacing,
-            //             sign: false
-            //         }
-            //     }
-            //     // TODO align tick
-            //     //     Bounds {
-            //     //    lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
-            //     //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(),
-            //     sign:
-            //     //         false }
-            //     //     }
-            //     // TODO
-            //     // Check not working with reverse bounds like UNRUG
-            //     // Reverse the bounds for token0 as quote
-            //     // Bounds {
-            //     //     lower: i129 {
-            //     //         mag: aligned_bound_spacing,
-            //     //         sign: false
-            //     //     },
-            //     //     upper: i129 {
-            //     //         mag: aligned_bound_spacing,
-            //     //         sign: true
-            //     //     }
-            //     // }
-            // };
-
+    
             let pool_params = EkuboPoolParameters {
                 fee: fee_percent,
                 tick_spacing: tick_spacing,

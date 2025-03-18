@@ -345,7 +345,8 @@ pub fn calculate_sqrt_ratio(
 
     assert(price_ratio <= UINT_128_MAX, 'price ratio overflow');
 
-    let mut sqrt_ratio: u256 = sqrt_fixed128(price_ratio) * POW_64;    // println!("x_y: {}", x_y.clone());
+    // We need to multiply by POW_64 as the number is in the space of <-2^64, 2^64>
+    let mut sqrt_ratio: u256 = sqrt_fixed128(price_ratio) * POW_64;  
    
 
     let min_sqrt_ratio_limit = MIN_SQRT_RATIO;
