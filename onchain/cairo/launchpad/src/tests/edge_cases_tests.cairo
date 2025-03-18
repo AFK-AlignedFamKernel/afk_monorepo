@@ -490,6 +490,9 @@ mod edge_cases_tests {
         println!("delta.amount0.sign {}", delta.amount0.sign);
         println!("delta.amount1.mag {}", delta.amount1.mag);
         println!("delta.amount1.sign {}", delta.amount1.sign); 
+
+        let memecoin_balance = memecoin.balance_of(router.contract_address);
+        // assert(memecoin_balance == delta.amount1.mag, 'Wrong After swap balance');
         
 
     }

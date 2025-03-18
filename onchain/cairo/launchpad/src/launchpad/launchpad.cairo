@@ -1643,7 +1643,7 @@ pub mod LaunchpadMarketplace {
             // Adjust scale factor
 
             let mut sqrt_ratio = calculate_sqrt_ratio(
-                launch.liquidity_raised, launch.initial_pool_supply, is_token1_quote
+                launch.liquidity_raised, launch.initial_pool_supply
             );
 
             println!("sqrt_ratio after assert {}", sqrt_ratio.clone());
@@ -1664,7 +1664,15 @@ pub mod LaunchpadMarketplace {
             )
                 .unwrap_syscall();
 
-            let initial_tick = Serde::<i129>::deserialize(ref res).unwrap();
+            let mut initial_tick = Serde::<i129>::deserialize(ref res).unwrap();
+
+            // To always handle the same price as if default token is token1 
+            // The quote token is our default token, leads that we want to price
+            // The memcoin in the value of the quote token, the price ratio is <0,1) 
+            if (is_token1_quote) {
+                initial_tick.mag = initial_tick.mag + 1; // We should keep complementary code 
+                initial_tick.sign = false;
+            }
             // let bound_spacing = 887272;
             // TODO check how used the correct tick spacing
             // bound spacing calculation

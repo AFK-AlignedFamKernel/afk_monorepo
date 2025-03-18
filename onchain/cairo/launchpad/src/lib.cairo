@@ -60,6 +60,7 @@ pub mod tokens {
 
 #[cfg(test)]
 pub mod tests {
+    pub mod init_price_tests;
     pub mod edge_cases_tests;
     // pub mod end_to_end_tests;
     // pub mod exponential_tests;
