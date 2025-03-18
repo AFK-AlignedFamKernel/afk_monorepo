@@ -20,6 +20,7 @@ export default ThemedStyleSheet((theme) => ({
     position: 'relative',
     alignItems: 'center',
     width: '100%',
+    overflow:"hidden"
   },
   safeArea: {
     flex: 1,

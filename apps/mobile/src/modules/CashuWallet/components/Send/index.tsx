@@ -10,6 +10,7 @@ import {
   Modal,
   Platform,
   SafeAreaView,
+  ScrollView,
   Share,
   Switch,
   Text,
@@ -309,7 +310,11 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
       case 'lightning':
         return (
           <>
-            <View style={styles.modalTabContentContainer}>
+            <ScrollView style={styles.modalTabContentContainer}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.modalTabContentContainerChildren}
+            >
               <TouchableOpacity
                 onPress={onClose}
                 style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
@@ -355,7 +360,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
                   {isPaymentProcessing ? 'Processing...' : 'Pay invoice'}
                 </Button>
               </>
-            </View>
+            </ScrollView>
             <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
               <ScanQRCode onClose={handleCloseScanner} onSuccess={onClose} />
             </Modal>

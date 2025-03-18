@@ -40,14 +40,24 @@ export default ThemedStyleSheet((theme) => ({
   modalTabContentContainer: {
     backgroundColor: theme.colors.surface,
     width: '100%',
-    alignItems: 'center',
+    // alignItems: 'center',
     maxWidth: 400,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    maxHeight: '95%',
-    overflow: 'scroll',
+    // overflow: 'hidden',
     paddingBottom: 20,
     position: 'relative',
+    maxHeight:350,
+    // maxHeight: '95%',
+
+  },
+  modalTabContentContainerChildren: {
+    backgroundColor: theme.colors.surface,
+    width: '100%',
+    alignItems: 'center',
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    paddingBottom: 20,
   },
   modalTabContentTitle: {
     padding: 20,
