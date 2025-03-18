@@ -122,20 +122,6 @@ export const Invoices = () => {
           Number(invoice?.amount),
           invoice?.quoteResponse ?? (invoice as unknown as MintQuoteResponse),
         );
-        if (privateKey && publicKey) {
-          const tokenEvent = await createTokenEvent({
-            walletId,
-            mint: activeMint,
-            proofs: receive,
-          });
-          await createSpendingEvent({
-            walletId,
-            direction: 'in',
-            amount: invoice.amount.toString(),
-            unit: activeUnit,
-            events: [{id: tokenEvent.id, marker: 'created'}],
-          });
-        }
         if (!proofsStorage && !proofs) {
           setProofsStorage([...receive]);
           setProofs([...receive]);
@@ -143,6 +129,26 @@ export const Invoices = () => {
           setProofsStorage([...proofs, ...receive]);
           setProofs([...proofs, ...receive]);
         }
+        if (privateKey && publicKey) {
+          try {
+            const tokenEvent = await createTokenEvent({
+              walletId,
+              mint: activeMint,
+              proofs: receive,
+            });
+            await createSpendingEvent({
+              walletId,
+              direction: 'in',
+              amount: invoice.amount.toString(),
+              unit: activeUnit,
+              events: [{id: tokenEvent.id, marker: 'created'}],
+            });
+          } catch (error) {
+            console.log("error nip 60",error)
+          }
+      
+        }
+
         return receive;
       }
       return undefined;

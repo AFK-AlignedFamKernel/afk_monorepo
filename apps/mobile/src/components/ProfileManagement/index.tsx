@@ -215,6 +215,7 @@ export const ProfileManagement = ({ title, navigation, showLogo, isModalMode }: 
                   <TouchableOpacity
                     onPress={() => {
                       setAuth(item?.publicKey, item?.secretKey)
+                      NostrKeyManager.setAccountConnected(item)
                       handleIsOpenProfile()
                     }}
                     style={styles.profileItemRow}>

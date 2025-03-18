@@ -1,18 +1,18 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
 
-import {useAuth, useCreateWalletEvent, useGetCashuTokenEvents} from 'afk_nostr_sdk';
-import {getRandomBytes, randomUUID} from 'expo-crypto';
-import React, {useEffect, useState} from 'react';
-import {SafeAreaView, ScrollView, TouchableOpacity, View} from 'react-native';
-import {Modal, Text} from 'react-native';
+import { NostrKeyManager, useAuth, useCashu, useCashuStore, useCreateWalletEvent, useGetCashuTokenEvents } from 'afk_nostr_sdk';
+import { getRandomBytes, randomUUID } from 'expo-crypto';
+import React, { useEffect, useState } from 'react';
+import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Modal, Text } from 'react-native';
 import PolyfillCrypto from 'react-native-webview-crypto';
 
-import {ChevronLeftIcon, ScanQrIcon, SettingsIcon} from '../../assets/icons';
-import {Button, ScanQRCode} from '../../components';
-import {ContactsRow} from '../../components/ContactsRow';
+import { ChevronLeftIcon, ScanQrIcon, SettingsIcon } from '../../assets/icons';
+import { Button, ScanQRCode } from '../../components';
+import { ContactsRow } from '../../components/ContactsRow';
 import TabSelector from '../../components/TabSelector';
-import {useStyles, useTheme} from '../../hooks';
+import { useStyles, useTheme } from '../../hooks';
 import {
   useActiveMintStorage,
   useActiveUnitStorage,
@@ -21,17 +21,17 @@ import {
   useProofsStorage,
   useWalletIdStorage,
 } from '../../hooks/useStorageState';
-import {useCashuContext} from '../../providers/CashuProvider';
-import {SelectedTab, TABS_CASHU} from '../../types/tab';
-import {ContactList} from '../Contacts/ContactList';
-import {Balance} from './components/Balance';
-import {History} from './components/History';
-import {Invoices} from './components/Invoices';
-import {Mints} from './components/Mints';
-import {NoMintBanner} from './components/NoMintBanner';
-import {Receive} from './components/Receive';
-import {Send} from './components/Send';
-import {Settings} from './components/Settings';
+import { useCashuContext } from '../../providers/CashuProvider';
+import { SelectedTab, TABS_CASHU } from '../../types/tab';
+import { ContactList } from '../Contacts/ContactList';
+import { Balance } from './components/Balance';
+import { History } from './components/History';
+import { Invoices } from './components/Invoices';
+import { Mints } from './components/Mints';
+import { NoMintBanner } from './components/NoMintBanner';
+import { Receive } from './components/Receive';
+import { Send } from './components/Send';
+import { Settings } from './components/Settings';
 import stylesheet from './styles';
 
 export const CashuWalletView: React.FC = () => {
@@ -45,8 +45,10 @@ export const CashuWalletView: React.FC = () => {
 
 export const CashuView = () => {
   // styles
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
+
+  const { seed, setSeed } = useCashuStore();
 
   // states
   const [isOpenContactManagement, setIsOpenContactManagement] = useState(false);
@@ -58,18 +60,18 @@ export const CashuView = () => {
   const [settingsModalOpen, setSettingsModalOpen] = useState<boolean>(false);
   const [addingMint, setAddingMint] = useState<boolean>(false);
 
-  const {value: mints, setValue: setMintsStorage} = useMintStorage();
-  const {value: activeMint, setValue: setActiveMintStorage} = useActiveMintStorage();
-  const {value: activeUnit, setValue: setActiveUnitStorage} = useActiveUnitStorage();
-  const {value: proofs} = useProofsStorage();
-  const {setValue: setPrivKey} = usePrivKeySignerStorage();
-  const {setValue: setWalletId} = useWalletIdStorage();
+  const { value: mints, setValue: setMintsStorage } = useMintStorage();
+  const { value: activeMint, setValue: setActiveMintStorage } = useActiveMintStorage();
+  const { value: activeUnit, setValue: setActiveUnitStorage } = useActiveUnitStorage();
+  const { value: proofs } = useProofsStorage();
+  const { setValue: setPrivKey } = usePrivKeySignerStorage();
+  const { setValue: setWalletId } = useWalletIdStorage();
 
   //context
-  const {buildMintData, setMints, setActiveMint, setActiveUnit, setProofs} = useCashuContext()!;
-  const {publicKey, privateKey} = useAuth();
+  const { buildMintData, setMints, setActiveMint, setActiveUnit, setProofs } = useCashuContext()!;
+  const { publicKey, privateKey } = useAuth();
 
-  const {mutateAsync: createWalletEvent} = useCreateWalletEvent();
+  const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
 
   useEffect(() => {
     setMints(mints);
@@ -91,7 +93,7 @@ export const CashuView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proofs]);
 
-  const tokenCashuEvents   = useGetCashuTokenEvents()
+  const tokenCashuEvents = useGetCashuTokenEvents()
 
   console.log("cashuView")
   console.log('tokenCashuEvents', tokenCashuEvents);
@@ -118,6 +120,26 @@ export const CashuView = () => {
     setSendModalOpen(true);
   };
 
+  useEffect(() => {
+    console.log("seed", seed)
+
+    const handleSeed = async () => {
+      const nostrAccountStr = await NostrKeyManager.getAccountConnected();
+      const nostrAccount = JSON.parse(nostrAccountStr);
+      console.log("nostrAccount", nostrAccount)
+
+      if (nostrAccount && nostrAccount?.seed) {
+
+        const seedUint = Buffer.from(nostrAccount?.seed, 'hex');
+        setSeed(seedUint)
+      }
+    }
+
+    if (!seed && publicKey && privateKey) {
+      handleSeed()
+    }
+  }, [seed, publicKey, privateKey])
+
   const onOpenReceiveModal = () => {
     setReceiveModalOpen(true);
   };
@@ -132,12 +154,27 @@ export const CashuView = () => {
     setMintsStorage([data]);
     setAddingMint(false);
 
-    const privKey = getRandomBytes(32);
-    const privateKeyHex = Buffer.from(privKey).toString('hex');
-    setPrivKey(privateKeyHex);
+    const nostrAccountStr = await NostrKeyManager.getAccountConnected();
+    const nostrAccount = JSON.parse(nostrAccountStr);
+    console.log("nostrAccount", nostrAccount)
 
     const id = randomUUID();
     setWalletId(id);
+    if (nostrAccount && nostrAccount?.seed) {
+
+      setSeed(nostrAccount?.seed)
+      // NostrKeyManager.setAccountConnected(nostrAccount)
+      // nostr event
+      await createWalletEvent({
+        name: id,
+        mints: mints.map((mint) => mint.url),
+        privkey: nostrAccount?.seed,
+      });
+      return;
+    }
+    const privKey = getRandomBytes(32);
+    const privateKeyHex = Buffer.from(privKey).toString('hex');
+    setPrivKey(privateKeyHex);
 
     if (publicKey && privateKey) {
       // nostr event
@@ -152,7 +189,11 @@ export const CashuView = () => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollView}>
+        <ScrollView
+          contentContainerStyle={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+        >
           {mints.length > 0 ? (
             <>
               <TouchableOpacity

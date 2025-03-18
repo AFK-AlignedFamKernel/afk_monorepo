@@ -123,6 +123,8 @@ export const useCashu = (): ICashu => {
   const { privateKey } = useAuth();
   const { setSeed, seed, setMnemonic } = useCashuStore();
 
+  
+
   const [mintUrlSelected, setMintUrlSelected] = useState<string>("https://mint.minibits.cash/Bitcoin");
 
   const [activeMint, setActiveMint] = useState<string>();

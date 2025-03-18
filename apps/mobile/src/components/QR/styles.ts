@@ -194,5 +194,9 @@ export default ThemedStyleSheet((theme) => ({
     alignItems: 'center',
     justifyContent: 'space-between',
     flexDirection: 'column',
+  },
+  text: {
+    fontSize: 16,
+    color: theme.colors.text,
   }
 }));

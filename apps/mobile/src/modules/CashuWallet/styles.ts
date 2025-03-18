@@ -10,6 +10,9 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
     color: theme.colors.text,
+    scrollbarWidth:"none",
+    scrollbarHeight:"none",
+    overflow:"hidden"
   },
   modalBackdrop: {
     flex: 1,
@@ -17,6 +20,7 @@ export default ThemedStyleSheet((theme) => ({
     position: 'relative',
     alignItems: 'center',
     width: '100%',
+    overflow:"hidden"
   },
   safeArea: {
     flex: 1,
@@ -32,6 +36,8 @@ export default ThemedStyleSheet((theme) => ({
     height: '95%',
     overflow: 'hidden',
     backgroundColor: 'transparent',
+    scrollbarWidth:"none",
+    scrollbarHeight:"none"
   },
   actionsContainer: {
     display: 'flex',
