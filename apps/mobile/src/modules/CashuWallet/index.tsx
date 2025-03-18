@@ -48,7 +48,7 @@ export const CashuView = () => {
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
 
-  const { seed , setSeed} = useCashuStore();
+  const { seed, setSeed } = useCashuStore();
 
   // states
   const [isOpenContactManagement, setIsOpenContactManagement] = useState(false);
@@ -122,20 +122,20 @@ export const CashuView = () => {
 
   useEffect(() => {
     console.log("seed", seed)
-    
+
     const handleSeed = async () => {
       const nostrAccountStr = await NostrKeyManager.getAccountConnected();
       const nostrAccount = JSON.parse(nostrAccountStr);
       console.log("nostrAccount", nostrAccount)
 
-      if(nostrAccount && nostrAccount?.seed) {
+      if (nostrAccount && nostrAccount?.seed) {
 
         const seedUint = Buffer.from(nostrAccount?.seed, 'hex');
         setSeed(seedUint)
       }
     }
 
-    if(!seed && publicKey && privateKey) {
+    if (!seed && publicKey && privateKey) {
       handleSeed()
     }
   }, [seed, publicKey, privateKey])
@@ -170,7 +170,7 @@ export const CashuView = () => {
         mints: mints.map((mint) => mint.url),
         privkey: nostrAccount?.seed,
       });
-      return; 
+      return;
     }
     const privKey = getRandomBytes(32);
     const privateKeyHex = Buffer.from(privKey).toString('hex');
@@ -189,9 +189,10 @@ export const CashuView = () => {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
+        <ScrollView
+          contentContainerStyle={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
         >
           {mints.length > 0 ? (
             <>

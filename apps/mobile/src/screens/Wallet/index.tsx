@@ -35,7 +35,10 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
           Cancel
         </TextButton>
       </SafeAreaView>
-      <ScrollView>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+      >
         <KeyboardAvoidingView behavior="padding" style={styles.content}>
           <TabSelector
             activeTab={selectedTab}

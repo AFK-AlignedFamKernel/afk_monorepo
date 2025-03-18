@@ -32,6 +32,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
   const [scanned, setScanned] = useState<boolean>(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalProcessing, setModalProcessing] = useState<boolean>(false);
   const [webPermissionGranted, setWebPermissionGranted] = useState<boolean>(false);
   const [modalToast, setModalToast] = useState<ToastConfig | undefined>(undefined);
   const [showModalToast, setShowModalToast] = useState(false);
@@ -43,7 +44,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
   const styles = useStyles(stylesheet);
   const [type, setType] = useState<"CASHU" | "STRK">("CASHU")
 
-  const [amount, setAmount] = useState<string | undefined>(undefined)
+  const [amount, setAmount] = useState<string | undefined>("0")
 
   const { handlePayInvoice: handlePayInvoiceAtomiq, handlePayLnurl } = useAtomiqLab()
 
@@ -105,10 +106,13 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
           }
         } else {
           if (scannedData?.toLowerCase().startsWith('lnurl')) {
+            setModalVisible(false);
+
             const invoiceAtomiq = await handlePayLnurl(scannedData, Number(amount))
             console.log("invoiceAtomiq", invoiceAtomiq)
 
-            if (invoiceAtomiq) {
+            setModalVisible(true);
+            if (invoiceAtomiq && invoiceAtomiq?.success) {
               showToast({ title: 'Payment sent', type: 'success' });
             } else {
               const key = randomUUID();
@@ -121,10 +125,13 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
               setIsProcessing(false);
             }
           } else {
+            setModalVisible(false);
+
             const invoiceAtomiq = await handlePayInvoiceAtomiq(scannedData)
             console.log("invoiceAtomiq", invoiceAtomiq)
+            setModalVisible(true);
 
-            if (invoiceAtomiq) {
+            if (invoiceAtomiq && invoiceAtomiq?.success) {
               showToast({ title: 'Payment sent', type: 'success' });
             } else {
               const key = randomUUID();
@@ -403,7 +410,106 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
           ) : null}
         </>
       ) : null}
-      <Modal
+
+
+      {scannedData &&
+        <View
+        // visible={modalVisible}
+        // transparent={true}
+        // animationType="fade"
+        // onRequestClose={handleModalClose}
+        >
+          {showModalToast && modalToast ? (
+            <View style={styles.toastContainer}>
+              <AnimatedToast
+                key={modalToast.key}
+                toast={modalToast}
+                hide={() => setShowModalToast(false)}
+              />
+            </View>
+          ) : null}
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.resultText}>Scanned Data</Text>
+              {scannedData ? (
+                <Input
+                  autoFocus={false}
+                  value={scannedData}
+                  style={{
+                    width: "100%",
+                    height: 45,
+                    marginHorizontal: 20,
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.text,
+                  }}
+                  editable={false}
+                  right={
+                    <TouchableOpacity
+                      onPress={handleCopyToClipboard}
+                      style={{
+                        marginRight: 10,
+                      }}
+                    >
+                      <CopyIconStack color={theme.colors.primary} />
+                    </TouchableOpacity>
+                  }
+                />
+              ) : null}
+
+              <Text style={styles.text}>{type}</Text>
+              <Switch value={type == "STRK"} onValueChange={() => {
+                if (type == "CASHU") {
+                  setType("STRK")
+                } else {
+                  setType("CASHU")
+                }
+              }} > {type}</Switch>
+              <Text style={styles.modalText}>
+                {scannedData?.toLowerCase().startsWith('lnbc')
+                  ? 'Pay this invoice?'
+                  : scannedData?.toLowerCase().startsWith('lnurl')
+                    ? 'Pay?'
+                    : 'Receive this eCash?'}
+              </Text>
+
+              {scannedData?.toLowerCase().startsWith('lnurl') ? (
+                <Input
+                  value={String(amount)}
+                  onChangeText={setAmount}
+                  placeholder='Amount to send'
+                ></Input>
+
+              ) : null}
+              <View style={styles.scannedModalButtonsContainer}>
+                <Button
+                  style={[styles.scannedModalActionButton, styles.scannedModalCancelButton]}
+                  textStyle={styles.scannedModalCancelButtonText}
+                  onPress={handleModalClose}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  style={[styles.scannedModalActionButton, styles.scannedModalOKButton]}
+                  textStyle={styles.scannedModalOKButtonText}
+                  disabled={isProcessing}
+                  onPress={scannedData?.toLowerCase().startsWith('lnbc') || scannedData?.toLowerCase().startsWith('lnurl') ? handlePay : handleReceive}
+                >
+                  {isProcessing
+                    ? 'Processing...'
+                    : scannedData?.toLowerCase().startsWith('lnbc')
+                      ? 'Pay'
+                      : scannedData?.toLowerCase().startsWith('lnurl')
+                        ? 'Pay'
+                        : 'Receive'}
+                </Button>
+
+              </View>
+            </View>
+          </View>
+        </View>
+      }
+
+      {/* <Modal
         visible={modalVisible}
         transparent={true}
         animationType="fade"
@@ -494,7 +600,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
     </View>
   );
 };

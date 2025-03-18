@@ -7,6 +7,8 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
     color: theme.colors.text,
+    scrollbarWidth:"none",
+    scrollbarHeight:"none"
   },
 
   header: {

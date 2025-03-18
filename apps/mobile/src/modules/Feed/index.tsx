@@ -417,6 +417,9 @@ export const FeedComponent: React.FC = () => {
         ))}
 
       <FlatList
+
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
         // ListHeaderComponent={
         //   <>
         //     <FlatList
