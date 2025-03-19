@@ -30,11 +30,11 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <SafeAreaView edges={['top', 'left', 'right']} style={styles.header}>
+      {/* <SafeAreaView edges={['top', 'left', 'right']} style={styles.header}>
         <TextButton style={styles.cancelButton} onPress={navigation.goBack}>
           Cancel
         </TextButton>
-      </SafeAreaView>
+      </SafeAreaView> */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}

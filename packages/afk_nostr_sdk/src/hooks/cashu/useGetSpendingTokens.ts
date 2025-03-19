@@ -21,14 +21,14 @@ interface TokenEventContent {
   }>;
 }
 
-export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions) => {
+export const useGetSpendingTokens = (options?: UseTokenEventsOptions) => {
   const {ndk} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 
   return useInfiniteQuery({
     initialPageParam: 0,
     queryKey: [
-      'getCashuTokens',
+      'getSpendingTokens',
       options?.authors,
       options?.walletId,
       options?.search,
@@ -52,7 +52,7 @@ export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions) => {
         until?: number;
         limit: number;
       } = {
-        kinds: [NDKKind.CashuToken],
+        kinds: [7376],
         authors: options?.authors || [publicKey],
         limit: 20,
         until: pageParam || Math.round(Date.now() / 1000),
@@ -80,7 +80,7 @@ export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions) => {
       const user = new NDKUser({pubkey: publicKey});
 
 
-      console.log("tokenEvents", tokenEvents);
+      console.log("tokenEvents", tokenEvents)
 
       const filteredEvents = await Promise.all(
         [...tokenEvents].map(async (event) => {
@@ -90,22 +90,13 @@ export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions) => {
             const content: TokenEventContent = JSON.parse(decryptedContent);
 
             // Check if any of the proofs match the filter
-
             if(options?.proofIds) {
-              const hasMatchingProof = content?.proofs?.some((proof) =>
-                options?.proofIds?.includes(proof?.id),
+              const hasMatchingProof = content.proofs.some((proof) =>
+                options?.proofIds?.includes(proof.id),
               );
-              let eventToReturn = {
-                ...event,
-                content: content,
-              };
-              return hasMatchingProof ? eventToReturn : null;
+              return hasMatchingProof ? event : null;
             } else {
-              let eventToReturn = {
-                ...event,
-                content: content,
-              };
-              return eventToReturn;
+              return event;
             }
 
           } catch (error) {

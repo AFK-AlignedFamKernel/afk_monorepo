@@ -34,8 +34,6 @@ export const ProfileManagement = ({ title, navigation, showLogo, isModalMode }: 
 
   const [isOpenProfile, setIsOpenProfile] = React.useState(false);
   const nostrAccounts = NostrKeyManager.getNostrAccountsFromStorage();
-  console.log('nostrAccounts', nostrAccounts);
-  console.log('isOpenProfile', isOpenProfile);
   const [isWalletSelectOpen, setIsWalletSelectOpen] = React.useState(false);
 
   const handleIsOpenProfile = () => {

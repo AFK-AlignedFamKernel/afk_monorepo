@@ -59,6 +59,7 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
     maxWidth: '40%',
     backgroundColor: theme.colors.primary,
+    maxHeight:"40%"
   },
   actionButtonText: {
     color: theme.colors.white,

@@ -47,8 +47,6 @@ export default ThemedStyleSheet((theme) => ({
     // overflow: 'hidden',
     paddingBottom: 20,
     position: 'relative',
-    maxHeight:350,
-    // maxHeight: '95%',
 
   },
   modalTabContentContainerChildren: {
@@ -58,6 +56,9 @@ export default ThemedStyleSheet((theme) => ({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     paddingBottom: 20,
+    maxHeight: '95%',
+    padding:20,
+
   },
   modalTabContentTitle: {
     padding: 20,

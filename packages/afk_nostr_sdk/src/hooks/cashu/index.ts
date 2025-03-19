@@ -22,3 +22,5 @@ export {
   useRecordNutZapRedemption,
   useSetNutZapPreferences,
 } from './useNutzaps';
+export {useMintTrusted} from './useMintTrusted';
+export {useGetSpendingTokens} from './useGetSpendingTokens';

@@ -4,10 +4,10 @@ import {Contact, useCashuStore} from 'afk_nostr_sdk';
 import React, {useState} from 'react';
 import {Text, TextInput, View} from 'react-native';
 
-import {Button} from '../../components';
-import {useStyles} from '../../hooks';
-import {useToast} from '../../hooks/modals';
-import {usePayment} from '../../hooks/usePayment';
+import {Button} from 'src/components';
+import {useStyles} from 'src/hooks';
+import {useToast} from 'src/hooks/modals';
+import {usePayment} from 'src/hooks/usePayment';
 import stylesheet from './styles';
 
 // Type definition for SendModalProps
