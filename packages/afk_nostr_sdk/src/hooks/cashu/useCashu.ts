@@ -299,6 +299,10 @@ export const useCashu = (): ICashu => {
       await getUnitKeysets(unit, pMint).then((unitKeySets) => {
         unitProofs = proofsLocal.filter((p) => unitKeySets.map((k) => k.id).includes(p.id));
       });
+    }else {
+      await getUnitKeysets(unit, pMint).then((unitKeySets) => {
+        unitProofs = proofsLocal.filter((p) => unitKeySets.map((k) => k.id).includes(p.id));
+      }); 
     }
     return unitProofs;
   };

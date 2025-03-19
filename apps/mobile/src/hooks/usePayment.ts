@@ -163,7 +163,7 @@ export const usePayment = () => {
     }
   };
 
-  const handleGenerateEcash = async (amount: number) => {
+  const handleGenerateEcash = async (amount: number, proofsParent?: Proof[]) => {
     try {
       if (!amount) {
         return undefined;
@@ -176,17 +176,14 @@ export const usePayment = () => {
 
       console.log('proofs', proofsStore);
   
-      if (!proofsStr) {
+      if (!proofsStr && !proofsParent) {
         showToast({
           title: 'No proofs found',
           type: 'error',
         });
-        return {
-          meltResponse: undefined,
-          invoice: undefined,
-        }
+        return undefined
       };
-      const proofs = JSON.parse(proofsStr)
+      const proofs = proofsParent ? [...(JSON.parse(proofsStr)), ...proofsParent] : JSON.parse(proofsStr)
 
       if (proofs) {
         // const proofsCopy = Array.from(proofs);
@@ -194,6 +191,7 @@ export const usePayment = () => {
 
         const availableAmount = proofsCopy.reduce((s: number, t: Proof) => (s += t.amount), 0);
 
+        console.log("proofsCopy", proofsCopy)
         if (availableAmount < amount) {
           return undefined;
         }
@@ -214,9 +212,12 @@ export const usePayment = () => {
         const res = await wallet.selectProofsToSend(proofs, amount)
 
         console.log('res', res);
-        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, selectedProofs);
+        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, selectedProofs, {includeFees:true});
         const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, res?.send);
+        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, res?.send);
+        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, res?.send);
         console.log('proofsToKeep', proofsToKeep);
+        console.log('proofsToSend', proofsToSend);
 
         if (proofsToKeep && proofsToSend) {
           if (privateKey && publicKey) {

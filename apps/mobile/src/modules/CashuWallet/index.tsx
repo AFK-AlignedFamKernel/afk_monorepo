@@ -162,7 +162,7 @@ export const CashuView = () => {
     setWalletId(id);
     if (nostrAccount && nostrAccount?.seed) {
 
-      setSeed(nostrAccount?.seed)
+      setSeed(Buffer.from(nostrAccount?.seed, 'hex'))
       // NostrKeyManager.setAccountConnected(nostrAccount)
       // nostr event
       await createWalletEvent({

@@ -113,7 +113,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
       await Clipboard.setStringAsync(generatedEcash);
     } else if (type === 'link') {
       const baseUrl = window.location.origin;
-      await Clipboard.setStringAsync(`${baseUrl}/receive/ecash/${generatedEcash}`);
+      await Clipboard.setStringAsync(`${baseUrl}/app/receive/ecash/${generatedEcash}`);
     }
     const key = randomUUID();
     setModalToast({
@@ -465,6 +465,13 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
                   >
                     <Text style={styles.text}>eCash token</Text>
                     <Input
+                    style={{
+                      backgroundColor: theme.colors.surface,
+                      color: theme.colors.inputText,
+                      paddingVertical: 5,
+                      paddingHorizontal: 8,
+                      width: '100%',
+                    }}
                       value={generatedEcash}
                       editable={false}
                       right={
