@@ -1,5 +1,6 @@
 use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
-use afk_launchpad::utils::{sqrt};
+use afk_launchpad::launchpad::math::{dynamic_reduce_u256_to_u128, dynamic_scale_u128_to_u256};
+use alexandria_math::fast_root::{fast_sqrt};
 use core::num::traits::{Zero};
 use ekubo::types::bounds::Bounds;
 use ekubo::types::i129::i129;
@@ -21,7 +22,9 @@ pub const MIN_SQRT_RATIO: u256 = 18446748437148339061;
 pub const MAX_SQRT_RATIO: u256 = 6277100250585753475930931601400621808602321654880405518632;
 pub const POW_128: u256 = 340282366920938463463374607431768211455;
 pub const POW_64: u256 = 18446744073709551616;
+pub const POW_32: u256 = 4294967296;
 pub const DECIMAL_FACTOR: u256 = 1_000_000_000_000_000_000_u256;
+pub const SQRT_ITER: u256 = 1_000_u256;
 pub const UINT_128_MAX: u256 = 340282366920938463463374607431768211455;
 
 // use integer::u256_from_felt252;
@@ -345,13 +348,17 @@ pub fn calculate_sqrt_ratio(
 
     assert(price_ratio <= UINT_128_MAX, 'price ratio overflow');
 
-    // let (reduced_i_cast, exp) = dynamic_reduce_u256_to_u128(i_cast);
-    // let res = fast_sqrt(reduced_i_cast, SQRT_ITER.try_into().unwrap());
-    // let i = dynamic_scale_u128_to_u256(res, exp) * SCALE_ROOT_FACTOR;
-    // We need to multiply by POW_64 as the number is in the space of <-2^64, 2^64>
-    let mut sqrt_ratio: u256 = sqrt_fixed128(price_ratio) * POW_64;  
-   
+    // We are trying to calculate sqrt of 128_FIXED_POINT NUMBER therefore we need to scale it by 2^128
+    // But when the sqrt ratio is scaled back to u256 it is not the scaled appropriately so we scaled to 2^32 to get the correct value
+    let (reduced_i_cast, exp) = dynamic_reduce_u256_to_u128((price_ratio * POW_128));
+    let res = fast_sqrt(reduced_i_cast, SQRT_ITER.try_into().unwrap());
 
+    let mut sqrt_ratio = dynamic_scale_u128_to_u256(res, exp) * POW_32;
+    
+    // This was my original implementation however I wanted to used the fast_sqrt function from the alexandria_math crate
+    // We need to multiply by POW_64 as the number is in the space of <-2^64, 2^64>
+    // let mut sqrt_ratio: u256 = sqrt_fixed128(price_ratio) * POW_64;  
+   
     let min_sqrt_ratio_limit = MIN_SQRT_RATIO;
     let max_sqrt_ratio_limit = MAX_SQRT_RATIO;
 
