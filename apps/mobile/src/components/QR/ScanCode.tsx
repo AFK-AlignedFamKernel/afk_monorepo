@@ -17,6 +17,8 @@ import stylesheet from './styles';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps, MainStackParams } from '../../types';
 import Checkbox from 'expo-checkbox';
+import { TipSuccessModal } from 'src/modules/TipSuccessModal';
+import { SuccessModal } from 'src/modules/SuccessModal';
 
 interface ScanCashuQRCodeProps {
   onClose: () => void;
@@ -31,6 +33,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState<boolean>(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
+  const [oldScannedData, setOldScannedData] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalProcessing, setModalProcessing] = useState<boolean>(false);
   const [webPermissionGranted, setWebPermissionGranted] = useState<boolean>(false);
@@ -45,6 +48,9 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
   const [type, setType] = useState<"CASHU" | "STRK">("CASHU")
 
   const [amount, setAmount] = useState<string | undefined>("0")
+  const [isSuccessPay, setIsSuccessPay] = useState<boolean>(false)
+  const [isSuccessReceive, setIsSuccessReceive] = useState<boolean>(false)
+  const [isPreimage , setIsPreimage] = useState<string|undefined>(undefined)
 
   const { handlePayInvoice: handlePayInvoiceAtomiq, handlePayLnurl } = useAtomiqLab()
 
@@ -94,6 +100,8 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
             cleanup();
             onClose();
             onSuccess();
+            setOldScannedData(scannedData);
+            setIsSuccessPay(true);
           } else {
             const key = randomUUID();
             setModalToast({
@@ -114,6 +122,9 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
             setModalVisible(true);
             if (invoiceAtomiq && invoiceAtomiq?.success) {
               showToast({ title: 'Payment sent', type: 'success' });
+              setIsSuccessPay(true);
+              setIsPreimage(invoiceAtomiq?.lightningSecret);
+              setOldScannedData(scannedData);
             } else {
               const key = randomUUID();
               setModalToast({
@@ -133,6 +144,10 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
 
             if (invoiceAtomiq && invoiceAtomiq?.success) {
               showToast({ title: 'Payment sent', type: 'success' });
+              setIsSuccessPay(true);
+              setIsPreimage(invoiceAtomiq?.lightningSecret);
+              setOldScannedData(scannedData);
+
             } else {
               const key = randomUUID();
               setModalToast({
@@ -371,6 +386,34 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
     );
   };
 
+
+  const renderSuccessPay = () => {
+
+    if (isSuccessPay) {
+      return (
+
+        <View style={styles.successContainer}>
+
+
+          {scannedData?.toLowerCase().startsWith("lnurl") ?
+            <View>
+              <Text style={styles.successText}>Pay {amount} sats successfully</Text>
+              <Text style={styles.text}>You can send more to this user or close this screen</Text>
+            </View>
+            :
+            <View>
+              <Text style={styles.successText}>This invoice is pay successfully</Text>
+              <Text>You can close this screen</Text>
+            </View>}
+
+          <Button onPress={() => setIsSuccessPay(false)}>Close</Button>
+
+        </View>
+      )
+    }
+
+  }
+
   return (
     <View style={styles.container}>
       {!scanned ? (
@@ -410,6 +453,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
           ) : null}
         </>
       ) : null}
+
 
 
       {scannedData &&
@@ -464,11 +508,12 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
                   setType("CASHU")
                 }
               }} > {type}</Switch>
+
               <Text style={styles.modalText}>
                 {scannedData?.toLowerCase().startsWith('lnbc')
                   ? 'Pay this invoice?'
                   : scannedData?.toLowerCase().startsWith('lnurl')
-                    ? 'Pay?'
+                    ? 'Pay this user with an amount'
                     : 'Receive this eCash?'}
               </Text>
 
@@ -508,6 +553,9 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess 
           </View>
         </View>
       }
+
+      {renderSuccessPay()}
+
 
       {/* <Modal
         visible={modalVisible}

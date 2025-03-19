@@ -198,5 +198,36 @@ export default ThemedStyleSheet((theme) => ({
   text: {
     fontSize: 16,
     color: theme.colors.text,
+  },
+  successText: {
+    fontSize: 20,
+    color: theme.colors.primary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+
+  },
+  
+  successContainer:{
+    // position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: theme.colors.surface,
+    borderColor: theme.colors.primary,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing.pagePadding,
+    zIndex: 1000,
+    borderRadius: 10,
+    shadowColor: theme.colors.shadow,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5
   }
 }));
