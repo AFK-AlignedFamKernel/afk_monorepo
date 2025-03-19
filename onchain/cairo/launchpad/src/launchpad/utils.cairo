@@ -345,6 +345,9 @@ pub fn calculate_sqrt_ratio(
 
     assert(price_ratio <= UINT_128_MAX, 'price ratio overflow');
 
+    // let (reduced_i_cast, exp) = dynamic_reduce_u256_to_u128(i_cast);
+    // let res = fast_sqrt(reduced_i_cast, SQRT_ITER.try_into().unwrap());
+    // let i = dynamic_scale_u128_to_u256(res, exp) * SCALE_ROOT_FACTOR;
     // We need to multiply by POW_64 as the number is in the space of <-2^64, 2^64>
     let mut sqrt_ratio: u256 = sqrt_fixed128(price_ratio) * POW_64;  
    

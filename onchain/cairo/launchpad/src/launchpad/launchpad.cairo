@@ -1652,6 +1652,7 @@ pub mod LaunchpadMarketplace {
                 initial_tick.mag = initial_tick.mag + 1; // We should keep complementary code 
                 initial_tick.sign = true; 
             }
+            
             // let bound_spacing = 887272;
             // TODO check how used the correct tick spacing
             // bound spacing calculation

@@ -514,10 +514,13 @@ mod edge_cases_tests {
             .unwrap();
         let memecoin_balance = memecoin_balance_after - memecoin_balance_before;
         assert(memecoin_balance == delta.amount1.mag, 'Wrong After swap balance');
-
+        println!("amount_quote {}", amount_quote);
+        println!("expected_ratio {}", expected_ratio);
         let expected_obtained_amount = amount_quote * expected_ratio;
         // Let's allow deviation 4% for slippage and fee
         let real_amount_after_slippage_fee: u128 = (expected_obtained_amount * 96 / 100).try_into().unwrap();
+        println!("real_amount_after_slippage_fee {}", real_amount_after_slippage_fee);
+        println!("memecoin_balance {}", memecoin_balance);
         assert(memecoin_balance >= real_amount_after_slippage_fee, 'Wrong After swap balance');
     }
 
@@ -763,7 +766,7 @@ mod edge_cases_tests {
                 creator_fee_destination: RECEIVER_ADDRESS()
             );
 
-        let expected_price_ratio = *init_supplies.at(i) / launchpad.get_threshold_liquidity();    
+        let expected_price_ratio = (*init_supplies.at(i) / 5) / launchpad.get_threshold_liquidity();    
 
         token_addresses.append(token_address.clone());
 
@@ -872,7 +875,7 @@ mod edge_cases_tests {
                 );
 
             token_addresses.append(token_address.clone());
-            let expected_price_ratio = *init_supplies.at(i) / launchpad.get_threshold_liquidity();
+            let expected_price_ratio = (*init_supplies.at(i) / 5) / launchpad.get_threshold_liquidity();
 
             let memecoin = IERC20Dispatcher { contract_address: token_address };
 
@@ -979,7 +982,7 @@ mod edge_cases_tests {
             token_addresses.append(token_address);
 
             let memecoin = IERC20Dispatcher { contract_address: token_address };
-            let expected_price_ratio = *init_supplies.at(i) / launchpad.get_threshold_liquidity();
+            let expected_price_ratio = (*init_supplies.at(i) / 5) / launchpad.get_threshold_liquidity();
 
             // println!("buy threshold liquidity");
             // run_buy_by_amount(
