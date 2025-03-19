@@ -1681,28 +1681,6 @@ pub mod LaunchpadMarketplace {
             let bound_spacing: u128 = calculate_bound_mag(
                 fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick.clone()
             );
-            // let (initial_tick, full_range_bounds_initial) = get_initial_tick_from_starting_price(
-            //     starting_price, // launch_params.pool_params.bound,
-            //     bound_spacing.clone(), // aligned_max_tick,
-            //     is_token1_quote
-            // );
-
-            // println!("initial_tick {}", initial_tick.mag.clone());
-            // TODO
-            // Ensure the tick is align with the tick spacing
-            // let aligned_tick = align_tick(initial_tick, tick_spacing);
-            // println!("aligned_tick {}",aligned_tick.clone());
-            // TODO
-            // Adjust bound spacing
-            // Based on the range choose
-            // Bounding space for Wide range or Concentrated range
-            // verify the bound spacing is correct
-            // AUDIT
-            // let bound_spacing = initial_tick.mag * 2;
-
-            // let bound_spacing = calculate_aligned_bound_mag(initial_tick, 2,
-            // tick_spacing.clone());
-            // let bound_spacing = 88719042;
 
             // Align the min and max ticks with the spacing
             let min_tick = MIN_TICK_U128.try_into().unwrap();
