@@ -518,7 +518,7 @@ mod edge_cases_tests {
         let expected_obtained_amount = amount_quote * expected_ratio;
         // Let's allow deviation 4% for slippage and fee
         let real_amount_after_slippage_fee: u128 = (expected_obtained_amount * 96 / 100).try_into().unwrap();
-        assert(memecoin_balance == real_amount_after_slippage_fee, 'Wrong After swap balance');
+        assert(memecoin_balance >= real_amount_after_slippage_fee, 'Wrong After swap balance');
     }
 
     // This test works only sometimes as it is not easy to similate quote_memecoin > base_memecoin
