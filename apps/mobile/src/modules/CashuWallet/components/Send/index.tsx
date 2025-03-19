@@ -32,8 +32,8 @@ import {
   useProofsStorage,
 } from '../../../../hooks/useStorageState';
 import { useCashuContext } from '../../../../providers/CashuProvider';
-import { UnitInfo } from '../../../Cashu/MintListCashu';
-import SendNostrContact from '../../../Cashu/SendContact';
+import { UnitInfo } from '../Mints/MintListCashu';
+import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 import { useToast } from 'src/hooks/modals';
 

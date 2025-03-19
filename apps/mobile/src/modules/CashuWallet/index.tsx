@@ -52,8 +52,8 @@ export const CashuView = () => {
 
   // states
   const [isOpenContactManagement, setIsOpenContactManagement] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
-  const [showMore, setShowMore] = useState<boolean>(false);
+  const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_MINT);
+  const [showMore, setShowMore] = useState<boolean>(true);
   const [isScannerVisible, setIsScannerVisible] = useState(false);
   const [sendModalOpen, setSendModalOpen] = useState<boolean>(false);
   const [receiveModalOpen, setReceiveModalOpen] = useState<boolean>(false);
@@ -212,6 +212,11 @@ export const CashuView = () => {
                   >
                     Send
                   </Button>
+                    <View>
+                    <Button onPress={handleQRCodeClick} style={styles.qrButton}>
+                      <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
+                    </Button>
+                  </View>
                   <Button
                     onPress={onOpenReceiveModal}
                     style={styles.actionButton}
@@ -220,12 +225,12 @@ export const CashuView = () => {
                     Receive
                   </Button>
                 </View>
-                <Text style={styles.orText}>or</Text>
+                {/* <Text style={styles.orText}>or</Text>
                 <View>
                   <Button onPress={handleQRCodeClick} style={styles.qrButton}>
                     <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
                   </Button>
-                </View>
+                </View> */}
               </View>
             </>
           ) : (
