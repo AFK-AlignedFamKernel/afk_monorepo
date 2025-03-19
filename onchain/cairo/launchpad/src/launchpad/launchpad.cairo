@@ -901,7 +901,8 @@ pub mod LaunchpadMarketplace {
                     );
 
                 // Add liquidity to DEX Ekubo
-                let (id, _) = self._add_liquidity_ekubo(coin_address);
+                let (id_retuned, _) = self._add_liquidity_ekubo(coin_address);
+                id = id_retuned;
 
                 // TODO V2
                 // Send the creator fee amount received to the creator DAO address
@@ -926,6 +927,7 @@ pub mod LaunchpadMarketplace {
                         quote_amount: remain_quote_to_liquidity
                     }
                 );
+            println!("ID in buy coin by quote amount: {}", id);
             id
         }
 
@@ -1599,49 +1601,24 @@ pub mod LaunchpadMarketplace {
             // Calculate thresholds
             let threshold_liquidity = launch.threshold_liquidity.clone();
             let slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
-            let threshold = threshold_liquidity - slippage_threshold;
 
-            // Set pool parameters
-            // TODO audit
-            // HIGH SECURITY RISK
-            // Add more test case
-
-            // Verify fee is correct
-            let fee_percent = 0xc49ba5e353f7d00000000000000000;
-            // TODO
-            // Verify tick spacing is correct based on the fee used
-            // let tick_spacing = 5928;
-            // let tick_spacing:u128 = 60_u128;
-            let tick_spacing = 60_u128;
+            // We use fee and tick size from the Unruguable as it seems as working POC
+            let fee_percent = 0xc49ba5e353f7d00000000000000000; // This is recommended value 0.3%
+            let tick_spacing = 5982_u128; // log(1 + 0.6%) / log(1.000001) => 0.6% is the tick spacing percentage
+            
 
             // Calculate initial tick price
             // Compute sqrt root with the correct placed of token0 and token1
 
-            // TODO test sqrt
-            // Sort token for calculation
-            // Check in Unruggable
-            let (token0, token1) = sort_tokens(
+            // Sorting of tokens
+            let (_, token1) = sort_tokens(
                 coin_address, launch.token_quote.token_address.clone()
             );
-            // let (token0, token1) = sort_tokens(launch.token_quote.token_address.clone(),
-            // coin_address);
 
-            // TODO uncomment this and comment others part of test scaling
             let is_token1_quote = launch.token_quote.token_address == token1;
-            // let is_token1_quote = true;
 
-            println!("is_token1_quote {}", is_token1_quote.clone());
-            // Audit
-            //  Edge case related to difference between threshold and total supply
-
-            // // TODO FIX
-            // Calculate sqrt ratio
-            // Check case need to scale the y_x
-            // Decimals precision
-            // // Audit edge case related to difference between threshold and total supply
-            // TODO: check if this is correct
-            // Adjust scale factor
-
+            // The calculation works with assumption that initial_pool_supply is always higher than threshold_liquidity which should be true 
+            // Calculate the sqrt ratio
             let mut sqrt_ratio = calculate_sqrt_ratio(
                 launch.liquidity_raised, launch.initial_pool_supply
             );
@@ -1689,7 +1666,7 @@ pub mod LaunchpadMarketplace {
             let aligned_min_tick = align_tick_with_max_tick_and_min_tick(min_tick, tick_spacing);
             let aligned_max_tick = align_tick_with_max_tick_and_min_tick(max_tick, tick_spacing);
             // Full range bounds for liquidity providing
-            // TODO verify the aligned bound and max used is correct
+            // Uniswap V2 model as full range is used
             let mut full_range_bounds = Bounds {
                 lower: i129 { mag: aligned_min_tick, sign: true },
                 upper: i129 { mag: aligned_max_tick, sign: false }
@@ -1699,10 +1676,8 @@ pub mod LaunchpadMarketplace {
                 fee: fee_percent,
                 tick_spacing: tick_spacing,
                 starting_price: initial_tick,
-                // starting_price: starting_price,
                 bound: bound_spacing,
                 bounds: full_range_bounds,
-                // bounds: full_range_bounds_initial,
                 bound_spacing: bound_spacing,
             };
 
