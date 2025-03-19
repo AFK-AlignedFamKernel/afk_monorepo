@@ -31,7 +31,7 @@ pub mod LaunchpadMarketplace {
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
         calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_TICK_U128, MIN_TICK_U128,
         MAX_SQRT_RATIO, MIN_SQRT_RATIO, align_tick_with_max_tick_and_min_tick, calculate_bound_mag,
-        calculate_sqrt_ratio
+        calculate_sqrt_ratio, UINT_128_MAX
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -87,7 +87,7 @@ pub mod LaunchpadMarketplace {
         // MemecoinCreated, MemecoinLaunched
     };
 
-
+    
     const MAX_SUPPLY: u256 = 100_000_000;
     const INITIAL_SUPPLY: u256 = MAX_SUPPLY / 5;
 
@@ -927,7 +927,6 @@ pub mod LaunchpadMarketplace {
                         quote_amount: remain_quote_to_liquidity
                     }
                 );
-            println!("ID in buy coin by quote amount: {}", id);
             id
         }
 
@@ -1459,9 +1458,10 @@ pub mod LaunchpadMarketplace {
             let quote_token_address = token_to_use.token_address.clone();
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             let total_supply = memecoin.total_supply();
-            assert(
-                total_supply >= (threshold_liquidity * 10_u256), errors::SUPPLY_COIN_BELOW_THRESHOLD
-            );
+            
+            // Check for right relationship between the total supply and the threshold liquidity
+            self.assert_supply_threshold(total_supply, threshold_liquidity);
+
 
             // TODO Add test for Paid launched token bonding curve
             // Handle paid launch if enabled
@@ -1742,6 +1742,22 @@ pub mod LaunchpadMarketplace {
                 );
 
             (id, position)
+        }
+
+        // Assert checks for supplies and thresholds relationships
+        // We check if the total supply is above the threshold liquidity
+        // We check if the price ratio is below the maximum value
+        fn assert_supply_threshold(self: @ContractState,
+            total_supply: u256, threshold_liquidity: u256
+        ) {
+            // Supply check
+            assert(
+                total_supply >= (threshold_liquidity * 10_u256),
+                errors::SUPPLY_COIN_BELOW_THRESHOLD
+            );
+            // Price ratio check
+            let price_ratio = (total_supply / 5) / threshold_liquidity;
+            assert(price_ratio <= UINT_128_MAX, errors::PRICE_RATIO_OVERFLOW);
         }
 
         // TODO finish call Jediswap
