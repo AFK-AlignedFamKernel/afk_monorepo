@@ -2,7 +2,7 @@
 import '../../../../../applyGlobalPolyfills';
 
 import { Picker } from '@react-native-picker/picker';
-import { MintData } from 'afk_nostr_sdk';
+import { MintData, useGetCashuTokenEvents } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import { randomUUID } from 'expo-crypto';
 import React, { useEffect, useState } from 'react';
@@ -36,6 +36,8 @@ import { UnitInfo } from '../Mints/MintListCashu';
 import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 import { useToast } from 'src/hooks/modals';
+import { Proof } from '@cashu/cashu-ts';
+import { proofsApi, proofsByMintApi, proofsSpentsApi, proofsSpentsByMintApi } from 'src/utils/database';
 
 interface SendProps {
   onClose: () => void;
@@ -43,20 +45,25 @@ interface SendProps {
 
 export const Send: React.FC<SendProps> = ({ onClose }) => {
   type TabType = 'lightning' | 'ecash' | 'contact' | 'none';
-  const tabs = ['lightning', 'ecash', 'contact'] as const;
+  // const tabs = ['lightning', 'ecash', 'contact'] as const;
+  const tabs = ['lightning', 'ecash',
+    // 'contact'
+
+  ] as const;
 
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
   const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
   const { getUnitBalance, setActiveMint, setActiveUnit } = useCashuContext()!;
+  const { data: tokensEvents } = useGetCashuTokenEvents();
 
   const { value: activeMint, setValue: setActiveMintStorage } = useActiveMintStorage();
   const { value: mints } = useMintStorage();
   const { value: proofs } = useProofsStorage();
   const { setValue: setActiveUnitStorage } = useActiveUnitStorage();
 
-  const { handlePayInvoice:handlePayInvoiceAtomiq } = useAtomiqLab();
+  const { handlePayInvoice: handlePayInvoiceAtomiq } = useAtomiqLab();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>('none');
   const [invoice, setInvoice] = useState<string | undefined>();
@@ -90,9 +97,30 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
       return;
     }
 
-    const ecash = await handleGenerateEcash(Number(invoiceAmount));
+    console.log("try generate ecash");
 
-    if (!ecash) {
+
+    const proofsMap: Proof[] = proofs || [];
+    let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
+      // let eventContent = JSON.parse(event.content);
+      let eventContent = event.content;
+      eventContent?.proofs?.map((proof: any) => {
+        proofsMap.push(proof);
+        return proof;
+      })
+    })
+
+
+    console.log("handle parents proofsMap", proofsMap)
+    const { cashuToken, proofsToSend } = await handleGenerateEcash(Number(invoiceAmount), proofsMap);
+    console.log("ecash generated", cashuToken)
+
+    const oldProofs = await proofsByMintApi.getByMintUrl(activeMint);
+    const proofsToSendFiltered = proofsToSend.filter((proof) => !oldProofs.some((oldProof) => oldProof.C === proof.C));
+    proofsByMintApi.setAllForMint(proofsToSendFiltered, activeMint)
+    proofsSpentsApi.updateMany(proofsToSend)
+    proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
+    if (!cashuToken) {
       setModalToast({
         title: 'Error generating ecash token.',
         type: 'error',
@@ -102,9 +130,9 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
       setIsGeneratingEcash(false);
       return;
     }
-    setGenerateEcash(ecash);
+    setGenerateEcash(cashuToken);
     setIsGeneratingEcash(false);
-    return ecash;
+    return cashuToken;
   };
 
   const handleCopy = async (type: 'ecash' | 'link') => {
@@ -135,7 +163,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
         if (res) {
           showToast({ title: 'Payment sent', type: 'success' });
         } else {
-          
+
         }
       } else {
         const key = randomUUID();
@@ -149,7 +177,21 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
           setIsPaymentProcessing(false);
           return;
         }
-        const { meltResponse } = await handlePayInvoice(invoice);
+        const { meltResponse, proofsSent, proofsToKeep } = await handlePayInvoice(invoice);
+
+        const proofsToSend = proofsSent || [];
+        // const proofsToKeep = proofsToKeep || [];
+        try {
+          console.log("handleLightningPayment dexie db", proofsToSend)
+          const oldProofs = await proofsByMintApi.getByMintUrl(activeMint);
+          const proofsToKeepFiltered = oldProofs.filter((proof) => !proofsToSend.some((newProof) => newProof.C === proof.C));
+          proofsByMintApi.setAllForMint(proofsToKeep, activeMint)
+          proofsApi.setAll([...proofsToKeep])
+          proofsSpentsApi.updateMany(proofsToSend)
+          proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
+        } catch (error) {
+          console.log("handleLightningPayment error", error)
+        }
         setIsPaymentProcessing(false);
         if (!meltResponse) {
           setModalToast({
@@ -311,9 +353,9 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
         return (
           <>
             <ScrollView style={styles.modalTabContentContainer}
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.modalTabContentContainerChildren}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.modalTabContentContainerChildren}
             >
               <TouchableOpacity
                 onPress={onClose}
@@ -465,13 +507,13 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
                   >
                     <Text style={styles.text}>eCash token</Text>
                     <Input
-                    style={{
-                      backgroundColor: theme.colors.surface,
-                      color: theme.colors.inputText,
-                      paddingVertical: 5,
-                      paddingHorizontal: 8,
-                      width: '100%',
-                    }}
+                      style={{
+                        backgroundColor: theme.colors.surface,
+                        color: theme.colors.inputText,
+                        paddingVertical: 5,
+                        paddingHorizontal: 8,
+                        width: '100%',
+                      }}
                       value={generatedEcash}
                       editable={false}
                       right={

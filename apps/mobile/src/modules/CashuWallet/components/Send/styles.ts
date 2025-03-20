@@ -46,6 +46,7 @@ export default ThemedStyleSheet((theme) => ({
     borderBottomRightRadius: 20,
     // overflow: 'hidden',
     paddingBottom: 20,
+    padding: 20,
     position: 'relative',
 
   },

@@ -9,7 +9,7 @@ import {FlatList, Modal, TouchableOpacity, View} from 'react-native';
 import {Text} from 'react-native';
 
 import {CopyIconStack, InfoIcon, RefreshIcon, ViewIcon} from '../../../../assets/icons';
-import {Button, Divider} from '../../../../components';
+import {Button, Divider, GenerateQRCode} from '../../../../components';
 import {useStyles, useTheme} from '../../../../hooks';
 import {useToast} from '../../../../hooks/modals';
 import {
@@ -23,6 +23,7 @@ import {
 import {useCashuContext} from '../../../../providers/CashuProvider';
 import {getRelativeTime} from '../../../../utils/helpers';
 import stylesheet from './styles';
+import { proofsApi, proofsByMintApi } from 'src/utils/database';
 
 export const Invoices = () => {
   const {theme} = useTheme();
@@ -83,6 +84,8 @@ export const Invoices = () => {
         if (invoice && invoice?.quote) {
           const received = await handleReceivePaymentPaid(invoice);
 
+          proofsByMintApi.addProofsForMint(received, activeMint)
+          console.log("received", received)
           if (received) {
             showToast({title: 'Payment received', type: 'success'});
           } else {
@@ -131,18 +134,21 @@ export const Invoices = () => {
         }
         if (privateKey && publicKey) {
           try {
+            console.log("createTokenEvent")
             const tokenEvent = await createTokenEvent({
               walletId,
               mint: activeMint,
               proofs: receive,
             });
-            await createSpendingEvent({
+            console.log("tokenEvent", tokenEvent)
+            const spendingEvent = await createSpendingEvent({
               walletId,
               direction: 'in',
               amount: invoice.amount.toString(),
               unit: activeUnit,
               events: [{id: tokenEvent.id, marker: 'created'}],
             });
+            console.log("spendingEvent", spendingEvent)
           } catch (error) {
             console.log("error nip 60",error)
           }
@@ -234,6 +240,13 @@ export const Invoices = () => {
                           {getRelativeTime(item.date || '')}
                         </Text>
                         <Text style={styles.invoiceModalTextState}>{item.state}</Text>
+
+                        <TouchableOpacity onPress={() => handleCopy(item.bolt11)}>
+                          <Text style={styles.invoiceModalTextAmount}>{item.bolt11?.slice(0, 10)}... {item.bolt11?.slice(-10)}</Text>
+                        </TouchableOpacity>
+
+                        <GenerateQRCode data={item.bolt11} size={200} />
+
                         <View style={styles.invoiceModalActionsContainer}>
                           <Button
                             onPress={() => handleCopy(item.bolt11)}
