@@ -1,4 +1,3 @@
-use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
 use afk_launchpad::launchpad::math::{dynamic_reduce_u256_to_u128, dynamic_scale_u128_to_u256};
 use alexandria_math::fast_root::{fast_sqrt};
 use core::num::traits::{Zero};
@@ -301,30 +300,6 @@ pub fn calculate_aligned_bound_mag(
     }
 }
 
-// Function to calculate SQRT_RATIO for arbitrary price ratios
-
-/// Computes sqrt(n) in Fixed128 format (scaled by 2^128) while staying within u256 limits.
-pub fn sqrt_fixed128(n: u256) -> u256 {
-    let factor = POW_128;
-    let n_scaled = n * factor; // Scale input to Fixed128
-
-    if n == 0 {
-        return 0; // Edge case: return 0 if input is 0
-    }
-
-    // Initial guess: Use n_scaled / 2 + 1
-    let mut x = n_scaled / 2 + 1;
-    
-    loop {
-        let x_new = (x + n_scaled / x) / 2; // (x + n_scaled / x) / 2
-        if x_new == x {
-            break;
-        }
-        x = x_new;
-    };
-    return x;
-}
-
 // Function to calculate the price ratio from two supplies
 pub fn calculate_price_ratio(supply_a: u256, supply_b: u256) -> u256 {
     // Price ratio = (supply_a / supply_b)
@@ -332,6 +307,7 @@ pub fn calculate_price_ratio(supply_a: u256, supply_b: u256) -> u256 {
 }
 
 
+// Function to calculate the sqrt ratio from two supplies
 pub fn calculate_sqrt_ratio(
     liquidity_raised: u256, initial_pool_supply: u256
 ) -> u256 {
@@ -352,7 +328,6 @@ pub fn calculate_sqrt_ratio(
     // But when the sqrt ratio is scaled back to u256 it is not the scaled appropriately so we scaled to 2^32 to get the correct value
     let (reduced_i_cast, exp) = dynamic_reduce_u256_to_u128((price_ratio * POW_128));
     let res = fast_sqrt(reduced_i_cast, SQRT_ITER.try_into().unwrap());
-
     let mut sqrt_ratio = dynamic_scale_u128_to_u256(res, exp) * POW_32;
     
     // This was my original implementation however I wanted to used the fast_sqrt function from the alexandria_math crate
