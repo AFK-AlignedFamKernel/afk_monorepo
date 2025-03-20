@@ -126,20 +126,20 @@ export const usePayment = () => {
         console.log('fees', fees);
         if (amount) {
 
-          const res = await wallet.selectProofsToSend(proofs, amount)
-          const checkProofsStates = await wallet.checkProofsStates(proofs)
+          const res = await wallet?.selectProofsToSend(proofs, amount+fees)
+          // const checkProofsStates = await wallet?.checkProofsStates(proofs)
           console.log('res selectProofsToSend', res);
-          console.log('res checkProofsStates', checkProofsStates);
+          // console.log('res checkProofsStates', checkProofsStates);
 
-          // proofsToSend=res?.send;
+          proofsToSend=res?.send;
 
         }
         // console.log("res", res) 
         console.log('proofsToSend', proofsToSend);
 
 
-        const keysets = await wallet.getKeySets()
-        console.log('keysets', keysets);
+        // const keysets = await wallet.getKeySets()
+        // console.log('keysets', keysets);
         // const meltQuote = await wallet.checkMeltQuote(pInvoice);
         const response = await meltTokens(pInvoice, proofsToSend);
         console.log('response', response);

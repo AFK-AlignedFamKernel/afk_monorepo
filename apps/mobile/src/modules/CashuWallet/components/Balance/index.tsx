@@ -204,7 +204,7 @@ export const Balance = () => {
       console.log("balance", balance)
       setCurrentUnitBalance(balance);
       setIsLoading(false);
-      // await handleWebsocketProofs(mergedProofs)
+      await handleWebsocketProofs(mergedProofs)
 
       setIsBalanceFetching(true);
     } catch (error) {
@@ -244,6 +244,9 @@ export const Balance = () => {
                   // console.log("onProofStateUpdates proofs", proofs)
                   console.log("onProofStateUpdates mergedProofs", mergedProofs)
                   let proofsFiltered = mergedProofs.filter((proof: Proof) => proof.C !== p?.proof?.C);
+
+
+                  proofsFiltered = Array.from(new Set(proofsFiltered.map((p) => p)));
                   console.log("data onProofStateUpdates proofsFiltered", proofsFiltered)
 
                   // TODO create spending event
@@ -288,21 +291,18 @@ export const Balance = () => {
 
   useEffect(() => {
 
-    if (activeUnit && activeMint && !isBalanceFetching) {
+    if (activeUnit && activeMint && (!isBalanceFetching)) {
       console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
       fetchBalanceData();
 
     }
 
-    if(activeUnitUsed !== activeUnit) {
-      setActiveUnitUsed(activeUnit);
-      fetchBalanceData();
-    }
 
     if(!isWebsocketProofs) {
       // const mergedProofs = await handleGetProofs();
       handleWebsocketProofs();
+      setIsWebsocketProofs(true);
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
