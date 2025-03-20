@@ -57,7 +57,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
     );
     fn buy_coin_by_quote_amount(
         ref self: TContractState, coin_address: ContractAddress, quote_amount: u256,
-    );
+    ) -> u64;
     fn sell_coin(ref self: TContractState, coin_address: ContractAddress, coin_amount: u256);
     // fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn claim_coin_all(ref self: TContractState, coin_address: ContractAddress);

@@ -898,7 +898,6 @@ pub mod UnrugLiquidity {
                         is_unruggable: false
                     }
                 );
-
             (id, position)
         }
         /// Adds liquidity to an Ekubo pool with the specified parameters

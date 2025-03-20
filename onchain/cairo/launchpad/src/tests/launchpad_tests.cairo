@@ -65,6 +65,10 @@ mod launchpad_tests {
         100_u256 * pow_256(10, 18)
     }
 
+    fn DEFAULT_10K_SUPPLY() -> u256 {
+        10_000_u256 * pow_256(10, 18)
+    }
+
     fn DEFAULT_100M_SUPPLY() -> u256 {
         100_000_000_u256 * pow_256(10, 18)
     }
@@ -1127,7 +1131,8 @@ mod launchpad_tests {
             );
     }
 
-
+ 
+    
     #[test]
     #[should_panic]
     fn create_coin_under_threshold() {
