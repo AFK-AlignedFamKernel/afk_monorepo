@@ -78,6 +78,24 @@ export const proofsApi = {
       console.error('Error adding proofs:', error);
     }
   },
+
+  async addProofsForMint(proofs: Proof[], mintUrl: string): Promise<void> {
+    try {
+      const proofsWithMint: ProofWithMint[] = proofs.map(proof => ({ 
+        ...proof, 
+        mintUrl 
+      }));
+    
+    await db.transaction('rw', db.proofs, async () => {
+      for (const proof of proofsWithMint) {
+        await db.proofs.put(proof);
+      }
+      });
+    } catch (error) {
+      console.error('Error adding proofs for mint:', error);
+    }
+  },
+  
   
   async update(proof: Proof): Promise<void> { 
     try {
