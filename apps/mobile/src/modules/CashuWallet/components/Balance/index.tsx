@@ -18,7 +18,7 @@ import { formatCurrency } from '../../../../utils/helpers';
 import stylesheet from './styles';
 import { getProofs, NostrKeyManager, storeProofs, useCashu, useCashuStore, useCreateWalletEvent, useGetCashuTokenEvents, useGetCashuWalletsInfo, useGetSpendingTokens } from 'afk_nostr_sdk';
 import { randomUUID } from 'expo-crypto';
-import { Check, ProofStateStateEnum, Proof, ProofState, CheckStateEnum } from '@cashu/cashu-ts';
+import { Proof, ProofState, CheckStateEnum } from '@cashu/cashu-ts';
 import { Button } from 'src/components';
 import { proofsApi, proofsByMintApi, proofsSpentsByMintApi } from 'src/utils/database';
 

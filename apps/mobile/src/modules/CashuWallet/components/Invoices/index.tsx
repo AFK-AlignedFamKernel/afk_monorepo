@@ -9,7 +9,7 @@ import {FlatList, Modal, TouchableOpacity, View} from 'react-native';
 import {Text} from 'react-native';
 
 import {CopyIconStack, InfoIcon, RefreshIcon, ViewIcon} from '../../../../assets/icons';
-import {Button, Divider} from '../../../../components';
+import {Button, Divider, GenerateQRCode} from '../../../../components';
 import {useStyles, useTheme} from '../../../../hooks';
 import {useToast} from '../../../../hooks/modals';
 import {
@@ -240,6 +240,13 @@ export const Invoices = () => {
                           {getRelativeTime(item.date || '')}
                         </Text>
                         <Text style={styles.invoiceModalTextState}>{item.state}</Text>
+
+                        <TouchableOpacity onPress={() => handleCopy(item.bolt11)}>
+                          <Text style={styles.invoiceModalTextAmount}>{item.bolt11?.slice(0, 10)}... {item.bolt11?.slice(-10)}</Text>
+                        </TouchableOpacity>
+
+                        <GenerateQRCode data={item.bolt11} size={200} />
+
                         <View style={styles.invoiceModalActionsContainer}>
                           <Button
                             onPress={() => handleCopy(item.bolt11)}

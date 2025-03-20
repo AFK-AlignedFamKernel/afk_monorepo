@@ -37,7 +37,7 @@ import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 import { useToast } from 'src/hooks/modals';
 import { Proof } from '@cashu/cashu-ts';
-import { proofsByMintApi, proofsSpentsApi, proofsSpentsByMintApi } from 'src/utils/database';
+import { proofsApi, proofsByMintApi, proofsSpentsApi, proofsSpentsByMintApi } from 'src/utils/database';
 
 interface SendProps {
   onClose: () => void;
@@ -45,7 +45,11 @@ interface SendProps {
 
 export const Send: React.FC<SendProps> = ({ onClose }) => {
   type TabType = 'lightning' | 'ecash' | 'contact' | 'none';
-  const tabs = ['lightning', 'ecash', 'contact'] as const;
+  // const tabs = ['lightning', 'ecash', 'contact'] as const;
+  const tabs = ['lightning', 'ecash',
+    // 'contact'
+
+  ] as const;
 
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
@@ -173,15 +177,16 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
           setIsPaymentProcessing(false);
           return;
         }
-        const { meltResponse, proofsSent } = await handlePayInvoice(invoice);
+        const { meltResponse, proofsSent, proofsToKeep } = await handlePayInvoice(invoice);
 
         const proofsToSend = proofsSent || [];
         // const proofsToKeep = proofsToKeep || [];
         try {
           console.log("handleLightningPayment dexie db", proofsToSend)
           const oldProofs = await proofsByMintApi.getByMintUrl(activeMint);
-          const proofsToSendFiltered = proofsToSend.filter((proof) => !oldProofs.some((oldProof) => oldProof.C === proof.C));
-          proofsByMintApi.setAllForMint(proofsToSendFiltered, activeMint)
+          const proofsToKeepFiltered = oldProofs.filter((proof) => !proofsToSend.some((newProof) => newProof.C === proof.C));
+          proofsByMintApi.setAllForMint(proofsToKeep, activeMint)
+          proofsApi.setAll([...proofsToKeep])
           proofsSpentsApi.updateMany(proofsToSend)
           proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
         } catch (error) {
