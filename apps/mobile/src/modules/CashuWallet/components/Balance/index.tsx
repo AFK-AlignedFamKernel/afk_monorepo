@@ -155,6 +155,28 @@ export const Balance = () => {
       // storeProofs(allProofsFiltered);
       // console.log("mergedProofs", mergedProofs)
 
+      // const balance = await getUnitBalanceWithProofsChecked(activeUnit, mint, mergedProofs);
+      const balance = await getUnitBalance(activeUnit, mint, mergedProofs);
+      console.log("balance", balance)
+      setCurrentUnitBalance(balance);
+      setIsLoading(false);
+      await handleWebsocketProofs(mergedProofs)
+
+      setIsBalanceFetching(true);
+    } catch (error) {
+      console.log("fetchBalanceData error", error)
+    } finally {
+    }
+
+  };
+
+
+  const handleWebsocketProofs = async (mergedProofs: Proof[]) => {
+    try {
+      if (!wallet) {
+        return;
+      }
+      console.log("handleWebsocketProofs mergedProofs", mergedProofs)
       // storeProofs(mergedProofs);
       const data = await new Promise<ProofState>((res) => {
         try {
@@ -170,7 +192,7 @@ export const Balance = () => {
                   // console.log("onProofStateUpdates mergedProofs", mergedProofs)
                   let proofsFiltered = mergedProofs.filter((proof: Proof) => proof.C !== p?.proof?.C);
                   console.log("onProofStateUpdates proofsFiltered", proofsFiltered)
-  
+
                   // TODO create spending event
                   // update tokens events
                   // update storage proofs
@@ -184,33 +206,31 @@ export const Balance = () => {
               }
             );
             // wallet.swap(21, proofs);
-          }   
+          }
         } catch (error) {
-          console.log("error websocket connection",error)
-          
+          console.log("error websocket connection", error)
+
         }
-        
-       
+
+
       });
       console.log("data onProofStateUpdates proofs websocket", data)
-      // const balance = await getUnitBalanceWithProofsChecked(activeUnit, mint, mergedProofs);
-      const balance = await getUnitBalance(activeUnit, mint, mergedProofs);
-      console.log("balance", balance)
-      setCurrentUnitBalance(balance);
-      setIsLoading(false);
-      setIsBalanceFetching(true);
+
     } catch (error) {
-      console.log("fetchBalanceData error", error)
-    } finally {
+      console.log("handleWebsocketProofs errror", error)
     }
 
-  };
-
+  }
 
   useEffect(() => {
     console.log("activeUnit", activeUnit)
-    fetchBalanceData();
-  }, [activeUnit, activeMint])
+    if(activeUnit && activeMint && !isBalanceFetching) {
+      fetchBalanceData();
+    }
+
+    if(wallet) {
+    }
+  }, [activeUnit, activeMint, wallet])
 
   useEffect(() => {
 
