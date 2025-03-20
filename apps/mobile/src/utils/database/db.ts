@@ -26,7 +26,7 @@ if (!globalThis.indexedDB) {
 
 // Define an interface for proofs by mint to include the mint URL
 export interface ProofWithMint extends Proof {
-  mintUrl: string; // The mint URL this proof is associated with
+  mintUrl?: string; // The mint URL this proof is associated with
 }
 
 // Define your database
@@ -55,7 +55,7 @@ export class CashuDatabase extends Dexie {
       proofsSpentsByMint: '&C, mintUrl, id, amount', // Indexed by both C and mintUrl
       tokens: '&id, amount',
       quotes: '&id, amount, created_at',
-      invoices: '&id, created_at, amount, paid, unit, mint, date, state',
+      invoices: '&id, amount, paid, unit, mint, date, state, bolt11, quote, quoteResponse',
       transactions: '&id, created_at, amount, type',
       settings: '&key, value' // For storing active mint, unit, etc.
     });

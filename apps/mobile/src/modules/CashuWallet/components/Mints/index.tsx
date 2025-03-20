@@ -24,6 +24,7 @@ import { useCashuContext } from '../../../../providers/CashuProvider';
 import { formatCurrency } from '../../../../utils/helpers';
 import stylesheet from './styles';
 import { MintListCashu } from './MintListCashu';
+import { mintsApi } from 'src/utils/database';
 
 export interface UnitInfo {
   unit: string;
@@ -126,6 +127,8 @@ export const Mints = () => {
       setWalletId(id);
     }
 
+    mintsApi.add(data)
+    mintsApi.setAll([...mints, data])
     setMints([...mints, data]);
     setMintsStorage([...mints, data]);
 
@@ -144,6 +147,8 @@ export const Mints = () => {
 
   const handleDeleteMint = (item: MintData) => {
     const filteredMints = mints.filter((mint) => mint.url !== item.url);
+
+    mintsApi.setAll([...filteredMints])
     setMints([...filteredMints]);
     setMintsStorage([...filteredMints]);
 

@@ -23,6 +23,7 @@ import {
 import {useCashuContext} from '../../../../providers/CashuProvider';
 import {getRelativeTime} from '../../../../utils/helpers';
 import stylesheet from './styles';
+import { proofsApi, proofsByMintApi } from 'src/utils/database';
 
 export const Invoices = () => {
   const {theme} = useTheme();
@@ -83,6 +84,7 @@ export const Invoices = () => {
         if (invoice && invoice?.quote) {
           const received = await handleReceivePaymentPaid(invoice);
 
+          proofsByMintApi.addProofsForMint(received, activeMint)
           console.log("received", received)
           if (received) {
             showToast({title: 'Payment received', type: 'success'});

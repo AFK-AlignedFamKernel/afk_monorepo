@@ -23,6 +23,7 @@ import {
 import { useCashuContext } from '../../../../providers/CashuProvider';
 import stylesheet from './styles';
 import { useToast } from '../../../../hooks/modals';
+import { invoicesApi } from 'src/utils/database';
 
 interface ReceiveProps {
   onClose: () => void;
@@ -77,6 +78,8 @@ export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
         unit: activeUnit,
       };
 
+      invoicesApi.add(cashuInvoice)
+      invoicesApi.setAll([...invoices, cashuInvoice])
       if (invoices) {
         setInvoices([...invoices, cashuInvoice]);
       } else {

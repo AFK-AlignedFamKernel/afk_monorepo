@@ -355,7 +355,12 @@ export const invoicesApi = {
   },
   
   async add(invoice: ICashuInvoice): Promise<string> {
-    return db.invoices.add(invoice) as unknown as string;
+    try {
+      return db.invoices.add(invoice);
+    } catch (error) {
+      console.error('Error adding invoices:', error);
+      return undefined;
+    }
   },
   
   async update(invoice: ICashuInvoice): Promise<void> {
@@ -367,10 +372,14 @@ export const invoicesApi = {
   },
   
   async setAll(invoices: ICashuInvoice[]): Promise<void> {
-    await db.transaction('rw', db.invoices, async () => {
-      await db.invoices.clear();
-      await db.invoices.bulkAdd(invoices);
-    });
+    try {
+      await db.transaction('rw', db.invoices, async () => {
+        await db.invoices.clear();
+        await db.invoices.bulkAdd(invoices);
+      });
+    } catch (error) {
+      console.error('Error setting all invoices:', error);
+    }
   },
 };
 
@@ -385,11 +394,20 @@ export const transactionsApi = {
   },
   
   async add(transaction: ICashuInvoice): Promise<string> {
-    return db.transactions.add(transaction) as unknown as string;
+    try {
+      return db.transactions.add(transaction) as unknown as string;
+    } catch (error) {
+      console.error('Error adding transactions:', error);
+      return undefined;
+    }
   },
   
   async update(transaction: ICashuInvoice): Promise<void> {
-    await db.transactions.put(transaction);
+    try {
+      await db.transactions.put(transaction);
+    } catch (error) {
+      console.error('Error updating transactions:', error);
+    }
   },
   
   async delete(id: string): Promise<void> {
@@ -397,10 +415,14 @@ export const transactionsApi = {
   },
   
   async setAll(transactions: ICashuInvoice[]): Promise<void> {
-    await db.transaction('rw', db.transactions, async () => {
-      await db.transactions.clear();
-      await db.transactions.bulkAdd(transactions);
-    });
+    try {
+      await db.transaction('rw', db.transactions, async () => {
+        await db.transactions.clear();
+        await db.transactions.bulkAdd(transactions);
+      });
+    } catch (error) {
+      console.error('Error setting all transactions:', error);
+    }
   },
 }; 
 
