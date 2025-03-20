@@ -47,36 +47,42 @@ export const useCreateSpendingEvent = () => {
       tags?: string[][];
     }) => {
 
+      try {
 
-      console.log('createSpendingEvent');
-      const signer = new NDKPrivateKeySigner(privateKey);
-      const user = new NDKUser({ pubkey: publicKey });
-      const content = await signer.nip44Encrypt(
-        user,
-        JSON.stringify([
-          ['direction', direction],
-          ['amount', amount, unit],
-          ...events.map((event) => ['e', event.id, event.relay || '', event.marker]),
-          ["e", `37375:${publicKey}:${walletId}`],
-          // ...eventsIdRelations?.map((event) => ['e', event[0], event[1], event[2]])
+        console.log('createSpendingEvent');
+        const signer = new NDKPrivateKeySigner(privateKey);
+        const user = new NDKUser({ pubkey: publicKey });
+        const content = await signer.nip44Encrypt(
+          user,
+          JSON.stringify([
+            ['direction', direction],
+            ['amount', amount, unit],
+            ...events.map((event) => ['e', event.id, event.relay || '', event.marker]),
+            ["e", `37375:${publicKey}:${walletId}`],
+            // ...eventsIdRelations?.map((event) => ['e', event[0], event[1], event[2]])
+  
+          ]),
+        );
+  
+        const event = new NDKEvent(ndk);
+  
+        event.kind = 7376;
+        event.content = content;
+        event.tags = tags ?? [
+          ["e", "<event-id-of-created-token>", "", "redeemed"], // TODO: add event id of created token
+          // ['a', `37375:${publicKey}:${walletId}`],
+          // ["e", `37375:${publicKey}:${walletId}`]
+        ];
+  
+        await event.sign(signer);
+  
+        await event.publish();
+        return event;        
+      } catch (error) {
+        console.log("useCreateSpendingEvent error",error)
+        
+      }
 
-        ]),
-      );
-
-      const event = new NDKEvent(ndk);
-
-      event.kind = 7376;
-      event.content = content;
-      event.tags = tags ?? [
-        ["e", "<event-id-of-created-token>", "", "redeemed"], // TODO: add event id of created token
-        // ['a', `37375:${publicKey}:${walletId}`],
-        // ["e", `37375:${publicKey}:${walletId}`]
-      ];
-
-      await event.sign(signer);
-
-      await event.publish();
-      return event;
     },
   });
 };

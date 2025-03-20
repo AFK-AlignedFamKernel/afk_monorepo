@@ -161,27 +161,32 @@ export const usePayment = () => {
           const { meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs } = response;
           setProofsFilter(selectedProofs);
           if (privateKey && publicKey) {
-            await refetchTokens();
-            await deleteMultiple(
-              filteredTokenEvents.map((event) => event.id),
-              'proofs spent in transaction',
-            );
-            const tokenEvent = await createTokenEvent({
-              walletId,
-              mint: activeMint,
-              proofs: proofsToKeep,
-            });
-            const destroyedEvents = filteredTokenEvents.map((event) => ({
-              id: event.id,
-              marker: 'destroyed' as EventMarker,
-            }));
-            await createSpendingEvent({
-              walletId,
-              direction: 'out',
-              amount: (meltQuote.amount + meltQuote.fee_reserve).toString(),
-              unit: activeUnit,
-              events: [...destroyedEvents, { id: tokenEvent.id, marker: 'created' as EventMarker }],
-            });
+            try {
+              await refetchTokens();
+              await deleteMultiple(
+                filteredTokenEvents.map((event) => event.id),
+                'proofs spent in transaction',
+              );
+              const tokenEvent = await createTokenEvent({
+                walletId,
+                mint: activeMint,
+                proofs: proofsToKeep,
+              });
+              const destroyedEvents = filteredTokenEvents.map((event) => ({
+                id: event.id,
+                marker: 'destroyed' as EventMarker,
+              }));
+              await createSpendingEvent({
+                walletId,
+                direction: 'out',
+                amount: (meltQuote.amount + meltQuote.fee_reserve).toString(),
+                unit: activeUnit,
+                events: [...destroyedEvents, { id: tokenEvent.id, marker: 'created' as EventMarker }],
+              });         
+            } catch (error) {
+              console.log("Error",error)
+            }
+     
           }
           showToast({
             title: 'Payment sent.',
@@ -222,11 +227,11 @@ export const usePayment = () => {
     try {
       console.log("handleGenerateEcash", amount, proofsParent)
       if (!amount) {
-        return undefined;
+        return {cashuToken: undefined, proofsToSend: undefined};
       }
 
       if (!wallet) {
-        return undefined;
+        return {cashuToken: undefined, proofsToSend: undefined};
       }
       const proofsStr = await getProofs()
 
@@ -237,7 +242,7 @@ export const usePayment = () => {
           title: 'No proofs found',
           type: 'error',
         });
-        return undefined
+        return {cashuToken: undefined, proofsToSend: undefined};
       };
       const proofs = proofsParent ? [...(JSON.parse(proofsStr)), ...proofsParent] : JSON.parse(proofsStr)
 
@@ -249,7 +254,7 @@ export const usePayment = () => {
 
         console.log("proofsCopy", proofsCopy)
         if (availableAmount < amount) {
-          return undefined;
+          return {cashuToken: undefined, proofsToSend: undefined};
         }
 
         //selectProofs
@@ -323,18 +328,18 @@ export const usePayment = () => {
               bolt11: cashuToken,
             };
             setTransactions([...transactions, newInvoice]);
-            return cashuToken;
+            return {cashuToken, proofsToSend};
           } else {
-            return undefined;
+            return {cashuToken: undefined, proofsToSend: undefined};
           }
         }
-        return undefined;
+        return {cashuToken: undefined, proofsToSend: undefined} ;
       }
 
-      return undefined;
+      return {cashuToken: undefined, proofsToSend: undefined};
     } catch (e) {
       console.log("handleGenerateEcash error", e)
-      return undefined;
+      return {cashuToken: undefined, proofsToSend: undefined};
     }
   };
 

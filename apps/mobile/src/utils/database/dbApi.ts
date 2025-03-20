@@ -107,6 +107,12 @@ export const proofsSpentsApi = {
       await db.proofsSpents.bulkAdd(proofs);
     });
   },
+    
+  async updateMany(proofs: Proof[]): Promise<void> {
+    await db.transaction('rw', db.proofsSpents, async () => {
+      await db.proofsSpents.bulkPut(proofs);
+    });
+  },
   
   async deleteMany(ids: string[]): Promise<void> {
     await db.proofsSpents.bulkDelete(ids);

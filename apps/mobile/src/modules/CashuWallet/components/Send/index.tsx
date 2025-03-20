@@ -37,6 +37,7 @@ import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 import { useToast } from 'src/hooks/modals';
 import { Proof } from '@cashu/cashu-ts';
+import { proofsSpentsApi } from 'src/utils/database';
 
 interface SendProps {
   onClose: () => void;
@@ -107,9 +108,13 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
 
     
     console.log("handle parents proofsMap", proofsMap)
-    const ecash = await handleGenerateEcash(Number(invoiceAmount), proofsMap);
-    console.log("ecash generated", ecash)
-    if (!ecash) {
+    const {cashuToken, proofsToSend} = await handleGenerateEcash(Number(invoiceAmount), proofsMap);
+    console.log("ecash generated", cashuToken)
+
+    proofsToSend.map((proof) => {
+      proofsSpentsApi.add(proof)
+    })
+    if (!cashuToken) {
       setModalToast({
         title: 'Error generating ecash token.',
         type: 'error',
@@ -119,9 +124,9 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
       setIsGeneratingEcash(false);
       return;
     }
-    setGenerateEcash(ecash);
+    setGenerateEcash(cashuToken);
     setIsGeneratingEcash(false);
-    return ecash;
+    return cashuToken;
   };
 
   const handleCopy = async (type: 'ecash' | 'link') => {
