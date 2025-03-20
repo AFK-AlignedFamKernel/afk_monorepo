@@ -13,6 +13,7 @@ import {Router} from './Router';
 import { NostrKeyManager, useAuth, useCashu, useCashuStore } from 'afk_nostr_sdk';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword } from 'src/utils/storage';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
+import { setupDatabase } from 'src/utils/database';
 // import '../styles/index.css'; 
 // import '../styles/global.css';
 
@@ -96,7 +97,27 @@ export default function App() {
     const interval = setInterval(() => tips.refetch(), 2 * 60 * 1_000);
     return () => clearInterval(interval);
   }, [tips]);
+  const [isDbReady, setIsDbReady] = useState(false);
 
+  useEffect(() => {
+    const initializeDb = async () => {
+      try {
+        const success = await setupDatabase();
+        if (success) {
+          console.log("Database initialized successfully");
+        } else {
+          console.error("Failed to initialize database");
+        }
+        setIsDbReady(true);
+      } catch (error) {
+        console.error("Database initialization error:", error);
+        setIsDbReady(true); // Continue anyway to not block the app
+      }
+    };
+
+    initializeDb();
+  }, []);
+  
   useEffect(() => {
     if (sentTipNotification) return;
 

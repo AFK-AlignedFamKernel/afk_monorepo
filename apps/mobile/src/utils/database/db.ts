@@ -29,6 +29,7 @@ export class CashuDatabase extends Dexie {
   // Define tables
   mints!: Dexie.Table<MintData, string>; // string = type of the primary key
   proofs!: Dexie.Table<Proof, string>;
+  proofsSpents!: Dexie.Table<Proof, string>;
   tokens!: Dexie.Table<Token, string>;
   quotes!: Dexie.Table<MeltQuoteResponse, string>;
   invoices!: Dexie.Table<ICashuInvoice, string>;

@@ -20,6 +20,7 @@ import { getProofs, NostrKeyManager, storeProofs, useCashu, useCashuStore, useCr
 import { randomUUID } from 'expo-crypto';
 import { Check, ProofStateStateEnum, Proof, ProofState, CheckStateEnum } from '@cashu/cashu-ts';
 import { Button } from 'src/components';
+import { proofsApi } from 'src/utils/database';
 
 export const Balance = () => {
   const { getUnitBalance, setActiveUnit, getUnitBalanceWithProofsChecked, wallet } = useCashuContext()!;
@@ -225,10 +226,10 @@ export const Balance = () => {
 
       let mergedProofs = mergedProofsParents;
 
-      if(!mergedProofsParents) {
+      if (!mergedProofsParents) {
         mergedProofs = await handleGetProofs();
       }
-     
+
       console.log("handleWebsocketProofs mergedProofs", mergedProofs)
       // storeProofs(mergedProofs);
       const data = await new Promise<ProofState>((res) => {
@@ -245,9 +246,9 @@ export const Balance = () => {
                   console.log("onProofStateUpdates mergedProofs", mergedProofs)
                   let proofsFiltered = mergedProofs.filter((proof: Proof) => proof.C !== p?.proof?.C);
 
-
                   proofsFiltered = Array.from(new Set(proofsFiltered.map((p) => p)));
                   console.log("data onProofStateUpdates proofsFiltered", proofsFiltered)
+                  proofsApi.setAll([...proofsFiltered])
 
                   // TODO create spending event
                   // update tokens events
@@ -299,7 +300,7 @@ export const Balance = () => {
     }
 
 
-    if(!isWebsocketProofs) {
+    if (!isWebsocketProofs) {
       // const mergedProofs = await handleGetProofs();
       handleWebsocketProofs();
       setIsWebsocketProofs(true);
