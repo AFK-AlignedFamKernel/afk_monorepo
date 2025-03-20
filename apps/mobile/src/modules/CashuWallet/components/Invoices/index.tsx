@@ -83,6 +83,7 @@ export const Invoices = () => {
         if (invoice && invoice?.quote) {
           const received = await handleReceivePaymentPaid(invoice);
 
+          console.log("received", received)
           if (received) {
             showToast({title: 'Payment received', type: 'success'});
           } else {
@@ -131,18 +132,21 @@ export const Invoices = () => {
         }
         if (privateKey && publicKey) {
           try {
+            console.log("createTokenEvent")
             const tokenEvent = await createTokenEvent({
               walletId,
               mint: activeMint,
               proofs: receive,
             });
-            await createSpendingEvent({
+            console.log("tokenEvent", tokenEvent)
+            const spendingEvent = await createSpendingEvent({
               walletId,
               direction: 'in',
               amount: invoice.amount.toString(),
               unit: activeUnit,
               events: [{id: tokenEvent.id, marker: 'created'}],
             });
+            console.log("spendingEvent", spendingEvent)
           } catch (error) {
             console.log("error nip 60",error)
           }

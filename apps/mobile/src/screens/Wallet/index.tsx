@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { TextButton } from '../../components';
+import { Button, TextButton } from '../../components';
 import { Swap } from '../../components/Swap';
 import TabSelector from '../../components/TabSelector';
 import { TOKENSMINT } from '../../constants/tokens';
@@ -16,11 +16,13 @@ import { SelectedTab, TABS_WALLET } from '../../types/tab';
 import stylesheet from './styles';
 import { TipsComponent } from '../Tips/TipsComponent';
 import TokenSwapView from '../../modules/Swap';
+import { useAuth } from 'afk_nostr_sdk';
 
 export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
   const styles = useStyles(stylesheet);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_WALLET);
 
+  const { publicKey, privateKey } = useAuth();
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
     setSelectedTab(tab as any);
     if (screen) {
@@ -59,7 +61,15 @@ export const Wallet: React.FC<WalletScreen> = ({ navigation }) => {
 
             {selectedTab == SelectedTab.CASHU_WALLET && (
               <View>
-                <CashuWalletView></CashuWalletView>
+                {publicKey && privateKey ?
+                  <CashuWalletView></CashuWalletView>
+                  :
+                  <View style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                    <Text style={styles.text}>Please login to use Cashu Wallet</Text>
+
+                    <Button onPress={() => navigation.navigate('Login')}>Login</Button>
+                  </View>
+                }
               </View>
             )}
 

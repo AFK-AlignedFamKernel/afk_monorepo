@@ -2,7 +2,7 @@
 import '../../../../../applyGlobalPolyfills';
 
 import { Picker } from '@react-native-picker/picker';
-import { MintData } from 'afk_nostr_sdk';
+import { MintData, useGetCashuTokenEvents } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import { randomUUID } from 'expo-crypto';
 import React, { useEffect, useState } from 'react';
@@ -36,6 +36,7 @@ import { UnitInfo } from '../Mints/MintListCashu';
 import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 import { useToast } from 'src/hooks/modals';
+import { Proof } from '@cashu/cashu-ts';
 
 interface SendProps {
   onClose: () => void;
@@ -50,6 +51,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
   const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
   const { getUnitBalance, setActiveMint, setActiveUnit } = useCashuContext()!;
+  const { data: tokensEvents } = useGetCashuTokenEvents();
 
   const { value: activeMint, setValue: setActiveMintStorage } = useActiveMintStorage();
   const { value: mints } = useMintStorage();
@@ -90,8 +92,23 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
       return;
     }
 
-    const ecash = await handleGenerateEcash(Number(invoiceAmount));
+    console.log("try generate ecash");
 
+
+    const proofsMap: Proof[] = proofs || [];
+    let eventsProofs = tokensEvents?.pages[0]?.map((event:any) => {
+      // let eventContent = JSON.parse(event.content);
+      let eventContent = event.content;
+      eventContent?.proofs?.map((proof: any) => {
+        proofsMap.push(proof);
+        return proof;
+      })
+    })
+
+    
+    console.log("handle parents proofsMap", proofsMap)
+    const ecash = await handleGenerateEcash(Number(invoiceAmount), proofsMap);
+    console.log("ecash generated", ecash)
     if (!ecash) {
       setModalToast({
         title: 'Error generating ecash token.',

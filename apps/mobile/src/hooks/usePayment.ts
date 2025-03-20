@@ -61,7 +61,12 @@ export const usePayment = () => {
         invoice: undefined,
       }
     };
-    const proofs = JSON.parse(proofsStr)
+    let proofs = JSON.parse(proofsStr)
+    console.log("handlePayInvoice proofs", proofs)
+
+    if(proofs.length === 0){
+      proofs = proofsStore
+    }
     if (proofs && proofs.length > 0) {
 
       try {
@@ -165,6 +170,7 @@ export const usePayment = () => {
 
   const handleGenerateEcash = async (amount: number, proofsParent?: Proof[]) => {
     try {
+      console.log("handleGenerateEcash", amount, proofsParent)
       if (!amount) {
         return undefined;
       }
@@ -277,6 +283,7 @@ export const usePayment = () => {
 
       return undefined;
     } catch (e) {
+      console.log("handleGenerateEcash error", e)
       return undefined;
     }
   };
