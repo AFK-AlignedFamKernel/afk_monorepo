@@ -46,7 +46,7 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
   console.log('lud06', profile?.lud06);
   console.log('lud16', profile?.lud16);
   console.log('nip', profile?.nip05);
-  const { handleGenerateEcash, handlePayInvoice } = usePayment();
+  const { handleGenerateEcash, handlePayInvoice, handleGetProofs } = usePayment();
 
   const { mintUrls, activeMintIndex, setMintInfo, getMintInfo, mint, setMintUrls, wallet, connectCashWallet, setActiveMint, mintUrlSelected, setMintUrlSelected } = useCashu()
   useEffect(() => {
@@ -124,9 +124,12 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
         showToast({ title: "Lightning zap succeed", type: "success" })
       }
     } else {
+
+      const proofs = await handleGetProofs();
       // const cashuLnPayment = await payExternalInvoice(Number(amount), invoice?.paymentRequest)
       const { invoice: cashuLnPayment, meltResponse } = await handlePayInvoice(
         invoice?.paymentRequest,
+        proofs,
         Number(amount)
       )
       console.log('cashuLnPayment', cashuLnPayment);
@@ -198,10 +201,11 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 
           {!wallet && (
             <View>
-              <Button variant="secondary" onPress={() => {
+              <Button variant="secondary" onPress={async () => {
 
                 if (mint) {
-                  connectCashWallet(mint)
+                  const keysets = await mint?.getKeys();
+                  connectCashWallet(mint, keysets?.keysets)
                 } else {
 
                   if (!activeMintIndex) {
@@ -217,7 +221,8 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 
                     const cashuMint = new CashuMint(mintUrls?.[activeMintIndex]?.url)
                     // setWalletConnected(cashuMint)
-                    connectCashWallet(cashuMint)
+                    const keysets = await mint?.getKeys();
+                    connectCashWallet(cashuMint, keysets?.keysets)
                   }
                 }
 

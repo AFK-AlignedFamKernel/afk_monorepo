@@ -161,25 +161,52 @@ export const useCashu = (): ICashu => {
   }, [activeMintIndex]);
 
 
-  const [walletConnected, setWalletConnected] = useState<CashuWallet | undefined>();
+  const [walletConnected, setWalletConnected] = useState<CashuWallet | undefined>(new CashuWallet(mint, {
+    bip39seed: seed,
+    // unit: activeUnit,
+    // keysets: keysetsMint,
+    // keys: keysMint,
+    // keysets: (await keysets).keysets || [],
+  }));
 
-  const wallet = useMemo(() => {
+
+
+  const [keysetsMint, setKeysetsMint] = useState<MintKeyset[]>([]);
+  const [keysMint, setKeysMint] = useState<MintKeys[]>([]);
+  const keysets = useMemo(async () => {
+    const keysets = await mint?.getKeySets();
+    const keys = await mint?.getKeys();
+    setKeysetsMint(keysets?.keysets || []);
+    setKeysMint(keys?.keysets || []);
+    return keysets;
+  }, [mint, activeUnit, activeMint]);
+
+  const wallet = useMemo( () => {
+
+    console.log('keysetsMint', keysetsMint);
+    // const keysets = await mint?.getKeySets();
     if (mint) {
       return new CashuWallet(mint, {
         bip39seed: seed,
         // unit: activeUnit,
+        // keysets: keysetsMint,
+        // keys: keysMint,
+        // keysets: (await keysets).keysets || [],
       });
     }
     if (mint && !seed) {
       return new CashuWallet(mint, {
         // bip39seed: seed,
-        unit: activeUnit,
+        // unit: activeUnit,
+        // keysets: keysetsMint,
+        // keys: keysMint,
+        // keysets: (await keysets).keysets || [],
       });
     }
     if (walletConnected) return walletConnected;
 
 
-  }, [mint, seed, activeUnit]);
+  }, [mint, seed, activeUnit,keysetsMint]);
 
   useEffect(() => {
     if (mint) {
@@ -236,13 +263,14 @@ export const useCashu = (): ICashu => {
   const connectCashWallet = async (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => {
     if (!mint && !cashuMint) return undefined;
     const mnemonic = generateMnemonic(128);
-    const mintKeysset = await mint?.getKeys();
+    const mintKeysset = await mint?.getKeySets();
     setActiveMint(cashuMint.mintUrl);
     const wallet = new CashuWallet(cashuMint, {
       bip39seed: seed,
+      unit: activeUnit,
       // mnemonicOrSeed: mnemonic,
       // keys:keys
-      // keys: keys ?? mintKeysset,
+      // keysets: mintKeysset?.keysets || [],
     });
     // setWallet(wallet);
     setWalletConnected(wallet);
@@ -383,6 +411,8 @@ export const useCashu = (): ICashu => {
   const meltTokens = async (invoice: string, pProofs: Proof[]) => {
     try {
       if (!wallet) return;
+
+      let walletToUse = wallet;
       const meltQuote = await wallet?.createMeltQuote(invoice);
 
       console.log('meltQuote', meltQuote);
@@ -411,6 +441,10 @@ export const useCashu = (): ICashu => {
       const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(
         amountToSend,
         selectedProofs,
+        // {
+        //   includeFees:true,
+        //   keysetId: (await keysets).keysets[0].id,
+        // }
       );
       const meltResponse = await wallet.meltProofs(meltQuote, proofsToSend);
 

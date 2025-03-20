@@ -54,6 +54,8 @@ export const Balance = () => {
 
   const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
 
+  const [activeUnitUsed, setActiveUnitUsed] = useState<string>(activeUnit);
+  const [isWebsocketProofs, setIsWebsocketProofs] = useState<boolean>(false);
 
   const handleCreateWalletEvent = async () => {
     const nostrAccountStr = await NostrKeyManager.getAccountConnected();
@@ -92,6 +94,46 @@ export const Balance = () => {
     setActiveUnit(mintUnits[nextIndex]);
   };
 
+  const handleGetProofs = async () => {
+    const mint = mints.filter((mint) => mint.url === activeMint)[0];
+    const proofsStr = getProofs();
+    const proofsMap: Proof[] = [];
+    const proofsMapEvents: Proof[] = [];
+    let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
+      // let eventContent = JSON.parse(event.content);
+      let eventContent = event.content;
+      if (eventContent?.mint === activeMint) {
+        eventContent?.proofs?.map((proof: any) => {
+          proofsMap.push(proof);
+          return proof;
+        })
+      }
+    })
+
+    // Create array of proofs from events by flattening and filtering out undefined/null
+    const eventsProofsArray = eventsProofs?.flat().filter(Boolean) || [];
+
+    // // Merge proofs arrays and filter out duplicates based on C value
+    // const mergedProofs = [...proofsMap, ...eventsProofsArray].reduce((unique: Proof[], proof: Proof) => {
+    //   // Only add if we haven't seen this C value before
+    //   if (!unique.some(p => p.C === proof.C)) {
+    //     unique.push(proof);
+    //   }
+    //   return unique;
+    // }, []);
+
+    // Merge proofs arrays and filter out duplicates based on C value
+    const mergedProofs = [...proofsMap, ...eventsProofsArray].reduce((unique: Proof[], proof: Proof) => {
+      // Only add if we haven't seen this C value before
+      if (!unique.some(p => p.C === proof.C)) {
+        unique.push(proof);
+      }
+      return unique;
+    }, []);
+
+    return mergedProofs;
+  }
+
   const fetchBalanceData = async () => {
     try {
       setIsLoading(true);
@@ -102,19 +144,30 @@ export const Balance = () => {
       // const proofsMap: Proof[] = [...proofsStorage, ...proofs];
       const proofsMap: Proof[] = [];
       const proofsMapEvents: Proof[] = [];
-      let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
-        // let eventContent = JSON.parse(event.content);
-        let eventContent = event.content;
-        if (eventContent?.mint === activeMint) {
-          eventContent?.proofs?.map((proof: any) => {
-            proofsMap.push(proof);
-            return proof;
-          })
-        }
-      })
 
-      // Create array of proofs from events by flattening and filtering out undefined/null
-      const eventsProofsArray = eventsProofs?.flat().filter(Boolean) || [];
+      const mergedProofs = await handleGetProofs();
+      // let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
+      //   // let eventContent = JSON.parse(event.content);
+      //   let eventContent = event.content;
+      //   if (eventContent?.mint === activeMint) {
+      //     eventContent?.proofs?.map((proof: any) => {
+      //       proofsMap.push(proof);
+      //       return proof;
+      //     })
+      //   }
+      // })
+
+      // // Create array of proofs from events by flattening and filtering out undefined/null
+      // const eventsProofsArray = eventsProofs?.flat().filter(Boolean) || [];
+
+      // // // Merge proofs arrays and filter out duplicates based on C value
+      // // const mergedProofs = [...proofsMap, ...eventsProofsArray].reduce((unique: Proof[], proof: Proof) => {
+      // //   // Only add if we haven't seen this C value before
+      // //   if (!unique.some(p => p.C === proof.C)) {
+      // //     unique.push(proof);
+      // //   }
+      // //   return unique;
+      // // }, []);
 
       // // Merge proofs arrays and filter out duplicates based on C value
       // const mergedProofs = [...proofsMap, ...eventsProofsArray].reduce((unique: Proof[], proof: Proof) => {
@@ -125,16 +178,7 @@ export const Balance = () => {
       //   return unique;
       // }, []);
 
-      // Merge proofs arrays and filter out duplicates based on C value
-      const mergedProofs = [...proofsMap, ...eventsProofsArray].reduce((unique: Proof[], proof: Proof) => {
-        // Only add if we haven't seen this C value before
-        if (!unique.some(p => p.C === proof.C)) {
-          unique.push(proof);
-        }
-        return unique;
-      }, []);
-
-      console.log("mergedProofs", mergedProofs)
+      // console.log("mergedProofs", mergedProofs)
       // let allProofs = proofs.map((proof: any) => {
       //   if(eventsProofs.find((eventProof: any) => eventProof?.C === proof?.C)) {
       //     return proof;
@@ -160,7 +204,7 @@ export const Balance = () => {
       console.log("balance", balance)
       setCurrentUnitBalance(balance);
       setIsLoading(false);
-      await handleWebsocketProofs(mergedProofs)
+      // await handleWebsocketProofs(mergedProofs)
 
       setIsBalanceFetching(true);
     } catch (error) {
@@ -171,11 +215,20 @@ export const Balance = () => {
   };
 
 
-  const handleWebsocketProofs = async (mergedProofs: Proof[]) => {
+  const handleWebsocketProofs = async (mergedProofsParents?: Proof[]) => {
     try {
+      console.log("handleWebsocketProofs")
       if (!wallet) {
+        console.log("handleWebsocketProofs wallet not found")
         return;
       }
+
+      let mergedProofs = mergedProofsParents;
+
+      if(!mergedProofsParents) {
+        mergedProofs = await handleGetProofs();
+      }
+     
       console.log("handleWebsocketProofs mergedProofs", mergedProofs)
       // storeProofs(mergedProofs);
       const data = await new Promise<ProofState>((res) => {
@@ -189,9 +242,9 @@ export const Balance = () => {
                   const proofsStr = getProofs();
                   const proofs = JSON.parse(proofsStr);
                   // console.log("onProofStateUpdates proofs", proofs)
-                  // console.log("onProofStateUpdates mergedProofs", mergedProofs)
+                  console.log("onProofStateUpdates mergedProofs", mergedProofs)
                   let proofsFiltered = mergedProofs.filter((proof: Proof) => proof.C !== p?.proof?.C);
-                  console.log("onProofStateUpdates proofsFiltered", proofsFiltered)
+                  console.log("data onProofStateUpdates proofsFiltered", proofsFiltered)
 
                   // TODO create spending event
                   // update tokens events
@@ -214,6 +267,7 @@ export const Balance = () => {
 
 
       });
+      setIsWebsocketProofs(true);
       console.log("data onProofStateUpdates proofs websocket", data)
 
     } catch (error) {
@@ -222,26 +276,37 @@ export const Balance = () => {
 
   }
 
+  // useEffect(() => {
+  //   console.log("activeUnit", activeUnit)
+  //   if(activeUnit && activeMint && !isBalanceFetching) {
+  //     fetchBalanceData();
+  //   }
+
+  //   if(wallet) {
+  //   }
+  // }, [activeUnit, activeMint, wallet])
+
   useEffect(() => {
-    console.log("activeUnit", activeUnit)
-    if(activeUnit && activeMint && !isBalanceFetching) {
-      fetchBalanceData();
-    }
 
-    if(wallet) {
-    }
-  }, [activeUnit, activeMint, wallet])
-
-  useEffect(() => {
-
-    if (activeUnit && activeMint) {
+    if (activeUnit && activeMint && !isBalanceFetching) {
       console.log("fetchBalanceData")
+      setActiveUnitUsed(activeUnit);
       fetchBalanceData();
 
+    }
+
+    if(activeUnitUsed !== activeUnit) {
+      setActiveUnitUsed(activeUnit);
+      fetchBalanceData();
+    }
+
+    if(!isWebsocketProofs) {
+      // const mergedProofs = await handleGetProofs();
+      handleWebsocketProofs();
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeUnit, proofs, mints, activeMint, tokensEvents, walletsInfo, wallet, isBalanceFetching]);
+  }, [activeUnit, activeUnitUsed, isWebsocketProofs, proofs, mints, activeMint, tokensEvents, walletsInfo, wallet, isBalanceFetching, setActiveUnit]);
 
   return (
     <View style={styles.balanceContainer}>
