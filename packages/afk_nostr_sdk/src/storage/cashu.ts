@@ -9,7 +9,7 @@ export const KEY_CASHU_STORE = {
   PROOFS: 'PROOFS',
   PROOFS_SPENT: 'PROOFS_SPENT',
   TRANSACTIONS: 'TRANSACTIONS',
-  PROOFS_BY_MINT:"PROOFS_BY_MINT_"
+  PROOFS_BY_MINT:"PROOFS_BY_MINT_",
 };
 export const storeTokens = (tokens: Token[]) => {
   localStorage.setItem(KEY_CASHU_STORE.TOKENS, JSON.stringify(tokens));

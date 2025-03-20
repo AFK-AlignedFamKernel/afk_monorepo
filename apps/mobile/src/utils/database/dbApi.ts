@@ -1,6 +1,6 @@
 import { MintData, ICashuInvoice } from 'afk_nostr_sdk';
 import { MeltQuoteResponse, Proof, Token } from '@cashu/cashu-ts';
-import { db } from './db';
+import { db, ProofWithMint } from './db';
 
 // Settings API
 export const settingsApi = {
@@ -24,24 +24,40 @@ export const mintsApi = {
     return db.mints.get(url);
   },
   
-  async add(mint: MintData): Promise<string> {
-    // Dexie will return the primary key of the added item
-    return db.mints.add(mint) as unknown as string;
+  async add(mint: MintData): Promise<string|undefined> {
+    try {
+      return db.mints.add(mint) as unknown as string;
+    } catch (error) {
+      console.error('Error adding mints:', error);
+      return undefined;
+    }
   },
   
   async update(mint: MintData): Promise<void> {
-    await db.mints.put(mint);
+    try {
+      await db.mints.put(mint);
+    } catch (error) {
+      console.error('Error updating mints:', error);
+    }
   },
   
   async delete(url: string): Promise<void> {
-    await db.mints.delete(url);
+    try {
+      await db.mints.delete(url);
+    } catch (error) {
+      console.error('Error deleting mints:', error);
+    }
   },
   
   async setAll(mints: MintData[]): Promise<void> {
-    await db.transaction('rw', db.mints, async () => {
-      await db.mints.clear();
-      await db.mints.bulkAdd(mints);
-    });
+    try {
+      await db.transaction('rw', db.mints, async () => {
+        await db.mints.clear();
+        await db.mints.bulkAdd(mints);
+      });
+    } catch (error) {
+      console.error('Error setting all mints:', error);
+    }
   },
 };
 
@@ -51,31 +67,51 @@ export const proofsApi = {
     return db.proofs.toArray();
   },
   
-  async get(id: string): Promise<Proof | undefined> {
+  async get(id: string): Promise<Proof | undefined> {     
     return db.proofs.get(id);
   },
   
   async add(proof: Proof): Promise<string> {
-    return db.proofs.add(proof) as unknown as string;
+    try {
+      return db.proofs.add(proof) as unknown as string;
+    } catch (error) {
+      console.error('Error adding proofs:', error);
+    }
   },
   
-  async update(proof: Proof): Promise<void> {
-    await db.proofs.put(proof);
+  async update(proof: Proof): Promise<void> { 
+    try {
+      await db.proofs.put(proof);
+    } catch (error) {
+      console.error('Error updating proofs:', error);
+    }
   },
   
   async delete(id: string): Promise<void> {
-    await db.proofs.delete(id);
+    try {
+      await db.proofs.delete(id);
+    } catch (error) {
+      console.error('Error deleting proofs:', error);
+    }
   },
   
   async setAll(proofs: Proof[]): Promise<void> {
-    await db.transaction('rw', db.proofs, async () => {
-      await db.proofs.clear();
-      await db.proofs.bulkAdd(proofs);
-    });
+    try {
+      await db.transaction('rw', db.proofs, async () => {
+        await db.proofs.clear();
+        await db.proofs.bulkAdd(proofs);
+      });
+    } catch (error) {
+      console.error('Error setting all proofs:', error);
+    }
   },
   
   async deleteMany(ids: string[]): Promise<void> {
-    await db.proofs.bulkDelete(ids);
+    try {
+      await db.proofs.bulkDelete(ids);
+    } catch (error) {
+      console.error('Error deleting proofs:', error);
+    }
   },
 };
 
@@ -98,20 +134,32 @@ export const proofsSpentsApi = {
   },
   
   async delete(id: string): Promise<void> {
-    await db.proofsSpents.delete(id);
+    try {
+      await db.proofsSpents.delete(id);
+    } catch (error) {
+      console.error('Error deleting proofsSpents:', error);
+    }
   },
   
   async setAll(proofs: Proof[]): Promise<void> {
-    await db.transaction('rw', db.proofsSpents, async () => {
-      await db.proofsSpents.clear();
-      await db.proofsSpents.bulkAdd(proofs);
-    });
+    try {
+      await db.transaction('rw', db.proofsSpents, async () => {
+        await db.proofsSpents.clear();
+        await db.proofsSpents.bulkAdd(proofs);
+      });
+    } catch (error) {
+      console.error('Error setting all proofsSpents:', error);
+    }
   },
-    
+  
   async updateMany(proofs: Proof[]): Promise<void> {
-    await db.transaction('rw', db.proofsSpents, async () => {
-      await db.proofsSpents.bulkPut(proofs);
-    });
+    try {
+      await db.transaction('rw', db.proofsSpents, async () => {
+        await db.proofsSpents.bulkPut(proofs);
+      });
+    } catch (error) {
+      console.error('Error updating proofsSpents:', error);
+    }
   },
   
   async deleteMany(ids: string[]): Promise<void> {
@@ -119,6 +167,122 @@ export const proofsSpentsApi = {
   },
 };
 
+// ProofsByMint API
+export const proofsByMintApi = {
+  async getAll(): Promise<ProofWithMint[]> {
+    return db.proofsByMint.toArray();
+  },
+  
+  async get(id: string): Promise<ProofWithMint | undefined> {
+    return db.proofsByMint.get(id);
+  },
+  
+  async add(proof: Proof, mintUrl: string): Promise<string|undefined> {
+    const proofWithMint: ProofWithMint = { ...proof, mintUrl };
+    try {
+      return db.proofsByMint.add(proofWithMint) as unknown as string;
+    } catch (error) {
+      console.error('Error adding proofsByMint:', error);
+      return undefined;
+    }
+  },
+  
+  async update(proofWithMint: ProofWithMint): Promise<void> {
+    try {
+      await db.proofsByMint.put(proofWithMint);
+    } catch (error) {
+      console.error('Error updating proofsByMint:', error);
+    }
+  },
+  
+  async delete(id: string): Promise<void> {
+    try {
+      await db.proofsByMint.delete(id);
+    } catch (error) {
+      console.error('Error deleting proofsByMint:', error);
+    }
+  },
+  
+  async getByMintUrl(mintUrl: string): Promise<ProofWithMint[]> {
+    return db.proofsByMint.where('mintUrl').equals(mintUrl).toArray();
+  },
+  
+  async addProofsForMint(proofs: Proof[], mintUrl: string): Promise<void> {
+    try {
+      const proofsWithMint: ProofWithMint[] = proofs.map(proof => ({ 
+        ...proof, 
+        mintUrl 
+      }));
+    
+    await db.transaction('rw', db.proofsByMint, async () => {
+      for (const proof of proofsWithMint) {
+        await db.proofsByMint.put(proof);
+      }
+      });
+    } catch (error) {
+      console.error('Error adding proofs for mint:', error);
+    }
+  },
+  
+  async deleteAllForMint(mintUrl: string): Promise<void> {
+    try {
+      await db.proofsByMint.where('mintUrl').equals(mintUrl).delete();
+    } catch (error) {
+      console.error('Error deleting all proofs for mint:', error);
+    }
+  },
+  
+  async setAllForMint(proofs: Proof[], mintUrl: string): Promise<void> {
+    try {
+      const proofsWithMint: ProofWithMint[] = proofs.map(proof => ({ 
+        ...proof, 
+        mintUrl 
+    }));
+    
+    await db.transaction('rw', db.proofsByMint, async () => {
+      await db.proofsByMint.where('mintUrl').equals(mintUrl).delete();
+        await db.proofsByMint.bulkAdd(proofsWithMint);
+      });
+    } catch (error) {
+      console.error('Error setting all proofsByMint for mint:', error);
+    }
+  },
+  
+  async bulkAddOrUpdate(proofsWithMint: ProofWithMint[]): Promise<void> {
+    try {
+      await db.transaction('rw', db.proofsByMint, async () => {
+        await db.proofsByMint.bulkPut(proofsWithMint);
+      });
+    } catch (error) {
+      console.error('Error bulk adding or updating proofsByMint:', error);
+    }
+  },
+  
+  async deleteMany(ids: string[]): Promise<void> {
+    await db.proofsByMint.bulkDelete(ids);
+  },
+  
+  async syncWithProofs(proofs: Proof[], mintUrl: string): Promise<void> {
+    try {
+      // This method both adds new proofs and removes stale ones
+      // to keep proofsByMint in sync with the proofs table
+      const proofsWithMint: ProofWithMint[] = proofs.map(proof => ({ 
+      ...proof, 
+      mintUrl 
+    }));
+    
+    await db.transaction('rw', db.proofsByMint, async () => {
+      // Delete all proofs for this mint
+      await db.proofsByMint.where('mintUrl').equals(mintUrl).delete();
+      
+      // Add the current proofs
+        await db.proofsByMint.bulkAdd(proofsWithMint);
+      });
+    } catch (error) {
+      console.error('Error syncing proofsByMint:', error);
+    }
+  }
+};
 
 // Tokens API
 export const tokensApi = {
@@ -239,3 +403,88 @@ export const transactionsApi = {
     });
   },
 }; 
+
+
+// ProofsByMint API
+export const proofsSpentsByMintApi = {
+  async getAll(): Promise<ProofWithMint[]> {
+    return db.proofsSpentsByMint.toArray();
+  },
+  
+  async get(id: string): Promise<ProofWithMint | undefined> {
+    return db.proofsSpentsByMint.get(id);
+  },
+  
+  async add(proof: Proof, mintUrl: string): Promise<string> {
+    const proofWithMint: ProofWithMint = { ...proof, mintUrl };
+    return db.proofsSpentsByMint.add(proofWithMint) as unknown as string;
+  },
+  
+  async update(proofWithMint: ProofWithMint): Promise<void> {
+    await db.proofsSpentsByMint.put(proofWithMint);
+  },
+  
+  async delete(id: string): Promise<void> {
+    await db.proofsSpentsByMint.delete(id);
+  },
+  
+  async getByMintUrl(mintUrl: string): Promise<ProofWithMint[]> {
+    return db.proofsSpentsByMint.where('mintUrl').equals(mintUrl).toArray();
+  },
+  
+  async addProofsForMint(proofs: Proof[], mintUrl: string): Promise<void> {
+    const proofsWithMint: ProofWithMint[] = proofs.map(proof => ({ 
+      ...proof, 
+      mintUrl 
+    }));
+    
+    await db.transaction('rw', db.proofsSpentsByMint, async () => {
+      for (const proof of proofsWithMint) {
+        await db.proofsSpentsByMint.put(proof);
+      }
+    });
+  },
+  
+  async deleteAllForMint(mintUrl: string): Promise<void> {
+    await db.proofsSpentsByMint.where('mintUrl').equals(mintUrl).delete();
+  },
+  
+  async setAllForMint(proofs: Proof[], mintUrl: string): Promise<void> {
+    const proofsWithMint: ProofWithMint[] = proofs.map(proof => ({ 
+      ...proof, 
+      mintUrl 
+    }));
+    
+    await db.transaction('rw', db.proofsByMint, async () => {
+      await db.proofsSpentsByMint.where('mintUrl').equals(mintUrl).delete();
+      await db.proofsSpentsByMint.bulkAdd(proofsWithMint);
+    });
+  },
+  
+  async bulkAddOrUpdate(proofsWithMint: ProofWithMint[]): Promise<void> {
+    await db.transaction('rw', db.proofsByMint, async () => {
+      await db.proofsSpentsByMint.bulkPut(proofsWithMint);
+    });
+  },
+  
+  async deleteMany(ids: string[]): Promise<void> {
+    await db.proofsSpentsByMint.bulkDelete(ids);
+  },
+  
+  async syncWithProofs(proofs: Proof[], mintUrl: string): Promise<void> {
+    // This method both adds new proofs and removes stale ones
+    // to keep proofsByMint in sync with the proofs table
+    const proofsWithMint: ProofWithMint[] = proofs.map(proof => ({ 
+      ...proof, 
+      mintUrl 
+    }));
+    
+    await db.transaction('rw', db.proofsSpentsByMint, async () => {
+      // Delete all proofs for this mint
+      await db.proofsSpentsByMint.where('mintUrl').equals(mintUrl).delete();
+      
+      // Add the current proofs
+      await db.proofsSpentsByMint.bulkAdd(proofsWithMint);
+    });
+  }
+};

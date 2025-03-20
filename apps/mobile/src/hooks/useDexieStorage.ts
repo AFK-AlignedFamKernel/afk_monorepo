@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { MeltQuoteResponse, Proof, Token } from '@cashu/cashu-ts';
 import { ICashuInvoice, MintData } from 'afk_nostr_sdk';
 
-import { db, useLiveQuery } from '../utils/database/db';
+import { db, useLiveQuery, ProofWithMint } from '../utils/database/db';
 
 // Generic hook for settings
 export function useSettingStorage<T extends string>(key: string, initialValue: T) {
@@ -68,6 +68,110 @@ export function useProofsStorage() {
   }, [value]);
 
   return { value: value || [], setValue };
+}
+
+// Hook for proofs by mint
+export function useProofsByMintStorage(mintUrl?: string) {
+  // Get proofs for specific mint or all proofs if no mintUrl specified
+  const value = useLiveQuery(async () => {
+    if (mintUrl) {
+      return db.proofsByMint.where('mintUrl').equals(mintUrl).toArray();
+    } 
+    return db.proofsByMint.toArray();
+  }, [mintUrl]) as ProofWithMint[];
+
+  // Set or update proofs for a mint
+  const setValue = useCallback(async (
+    newProofs: Proof[] | ((prev: ProofWithMint[]) => Proof[]), 
+    mint: string = mintUrl || ''
+  ) => {
+    if (!mint) {
+      console.error('No mint URL provided for useProofsByMintStorage.setValue');
+      return;
+    }
+    
+    const proofsToStore = newProofs instanceof Function ? newProofs(value || []) : newProofs;
+    
+    // Convert to ProofWithMint
+    const proofsWithMint = proofsToStore.map(proof => ({
+      ...proof,
+      mintUrl: mint
+    }));
+    
+    // Clear existing proofs for this mint and add new ones
+    await db.transaction('rw', db.proofsByMint, async () => {
+      await db.proofsByMint.where('mintUrl').equals(mint).delete();
+      await db.proofsByMint.bulkAdd(proofsWithMint);
+    });
+  }, [value, mintUrl]);
+
+  // Add proofs to a mint
+  const addProofs = useCallback(async (
+    proofsToAdd: Proof[],
+    mint: string = mintUrl || ''
+  ) => {
+    if (!mint) {
+      console.error('No mint URL provided for useProofsByMintStorage.addProofs');
+      return;
+    }
+    
+    // Convert to ProofWithMint
+    const proofsWithMint = proofsToAdd.map(proof => ({
+      ...proof,
+      mintUrl: mint
+    }));
+    
+    // Add proofs keeping existing ones
+    await db.transaction('rw', db.proofsByMint, async () => {
+      await db.proofsByMint.bulkPut(proofsWithMint);
+    });
+  }, [mintUrl]);
+
+  // Delete proofs from a mint
+  const deleteProofs = useCallback(async (
+    proofIds: string[],
+    mint: string = mintUrl || ''
+  ) => {
+    if (!mint) {
+      console.error('No mint URL provided for useProofsByMintStorage.deleteProofs');
+      return;
+    }
+    
+    await db.transaction('rw', db.proofsByMint, async () => {
+      await db.proofsByMint.bulkDelete(proofIds);
+    });
+  }, [mintUrl]);
+
+  // Sync proofs between regular proofs table and proofsByMint
+  const syncWithProofs = useCallback(async (
+    proofs: Proof[],
+    mint: string = mintUrl || ''
+  ) => {
+    if (!mint) {
+      console.error('No mint URL provided for useProofsByMintStorage.syncWithProofs');
+      return;
+    }
+    
+    const proofsWithMint = proofs.map(proof => ({
+      ...proof,
+      mintUrl: mint
+    }));
+    
+    await db.transaction('rw', db.proofsByMint, async () => {
+      // Remove all existing proofs for this mint
+      await db.proofsByMint.where('mintUrl').equals(mint).delete();
+      // Add the current proofs
+      await db.proofsByMint.bulkAdd(proofsWithMint);
+    });
+  }, [mintUrl]);
+
+  return { 
+    value: value || [], 
+    setValue, 
+    addProofs, 
+    deleteProofs, 
+    syncWithProofs 
+  };
 }
 
 // Hook for tokens

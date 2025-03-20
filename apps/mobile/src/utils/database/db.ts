@@ -10,7 +10,7 @@ import { MeltQuoteResponse, Proof, Token } from '@cashu/cashu-ts';
 if (!globalThis.indexedDB) {
   if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
     // Initialize SQLite as IndexedDB backend for native platforms
-    const sqliteDb = SQLite.openDatabase('cashu_database.db');
+    const sqliteDb = SQLite.openDatabaseSync('cashu_database.db');
     
     // This class would provide a bridge between SQLite and IndexedDB APIs
     // For a full implementation, consider using existing libraries or building a custom adapter
@@ -24,12 +24,19 @@ if (!globalThis.indexedDB) {
   }
 }
 
+// Define an interface for proofs by mint to include the mint URL
+export interface ProofWithMint extends Proof {
+  mintUrl: string; // The mint URL this proof is associated with
+}
+
 // Define your database
 export class CashuDatabase extends Dexie {
   // Define tables
   mints!: Dexie.Table<MintData, string>; // string = type of the primary key
   proofs!: Dexie.Table<Proof, string>;
   proofsSpents!: Dexie.Table<Proof, string>;
+  proofsByMint!: Dexie.Table<ProofWithMint, string>; // New table for indexing proofs by mint
+  proofsSpentsByMint!: Dexie.Table<ProofWithMint, string>; // New table for indexing proofs by mint
   tokens!: Dexie.Table<Token, string>;
   quotes!: Dexie.Table<MeltQuoteResponse, string>;
   invoices!: Dexie.Table<ICashuInvoice, string>;
@@ -43,6 +50,9 @@ export class CashuDatabase extends Dexie {
     this.version(1).stores({
       mints: '&url, alias', // & means primary key
       proofs: '&C, id, amount', // C is the proof identifier
+      proofsSpents: '&C, id, amount', // Spent proofs
+      proofsByMint: '&C, mintUrl, id, amount', // Indexed by both C and mintUrl
+      proofsSpentsByMint: '&C, mintUrl, id, amount', // Indexed by both C and mintUrl
       tokens: '&id, amount',
       quotes: '&id, amount, created_at',
       invoices: '&id, created_at, amount, paid',

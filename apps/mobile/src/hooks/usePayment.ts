@@ -87,6 +87,8 @@ export const usePayment = () => {
       return {
         meltResponse: undefined,
         invoice: undefined,
+        proofsSent: undefined,
+        proofsToKeep: undefined,
       };
     }
 
@@ -102,6 +104,8 @@ export const usePayment = () => {
       return {
         meltResponse: undefined,
         invoice: undefined,
+        proofsSent: undefined,
+        proofsToKeep: undefined,
       }
     };
     let proofsStorage = JSON.parse(proofsStr)
@@ -152,6 +156,8 @@ export const usePayment = () => {
           return {
             meltResponse: undefined,
             invoice: undefined,
+            proofsSent: undefined,
+            proofsToKeep: undefined,
           }
         }
         // const res = await wallet.selectProofsToSend(proofs, response?.meltQuote.amount)
@@ -205,20 +211,22 @@ export const usePayment = () => {
             direction: 'out',
           };
           setTransactions([...transactions, newInvoice]);
-          return { meltResponse, invoice: newInvoice };
+          return { meltResponse, invoice: newInvoice, proofsSent: selectedProofs, proofsToKeep: proofsToKeep };
         } else {
-          return { meltResponse: undefined, invoice: undefined };
+          return { meltResponse: undefined, invoice: undefined, proofsSent: undefined, proofsToKeep: undefined };
         }
       } catch (error) {
         console.log('error', error);
-        return { meltResponse: undefined, invoice: undefined };
+        return { meltResponse: undefined, invoice: undefined, proofsSent: undefined, proofsToKeep: undefined };
       }
     } else {
       console.log('no proofs');
       // no proofs = no balance
       return {
         meltResponse: undefined,
-        invoice: undefined,
+        invoice: undefined, 
+        proofsSent: undefined,
+        proofsToKeep: undefined,
       };
     }
   };

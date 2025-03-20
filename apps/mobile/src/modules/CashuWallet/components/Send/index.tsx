@@ -37,7 +37,7 @@ import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 import { useToast } from 'src/hooks/modals';
 import { Proof } from '@cashu/cashu-ts';
-import { proofsSpentsApi } from 'src/utils/database';
+import { proofsByMintApi, proofsSpentsApi, proofsSpentsByMintApi } from 'src/utils/database';
 
 interface SendProps {
   onClose: () => void;
@@ -59,7 +59,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
   const { value: proofs } = useProofsStorage();
   const { setValue: setActiveUnitStorage } = useActiveUnitStorage();
 
-  const { handlePayInvoice:handlePayInvoiceAtomiq } = useAtomiqLab();
+  const { handlePayInvoice: handlePayInvoiceAtomiq } = useAtomiqLab();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>('none');
   const [invoice, setInvoice] = useState<string | undefined>();
@@ -97,7 +97,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
 
 
     const proofsMap: Proof[] = proofs || [];
-    let eventsProofs = tokensEvents?.pages[0]?.map((event:any) => {
+    let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
       // let eventContent = JSON.parse(event.content);
       let eventContent = event.content;
       eventContent?.proofs?.map((proof: any) => {
@@ -106,14 +106,16 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
       })
     })
 
-    
+
     console.log("handle parents proofsMap", proofsMap)
-    const {cashuToken, proofsToSend} = await handleGenerateEcash(Number(invoiceAmount), proofsMap);
+    const { cashuToken, proofsToSend } = await handleGenerateEcash(Number(invoiceAmount), proofsMap);
     console.log("ecash generated", cashuToken)
 
-    proofsToSend.map((proof) => {
-      proofsSpentsApi.add(proof)
-    })
+    const oldProofs = await proofsByMintApi.getByMintUrl(activeMint);
+    const proofsToSendFiltered = proofsToSend.filter((proof) => !oldProofs.some((oldProof) => oldProof.C === proof.C));
+    proofsByMintApi.setAllForMint(proofsToSendFiltered, activeMint)
+    proofsSpentsApi.updateMany(proofsToSend)
+    proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
     if (!cashuToken) {
       setModalToast({
         title: 'Error generating ecash token.',
@@ -157,7 +159,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
         if (res) {
           showToast({ title: 'Payment sent', type: 'success' });
         } else {
-          
+
         }
       } else {
         const key = randomUUID();
@@ -171,7 +173,20 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
           setIsPaymentProcessing(false);
           return;
         }
-        const { meltResponse } = await handlePayInvoice(invoice);
+        const { meltResponse, proofsSent } = await handlePayInvoice(invoice);
+
+        const proofsToSend = proofsSent || [];
+        // const proofsToKeep = proofsToKeep || [];
+        try {
+          console.log("handleLightningPayment dexie db", proofsToSend)
+          const oldProofs = await proofsByMintApi.getByMintUrl(activeMint);
+          const proofsToSendFiltered = proofsToSend.filter((proof) => !oldProofs.some((oldProof) => oldProof.C === proof.C));
+          proofsByMintApi.setAllForMint(proofsToSendFiltered, activeMint)
+          proofsSpentsApi.updateMany(proofsToSend)
+          proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
+        } catch (error) {
+          console.log("handleLightningPayment error", error)
+        }
         setIsPaymentProcessing(false);
         if (!meltResponse) {
           setModalToast({
@@ -333,9 +348,9 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
         return (
           <>
             <ScrollView style={styles.modalTabContentContainer}
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.modalTabContentContainerChildren}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.modalTabContentContainerChildren}
             >
               <TouchableOpacity
                 onPress={onClose}
@@ -487,13 +502,13 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
                   >
                     <Text style={styles.text}>eCash token</Text>
                     <Input
-                    style={{
-                      backgroundColor: theme.colors.surface,
-                      color: theme.colors.inputText,
-                      paddingVertical: 5,
-                      paddingHorizontal: 8,
-                      width: '100%',
-                    }}
+                      style={{
+                        backgroundColor: theme.colors.surface,
+                        color: theme.colors.inputText,
+                        paddingVertical: 5,
+                        paddingHorizontal: 8,
+                        width: '100%',
+                      }}
                       value={generatedEcash}
                       editable={false}
                       right={

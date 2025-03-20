@@ -133,7 +133,7 @@ export const Mints = () => {
       // nostr event
       await createWalletEvent({
         name: walletId,
-        mints: mints.map((mint) => mint.url),
+        mints: mints?.map((mint) => mint.url),
         privkey: privKey,
       });
     }

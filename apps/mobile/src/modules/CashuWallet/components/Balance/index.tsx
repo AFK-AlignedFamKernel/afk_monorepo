@@ -20,10 +20,10 @@ import { getProofs, NostrKeyManager, storeProofs, useCashu, useCashuStore, useCr
 import { randomUUID } from 'expo-crypto';
 import { Check, ProofStateStateEnum, Proof, ProofState, CheckStateEnum } from '@cashu/cashu-ts';
 import { Button } from 'src/components';
-import { proofsApi } from 'src/utils/database';
+import { proofsApi, proofsByMintApi, proofsSpentsByMintApi } from 'src/utils/database';
 
 export const Balance = () => {
-  const { getUnitBalance, setActiveUnit, getUnitBalanceWithProofsChecked, wallet } = useCashuContext()!;
+  const { getUnitBalance, setActiveUnit, getUnitBalanceWithProofsChecked, wallet, activeMint, activeUnit } = useCashuContext()!;
 
   const styles = useStyles(stylesheet);
   const [alias, setAlias] = useState<string>('');
@@ -31,8 +31,8 @@ export const Balance = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isBalanceFetching, setIsBalanceFetching] = useState(false);
   const { value: mints } = useMintStorage();
-  const { value: activeMint } = useActiveMintStorage();
-  const { value: activeUnit, setValue: setActiveUnitStorage } = useActiveUnitStorage();
+  // const { value: activeMint } = useActiveMintStorage();
+  const { value: activeUnitStorage, setValue: setActiveUnitStorage } = useActiveUnitStorage();
   const { value: proofs, setValue: setProofsStore } = useProofsStorage();
 
 
@@ -135,6 +135,7 @@ export const Balance = () => {
     return mergedProofs;
   }
 
+
   const fetchBalanceData = async () => {
     try {
       setIsLoading(true);
@@ -147,6 +148,9 @@ export const Balance = () => {
       const proofsMapEvents: Proof[] = [];
 
       const mergedProofs = await handleGetProofs();
+
+      const proofsByMint = await proofsByMintApi.getByMintUrl(activeMint);
+      console.log("proofsByMint", proofsByMint)
       // let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
       //   // let eventContent = JSON.parse(event.content);
       //   let eventContent = event.content;
@@ -201,7 +205,8 @@ export const Balance = () => {
       // console.log("mergedProofs", mergedProofs)
 
       // const balance = await getUnitBalanceWithProofsChecked(activeUnit, mint, mergedProofs);
-      const balance = await getUnitBalance(activeUnit, mint, mergedProofs);
+      const balance = await getUnitBalance(activeUnit, mint, proofsByMint);
+      // const balance = await getUnitBalance(activeUnit, mint, mergedProofs);
       console.log("balance", balance)
       setCurrentUnitBalance(balance);
       setIsLoading(false);
@@ -249,7 +254,9 @@ export const Balance = () => {
                   proofsFiltered = Array.from(new Set(proofsFiltered.map((p) => p)));
                   console.log("data onProofStateUpdates proofsFiltered", proofsFiltered)
                   proofsApi.setAll([...proofsFiltered])
+                  proofsByMintApi.setAllForMint(proofsFiltered, activeMint)
 
+                  proofsSpentsByMintApi.addProofsForMint([p?.proof], activeMint)
                   // TODO create spending event
                   // update tokens events
                   // update storage proofs
@@ -292,13 +299,12 @@ export const Balance = () => {
 
   useEffect(() => {
 
-    if (activeUnit && activeMint && (!isBalanceFetching)) {
+    if (activeUnit && activeMint) {
       console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
       fetchBalanceData();
-
+      setActiveUnitStorage(activeUnit);
     }
-
 
     if (!isWebsocketProofs) {
       // const mergedProofs = await handleGetProofs();
@@ -307,7 +313,8 @@ export const Balance = () => {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeUnit, activeUnitUsed, isWebsocketProofs, proofs, mints, activeMint, tokensEvents, walletsInfo, wallet, isBalanceFetching, setActiveUnit]);
+    // }, [activeUnit, activeUnitUsed, isWebsocketProofs, proofs, mints, activeMint, tokensEvents, walletsInfo, wallet]);
+  }, [activeUnit, mints, activeMint, tokensEvents, walletsInfo, wallet]);
 
   return (
     <View style={styles.balanceContainer}>
