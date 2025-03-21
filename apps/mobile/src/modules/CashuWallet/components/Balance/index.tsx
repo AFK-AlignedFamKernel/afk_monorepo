@@ -27,7 +27,7 @@ export const Balance = () => {
 
   const styles = useStyles(stylesheet);
   const [alias, setAlias] = useState<string>('');
-  const [currentUnitBalance, setCurrentUnitBalance] = useState<number>(0);
+  const [currentUnitBalance, setCurrentUnitBalance] = useState<number|undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [isBalanceFetching, setIsBalanceFetching] = useState(false);
   const { value: mints } = useMintStorage();
@@ -139,7 +139,11 @@ export const Balance = () => {
 
   const fetchBalanceData = async () => {
     try {
+      if(isLoading) {
+        return;
+      }
       setIsLoading(true);
+
       console.log("fetchBalanceData")
       const mint = mints.filter((mint) => mint.url === activeMint)[0];
       const proofsStr = getProofs();
@@ -148,75 +152,26 @@ export const Balance = () => {
       const proofsMap: Proof[] = [];
       const proofsMapEvents: Proof[] = [];
 
-      const mergedProofs = await handleGetProofs();
+      // const mergedProofs = await handleGetProofs();
 
+      console.log("get proofsByMint", activeMint)
       const proofsByMint = await proofsByMintApi.getByMintUrl(activeMint);
       console.log("proofsByMint", proofsByMint)
-      // let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
-      //   // let eventContent = JSON.parse(event.content);
-      //   let eventContent = event.content;
-      //   if (eventContent?.mint === activeMint) {
-      //     eventContent?.proofs?.map((proof: any) => {
-      //       proofsMap.push(proof);
-      //       return proof;
-      //     })
-      //   }
-      // })
 
-      // // Create array of proofs from events by flattening and filtering out undefined/null
-      // const eventsProofsArray = eventsProofs?.flat().filter(Boolean) || [];
-
-      // // // Merge proofs arrays and filter out duplicates based on C value
-      // // const mergedProofs = [...proofsMap, ...eventsProofsArray].reduce((unique: Proof[], proof: Proof) => {
-      // //   // Only add if we haven't seen this C value before
-      // //   if (!unique.some(p => p.C === proof.C)) {
-      // //     unique.push(proof);
-      // //   }
-      // //   return unique;
-      // // }, []);
-
-      // // Merge proofs arrays and filter out duplicates based on C value
-      // const mergedProofs = [...proofsMap, ...eventsProofsArray].reduce((unique: Proof[], proof: Proof) => {
-      //   // Only add if we haven't seen this C value before
-      //   if (!unique.some(p => p.C === proof.C)) {
-      //     unique.push(proof);
-      //   }
-      //   return unique;
-      // }, []);
-
-      // console.log("mergedProofs", mergedProofs)
-      // let allProofs = proofs.map((proof: any) => {
-      //   if(eventsProofs.find((eventProof: any) => eventProof?.C === proof?.C)) {
-      //     return proof;
-      //   }
-      // })
-
-      // let allProofsFiltered = allProofs.filter((proof: any) => proof !== undefined);
-      // // Create a map to track unique proofs by their C value
-      // const uniqueProofs = new Map();
-      // allProofsFiltered.forEach((proof: any) => {
-      //   // Only add proof if we haven't seen this C value before
-      //   if (!uniqueProofs.has(proof.C)) {
-      //     uniqueProofs.set(proof.C, proof);
-      //   }
-      // });
-      // // Convert map values back to array
-      // allProofsFiltered = Array.from(uniqueProofs.values());
-      // storeProofs(allProofsFiltered);
-      // console.log("mergedProofs", mergedProofs)
-
+      console.log("calculateBalance", )
       // const balance = await getUnitBalanceWithProofsChecked(activeUnit, mint, mergedProofs);
       const balance = await getUnitBalance(activeUnit, mint, proofsByMint);
       // const balance = await getUnitBalance(activeUnit, mint, mergedProofs);
       console.log("balance", balance)
       setCurrentUnitBalance(balance);
       setIsLoading(false);
-      await handleWebsocketProofs(mergedProofs)
+      // await handleWebsocketProofs(proofsByMint)
 
       setIsBalanceFetching(true);
     } catch (error) {
       console.log("fetchBalanceData error", error)
     } finally {
+      setIsLoading(false);
     }
 
   };
@@ -300,7 +255,7 @@ export const Balance = () => {
 
   useEffect(() => {
 
-    if (activeUnit && activeMint && !isBalanceFetching) {
+    if (activeUnit && activeMint && !isBalanceFetching && !isLoading) {
       console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
       fetchBalanceData();
@@ -315,7 +270,7 @@ export const Balance = () => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     // }, [activeUnit, activeUnitUsed, isWebsocketProofs, proofs, mints, activeMint, tokensEvents, walletsInfo, wallet]);
-  }, [activeUnit, mints, activeMint, tokensEvents, walletsInfo, wallet]);
+  }, [activeUnit, mints, activeMint, tokensEvents, walletsInfo, wallet, isBalanceFetching, isLoading]);
 
 
   useEffect(() => {
