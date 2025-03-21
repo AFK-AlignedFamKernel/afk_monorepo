@@ -24,6 +24,7 @@ import { useCashuContext } from '../../../../providers/CashuProvider';
 import stylesheet from './styles';
 import { useToast } from '../../../../hooks/modals';
 import { invoicesApi } from 'src/utils/database';
+import { useNFC } from 'src/hooks/useNFC';
 
 interface ReceiveProps {
   onClose: () => void;
@@ -54,6 +55,8 @@ export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
   const { value: invoices, setValue: setInvoices } = useInvoicesStorage();
   const { value: activeUnit } = useActiveUnitStorage();
 
+  const { handleReadNfc, handleWriteNfc } = useNFC();
+
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
@@ -80,6 +83,8 @@ export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
 
       invoicesApi.add(cashuInvoice)
       invoicesApi.setAll([...invoices, cashuInvoice])
+
+     const data=  await handleWriteNfc(cashuInvoice?.bolt11, 'ecash');
       if (invoices) {
         setInvoices([...invoices, cashuInvoice]);
       } else {

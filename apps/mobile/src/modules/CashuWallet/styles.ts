@@ -113,7 +113,6 @@ export default ThemedStyleSheet((theme) => ({
   },
   nfcButton: {
     flex: 1,
-    height: 42,
     backgroundColor: theme.colors.secondary,
     borderRadius: 8,
     marginHorizontal: 4,

@@ -34,6 +34,7 @@ import { Send } from './components/Send';
 import { Settings } from './components/Settings';
 import stylesheet from './styles';
 import NfcPayment from '../NfcPayment';
+import { NfcIcon } from 'src/assets/icons';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -224,6 +225,9 @@ export const CashuView = () => {
                     <Button onPress={handleQRCodeClick} style={styles.qrButton}>
                       <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
                     </Button>
+                    {/* <Button onPress={() => handleOpenNfcModal('send')} style={styles.qrButton}>
+                      <NfcIcon width={60} height={60} color={theme.colors.primary} />
+                    </Button> */}
                   </View>
                   <Button
                     onPress={onOpenReceiveModal}
@@ -233,7 +237,7 @@ export const CashuView = () => {
                     Receive
                   </Button>
                 </View>
-                <View style={styles.nfcButtonsContainer}>
+                {/* <View style={styles.nfcButtonsContainer}>
                   <Button 
                     onPress={() => handleOpenNfcModal('send')}
                     style={styles.nfcButton}
@@ -248,7 +252,7 @@ export const CashuView = () => {
                   >
                     Receive via NFC
                   </Button>
-                </View>
+                </View> */}
               </View>
             </>
           ) : (
@@ -331,6 +335,7 @@ export const CashuView = () => {
       <NfcPayment 
         isVisible={nfcModalOpen}
         onClose={() => setNfcModalOpen(false)}
+        setMode={setNfcMode}
         mode={nfcMode}
       />
     </View>

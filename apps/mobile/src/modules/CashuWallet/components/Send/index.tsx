@@ -38,6 +38,7 @@ import stylesheet from './styles';
 import { useToast } from 'src/hooks/modals';
 import { Proof } from '@cashu/cashu-ts';
 import { proofsApi, proofsByMintApi, proofsSpentsApi, proofsSpentsByMintApi } from 'src/utils/database';
+import { useNFC } from 'src/hooks/useNFC';
 
 interface SendProps {
   onClose: () => void;
@@ -78,6 +79,8 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [isGeneratingEcash, setIsGeneratingEcash] = useState(false);
   const [type, setType] = useState<"CASHU" | "STRK">("CASHU")
+
+  const { isReading, isWriting, nfcSupported, handleReadNfc, handleWriteNfc } = useNFC();
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -131,6 +134,8 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
       return;
     }
     setGenerateEcash(cashuToken);
+
+    handleWriteNfc(cashuToken, 'ecash');
     setIsGeneratingEcash(false);
     return cashuToken;
   };
@@ -185,7 +190,8 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
           console.log("handleLightningPayment dexie db", proofsToSend)
           const oldProofs = await proofsByMintApi.getByMintUrl(activeMint);
           const proofsToKeepFiltered = oldProofs.filter((proof) => !proofsToSend.some((newProof) => newProof.C === proof.C));
-          proofsByMintApi.setAllForMint(proofsToKeep, activeMint)
+          // proofsByMintApi.setAllForMint(proofsToKeep, activeMint)
+          proofsByMintApi.setAllForMint(proofsToKeepFiltered, activeMint)
           proofsApi.setAll([...proofsToKeep])
           proofsSpentsApi.updateMany(proofsToSend)
           proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)

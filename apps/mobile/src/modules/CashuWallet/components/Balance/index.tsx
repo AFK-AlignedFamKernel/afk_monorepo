@@ -56,6 +56,7 @@ export const Balance = () => {
   const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
 
   const [activeUnitUsed, setActiveUnitUsed] = useState<string>(activeUnit);
+  const [activeMintUsed, setActiveMintUsed] = useState<string>(activeMint);
   const [isWebsocketProofs, setIsWebsocketProofs] = useState<boolean>(false);
 
   const handleCreateWalletEvent = async () => {
@@ -299,7 +300,7 @@ export const Balance = () => {
 
   useEffect(() => {
 
-    if (activeUnit && activeMint) {
+    if (activeUnit && activeMint && !isBalanceFetching) {
       console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
       fetchBalanceData();
@@ -316,6 +317,18 @@ export const Balance = () => {
     // }, [activeUnit, activeUnitUsed, isWebsocketProofs, proofs, mints, activeMint, tokensEvents, walletsInfo, wallet]);
   }, [activeUnit, mints, activeMint, tokensEvents, walletsInfo, wallet]);
 
+
+  useEffect(() => {
+    console.log("activeUnit", activeUnit)
+    if (activeUnit && activeMint && (activeUnitUsed !== activeUnit || activeMintUsed !== activeMint)) {
+      console.log("fetchBalanceData")
+      setActiveUnitUsed(activeUnit);
+      setActiveMintUsed(activeMint);
+      fetchBalanceData();
+      setActiveUnitStorage(activeUnit);
+    }
+    console.log("activeMint", activeMint)
+  }, [activeUnit, activeMint, activeUnitUsed, activeMintUsed, isBalanceFetching])
   return (
     <View style={styles.balanceContainer}>
       <Text style={styles.balanceTitle}>Your balance</Text>
