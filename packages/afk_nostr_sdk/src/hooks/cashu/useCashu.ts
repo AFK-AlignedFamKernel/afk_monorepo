@@ -484,8 +484,8 @@ export const useCashu = (): ICashu => {
       const meltQuote = await wallet?.createMeltQuote(invoice);
 
       console.log('meltQuote', meltQuote);
-      // const amountToSend = meltQuote.amount + meltQuote.fee_reserve;
-      const amountToSend = meltQuote.amount;
+      const amountToSend = meltQuote.amount + meltQuote.fee_reserve;
+      // const amountToSend = meltQuote.amount;
       const totalProofsAvailable = pProofs.reduce((acc, p) => acc + p.amount, 0);
       if (totalProofsAvailable < amountToSend) {
         console.log('totalProofsAvailable < amountToSend', totalProofsAvailable, amountToSend);
@@ -512,7 +512,7 @@ export const useCashu = (): ICashu => {
         selectedProofs,
         // {
         //   includeFees:true,
-        //   keysetId: (await keysets).keysets[0].id,
+        //   // keysetId: (await keysets).keysets[0].id,
         // }
       );
       const meltResponse = await wallet.meltProofs(meltQuote, proofsToSend);

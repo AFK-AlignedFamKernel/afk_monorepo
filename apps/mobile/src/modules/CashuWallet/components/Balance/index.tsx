@@ -27,7 +27,7 @@ export const Balance = () => {
 
   const styles = useStyles(stylesheet);
   const [alias, setAlias] = useState<string>('');
-  const [currentUnitBalance, setCurrentUnitBalance] = useState<number|undefined>(undefined);
+  const [currentUnitBalance, setCurrentUnitBalance] = useState<number|undefined>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isBalanceFetching, setIsBalanceFetching] = useState(false);
   const { value: mints } = useMintStorage();
@@ -142,7 +142,7 @@ export const Balance = () => {
       if(isLoading) {
         return;
       }
-      setCurrentUnitBalance(undefined);
+      setCurrentUnitBalance(0);
       setIsLoading(true);
 
       console.log("fetchBalanceData")

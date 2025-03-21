@@ -125,12 +125,12 @@ export const usePayment = () => {
         // console.log('amount regex', amount);
 
         let proofsToSend = proofs;
-        const fees = await wallet?.getFeesForKeyset(amount, activeUnit)
+        let fees = await wallet?.getFeesForKeyset(amount, activeUnit)
 
         console.log('fees', fees);
         if (amount) {
 
-          const res = await wallet?.selectProofsToSend(proofs, amount+fees)
+          const res = await wallet?.selectProofsToSend(proofs, amount+(fees  > 0 ? fees : 2))
           // const checkProofsStates = await wallet?.checkProofsStates(proofs)
           console.log('res selectProofsToSend', res);
           // console.log('res checkProofsStates', checkProofsStates);
