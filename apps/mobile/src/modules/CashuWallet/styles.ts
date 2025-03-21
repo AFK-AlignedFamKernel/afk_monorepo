@@ -105,4 +105,19 @@ export default ThemedStyleSheet((theme) => ({
     borderBottomWidth: 2,
     borderColor: theme.colors.primary,
   },
+  nfcButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 20,
+  },
+  nfcButton: {
+    flex: 1,
+    height: 42,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: 8,
+    marginHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 }));
