@@ -142,6 +142,7 @@ export const Balance = () => {
       if(isLoading) {
         return;
       }
+      setCurrentUnitBalance(undefined);
       setIsLoading(true);
 
       console.log("fetchBalanceData")
@@ -169,9 +170,12 @@ export const Balance = () => {
 
       setIsBalanceFetching(true);
     } catch (error) {
-      console.log("fetchBalanceData error", error)
+      console.log("fetchBalanceData error", error);
+      setIsLoading(false);
+      setIsBalanceFetching(true);
     } finally {
       setIsLoading(false);
+      setIsBalanceFetching(true);
     }
 
   };
