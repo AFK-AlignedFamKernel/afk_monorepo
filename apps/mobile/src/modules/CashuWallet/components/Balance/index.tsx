@@ -166,7 +166,7 @@ export const Balance = () => {
       console.log("balance", balance)
       setCurrentUnitBalance(balance);
       setIsLoading(false);
-      // await handleWebsocketProofs(proofsByMint)
+      await handleWebsocketProofs(proofsByMint)
 
       setIsBalanceFetching(true);
     } catch (error) {
@@ -186,13 +186,13 @@ export const Balance = () => {
       console.log("handleWebsocketProofs")
       if (!wallet) {
         console.log("handleWebsocketProofs wallet not found")
-        return;
+        return {mergedProofs: [], data: {}}
       }
 
       let mergedProofs = mergedProofsParents;
 
       if (!mergedProofsParents) {
-        mergedProofs = await handleGetProofs();
+        mergedProofs = await proofsByMintApi.getByMintUrl(activeMint);
       }
 
       console.log("handleWebsocketProofs mergedProofs", mergedProofs)
@@ -241,8 +241,12 @@ export const Balance = () => {
       setIsWebsocketProofs(true);
       console.log("data onProofStateUpdates proofs websocket", data)
 
+      return {mergedProofs, data};
     } catch (error) {
       console.log("handleWebsocketProofs errror", error)
+      return {mergedProofs: [], data: {}}
+    } finally {
+      setIsWebsocketProofs(true);
     }
 
   }
@@ -288,6 +292,14 @@ export const Balance = () => {
     }
     console.log("activeMint", activeMint)
   }, [activeUnit, activeMint, activeUnitUsed, activeMintUsed, isBalanceFetching])
+
+  useEffect(() => {
+
+    if(wallet && !isWebsocketProofs) {
+      console.log("handleWebsocketProofs")
+      handleWebsocketProofs();
+    }
+  }, [wallet])
   return (
     <View style={styles.balanceContainer}>
       <Text style={styles.balanceTitle}>Your balance</Text>

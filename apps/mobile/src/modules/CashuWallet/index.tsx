@@ -99,8 +99,8 @@ export const CashuView = () => {
 
   const tokenCashuEvents = useGetCashuTokenEvents()
 
-  console.log("cashuView")
-  console.log('tokenCashuEvents', tokenCashuEvents);
+  // console.log("cashuView")
+  // console.log('tokenCashuEvents', tokenCashuEvents);
 
 
   // functions

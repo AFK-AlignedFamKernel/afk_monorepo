@@ -49,7 +49,7 @@ export default ThemedStyleSheet((theme) => ({
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 15,
+    gap: 10,
     marginTop: 20,
     marginBottom: 20,
     justifyContent: 'center',
@@ -57,9 +57,9 @@ export default ThemedStyleSheet((theme) => ({
   },
   actionButton: {
     flex: 1,
-    maxWidth: '40%',
+    maxWidth: '30%',
     backgroundColor: theme.colors.primary,
-    maxHeight:"40%"
+    maxHeight:"30%"
   },
   actionButtonText: {
     color: theme.colors.white,
