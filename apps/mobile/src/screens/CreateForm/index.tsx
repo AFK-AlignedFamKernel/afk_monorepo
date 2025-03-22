@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {KeyboardAvoidingView, View} from 'react-native';
+import {KeyboardAvoidingView, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
 import {TextButton} from '../../components';
@@ -11,6 +11,7 @@ import {CreateFormScreenProps} from '../../types';
 import {SelectedTab, TABS_FORM_CREATE} from '../../types/tab';
 import {FormCreateChannel} from '../CreateChannel/FormCreateChannel';
 import {FormCreatePost} from '../CreatePost/FormPost';
+import TestFormFeatures from '../CreatePost/FormPost/TestEmbed';
 import stylesheet from './styles';
 
 export const CreateForm: React.FC<CreateFormScreenProps> = ({navigation}) => {
@@ -40,6 +41,9 @@ export const CreateForm: React.FC<CreateFormScreenProps> = ({navigation}) => {
           addScreenNavigation={false}
         ></TabSelector>
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
+          {/* Add test embed at the top for easy testing */}
+          <TestFormFeatures />
+          
           {selectedTab == SelectedTab.CREATE_NOTE ? (
             <FormCreatePost></FormCreatePost>
           ) : selectedTab == SelectedTab.CREATE_CHANNEL ? (
