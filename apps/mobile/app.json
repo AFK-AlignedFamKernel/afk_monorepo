@@ -86,6 +86,14 @@
           "merchantIdentifier": "",
           "enableGooglePay": true
         }
+      ],
+      [
+        "react-native-nfc-manager",
+        {
+          "nfcPermission": "Allow $(PRODUCT_NAME) to scan NFC tags.",
+          "selectIdentifiers": ["A0000002471001"],
+          "systemCodes": ["8008"]
+        }
       ]
     ],
     "sdkVersion": "51.0.0",

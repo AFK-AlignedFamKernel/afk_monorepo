@@ -20,14 +20,14 @@ import { getProofs, NostrKeyManager, storeProofs, useCashu, useCashuStore, useCr
 import { randomUUID } from 'expo-crypto';
 import { Proof, ProofState, CheckStateEnum } from '@cashu/cashu-ts';
 import { Button } from 'src/components';
-import { proofsApi, proofsByMintApi, proofsSpentsByMintApi } from 'src/utils/database';
+import { proofsApi, proofsByMintApi, proofsSpentsByMintApi, settingsApi } from 'src/utils/database';
 
 export const Balance = () => {
   const { getUnitBalance, setActiveUnit, getUnitBalanceWithProofsChecked, wallet, activeMint, activeUnit } = useCashuContext()!;
 
   const styles = useStyles(stylesheet);
   const [alias, setAlias] = useState<string>('');
-  const [currentUnitBalance, setCurrentUnitBalance] = useState<number>(0);
+  const [currentUnitBalance, setCurrentUnitBalance] = useState<number | undefined>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isBalanceFetching, setIsBalanceFetching] = useState(false);
   const { value: mints } = useMintStorage();
@@ -56,8 +56,29 @@ export const Balance = () => {
   const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
 
   const [activeUnitUsed, setActiveUnitUsed] = useState<string>(activeUnit);
+  const [activeMintUsed, setActiveMintUsed] = useState<string>(activeMint);
   const [isWebsocketProofs, setIsWebsocketProofs] = useState<boolean>(false);
 
+
+
+  useEffect(() => {
+    console.log("activeMint", activeMint)
+    console.log("activeUnit", activeUnit)
+
+
+    const handleInit = async () => {
+      const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+      console.log("activeMintUrl", activeMintUrl)
+      const proofsByMint = await proofsByMintApi.getByMintUrl(activeMintUrl);
+      console.log("proofsByMint", proofsByMint)
+
+      const allProofs = await proofsByMintApi.getAll();
+      console.log("allProofs", allProofs)
+
+      setProofsStore(proofsByMint);
+    }
+    handleInit();
+  }, [activeMint, activeUnit, wallet])
   const handleCreateWalletEvent = async () => {
     const nostrAccountStr = await NostrKeyManager.getAccountConnected();
     const nostrAccount = JSON.parse(nostrAccountStr);
@@ -138,7 +159,12 @@ export const Balance = () => {
 
   const fetchBalanceData = async () => {
     try {
+      if (isLoading) {
+        return;
+      }
+      setCurrentUnitBalance(0);
       setIsLoading(true);
+
       console.log("fetchBalanceData")
       const mint = mints.filter((mint) => mint.url === activeMint)[0];
       const proofsStr = getProofs();
@@ -147,75 +173,31 @@ export const Balance = () => {
       const proofsMap: Proof[] = [];
       const proofsMapEvents: Proof[] = [];
 
-      const mergedProofs = await handleGetProofs();
+      // const mergedProofs = await handleGetProofs();
 
-      const proofsByMint = await proofsByMintApi.getByMintUrl(activeMint);
+      const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+
+      console.log("get proofsByMint", activeMint)
+      const proofsByMint = await proofsByMintApi.getByMintUrl(activeMintUrl);
       console.log("proofsByMint", proofsByMint)
-      // let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
-      //   // let eventContent = JSON.parse(event.content);
-      //   let eventContent = event.content;
-      //   if (eventContent?.mint === activeMint) {
-      //     eventContent?.proofs?.map((proof: any) => {
-      //       proofsMap.push(proof);
-      //       return proof;
-      //     })
-      //   }
-      // })
 
-      // // Create array of proofs from events by flattening and filtering out undefined/null
-      // const eventsProofsArray = eventsProofs?.flat().filter(Boolean) || [];
-
-      // // // Merge proofs arrays and filter out duplicates based on C value
-      // // const mergedProofs = [...proofsMap, ...eventsProofsArray].reduce((unique: Proof[], proof: Proof) => {
-      // //   // Only add if we haven't seen this C value before
-      // //   if (!unique.some(p => p.C === proof.C)) {
-      // //     unique.push(proof);
-      // //   }
-      // //   return unique;
-      // // }, []);
-
-      // // Merge proofs arrays and filter out duplicates based on C value
-      // const mergedProofs = [...proofsMap, ...eventsProofsArray].reduce((unique: Proof[], proof: Proof) => {
-      //   // Only add if we haven't seen this C value before
-      //   if (!unique.some(p => p.C === proof.C)) {
-      //     unique.push(proof);
-      //   }
-      //   return unique;
-      // }, []);
-
-      // console.log("mergedProofs", mergedProofs)
-      // let allProofs = proofs.map((proof: any) => {
-      //   if(eventsProofs.find((eventProof: any) => eventProof?.C === proof?.C)) {
-      //     return proof;
-      //   }
-      // })
-
-      // let allProofsFiltered = allProofs.filter((proof: any) => proof !== undefined);
-      // // Create a map to track unique proofs by their C value
-      // const uniqueProofs = new Map();
-      // allProofsFiltered.forEach((proof: any) => {
-      //   // Only add proof if we haven't seen this C value before
-      //   if (!uniqueProofs.has(proof.C)) {
-      //     uniqueProofs.set(proof.C, proof);
-      //   }
-      // });
-      // // Convert map values back to array
-      // allProofsFiltered = Array.from(uniqueProofs.values());
-      // storeProofs(allProofsFiltered);
-      // console.log("mergedProofs", mergedProofs)
-
+      console.log("calculateBalance",)
       // const balance = await getUnitBalanceWithProofsChecked(activeUnit, mint, mergedProofs);
       const balance = await getUnitBalance(activeUnit, mint, proofsByMint);
       // const balance = await getUnitBalance(activeUnit, mint, mergedProofs);
       console.log("balance", balance)
       setCurrentUnitBalance(balance);
       setIsLoading(false);
-      await handleWebsocketProofs(mergedProofs)
+      await handleWebsocketProofs(proofsByMint)
 
       setIsBalanceFetching(true);
     } catch (error) {
-      console.log("fetchBalanceData error", error)
+      console.log("fetchBalanceData error", error);
+      setIsLoading(false);
+      setIsBalanceFetching(true);
     } finally {
+      setIsLoading(false);
+      setIsBalanceFetching(true);
     }
 
   };
@@ -226,13 +208,16 @@ export const Balance = () => {
       console.log("handleWebsocketProofs")
       if (!wallet) {
         console.log("handleWebsocketProofs wallet not found")
-        return;
+        return { mergedProofs: [], data: {} }
       }
 
-      let mergedProofs = mergedProofsParents;
+      let mergedProofs: Proof[] = mergedProofsParents || [];
 
+      const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+
+      console.log("activeMintUrl", activeMintUrl)
       if (!mergedProofsParents) {
-        mergedProofs = await handleGetProofs();
+        mergedProofs = await proofsByMintApi.getByMintUrl(activeMintUrl);
       }
 
       console.log("handleWebsocketProofs mergedProofs", mergedProofs)
@@ -242,27 +227,38 @@ export const Balance = () => {
           if (wallet) {
             wallet?.onProofStateUpdates(
               mergedProofs,
-              (p) => {
+              async (p) => {
                 if (p.state === CheckStateEnum.SPENT) {
-                  res(p);
+                  console.log("onProofStateUpdates p", p)
                   const proofsStr = getProofs();
                   const proofs = JSON.parse(proofsStr);
                   // console.log("onProofStateUpdates proofs", proofs)
                   console.log("onProofStateUpdates mergedProofs", mergedProofs)
                   let proofsFiltered = mergedProofs.filter((proof: Proof) => proof.C !== p?.proof?.C);
 
+                  console.log("proofsFiltered", proofsFiltered)
                   proofsFiltered = Array.from(new Set(proofsFiltered.map((p) => p)));
                   console.log("data onProofStateUpdates proofsFiltered", proofsFiltered)
-                  proofsApi.setAll([...proofsFiltered])
-                  proofsByMintApi.setAllForMint(proofsFiltered, activeMint)
 
-                  proofsSpentsByMintApi.addProofsForMint([p?.proof], activeMint)
-                  // TODO create spending event
-                  // update tokens events
-                  // update storage proofs
-                  // console.log("proofsFiltered", proofsFiltered)
-                  storeProofs([...proofsFiltered]);
-                  setProofsStore([...proofsFiltered]);
+                  try {
+                    console.log("update dexie db")
+                    console.log("setAll proofsFiltered")
+                    // await proofsApi.setAll([...proofsFiltered])
+                    // await proofsByMintApi.setAllForMint(proofsFiltered, activeMintUrl)
+
+                    // await proofsSpentsByMintApi.addProofsForMint([p?.proof], activeMintUrl)
+                    // TODO create spending event
+                    // update tokens events
+                    // update storage proofs
+                    // console.log("proofsFiltered", proofsFiltered)
+                    storeProofs([...proofsFiltered]);
+                    setProofsStore([...proofsFiltered]);
+
+                  } catch (error) {
+                    console.log("error setAll proofsFiltered", error)
+                  }
+                  res(p);
+
                 }
               },
               (e) => {
@@ -281,8 +277,12 @@ export const Balance = () => {
       setIsWebsocketProofs(true);
       console.log("data onProofStateUpdates proofs websocket", data)
 
+      return { mergedProofs, data };
     } catch (error) {
       console.log("handleWebsocketProofs errror", error)
+      return { mergedProofs: [], data: {} }
+    } finally {
+      setIsWebsocketProofs(true);
     }
 
   }
@@ -299,7 +299,7 @@ export const Balance = () => {
 
   useEffect(() => {
 
-    if (activeUnit && activeMint) {
+    if (activeUnit && activeMint && !isBalanceFetching) {
       console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
       fetchBalanceData();
@@ -314,8 +314,28 @@ export const Balance = () => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     // }, [activeUnit, activeUnitUsed, isWebsocketProofs, proofs, mints, activeMint, tokensEvents, walletsInfo, wallet]);
-  }, [activeUnit, mints, activeMint, tokensEvents, walletsInfo, wallet]);
+  }, [activeUnit, mints, activeMint, tokensEvents, walletsInfo, wallet, isBalanceFetching, isLoading]);
 
+
+  useEffect(() => {
+    console.log("activeUnit", activeUnit)
+    if (activeUnit && activeMint && (activeUnitUsed !== activeUnit || activeMintUsed !== activeMint)) {
+      console.log("fetchBalanceData")
+      setActiveUnitUsed(activeUnit);
+      setActiveMintUsed(activeMint);
+      fetchBalanceData();
+      setActiveUnitStorage(activeUnit);
+    }
+    console.log("activeMint", activeMint)
+  }, [activeUnit, activeMint, activeUnitUsed, activeMintUsed, isBalanceFetching])
+
+  useEffect(() => {
+
+    if (wallet && !isWebsocketProofs) {
+      console.log("handleWebsocketProofs")
+      handleWebsocketProofs();
+    }
+  }, [wallet])
   return (
     <View style={styles.balanceContainer}>
       <Text style={styles.balanceTitle}>Your balance</Text>

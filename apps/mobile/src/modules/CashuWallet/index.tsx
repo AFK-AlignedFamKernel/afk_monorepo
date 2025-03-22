@@ -33,6 +33,8 @@ import { Receive } from './components/Receive';
 import { Send } from './components/Send';
 import { Settings } from './components/Settings';
 import stylesheet from './styles';
+import NfcPayment from '../NfcPayment';
+import { NfcIcon } from 'src/assets/icons';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -59,6 +61,8 @@ export const CashuView = () => {
   const [receiveModalOpen, setReceiveModalOpen] = useState<boolean>(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState<boolean>(false);
   const [addingMint, setAddingMint] = useState<boolean>(false);
+  const [nfcModalOpen, setNfcModalOpen] = useState<boolean>(false);
+  const [nfcMode, setNfcMode] = useState<'send' | 'receive'>('send');
 
   const { value: mints, setValue: setMintsStorage } = useMintStorage();
   const { value: activeMint, setValue: setActiveMintStorage } = useActiveMintStorage();
@@ -95,8 +99,8 @@ export const CashuView = () => {
 
   const tokenCashuEvents = useGetCashuTokenEvents()
 
-  console.log("cashuView")
-  console.log('tokenCashuEvents', tokenCashuEvents);
+  // console.log("cashuView")
+  // console.log('tokenCashuEvents', tokenCashuEvents);
 
 
   // functions
@@ -186,6 +190,11 @@ export const CashuView = () => {
     }
   };
 
+  const handleOpenNfcModal = (mode: 'send' | 'receive') => {
+    setNfcMode(mode);
+    setNfcModalOpen(true);
+  };
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -216,6 +225,9 @@ export const CashuView = () => {
                     <Button onPress={handleQRCodeClick} style={styles.qrButton}>
                       <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
                     </Button>
+                    {/* <Button onPress={() => handleOpenNfcModal('send')} style={styles.qrButton}>
+                      <NfcIcon width={60} height={60} color={theme.colors.primary} />
+                    </Button> */}
                   </View>
                   <Button
                     onPress={onOpenReceiveModal}
@@ -225,10 +237,20 @@ export const CashuView = () => {
                     Receive
                   </Button>
                 </View>
-                {/* <Text style={styles.orText}>or</Text>
-                <View>
-                  <Button onPress={handleQRCodeClick} style={styles.qrButton}>
-                    <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
+                {/* <View style={styles.nfcButtonsContainer}>
+                  <Button 
+                    onPress={() => handleOpenNfcModal('send')}
+                    style={styles.nfcButton}
+                    textStyle={styles.actionButtonText}
+                  >
+                    Send via NFC
+                  </Button>
+                  <Button 
+                    onPress={() => handleOpenNfcModal('receive')}
+                    style={styles.nfcButton}
+                    textStyle={styles.actionButtonText}
+                  >
+                    Receive via NFC
                   </Button>
                 </View> */}
               </View>
@@ -310,6 +332,12 @@ export const CashuView = () => {
           <Settings onClose={() => setSettingsModalOpen(false)} />
         </View>
       </Modal>
+      <NfcPayment 
+        isVisible={nfcModalOpen}
+        onClose={() => setNfcModalOpen(false)}
+        setMode={setNfcMode}
+        mode={nfcMode}
+      />
     </View>
   );
 };

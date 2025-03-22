@@ -15,7 +15,7 @@
     "check:all-strict": "yarn check && yarn format:check && yarn lint:strict && yarn ts:check"
   },
   "dependencies": {
-    "@cashu/cashu-ts": "^2.2.1",
+    "@cashu/cashu-ts": "2.4.1",
     "@getalby/lightning-tools": "^5.0.3",
     "@getalby/sdk": "^3.6.1",
     "@noble/ciphers": "0.4.1",

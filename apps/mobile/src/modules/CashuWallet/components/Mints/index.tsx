@@ -24,7 +24,7 @@ import { useCashuContext } from '../../../../providers/CashuProvider';
 import { formatCurrency } from '../../../../utils/helpers';
 import stylesheet from './styles';
 import { MintListCashu } from './MintListCashu';
-import { mintsApi } from 'src/utils/database';
+import { mintsApi, settingsApi } from 'src/utils/database';
 
 export interface UnitInfo {
   unit: string;
@@ -55,36 +55,36 @@ export const Mints = () => {
   const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
 
   // Load units and their balances for each mint
-  useEffect(() => {
-    const loadMintUnits = async () => {
-      const newMintUnitsMap = new Map<string, UnitInfo[]>();
+  // useEffect(() => {
+  //   const loadMintUnits = async () => {
+  //     const newMintUnitsMap = new Map<string, UnitInfo[]>();
 
-      for (const mint of mints) {
-        try {
-          // Get balance for each unit
-          const unitsWithBalance = await Promise.all(
-            mint.units.map(async (unit) => {
-              const balance = await getUnitBalance(unit, mint, proofs);
-              return {
-                unit,
-                balance,
-              };
-            }),
-          );
+  //     for (const mint of mints) {
+  //       try {
+  //         // Get balance for each unit
+  //         const unitsWithBalance = await Promise.all(
+  //           mint.units.map(async (unit) => {
+  //             const balance = await getUnitBalance(unit, mint, proofs);
+  //             return {
+  //               unit,
+  //               balance,
+  //             };
+  //           }),
+  //         );
 
-          newMintUnitsMap.set(mint.url, unitsWithBalance);
-        } catch (error) {
-          console.error(`Error loading units for mint ${mint.url}:`, error);
-          newMintUnitsMap.set(mint.url, []);
-        }
-      }
+  //         newMintUnitsMap.set(mint.url, unitsWithBalance);
+  //       } catch (error) {
+  //         console.error(`Error loading units for mint ${mint.url}:`, error);
+  //         newMintUnitsMap.set(mint.url, []);
+  //       }
+  //     }
 
-      setMintUnitsMap(newMintUnitsMap);
-    };
+  //     setMintUnitsMap(newMintUnitsMap);
+  //   };
 
-    loadMintUnits();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mints, proofs]);
+  //   loadMintUnits();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [mints, proofs]);
 
   useEffect(() => {
     const isDuplicateAlias = mints.some((mint) => mint.alias === newAlias);
@@ -103,12 +103,14 @@ export const Mints = () => {
     setNewMintError('');
   }, [mints, newAlias, newUrl]);
 
-  const handleSelectMint = (item: MintData) => {
+  const handleSelectMint = async (item: MintData) => {
     setActiveMint(item.url);
     setActiveMintStorage(item.url);
     const cUnit = mints.filter((mint) => mint.url === item.url)[0].units[0];
     setActiveUnit(cUnit);
     setActiveUnitStorage(cUnit);
+    await settingsApi.set('ACTIVE_UNIT', cUnit);
+    await settingsApi.set('ACTIVE_MINT', item.url);
   };
 
   const handleAddMint = async () => {
@@ -118,6 +120,8 @@ export const Mints = () => {
     setActiveUnit(data.units[0]);
     setActiveUnitStorage(data.units[0]);
 
+    await settingsApi.set('ACTIVE_MINT', newUrl)
+    await settingsApi.set('ACTIVE_UNIT', data.units[0])
     if (mints.length === 0) {
       const privKey = getRandomBytes(32);
       const privateKeyHex = Buffer.from(privKey).toString('hex');
@@ -128,7 +132,7 @@ export const Mints = () => {
     }
 
     mintsApi.add(data)
-    mintsApi.setAll([...mints, data])
+    // mintsApi.setAll([...mints, data])
     setMints([...mints, data]);
     setMintsStorage([...mints, data]);
 
