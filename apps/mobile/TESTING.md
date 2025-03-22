@@ -7,7 +7,7 @@ This document provides instructions for testing the newly implemented note creat
 We've created a standalone HTML demo to showcase the features without needing to run the full app:
 
 ```bash
-cd /home/agnik/afk_monorepo/apps/mobile
+cd /home/user/afk_monorepo/apps/mobile
 ./serve-test.sh
 ```
 
@@ -23,7 +23,7 @@ This HTML page demonstrates all the implemented features:
 If you want to test the full implementation in the app:
 
 ```bash
-cd /home/agnik/afk_monorepo
+cd /home/user/afk_monorepo
 pnpm install
 cd apps/mobile
 pnpm start
@@ -97,6 +97,6 @@ If you encounter a blank screen after running `pnpm start`:
 Even if the app isn't running correctly, you can verify that the components are 
 implemented correctly by checking:
 
-1. `/home/agnik/afk_monorepo/apps/mobile/src/screens/CreatePost/FormPost/index.tsx` - Contains the form UI with emoji picker, markdown support, and user mentions
-2. `/home/agnik/afk_monorepo/apps/mobile/src/utils/nostr.ts` - Contains utility functions for nostr:nprofile format
-3. `/home/agnik/afk_monorepo/apps/mobile/src/screens/CreatePost/FormPost/styles.ts` - Contains styles for the form components
+1. `/home/user/afk_monorepo/apps/mobile/src/screens/CreatePost/FormPost/index.tsx` - Contains the form UI with emoji picker, markdown support, and user mentions
+2. `/home/user/afk_monorepo/apps/mobile/src/utils/nostr.ts` - Contains utility functions for nostr:nprofile format
+3. `/home/user/afk_monorepo/apps/mobile/src/screens/CreatePost/FormPost/styles.ts` - Contains styles for the form components
