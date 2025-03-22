@@ -143,6 +143,9 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
       console.log("proofs", proofs)
 
       console.log("proofs", proofs)
+
+      const {proofsFiltered} = await filteredProofsSpents(proofs)
+      console.log("proofsFiltered", proofsFiltered)
       // const cashuLnPayment = await payExternalInvoice(Number(amount), invoice?.paymentRequest)
       const { invoice: cashuLnPayment, meltResponse, proofsSent, proofsToKeep } = await handlePayInvoice(
         invoice?.paymentRequest,

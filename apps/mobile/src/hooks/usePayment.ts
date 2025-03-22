@@ -135,7 +135,7 @@ export const usePayment = () => {
             let check = await wallet?.checkProofsStates([p])
             console.log("check", check)
             if (check[0]?.state != CheckStateEnum.SPENT) {
-            // if (check && check[0]?.state != CheckStateEnum.SPENT) {
+              // if (check && check[0]?.state != CheckStateEnum.SPENT) {
               console.log("check[0]?.state != CheckStateEnum.SPENT")
 
               proofsToSend.push(p)
@@ -317,27 +317,32 @@ export const usePayment = () => {
 
         if (proofsToKeep && proofsToSend) {
           if (privateKey && publicKey) {
-            await refetchTokens();
-            await deleteMultiple(
-              filteredTokenEvents.map((event) => event.id),
-              'proofs spent in transaction',
-            );
-            const tokenEvent = await createTokenEvent({
-              walletId,
-              mint: activeMint,
-              proofs: proofsToKeep,
-            });
-            const destroyedEvents = filteredTokenEvents.map((event) => ({
-              id: event.id,
-              marker: 'destroyed' as EventMarker,
-            }));
-            await createSpendingEvent({
-              walletId,
-              direction: 'out',
-              amount: amount.toString(),
-              unit: activeUnit,
-              events: [...destroyedEvents, { id: tokenEvent.id, marker: 'created' as EventMarker }],
-            });
+            try {
+              await refetchTokens();
+              await deleteMultiple(
+                filteredTokenEvents.map((event) => event.id),
+                'proofs spent in transaction',
+              );
+              const tokenEvent = await createTokenEvent({
+                walletId,
+                mint: activeMint,
+                proofs: proofsToKeep,
+              });
+              const destroyedEvents = filteredTokenEvents.map((event) => ({
+                id: event.id,
+                marker: 'destroyed' as EventMarker,
+              }));
+              await createSpendingEvent({
+                walletId,
+                direction: 'out',
+                amount: amount.toString(),
+                unit: activeUnit,
+                events: [...destroyedEvents, { id: tokenEvent.id, marker: 'created' as EventMarker }],
+              });
+            } catch (error) {
+              console.log("Error ndk event", error)
+            }
+
           }
           setProofs([...remainingProofs, ...proofsToKeep]);
           setProofsStorage([...remainingProofs, ...proofsToKeep]);
@@ -374,7 +379,7 @@ export const usePayment = () => {
       return { cashuToken: undefined, proofsToSend: undefined, proofsToKeep: undefined };
     } catch (e) {
       console.log("handleGenerateEcash error", e)
-      return { cashuToken: undefined, proofsToSend: undefined, proofsToKeep: undefined   };
+      return { cashuToken: undefined, proofsToSend: undefined, proofsToKeep: undefined };
     }
   };
 
@@ -389,10 +394,12 @@ export const usePayment = () => {
       console.log('wallet', wallet);
       const keysets = await wallet?.getKeySets()
       console.log('keysets', keysets);
-      const receiveEcashProofs = await wallet?.receive(decodedToken, {
-        keysetId: keysets[0].id,
-        // keys: keysets[0].keys,
-      });
+      const receiveEcashProofs = await wallet?.receive(decodedToken,
+        //   {
+        //   keysetId: keysets[0].id,
+        //   // keys: keysets[0].keys,
+        // }
+      );
       console.log('receiveEcashProofs', receiveEcashProofs);
       if (receiveEcashProofs?.length > 0) {
         const proofsAmount = receiveEcashProofs.reduce((acc, item) => acc + item.amount, 0);

@@ -123,8 +123,10 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
 
     console.log("proofsByMintUnfiltered", proofsByMintUnfiltered)
 
-    // const {proofsFiltered:proofsByMint,proofsSpents} = await filteredProofsSpents(proofsByMintUnfiltered);
-    const proofsByMint = proofsByMintUnfiltered;
+    const {proofsFiltered:proofsByMintFiltered,proofsSpents} = await filteredProofsSpents(proofsByMintUnfiltered);
+    console.log("proofsByMintFiltered", proofsByMintFiltered)
+  
+    const proofsByMint = proofsByMintFiltered?.length > 0 ? proofsByMintFiltered : proofsByMintUnfiltered;
     console.log("proofsByMint", proofsByMint)
    
     const { cashuToken, proofsToSend, proofsToKeep } = await handleGenerateEcash(Number(invoiceAmount), proofsByMint);
@@ -135,7 +137,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
 
     const proofsToSendFiltered = proofsToSend;
 
-    const remainProofs = oldProofs.filter((proof) => !proofsToSend.some((newProof) => newProof.C === proof.C));
+    const remainProofs = oldProofs.filter((proof) => !proofsToSend?.some((newProof) => newProof.C === proof.C));
     // const proofsToSendFiltered = proofsToSend.filter((proof) => !oldProofs.some((oldProof) => oldProof.C === proof.C));
     console.log("proofsToSendFiltered", proofsToSendFiltered)
     console.log("remainProofs", remainProofs)

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../../../applyGlobalPolyfills';
 
-import { MintQuoteResponse, MintQuoteState } from '@cashu/cashu-ts';
-import { ICashuInvoice, useAuth, useCreateSpendingEvent, useCreateTokenEvent } from 'afk_nostr_sdk';
+import { MintQuoteResponse, MintQuoteState, Proof } from '@cashu/cashu-ts';
+import { ICashuInvoice, useAuth, useCreateSpendingEvent, useCreateTokenEvent, useDeleteTokenEvents } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import React, { useState } from 'react';
 import { FlatList, Modal, TouchableOpacity, View } from 'react-native';
@@ -39,6 +39,7 @@ export const Invoices = () => {
   const { value: activeMint } = useActiveMintStorage();
   const { value: walletId } = useWalletIdStorage();
   const { value: activeUnit } = useActiveUnitStorage();
+  const { deleteMultiple } = useDeleteTokenEvents();
 
   const [selectedInvoice, setSelectedInvoice] = useState<string>('');
 
@@ -90,27 +91,62 @@ export const Invoices = () => {
           } else {
             showToast({ title: 'Error receiving payment.', type: 'error' });
           }
+
+
+          let proofsToKeep:Proof[] = [];
           try {
             console.log("addProofsForMint")
             console.log("update dexie db")
             const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
             console.log("activeMintUrl", activeMintUrl)
-            proofsByMintApi.addProofsForMint(received, activeMintUrl)
+            await proofsByMintApi.addProofsForMint(received, activeMintUrl)
 
             const oldProofs = await proofsByMintApi.getByMintUrl(activeMintUrl);
+
+
             console.log("oldProofs", oldProofs)
-            const newProofs = [...oldProofs, ...received];
+            let newProofs = [...oldProofs, ...received];
+
+            newProofs = newProofs.filter((proof, index, self) =>
+              index === self.findIndex((t) => t?.C === proof?.C)
+            );
             console.log("newProofs", newProofs)
-            proofsByMintApi.setAllForMint(newProofs, activeMintUrl)
+            await proofsByMintApi.setAllForMint(newProofs, activeMintUrl)
             console.log("received", received)
+            proofsToKeep = newProofs;
+            const updatedProofs = await proofsByMintApi.getByMintUrl(activeMintUrl);
+            console.log("updatedProofs", updatedProofs)
 
           } catch (error) {
             console.log("error addProofsForMint", error)
           }
+
+          try {
+
+            console.log("createTokenEvent")
+            const tokenEvent = await createTokenEvent({
+              walletId,
+              mint: activeMint,
+              proofs: proofsToKeep,
+            });
+            console.log("tokenEvent", tokenEvent)
+            await createSpendingEvent({
+              walletId,
+              direction: 'in',
+              amount: received.reduce((acc, item) => acc + item.amount, 0).toString(),
+              unit: activeUnit,
+              events: [{ id: tokenEvent.id, marker: 'created' }],
+            });
+
+          } catch (error) {
+            console.log("error createTokenEvent", error)
+          }
+
+
         } else {
           showToast({ title: 'Error receiving payment.', type: 'error' });
         }
-     
+
       } else if (check?.state === MintQuoteState.ISSUED) {
         showToast({ title: 'Invoice is paid.', type: 'success' });
         const invoicesUpdated = invoices.map((i) => {

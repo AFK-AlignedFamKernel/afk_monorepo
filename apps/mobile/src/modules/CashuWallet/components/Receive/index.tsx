@@ -161,7 +161,8 @@ export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
         console.log("update dexie db", response?.proofs)
 
         const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
-        await proofsByMintApi.setAllForMint(response?.proofs, activeMintUrl)
+        
+        await proofsByMintApi.addProofsForMint(response?.proofs, activeMintUrl)
       } catch (error) {
         console.log("error", error)
       }

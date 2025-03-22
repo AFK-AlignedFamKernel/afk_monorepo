@@ -117,7 +117,7 @@ export interface ICashu {
   walletConnected: CashuWallet | undefined;
   getUnitBalanceWithProofsChecked: (unit: string, pMint: MintData, proofs: Proof[]) => Promise<number>;
   handleWebsocketProofs: (mergedProofsParents?: Proof[]) => Promise<void>;
-  filteredProofsSpents: (proofs: Proof[]) => Promise<{proofsFiltered: Proof[], proofsSpents: Proof[]}>;
+  filteredProofsSpents: (proofs: Proof[]) => Promise<{ proofsFiltered: Proof[], proofsSpents: Proof[] }>;
 }
 
 export const useCashu = (): ICashu => {
@@ -307,50 +307,66 @@ export const useCashu = (): ICashu => {
   }
 
 
-  const filteredProofsSpents =  async (proofs: Proof[]) => {
+  const filteredProofsSpents = async (proofs: Proof[]) => {
+    try {
+      let proofsFiltered: Proof[] = [];
+      let proofsSpents: Proof[] = [];
+      if (wallet) {
 
-    let proofsFiltered:Proof[] = [  ];
-    let proofsSpents:Proof[] = [  ];
-    if (wallet) {
-      proofs = await Promise.all(proofs.map(async (p) => {
-        let check = await wallet.checkProofsStates([p])
-        check.forEach((state) => {
-          console.log("state", state)
-          if (state?.state?.toLowerCase() != CheckStateEnum.SPENT?.toLowerCase()) {
-            console.log("state not spent", state)
-            proofsFiltered.push(p);
-            return p;
-          } else {
+        for (let i = 0; i < proofs.length; i++) {
+          let p = proofs[i]
+          console.log("p", p)
+
+          let check = await wallet?.checkProofsStates([p])
+
+          console.log("check", check)
+          if (check[0]?.state?.toLowerCase() === CheckStateEnum.SPENT?.toLowerCase() || check[0]?.state?.toLowerCase()?.includes("spent")) {
+            console.log("state spent", check[0])
             proofsSpents.push(p);
+          } else {
+            console.log("state not spent", check[0])
+            proofsFiltered.push(p);
           }
-        });
-        console.log("check", check)
-        if (check[0]?.state?.toLowerCase() != CheckStateEnum.SPENT?.toLowerCase()) {
-          proofsFiltered.push(p);
-          return p;
-        } else {
-          proofsSpents.push(p);
-
         }
-      }))
+        proofs.map(async (p) => {
+          console.log("p", p)
 
-      console.log("proofsFiltered proofs inputs", proofs)
-      console.log("proofsSpents proofs inputs", proofsSpents)
-    } 
+          // check.forEach((state) => {
+          //   console.log("state", state)
+          //   if (state?.state?.toLowerCase() === CheckStateEnum.SPENT?.toLowerCase() || state?.state?.toLowerCase()?.includes("spent")) {
+          //     proofsSpents.push(p);
+          //   } else {
+          //     console.log("state not spent", state)
+          //     proofsFiltered.push(p);
+          //     return p;
+          //   }
+          // });
 
-    proofsFiltered = proofsFiltered.filter((p: Proof) => {
-      if(typeof p !== "undefined" && p?.C) {
-        return p;
+        })
+
+        console.log("proofsFiltered proofs inputs", proofs)
+        console.log("proofsSpents proofs inputs", proofsSpents)
       }
-    })
-    console.log("proofsFiltered", proofsFiltered)
 
-    if(proofsFiltered.length === 0) {
-      proofsFiltered = proofs;
-      return {proofsFiltered, proofsSpents, isSuccessCheck: false};
+      proofsFiltered = proofsFiltered.filter((p: Proof) => {
+        if (typeof p !== "undefined" && p?.C) {
+          return p;
+        }
+      })
+      console.log("proofsFiltered", proofsFiltered)
+
+      if (proofsFiltered.length === 0) {
+        proofsFiltered = proofs;
+        return { proofsFiltered, proofsSpents, isSuccessCheck: false };
+      }
+
+      return { proofsFiltered, proofsSpents, isSuccessCheck: true };
+    } catch (error) {
+      console.log("filteredProofsSpents error", error)
+      return { proofsFiltered: [], proofsSpents: [], isSuccessCheck: false };
     }
 
-    return {proofsFiltered, proofsSpents, isSuccessCheck: true};
+
   }
 
   const connectCashMint = async (mintUrl: string) => {
