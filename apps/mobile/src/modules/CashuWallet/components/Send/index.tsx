@@ -37,7 +37,7 @@ import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 import { useToast } from 'src/hooks/modals';
 import { Proof } from '@cashu/cashu-ts';
-import { proofsApi, proofsByMintApi, proofsSpentsApi, proofsSpentsByMintApi } from 'src/utils/database';
+import { proofsApi, proofsByMintApi, proofsSpentsApi, proofsSpentsByMintApi, settingsApi } from 'src/utils/database';
 import { useNFC } from 'src/hooks/useNFC';
 
 interface SendProps {
@@ -56,7 +56,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
   const styles = useStyles(stylesheet);
   const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
-  const { getUnitBalance, setActiveMint, setActiveUnit } = useCashuContext()!;
+  const { getUnitBalance, setActiveMint, setActiveUnit, filteredProofsSpents } = useCashuContext()!;
   const { data: tokensEvents } = useGetCashuTokenEvents();
 
   const { value: activeMint, setValue: setActiveMintStorage } = useActiveMintStorage();
@@ -104,25 +104,42 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
 
 
     const proofsMap: Proof[] = proofs || [];
-    let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
-      // let eventContent = JSON.parse(event.content);
-      let eventContent = event.content;
-      eventContent?.proofs?.map((proof: any) => {
-        proofsMap.push(proof);
-        return proof;
-      })
-    })
+    // let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
+    //   // let eventContent = JSON.parse(event.content);
+    //   let eventContent = event.content;
+    //   eventContent?.proofs?.map((proof: any) => {
+    //     proofsMap.push(proof);
+    //     return proof;
+    //   })
+    // })
 
 
     console.log("handle parents proofsMap", proofsMap)
-    const { cashuToken, proofsToSend } = await handleGenerateEcash(Number(invoiceAmount), proofsMap);
+
+
+    const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+
+    const proofsByMintUnfiltered = await proofsByMintApi.getByMintUrl(activeMintUrl);
+
+    console.log("proofsByMintUnfiltered", proofsByMintUnfiltered)
+
+    // const {proofsFiltered:proofsByMint,proofsSpents} = await filteredProofsSpents(proofsByMintUnfiltered);
+    const proofsByMint = proofsByMintUnfiltered;
+    console.log("proofsByMint", proofsByMint)
+   
+    const { cashuToken, proofsToSend, proofsToKeep } = await handleGenerateEcash(Number(invoiceAmount), proofsByMint);
+    // const { cashuToken, proofsToSend } = await handleGenerateEcash(Number(invoiceAmount), proofsMap);
     console.log("ecash generated", cashuToken)
 
-    const oldProofs = await proofsByMintApi.getByMintUrl(activeMint);
-    const proofsToSendFiltered = proofsToSend.filter((proof) => !oldProofs.some((oldProof) => oldProof.C === proof.C));
-    proofsByMintApi.setAllForMint(proofsToSendFiltered, activeMint)
-    proofsSpentsApi.updateMany(proofsToSend)
-    proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
+    const oldProofs = proofsByMint;
+
+    const proofsToSendFiltered = proofsToSend;
+
+    const remainProofs = oldProofs.filter((proof) => !proofsToSend.some((newProof) => newProof.C === proof.C));
+    // const proofsToSendFiltered = proofsToSend.filter((proof) => !oldProofs.some((oldProof) => oldProof.C === proof.C));
+    console.log("proofsToSendFiltered", proofsToSendFiltered)
+    console.log("remainProofs", remainProofs)
+
     if (!cashuToken) {
       setModalToast({
         title: 'Error generating ecash token.',
@@ -135,8 +152,17 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
     }
     setGenerateEcash(cashuToken);
 
-    handleWriteNfc(cashuToken, 'ecash');
     setIsGeneratingEcash(false);
+    try { 
+      console.log("update dexie db")
+      proofsByMintApi.setAllForMint(remainProofs, activeMint)
+      proofsSpentsApi.updateMany(proofsToSend)
+      proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
+    } catch (error) {
+      console.log("error", error)
+    }
+    // handleWriteNfc(cashuToken, 'ecash');
+
     return cashuToken;
   };
 
@@ -182,7 +208,13 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
           setIsPaymentProcessing(false);
           return;
         }
-        const { meltResponse, proofsSent, proofsToKeep } = await handlePayInvoice(invoice);
+
+
+        const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+
+        const proofsByMint = await proofsByMintApi.getByMintUrl(activeMintUrl);
+        console.log("proofsByMint", proofsByMint)
+        const { meltResponse, proofsSent, proofsToKeep } = await handlePayInvoice(invoice, proofsByMint );
 
         const proofsToSend = proofsSent || [];
         // const proofsToKeep = proofsToKeep || [];

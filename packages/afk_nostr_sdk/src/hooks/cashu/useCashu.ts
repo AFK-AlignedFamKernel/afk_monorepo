@@ -117,6 +117,7 @@ export interface ICashu {
   walletConnected: CashuWallet | undefined;
   getUnitBalanceWithProofsChecked: (unit: string, pMint: MintData, proofs: Proof[]) => Promise<number>;
   handleWebsocketProofs: (mergedProofsParents?: Proof[]) => Promise<void>;
+  filteredProofsSpents: (proofs: Proof[]) => Promise<{proofsFiltered: Proof[], proofsSpents: Proof[]}>;
 }
 
 export const useCashu = (): ICashu => {
@@ -124,7 +125,7 @@ export const useCashu = (): ICashu => {
   const { privateKey } = useAuth();
   const { setSeed, seed, setMnemonic } = useCashuStore();
 
-  
+
   const [isWebsocketProofs, setIsWebsocketProofs] = useState<boolean>(false);
 
   const [mintUrlSelected, setMintUrlSelected] = useState<string>("https://mint.minibits.cash/Bitcoin");
@@ -183,9 +184,9 @@ export const useCashu = (): ICashu => {
     return keysets;
   }, [mint, activeUnit, activeMint]);
 
-  const wallet = useMemo( () => {
+  const wallet = useMemo(() => {
 
-    let newWallet:CashuWallet | undefined;
+    let newWallet: CashuWallet | undefined;
     console.log('keysetsMint', keysetsMint);
     // const keysets = await mint?.getKeySets();
     if (mint) {
@@ -208,11 +209,11 @@ export const useCashu = (): ICashu => {
       });
       setWalletConnected(newWallet);
     }
-    if(newWallet) return newWallet;
+    if (newWallet) return newWallet;
     if (walletConnected) return walletConnected;
 
 
-  }, [mint, seed, activeUnit,keysetsMint, walletConnected]);
+  }, [mint, seed, activeUnit, keysetsMint, walletConnected]);
 
   useEffect(() => {
     if (mint) {
@@ -224,7 +225,7 @@ export const useCashu = (): ICashu => {
     }
   }, [mint, mintUrls, activeMintIndex]);
 
-  
+
   /** TODO saved in secure store */
   const generateNewMnemonic = () => {
     try {
@@ -254,7 +255,7 @@ export const useCashu = (): ICashu => {
       }
 
       let mergedProofs = mergedProofsParents;
-     
+
       console.log("handleWebsocketProofs mergedProofs", mergedProofs)
       // storeProofs(mergedProofs);
       const data = await new Promise<ProofState>((res) => {
@@ -305,6 +306,52 @@ export const useCashu = (): ICashu => {
 
   }
 
+
+  const filteredProofsSpents =  async (proofs: Proof[]) => {
+
+    let proofsFiltered:Proof[] = [  ];
+    let proofsSpents:Proof[] = [  ];
+    if (wallet) {
+      proofs = await Promise.all(proofs.map(async (p) => {
+        let check = await wallet.checkProofsStates([p])
+        check.forEach((state) => {
+          console.log("state", state)
+          if (state?.state?.toLowerCase() != CheckStateEnum.SPENT?.toLowerCase()) {
+            console.log("state not spent", state)
+            proofsFiltered.push(p);
+            return p;
+          } else {
+            proofsSpents.push(p);
+          }
+        });
+        console.log("check", check)
+        if (check[0]?.state?.toLowerCase() != CheckStateEnum.SPENT?.toLowerCase()) {
+          proofsFiltered.push(p);
+          return p;
+        } else {
+          proofsSpents.push(p);
+
+        }
+      }))
+
+      console.log("proofsFiltered proofs inputs", proofs)
+      console.log("proofsSpents proofs inputs", proofsSpents)
+    } 
+
+    proofsFiltered = proofsFiltered.filter((p: Proof) => {
+      if(typeof p !== "undefined" && p?.C) {
+        return p;
+      }
+    })
+    console.log("proofsFiltered", proofsFiltered)
+
+    if(proofsFiltered.length === 0) {
+      proofsFiltered = proofs;
+      return {proofsFiltered, proofsSpents, isSuccessCheck: false};
+    }
+
+    return {proofsFiltered, proofsSpents, isSuccessCheck: true};
+  }
 
   const connectCashMint = async (mintUrl: string) => {
     const mintCashu = new CashuMint(mintUrl);
@@ -731,6 +778,7 @@ export const useCashu = (): ICashu => {
     setWalletConnected,
     walletConnected,
     getUnitBalanceWithProofsChecked,
-    handleWebsocketProofs
+    handleWebsocketProofs,
+    filteredProofsSpents
   };
 };

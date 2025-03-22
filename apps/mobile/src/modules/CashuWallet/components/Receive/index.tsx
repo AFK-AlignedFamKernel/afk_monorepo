@@ -23,7 +23,7 @@ import {
 import { useCashuContext } from '../../../../providers/CashuProvider';
 import stylesheet from './styles';
 import { useToast } from '../../../../hooks/modals';
-import { invoicesApi } from 'src/utils/database';
+import { invoicesApi, proofsByMintApi, proofsSpentsByMintApi, settingsApi } from 'src/utils/database';
 import { useNFC } from 'src/hooks/useNFC';
 
 interface ReceiveProps {
@@ -84,7 +84,7 @@ export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
       invoicesApi.add(cashuInvoice)
       invoicesApi.setAll([...invoices, cashuInvoice])
 
-     const data=  await handleWriteNfc(cashuInvoice?.bolt11, 'ecash');
+      const data = await handleWriteNfc(cashuInvoice?.bolt11, 'ecash');
       if (invoices) {
         setInvoices([...invoices, cashuInvoice]);
       } else {
@@ -155,6 +155,16 @@ export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
       setShowModalToast(true);
       return;
     } else {
+
+      try {
+
+        console.log("update dexie db", response?.proofs)
+
+        const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+        await proofsByMintApi.setAllForMint(response?.proofs, activeMintUrl)
+      } catch (error) {
+        console.log("error", error)
+      }
       showToast({ title: 'Handle receive ecash', type: 'info' });
 
     }

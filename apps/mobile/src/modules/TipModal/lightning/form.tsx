@@ -11,7 +11,7 @@ import stylesheet from './styles';
 import { usePayment } from 'src/hooks/usePayment';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword } from 'src/utils/storage';
-import { CashuMint,CheckStateEnum } from '@cashu/cashu-ts';
+import { CashuMint, CheckStateEnum } from '@cashu/cashu-ts';
 import { mintsApi, proofsByMintApi, proofsSpentsByMintApi, settingsApi } from 'src/utils/database';
 import { useActiveMintStorage } from 'src/hooks/useDexieStorage';
 
@@ -52,7 +52,7 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 
   const { value: activeMintStorage } = useActiveMintStorage();
   const [isLoading, setIsLoading] = useState(false);
-  const { mintUrls, activeMintIndex, setMintInfo, getMintInfo, mint, setMintUrls, wallet, connectCashWallet, setActiveMint, mintUrlSelected, setMintUrlSelected } = useCashu()
+  const { mintUrls, activeMintIndex, setMintInfo, getMintInfo, mint, setMintUrls, wallet, connectCashWallet, setActiveMint, mintUrlSelected, setMintUrlSelected, filteredProofsSpents } = useCashu()
   useEffect(() => {
     (async () => {
 
@@ -132,9 +132,9 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
       // const proofs = await handleGetProofs();
       // let activeMint = await mintsApi.getByUrl(activeMintStorage);
       console.log("activeMintStorage", activeMintStorage)
-      let activeMint = await settingsApi.get('ACTIVE_MINT', "https://mint.minibits.cash/Bitcoin");
+      let activeMint = await settingsApi.get('ACTIVE_MINT', activeMintStorage);
       let proofs = await proofsByMintApi.getByMintUrl(activeMint);
-      console.log("proofs", proofs)
+      console.log("PAY with proofs", proofs)
 
       let spentProofs = await proofsSpentsByMintApi.getByMintUrl(mintUrlSelected)
       console.log("spentProofs", spentProofs)
@@ -142,28 +142,6 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 
       console.log("proofs", proofs)
 
-      // if(wallet) {
-      //   proofs = await Promise.all(proofs.map(async (p) => {
-      //     let check = await wallet.checkProofsStates([p])
-      //     console.log("check", check)
-      //     if (check &&check[0]?.state !== CheckStateEnum.SPENT) {
-      //       return p;
-      //     }
-      //   }))
-      // }
-
-      // if(!wallet  ) {
-
-      //   const mintNew = new CashuMint(activeMint)
-      //   const walletConnected = await connectCashWallet(mintNew,)
-      //   proofs = await Promise.all(proofs.map(async (p) => {
-      //   let check = await walletConnected?.checkProofsStates([p])
-      //   console.log("check", check)
-      //   if (check &&check[0]?.state !== CheckStateEnum.SPENT) {
-      //       return p;
-      //     }
-      //   }))
-      // }
       console.log("proofs", proofs)
       // const cashuLnPayment = await payExternalInvoice(Number(amount), invoice?.paymentRequest)
       const { invoice: cashuLnPayment, meltResponse, proofsSent, proofsToKeep } = await handlePayInvoice(
@@ -181,11 +159,18 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
       }
       if (cashuLnPayment?.quote) {
 
-        const oldProofs = await proofsByMintApi.getByMintUrl(mintUrlSelected)
-        const newProofs = [...oldProofs.filter((p) => !proofsToKeep.includes(p)), ...proofsSent]
-        storeProofs(newProofs)
-        await proofsByMintApi.setAllForMint(newProofs, mintUrlSelected)
-        await proofsSpentsByMintApi.addProofsForMint(proofsSent, mintUrlSelected)
+        try {
+          console.log("update dexie db")
+          const oldProofs = await proofsByMintApi.getByMintUrl(activeMint)
+          const newProofs = [...oldProofs.filter((p) => !proofsToKeep.includes(p)), ...proofsSent]
+          await proofsByMintApi.setAllForMint(newProofs, activeMint)
+          await proofsSpentsByMintApi.addProofsForMint(proofsSent, activeMint)
+          await proofsSpentsByMintApi.addProofsForMint(proofsSent, mintUrlSelected)
+
+        } catch (error) {
+          console.log("error", error)
+        }
+
         const verify = await checkMeltQuote(cashuLnPayment?.quote)
         console.log('verify', verify);
 

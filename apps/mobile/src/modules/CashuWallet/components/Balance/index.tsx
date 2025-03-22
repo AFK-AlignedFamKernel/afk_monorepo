@@ -20,14 +20,14 @@ import { getProofs, NostrKeyManager, storeProofs, useCashu, useCashuStore, useCr
 import { randomUUID } from 'expo-crypto';
 import { Proof, ProofState, CheckStateEnum } from '@cashu/cashu-ts';
 import { Button } from 'src/components';
-import { proofsApi, proofsByMintApi, proofsSpentsByMintApi } from 'src/utils/database';
+import { proofsApi, proofsByMintApi, proofsSpentsByMintApi, settingsApi } from 'src/utils/database';
 
 export const Balance = () => {
   const { getUnitBalance, setActiveUnit, getUnitBalanceWithProofsChecked, wallet, activeMint, activeUnit } = useCashuContext()!;
 
   const styles = useStyles(stylesheet);
   const [alias, setAlias] = useState<string>('');
-  const [currentUnitBalance, setCurrentUnitBalance] = useState<number|undefined>(0);
+  const [currentUnitBalance, setCurrentUnitBalance] = useState<number | undefined>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isBalanceFetching, setIsBalanceFetching] = useState(false);
   const { value: mints } = useMintStorage();
@@ -59,6 +59,26 @@ export const Balance = () => {
   const [activeMintUsed, setActiveMintUsed] = useState<string>(activeMint);
   const [isWebsocketProofs, setIsWebsocketProofs] = useState<boolean>(false);
 
+
+
+  useEffect(() => {
+    console.log("activeMint", activeMint)
+    console.log("activeUnit", activeUnit)
+
+
+    const handleInit = async () => {
+      const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+      console.log("activeMintUrl", activeMintUrl)
+      const proofsByMint = await proofsByMintApi.getByMintUrl(activeMintUrl);
+      console.log("proofsByMint", proofsByMint)
+
+      const allProofs = await proofsByMintApi.getAll();
+      console.log("allProofs", allProofs)
+
+      setProofsStore(proofsByMint);
+    }
+    handleInit();
+  }, [activeMint, activeUnit, wallet])
   const handleCreateWalletEvent = async () => {
     const nostrAccountStr = await NostrKeyManager.getAccountConnected();
     const nostrAccount = JSON.parse(nostrAccountStr);
@@ -139,7 +159,7 @@ export const Balance = () => {
 
   const fetchBalanceData = async () => {
     try {
-      if(isLoading) {
+      if (isLoading) {
         return;
       }
       setCurrentUnitBalance(0);
@@ -155,11 +175,13 @@ export const Balance = () => {
 
       // const mergedProofs = await handleGetProofs();
 
+      const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+
       console.log("get proofsByMint", activeMint)
-      const proofsByMint = await proofsByMintApi.getByMintUrl(activeMint);
+      const proofsByMint = await proofsByMintApi.getByMintUrl(activeMintUrl);
       console.log("proofsByMint", proofsByMint)
 
-      console.log("calculateBalance", )
+      console.log("calculateBalance",)
       // const balance = await getUnitBalanceWithProofsChecked(activeUnit, mint, mergedProofs);
       const balance = await getUnitBalance(activeUnit, mint, proofsByMint);
       // const balance = await getUnitBalance(activeUnit, mint, mergedProofs);
@@ -186,13 +208,16 @@ export const Balance = () => {
       console.log("handleWebsocketProofs")
       if (!wallet) {
         console.log("handleWebsocketProofs wallet not found")
-        return {mergedProofs: [], data: {}}
+        return { mergedProofs: [], data: {} }
       }
 
-      let mergedProofs = mergedProofsParents;
+      let mergedProofs: Proof[] = mergedProofsParents || [];
 
+      const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+
+      console.log("activeMintUrl", activeMintUrl)
       if (!mergedProofsParents) {
-        mergedProofs = await proofsByMintApi.getByMintUrl(activeMint);
+        mergedProofs = await proofsByMintApi.getByMintUrl(activeMintUrl);
       }
 
       console.log("handleWebsocketProofs mergedProofs", mergedProofs)
@@ -202,27 +227,38 @@ export const Balance = () => {
           if (wallet) {
             wallet?.onProofStateUpdates(
               mergedProofs,
-              (p) => {
+              async (p) => {
                 if (p.state === CheckStateEnum.SPENT) {
-                  res(p);
+                  console.log("onProofStateUpdates p", p)
                   const proofsStr = getProofs();
                   const proofs = JSON.parse(proofsStr);
                   // console.log("onProofStateUpdates proofs", proofs)
                   console.log("onProofStateUpdates mergedProofs", mergedProofs)
                   let proofsFiltered = mergedProofs.filter((proof: Proof) => proof.C !== p?.proof?.C);
 
+                  console.log("proofsFiltered", proofsFiltered)
                   proofsFiltered = Array.from(new Set(proofsFiltered.map((p) => p)));
                   console.log("data onProofStateUpdates proofsFiltered", proofsFiltered)
-                  proofsApi.setAll([...proofsFiltered])
-                  proofsByMintApi.setAllForMint(proofsFiltered, activeMint)
 
-                  proofsSpentsByMintApi.addProofsForMint([p?.proof], activeMint)
-                  // TODO create spending event
-                  // update tokens events
-                  // update storage proofs
-                  // console.log("proofsFiltered", proofsFiltered)
-                  storeProofs([...proofsFiltered]);
-                  setProofsStore([...proofsFiltered]);
+                  try {
+                    console.log("update dexie db")
+                    console.log("setAll proofsFiltered")
+                    // await proofsApi.setAll([...proofsFiltered])
+                    // await proofsByMintApi.setAllForMint(proofsFiltered, activeMintUrl)
+
+                    // await proofsSpentsByMintApi.addProofsForMint([p?.proof], activeMintUrl)
+                    // TODO create spending event
+                    // update tokens events
+                    // update storage proofs
+                    // console.log("proofsFiltered", proofsFiltered)
+                    storeProofs([...proofsFiltered]);
+                    setProofsStore([...proofsFiltered]);
+
+                  } catch (error) {
+                    console.log("error setAll proofsFiltered", error)
+                  }
+                  res(p);
+
                 }
               },
               (e) => {
@@ -241,10 +277,10 @@ export const Balance = () => {
       setIsWebsocketProofs(true);
       console.log("data onProofStateUpdates proofs websocket", data)
 
-      return {mergedProofs, data};
+      return { mergedProofs, data };
     } catch (error) {
       console.log("handleWebsocketProofs errror", error)
-      return {mergedProofs: [], data: {}}
+      return { mergedProofs: [], data: {} }
     } finally {
       setIsWebsocketProofs(true);
     }
@@ -263,7 +299,7 @@ export const Balance = () => {
 
   useEffect(() => {
 
-    if (activeUnit && activeMint && !isBalanceFetching && !isLoading) {
+    if (activeUnit && activeMint && !isBalanceFetching) {
       console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
       fetchBalanceData();
@@ -295,7 +331,7 @@ export const Balance = () => {
 
   useEffect(() => {
 
-    if(wallet && !isWebsocketProofs) {
+    if (wallet && !isWebsocketProofs) {
       console.log("handleWebsocketProofs")
       handleWebsocketProofs();
     }

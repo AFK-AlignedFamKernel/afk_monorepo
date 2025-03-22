@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { CashuMint, getDecodedToken, getEncodedToken, MintQuoteState, Proof, Token } from '@cashu/cashu-ts';
+import { CashuMint, CheckStateEnum, getDecodedToken, getEncodedToken, MintQuoteState, Proof, Token } from '@cashu/cashu-ts';
 import {
   EventMarker,
   getProofs,
@@ -109,7 +109,7 @@ export const usePayment = () => {
       }
     };
     let proofsStorage = JSON.parse(proofsStr)
-    let proofs = proofsParent ? [...(JSON.parse(proofsStr)), ...proofsParent] : JSON.parse(proofsStr)
+    let proofs = proofsParent ? proofsParent : JSON.parse(proofsStr)
     console.log("handlePayInvoice proofs", proofs)
 
     if (proofs.length === 0) {
@@ -124,18 +124,45 @@ export const usePayment = () => {
         // const amount = Number(1);
         // console.log('amount regex', amount);
 
-        let proofsToSend = proofs;
+
+        let proofsToSendUncleaned = proofs;
+        let proofsToSend: any[] = [];
+
+        console.log("proofsToSendUncleaned", proofsToSendUncleaned)
+        try {
+          await Promise.all(proofs.map(async (p: Proof) => {
+
+            let check = await wallet?.checkProofsStates([p])
+            console.log("check", check)
+            if (check[0]?.state != CheckStateEnum.SPENT) {
+            // if (check && check[0]?.state != CheckStateEnum.SPENT) {
+              console.log("check[0]?.state != CheckStateEnum.SPENT")
+
+              proofsToSend.push(p)
+              return p;
+            }
+          }))
+        } catch (error) {
+          proofsToSend = proofsToSendUncleaned;
+
+          console.log("error", error)
+        }
+        console.log("proofsToSend", proofsToSend)
+
+        if (proofsToSend.length === 0) {
+          proofsToSend = proofsToSendUncleaned;
+        }
         let fees = await wallet?.getFeesForKeyset(amount, activeUnit)
 
         console.log('fees', fees);
         if (amount) {
 
-          const res = await wallet?.selectProofsToSend(proofs, amount+(fees  > 0 ? fees : 2))
+          const res = await wallet?.selectProofsToSend(proofs, amount + (fees > 0 ? fees : 2))
           // const checkProofsStates = await wallet?.checkProofsStates(proofs)
           console.log('res selectProofsToSend', res);
           // console.log('res checkProofsStates', checkProofsStates);
 
-          proofsToSend=res?.send;
+          proofsToSend = res?.send;
 
         }
         // console.log("res", res) 
@@ -188,11 +215,11 @@ export const usePayment = () => {
                 amount: (meltQuote.amount + meltQuote.fee_reserve).toString(),
                 unit: activeUnit,
                 events: [...destroyedEvents, { id: tokenEvent.id, marker: 'created' as EventMarker }],
-              });         
+              });
             } catch (error) {
-              console.log("Error",error)
+              console.log("Error", error)
             }
-     
+
           }
           showToast({
             title: 'Payment sent.',
@@ -224,7 +251,7 @@ export const usePayment = () => {
       // no proofs = no balance
       return {
         meltResponse: undefined,
-        invoice: undefined, 
+        invoice: undefined,
         proofsSent: undefined,
         proofsToKeep: undefined,
       };
@@ -235,11 +262,11 @@ export const usePayment = () => {
     try {
       console.log("handleGenerateEcash", amount, proofsParent)
       if (!amount) {
-        return {cashuToken: undefined, proofsToSend: undefined};
+        return { cashuToken: undefined, proofsToSend: undefined, proofsToKeep: undefined };
       }
 
       if (!wallet) {
-        return {cashuToken: undefined, proofsToSend: undefined};
+        return { cashuToken: undefined, proofsToSend: undefined, proofsToKeep: undefined };
       }
       const proofsStr = await getProofs()
 
@@ -250,9 +277,9 @@ export const usePayment = () => {
           title: 'No proofs found',
           type: 'error',
         });
-        return {cashuToken: undefined, proofsToSend: undefined};
+        return { cashuToken: undefined, proofsToSend: undefined, proofsToKeep: undefined };
       };
-      const proofs = proofsParent ? [...(JSON.parse(proofsStr)), ...proofsParent] : JSON.parse(proofsStr)
+      const proofs = proofsParent ? [...proofsParent] : JSON.parse(proofsStr)
 
       if (proofs) {
         // const proofsCopy = Array.from(proofs);
@@ -262,7 +289,7 @@ export const usePayment = () => {
 
         console.log("proofsCopy", proofsCopy)
         if (availableAmount < amount) {
-          return {cashuToken: undefined, proofsToSend: undefined};
+          return { cashuToken: undefined, proofsToSend: undefined, proofsToKeep: undefined };
         }
 
         //selectProofs
@@ -282,7 +309,7 @@ export const usePayment = () => {
 
         console.log('res', res);
         // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, selectedProofs, {includeFees:true});
-        const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, res?.send);
+        const { keep: proofsToKeep, send: proofsToSend, } = await wallet.send(amount, res?.send);
         // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, res?.send);
         // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, res?.send);
         console.log('proofsToKeep', proofsToKeep);
@@ -336,18 +363,18 @@ export const usePayment = () => {
               bolt11: cashuToken,
             };
             setTransactions([...transactions, newInvoice]);
-            return {cashuToken, proofsToSend};
+            return { cashuToken, proofsToSend, proofsToKeep };
           } else {
-            return {cashuToken: undefined, proofsToSend: undefined};
+            return { cashuToken: undefined, proofsToSend: undefined, proofsToKeep: undefined };
           }
         }
-        return {cashuToken: undefined, proofsToSend: undefined} ;
+        return { cashuToken: undefined, proofsToSend: undefined, proofsToKeep: undefined };
       }
 
-      return {cashuToken: undefined, proofsToSend: undefined};
+      return { cashuToken: undefined, proofsToSend: undefined, proofsToKeep: undefined };
     } catch (e) {
       console.log("handleGenerateEcash error", e)
-      return {cashuToken: undefined, proofsToSend: undefined};
+      return { cashuToken: undefined, proofsToSend: undefined, proofsToKeep: undefined   };
     }
   };
 
@@ -397,7 +424,7 @@ export const usePayment = () => {
           bolt11: ecashToken,
         };
         setTransactions([...transactions, newTx]);
-        return newTx;
+        return { tx: newTx, proofs: receiveEcashProofs };
       }
       return undefined;
     } catch (e) {
