@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Note Creation Features Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        .note-input {
+            width: 100%;
+            min-height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            resize: vertical;
+        }
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .toolbar button {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .toolbar button:hover {
+            background-color: #f0f0f0;
+        }
+        .emoji-picker {
+            display: none;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+            border-top: 1px solid #ddd;
+            padding: 15px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+        .emoji-picker.active {
+            display: block;
+        }
+        .emoji-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .emoji-header h3 {
+            margin: 0;
+        }
+        .emoji-header button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+        }
+        .emoji-item {
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .emoji-item:hover {
+            background-color: #f0f0f0;
+        }
+        .user-search {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 80%;
+            margin: 0 auto;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .user-search.active {
+            display: block;
+        }
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .user-item:hover {
+            background-color: #f9f9f9;
+        }
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: #ddd;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .user-pubkey {
+            font-size: 12px;
+            color: #888;
+        }
+        .markdown-help {
+            margin-top: 20px;
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .markdown-help.active {
+            display: block;
+        }
+        .markdown-help h3 {
+            margin-top: 0;
+        }
+        .markdown-help code {
+            background-color: #eee;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .features-section {
+            margin-top: 30px;
+            background-color: #f0f9ff;
+            padding: 15px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Note Creation Features Test</h1>
+        
+        <div class="toolbar">
+            <button id="emoji-button">😀 Emoji</button>
+            <button id="markdown-button">MD</button>
+            <button id="send-button">Send</button>
+        </div>
+        
+        <textarea id="note-input" class="note-input" placeholder="Write your note here..."></textarea>
+        
+        <div class="user-search" id="user-search">
+            <div class="user-item" data-pubkey="npub1abc123" data-name="John Doe">
+                <div class="user-avatar">JD</div>
+                <div class="user-info">
+                    <div class="user-name">John Doe</div>
+                    <div class="user-pubkey">npub1abc123...</div>
+                </div>
+            </div>
+            <div class="user-item" data-pubkey="npub2def456" data-name="Jane Smith">
+                <div class="user-avatar">JS</div>
+                <div class="user-info">
+                    <div class="user-name">Jane Smith</div>
+                    <div class="user-pubkey">npub2def456...</div>
+                </div>
+            </div>
+            <div class="user-item" data-pubkey="npub3ghi789" data-name="Bob Johnson">
+                <div class="user-avatar">BJ</div>
+                <div class="user-info">
+                    <div class="user-name">Bob Johnson</div>
+                    <div class="user-pubkey">npub3ghi789...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="emoji-picker" class="emoji-picker">
+            <div class="emoji-header">
+                <h3>Select Emoji</h3>
+                <button id="close-emoji">✕</button>
+            </div>
+            <div class="emoji-grid">
+                <button class="emoji-item">😀</button>
+                <button class="emoji-item">😂</button>
+                <button class="emoji-item">😍</button>
+                <button class="emoji-item">🥰</button>
+                <button class="emoji-item">😎</button>
+                <button class="emoji-item">🤔</button>
+                <button class="emoji-item">👍</button>
+                <button class="emoji-item">🎉</button>
+                <button class="emoji-item">👋</button>
+                <button class="emoji-item">🔥</button>
+                <button class="emoji-item">❤️</button>
+                <button class="emoji-item">🙏</button>
+                <button class="emoji-item">✅</button>
+                <button class="emoji-item">💯</button>
+                <button class="emoji-item">🚀</button>
+                <button class="emoji-item">🤣</button>
+                <button class="emoji-item">👀</button>
+                <button class="emoji-item">👻</button>
+                <button class="emoji-item">🧠</button>
+                <button class="emoji-item">🌈</button>
+                <button class="emoji-item">⭐</button>
+                <button class="emoji-item">🚨</button>
+                <button class="emoji-item">🎯</button>
+                <button class="emoji-item">🔍</button>
+            </div>
+        </div>
+        
+        <div id="markdown-help" class="markdown-help">
+            <h3>Markdown Support</h3>
+            <p>You can use the following markdown syntax:</p>
+            <ul>
+                <li><code>**bold text**</code> for <strong>bold text</strong></li>
+                <li><code>*italic text*</code> for <em>italic text</em></li>
+                <li><code>[link text](https://example.com)</code> for <a href="#">link text</a></li>
+                <li><code># Heading</code> for headings</li>
+            </ul>
+        </div>
+        
+        <div class="features-section">
+            <h2>Implemented Features</h2>
+            <p><strong>1. Emoji Picker</strong> - Click the emoji button to select emojis from a grid</p>
+            <p><strong>2. User Mentions</strong> - Type @ to see user suggestions (try typing "@j" or "@b")</p>
+            <p><strong>3. Markdown Support</strong> - Click the MD button to see supported syntax</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const noteInput = document.getElementById('note-input');
+            const emojiButton = document.getElementById('emoji-button');
+            const markdownButton = document.getElementById('markdown-button');
+            const emojiPicker = document.getElementById('emoji-picker');
+            const closeEmojiButton = document.getElementById('close-emoji');
+            const userSearch = document.getElementById('user-search');
+            const markdownHelp = document.getElementById('markdown-help');
+            const sendButton = document.getElementById('send-button');
+            
+            let cursorPosition = 0;
+            let mentionTriggerPosition = null;
+            
+            // Track cursor position
+            noteInput.addEventListener('click', function() {
+                cursorPosition = this.selectionStart;
+            });
+            
+            noteInput.addEventListener('keyup', function() {
+                cursorPosition = this.selectionStart;
+                
+                // Check for @ mentions
+                const text = this.value;
+                const textBeforeCursor = text.substring(0, cursorPosition);
+                const mentionMatch = textBeforeCursor.match(/(?:^|\s)@(\w*)$/);
+                
+                if (mentionMatch) {
+                    const searchText = mentionMatch[1].toLowerCase();
+                    mentionTriggerPosition = textBeforeCursor.lastIndexOf('@');
+                    
+                    // Show user search results
+                    userSearch.classList.add('active');
+                    
+                    // Filter user items based on search text
+                    const userItems = userSearch.querySelectorAll('.user-item');
+                    userItems.forEach(item => {
+                        const userName = item.getAttribute('data-name').toLowerCase();
+                        const pubkey = item.getAttribute('data-pubkey').toLowerCase();
+                        
+                        if (userName.includes(searchText) || pubkey.includes(searchText)) {
+                            item.style.display = 'flex';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                } else {
+                    userSearch.classList.remove('active');
+                    mentionTriggerPosition = null;
+                }
+            });
+            
+            // Emoji picker
+            emojiButton.addEventListener('click', function() {
+                emojiPicker.classList.toggle('active');
+                markdownHelp.classList.remove('active');
+            });
+            
+            closeEmojiButton.addEventListener('click', function() {
+                emojiPicker.classList.remove('active');
+            });
+            
+            // Insert emoji at cursor position
+            const emojiItems = document.querySelectorAll('.emoji-item');
+            emojiItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const emoji = this.textContent;
+                    const text = noteInput.value;
+                    
+                    const updatedText = 
+                        text.substring(0, cursorPosition) + 
+                        emoji + 
+                        text.substring(cursorPosition);
+                    
+                    noteInput.value = updatedText;
+                    emojiPicker.classList.remove('active');
+                    
+                    // Set focus back to input
+                    noteInput.focus();
+                    const newPosition = cursorPosition + emoji.length;
+                    noteInput.setSelectionRange(newPosition, newPosition);
+                    cursorPosition = newPosition;
+                });
+            });
+            
+            // Markdown help
+            markdownButton.addEventListener('click', function() {
+                markdownHelp.classList.toggle('active');
+                emojiPicker.classList.remove('active');
+            });
+            
+            // User mention selection
+            const userItems = document.querySelectorAll('.user-item');
+            userItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    if (mentionTriggerPosition !== null) {
+                        const text = noteInput.value;
+                        const displayName = this.getAttribute('data-name');
+                        const pubkey = this.getAttribute('data-pubkey');
+                        
+                        // Insert mention
+                        const textBeforeMention = text.substring(0, mentionTriggerPosition);
+                        const textAfterMention = text.substring(cursorPosition);
+                        const mentionText = `@${displayName}`;
+                        
+                        const updatedText = textBeforeMention + mentionText + textAfterMention;
+                        noteInput.value = updatedText;
+                        
+                        // Set focus back to input
+                        userSearch.classList.remove('active');
+                        mentionTriggerPosition = null;
+                        
+                        noteInput.focus();
+                        const newPosition = mentionTriggerPosition + mentionText.length;
+                        noteInput.setSelectionRange(newPosition, newPosition);
+                        cursorPosition = newPosition;
+                        
+                        // In a real implementation, we would also store the user pubkey for the nostr tag
+                        console.log(`Mentioned user: ${displayName} (${pubkey})`);
+                    }
+                });
+            });
+            
+            // Send button
+            sendButton.addEventListener('click', function() {
+                const content = noteInput.value.trim();
+                if (content) {
+                    alert(`Note content: ${content}\n\nThis would be sent to the Nostr network with proper tags for mentions and formatting.`);
+                    noteInput.value = '';
+                } else {
+                    alert('Please write something before sending.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
