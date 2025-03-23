@@ -79,12 +79,18 @@ export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
         mint: activeMint,
         quoteResponse: quote?.request,
         unit: activeUnit,
+        expiry: quote?.request?.expiry,
+        request: quote?.request?.request,
+        paid: false,
       };
 
-      invoicesApi.add(cashuInvoice)
-      invoicesApi.setAll([...invoices, cashuInvoice])
+      console.log("cashuInvoice", cashuInvoice)
 
-      const data = await handleWriteNfc(cashuInvoice?.bolt11, 'ecash');
+      console.log("add invoice to dexie db")
+      await invoicesApi.add(cashuInvoice)
+      // invoicesApi.setAll([...invoices, cashuInvoice])
+
+      // const data = await handleWriteNfc(cashuInvoice?.bolt11, 'ecash');
       if (invoices) {
         setInvoices([...invoices, cashuInvoice]);
       } else {

@@ -674,7 +674,7 @@ export const useCashu = (): ICashu => {
   const checkMeltQuote = async (quote: string) => {
     try {
       if (!wallet) return undefined;
-      const checkQuoteMelt = await wallet.checkMeltQuote(quote);
+      const checkQuoteMelt = await wallet?.checkMeltQuote(quote);
       return checkQuoteMelt;
     } catch (e) {
       console.log('Error checkMeltQuote', e);

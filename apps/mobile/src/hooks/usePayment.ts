@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { CashuMint, CheckStateEnum, getDecodedToken, getEncodedToken, MintQuoteState, Proof, Token } from '@cashu/cashu-ts';
+import { CashuMint, CheckStateEnum, getDecodedToken, getEncodedToken, MintQuoteResponse, MintQuoteState, Proof, Token } from '@cashu/cashu-ts';
 import {
   EventMarker,
   getProofs,
@@ -17,11 +17,12 @@ import { useCashuContext } from '../providers/CashuProvider';
 import { useToast } from './modals';
 import { useGetTokensByProofs } from './useGetTokensByProof';
 import { useMintStorage, useProofsStorage, useTransactionsStorage, useWalletIdStorage } from './useStorageState';
+import { proofsByMintApi, settingsApi } from 'src/utils/database';
 
 export const usePayment = () => {
   const { showToast } = useToast();
 
-  const { meltTokens, wallet, proofs: proofsStore, setProofs, activeUnit, activeMint, mintUrlSelected, connectCashWallet } = useCashuContext()!;
+  const { meltTokens, mintTokens, checkProofSpent, proofs, wallet, proofs: proofsStore, setProofs, activeUnit, activeMint, mintUrlSelected, connectCashWallet } = useCashuContext()!;
   const { publicKey, privateKey } = useAuth();
 
   const { value: proofsStorage, setValue: setProofsStorage } = useProofsStorage();
@@ -41,7 +42,7 @@ export const usePayment = () => {
 
   const handleGetProofs = async () => {
     const mint = mints.filter((mint) => mint.url === activeMint)[0];
-    const proofsStr = getProofs();
+    // const proofsStr = getProofs();
     const proofsMap: Proof[] = [];
     const proofsMapEvents: Proof[] = [];
     let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
@@ -108,7 +109,7 @@ export const usePayment = () => {
         proofsToKeep: undefined,
       }
     };
-    let proofsStorage = JSON.parse(proofsStr)
+    // let proofsStorage = JSON.parse(proofsStr)
     let proofs = proofsParent ? proofsParent : JSON.parse(proofsStr)
     console.log("handlePayInvoice proofs", proofs)
 
@@ -440,10 +441,123 @@ export const usePayment = () => {
     }
   };
 
+  const handleReceivePaymentPaid = async (invoice: ICashuInvoice) => {
+    try {
+      if (invoice?.amount) {
+        const receive = await mintTokens(
+          Number(invoice?.amount),
+          invoice?.quoteResponse ?? (invoice as unknown as MintQuoteResponse),
+        );
+        if (!proofsStorage && !proofs) {
+          setProofsStorage([...receive]);
+          setProofs([...receive]);
+        } else {
+          setProofsStorage([...proofs, ...receive]);
+          setProofs([...proofs, ...receive]);
+        }
+        if (privateKey && publicKey) {
+          try {
+            console.log("createTokenEvent")
+            const tokenEvent = await createTokenEvent({
+              walletId,
+              mint: activeMint,
+              proofs: receive,
+            });
+            console.log("tokenEvent", tokenEvent)
+            const spendingEvent = await createSpendingEvent({
+              walletId,
+              direction: 'in',
+              amount: invoice.amount.toString(),
+              unit: activeUnit,
+              events: [{ id: tokenEvent.id, marker: 'created' }],
+            });
+            console.log("spendingEvent", spendingEvent)
+          } catch (error) {
+            console.log("error nip 60", error)
+          }
+
+        }
+
+        return receive;
+      }
+      return undefined;
+    } catch (e) {
+      console.log('Error handleReceivePaymentPaid', e);
+      return undefined;
+    }
+  };
+
+  const handleReceivedInvoicePayment = async (invoice: ICashuInvoice) => {
+    console.log("handleReceivedInvoicePayment", invoice)
+    if (invoice && invoice?.quote) {
+      const received = await handleReceivePaymentPaid(invoice);
+      console.log("received", received)
+      if (received) {
+        showToast({ title: 'Payment received', type: 'success' });
+      } else {
+        showToast({ title: 'Error receiving payment.', type: 'error' });
+      }
+
+
+      let proofsToKeep:Proof[] = [];
+      try {
+        console.log("addProofsForMint")
+        console.log("update dexie db")
+        const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+        console.log("activeMintUrl", activeMintUrl)
+        await proofsByMintApi.addProofsForMint(received, activeMintUrl)
+
+        const oldProofs = await proofsByMintApi.getByMintUrl(activeMintUrl);
+
+
+        console.log("oldProofs", oldProofs)
+        let newProofs = [...oldProofs, ...received];
+
+        newProofs = newProofs.filter((proof, index, self) =>
+          index === self.findIndex((t) => t?.C === proof?.C)
+        );
+        console.log("newProofs", newProofs)
+        await proofsByMintApi.setAllForMint(newProofs, activeMintUrl)
+        console.log("received", received)
+        proofsToKeep = newProofs;
+        const updatedProofs = await proofsByMintApi.getByMintUrl(activeMintUrl);
+        console.log("updatedProofs", updatedProofs)
+
+      } catch (error) {
+        console.log("error addProofsForMint", error)
+      }
+
+      try {
+
+        console.log("createTokenEvent")
+        const tokenEvent = await createTokenEvent({
+          walletId,
+          mint: activeMint,
+          proofs: proofsToKeep,
+        });
+        console.log("tokenEvent", tokenEvent)
+        await createSpendingEvent({
+          walletId,
+          direction: 'in',
+          amount: received.reduce((acc, item) => acc + item.amount, 0).toString(),
+          unit: activeUnit,
+          events: [{ id: tokenEvent.id, marker: 'created' }],
+        });
+
+      } catch (error) {
+        console.log("error createTokenEvent", error)
+      }
+
+
+    } 
+  }
+
   return {
     handlePayInvoice,
     handleGenerateEcash,
     handleReceiveEcash,
-    handleGetProofs
+    handleGetProofs,
+    handleReceivedInvoicePayment,
+    handleReceivePaymentPaid
   };
 };

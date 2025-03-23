@@ -144,7 +144,7 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
 
       console.log("proofs", proofs)
 
-      const {proofsFiltered} = await filteredProofsSpents(proofs)
+      const { proofsFiltered } = await filteredProofsSpents(proofs)
       console.log("proofsFiltered", proofsFiltered)
       // const cashuLnPayment = await payExternalInvoice(Number(amount), invoice?.paymentRequest)
       const { invoice: cashuLnPayment, meltResponse, proofsSent, proofsToKeep } = await handlePayInvoice(
@@ -162,20 +162,41 @@ export const FormLightningZap: React.FC<FormTipModalLightningProps> = ({
       }
       if (cashuLnPayment?.quote) {
 
+
+        const verify = await checkMeltQuote(cashuLnPayment?.quote)
+
+
+        console.log('verify', verify);
+
+        if (!verify) {
+          return showToast({ title: "Lightning zap failed", type: "error" })
+        }
+
         try {
           console.log("update dexie db")
-          const oldProofs = await proofsByMintApi.getByMintUrl(activeMint)
-          const newProofs = [...oldProofs.filter((p) => !proofsToKeep.includes(p)), ...proofsSent]
-          await proofsByMintApi.setAllForMint(newProofs, activeMint)
-          await proofsSpentsByMintApi.addProofsForMint(proofsSent, activeMint)
-          await proofsSpentsByMintApi.addProofsForMint(proofsSent, mintUrlSelected)
+
+          const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+          const oldProofs = await proofsByMintApi.getByMintUrl(activeMintUrl)
+          console.log("oldProofs", oldProofs)
+          console.log("proofsSent", proofsSent)
+
+          let filteredProofs = oldProofs.filter((p) => {
+            if (!proofsSent.includes(p)) {
+              console.log("p", p)
+              return p
+            }
+          })
+
+          const newProofs = [...filteredProofs,]
+          console.log("newProofs", newProofs)
+          await proofsByMintApi.setAllForMint(newProofs, activeMintUrl)
+          // await proofsByMintApi.addProofsForMint(newProofs, activeMintUrl)
+          await proofsSpentsByMintApi.addProofsForMint(proofsSent, activeMintUrl)
 
         } catch (error) {
           console.log("error", error)
         }
 
-        const verify = await checkMeltQuote(cashuLnPayment?.quote)
-        console.log('verify', verify);
 
         success = true;
         showToast({ title: "Lightning zap succeed with Cashu", type: "success" })

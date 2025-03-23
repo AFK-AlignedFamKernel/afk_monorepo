@@ -23,7 +23,7 @@ import {
 import { useCashuContext } from '../../../../providers/CashuProvider';
 import { getRelativeTime } from '../../../../utils/helpers';
 import stylesheet from './styles';
-import { proofsApi, proofsByMintApi, settingsApi } from 'src/utils/database';
+import { invoicesApi, proofsApi, proofsByMintApi, settingsApi } from 'src/utils/database';
 
 export const Invoices = () => {
   const { theme } = useTheme();
@@ -93,7 +93,7 @@ export const Invoices = () => {
           }
 
 
-          let proofsToKeep:Proof[] = [];
+          let proofsToKeep: Proof[] = [];
           try {
             console.log("addProofsForMint")
             console.log("update dexie db")
@@ -115,8 +115,16 @@ export const Invoices = () => {
             console.log("received", received)
             proofsToKeep = newProofs;
             const updatedProofs = await proofsByMintApi.getByMintUrl(activeMintUrl);
+
+
             console.log("updatedProofs", updatedProofs)
 
+            let invoiceToUpdate = { ...invoice }
+            invoiceToUpdate.state = MintQuoteState.PAID;
+            invoiceToUpdate.paid = true;
+
+
+            await invoicesApi.updateInvoice(invoiceToUpdate)
           } catch (error) {
             console.log("error addProofsForMint", error)
           }

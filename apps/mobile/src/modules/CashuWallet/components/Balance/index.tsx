@@ -16,11 +16,12 @@ import {
 import { useCashuContext } from '../../../../providers/CashuProvider';
 import { formatCurrency } from '../../../../utils/helpers';
 import stylesheet from './styles';
-import { getProofs, NostrKeyManager, storeProofs, useCashu, useCashuStore, useCreateWalletEvent, useGetCashuTokenEvents, useGetCashuWalletsInfo, useGetSpendingTokens } from 'afk_nostr_sdk';
+import { getProofs, ICashuInvoice, NostrKeyManager, storeProofs, useCashu, useCashuStore, useCreateWalletEvent, useGetCashuTokenEvents, useGetCashuWalletsInfo, useGetSpendingTokens } from 'afk_nostr_sdk';
 import { randomUUID } from 'expo-crypto';
-import { Proof, ProofState, CheckStateEnum } from '@cashu/cashu-ts';
-import { Button } from 'src/components';
-import { proofsApi, proofsByMintApi, proofsSpentsByMintApi, settingsApi } from 'src/utils/database';
+import { Proof, ProofState, CheckStateEnum, MeltQuoteState } from '@cashu/cashu-ts';
+import { Button, Icon } from 'src/components';
+import { invoicesApi, proofsApi, proofsByMintApi, proofsSpentsByMintApi, settingsApi } from 'src/utils/database';
+import { usePayment } from 'src/hooks/usePayment';
 
 export const Balance = () => {
   const { getUnitBalance, setActiveUnit, getUnitBalanceWithProofsChecked, wallet, activeMint, activeUnit } = useCashuContext()!;
@@ -28,7 +29,7 @@ export const Balance = () => {
   const styles = useStyles(stylesheet);
   const [alias, setAlias] = useState<string>('');
   const [currentUnitBalance, setCurrentUnitBalance] = useState<number | undefined>(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isBalanceFetching, setIsBalanceFetching] = useState(false);
   const { value: mints } = useMintStorage();
   // const { value: activeMint } = useActiveMintStorage();
@@ -36,12 +37,14 @@ export const Balance = () => {
   const { value: proofs, setValue: setProofsStore } = useProofsStorage();
 
 
+  const { handleReceivedInvoicePayment } = usePayment();
   const { data: tokensEvents } = useGetCashuTokenEvents();
   const { data: walletsInfo } = useGetCashuWalletsInfo();
   const { data: spendingEvents } = useGetSpendingTokens();
-  console.log("cashu walletsInfo", walletsInfo)
-  console.log("cashu tokensEvents", tokensEvents)
-  console.log("cashu spendingEvents", spendingEvents)
+  // console.log("cashu walletsInfo", walletsInfo)
+  // console.log("cashu tokensEvents", tokensEvents)
+  // console.log("cashu spendingEvents", spendingEvents)
+
   useEffect(() => {
 
     const mint = mints.filter((mint) => mint.url === activeMint);
@@ -58,6 +61,7 @@ export const Balance = () => {
   const [activeUnitUsed, setActiveUnitUsed] = useState<string>(activeUnit);
   const [activeMintUsed, setActiveMintUsed] = useState<string>(activeMint);
   const [isWebsocketProofs, setIsWebsocketProofs] = useState<boolean>(false);
+  const [isWebsocketQuote, setIsWebsocketQuote] = useState<boolean>(false);
 
 
 
@@ -287,6 +291,74 @@ export const Balance = () => {
 
   }
 
+
+  const handleCheckQuoteWebsocket = async (mergedInvoicesParents?: ICashuInvoice[]) => {
+    try {
+      console.log("handleCheckQuoteWebsocket")
+      if (!wallet) {
+        console.log("handleCheckQuoteWebsocket wallet not found")
+        return { mergedInvoices: [], data: {} }
+      }
+
+      let mergedInvoices: ICashuInvoice[] = mergedInvoicesParents || [];
+
+      console.log("handleCheckQuoteWebsocket mergedInvoicesParents", mergedInvoicesParents)
+      const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+
+      console.log("activeMintUrl", activeMintUrl)
+      if (!mergedInvoices?.length || mergedInvoices?.length == 0){
+        mergedInvoices = await invoicesApi.getAllUnpaid();
+      }
+
+      console.log("handleCheckQuoteWebsocket mergedInvoices", mergedInvoices)
+
+      const quoteIds = mergedInvoices?.map((invoice) => invoice.bolt11);
+      
+      console.log("quoteIds", quoteIds)
+
+      if(quoteIds?.length == 0) {
+        return { mergedInvoices: [], data: {} }
+      }
+      // storeProofs(mergedProofs);
+      const data = await new Promise<ProofState>((res) => {
+        try {
+          if (wallet) {
+            wallet?.onMeltQuoteUpdates(
+              quoteIds,
+              async (p) => {
+                if (p?.state == MeltQuoteState?.PAID) {
+                  console.log("onMeltQuoteUpdates p", p)
+                  // await handleReceivedInvoicePayment(p);
+                }
+               
+              },
+              (e) => {
+                console.log(e);
+              }
+            );
+            // wallet.swap(21, proofs);
+          }
+        } catch (error) {
+          console.log("error handleCheckQuoteWebsocket connection", error)
+
+        }
+
+
+      });
+      setIsWebsocketQuote(true);
+      console.log("data onProofStateUpdates proofs websocket", data)
+
+      return { mergedInvoices, data };
+    } catch (error) {
+      console.log("handleWebsocketProofs errror", error)
+      return { mergedInvoices: [], data: {} }
+    } finally {
+      setIsWebsocketQuote(true);
+    }
+
+  }
+
+
   // useEffect(() => {
   //   console.log("activeUnit", activeUnit)
   //   if(activeUnit && activeMint && !isBalanceFetching) {
@@ -312,9 +384,14 @@ export const Balance = () => {
       setIsWebsocketProofs(true);
     }
 
+    if(!isWebsocketQuote) {
+      handleCheckQuoteWebsocket();
+      setIsWebsocketQuote(true);
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
     // }, [activeUnit, activeUnitUsed, isWebsocketProofs, proofs, mints, activeMint, tokensEvents, walletsInfo, wallet]);
-  }, [activeUnit, mints, activeMint, tokensEvents, walletsInfo, wallet, isBalanceFetching, isLoading]);
+  }, [activeUnit, mints, activeMint, tokensEvents, walletsInfo, wallet, isBalanceFetching, isLoading, isWebsocketQuote, isWebsocketProofs]);
 
 
   useEffect(() => {
@@ -335,7 +412,16 @@ export const Balance = () => {
       console.log("handleWebsocketProofs")
       handleWebsocketProofs();
     }
-  }, [wallet])
+  }, [wallet, isWebsocketProofs])
+
+
+  useEffect(() => {
+
+    if (wallet && !isWebsocketQuote) {
+      // console.log("handleCheckQuoteWebsocket")
+      handleCheckQuoteWebsocket();
+    }
+  }, [wallet, isWebsocketQuote])
   return (
     <View style={styles.balanceContainer}>
       <Text style={styles.balanceTitle}>Your balance</Text>
@@ -353,11 +439,14 @@ export const Balance = () => {
 
       {isBalanceFetching &&
         <View>
-          <Button onPress={() => {
+          <TouchableOpacity onPress={() => {
             setIsBalanceFetching(false);
+            setIsWebsocketProofs(false);
+            setIsWebsocketQuote(false);
           }}>
-            Reload balance
-          </Button>
+             <Icon name="ReloadIcon" size={20} />
+            {/* Reload balance */}
+          </TouchableOpacity>
         </View>
       }
     </View>

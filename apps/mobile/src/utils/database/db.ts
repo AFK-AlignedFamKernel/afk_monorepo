@@ -55,7 +55,7 @@ export class CashuDatabase extends Dexie {
       proofsSpentsByMint: '&C, mintUrl, id, amount', // Indexed by both C and mintUrl
       tokens: '&id, amount',
       quotes: '&id, amount, created_at',
-      invoices: '&id, amount, paid, unit, mint, date, state, bolt11, quote, quoteResponse',
+      invoices: '&request, amount, paid, unit, mint, date, state, bolt11, quote, quoteResponse, expiry, id',
       transactions: '&id, created_at, amount, type',
       settings: '&key, value' // For storing active mint, unit, etc.
     });
