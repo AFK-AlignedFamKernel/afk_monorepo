@@ -453,7 +453,22 @@ export const invoicesApi = {
   },
 
   async delete(id: string): Promise<void> {
-    await db.invoices.delete(id);
+    try {
+      // Try to delete by id first (which could be the request value)
+      await db.invoices.delete(id);
+      
+      // For backward compatibility, also try to delete by checking if any invoice has id property equal to the provided id
+      const invoiceByIdField = await db.invoices.where('id').equals(id).toArray();
+      if (invoiceByIdField.length > 0) {
+        for (const inv of invoiceByIdField) {
+          if (inv.request) {
+            await db.invoices.delete(inv.request);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+    }
   },
 
   async setAll(invoices: ICashuInvoice[]): Promise<void> {
@@ -491,6 +506,65 @@ export const invoicesApi = {
   async getAllPaid(): Promise<ICashuInvoice[]> {
     return db.invoices.where('state').equals(MintQuoteState.PAID).toArray();
   },
+
+  async fixMissingRequestFields(): Promise<void> {
+    try {
+      // Get all invoices
+      const allInvoices = await db.invoices.toArray();
+      
+      // Process invoices that might have invalid or missing request fields
+      const fixedInvoices: ICashuInvoice[] = [];
+      
+      for (const invoice of allInvoices) {
+        // Create a copy to modify
+        const fixedInvoice = { ...invoice };
+        
+        // Ensure it has the request field
+        if (!fixedInvoice.request) {
+          if (fixedInvoice.id) {
+            fixedInvoice.request = fixedInvoice.id;
+          } else if (fixedInvoice.bolt11) {
+            fixedInvoice.request = fixedInvoice.bolt11;
+          } else {
+            fixedInvoice.request = crypto.randomUUID();
+          }
+          console.log(`Fixed missing request field for invoice: ${fixedInvoice.request}`);
+          fixedInvoices.push(fixedInvoice);
+        }
+      }
+      
+      // Update the database with fixed invoices
+      if (fixedInvoices.length > 0) {
+        console.log(`Fixing ${fixedInvoices.length} invoices with missing request fields`);
+        
+        // Try to add these invoices (may fail if duplicates)
+        for (const invoice of fixedInvoices) {
+          try {
+            await db.invoices.add(invoice);
+          } catch (error) {
+            console.log(`Could not add invoice ${invoice.request}, trying update instead`);
+            try {
+              // Delete the old record if it exists (without request field)
+              if (invoice.id) {
+                const oldInvoice = await db.invoices.get(invoice.id);
+                if (oldInvoice) {
+                  await db.invoices.delete(invoice.id);
+                }
+              }
+              // Now add with the request field
+              await db.invoices.add(invoice);
+            } catch (innerError) {
+              console.error(`Failed to fix invoice ${invoice.id || invoice.bolt11}:`, innerError);
+            }
+          }
+        }
+      } else {
+        console.log('No invoices needed fixing');
+      }
+    } catch (error) {
+      console.error('Error fixing invoices with missing request fields:', error);
+    }
+  }
 };
 
 // Transactions API

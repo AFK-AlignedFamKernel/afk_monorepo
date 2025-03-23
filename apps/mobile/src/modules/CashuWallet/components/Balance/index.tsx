@@ -2,9 +2,8 @@
 import '../../../../../applyGlobalPolyfills';
 
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
 
 import { useStyles } from '../../../../hooks';
 import {
@@ -212,7 +211,7 @@ export const Balance = () => {
       console.log("handleWebsocketProofs")
       if (!wallet) {
         console.log("handleWebsocketProofs wallet not found")
-        return { mergedProofs: [], data: {} }
+        return { mergedProofs: [] as Proof[], data: {} }
       }
 
       let mergedProofs: Proof[] = mergedProofsParents || [];
@@ -284,7 +283,7 @@ export const Balance = () => {
       return { mergedProofs, data };
     } catch (error) {
       console.log("handleWebsocketProofs errror", error)
-      return { mergedProofs: [], data: {} }
+      return { mergedProofs: [] as Proof[], data: {} }
     } finally {
       setIsWebsocketProofs(true);
     }
@@ -297,7 +296,7 @@ export const Balance = () => {
       console.log("handleCheckQuoteWebsocket")
       if (!wallet) {
         console.log("handleCheckQuoteWebsocket wallet not found")
-        return { mergedInvoices: [], data: {} }
+        return { mergedInvoices: [] as ICashuInvoice[], data: {} }
       }
 
       let mergedInvoices: ICashuInvoice[] = mergedInvoicesParents || [];
@@ -317,7 +316,7 @@ export const Balance = () => {
       console.log("quoteIds", quoteIds)
 
       if(quoteIds?.length == 0) {
-        return { mergedInvoices: [], data: {} }
+        return { mergedInvoices: [] as ICashuInvoice[], data: {} }
       }
       // storeProofs(mergedProofs);
       const data = await new Promise<ProofState>((res) => {
@@ -351,7 +350,7 @@ export const Balance = () => {
       return { mergedInvoices, data };
     } catch (error) {
       console.log("handleWebsocketProofs errror", error)
-      return { mergedInvoices: [], data: {} }
+      return { mergedInvoices: [] as ICashuInvoice[], data: {} }
     } finally {
       setIsWebsocketQuote(true);
     }
@@ -419,9 +418,47 @@ export const Balance = () => {
 
     if (wallet && !isWebsocketQuote) {
       // console.log("handleCheckQuoteWebsocket")
-      handleCheckQuoteWebsocket();
+      // handleCheckQuoteWebsocket();
     }
   }, [wallet, isWebsocketQuote])
+  
+  // Helper function to diagnose and fix DB issues
+  const handleDiagnoseDatabaseIssues = async () => {
+    try {
+      console.log("Running database diagnostics...");
+      
+      // Check invoices
+      const allInvoices = await invoicesApi.getAll();
+      console.log(`Total invoices: ${allInvoices.length}`);
+      
+      // Count invoices with missing request field
+      const missingRequest = allInvoices.filter(inv => !inv.request);
+      console.log(`Invoices with missing request field: ${missingRequest.length}`);
+      
+      if (missingRequest.length > 0) {
+        console.log("Running invoice fix...");
+        await invoicesApi.fixMissingRequestFields();
+        
+        // Verify fix worked
+        const checkInvoices = await invoicesApi.getAll();
+        const stillMissingRequest = checkInvoices.filter(inv => !inv.request);
+        console.log(`Invoices still missing request field after fix: ${stillMissingRequest.length}`);
+      }
+      
+      return {
+        initialIssues: missingRequest.length,
+        fixed: missingRequest.length > 0
+      };
+    } catch (error) {
+      console.error("Error running database diagnostics:", error);
+      return {
+        initialIssues: -1,
+        fixed: false,
+        error
+      };
+    }
+  };
+  
   return (
     <View style={styles.balanceContainer}>
       <Text style={styles.balanceTitle}>Your balance</Text>
@@ -449,6 +486,19 @@ export const Balance = () => {
           </TouchableOpacity>
         </View>
       }
+      
+      {/* Hidden diagnostic button, double tap to trigger */}
+      <TouchableOpacity 
+        onPress={handleDiagnoseDatabaseIssues}
+        style={{ 
+          position: 'absolute', 
+          bottom: -20, 
+          right: 0, 
+          width: 20, 
+          height: 20, 
+          opacity: 0.01 
+        }}
+      />
     </View>
   );
 };
