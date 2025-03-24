@@ -1354,11 +1354,9 @@ pub mod LaunchpadMarketplace {
 
             // Check supply of coin and threshold
             // Need to be *10 the current threshold
+            // And memecoin pool supply has to be smaller than U128_MAX
             let threshold_liquidity = self.threshold_liquidity.read();
-            assert(
-                initial_supply >= (threshold_liquidity * 10_u256),
-                errors::SUPPLY_COIN_BELOW_THRESHOLD
-            );
+            self.assert_supply_threshold(initial_supply, threshold_liquidity);
 
             // TODO finish this
             // ADD TEST CASE for Paid create token
@@ -1459,8 +1457,6 @@ pub mod LaunchpadMarketplace {
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             let total_supply = memecoin.total_supply();
             
-            // Check for right relationship between the total supply and the threshold liquidity
-            self.assert_supply_threshold(total_supply, threshold_liquidity);
 
 
             // TODO Add test for Paid launched token bonding curve
