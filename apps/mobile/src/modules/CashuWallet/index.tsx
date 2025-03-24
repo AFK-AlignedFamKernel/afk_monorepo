@@ -33,6 +33,9 @@ import { Receive } from './components/Receive';
 import { Send } from './components/Send';
 import { Settings } from './components/Settings';
 import stylesheet from './styles';
+import NfcPayment from '../NfcPayment';
+import { NfcIcon } from 'src/assets/icons';
+import { mintsApi } from 'src/utils/database';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -50,6 +53,7 @@ export const CashuView = () => {
 
   const { seed, setSeed } = useCashuStore();
 
+  const {activeMint, activeUnit, setActiveMint, setActiveUnit} = useCashuContext()
   // states
   const [isOpenContactManagement, setIsOpenContactManagement] = useState(false);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_MINT);
@@ -59,34 +63,77 @@ export const CashuView = () => {
   const [receiveModalOpen, setReceiveModalOpen] = useState<boolean>(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState<boolean>(false);
   const [addingMint, setAddingMint] = useState<boolean>(false);
+  const [nfcModalOpen, setNfcModalOpen] = useState<boolean>(false);
+  const [nfcMode, setNfcMode] = useState<'send' | 'receive'>('send');
 
   const { value: mints, setValue: setMintsStorage } = useMintStorage();
-  const { value: activeMint, setValue: setActiveMintStorage } = useActiveMintStorage();
-  const { value: activeUnit, setValue: setActiveUnitStorage } = useActiveUnitStorage();
+  const { value: activeMintStorage, setValue: setActiveMintStorage } = useActiveMintStorage();
+  const { value: activeUnitStorage, setValue: setActiveUnitStorage } = useActiveUnitStorage();
   const { value: proofs } = useProofsStorage();
   const { setValue: setPrivKey } = usePrivKeySignerStorage();
   const { setValue: setWalletId } = useWalletIdStorage();
 
   //context
-  const { buildMintData, setMints, setActiveMint, setActiveUnit, setProofs } = useCashuContext()!;
+  const { buildMintData, setMints, setProofs } = useCashuContext()!;
   const { publicKey, privateKey } = useAuth();
 
   const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
 
+
+  const [isInit, setIsInit] = useState<boolean>(false);
+
   useEffect(() => {
-    setMints(mints);
+    // console.log("mints", mints)
+
+
+    const handleDbMints = async () => {
+      const mintsDb = await mintsApi.getAll();
+      let newMints = [...mints, ...mintsDb];
+      newMints = newMints.filter((mint, index, self) =>
+        index === self.findIndex((t) => t.url === mint.url)
+      );
+      if (mints.length > 0) {
+        setMints([...newMints]);
+        setMintsStorage([...newMints]);
+
+        // setMintsStorage([...mints, ...mintsDb]);
+      }
+      if (mintsDb.length > 0) {
+        setMints([...mints, ...mintsDb]);
+
+        setMintsStorage([...newMints]);
+      }
+      setIsInit(true);
+    }
+
+    if(mints.length === 0) {
+      handleDbMints();
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mints]);
 
   useEffect(() => {
-    setActiveMint(activeMint);
+    if (!activeMint && !isInit) {
+      setActiveMint(activeMint);
+      setIsInit(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeMint]);
+  }, [activeMint, isInit]);
 
   useEffect(() => {
-    setActiveUnit(activeUnit);
+    if (activeUnit && !isInit) {
+      setActiveUnit(activeUnit);
+      setActiveUnitStorage(activeUnit);
+      setIsInit(true);
+    }
+
+    if(activeUnitStorage && !activeUnit && !isInit) {
+      setActiveUnit(activeUnitStorage);
+      // setActiveUnitStorage(activeUnitStorage);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeUnit]);
+  }, [activeUnit, isInit, activeUnitStorage]);
 
   useEffect(() => {
     setProofs(proofs);
@@ -95,8 +142,8 @@ export const CashuView = () => {
 
   const tokenCashuEvents = useGetCashuTokenEvents()
 
-  console.log("cashuView")
-  console.log('tokenCashuEvents', tokenCashuEvents);
+  // console.log("cashuView")
+  // console.log('tokenCashuEvents', tokenCashuEvents);
 
 
   // functions
@@ -121,12 +168,12 @@ export const CashuView = () => {
   };
 
   useEffect(() => {
-    console.log("seed", seed)
+    // console.log("seed", seed)
 
     const handleSeed = async () => {
       const nostrAccountStr = await NostrKeyManager.getAccountConnected();
       const nostrAccount = JSON.parse(nostrAccountStr);
-      console.log("nostrAccount", nostrAccount)
+      // console.log("nostrAccount", nostrAccount)
 
       if (nostrAccount && nostrAccount?.seed) {
 
@@ -145,45 +192,68 @@ export const CashuView = () => {
   };
 
   const handleAddDefaultMint = async () => {
-    setAddingMint(true);
-    const defaultMintUrl = 'https://mint.minibits.cash/Bitcoin';
-    const defaultMintAlias = 'Default Mint (minibits)';
-    setActiveMintStorage(defaultMintUrl);
-    const data = await buildMintData(defaultMintUrl, defaultMintAlias);
-    setActiveUnitStorage(data.units[0]);
-    setMintsStorage([data]);
-    setAddingMint(false);
 
-    const nostrAccountStr = await NostrKeyManager.getAccountConnected();
-    const nostrAccount = JSON.parse(nostrAccountStr);
-    console.log("nostrAccount", nostrAccount)
+    try {
+      setAddingMint(true);
+      const defaultMintUrl = 'https://mint.minibits.cash/Bitcoin';
+      const defaultMintAlias = 'Default Mint (minibits)';
+      setActiveMintStorage(defaultMintUrl);
+      const data = await buildMintData(defaultMintUrl, defaultMintAlias);
+      setActiveUnitStorage(data.units[0]);
+      setMintsStorage([data]);
+      setAddingMint(false);
 
-    const id = randomUUID();
-    setWalletId(id);
-    if (nostrAccount && nostrAccount?.seed) {
+      const nostrAccountStr = await NostrKeyManager.getAccountConnected();
+      const nostrAccount = JSON.parse(nostrAccountStr);
+      // console.log("nostrAccount", nostrAccount)
 
-      setSeed(Buffer.from(nostrAccount?.seed, 'hex'))
-      // NostrKeyManager.setAccountConnected(nostrAccount)
-      // nostr event
-      await createWalletEvent({
-        name: id,
-        mints: mints.map((mint) => mint.url),
-        privkey: nostrAccount?.seed,
-      });
-      return;
+      const id = randomUUID();
+
+
+      setWalletId(id);
+      if (nostrAccount && nostrAccount?.seed) {
+
+        setSeed(Buffer.from(nostrAccount?.seed, 'hex'))
+
+        try {
+          // NostrKeyManager.setAccountConnected(nostrAccount)
+          // nostr event
+          await createWalletEvent({
+            name: id,
+            mints: mints.map((mint) => mint.url),
+            privkey: nostrAccount?.seed,
+          });
+          return;
+        } catch (error) {
+          console.log("nostr event error", error)
+        }
+      }
+      // if (publicKey && privateKey) {
+      //   try {
+      //     // nostr event
+      //     await createWalletEvent({
+      //       name: id,
+      //       mints: mints.map((mint) => mint.url),
+      //       privkey: privateKeyHex,
+      //     });
+      //   } catch (error) {
+      //     console.log("nostr event error", error)
+      //   }
+      // }
+      const privKey = getRandomBytes(32);
+      const privateKeyHex = Buffer.from(privKey).toString('hex');
+      setPrivKey(privateKeyHex);
+
+
+
+    } catch (error) {
+      console.log("default mint error", error)
     }
-    const privKey = getRandomBytes(32);
-    const privateKeyHex = Buffer.from(privKey).toString('hex');
-    setPrivKey(privateKeyHex);
+  };
 
-    if (publicKey && privateKey) {
-      // nostr event
-      await createWalletEvent({
-        name: id,
-        mints: mints.map((mint) => mint.url),
-        privkey: privateKeyHex,
-      });
-    }
+  const handleOpenNfcModal = (mode: 'send' | 'receive') => {
+    setNfcMode(mode);
+    setNfcModalOpen(true);
   };
 
   return (
@@ -212,10 +282,13 @@ export const CashuView = () => {
                   >
                     Send
                   </Button>
-                    <View>
+                  <View>
                     <Button onPress={handleQRCodeClick} style={styles.qrButton}>
                       <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
                     </Button>
+                    {/* <Button onPress={() => handleOpenNfcModal('send')} style={styles.qrButton}>
+                      <NfcIcon width={60} height={60} color={theme.colors.primary} />
+                    </Button> */}
                   </View>
                   <Button
                     onPress={onOpenReceiveModal}
@@ -225,10 +298,20 @@ export const CashuView = () => {
                     Receive
                   </Button>
                 </View>
-                {/* <Text style={styles.orText}>or</Text>
-                <View>
-                  <Button onPress={handleQRCodeClick} style={styles.qrButton}>
-                    <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
+                {/* <View style={styles.nfcButtonsContainer}>
+                  <Button 
+                    onPress={() => handleOpenNfcModal('send')}
+                    style={styles.nfcButton}
+                    textStyle={styles.actionButtonText}
+                  >
+                    Send via NFC
+                  </Button>
+                  <Button 
+                    onPress={() => handleOpenNfcModal('receive')}
+                    style={styles.nfcButton}
+                    textStyle={styles.actionButtonText}
+                  >
+                    Receive via NFC
                   </Button>
                 </View> */}
               </View>
@@ -310,6 +393,12 @@ export const CashuView = () => {
           <Settings onClose={() => setSettingsModalOpen(false)} />
         </View>
       </Modal>
+      <NfcPayment
+        isVisible={nfcModalOpen}
+        onClose={() => setNfcModalOpen(false)}
+        setMode={setNfcMode}
+        mode={nfcMode}
+      />
     </View>
   );
 };

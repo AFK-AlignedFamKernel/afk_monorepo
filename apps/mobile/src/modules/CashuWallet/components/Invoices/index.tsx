@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../../../applyGlobalPolyfills';
 
-import {MintQuoteResponse, MintQuoteState} from '@cashu/cashu-ts';
-import {ICashuInvoice, useAuth, useCreateSpendingEvent, useCreateTokenEvent} from 'afk_nostr_sdk';
+import { MintQuoteResponse, MintQuoteState, Proof } from '@cashu/cashu-ts';
+import { ICashuInvoice, useAuth, useCreateSpendingEvent, useCreateTokenEvent, useDeleteTokenEvents } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import React, {useState} from 'react';
-import {FlatList, Modal, TouchableOpacity, View} from 'react-native';
-import {Text} from 'react-native';
+import React, { useState } from 'react';
+import { FlatList, Modal, TouchableOpacity, View } from 'react-native';
+import { Text } from 'react-native';
 
-import {CopyIconStack, InfoIcon, RefreshIcon, ViewIcon} from '../../../../assets/icons';
-import {Button, Divider, GenerateQRCode} from '../../../../components';
-import {useStyles, useTheme} from '../../../../hooks';
-import {useToast} from '../../../../hooks/modals';
+import { CopyIconStack, InfoIcon, RefreshIcon, ViewIcon } from '../../../../assets/icons';
+import { Button, Divider, GenerateQRCode } from '../../../../components';
+import { useStyles, useTheme } from '../../../../hooks';
+import { useToast } from '../../../../hooks/modals';
 import {
   useActiveMintStorage,
   useActiveUnitStorage,
@@ -20,41 +20,43 @@ import {
   useTransactionsStorage,
   useWalletIdStorage,
 } from '../../../../hooks/useStorageState';
-import {useCashuContext} from '../../../../providers/CashuProvider';
-import {getRelativeTime} from '../../../../utils/helpers';
+import { useCashuContext } from '../../../../providers/CashuProvider';
+import { getRelativeTime } from '../../../../utils/helpers';
 import stylesheet from './styles';
-import { proofsApi, proofsByMintApi } from 'src/utils/database';
+import { invoicesApi, proofsApi, proofsByMintApi, settingsApi } from 'src/utils/database';
 
 export const Invoices = () => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
-  const {showToast} = useToast();
+  const { showToast } = useToast();
 
-  const {checkMintQuote, mintTokens, proofs, setProofs} = useCashuContext()!;
-  const {publicKey, privateKey} = useAuth();
+  const { checkMintQuote, mintTokens, proofs, setProofs } = useCashuContext()!;
+  const { publicKey, privateKey } = useAuth();
 
-  const {value: invoices, setValue: setInvoices} = useInvoicesStorage();
-  const {value: transactions, setValue: setTransactions} = useTransactionsStorage();
-  const {value: proofsStorage, setValue: setProofsStorage} = useProofsStorage();
-  const {value: activeMint} = useActiveMintStorage();
-  const {value: walletId} = useWalletIdStorage();
-  const {value: activeUnit} = useActiveUnitStorage();
+  const { value: invoices, setValue: setInvoices } = useInvoicesStorage();
+  const { value: transactions, setValue: setTransactions } = useTransactionsStorage();
+  const { value: proofsStorage, setValue: setProofsStorage } = useProofsStorage();
+  const { value: activeMint } = useActiveMintStorage();
+  const { value: walletId } = useWalletIdStorage();
+  const { value: activeUnit } = useActiveUnitStorage();
+  const { deleteMultiple } = useDeleteTokenEvents();
 
   const [selectedInvoice, setSelectedInvoice] = useState<string>('');
 
-  const {mutateAsync: createTokenEvent} = useCreateTokenEvent();
-  const {mutateAsync: createSpendingEvent} = useCreateSpendingEvent();
+  const { mutateAsync: createTokenEvent } = useCreateTokenEvent();
+  const { mutateAsync: createSpendingEvent } = useCreateSpendingEvent();
 
   const handleVerify = async (quote?: string) => {
     try {
       if (!quote) return;
       console.log('[VERIFY] quote', quote);
       const check = await checkMintQuote(quote);
+      console.log("check quote", check)
       if (check?.state === MintQuoteState.UNPAID) {
-        showToast({title: 'Unpaid', type: 'success'});
+        showToast({ title: 'Unpaid', type: 'success' });
         return;
       } else if (check?.state === MintQuoteState.PAID) {
-        showToast({title: 'Invoice is paid. Receiving payment...', type: 'success'});
+        showToast({ title: 'Invoice is paid. Receiving payment...', type: 'success' });
         const invoice = invoices?.find((i) => i?.quote == quote);
 
         const invoicesUpdated = invoices.map((i) => {
@@ -69,7 +71,7 @@ export const Invoices = () => {
         if (transactions) {
           setTransactions([
             ...transactions,
-            {...invoice, direction: 'in', state: MintQuoteState.PAID} as ICashuInvoice,
+            { ...invoice, direction: 'in', state: MintQuoteState.PAID } as ICashuInvoice,
           ]);
         } else {
           setTransactions([
@@ -83,19 +85,78 @@ export const Invoices = () => {
 
         if (invoice && invoice?.quote) {
           const received = await handleReceivePaymentPaid(invoice);
-
-          proofsByMintApi.addProofsForMint(received, activeMint)
           console.log("received", received)
           if (received) {
-            showToast({title: 'Payment received', type: 'success'});
+            showToast({ title: 'Payment received', type: 'success' });
           } else {
-            showToast({title: 'Error receiving payment.', type: 'error'});
+            showToast({ title: 'Error receiving payment.', type: 'error' });
           }
+
+
+          let proofsToKeep: Proof[] = [];
+          try {
+            console.log("addProofsForMint")
+            console.log("update dexie db")
+            const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+            console.log("activeMintUrl", activeMintUrl)
+            await proofsByMintApi.addProofsForMint(received, activeMintUrl)
+
+            const oldProofs = await proofsByMintApi.getByMintUrl(activeMintUrl);
+
+
+            console.log("oldProofs", oldProofs)
+            let newProofs = [...oldProofs, ...received];
+
+            newProofs = newProofs.filter((proof, index, self) =>
+              index === self.findIndex((t) => t?.C === proof?.C)
+            );
+            console.log("newProofs", newProofs)
+            await proofsByMintApi.setAllForMint(newProofs, activeMintUrl)
+            console.log("received", received)
+            proofsToKeep = newProofs;
+            const updatedProofs = await proofsByMintApi.getByMintUrl(activeMintUrl);
+
+
+            console.log("updatedProofs", updatedProofs)
+
+            let invoiceToUpdate = { ...invoice }
+            invoiceToUpdate.state = MintQuoteState.PAID;
+            invoiceToUpdate.paid = true;
+
+
+            await invoicesApi.updateInvoice(invoiceToUpdate)
+          } catch (error) {
+            console.log("error addProofsForMint", error)
+          }
+
+          try {
+
+            console.log("createTokenEvent")
+            const tokenEvent = await createTokenEvent({
+              walletId,
+              mint: activeMint,
+              proofs: proofsToKeep,
+            });
+            console.log("tokenEvent", tokenEvent)
+            await createSpendingEvent({
+              walletId,
+              direction: 'in',
+              amount: received.reduce((acc, item) => acc + item.amount, 0).toString(),
+              unit: activeUnit,
+              events: [{ id: tokenEvent.id, marker: 'created' }],
+            });
+
+          } catch (error) {
+            console.log("error createTokenEvent", error)
+          }
+
+
         } else {
-          showToast({title: 'Error receiving payment.', type: 'error'});
+          showToast({ title: 'Error receiving payment.', type: 'error' });
         }
+
       } else if (check?.state === MintQuoteState.ISSUED) {
-        showToast({title: 'Invoice is paid.', type: 'success'});
+        showToast({ title: 'Invoice is paid.', type: 'success' });
         const invoicesUpdated = invoices.map((i) => {
           if (i?.quote === quote) {
             i.state = MintQuoteState.ISSUED;
@@ -146,13 +207,13 @@ export const Invoices = () => {
               direction: 'in',
               amount: invoice.amount.toString(),
               unit: activeUnit,
-              events: [{id: tokenEvent.id, marker: 'created'}],
+              events: [{ id: tokenEvent.id, marker: 'created' }],
             });
             console.log("spendingEvent", spendingEvent)
           } catch (error) {
-            console.log("error nip 60",error)
+            console.log("error nip 60", error)
           }
-      
+
         }
 
         return receive;
@@ -195,7 +256,7 @@ export const Invoices = () => {
               .reverse()}
             contentContainerStyle={styles.invoicesListContainer}
             keyExtractor={(item, i) => item?.bolt11 ?? i?.toString()}
-            renderItem={({item}) => {
+            renderItem={({ item }) => {
               return (
                 <>
                   <View style={styles.invoiceContainer}>

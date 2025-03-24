@@ -1,0 +1,1 @@
+export { NfcIcon } from './NfcIcon';

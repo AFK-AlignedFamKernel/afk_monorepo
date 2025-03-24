@@ -55,10 +55,31 @@ export class CashuDatabase extends Dexie {
       proofsSpentsByMint: '&C, mintUrl, id, amount', // Indexed by both C and mintUrl
       tokens: '&id, amount',
       quotes: '&id, amount, created_at',
-      invoices: '&id, amount, paid, unit, mint, date, state, bolt11, quote, quoteResponse',
+      invoices: '&request, amount, paid, unit, mint, date, state, bolt11, quote, quoteResponse, expiry, id',
       transactions: '&id, created_at, amount, type',
       settings: '&key, value' // For storing active mint, unit, etc.
     });
+    
+    // // Version 2: Fix schema and migrate data
+    // this.version(2).stores({
+    //   // Same schema, but we'll fix the data during upgrade
+    //   invoices: '&request, amount, paid, unit, mint, date, state, bolt11, quote, quoteResponse, expiry, id'
+    // }).upgrade(tx => {
+    //   // Migration function for fixing invoices
+    //   return tx.table('invoices').toCollection().modify(invoice => {
+    //     // Ensure request field is set
+    //     if (!invoice.request) {
+    //       if (invoice.id) {
+    //         invoice.request = invoice.id;
+    //       } else if (invoice.bolt11) {
+    //         invoice.request = invoice.bolt11;
+    //       } else {
+    //         invoice.request = crypto.randomUUID();
+    //       }
+    //       console.log(`Migration: Fixed request field for invoice to: ${invoice.request}`);
+    //     }
+    //   });
+    // });
   }
 }
 

@@ -133,6 +133,14 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tips?.data]);
 
+
+  // // NFC reader
+  // useEffect(() => {
+  //   NfcManager.start();
+  //   return () => {
+  //     NfcManager.stop();
+  //   };
+  // }, []);
   // Auto load session:
   // Cashu seed
   // Nostr private key

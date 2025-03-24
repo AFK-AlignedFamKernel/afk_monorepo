@@ -1,15 +1,15 @@
-import {useCashu, useCashuStore} from 'afk_nostr_sdk';
-import {canUseBiometricAuthentication} from 'expo-secure-store';
-import {useState} from 'react';
-import {Platform} from 'react-native';
+import { NostrKeyManager, useCashu, useCashuStore } from 'afk_nostr_sdk';
+import { canUseBiometricAuthentication } from 'expo-secure-store';
+import { useState } from 'react';
+import { Platform, Text } from 'react-native';
 
-import {LockIcon} from '../../assets/icons';
-import {Button, Input} from '../../components';
-import {useTheme} from '../../hooks';
-import {useDialog, useToast} from '../../hooks/modals';
-import {Auth} from '../../modules/Auth';
-import {MainStackNavigationProps} from '../../types';
-import {getPublicKeyFromSecret, isValidNostrPrivateKey} from '../../utils/keypair';
+import { LockIcon } from '../../assets/icons';
+import { Button, Input } from '../../components';
+import { useTheme } from '../../hooks';
+import { useDialog, useToast } from '../../hooks/modals';
+import { Auth } from '../../modules/Auth';
+import { MainStackNavigationProps } from '../../types';
+import { getPublicKeyFromSecret, isValidNostrPrivateKey } from '../../utils/keypair';
 import {
   retrieveAndDecryptCashuMnemonic,
   storeCashuMnemonic,
@@ -17,7 +17,7 @@ import {
   storePrivateKey,
   storePublicKey,
 } from '../../utils/storage';
-import {useCashuContext} from '../../providers/CashuProvider';
+import { useCashuContext } from '../../providers/CashuProvider';
 import * as Bip39 from 'bip39';
 
 interface IImportKeys {
@@ -31,28 +31,29 @@ export const ImportKeysModule: React.FC<IImportKeys> = ({
   handleSuccess,
   handleNavigateLoginScreen,
 }: IImportKeys) => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
 
   const [password, setPassword] = useState('');
+  const [seedCashu, setSeedCashu] = useState('');
   const [privateKey, setPrivateKey] = useState('');
-  const {showToast} = useToast();
-  const {showDialog, hideDialog} = useDialog();
-  const {generateNewMnemonic} = useCashuContext()!;
-  const {setIsSeedCashuStorage} = useCashuStore();
+  const { showToast } = useToast();
+  const { showDialog, hideDialog } = useDialog();
+  const { generateNewMnemonic } = useCashuContext()!;
+  const { setIsSeedCashuStorage } = useCashuStore();
 
   const handleImportAccount = async () => {
     if (!password) {
-      showToast({type: 'error', title: 'Password is required'});
+      showToast({ type: 'error', title: 'Password is required' });
       return;
     }
 
     if (!privateKey) {
-      showToast({type: 'error', title: 'Private key to import is required'});
+      showToast({ type: 'error', title: 'Private key to import is required' });
       return;
     }
 
     if (!isValidNostrPrivateKey(privateKey)) {
-      showToast({type: 'error', title: 'Private key not valid'});
+      showToast({ type: 'error', title: 'Private key not valid' });
       return;
     }
 
@@ -60,6 +61,12 @@ export const ImportKeysModule: React.FC<IImportKeys> = ({
     await storePrivateKey(privateKey, password);
     const publicKey = getPublicKeyFromSecret(privateKey);
     await storePublicKey(publicKey);
+
+
+    // Nostr key manager on storage
+    NostrKeyManager?.setNostrWalletConnected({ secretKey: privateKey, publicKey, mnemonic: '', seed: seedCashu });
+    NostrKeyManager?.setAccountConnected({ secretKey: privateKey, publicKey, mnemonic: '', seed: seedCashu });
+    NostrKeyManager?.setNostrWalletConnectedStorage({ secretKey: privateKey, publicKey, mnemonic: '', seed: seedCashu });
 
     const mnemonicSaved = await retrieveAndDecryptCashuMnemonic(password);
     console.log('mnemonicSaved', mnemonicSaved);
@@ -98,7 +105,7 @@ export const ImportKeysModule: React.FC<IImportKeys> = ({
     if (handleSuccess) {
       handleSuccess();
     } else {
-      navigation.navigate('SaveKeys', {privateKey, publicKey});
+      navigation.navigate('SaveKeys', { privateKey, publicKey });
     }
   };
 
@@ -120,12 +127,25 @@ export const ImportKeysModule: React.FC<IImportKeys> = ({
         placeholder="Private key"
       />
 
+
       <Input
         left={<LockIcon color={theme.colors.primary} />}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
         placeholder="Password"
+      />
+
+
+      <Text>Optional: Seed Cashu wallet</Text>
+
+      <Input
+        left={<LockIcon color={theme.colors.primary} />}
+        value={seedCashu}
+        onChangeText={setSeedCashu}
+        secureTextEntry
+
+        placeholder="Seed Cashu wallet"
       />
 
       <Button
