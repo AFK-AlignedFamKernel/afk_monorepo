@@ -392,20 +392,20 @@ export const Balance = () => {
   }
 
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    if (activeUnit && activeMint && !isBalanceFetching) {
-      // console.log("fetchBalanceData")
-      setActiveUnitUsed(activeUnit);
-      setActiveMintUsed(activeMint);
-      fetchBalanceData();
-      setIsBalanceFetching(true);
-      setActiveUnitStorage(activeUnit);
-    }
+  //   if (activeUnit && activeMint && !isBalanceFetching) {
+  //     console.log("fetchBalanceData")
+  //     setActiveUnitUsed(activeUnit);
+  //     setActiveMintUsed(activeMint);
+  //     fetchBalanceData();
+  //     setIsBalanceFetching(true);
+  //     setActiveUnitStorage(activeUnit);
+  //   }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, [activeUnit, activeUnitUsed, isWebsocketProofs, proofs, mints, activeMint, tokensEvents, walletsInfo, wallet]);
-  }, [activeUnit, mints, wallet, activeMint, tokensEvents, walletsInfo, isBalanceFetching, isLoading, isWebsocketQuote, isWebsocketProofs]);
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  //   // }, [activeUnit, activeUnitUsed, isWebsocketProofs, proofs, mints, activeMint, tokensEvents, walletsInfo, wallet]);
+  // }, [activeUnit, mints, wallet, activeMint, tokensEvents, walletsInfo, isBalanceFetching, isLoading, isWebsocketQuote, isWebsocketProofs]);
 
 
   useEffect(() => {
@@ -413,7 +413,7 @@ export const Balance = () => {
     if (activeUnit && activeMint && (
       // activeMintStorage !== activeMint||
       activeUnitUsed !== activeUnit || activeMintUsed !== activeMint)) {
-      // console.log("fetchBalanceData")
+      console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
       setActiveMintUsed(activeMint);
       fetchBalanceData();
@@ -431,12 +431,9 @@ export const Balance = () => {
       fetchBalanceData();
     }
 
-    if(!isBalanceFetching || !isInit) {
-      fetchBalanceData();
-    }
   }, [activeMintStorage, isInit, isBalanceFetching, isLoading])
 
-  
+
   useEffect(() => {
 
     if (wallet && !isWebsocketProofs && wallet?.mint?.mintUrl === activeMint) {
