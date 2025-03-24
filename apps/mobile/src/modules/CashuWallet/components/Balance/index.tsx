@@ -66,18 +66,6 @@ export const Balance = () => {
 
 
   useEffect(() => {
-    // console.log("activeMintStorage", activeMintStorage)
-
-    if(activeMintStorage && activeMintStorage !== activeMint) {
-      fetchBalanceData();
-    }
-
-    if(!isBalanceFetching || !isInit) {
-      fetchBalanceData();
-    }
-  }, [activeMintStorage, isInit, isBalanceFetching, isLoading])
-
-  useEffect(() => {
     // console.log("activeMint", activeMint)
     // console.log("activeUnit", activeUnit)
 
@@ -190,6 +178,7 @@ export const Balance = () => {
       if (isLoading) {
         return;
       }
+      console.log("fetchBalanceData")
       const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
 
       const activeUnitDb = await settingsApi.get("ACTIVE_UNIT", activeUnitStorage);
@@ -404,23 +393,13 @@ export const Balance = () => {
 
 
   useEffect(() => {
-    // console.log("activeUnit", activeUnit)
-    if(activeUnit && activeMint && !isBalanceFetching) {
-      fetchBalanceData();
-    }
-
-    if(wallet) {
-    }
-  }, [activeUnit, activeMint, wallet])
-
-  useEffect(() => {
 
     if (activeUnit && activeMint && !isBalanceFetching) {
       // console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
       setActiveMintUsed(activeMint);
-      setIsBalanceFetching(false);
       fetchBalanceData();
+      setIsBalanceFetching(true);
       setActiveUnitStorage(activeUnit);
     }
 
@@ -431,7 +410,9 @@ export const Balance = () => {
 
   useEffect(() => {
     // console.log("activeUnit", activeUnit)
-    if (activeUnit && activeMint && (activeUnitUsed !== activeUnit || activeMintUsed !== activeMint)) {
+    if (activeUnit && activeMint && (
+      // activeMintStorage !== activeMint||
+      activeUnitUsed !== activeUnit || activeMintUsed !== activeMint)) {
       // console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
       setActiveMintUsed(activeMint);
@@ -439,8 +420,23 @@ export const Balance = () => {
       setActiveUnitStorage(activeUnit);
     }
     // console.log("activeMint", activeMint)
-  }, [activeUnit, activeMint, activeUnitUsed, activeMintUsed, isBalanceFetching])
+  }, [activeUnit, activeMint, activeUnitUsed, activeMintUsed, isBalanceFetching, activeMintStorage])
 
+
+
+  useEffect(() => {
+    // console.log("activeMintStorage", activeMintStorage)
+
+    if(activeMintStorage && activeMintStorage !== activeMint) {
+      fetchBalanceData();
+    }
+
+    if(!isBalanceFetching || !isInit) {
+      fetchBalanceData();
+    }
+  }, [activeMintStorage, isInit, isBalanceFetching, isLoading])
+
+  
   useEffect(() => {
 
     if (wallet && !isWebsocketProofs && wallet?.mint?.mintUrl === activeMint) {
