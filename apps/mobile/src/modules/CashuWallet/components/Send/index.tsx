@@ -80,7 +80,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
   const [isGeneratingEcash, setIsGeneratingEcash] = useState(false);
   const [type, setType] = useState<"CASHU" | "STRK">("CASHU")
 
-  const { isReading, isWriting, nfcSupported, handleReadNfc, handleWriteNfc } = useNFC();
+  const { isReading, isWriting, nfcSupported, handleReadNfc, handleWriteNfc, scanPermission } = useNFC();
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -91,6 +91,10 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
 
 
     // TODO handle nfc
+
+    // showToast({ title: "Scanning NFC", type: "info" });
+    // await scanPermission();
+    // showToast({ title: "NFC scanned", type: "success" });
     // await handleWriteNfc("ecashtestbrother", 'ecash');
     // return;
     const key = randomUUID();

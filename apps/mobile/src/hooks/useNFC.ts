@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
 import NfcManager, { Ndef, NfcEvents, NfcTech } from "react-native-nfc-manager";
 import { useToast } from "./modals";
 
 export const useNFC = () => {
+    const [isNfcSupported, setIsNfcSupported] = useState<boolean>(false);
+    const [message, setMessage] = useState<string>("");
+
 
     const [hasNfc, setHasNFC] = useState(null);
     const { showToast } = useToast();
@@ -11,6 +14,39 @@ export const useNFC = () => {
     const [isWriting, setIsWriting] = useState(false);
     const [nfcSupported, setNfcSupported] = useState<boolean | null>(null);
 
+
+    useEffect(() => {
+        if ("NDEFReader" in window) {
+            setIsNfcSupported(true);
+        } else {
+            setMessage("WebNFC is not supported on this device.");
+        }
+    }, []);
+
+    const scanPermission = async () => {
+        try {
+            if (Platform.OS === "web") {
+                if (!isNfcSupported) {
+                    setMessage("NFC is not supported.");
+                    return;
+                }
+
+                try {
+                    console.log("scanPermission web")
+                    const ndef = new (window as any).NDEFReader();
+                    await ndef.scan(); // Requests permission when called inside a user interaction
+                    setMessage("NFC permission granted. Ready to scan.");
+                } catch (error) {
+                    setMessage("Error requesting NFC permission: " + (error as Error).message);
+                }
+            } else {
+                await NfcManager.requestTechnology(NfcTech.Ndef);
+
+            }
+        } catch (err) {
+            console.warn(err);
+        }
+    }
     const readNFCInvoice = async () => {
         try {
             await NfcManager.requestTechnology(NfcTech.Ndef);
@@ -208,6 +244,7 @@ export const useNFC = () => {
         checkIsSupported,
         isReading,
         isWriting,
-        nfcSupported
+        nfcSupported,
+        scanPermission,
     }
 }

@@ -23,7 +23,7 @@ import { invoicesApi, proofsApi, proofsByMintApi, proofsSpentsByMintApi, setting
 import { usePayment } from 'src/hooks/usePayment';
 
 export const Balance = () => {
-  const { getUnitBalance, setActiveUnit, getUnitBalanceWithProofsChecked, wallet, activeMint, activeUnit } = useCashuContext()!;
+  const { getUnitBalance, setActiveUnit, getUnitBalanceWithProofsChecked, wallet, activeMint, activeUnit, setActiveMint, } = useCashuContext()!;
 
   const styles = useStyles(stylesheet);
   const [alias, setAlias] = useState<string>('');
@@ -43,15 +43,15 @@ export const Balance = () => {
   // console.log("cashu walletsInfo", walletsInfo)
   // console.log("cashu tokensEvents", tokensEvents)
   // console.log("cashu spendingEvents", spendingEvents)
-
+  const { value: activeMintStorage, setValue: setActiveMintStorage } = useActiveMintStorage();
   useEffect(() => {
 
-    const mint = mints.filter((mint) => mint.url === activeMint);
+    const mint = mints.filter((mint) => mint.url === activeMintStorage);
     if (mint.length === 1) {
       setAlias(mint[0].alias);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeMint]);
+  }, [activeMint, activeMintStorage]);
 
   const { setSeed, seed } = useCashuStore()
 
@@ -62,26 +62,49 @@ export const Balance = () => {
   const [isWebsocketProofs, setIsWebsocketProofs] = useState<boolean>(false);
   const [isWebsocketQuote, setIsWebsocketQuote] = useState<boolean>(false);
 
+  const [isInit, setIsInit] = useState<boolean>(false);
 
+
+  useEffect(() => {
+    console.log("activeMintStorage", activeMintStorage)
+
+    if(activeMintStorage && activeMintStorage !== activeMint) {
+      fetchBalanceData();
+    }
+
+    if(!isBalanceFetching || !isInit) {
+      fetchBalanceData();
+    }
+  }, [activeMintStorage, isInit, isBalanceFetching, isLoading])
 
   useEffect(() => {
     console.log("activeMint", activeMint)
     console.log("activeUnit", activeUnit)
 
-
     const handleInit = async () => {
-      const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
-      console.log("activeMintUrl", activeMintUrl)
-      const proofsByMint = await proofsByMintApi.getByMintUrl(activeMintUrl);
-      console.log("proofsByMint", proofsByMint)
-
-      const allProofs = await proofsByMintApi.getAll();
-      console.log("allProofs", allProofs)
-
-      setProofsStore(proofsByMint);
+      try {
+        const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMintStorage);
+        console.log("activeMintUrl", activeMintUrl)
+        setActiveMint(activeMintUrl);
+        setActiveMintStorage(activeMintUrl);
+        const proofsByMint = await proofsByMintApi.getByMintUrl(activeMintUrl);
+        console.log("proofsByMint", proofsByMint)
+  
+        const allProofs = await proofsByMintApi.getAll();
+        console.log("allProofs", allProofs)
+  
+        setProofsStore(proofsByMint);
+        setIsInit(true);
+      } catch (error) {
+        console.log("error handleInit", error)
+      }
+    
     }
-    handleInit();
-  }, [activeMint, activeUnit, wallet])
+
+    // if (activeMint && activeUnit && !isInit) {
+      handleInit();
+    // }
+  }, [activeMint, activeUnit, wallet, isInit])
   const handleCreateWalletEvent = async () => {
     const nostrAccountStr = await NostrKeyManager.getAccountConnected();
     const nostrAccount = JSON.parse(nostrAccountStr);
@@ -117,6 +140,8 @@ export const Balance = () => {
     const nextIndex = (currentIndex + 1) % mintUnits.length;
     setActiveUnitStorage(mintUnits[nextIndex]);
     setActiveUnit(mintUnits[nextIndex]);
+    setActiveMintStorage(activeMint);
+    setActiveMint(activeMint);
   };
 
   const handleGetProofs = async () => {
@@ -165,11 +190,19 @@ export const Balance = () => {
       if (isLoading) {
         return;
       }
+      const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+
+      const activeUnitDb = await settingsApi.get("ACTIVE_UNIT", activeUnitStorage);
+      // if (!activeMint && !activeMintUrl) {
+      //   return;
+      // }
+
+      console.log("activeUnitDb", activeUnitDb)
       setCurrentUnitBalance(0);
       setIsLoading(true);
 
       console.log("fetchBalanceData")
-      const mint = mints.filter((mint) => mint.url === activeMint)[0];
+      const mint = mints.filter((mint) => mint?.url === activeMintUrl)[0];
       const proofsStr = getProofs();
       const proofsStorage = JSON.parse(proofsStr);
       // const proofsMap: Proof[] = [...proofsStorage, ...proofs];
@@ -178,32 +211,39 @@ export const Balance = () => {
 
       // const mergedProofs = await handleGetProofs();
 
-      const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
 
       console.log("get proofsByMint", activeMint)
       const proofsByMint = await proofsByMintApi.getByMintUrl(activeMintUrl);
       console.log("proofsByMint", proofsByMint)
 
       console.log("calculateBalance",)
+
+      console.log("fetchBalanceData activeUnitDb", activeUnitDb)
+      console.log("fetchBalanceData mint", mint)
+      console.log("fetchBalanceData proofsByMint", proofsByMint)
       // const balance = await getUnitBalanceWithProofsChecked(activeUnit, mint, mergedProofs);
-      const balance = await getUnitBalance(activeUnit, mint, proofsByMint);
+      const balance = await getUnitBalance(activeUnitDb, mint, proofsByMint);
       // const balance = await getUnitBalance(activeUnit, mint, mergedProofs);
       console.log("balance", balance)
       setCurrentUnitBalance(balance);
       setIsLoading(false);
 
-      if (wallet) {
+      if (wallet && wallet?.mint?.mintUrl === activeMint) {
         // await handleWebsocketProofs(proofsByMint)
       }
 
-      setIsBalanceFetching(true);
+      console.log("balance", balance)
+
+      if(balance && balance > 0) {
+        setIsBalanceFetching(true);
+      }
     } catch (error) {
       console.log("fetchBalanceData error", error);
       setIsLoading(false);
-      setIsBalanceFetching(true);
+      // setIsBalanceFetching(true);
     } finally {
       setIsLoading(false);
-      setIsBalanceFetching(true);
+      // setIsBalanceFetching(true);
     }
 
   };
@@ -363,21 +403,23 @@ export const Balance = () => {
   }
 
 
-  // useEffect(() => {
-  //   console.log("activeUnit", activeUnit)
-  //   if(activeUnit && activeMint && !isBalanceFetching) {
-  //     fetchBalanceData();
-  //   }
+  useEffect(() => {
+    console.log("activeUnit", activeUnit)
+    if(activeUnit && activeMint && !isBalanceFetching) {
+      fetchBalanceData();
+    }
 
-  //   if(wallet) {
-  //   }
-  // }, [activeUnit, activeMint, wallet])
+    if(wallet) {
+    }
+  }, [activeUnit, activeMint, wallet])
 
   useEffect(() => {
 
     if (activeUnit && activeMint && !isBalanceFetching) {
       console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
+      setActiveMintUsed(activeMint);
+      setIsBalanceFetching(false);
       fetchBalanceData();
       setActiveUnitStorage(activeUnit);
     }
@@ -456,13 +498,18 @@ export const Balance = () => {
     <View style={styles.balanceContainer}>
       <Text style={styles.balanceTitle}>Your balance</Text>
       <TouchableOpacity style={styles.currencyButton} onPress={handleCurrencyChange}>
-        <Text style={styles.currencyButtonText}>{activeUnit.toUpperCase()}</Text>
+        <Text style={styles.currencyButtonText}>{activeUnit?.toUpperCase()}</Text>
       </TouchableOpacity>
-      {activeUnit ? (
+      {activeUnitStorage ? (
+        <Text style={styles.balance}>
+          {!isLoading ? formatCurrency(currentUnitBalance, activeUnitStorage) : '...'}
+        </Text>
+      ) : null}
+      {/* {activeUnit ? (
         <Text style={styles.balance}>
           {!isLoading ? formatCurrency(currentUnitBalance, activeUnit) : '...'}
         </Text>
-      ) : null}
+      ) : null} */}
       <Text style={styles.activeMintText}>
         Connected to: <b>{alias}</b>
       </Text>
@@ -471,8 +518,9 @@ export const Balance = () => {
         <View>
           <TouchableOpacity onPress={() => {
             setIsBalanceFetching(false);
-            setIsWebsocketProofs(false);
-            setIsWebsocketQuote(false);
+            fetchBalanceData();
+            // setIsWebsocketProofs(false);
+            // setIsWebsocketQuote(false);
           }}>
             <Icon name="ReloadIcon" size={20} />
             {/* Reload balance */}

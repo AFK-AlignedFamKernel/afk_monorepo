@@ -35,6 +35,7 @@ import { Settings } from './components/Settings';
 import stylesheet from './styles';
 import NfcPayment from '../NfcPayment';
 import { NfcIcon } from 'src/assets/icons';
+import { mintsApi } from 'src/utils/database';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -52,6 +53,7 @@ export const CashuView = () => {
 
   const { seed, setSeed } = useCashuStore();
 
+  const {activeMint, activeUnit, setActiveMint, setActiveUnit} = useCashuContext()
   // states
   const [isOpenContactManagement, setIsOpenContactManagement] = useState(false);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_MINT);
@@ -65,32 +67,73 @@ export const CashuView = () => {
   const [nfcMode, setNfcMode] = useState<'send' | 'receive'>('send');
 
   const { value: mints, setValue: setMintsStorage } = useMintStorage();
-  const { value: activeMint, setValue: setActiveMintStorage } = useActiveMintStorage();
-  const { value: activeUnit, setValue: setActiveUnitStorage } = useActiveUnitStorage();
+  const { value: activeMintStorage, setValue: setActiveMintStorage } = useActiveMintStorage();
+  const { value: activeUnitStorage, setValue: setActiveUnitStorage } = useActiveUnitStorage();
   const { value: proofs } = useProofsStorage();
   const { setValue: setPrivKey } = usePrivKeySignerStorage();
   const { setValue: setWalletId } = useWalletIdStorage();
 
   //context
-  const { buildMintData, setMints, setActiveMint, setActiveUnit, setProofs } = useCashuContext()!;
+  const { buildMintData, setMints, setProofs } = useCashuContext()!;
   const { publicKey, privateKey } = useAuth();
 
   const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
 
+
+  const [isInit, setIsInit] = useState<boolean>(false);
+
   useEffect(() => {
-    setMints(mints);
+    console.log("mints", mints)
+
+
+    const handleDbMints = async () => {
+      const mintsDb = await mintsApi.getAll();
+      let newMints = [...mints, ...mintsDb];
+      newMints = newMints.filter((mint, index, self) =>
+        index === self.findIndex((t) => t.url === mint.url)
+      );
+      if (mints.length > 0) {
+        setMints([...newMints]);
+        setMintsStorage([...newMints]);
+
+        // setMintsStorage([...mints, ...mintsDb]);
+      }
+      if (mintsDb.length > 0) {
+        setMints([...mints, ...mintsDb]);
+
+        setMintsStorage([...newMints]);
+      }
+      setIsInit(true);
+    }
+
+    if(mints.length === 0) {
+      handleDbMints();
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mints]);
 
   useEffect(() => {
-    setActiveMint(activeMint);
+    if (!activeMint && !isInit) {
+      setActiveMint(activeMint);
+      setIsInit(true);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeMint]);
+  }, [activeMint, isInit]);
 
   useEffect(() => {
-    setActiveUnit(activeUnit);
+    if (activeUnit && !isInit) {
+      setActiveUnit(activeUnit);
+      setActiveUnitStorage(activeUnit);
+      setIsInit(true);
+    }
+
+    if(activeUnitStorage && !activeUnit && !isInit) {
+      setActiveUnit(activeUnitStorage);
+      // setActiveUnitStorage(activeUnitStorage);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeUnit]);
+  }, [activeUnit, isInit, activeUnitStorage]);
 
   useEffect(() => {
     setProofs(proofs);
@@ -175,10 +218,10 @@ export const CashuView = () => {
         try {
           // NostrKeyManager.setAccountConnected(nostrAccount)
           // nostr event
-        await createWalletEvent({
-          name: id,
-          mints: mints.map((mint) => mint.url),
-          privkey: nostrAccount?.seed,
+          await createWalletEvent({
+            name: id,
+            mints: mints.map((mint) => mint.url),
+            privkey: nostrAccount?.seed,
           });
           return;
         } catch (error) {
@@ -201,7 +244,7 @@ export const CashuView = () => {
       const privateKeyHex = Buffer.from(privKey).toString('hex');
       setPrivKey(privateKeyHex);
 
-  
+
 
     } catch (error) {
       console.log("default mint error", error)

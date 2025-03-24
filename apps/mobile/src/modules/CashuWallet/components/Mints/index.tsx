@@ -55,36 +55,36 @@ export const Mints = () => {
   const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
 
   // Load units and their balances for each mint
-  // useEffect(() => {
-  //   const loadMintUnits = async () => {
-  //     const newMintUnitsMap = new Map<string, UnitInfo[]>();
+  useEffect(() => {
+    const loadMintUnits = async () => {
+      const newMintUnitsMap = new Map<string, UnitInfo[]>();
 
-  //     for (const mint of mints) {
-  //       try {
-  //         // Get balance for each unit
-  //         const unitsWithBalance = await Promise.all(
-  //           mint.units.map(async (unit) => {
-  //             const balance = await getUnitBalance(unit, mint, proofs);
-  //             return {
-  //               unit,
-  //               balance,
-  //             };
-  //           }),
-  //         );
+      for (const mint of mints) {
+        try {
+          // Get balance for each unit
+          const unitsWithBalance = await Promise.all(
+            mint.units.map(async (unit) => {
+              const balance = await getUnitBalance(unit, mint, proofs);
+              return {
+                unit,
+                balance,
+              };
+            }),
+          );
 
-  //         newMintUnitsMap.set(mint.url, unitsWithBalance);
-  //       } catch (error) {
-  //         console.error(`Error loading units for mint ${mint.url}:`, error);
-  //         newMintUnitsMap.set(mint.url, []);
-  //       }
-  //     }
+          newMintUnitsMap.set(mint.url, unitsWithBalance);
+        } catch (error) {
+          console.error(`Error loading units for mint ${mint.url}:`, error);
+          newMintUnitsMap.set(mint.url, []);
+        }
+      }
 
-  //     setMintUnitsMap(newMintUnitsMap);
-  //   };
+      setMintUnitsMap(newMintUnitsMap);
+    };
 
-  //   loadMintUnits();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [mints, proofs]);
+    loadMintUnits();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mints, proofs]);
 
   useEffect(() => {
     const isDuplicateAlias = mints.some((mint) => mint.alias === newAlias);
@@ -102,6 +102,28 @@ export const Mints = () => {
 
     setNewMintError('');
   }, [mints, newAlias, newUrl]);
+
+  useEffect(() => {
+    console.log("mints", mints)
+
+    const handleMints = async () => {
+      const mintsDb = await mintsApi.getAll();
+      if(mints.length > 0) {
+        setMints([...mints, ...mintsDb]);
+      }
+
+      const activeMintDb = await settingsApi.get("ACTIVE_MINT", activeMint);
+      if(activeMintDb && !activeMint) {
+        const data = await buildMintData(activeMintDb, 'Default Mint');
+        setActiveMint(activeMintDb);
+        setActiveMintStorage(activeMintDb);
+        const cUnit = mints.filter((mint) => mint.url === activeMintDb)[0].units[0];
+        setActiveUnit(cUnit);
+        setActiveUnitStorage(cUnit);
+      }
+    }
+    handleMints();
+  }, [mints])
 
   const handleSelectMint = async (item: MintData) => {
     setActiveMint(item.url);

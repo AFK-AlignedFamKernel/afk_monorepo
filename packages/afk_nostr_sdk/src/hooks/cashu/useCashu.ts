@@ -442,10 +442,10 @@ export const useCashu = (): ICashu => {
   };
 
   const getUnitKeysets = async (unit: string, pMint: MintData): Promise<MintKeyset[]> => {
-    const currentMint = new CashuMint(pMint.url);
+    const currentMint = new CashuMint(pMint?.url);
     let unitKeysets: MintKeyset[];
     await currentMint?.getKeySets().then(({ keysets }) => {
-      unitKeysets = keysets.filter((k) => k.unit === unit && k.active);
+      unitKeysets = keysets.filter((k) => k?.unit === unit && k?.active);
     });
     return unitKeysets;
   };

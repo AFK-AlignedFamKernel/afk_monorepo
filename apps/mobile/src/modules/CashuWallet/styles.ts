@@ -5,7 +5,7 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     width: '100%',
-    padding: Spacing.medium,
+    padding: Spacing.xsmall,
     borderRadius: 10,
     flex: 1,
     backgroundColor: theme.colors.background,
