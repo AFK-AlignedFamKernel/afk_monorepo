@@ -1756,9 +1756,8 @@ pub mod LaunchpadMarketplace {
                 total_supply >= (threshold_liquidity * 10_u256),
                 errors::SUPPLY_COIN_BELOW_THRESHOLD
             );
-            // Price ratio check
-            let price_ratio = (total_supply / 5) / threshold_liquidity;
-            assert(price_ratio <= UINT_128_MAX, errors::PRICE_RATIO_OVERFLOW);
+            // Check that pool supply is less than the maximum value
+            assert(total_supply / 5 < UINT_128_MAX, errors::MAX_NUM);
         }
 
         // TODO finish call Jediswap

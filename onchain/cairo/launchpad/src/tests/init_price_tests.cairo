@@ -49,23 +49,6 @@ mod init_price_tests{
         assert(tick.sign == target_tick.sign, 'Wrong sign');    
     }
 
-    // This test does not work, but ignore this as it cannot happen currently as price_ratio 1 is not possible
-    // #[test]
-    // #[fork("Mainnet")]
-    // fn test_calculate_sqrt_ratio_2_and_obtain_right_tick(){
-    //     let init_pool_supply = 10000 * DECIMAL_FACTOR;
-    //     let threshold_liquidity = THRESHOLD;
-    //     let target_tick = i129{mag: 0, sign: false};
-    
-
-    //     let sqrt_ratio = calculate_sqrt_ratio(threshold_liquidity, init_pool_supply);
-    //     println!("{}", sqrt_ratio);
-    //     let tick = obtain_tick(sqrt_ratio);
-    //     println!("{}", tick.mag);
-    //     assert(tick.mag == target_tick.mag, 'Wrong mag');
-    //     assert(tick.sign == target_tick.sign, 'Wrong sign');    
-    // }
-
     #[test]
     #[fork("Mainnet")]
     fn test_calculate_sqrt_ratio_3_and_obtain_right_tick(){
@@ -187,6 +170,54 @@ mod init_price_tests{
         assert(tick.sign == target_tick.sign, 'Wrong sign');    
     }
 
+    #[test]
+    #[fork("Mainnet")]
+    fn test_calculate_sqrt_ratio_and_obtain_right_tick_for_floating_price(){
+        let init_pool_supply = 250 * DECIMAL_FACTOR;
+        let threshold_liquidity = 100 * DECIMAL_FACTOR; // price would be like 2.5
+        let target_tick = i129{mag: 916291, sign: false};
+    
+
+        let sqrt_ratio = calculate_sqrt_ratio(threshold_liquidity, init_pool_supply);
+        println!("{}", sqrt_ratio);
+        let tick = obtain_tick(sqrt_ratio);
+        println!("{}", tick.mag);
+        assert(tick.mag == target_tick.mag, 'Wrong mag');
+        assert(tick.sign == target_tick.sign, 'Wrong sign');    
+    }
+
+    #[test]
+    #[fork("Mainnet")]
+    fn test_calculate_ratio_close_to_end_of_curve(){
+        let init_pool_supply = 340282366920938463463374607431768211455;
+        let threshold_liquidity = 100; // price would be like 2.5
+        let target_tick = i129{mag: 84117710, sign: false};
+    
+
+        let sqrt_ratio = calculate_sqrt_ratio(threshold_liquidity, init_pool_supply);
+        println!("{}", sqrt_ratio);
+        let tick = obtain_tick(sqrt_ratio);
+        println!("{}", tick.mag);
+        assert(tick.mag == target_tick.mag, 'Wrong mag');
+        assert(tick.sign == target_tick.sign, 'Wrong sign');    
+    }
+
+    #[test]
+    #[fork("Mainnet")]
+    fn test_calculate_sqrt_ratio_edge_case(){
+        let init_pool_supply = 1010000000000000000000;
+        let threshold_liquidity = 100; // price would be like 2.5
+        let target_tick = i129{mag: 43759088, sign: false};
+    
+
+        let sqrt_ratio = calculate_sqrt_ratio(threshold_liquidity, init_pool_supply);
+        println!("{}", sqrt_ratio);
+        let tick = obtain_tick(sqrt_ratio);
+        println!("{}", tick.mag);
+        assert(tick.mag == target_tick.mag, 'Wrong mag');
+        assert(tick.sign == target_tick.sign, 'Wrong sign');    
+    }
+
     // #[test]
     // #[fork("Mainnet")]
     // fn test_calculate_sqrt_ratio_and_obtain_tick_max(){
@@ -202,5 +233,4 @@ mod init_price_tests{
     //     assert(tick.mag == target_tick.mag, 'Wrong mag');
     //     assert(tick.sign == target_tick.sign, 'Wrong sign');    
     // }
-
 }

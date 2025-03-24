@@ -1,4 +1,4 @@
-use afk_launchpad::launchpad::math::{dynamic_reduce_u256_to_u128, dynamic_scale_u128_to_u256};
+use afk_launchpad::launchpad::math::{dynamic_reduce_u256_to_u128, dynamic_scale_u128_to_u256, pow_256};
 use alexandria_math::fast_root::{fast_sqrt};
 use core::num::traits::{Zero};
 use ekubo::types::bounds::Bounds;
@@ -12,16 +12,16 @@ pub const MAX_TICK: i32 = 88722883;
 
 pub const MIN_TICK_U128: u128 = 88722883;
 pub const MAX_TICK_U128: u128 = 88722883;
-
 // Min and max sqrt ratio values from the Rust implementation
 // pub const MIN_SQRT_RATIO: u256 = 4295128739; // Simplified from 4363438787445
 // pub const MAX_SQRT_RATIO: u256 = 1461446703485210103287273052203988822378723970342;
 
 pub const MIN_SQRT_RATIO: u256 = 18446748437148339061;
-pub const MAX_SQRT_RATIO: u256 = 6277100250585753475930931601400621808602321654880405518632;
+pub const MAX_SQRT_RATIO: u256 =  6277100250585753475930931601400621808602321654880405518632;
 pub const POW_128: u256 = 340282366920938463463374607431768211455;
 pub const POW_64: u256 = 18446744073709551616;
 pub const POW_32: u256 = 4294967296;
+pub const POW_16: u256 = 65536;
 pub const DECIMAL_FACTOR: u256 = 1_000_000_000_000_000_000_u256;
 pub const SQRT_ITER: u256 = 1_000_u256;
 pub const UINT_128_MAX: u256 = 340282366920938463463374607431768211455;
@@ -303,9 +303,32 @@ pub fn calculate_aligned_bound_mag(
 // Function to calculate the price ratio from two supplies
 pub fn calculate_price_ratio(supply_a: u256, supply_b: u256) -> u256 {
     // Price ratio = (supply_a / supply_b)
-    return supply_a / supply_b;
+    // Adding scaling here that we do not loose precision for ratios like 2.5
+    return supply_a  * POW_128 / supply_b;
 }
 
+pub fn scaling_factor(decimals: u8) -> u256 {
+    // Calculate the scaling factor for the given number of decimals
+    if decimals == 0{
+        1
+    }
+    else if decimals == 16 {
+        POW_16
+    }
+    else if decimals == 32 {
+        POW_32
+    }
+    else if decimals == 64 {
+        POW_64
+    }
+    // This should never happen in our context but leave it for sure
+    else if decimals == 128 {
+        POW_128
+    }
+    else {
+        1
+    }
+}
 
 // Function to calculate the sqrt ratio from two supplies
 pub fn calculate_sqrt_ratio(
@@ -321,14 +344,17 @@ pub fn calculate_sqrt_ratio(
 
     // Calculate price ratio
     let price_ratio = calculate_price_ratio(y, x);
-
-    assert(price_ratio <= UINT_128_MAX, 'price ratio overflow');
+    if price_ratio == POW_128 {
+        // Price ratio is 1, we need to handle this condition outside of the sqrt calculation
+        return 1;
+    }
 
     // We are trying to calculate sqrt of 128_FIXED_POINT NUMBER therefore we need to scale it by 2^128
     // But when the sqrt ratio is scaled back to u256 it is not the scaled appropriately so we scaled to 2^32 to get the correct value
-    let (reduced_i_cast, exp) = dynamic_reduce_u256_to_u128((price_ratio * POW_128));
+    let (reduced_i_cast, exp) = dynamic_reduce_u256_to_u128((price_ratio));
     let res = fast_sqrt(reduced_i_cast, SQRT_ITER.try_into().unwrap());
-    let mut sqrt_ratio = dynamic_scale_u128_to_u256(res, exp) * POW_32;
+    let scaling_decimals = (128 - exp) / 2;
+    let mut sqrt_ratio = dynamic_scale_u128_to_u256(res, exp) * scaling_factor(scaling_decimals);
     
     // This was my original implementation however I wanted to used the fast_sqrt function from the alexandria_math crate
     // We need to multiply by POW_64 as the number is in the space of <-2^64, 2^64>
@@ -344,7 +370,9 @@ pub fn calculate_sqrt_ratio(
             min_sqrt_ratio_limit
         } else if sqrt_ratio > max_sqrt_ratio_limit {
             println!("sqrt_ratio > max_sqrt_ratio_limit");
-            max_sqrt_ratio_limit
+            // This will resolve in smaller tick than MAX_TICK but as this scenario is obsure, we can make it work like this
+            // To minimise need of new code
+            max_sqrt_ratio_limit - 1 
         } else {
             println!("sqrt_ratio is between min and max");
             sqrt_ratio
