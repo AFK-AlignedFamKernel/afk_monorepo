@@ -88,6 +88,11 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
 
   const handleEcash = async () => {
     setIsGeneratingEcash(true);
+
+
+    // TODO handle nfc
+    // await handleWriteNfc("ecashtestbrother", 'ecash');
+    // return;
     const key = randomUUID();
     if (!invoiceAmount) {
       setModalToast({
@@ -368,6 +373,13 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
     }
   };
 
+  const handleNFCEcash = async () => {
+    console.log("handleNFCEcash")
+
+
+    const res = await handleWriteNfc(generatedEcash, 'ecash');
+  }
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'none':
@@ -542,7 +554,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 15,
-                      width: '70%',
+                      // width: '70%',
                     }}
                   >
                     <Text style={styles.text}>eCash token</Text>
@@ -553,6 +565,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
                         paddingVertical: 5,
                         paddingHorizontal: 8,
                         width: '100%',
+                        maxWidth: 100,
                       }}
                       value={generatedEcash}
                       editable={false}
@@ -591,6 +604,13 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
                             color={theme.colors.primary}
                             style={styles.shareIcon}
                           />
+                        </Button>
+                      </View>
+
+
+                      <View>
+                        <Button onPress={handleNFCEcash}>
+                          <Text>NFC</Text>
                         </Button>
                       </View>
                     </View>

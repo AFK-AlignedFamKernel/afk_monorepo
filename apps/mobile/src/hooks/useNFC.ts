@@ -5,7 +5,7 @@ import { useToast } from "./modals";
 
 export const useNFC = () => {
 
-    const [hasNfc, setHasNFC ] = useState(null);
+    const [hasNfc, setHasNFC] = useState(null);
     const { showToast } = useToast();
     const [isReading, setIsReading] = useState(false);
     const [isWriting, setIsWriting] = useState(false);
@@ -41,7 +41,7 @@ export const useNFC = () => {
         }
     }
     useEffect(() => {
-      
+
 
         checkIsSupported()
         // NfcManager.start();
@@ -104,26 +104,55 @@ export const useNFC = () => {
             setIsReading(false);
         }
     };
-
     const writeNFCWeb = async (invoice: string) => {
-        if (!("NDEFReader" in window)) {
-          alert("Web NFC is not supported.");
-          return;
+
+        if (typeof window === 'undefined') {
+            return;
         }
+        // @ts-ignore
+        const ndef = new NDEFReader();
+        if (!("NDEFReader" in window || !ndef)) {
+            //   this.ndef = new window.NDEFReader();
+
+            alert("Web NFC is not supported.");
+            return;
+        }
+        // @ts-ignore
+        window.NFC = ndef;
         try {
-          // @ts-ignore
-          const ndef = new NDEFReader();
-          await ndef.write({
-            records: [{ recordType: "text", data: invoice }]
-          });
-        //   await ndef.write(invoice);
-          alert("Invoice written to NFC tag!");
+            // @ts-ignore
+            await ndef.write({
+                records: [{ recordType: "text", data: invoice }]
+            });
+            //   await ndef.write(invoice);
+            alert("Invoice written to NFC tag!");
         } catch (error) {
-          console.error("NFC Write Error:", error);
+            console.error("NFC Write Error:", error);
         }
-      };
-      
- 
+    };
+
+    const handleReadNfcWeb = async () => {
+        try {
+            // @ts-ignore
+            const ndef = new NDEFReader();
+            await ndef.scan();
+            console.log("Ready to scan NFC tags...");
+
+            ndef.onreading = event => {
+                const decoder = new TextDecoder();
+                for (const record of event.message.records) {
+                    console.log("Record:", record);
+                    console.log("Data:", decoder.decode(record.data));
+                }
+            };
+        } catch (error) {
+            console.error("Error reading NFC tag:", error);
+        }
+
+
+    }
+
+
     const handleWriteNfc = async (data: string, paymentType: 'lightning' | 'ecash') => {
         if (hasNfc) {
             return handleWriteNfcNative(data, paymentType)

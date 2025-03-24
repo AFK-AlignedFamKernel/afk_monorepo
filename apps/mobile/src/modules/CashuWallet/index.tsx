@@ -149,44 +149,62 @@ export const CashuView = () => {
   };
 
   const handleAddDefaultMint = async () => {
-    setAddingMint(true);
-    const defaultMintUrl = 'https://mint.minibits.cash/Bitcoin';
-    const defaultMintAlias = 'Default Mint (minibits)';
-    setActiveMintStorage(defaultMintUrl);
-    const data = await buildMintData(defaultMintUrl, defaultMintAlias);
-    setActiveUnitStorage(data.units[0]);
-    setMintsStorage([data]);
-    setAddingMint(false);
 
-    const nostrAccountStr = await NostrKeyManager.getAccountConnected();
-    const nostrAccount = JSON.parse(nostrAccountStr);
-    console.log("nostrAccount", nostrAccount)
+    try {
+      setAddingMint(true);
+      const defaultMintUrl = 'https://mint.minibits.cash/Bitcoin';
+      const defaultMintAlias = 'Default Mint (minibits)';
+      setActiveMintStorage(defaultMintUrl);
+      const data = await buildMintData(defaultMintUrl, defaultMintAlias);
+      setActiveUnitStorage(data.units[0]);
+      setMintsStorage([data]);
+      setAddingMint(false);
 
-    const id = randomUUID();
-    setWalletId(id);
-    if (nostrAccount && nostrAccount?.seed) {
+      const nostrAccountStr = await NostrKeyManager.getAccountConnected();
+      const nostrAccount = JSON.parse(nostrAccountStr);
+      console.log("nostrAccount", nostrAccount)
 
-      setSeed(Buffer.from(nostrAccount?.seed, 'hex'))
-      // NostrKeyManager.setAccountConnected(nostrAccount)
-      // nostr event
-      await createWalletEvent({
-        name: id,
-        mints: mints.map((mint) => mint.url),
-        privkey: nostrAccount?.seed,
-      });
-      return;
-    }
-    const privKey = getRandomBytes(32);
-    const privateKeyHex = Buffer.from(privKey).toString('hex');
-    setPrivKey(privateKeyHex);
+      const id = randomUUID();
 
-    if (publicKey && privateKey) {
-      // nostr event
-      await createWalletEvent({
-        name: id,
-        mints: mints.map((mint) => mint.url),
-        privkey: privateKeyHex,
-      });
+
+      setWalletId(id);
+      if (nostrAccount && nostrAccount?.seed) {
+
+        setSeed(Buffer.from(nostrAccount?.seed, 'hex'))
+
+        try {
+          // NostrKeyManager.setAccountConnected(nostrAccount)
+          // nostr event
+        await createWalletEvent({
+          name: id,
+          mints: mints.map((mint) => mint.url),
+          privkey: nostrAccount?.seed,
+          });
+          return;
+        } catch (error) {
+          console.log("nostr event error", error)
+        }
+      }
+      // if (publicKey && privateKey) {
+      //   try {
+      //     // nostr event
+      //     await createWalletEvent({
+      //       name: id,
+      //       mints: mints.map((mint) => mint.url),
+      //       privkey: privateKeyHex,
+      //     });
+      //   } catch (error) {
+      //     console.log("nostr event error", error)
+      //   }
+      // }
+      const privKey = getRandomBytes(32);
+      const privateKeyHex = Buffer.from(privKey).toString('hex');
+      setPrivKey(privateKeyHex);
+
+  
+
+    } catch (error) {
+      console.log("default mint error", error)
     }
   };
 
@@ -221,7 +239,7 @@ export const CashuView = () => {
                   >
                     Send
                   </Button>
-                    <View>
+                  <View>
                     <Button onPress={handleQRCodeClick} style={styles.qrButton}>
                       <ScanQrIcon width={60} height={60} color={theme.colors.primary} />
                     </Button>
@@ -332,7 +350,7 @@ export const CashuView = () => {
           <Settings onClose={() => setSettingsModalOpen(false)} />
         </View>
       </Modal>
-      <NfcPayment 
+      <NfcPayment
         isVisible={nfcModalOpen}
         onClose={() => setNfcModalOpen(false)}
         setMode={setNfcMode}

@@ -191,7 +191,10 @@ export const Balance = () => {
       console.log("balance", balance)
       setCurrentUnitBalance(balance);
       setIsLoading(false);
-      await handleWebsocketProofs(proofsByMint)
+
+      if (wallet) {
+        // await handleWebsocketProofs(proofsByMint)
+      }
 
       setIsBalanceFetching(true);
     } catch (error) {
@@ -225,9 +228,11 @@ export const Balance = () => {
 
       console.log("handleWebsocketProofs mergedProofs", mergedProofs)
       // storeProofs(mergedProofs);
-      const data = await new Promise<ProofState>((res) => {
+      await wallet?.loadMint();
+
+      const data = await new Promise<ProofState>(async (res) => {
         try {
-          if (wallet) {
+          if (wallet && wallet?.mint?.mintUrl === activeMint) {
             wallet?.onProofStateUpdates(
               mergedProofs,
               async (p) => {
@@ -305,17 +310,17 @@ export const Balance = () => {
       const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
 
       console.log("activeMintUrl", activeMintUrl)
-      if (!mergedInvoices?.length || mergedInvoices?.length == 0){
+      if (!mergedInvoices?.length || mergedInvoices?.length == 0) {
         mergedInvoices = await invoicesApi.getAllUnpaid();
       }
 
       console.log("handleCheckQuoteWebsocket mergedInvoices", mergedInvoices)
 
       const quoteIds = mergedInvoices?.map((invoice) => invoice.bolt11);
-      
+
       console.log("quoteIds", quoteIds)
 
-      if(quoteIds?.length == 0) {
+      if (quoteIds?.length == 0) {
         return { mergedInvoices: [] as ICashuInvoice[], data: {} }
       }
       // storeProofs(mergedProofs);
@@ -329,7 +334,7 @@ export const Balance = () => {
                   console.log("onMeltQuoteUpdates p", p)
                   // await handleReceivedInvoicePayment(p);
                 }
-               
+
               },
               (e) => {
                 console.log(e);
@@ -377,20 +382,9 @@ export const Balance = () => {
       setActiveUnitStorage(activeUnit);
     }
 
-    if (!isWebsocketProofs) {
-      // const mergedProofs = await handleGetProofs();
-      handleWebsocketProofs();
-      setIsWebsocketProofs(true);
-    }
-
-    if(!isWebsocketQuote) {
-      handleCheckQuoteWebsocket();
-      setIsWebsocketQuote(true);
-    }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
     // }, [activeUnit, activeUnitUsed, isWebsocketProofs, proofs, mints, activeMint, tokensEvents, walletsInfo, wallet]);
-  }, [activeUnit, mints, activeMint, tokensEvents, walletsInfo, wallet, isBalanceFetching, isLoading, isWebsocketQuote, isWebsocketProofs]);
+  }, [activeUnit, mints, wallet, activeMint, tokensEvents, walletsInfo, isBalanceFetching, isLoading, isWebsocketQuote, isWebsocketProofs]);
 
 
   useEffect(() => {
@@ -407,44 +401,43 @@ export const Balance = () => {
 
   useEffect(() => {
 
-    if (wallet && !isWebsocketProofs) {
+    if (wallet && !isWebsocketProofs && wallet?.mint?.mintUrl === activeMint) {
       console.log("handleWebsocketProofs")
-      handleWebsocketProofs();
+      // handleWebsocketProofs();
     }
-  }, [wallet, isWebsocketProofs])
+  }, [wallet, isWebsocketProofs, activeMint])
 
 
   useEffect(() => {
-
-    if (wallet && !isWebsocketQuote) {
+    if (wallet && !isWebsocketQuote && wallet?.mint?.mintUrl === activeMint) {
       // console.log("handleCheckQuoteWebsocket")
       // handleCheckQuoteWebsocket();
     }
-  }, [wallet, isWebsocketQuote])
-  
+  }, [wallet, isWebsocketQuote, activeMint])
+
   // Helper function to diagnose and fix DB issues
   const handleDiagnoseDatabaseIssues = async () => {
     try {
       console.log("Running database diagnostics...");
-      
+
       // Check invoices
       const allInvoices = await invoicesApi.getAll();
       console.log(`Total invoices: ${allInvoices.length}`);
-      
+
       // Count invoices with missing request field
       const missingRequest = allInvoices.filter(inv => !inv.request);
       console.log(`Invoices with missing request field: ${missingRequest.length}`);
-      
+
       if (missingRequest.length > 0) {
         console.log("Running invoice fix...");
         await invoicesApi.fixMissingRequestFields();
-        
+
         // Verify fix worked
         const checkInvoices = await invoicesApi.getAll();
         const stillMissingRequest = checkInvoices.filter(inv => !inv.request);
         console.log(`Invoices still missing request field after fix: ${stillMissingRequest.length}`);
       }
-      
+
       return {
         initialIssues: missingRequest.length,
         fixed: missingRequest.length > 0
@@ -458,7 +451,7 @@ export const Balance = () => {
       };
     }
   };
-  
+
   return (
     <View style={styles.balanceContainer}>
       <Text style={styles.balanceTitle}>Your balance</Text>
@@ -481,22 +474,22 @@ export const Balance = () => {
             setIsWebsocketProofs(false);
             setIsWebsocketQuote(false);
           }}>
-             <Icon name="ReloadIcon" size={20} />
+            <Icon name="ReloadIcon" size={20} />
             {/* Reload balance */}
           </TouchableOpacity>
         </View>
       }
-      
+
       {/* Hidden diagnostic button, double tap to trigger */}
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={handleDiagnoseDatabaseIssues}
-        style={{ 
-          position: 'absolute', 
-          bottom: -20, 
-          right: 0, 
-          width: 20, 
-          height: 20, 
-          opacity: 0.01 
+        style={{
+          position: 'absolute',
+          bottom: -20,
+          right: 0,
+          width: 20,
+          height: 20,
+          opacity: 0.01
         }}
       />
     </View>

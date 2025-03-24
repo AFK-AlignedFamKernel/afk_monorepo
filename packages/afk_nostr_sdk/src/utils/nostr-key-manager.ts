@@ -5,6 +5,13 @@ import * as Bip39 from 'bip39';
 import { generateRandomKeypair } from './keypair';
 import { NDKUserProfile } from '@nostr-dev-kit/ndk';
 
+type NostrWallet = {
+  secretKey: string;
+  privateKey?: string;
+  publicKey: string;
+  mnemonic: string;
+  seed: string;
+}
 export class NostrKeyManager {
   private static STORAGE_KEY = 'nostr_pubkey';
   private static CRED_KEY_PREFIX = 'nostr_cred_';
@@ -16,6 +23,8 @@ export class NostrKeyManager {
   private static IS_CASHU_WALLET_SETUP = 'is_cashu_wallet_setup';
   private static NOSTR_WALLET_CONNECTED = 'nostr_wallet_connected';
   private static WALLET_CONNECTED = 'wallet_connected';
+
+
   private static NOSTR_WALLETS: {
     [key: string]: {
       secretKey: string;
@@ -42,6 +51,25 @@ export class NostrKeyManager {
     };
   } = {};
 
+  static setNostrWalletConnectedStorage(nostrWallet: NostrWallet, nostrProfileMetadata?: NDKUserProfile) {
+    // Add multi account
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const rawId = Array.from(new Uint8Array(salt));
+    NostrKeyManager.NOSTR_WALLETS[nostrWallet.publicKey] = {
+      secretKey: nostrWallet.secretKey,
+      publicKey: nostrWallet.publicKey,
+      mnemonic: nostrWallet.mnemonic,
+      seed: nostrWallet.seed,
+      salt: JSON.stringify(salt),
+      rawId: JSON.stringify(rawId),
+      nostrProfile: nostrProfileMetadata,
+      ...nostrProfileMetadata,
+    };
+    localStorage.setItem(
+      `${NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX}`,
+      JSON.stringify(nostrWallet),
+    );
+  }
 
   static getNostrAccountsFromStorage() {
 
@@ -56,8 +84,8 @@ export class NostrKeyManager {
     return storedPubKey;
   }
 
-  static setNostrWalletConnected(publicKey: string) {
-    localStorage.setItem(NostrKeyManager.NOSTR_WALLET_CONNECTED, publicKey);
+  static setNostrWalletConnected(nostrWallet: NostrWallet) {
+    localStorage.setItem(NostrKeyManager.NOSTR_WALLET_CONNECTED, JSON.stringify(nostrWallet));
   }
 
 
