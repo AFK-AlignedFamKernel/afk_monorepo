@@ -104,7 +104,7 @@ export const Mints = () => {
   }, [mints, newAlias, newUrl]);
 
   useEffect(() => {
-    console.log("mints", mints)
+    // console.log("mints", mints)
 
     const handleMints = async () => {
       const mintsDb = await mintsApi.getAll();

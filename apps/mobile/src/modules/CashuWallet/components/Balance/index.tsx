@@ -66,7 +66,7 @@ export const Balance = () => {
 
 
   useEffect(() => {
-    console.log("activeMintStorage", activeMintStorage)
+    // console.log("activeMintStorage", activeMintStorage)
 
     if(activeMintStorage && activeMintStorage !== activeMint) {
       fetchBalanceData();
@@ -78,20 +78,20 @@ export const Balance = () => {
   }, [activeMintStorage, isInit, isBalanceFetching, isLoading])
 
   useEffect(() => {
-    console.log("activeMint", activeMint)
-    console.log("activeUnit", activeUnit)
+    // console.log("activeMint", activeMint)
+    // console.log("activeUnit", activeUnit)
 
     const handleInit = async () => {
       try {
         const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMintStorage);
-        console.log("activeMintUrl", activeMintUrl)
+        // console.log("activeMintUrl", activeMintUrl)
         setActiveMint(activeMintUrl);
         setActiveMintStorage(activeMintUrl);
         const proofsByMint = await proofsByMintApi.getByMintUrl(activeMintUrl);
-        console.log("proofsByMint", proofsByMint)
+        // console.log("proofsByMint", proofsByMint)
   
         const allProofs = await proofsByMintApi.getAll();
-        console.log("allProofs", allProofs)
+        // console.log("allProofs", allProofs)
   
         setProofsStore(proofsByMint);
         setIsInit(true);
@@ -121,7 +121,7 @@ export const Balance = () => {
         mints: mints.map((mint) => mint.url),
         privkey: nostrAccount?.seed,
       });
-      console.log("event", event)
+      // console.log("event", event)
       return { event: event, id: id };
     }
     return { event: undefined, id: id };
@@ -197,11 +197,11 @@ export const Balance = () => {
       //   return;
       // }
 
-      console.log("activeUnitDb", activeUnitDb)
+      // console.log("activeUnitDb", activeUnitDb)
       setCurrentUnitBalance(0);
       setIsLoading(true);
 
-      console.log("fetchBalanceData")
+      // console.log("fetchBalanceData")
       const mint = mints.filter((mint) => mint?.url === activeMintUrl)[0];
       const proofsStr = getProofs();
       const proofsStorage = JSON.parse(proofsStr);
@@ -212,19 +212,19 @@ export const Balance = () => {
       // const mergedProofs = await handleGetProofs();
 
 
-      console.log("get proofsByMint", activeMint)
+      // console.log("get proofsByMint", activeMint)
       const proofsByMint = await proofsByMintApi.getByMintUrl(activeMintUrl);
-      console.log("proofsByMint", proofsByMint)
+      // console.log("proofsByMint", proofsByMint)
 
-      console.log("calculateBalance",)
+      // console.log("calculateBalance",)
 
-      console.log("fetchBalanceData activeUnitDb", activeUnitDb)
-      console.log("fetchBalanceData mint", mint)
-      console.log("fetchBalanceData proofsByMint", proofsByMint)
+      // console.log("fetchBalanceData activeUnitDb", activeUnitDb)
+      // console.log("fetchBalanceData mint", mint)
+      // console.log("fetchBalanceData proofsByMint", proofsByMint)
       // const balance = await getUnitBalanceWithProofsChecked(activeUnit, mint, mergedProofs);
       const balance = await getUnitBalance(activeUnitDb, mint, proofsByMint);
       // const balance = await getUnitBalance(activeUnit, mint, mergedProofs);
-      console.log("balance", balance)
+      // console.log("balance", balance)
       setCurrentUnitBalance(balance);
       setIsLoading(false);
 
@@ -232,7 +232,7 @@ export const Balance = () => {
         // await handleWebsocketProofs(proofsByMint)
       }
 
-      console.log("balance", balance)
+      // console.log("balance", balance)
 
       if(balance && balance > 0) {
         setIsBalanceFetching(true);
@@ -261,12 +261,12 @@ export const Balance = () => {
 
       const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
 
-      console.log("activeMintUrl", activeMintUrl)
+      // console.log("activeMintUrl", activeMintUrl)
       if (!mergedProofsParents) {
         mergedProofs = await proofsByMintApi.getByMintUrl(activeMintUrl);
       }
 
-      console.log("handleWebsocketProofs mergedProofs", mergedProofs)
+      // console.log("handleWebsocketProofs mergedProofs", mergedProofs)
       // storeProofs(mergedProofs);
       await wallet?.loadMint();
 
@@ -277,20 +277,20 @@ export const Balance = () => {
               mergedProofs,
               async (p) => {
                 if (p.state === CheckStateEnum.SPENT) {
-                  console.log("onProofStateUpdates p", p)
+                  // console.log("onProofStateUpdates p", p)
                   const proofsStr = getProofs();
                   const proofs = JSON.parse(proofsStr);
                   // console.log("onProofStateUpdates proofs", proofs)
-                  console.log("onProofStateUpdates mergedProofs", mergedProofs)
+                  // console.log("onProofStateUpdates mergedProofs", mergedProofs)
                   let proofsFiltered = mergedProofs.filter((proof: Proof) => proof.C !== p?.proof?.C);
 
-                  console.log("proofsFiltered", proofsFiltered)
+                  // console.log("proofsFiltered", proofsFiltered)
                   proofsFiltered = Array.from(new Set(proofsFiltered.map((p) => p)));
-                  console.log("data onProofStateUpdates proofsFiltered", proofsFiltered)
+                  // console.log("data onProofStateUpdates proofsFiltered", proofsFiltered)
 
                   try {
-                    console.log("update dexie db")
-                    console.log("setAll proofsFiltered")
+                    // console.log("update dexie db")
+                    // console.log("setAll proofsFiltered")
                     // await proofsApi.setAll([...proofsFiltered])
                     // await proofsByMintApi.setAllForMint(proofsFiltered, activeMintUrl)
 
@@ -346,19 +346,19 @@ export const Balance = () => {
 
       let mergedInvoices: ICashuInvoice[] = mergedInvoicesParents || [];
 
-      console.log("handleCheckQuoteWebsocket mergedInvoicesParents", mergedInvoicesParents)
+      // console.log("handleCheckQuoteWebsocket mergedInvoicesParents", mergedInvoicesParents)
       const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
 
-      console.log("activeMintUrl", activeMintUrl)
+      // console.log("activeMintUrl", activeMintUrl)
       if (!mergedInvoices?.length || mergedInvoices?.length == 0) {
         mergedInvoices = await invoicesApi.getAllUnpaid();
       }
 
-      console.log("handleCheckQuoteWebsocket mergedInvoices", mergedInvoices)
+      // console.log("handleCheckQuoteWebsocket mergedInvoices", mergedInvoices)
 
       const quoteIds = mergedInvoices?.map((invoice) => invoice.bolt11);
 
-      console.log("quoteIds", quoteIds)
+      // console.log("quoteIds", quoteIds)
 
       if (quoteIds?.length == 0) {
         return { mergedInvoices: [] as ICashuInvoice[], data: {} }
@@ -404,7 +404,7 @@ export const Balance = () => {
 
 
   useEffect(() => {
-    console.log("activeUnit", activeUnit)
+    // console.log("activeUnit", activeUnit)
     if(activeUnit && activeMint && !isBalanceFetching) {
       fetchBalanceData();
     }
@@ -416,7 +416,7 @@ export const Balance = () => {
   useEffect(() => {
 
     if (activeUnit && activeMint && !isBalanceFetching) {
-      console.log("fetchBalanceData")
+      // console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
       setActiveMintUsed(activeMint);
       setIsBalanceFetching(false);
@@ -430,15 +430,15 @@ export const Balance = () => {
 
 
   useEffect(() => {
-    console.log("activeUnit", activeUnit)
+    // console.log("activeUnit", activeUnit)
     if (activeUnit && activeMint && (activeUnitUsed !== activeUnit || activeMintUsed !== activeMint)) {
-      console.log("fetchBalanceData")
+      // console.log("fetchBalanceData")
       setActiveUnitUsed(activeUnit);
       setActiveMintUsed(activeMint);
       fetchBalanceData();
       setActiveUnitStorage(activeUnit);
     }
-    console.log("activeMint", activeMint)
+    // console.log("activeMint", activeMint)
   }, [activeUnit, activeMint, activeUnitUsed, activeMintUsed, isBalanceFetching])
 
   useEffect(() => {

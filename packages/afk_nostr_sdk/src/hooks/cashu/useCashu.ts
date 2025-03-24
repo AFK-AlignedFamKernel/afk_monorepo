@@ -143,7 +143,7 @@ export const useCashu = (): ICashu => {
   const [mintInfo, setMintInfo] = useState<GetInfoResponse | undefined>();
 
   const mint = useMemo(() => {
-    console.log('activeMint', activeMint);
+    // console.log('activeMint', activeMint);
     if (activeMint) return new CashuMint(activeMint);
     if (!activeMint && mintUrls && activeMintIndex) {
       return new CashuMint(mintUrls[activeMintIndex].url);
@@ -187,7 +187,7 @@ export const useCashu = (): ICashu => {
   const wallet = useMemo(() => {
 
     let newWallet: CashuWallet | undefined;
-    console.log('keysetsMint', keysetsMint);
+    // console.log('keysetsMint', keysetsMint);
     // const keysets = await mint?.getKeySets();
     if (mint) {
       newWallet = new CashuWallet(mint, {
@@ -483,15 +483,15 @@ export const useCashu = (): ICashu => {
   ): Promise<number> => {
     let unitBalance = 0;
 
-    console.log("getUnitBalanceWithProofsChecked");
-    console.log('proofs', proofs);
+    // console.log("getUnitBalanceWithProofsChecked");
+    // console.log('proofs', proofs);
     const proofsChecked = await getProofsSpents(proofs);
-    console.log('proofsChecked', proofsChecked);
+    // console.log('proofsChecked', proofsChecked);
 
     const proofsCheck = await wallet?.checkProofsStates(proofs);
-    console.log('proofsCheck', proofsCheck);
+    // console.log('proofsCheck', proofsCheck);
     const proofsCheckedFiltered: any[] = proofsCheck.filter((p) => p.state !== CheckStateEnum.SPENT) as any[];
-    console.log('proofsCheckedFiltered', proofsCheckedFiltered);
+    // console.log('proofsCheckedFiltered', proofsCheckedFiltered);
     await getUnitProofs(unit, pMint, proofsCheckedFiltered).then((unitProofs) => {
 
       const sameProofs = unitProofs.filter((p) => proofs.map((p2) => p2.id).includes(p.id));
@@ -505,7 +505,7 @@ export const useCashu = (): ICashu => {
       //   if (p2.state === CheckStateEnum.SPENT) return undefined;
       //   return p2.Y == p.C;
       // }));
-      console.log('sameProofs', sameProofs);
+      // console.log('sameProofs', sameProofs);
       unitBalance = sameProofs.reduce((sum, p) => sum + p.amount, 0);
     });
     return unitBalance;

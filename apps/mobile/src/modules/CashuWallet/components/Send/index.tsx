@@ -123,7 +123,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
     // })
 
 
-    console.log("handle parents proofsMap", proofsMap)
+    // console.log("handle parents proofsMap", proofsMap)
 
 
     const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);

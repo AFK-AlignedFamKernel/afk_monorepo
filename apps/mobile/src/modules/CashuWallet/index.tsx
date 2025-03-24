@@ -83,7 +83,7 @@ export const CashuView = () => {
   const [isInit, setIsInit] = useState<boolean>(false);
 
   useEffect(() => {
-    console.log("mints", mints)
+    // console.log("mints", mints)
 
 
     const handleDbMints = async () => {
@@ -168,12 +168,12 @@ export const CashuView = () => {
   };
 
   useEffect(() => {
-    console.log("seed", seed)
+    // console.log("seed", seed)
 
     const handleSeed = async () => {
       const nostrAccountStr = await NostrKeyManager.getAccountConnected();
       const nostrAccount = JSON.parse(nostrAccountStr);
-      console.log("nostrAccount", nostrAccount)
+      // console.log("nostrAccount", nostrAccount)
 
       if (nostrAccount && nostrAccount?.seed) {
 
@@ -205,7 +205,7 @@ export const CashuView = () => {
 
       const nostrAccountStr = await NostrKeyManager.getAccountConnected();
       const nostrAccount = JSON.parse(nostrAccountStr);
-      console.log("nostrAccount", nostrAccount)
+      // console.log("nostrAccount", nostrAccount)
 
       const id = randomUUID();
 
