@@ -31,7 +31,7 @@ pub mod LaunchpadMarketplace {
         sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
         calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_TICK_U128, MIN_TICK_U128,
         MAX_SQRT_RATIO, MIN_SQRT_RATIO, align_tick_with_max_tick_and_min_tick, calculate_bound_mag,
-        calculate_sqrt_ratio
+        calculate_sqrt_ratio, UINT_128_MAX
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -87,7 +87,7 @@ pub mod LaunchpadMarketplace {
         // MemecoinCreated, MemecoinLaunched
     };
 
-
+    
     const MAX_SUPPLY: u256 = 100_000_000;
     const INITIAL_SUPPLY: u256 = MAX_SUPPLY / 5;
 
@@ -749,7 +749,7 @@ pub mod LaunchpadMarketplace {
         // Handles fees, updates pool state and user shares
         fn buy_coin_by_quote_amount(
             ref self: ContractState, coin_address: ContractAddress, quote_amount: u256,
-        ) {
+        )  -> u64 {
             // Input validation
             assert(quote_amount > 0, errors::AMOUNT_ZERO);
             let caller = get_caller_address();
@@ -889,6 +889,7 @@ pub mod LaunchpadMarketplace {
             // High security risk
             // Launch to ekubo if the liquidity raised = threshold liquidity
             // This threshold liquidity have a slippage tolrance of 2% and less protocl fees
+            let mut id = 0_u64;
             if pool.liquidity_raised >= threshold {
                 self
                     .emit(
@@ -900,7 +901,8 @@ pub mod LaunchpadMarketplace {
                     );
 
                 // Add liquidity to DEX Ekubo
-                self._add_liquidity_ekubo(coin_address);
+                let (id_retuned, _) = self._add_liquidity_ekubo(coin_address);
+                id = id_retuned;
 
                 // TODO V2
                 // Send the creator fee amount received to the creator DAO address
@@ -925,6 +927,7 @@ pub mod LaunchpadMarketplace {
                         quote_amount: remain_quote_to_liquidity
                     }
                 );
+            id
         }
 
         // params @coin_address @coin_amount
@@ -1351,11 +1354,9 @@ pub mod LaunchpadMarketplace {
 
             // Check supply of coin and threshold
             // Need to be *10 the current threshold
+            // And memecoin pool supply has to be smaller than U128_MAX
             let threshold_liquidity = self.threshold_liquidity.read();
-            assert(
-                initial_supply >= (threshold_liquidity * 10_u256),
-                errors::SUPPLY_COIN_BELOW_THRESHOLD
-            );
+            self.assert_supply_threshold(initial_supply, threshold_liquidity);
 
             // TODO finish this
             // ADD TEST CASE for Paid create token
@@ -1455,9 +1456,8 @@ pub mod LaunchpadMarketplace {
             let quote_token_address = token_to_use.token_address.clone();
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             let total_supply = memecoin.total_supply();
-            assert(
-                total_supply >= (threshold_liquidity * 10_u256), errors::SUPPLY_COIN_BELOW_THRESHOLD
-            );
+            
+
 
             // TODO Add test for Paid launched token bonding curve
             // Handle paid launch if enabled
@@ -1597,51 +1597,26 @@ pub mod LaunchpadMarketplace {
             // Calculate thresholds
             let threshold_liquidity = launch.threshold_liquidity.clone();
             let slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
-            let threshold = threshold_liquidity - slippage_threshold;
 
-            // Set pool parameters
-            // TODO audit
-            // HIGH SECURITY RISK
-            // Add more test case
-
-            // Verify fee is correct
-            let fee_percent = 0xc49ba5e353f7d00000000000000000;
-            // TODO
-            // Verify tick spacing is correct based on the fee used
-            // let tick_spacing = 5928;
-            // let tick_spacing:u128 = 60_u128;
-            let tick_spacing = 60_u128;
+            // We use fee and tick size from the Unruguable as it seems as working POC
+            let fee_percent = 0xc49ba5e353f7d00000000000000000; // This is recommended value 0.3%
+            let tick_spacing = 5982_u128; // log(1 + 0.6%) / log(1.000001) => 0.6% is the tick spacing percentage
+            
 
             // Calculate initial tick price
             // Compute sqrt root with the correct placed of token0 and token1
 
-            // TODO test sqrt
-            // Sort token for calculation
-            // Check in Unruggable
-            let (token0, token1) = sort_tokens(
+            // Sorting of tokens
+            let (_, token1) = sort_tokens(
                 coin_address, launch.token_quote.token_address.clone()
             );
-            // let (token0, token1) = sort_tokens(launch.token_quote.token_address.clone(),
-            // coin_address);
 
-            // TODO uncomment this and comment others part of test scaling
             let is_token1_quote = launch.token_quote.token_address == token1;
-            // let is_token1_quote = true;
 
-            println!("is_token1_quote {}", is_token1_quote.clone());
-            // Audit
-            //  Edge case related to difference between threshold and total supply
-
-            // // TODO FIX
-            // Calculate sqrt ratio
-            // Check case need to scale the y_x
-            // Decimals precision
-            // // Audit edge case related to difference between threshold and total supply
-            // TODO: check if this is correct
-            // Adjust scale factor
-
+            // The calculation works with assumption that initial_pool_supply is always higher than threshold_liquidity which should be true 
+            // Calculate the sqrt ratio
             let mut sqrt_ratio = calculate_sqrt_ratio(
-                launch.liquidity_raised, launch.initial_pool_supply, is_token1_quote
+                launch.liquidity_raised, launch.initial_pool_supply
             );
 
             println!("sqrt_ratio after assert {}", sqrt_ratio.clone());
@@ -1662,35 +1637,24 @@ pub mod LaunchpadMarketplace {
             )
                 .unwrap_syscall();
 
-            let starting_price = Serde::<i129>::deserialize(ref res).unwrap();
+            let mut initial_tick = Serde::<i129>::deserialize(ref res).unwrap();
+
+            // To always handle the same price as if default token is token1 
+            // The quote token is our default token, leads that we want to price
+            // The memcoin in the value of the quote token, the price ratio is <0,1) 
+            // Also this is not ideal way but will works as memecoin supply > default token supply
+            // Therefore we know that memecoin is less valued than default token
+            if (is_token1_quote) {
+                initial_tick.mag = initial_tick.mag + 1; // We should keep complementary code 
+                initial_tick.sign = true; 
+            }
+            
             // let bound_spacing = 887272;
             // TODO check how used the correct tick spacing
             // bound spacing calculation
             let bound_spacing: u128 = calculate_bound_mag(
-                fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), starting_price
+                fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), initial_tick.clone()
             );
-            let (initial_tick, full_range_bounds_initial) = get_initial_tick_from_starting_price(
-                starting_price, // launch_params.pool_params.bound,
-                bound_spacing.clone(), // aligned_max_tick,
-                is_token1_quote
-            );
-
-            // println!("initial_tick {}", initial_tick.mag.clone());
-            // TODO
-            // Ensure the tick is align with the tick spacing
-            // let aligned_tick = align_tick(initial_tick, tick_spacing);
-            // println!("aligned_tick {}",aligned_tick.clone());
-            // TODO
-            // Adjust bound spacing
-            // Based on the range choose
-            // Bounding space for Wide range or Concentrated range
-            // verify the bound spacing is correct
-            // AUDIT
-            // let bound_spacing = initial_tick.mag * 2;
-
-            // let bound_spacing = calculate_aligned_bound_mag(initial_tick, 2,
-            // tick_spacing.clone());
-            // let bound_spacing = 88719042;
 
             // Align the min and max ticks with the spacing
             let min_tick = MIN_TICK_U128.try_into().unwrap();
@@ -1699,77 +1663,18 @@ pub mod LaunchpadMarketplace {
             let aligned_min_tick = align_tick_with_max_tick_and_min_tick(min_tick, tick_spacing);
             let aligned_max_tick = align_tick_with_max_tick_and_min_tick(max_tick, tick_spacing);
             // Full range bounds for liquidity providing
-            // TODO verify the aligned bound and max used is correct
+            // Uniswap V2 model as full range is used
             let mut full_range_bounds = Bounds {
                 lower: i129 { mag: aligned_min_tick, sign: true },
                 upper: i129 { mag: aligned_max_tick, sign: false }
             };
-            // let mut full_range_bounds = Bounds {
-            //     lower: i129 { mag: aligned_bound_spacing, sign: true },
-            //     upper: i129 { mag: aligned_bound_spacing, sign: false }
-            // };
-
-            // TODO check full range bounds to used
-            // Create bounds ensuring they're multiples of tick spacing
-            // full_range_bounds = if is_token1_quote {
-            //     Bounds {
-            //         lower: i129 {
-            //             mag: aligned_bound_spacing,
-            //             sign: true
-            //         },
-            //         upper: i129 {
-            //             mag: aligned_bound_spacing,
-            //             sign: false
-            //         }
-            //     }
-            //     //     Bounds {
-            //     //    lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
-            //     //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(),
-            //     sign:
-            //     //         false }
-            //     //     }
-
-            // } else {
-            //     Bounds {
-            //         lower: i129 {
-            //             mag: aligned_bound_spacing,
-            //             sign: true
-            //         },
-            //         upper: i129 {
-            //             mag: aligned_bound_spacing,
-            //             sign: false
-            //         }
-            //     }
-            //     // TODO align tick
-            //     //     Bounds {
-            //     //    lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true
-            //     //         }, upper: i129 { mag: aligned_max_tick.try_into().unwrap(),
-            //     sign:
-            //     //         false }
-            //     //     }
-            //     // TODO
-            //     // Check not working with reverse bounds like UNRUG
-            //     // Reverse the bounds for token0 as quote
-            //     // Bounds {
-            //     //     lower: i129 {
-            //     //         mag: aligned_bound_spacing,
-            //     //         sign: false
-            //     //     },
-            //     //     upper: i129 {
-            //     //         mag: aligned_bound_spacing,
-            //     //         sign: true
-            //     //     }
-            //     // }
-            // };
-
+    
             let pool_params = EkuboPoolParameters {
                 fee: fee_percent,
                 tick_spacing: tick_spacing,
                 starting_price: initial_tick,
-                // starting_price: starting_price,
                 bound: bound_spacing,
                 bounds: full_range_bounds,
-                // bounds: full_range_bounds_initial,
                 bound_spacing: bound_spacing,
             };
 
@@ -1834,6 +1739,21 @@ pub mod LaunchpadMarketplace {
                 );
 
             (id, position)
+        }
+
+        // Assert checks for supplies and thresholds relationships
+        // We check if the total supply is above the threshold liquidity
+        // We check if the price ratio is below the maximum value
+        fn assert_supply_threshold(self: @ContractState,
+            total_supply: u256, threshold_liquidity: u256
+        ) {
+            // Supply check
+            assert(
+                total_supply >= (threshold_liquidity * 10_u256),
+                errors::SUPPLY_COIN_BELOW_THRESHOLD
+            );
+            // Check that pool supply is less than the maximum value
+            assert(total_supply / 5 < UINT_128_MAX, errors::MAX_NUM);
         }
 
         // TODO finish call Jediswap

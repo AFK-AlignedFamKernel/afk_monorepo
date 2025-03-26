@@ -391,7 +391,7 @@ mod unrug_tests {
 
         let (token0, token1) = sort_tokens(memecoin.contract_address, erc20.contract_address);
         let is_token1_quote = token1 == erc20.contract_address;
-        let sqrt_ratio = calculate_sqrt_ratio(lp_quote_supply, lp_meme_supply, is_token1_quote);
+        let sqrt_ratio = calculate_sqrt_ratio(lp_quote_supply, lp_meme_supply);
 
         // println!("sqrt_ratio after assert {}", sqrt_ratio.clone());
         // Define the minimum and maximum sqrt ratios
