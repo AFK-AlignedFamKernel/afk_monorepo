@@ -33,6 +33,7 @@ export interface Notification {
 }
 
 export interface ICashuInvoice {
+  id?:string;
   bolt11?: string;
   quote?: string;
   amount: number;
@@ -43,6 +44,9 @@ export interface ICashuInvoice {
   direction?: 'in' | 'out'; // receive or send
   quoteResponse?: MintQuoteResponse;
   type?: 'ecash' | 'lightning';
+  paid?:boolean;
+  request?:string;
+  expiry?:number;
 }
 
 export interface ProofInvoice extends Proof, ICashuInvoice {}

@@ -5,7 +5,7 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   container: {
     width: '100%',
-    padding: Spacing.medium,
+    padding: Spacing.xsmall,
     borderRadius: 10,
     flex: 1,
     backgroundColor: theme.colors.background,
@@ -49,7 +49,7 @@ export default ThemedStyleSheet((theme) => ({
     display: 'flex',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 15,
+    gap: 10,
     marginTop: 20,
     marginBottom: 20,
     justifyContent: 'center',
@@ -57,9 +57,9 @@ export default ThemedStyleSheet((theme) => ({
   },
   actionButton: {
     flex: 1,
-    maxWidth: '40%',
+    maxWidth: '30%',
     backgroundColor: theme.colors.primary,
-    maxHeight:"40%"
+    maxHeight:"30%"
   },
   actionButtonText: {
     color: theme.colors.white,
@@ -104,5 +104,19 @@ export default ThemedStyleSheet((theme) => ({
   active: {
     borderBottomWidth: 2,
     borderColor: theme.colors.primary,
+  },
+  nfcButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 20,
+  },
+  nfcButton: {
+    flex: 1,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: 8,
+    marginHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 }));

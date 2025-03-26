@@ -24,7 +24,7 @@ import { useCashuContext } from '../../../../providers/CashuProvider';
 import { formatCurrency } from '../../../../utils/helpers';
 import stylesheet from './styles';
 import { MintListCashu } from './MintListCashu';
-import { mintsApi } from 'src/utils/database';
+import { mintsApi, settingsApi } from 'src/utils/database';
 
 export interface UnitInfo {
   unit: string;
@@ -103,12 +103,36 @@ export const Mints = () => {
     setNewMintError('');
   }, [mints, newAlias, newUrl]);
 
-  const handleSelectMint = (item: MintData) => {
+  useEffect(() => {
+    // console.log("mints", mints)
+
+    const handleMints = async () => {
+      const mintsDb = await mintsApi.getAll();
+      if(mints.length > 0) {
+        setMints([...mints, ...mintsDb]);
+      }
+
+      const activeMintDb = await settingsApi.get("ACTIVE_MINT", activeMint);
+      if(activeMintDb && !activeMint) {
+        const data = await buildMintData(activeMintDb, 'Default Mint');
+        setActiveMint(activeMintDb);
+        setActiveMintStorage(activeMintDb);
+        const cUnit = mints.filter((mint) => mint.url === activeMintDb)[0].units[0];
+        setActiveUnit(cUnit);
+        setActiveUnitStorage(cUnit);
+      }
+    }
+    handleMints();
+  }, [mints])
+
+  const handleSelectMint = async (item: MintData) => {
     setActiveMint(item.url);
     setActiveMintStorage(item.url);
     const cUnit = mints.filter((mint) => mint.url === item.url)[0].units[0];
     setActiveUnit(cUnit);
     setActiveUnitStorage(cUnit);
+    await settingsApi.set('ACTIVE_UNIT', cUnit);
+    await settingsApi.set('ACTIVE_MINT', item.url);
   };
 
   const handleAddMint = async () => {
@@ -118,6 +142,8 @@ export const Mints = () => {
     setActiveUnit(data.units[0]);
     setActiveUnitStorage(data.units[0]);
 
+    await settingsApi.set('ACTIVE_MINT', newUrl)
+    await settingsApi.set('ACTIVE_UNIT', data.units[0])
     if (mints.length === 0) {
       const privKey = getRandomBytes(32);
       const privateKeyHex = Buffer.from(privKey).toString('hex');
@@ -128,7 +154,7 @@ export const Mints = () => {
     }
 
     mintsApi.add(data)
-    mintsApi.setAll([...mints, data])
+    // mintsApi.setAll([...mints, data])
     setMints([...mints, data]);
     setMintsStorage([...mints, data]);
 

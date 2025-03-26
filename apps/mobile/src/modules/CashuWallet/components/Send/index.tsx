@@ -37,7 +37,8 @@ import SendNostrContact from './SendContact';
 import stylesheet from './styles';
 import { useToast } from 'src/hooks/modals';
 import { Proof } from '@cashu/cashu-ts';
-import { proofsApi, proofsByMintApi, proofsSpentsApi, proofsSpentsByMintApi } from 'src/utils/database';
+import { proofsApi, proofsByMintApi, proofsSpentsApi, proofsSpentsByMintApi, settingsApi } from 'src/utils/database';
+import { useNFC } from 'src/hooks/useNFC';
 
 interface SendProps {
   onClose: () => void;
@@ -55,7 +56,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
   const styles = useStyles(stylesheet);
   const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
-  const { getUnitBalance, setActiveMint, setActiveUnit } = useCashuContext()!;
+  const { getUnitBalance, setActiveMint, setActiveUnit, filteredProofsSpents } = useCashuContext()!;
   const { data: tokensEvents } = useGetCashuTokenEvents();
 
   const { value: activeMint, setValue: setActiveMintStorage } = useActiveMintStorage();
@@ -79,12 +80,23 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
   const [isGeneratingEcash, setIsGeneratingEcash] = useState(false);
   const [type, setType] = useState<"CASHU" | "STRK">("CASHU")
 
+  const { isReading, isWriting, nfcSupported, handleReadNfc, handleWriteNfc, scanPermission } = useNFC();
+
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
   };
 
   const handleEcash = async () => {
     setIsGeneratingEcash(true);
+
+
+    // TODO handle nfc
+
+    // showToast({ title: "Scanning NFC", type: "info" });
+    // await scanPermission();
+    // showToast({ title: "NFC scanned", type: "success" });
+    // await handleWriteNfc("ecashtestbrother", 'ecash');
+    // return;
     const key = randomUUID();
     if (!invoiceAmount) {
       setModalToast({
@@ -101,25 +113,44 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
 
 
     const proofsMap: Proof[] = proofs || [];
-    let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
-      // let eventContent = JSON.parse(event.content);
-      let eventContent = event.content;
-      eventContent?.proofs?.map((proof: any) => {
-        proofsMap.push(proof);
-        return proof;
-      })
-    })
+    // let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
+    //   // let eventContent = JSON.parse(event.content);
+    //   let eventContent = event.content;
+    //   eventContent?.proofs?.map((proof: any) => {
+    //     proofsMap.push(proof);
+    //     return proof;
+    //   })
+    // })
 
 
-    console.log("handle parents proofsMap", proofsMap)
-    const { cashuToken, proofsToSend } = await handleGenerateEcash(Number(invoiceAmount), proofsMap);
+    // console.log("handle parents proofsMap", proofsMap)
+
+
+    const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+
+    const proofsByMintUnfiltered = await proofsByMintApi.getByMintUrl(activeMintUrl);
+
+    console.log("proofsByMintUnfiltered", proofsByMintUnfiltered)
+
+    const {proofsFiltered:proofsByMintFiltered,proofsSpents} = await filteredProofsSpents(proofsByMintUnfiltered);
+    console.log("proofsByMintFiltered", proofsByMintFiltered)
+  
+    const proofsByMint = proofsByMintFiltered?.length > 0 ? proofsByMintFiltered : proofsByMintUnfiltered;
+    console.log("proofsByMint", proofsByMint)
+   
+    const { cashuToken, proofsToSend, proofsToKeep } = await handleGenerateEcash(Number(invoiceAmount), proofsByMint);
+    // const { cashuToken, proofsToSend } = await handleGenerateEcash(Number(invoiceAmount), proofsMap);
     console.log("ecash generated", cashuToken)
 
-    const oldProofs = await proofsByMintApi.getByMintUrl(activeMint);
-    const proofsToSendFiltered = proofsToSend.filter((proof) => !oldProofs.some((oldProof) => oldProof.C === proof.C));
-    proofsByMintApi.setAllForMint(proofsToSendFiltered, activeMint)
-    proofsSpentsApi.updateMany(proofsToSend)
-    proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
+    const oldProofs = proofsByMint;
+
+    const proofsToSendFiltered = proofsToSend;
+
+    const remainProofs = oldProofs.filter((proof) => !proofsToSend?.some((newProof) => newProof.C === proof.C));
+    // const proofsToSendFiltered = proofsToSend.filter((proof) => !oldProofs.some((oldProof) => oldProof.C === proof.C));
+    console.log("proofsToSendFiltered", proofsToSendFiltered)
+    console.log("remainProofs", remainProofs)
+
     if (!cashuToken) {
       setModalToast({
         title: 'Error generating ecash token.',
@@ -131,7 +162,18 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
       return;
     }
     setGenerateEcash(cashuToken);
+
     setIsGeneratingEcash(false);
+    try { 
+      console.log("update dexie db")
+      proofsByMintApi.setAllForMint(remainProofs, activeMint)
+      proofsSpentsApi.updateMany(proofsToSend)
+      proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
+    } catch (error) {
+      console.log("error", error)
+    }
+    // handleWriteNfc(cashuToken, 'ecash');
+
     return cashuToken;
   };
 
@@ -177,7 +219,13 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
           setIsPaymentProcessing(false);
           return;
         }
-        const { meltResponse, proofsSent, proofsToKeep } = await handlePayInvoice(invoice);
+
+
+        const activeMintUrl = await settingsApi.get("ACTIVE_MINT", activeMint);
+
+        const proofsByMint = await proofsByMintApi.getByMintUrl(activeMintUrl);
+        console.log("proofsByMint", proofsByMint)
+        const { meltResponse, proofsSent, proofsToKeep } = await handlePayInvoice(invoice, proofsByMint );
 
         const proofsToSend = proofsSent || [];
         // const proofsToKeep = proofsToKeep || [];
@@ -185,7 +233,8 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
           console.log("handleLightningPayment dexie db", proofsToSend)
           const oldProofs = await proofsByMintApi.getByMintUrl(activeMint);
           const proofsToKeepFiltered = oldProofs.filter((proof) => !proofsToSend.some((newProof) => newProof.C === proof.C));
-          proofsByMintApi.setAllForMint(proofsToKeep, activeMint)
+          // proofsByMintApi.setAllForMint(proofsToKeep, activeMint)
+          proofsByMintApi.setAllForMint(proofsToKeepFiltered, activeMint)
           proofsApi.setAll([...proofsToKeep])
           proofsSpentsApi.updateMany(proofsToSend)
           proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
@@ -327,6 +376,13 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
       setModalToast({ type: 'error', title: 'Error sharing.', key });
     }
   };
+
+  const handleNFCEcash = async () => {
+    console.log("handleNFCEcash")
+
+
+    const res = await handleWriteNfc(generatedEcash, 'ecash');
+  }
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -502,7 +558,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 15,
-                      width: '70%',
+                      // width: '70%',
                     }}
                   >
                     <Text style={styles.text}>eCash token</Text>
@@ -513,6 +569,7 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
                         paddingVertical: 5,
                         paddingHorizontal: 8,
                         width: '100%',
+                        maxWidth: 100,
                       }}
                       value={generatedEcash}
                       editable={false}
@@ -551,6 +608,13 @@ export const Send: React.FC<SendProps> = ({ onClose }) => {
                             color={theme.colors.primary}
                             style={styles.shareIcon}
                           />
+                        </Button>
+                      </View>
+
+
+                      <View>
+                        <Button onPress={handleNFCEcash}>
+                          <Text>NFC</Text>
                         </Button>
                       </View>
                     </View>

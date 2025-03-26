@@ -55,3 +55,5 @@ pub const NO_FEE_TO_DISTRIBUTE: felt252 = 'No fee to distribute';
 pub const NO_FEE_RECEIVED: felt252 = 'No fee received';
 pub const TOKEN_NOT_CREATED_BY_LAUNCHPAD: felt252 = 'Token not created by launchpad';
 pub const SUPPLY_COIN_BELOW_THRESHOLD: felt252 = 'Supply below threshold';
+pub const PRICE_RATIO_OVERFLOW: felt252 = 'Price ratio overflow';
+pub const MAX_NUM: felt252 = 'Max num';
