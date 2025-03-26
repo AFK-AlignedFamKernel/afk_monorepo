@@ -68,7 +68,7 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
   }, [search, bookmarksWithNotes, ndkKinds])
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <FlatList
         onEndReached={() => {
           console.log('fetching next page')
@@ -131,6 +131,6 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
         bookmarksWithNotes?.isPending ||
         search?.isLoading ||
         bookmarksWithNotes?.isLoading) && <ActivityIndicator />}
-    </View>
+    </ScrollView>
   );
 };

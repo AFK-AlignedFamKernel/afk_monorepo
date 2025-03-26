@@ -12,6 +12,8 @@ export default ThemedStyleSheet((theme) => ({
     // flexGrow: 1,
     flex: 1,
     backgroundColor: theme.colors.background,
+    scrollbarWidth: 'none',
+    scrollbarHeight: 'none',
   },
   headerText: {
     fontSize: 24,

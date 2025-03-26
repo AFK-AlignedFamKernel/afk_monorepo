@@ -1,6 +1,6 @@
 use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
 use afk_launchpad::utils::{sqrt};
-use core::num::traits::{Zero, One};
+use core::num::traits::{Zero};
 use ekubo::types::bounds::Bounds;
 use ekubo::types::i129::i129;
 

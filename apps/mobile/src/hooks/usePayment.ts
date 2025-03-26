@@ -9,18 +9,19 @@ import {
   useCreateSpendingEvent,
   useCreateTokenEvent,
   useDeleteTokenEvents,
+  useGetCashuTokenEvents,
 } from 'afk_nostr_sdk';
 import { useState } from 'react';
 
 import { useCashuContext } from '../providers/CashuProvider';
 import { useToast } from './modals';
 import { useGetTokensByProofs } from './useGetTokensByProof';
-import { useProofsStorage, useTransactionsStorage, useWalletIdStorage } from './useStorageState';
+import { useMintStorage, useProofsStorage, useTransactionsStorage, useWalletIdStorage } from './useStorageState';
 
 export const usePayment = () => {
   const { showToast } = useToast();
 
-  const { meltTokens, wallet, proofs:proofsStore, setProofs, activeUnit, activeMint, mintUrlSelected, connectCashWallet } = useCashuContext()!;
+  const { meltTokens, wallet, proofs: proofsStore, setProofs, activeUnit, activeMint, mintUrlSelected, connectCashWallet } = useCashuContext()!;
   const { publicKey, privateKey } = useAuth();
 
   const { value: proofsStorage, setValue: setProofsStorage } = useProofsStorage();
@@ -34,8 +35,50 @@ export const usePayment = () => {
   const [proofsFilter, setProofsFilter] = useState<Proof[]>([]);
 
   const { refetch: refetchTokens, events: filteredTokenEvents } = useGetTokensByProofs(proofsFilter);
+  const { data: tokensEvents } = useGetCashuTokenEvents();
 
-  const handlePayInvoice = async (pInvoice: string, amount?: number) => {
+  const { value: mints } = useMintStorage();
+
+  const handleGetProofs = async () => {
+    const mint = mints.filter((mint) => mint.url === activeMint)[0];
+    const proofsStr = getProofs();
+    const proofsMap: Proof[] = [];
+    const proofsMapEvents: Proof[] = [];
+    let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
+      // let eventContent = JSON.parse(event.content);
+      let eventContent = event.content;
+      if (eventContent?.mint === activeMint) {
+        eventContent?.proofs?.map((proof: any) => {
+          proofsMap.push(proof);
+          return proof;
+        })
+      }
+    })
+
+    // Create array of proofs from events by flattening and filtering out undefined/null
+    const eventsProofsArray = eventsProofs?.flat().filter(Boolean) || [];
+
+    // // Merge proofs arrays and filter out duplicates based on C value
+    // const mergedProofs = [...proofsMap, ...eventsProofsArray].reduce((unique: Proof[], proof: Proof) => {
+    //   // Only add if we haven't seen this C value before
+    //   if (!unique.some(p => p.C === proof.C)) {
+    //     unique.push(proof);
+    //   }
+    //   return unique;
+    // }, []);
+
+    // Merge proofs arrays and filter out duplicates based on C value
+    const mergedProofs = [...proofsMap, ...eventsProofsArray].reduce((unique: Proof[], proof: Proof) => {
+      // Only add if we haven't seen this C value before
+      if (!unique.some(p => p.C === proof.C)) {
+        unique.push(proof);
+      }
+      return unique;
+    }, []);
+
+    return mergedProofs;
+  }
+  const handlePayInvoice = async (pInvoice: string, proofsParent?: Proof[], amount?: number) => {
     if (!wallet) {
       console.log('no wallet');
 
@@ -44,6 +87,8 @@ export const usePayment = () => {
       return {
         meltResponse: undefined,
         invoice: undefined,
+        proofsSent: undefined,
+        proofsToKeep: undefined,
       };
     }
 
@@ -59,9 +104,17 @@ export const usePayment = () => {
       return {
         meltResponse: undefined,
         invoice: undefined,
+        proofsSent: undefined,
+        proofsToKeep: undefined,
       }
     };
-    const proofs = JSON.parse(proofsStr)
+    let proofsStorage = JSON.parse(proofsStr)
+    let proofs = proofsParent ? [...(JSON.parse(proofsStr)), ...proofsParent] : JSON.parse(proofsStr)
+    console.log("handlePayInvoice proofs", proofs)
+
+    if (proofs.length === 0) {
+      proofs = proofsStore
+    }
     if (proofs && proofs.length > 0) {
 
       try {
@@ -72,24 +125,30 @@ export const usePayment = () => {
         // console.log('amount regex', amount);
 
         let proofsToSend = proofs;
+        const fees = await wallet?.getFeesForKeyset(amount, activeUnit)
 
-        // if (amount) {
+        console.log('fees', fees);
+        if (amount) {
 
-        //   const res = await wallet.selectProofsToSend(proofs, amount)
-        //   const checkProofsStates = await wallet.checkProofsStates(proofs)
-        //   console.log('res selectProofsToSend', res);
-        //   console.log('res checkProofsStates', checkProofsStates);
+          const res = await wallet?.selectProofsToSend(proofs, amount+fees)
+          // const checkProofsStates = await wallet?.checkProofsStates(proofs)
+          console.log('res selectProofsToSend', res);
+          // console.log('res checkProofsStates', checkProofsStates);
 
-        //   proofsToSend=res?.send;
+          proofsToSend=res?.send;
 
-        // }
+        }
         // console.log("res", res) 
         console.log('proofsToSend', proofsToSend);
 
+
+        // const keysets = await wallet.getKeySets()
+        // console.log('keysets', keysets);
+        // const meltQuote = await wallet.checkMeltQuote(pInvoice);
         const response = await meltTokens(pInvoice, proofsToSend);
         console.log('response', response);
 
-        if(!response){
+        if (!response) {
           showToast({
             title: 'Not enough proofs or amount',
             type: 'error',
@@ -97,6 +156,8 @@ export const usePayment = () => {
           return {
             meltResponse: undefined,
             invoice: undefined,
+            proofsSent: undefined,
+            proofsToKeep: undefined,
           }
         }
         // const res = await wallet.selectProofsToSend(proofs, response?.meltQuote.amount)
@@ -106,27 +167,32 @@ export const usePayment = () => {
           const { meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs } = response;
           setProofsFilter(selectedProofs);
           if (privateKey && publicKey) {
-            await refetchTokens();
-            await deleteMultiple(
-              filteredTokenEvents.map((event) => event.id),
-              'proofs spent in transaction',
-            );
-            const tokenEvent = await createTokenEvent({
-              walletId,
-              mint: activeMint,
-              proofs: proofsToKeep,
-            });
-            const destroyedEvents = filteredTokenEvents.map((event) => ({
-              id: event.id,
-              marker: 'destroyed' as EventMarker,
-            }));
-            await createSpendingEvent({
-              walletId,
-              direction: 'out',
-              amount: (meltQuote.amount + meltQuote.fee_reserve).toString(),
-              unit: activeUnit,
-              events: [...destroyedEvents, { id: tokenEvent.id, marker: 'created' as EventMarker }],
-            });
+            try {
+              await refetchTokens();
+              await deleteMultiple(
+                filteredTokenEvents.map((event) => event.id),
+                'proofs spent in transaction',
+              );
+              const tokenEvent = await createTokenEvent({
+                walletId,
+                mint: activeMint,
+                proofs: proofsToKeep,
+              });
+              const destroyedEvents = filteredTokenEvents.map((event) => ({
+                id: event.id,
+                marker: 'destroyed' as EventMarker,
+              }));
+              await createSpendingEvent({
+                walletId,
+                direction: 'out',
+                amount: (meltQuote.amount + meltQuote.fee_reserve).toString(),
+                unit: activeUnit,
+                events: [...destroyedEvents, { id: tokenEvent.id, marker: 'created' as EventMarker }],
+              });         
+            } catch (error) {
+              console.log("Error",error)
+            }
+     
           }
           showToast({
             title: 'Payment sent.',
@@ -145,48 +211,48 @@ export const usePayment = () => {
             direction: 'out',
           };
           setTransactions([...transactions, newInvoice]);
-          return { meltResponse, invoice: newInvoice };
+          return { meltResponse, invoice: newInvoice, proofsSent: selectedProofs, proofsToKeep: proofsToKeep };
         } else {
-          return { meltResponse: undefined, invoice: undefined };
+          return { meltResponse: undefined, invoice: undefined, proofsSent: undefined, proofsToKeep: undefined };
         }
       } catch (error) {
         console.log('error', error);
-        return { meltResponse: undefined, invoice: undefined };
+        return { meltResponse: undefined, invoice: undefined, proofsSent: undefined, proofsToKeep: undefined };
       }
     } else {
       console.log('no proofs');
       // no proofs = no balance
       return {
         meltResponse: undefined,
-        invoice: undefined,
+        invoice: undefined, 
+        proofsSent: undefined,
+        proofsToKeep: undefined,
       };
     }
   };
 
-  const handleGenerateEcash = async (amount: number) => {
+  const handleGenerateEcash = async (amount: number, proofsParent?: Proof[]) => {
     try {
+      console.log("handleGenerateEcash", amount, proofsParent)
       if (!amount) {
-        return undefined;
+        return {cashuToken: undefined, proofsToSend: undefined};
       }
 
       if (!wallet) {
-        return undefined;
+        return {cashuToken: undefined, proofsToSend: undefined};
       }
       const proofsStr = await getProofs()
 
       console.log('proofs', proofsStore);
-  
-      if (!proofsStr) {
+
+      if (!proofsStr && !proofsParent) {
         showToast({
           title: 'No proofs found',
           type: 'error',
         });
-        return {
-          meltResponse: undefined,
-          invoice: undefined,
-        }
+        return {cashuToken: undefined, proofsToSend: undefined};
       };
-      const proofs = JSON.parse(proofsStr)
+      const proofs = proofsParent ? [...(JSON.parse(proofsStr)), ...proofsParent] : JSON.parse(proofsStr)
 
       if (proofs) {
         // const proofsCopy = Array.from(proofs);
@@ -194,8 +260,9 @@ export const usePayment = () => {
 
         const availableAmount = proofsCopy.reduce((s: number, t: Proof) => (s += t.amount), 0);
 
+        console.log("proofsCopy", proofsCopy)
         if (availableAmount < amount) {
-          return undefined;
+          return {cashuToken: undefined, proofsToSend: undefined};
         }
 
         //selectProofs
@@ -214,9 +281,12 @@ export const usePayment = () => {
         const res = await wallet.selectProofsToSend(proofs, amount)
 
         console.log('res', res);
-        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, selectedProofs);
+        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, selectedProofs, {includeFees:true});
         const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, res?.send);
+        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, res?.send);
+        // const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(amount, res?.send);
         console.log('proofsToKeep', proofsToKeep);
+        console.log('proofsToSend', proofsToSend);
 
         if (proofsToKeep && proofsToSend) {
           if (privateKey && publicKey) {
@@ -266,17 +336,18 @@ export const usePayment = () => {
               bolt11: cashuToken,
             };
             setTransactions([...transactions, newInvoice]);
-            return cashuToken;
+            return {cashuToken, proofsToSend};
           } else {
-            return undefined;
+            return {cashuToken: undefined, proofsToSend: undefined};
           }
         }
-        return undefined;
+        return {cashuToken: undefined, proofsToSend: undefined} ;
       }
 
-      return undefined;
+      return {cashuToken: undefined, proofsToSend: undefined};
     } catch (e) {
-      return undefined;
+      console.log("handleGenerateEcash error", e)
+      return {cashuToken: undefined, proofsToSend: undefined};
     }
   };
 
@@ -289,7 +360,12 @@ export const usePayment = () => {
       const decodedToken = getDecodedToken(ecashToken);
       console.log('decodedToken', decodedToken);
       console.log('wallet', wallet);
-      const receiveEcashProofs = await wallet?.receive(decodedToken);
+      const keysets = await wallet?.getKeySets()
+      console.log('keysets', keysets);
+      const receiveEcashProofs = await wallet?.receive(decodedToken, {
+        keysetId: keysets[0].id,
+        // keys: keysets[0].keys,
+      });
       console.log('receiveEcashProofs', receiveEcashProofs);
       if (receiveEcashProofs?.length > 0) {
         const proofsAmount = receiveEcashProofs.reduce((acc, item) => acc + item.amount, 0);
@@ -334,5 +410,6 @@ export const usePayment = () => {
     handlePayInvoice,
     handleGenerateEcash,
     handleReceiveEcash,
+    handleGetProofs
   };
 };

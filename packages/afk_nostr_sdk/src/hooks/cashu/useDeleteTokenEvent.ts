@@ -35,7 +35,8 @@ export const useDeleteTokenEvent = () => {
 
       // Add the event reference tag
       deletionEvent.tags = [
-        ['e', eventId], // Reference to the event being deleted
+        ['e', eventId],
+        ["k", "7375"] // Reference to the event being deleted
       ];
       deletionEvent.pubkey = publicKey;
 

@@ -44,6 +44,7 @@ export default ThemedStyleSheet((theme) => ({
     marginTop: 10,
     textAlign: 'left',
     fontStyle: 'italic',
+    fontSize:12,
   },
   mainTitle: {
     color: theme.colors.textPrimary,

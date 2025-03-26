@@ -9,6 +9,9 @@ import { useNostrAuth, useStyles, useTheme } from '../../../hooks';
 import { useCreateDao } from '../../../hooks/dao/useCreateDao';
 import { useToast, useWalletModal } from '../../../hooks/modals';
 import stylesheet from './styles';
+import { StarkConnectModal } from 'src/modules/Login/StarkModal';
+import { LoginStarknet } from 'src/modules/Login/StarknetLogin';
+import { StarkConnectComponent } from 'src/modules/Login/StarkConnectComponent';
 
 type Dao = {
   tokenAddress: string;
@@ -27,6 +30,7 @@ export const CreateDaoModal = ({ closeModal }: { closeModal: () => void }) => {
   const account = useAccount();
   const walletModal = useWalletModal();
 
+  const [isOpenStarknet, setIsOpenStarknet] = useState(false);
   const [tokenAddress, setTokenAddress] = useState('');
 
   const isInvalid = tokenAddress.length === 0 || !publicKey || !account.address;
@@ -80,11 +84,43 @@ export const CreateDaoModal = ({ closeModal }: { closeModal: () => void }) => {
         <TextInput style={styles.input} value={publicKey} editable={false} />
         <Text style={styles.inputLabel}>Starknet Address:</Text>
         <TextInput style={styles.input} value={account?.address} editable={false} />
-        {!account.isConnected && (
+        {/* {!account.isConnected && (
           <TouchableOpacity onPress={onConnect}>
             <Text style={{ textDecorationLine: 'underline' }}>connect your wallet</Text>
           </TouchableOpacity>
+        )} */}
+        <TouchableOpacity onPress={() => {
+          onConnect();
+          setIsOpenStarknet(!isOpenStarknet);
+        }}>
+          <Text style={{ textDecorationLine: 'underline' }}>connect your wallet</Text>
+        </TouchableOpacity>
+        {/* {!account.isConnected && (
+          <TouchableOpacity onPress={() => {
+            onConnect();
+            setIsOpenStarknet(!isOpenStarknet);
+          }}>
+            <Text style={{ textDecorationLine: 'underline' }}>connect your wallet</Text>
+          </TouchableOpacity>
+        )} */}
+
+        {isOpenStarknet && (
+          <View>
+            {/* <TouchableOpacity onPress={() => {
+              onConnect();
+              setIsOpenStarknet(!isOpenStarknet);
+            }}>
+              <Text style={{ textDecorationLine: 'underline' }}>connect your wallet</Text>
+            </TouchableOpacity> */}
+
+            {account?.address &&
+              <Text>Starknet Address: {account?.address.slice(0, 3)}...{account?.address.slice(-5)}</Text>
+            }
+            <StarkConnectComponent></StarkConnectComponent>
+            {/* <TextInput style={styles.input} value={account?.address} editable={false} /> */}
+          </View>
         )}
+
 
         <TouchableOpacity
           disabled={isInvalid || isPending}

@@ -134,18 +134,18 @@ export const TokenLaunchCard: React.FC<LaunchCoinProps> = ({
         {/* <Text style={styles.price}>MC {Number(token?.market_cap || 0).toFixed(4)}</Text> */}
       </View>
 
-
-      <View style={styles.imageContainer}>
-        {token?.url &&
-          <Image source={{ uri: token?.url }} style={[styles.contentImage,
-            // {
-            //   // height: dimensionsMedia[1],
-            //   // aspectRatio: getImageRatio(postSource.width, postSource.height),
-            // },
-          ]} />
-        }
-      </View>
-
+      {token?.url && token?.url?.length > 0 &&
+        <View style={styles.imageContainer}>
+          {token?.url &&
+            <Image source={{ uri: token?.url }} style={[styles.contentImage,
+              // {
+              //   // height: dimensionsMedia[1],
+              //   // aspectRatio: getImageRatio(postSource.width, postSource.height),
+              // },
+            ]} />
+          }
+        </View>
+      }
 
       <View style={styles.divider} />
       {

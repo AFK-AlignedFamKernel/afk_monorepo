@@ -1,5 +1,4 @@
 use afk_launchpad::types::launchpad_types::{TokenLaunch,};
-use starknet::ContractAddress;
 const BPS: u256 = 10_000;
 const DECIMAL_FACTOR: u256 = 1_000_000_000_000_000_000_u256;
 const MIN_PRICE: u256 = 1_u256;

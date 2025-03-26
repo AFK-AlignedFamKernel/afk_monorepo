@@ -5,6 +5,8 @@ import {Spacing, ThemedStyleSheet} from '../../styles';
 export default ThemedStyleSheet((theme) => ({
   modal: {
     paddingBottom: Spacing.xxlarge,
+    scrollbarWidth: 'none',
+    scrollbarHeight: 'none',
     // width:Dimensions.get("window").width >= 1024 ? 300 : "100%",
   },
 

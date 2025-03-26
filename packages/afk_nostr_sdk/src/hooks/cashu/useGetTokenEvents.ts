@@ -70,29 +70,44 @@ export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions) => {
 
       const tokenEvents = await ndk.fetchEvents(filter);
 
-      // If no proof IDs to filter by, return all events
-      if (!options?.proofIds?.length) {
-        return [...tokenEvents];
-      }
+      // // If no proof IDs to filter by, return all events
+      // if (!options?.proofIds?.length) {
+      //   return [...tokenEvents];
+      // }
 
       // Filter events by proof IDs
       const signer = new NDKPrivateKeySigner(privateKey);
       const user = new NDKUser({pubkey: publicKey});
+
+
+      console.log("tokenEvents", tokenEvents);
 
       const filteredEvents = await Promise.all(
         [...tokenEvents].map(async (event) => {
           try {
             // Decrypt the event content
             const decryptedContent = await signer.nip44Decrypt(user, event.content);
-
             const content: TokenEventContent = JSON.parse(decryptedContent);
 
             // Check if any of the proofs match the filter
-            const hasMatchingProof = content.proofs.some((proof) =>
-              options.proofIds?.includes(proof.id),
-            );
 
-            return hasMatchingProof ? event : null;
+            if(options?.proofIds) {
+              const hasMatchingProof = content?.proofs?.some((proof) =>
+                options?.proofIds?.includes(proof?.id),
+              );
+              let eventToReturn = {
+                ...event,
+                content: content,
+              };
+              return hasMatchingProof ? eventToReturn : null;
+            } else {
+              let eventToReturn = {
+                ...event,
+                content: content,
+              };
+              return eventToReturn;
+            }
+
           } catch (error) {
             console.error('Error decrypting event:', error);
             return null;

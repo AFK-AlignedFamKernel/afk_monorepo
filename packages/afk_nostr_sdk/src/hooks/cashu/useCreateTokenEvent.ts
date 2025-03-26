@@ -43,27 +43,33 @@ export const useCreateTokenEvent = () => {
       }>;
       event_id_dels?: string[];
     }) => {
-      const signer = new NDKPrivateKeySigner(privateKey);
-      const user = new NDKUser({ pubkey: publicKey });
-      const content = await signer.nip44Encrypt(
-        user,
-        JSON.stringify({
-          mint,
-          proofs,
-          "del": [event_id_dels?.map((id) => id)]
-        }),
-      );
-
-      const event = new NDKEvent(ndk);
-
-      event.kind = NDKKind.CashuToken;
-      event.content = content;
-      // event.tags = [['a', `37375:${publicKey}:${walletId}`]];
-
-      await event.sign(signer);
-
-      await event.publish();
-      return event;
+      try {
+        const signer = new NDKPrivateKeySigner(privateKey);
+        const user = new NDKUser({ pubkey: publicKey });
+        const content = await signer.nip44Encrypt(
+          user,
+          JSON.stringify({
+            mint,
+            proofs,
+            "del": [event_id_dels?.map((id) => id)]
+          }),
+        );
+  
+        const event = new NDKEvent(ndk);
+  
+        event.kind = NDKKind.CashuToken;
+        event.content = content;
+        // event.tags = [['a', `37375:${publicKey}:${walletId}`]];
+  
+        await event.sign(signer);
+  
+        await event.publish();
+        return event;  
+      } catch (error) {
+        console.log("error",error)
+        
+      }
+      
     },
   });
 };

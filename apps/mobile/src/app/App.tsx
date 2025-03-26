@@ -10,9 +10,10 @@ import {View} from 'react-native';
 import {useTips} from '../hooks/api/indexer/useTips';
 import {useDialog, useToast} from '../hooks/modals';
 import {Router} from './Router';
-import { useCashu, useCashuStore } from 'afk_nostr_sdk';
+import { NostrKeyManager, useAuth, useCashu, useCashuStore } from 'afk_nostr_sdk';
 import { retrieveAndDecryptCashuMnemonic, retrievePassword } from 'src/utils/storage';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
+import { setupDatabase } from 'src/utils/database';
 // import '../styles/index.css'; 
 // import '../styles/global.css';
 
@@ -27,8 +28,32 @@ export default function App() {
   const [appIsReady, setAppIsReady] = useState(false);
   const [sentTipNotification, setSentTipNotification] = useState(false);
 
+  const [isFirstLoadNostrData, setIsFirstLoadNostrData] = useState(false);
+  const [isFirstLoadCashuData, setIsFirstLoadCashuData] = useState(false);
   const tips = useTips();
   const {showToast} = useToast();
+  const {setAuth} = useAuth()
+  const {
+    wallet,
+    connectCashMint,
+    connectCashWallet,
+    requestMintQuote,
+    // generateMnemonic,
+    derivedSeedFromMnenomicAndSaved,
+    mint,
+    activeMintIndex,
+    mintUrls,
+    setMintInfo,
+    getMintInfo,
+  } = useCashu();
+  const { isSeedCashuStorage, setIsSeedCashuStorage, hasSeedCashu, setHasSeedCashu, setMnemonic} = useCashuStore();
+
+  const {showDialog, hideDialog} = useDialog();
+
+  const account = useAccount();
+
+  const {seed, setSeed, setSeedString} = useCashuStore();
+  const {publicKey, privateKey} = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -48,10 +73,6 @@ export default function App() {
       }
     })();
   }, []);
-
-  const {showDialog, hideDialog} = useDialog();
-
-  const account = useAccount();
 
   useEffect(() => {
     const chainId = account.chainId ? starknetChainId(account.chainId) : undefined;
@@ -76,7 +97,27 @@ export default function App() {
     const interval = setInterval(() => tips.refetch(), 2 * 60 * 1_000);
     return () => clearInterval(interval);
   }, [tips]);
+  const [isDbReady, setIsDbReady] = useState(false);
 
+  useEffect(() => {
+    const initializeDb = async () => {
+      try {
+        const success = await setupDatabase();
+        if (success) {
+          console.log("Database initialized successfully");
+        } else {
+          console.error("Failed to initialize database");
+        }
+        setIsDbReady(true);
+      } catch (error) {
+        console.error("Database initialization error:", error);
+        setIsDbReady(true); // Continue anyway to not block the app
+      }
+    };
+
+    initializeDb();
+  }, []);
+  
   useEffect(() => {
     if (sentTipNotification) return;
 
@@ -91,21 +132,6 @@ export default function App() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tips?.data]);
-  const {
-    wallet,
-    connectCashMint,
-    connectCashWallet,
-    requestMintQuote,
-    // generateMnemonic,
-    derivedSeedFromMnenomicAndSaved,
-    mint,
-    activeMintIndex,
-    mintUrls,
-    setMintInfo,
-    getMintInfo,
-  } = useCashu();
-  const { isSeedCashuStorage, setIsSeedCashuStorage, hasSeedCashu, setHasSeedCashu, setMnemonic} = useCashuStore();
-
 
   // Auto load session:
   // Cashu seed
@@ -133,6 +159,52 @@ export default function App() {
       }
     })();
   }, []);
+
+
+  useEffect(() => {
+    
+    const handleSeed = async () => {
+      const nostrAccountStr = await NostrKeyManager.getAccountConnected();
+      const nostrAccount = JSON.parse(nostrAccountStr);
+
+      if(nostrAccount && nostrAccount?.seed) {
+
+        setSeedString(nostrAccount?.seed)
+        const seedUint = Buffer.from(nostrAccount?.seed, 'hex');
+        setSeed(seedUint)
+      }
+
+      if(nostrAccount && nostrAccount?.mnemonic) {
+        setMnemonic(nostrAccount?.mnemonic)
+      }
+
+
+    }
+
+    if(!seed && publicKey && privateKey && !isFirstLoadCashuData) {
+      handleSeed()
+      setIsFirstLoadCashuData(true)
+    }
+  }, [seed, publicKey, privateKey, isFirstLoadCashuData])
+
+
+  useEffect(() => {
+    
+    const handleLastNostrAccountConnected = async () => {
+      console.log("handleLastNostrAccountConnected")
+      const nostrAccountStr = await NostrKeyManager.getAccountConnected();
+      const nostrAccount = JSON.parse(nostrAccountStr);
+      if(nostrAccount && nostrAccount?.publicKey && nostrAccount?.secretKey) {
+        setAuth(nostrAccount?.publicKey, nostrAccount?.secretKey)
+      }
+    }
+
+    if(!publicKey && !privateKey && !isFirstLoadNostrData) {
+      handleLastNostrAccountConnected()
+      setIsFirstLoadNostrData(true)
+    }
+  }, [publicKey, privateKey, isFirstLoadNostrData])
+
 
   useEffect(() => {
     (async () => {

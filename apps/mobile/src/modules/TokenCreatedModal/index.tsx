@@ -76,7 +76,7 @@ export const TokenCreateModal = forwardRef<Modalize, TokenCreateModalProps>(
           ></FormInstantiateKey>
         } */}
 
-        <Text
+        {/* <Text
           weight="semiBold"
           color="inputPlaceholder"
           fontSize={13}
@@ -84,7 +84,7 @@ export const TokenCreateModal = forwardRef<Modalize, TokenCreateModalProps>(
           style={styles.comment}
         >
           Launch & pump the coins!
-        </Text>
+        </Text> */}
       </Modalize>
     );
   },

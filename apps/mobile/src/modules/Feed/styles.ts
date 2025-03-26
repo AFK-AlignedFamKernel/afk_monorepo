@@ -18,6 +18,8 @@ export default ThemedStyleSheet((theme) => ({
   flatListContent: {
     marginTop: 10,
     paddingHorizontal: 25,
+    scrollbarWidth: "none",
+    scrollbarHeight: "none",
   },
 
   createPostButton: {

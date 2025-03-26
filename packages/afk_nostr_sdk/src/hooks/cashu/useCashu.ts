@@ -19,7 +19,7 @@ import { bytesToHex } from '@noble/curves/abstract/utils';
 import { NDKCashuToken } from '@nostr-dev-kit/ndk-wallet';
 import * as Bip39 from 'bip39';
 import { useEffect, useMemo, useState } from 'react';
-
+import { getProofs as getProofsStorage, storeProofs as storeProofsStorage } from '../../storage';
 import { useNostrContext } from '../../context';
 import { useAuth, useCashuStore } from '../../store';
 import { generateMnemonic } from 'bip39';
@@ -116,12 +116,16 @@ export interface ICashu {
   setWalletConnected: React.Dispatch<React.SetStateAction<CashuWallet | undefined>>;
   walletConnected: CashuWallet | undefined;
   getUnitBalanceWithProofsChecked: (unit: string, pMint: MintData, proofs: Proof[]) => Promise<number>;
+  handleWebsocketProofs: (mergedProofsParents?: Proof[]) => Promise<void>;
 }
 
 export const useCashu = (): ICashu => {
   const { ndkCashuWallet } = useNostrContext();
   const { privateKey } = useAuth();
   const { setSeed, seed, setMnemonic } = useCashuStore();
+
+  
+  const [isWebsocketProofs, setIsWebsocketProofs] = useState<boolean>(false);
 
   const [mintUrlSelected, setMintUrlSelected] = useState<string>("https://mint.minibits.cash/Bitcoin");
 
@@ -159,25 +163,56 @@ export const useCashu = (): ICashu => {
   }, [activeMintIndex]);
 
 
-  const [walletConnected, setWalletConnected] = useState<CashuWallet | undefined>();
+  const [walletConnected, setWalletConnected] = useState<CashuWallet | undefined>(new CashuWallet(mint, {
+    bip39seed: seed,
+    // unit: activeUnit,
+    // keysets: keysetsMint,
+    // keys: keysMint,
+    // keysets: (await keysets).keysets || [],
+  }));
 
-  const wallet = useMemo(() => {
+
+
+  const [keysetsMint, setKeysetsMint] = useState<MintKeyset[]>([]);
+  const [keysMint, setKeysMint] = useState<MintKeys[]>([]);
+  const keysets = useMemo(async () => {
+    const keysets = await mint?.getKeySets();
+    const keys = await mint?.getKeys();
+    setKeysetsMint(keysets?.keysets || []);
+    setKeysMint(keys?.keysets || []);
+    return keysets;
+  }, [mint, activeUnit, activeMint]);
+
+  const wallet = useMemo( () => {
+
+    let newWallet:CashuWallet | undefined;
+    console.log('keysetsMint', keysetsMint);
+    // const keysets = await mint?.getKeySets();
     if (mint) {
-      return new CashuWallet(mint, {
+      newWallet = new CashuWallet(mint, {
         bip39seed: seed,
-        // unit: activeUnit,
+        unit: activeUnit,
+        // keysets: keysetsMint,
+        // keys: keysMint,
+        // keysets: (await keysets).keysets || [],
       });
+      // setWalletConnected(newWallet);
     }
     if (mint && !seed) {
-      return new CashuWallet(mint, {
+      newWallet = new CashuWallet(mint, {
         // bip39seed: seed,
         unit: activeUnit,
+        // keysets: keysetsMint,
+        // keys: keysMint,
+        // keysets: (await keysets).keysets || [],
       });
+      setWalletConnected(newWallet);
     }
+    if(newWallet) return newWallet;
     if (walletConnected) return walletConnected;
 
 
-  }, [mint, seed, activeUnit]);
+  }, [mint, seed, activeUnit,keysetsMint, walletConnected]);
 
   useEffect(() => {
     if (mint) {
@@ -189,6 +224,7 @@ export const useCashu = (): ICashu => {
     }
   }, [mint, mintUrls, activeMintIndex]);
 
+  
   /** TODO saved in secure store */
   const generateNewMnemonic = () => {
     try {
@@ -206,6 +242,69 @@ export const useCashu = (): ICashu => {
     setSeed(seedDerived);
     return seedDerived;
   };
+
+
+
+  const handleWebsocketProofs = async (mergedProofsParents?: Proof[]) => {
+    try {
+      console.log("handleWebsocketProofs")
+      if (!wallet) {
+        console.log("handleWebsocketProofs wallet not found")
+        return;
+      }
+
+      let mergedProofs = mergedProofsParents;
+     
+      console.log("handleWebsocketProofs mergedProofs", mergedProofs)
+      // storeProofs(mergedProofs);
+      const data = await new Promise<ProofState>((res) => {
+        try {
+          if (wallet) {
+            wallet?.onProofStateUpdates(
+              mergedProofs,
+              (p) => {
+                if (p.state === CheckStateEnum.SPENT) {
+                  res(p);
+                  const proofsStr = getProofsStorage();
+                  const proofs = JSON.parse(proofsStr);
+                  // console.log("onProofStateUpdates proofs", proofs)
+                  console.log("onProofStateUpdates mergedProofs", mergedProofs)
+                  let proofsFiltered = mergedProofs.filter((proof: Proof) => proof.C !== p?.proof?.C);
+
+
+                  proofsFiltered = Array.from(new Set(proofsFiltered.map((p) => p)));
+                  console.log("data onProofStateUpdates proofsFiltered", proofsFiltered)
+
+                  // TODO create spending event
+                  // update tokens events
+                  // update storage proofs
+                  // console.log("proofsFiltered", proofsFiltered)
+                  storeProofsStorage([...proofsFiltered]);
+                  // setProofsStore([...proofsFiltered]);
+                }
+              },
+              (e) => {
+                console.log(e);
+              }
+            );
+            // wallet.swap(21, proofs);
+          }
+        } catch (error) {
+          console.log("error websocket connection", error)
+
+        }
+
+
+      });
+      setIsWebsocketProofs(true);
+      console.log("data onProofStateUpdates proofs websocket", data)
+
+    } catch (error) {
+      console.log("handleWebsocketProofs errror", error)
+    }
+
+  }
+
 
   const connectCashMint = async (mintUrl: string) => {
     const mintCashu = new CashuMint(mintUrl);
@@ -234,13 +333,14 @@ export const useCashu = (): ICashu => {
   const connectCashWallet = async (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => {
     if (!mint && !cashuMint) return undefined;
     const mnemonic = generateMnemonic(128);
-    const mintKeysset = await mint?.getKeys();
+    const mintKeysset = await mint?.getKeySets();
     setActiveMint(cashuMint.mintUrl);
     const wallet = new CashuWallet(cashuMint, {
       bip39seed: seed,
+      unit: activeUnit,
       // mnemonicOrSeed: mnemonic,
       // keys:keys
-      // keys: keys ?? mintKeysset,
+      // keysets: mintKeysset?.keysets || [],
     });
     // setWallet(wallet);
     setWalletConnected(wallet);
@@ -297,6 +397,10 @@ export const useCashu = (): ICashu => {
       await getUnitKeysets(unit, pMint).then((unitKeySets) => {
         unitProofs = proofsLocal.filter((p) => unitKeySets.map((k) => k.id).includes(p.id));
       });
+    }else {
+      await getUnitKeysets(unit, pMint).then((unitKeySets) => {
+        unitProofs = proofsLocal.filter((p) => unitKeySets.map((k) => k.id).includes(p.id));
+      }); 
     }
     return unitProofs;
   };
@@ -376,11 +480,16 @@ export const useCashu = (): ICashu => {
 
   const meltTokens = async (invoice: string, pProofs: Proof[]) => {
     try {
+      console.log('meltTokens');
+      console.log('wallet', wallet);
       if (!wallet) return;
+
+      // let walletToUse = wallet;
       const meltQuote = await wallet?.createMeltQuote(invoice);
 
       console.log('meltQuote', meltQuote);
-      const amountToSend = meltQuote.amount + meltQuote.fee_reserve;
+      // const amountToSend = meltQuote.amount + meltQuote.fee_reserve;
+      const amountToSend = meltQuote.amount;
       const totalProofsAvailable = pProofs.reduce((acc, p) => acc + p.amount, 0);
       if (totalProofsAvailable < amountToSend) {
         console.log('totalProofsAvailable < amountToSend', totalProofsAvailable, amountToSend);
@@ -405,6 +514,10 @@ export const useCashu = (): ICashu => {
       const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(
         amountToSend,
         selectedProofs,
+        // {
+        //   includeFees:true,
+        //   keysetId: (await keysets).keysets[0].id,
+        // }
       );
       const meltResponse = await wallet.meltProofs(meltQuote, proofsToSend);
 
@@ -621,6 +734,7 @@ export const useCashu = (): ICashu => {
     mintUrlSelected,
     setWalletConnected,
     walletConnected,
-    getUnitBalanceWithProofsChecked
+    getUnitBalanceWithProofsChecked,
+    handleWebsocketProofs
   };
 };

@@ -8,6 +8,7 @@ export default ThemedStyleSheet((theme) => ({
     backgroundColor: theme.colors.bg,
     padding: 40,
     color: theme.colors.textPrimary,
+    maxWidth: 250,
   },
   sidebarMobile: {
     width: '100%',
@@ -53,6 +54,7 @@ export default ThemedStyleSheet((theme) => ({
   sidebarItemsContainer: {
     flexDirection: 'column',
     gap: 24,
+    width: '100%',
   },
   title: {
     fontWeight: 'bold',

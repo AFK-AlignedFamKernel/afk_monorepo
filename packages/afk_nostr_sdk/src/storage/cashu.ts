@@ -9,6 +9,7 @@ export const KEY_CASHU_STORE = {
   PROOFS: 'PROOFS',
   PROOFS_SPENT: 'PROOFS_SPENT',
   TRANSACTIONS: 'TRANSACTIONS',
+  PROOFS_BY_MINT:"PROOFS_BY_MINT_",
 };
 export const storeTokens = (tokens: Token[]) => {
   localStorage.setItem(KEY_CASHU_STORE.TOKENS, JSON.stringify(tokens));
@@ -29,7 +30,9 @@ export const getQuotes = () => {
 export const storeProofs = (proofs: Proof[]) => {
   localStorage.setItem(KEY_CASHU_STORE.PROOFS, JSON.stringify(proofs));
 };
-
+export const storeProofsByMint= (proofs: Proof[], mint:string) => {
+  localStorage.setItem(KEY_CASHU_STORE.PROOFS_BY_MINT, JSON.stringify(proofs));
+};
 export const getProofs = () => {
   return localStorage.getItem(KEY_CASHU_STORE.PROOFS);
 };

@@ -21,6 +21,7 @@ export {
   useGetRecipientNutZapInfo,
   useRecordNutZapRedemption,
   useSetNutZapPreferences,
+  useMintTrusted,
 } from './cashu';
 export {useChannels} from './channel/useChannels';
 export {useCreateChannel} from './channel/useCreateChannel';
@@ -83,3 +84,4 @@ export {useConnectNWC} from './zap/useZap';
 export {useSendZapNote} from './zap/useZap';
 export {useAddHashtagInterests} from './hashtag/useAddHashtagInterests';
 export {useQuote} from './useQuote';
+export {useGetSpendingTokens} from './cashu/useGetSpendingTokens';

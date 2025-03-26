@@ -14,11 +14,13 @@ export default ThemedStyleSheet((theme: Theme) => ({
     flexDirection: 'row',
     gap: Spacing.normal,
     padding: Spacing.normal,
+    scrollbarWidth: "none",
+    scrollbarHeight: "none",
   },
   leftColumn: {
     width: '35%',
-    maxWidth: 400,
-    minWidth: 300,
+    maxWidth: 350,
+    minWidth: 270,
   },
   rightColumn: {
     flex: 1,
@@ -41,10 +43,13 @@ export default ThemedStyleSheet((theme: Theme) => ({
     gap: 10,
     paddingTop: 10,
     marginBottom: 10,
+    padding:10,
   },
   mobileContent: {
     flex: 1,
     flexDirection: 'column',
+    scrollbarWidth: "none",
+    scrollbarHeight: "none",
   },
   mobileTabBar: {
     borderTopWidth: 1,

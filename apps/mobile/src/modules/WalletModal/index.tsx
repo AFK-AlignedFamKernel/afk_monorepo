@@ -25,7 +25,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
   const {open: openEVM} = useAppKit();
   const {showEvmWallet} = useEvmWallet();
   return (
-    <Modal style={{zIndex: 100}}>
+    <Modal style={{zIndex: 1000}}>
       <Text fontSize={16} weight="semiBold">
         Please choose a wallet to connect
       </Text>

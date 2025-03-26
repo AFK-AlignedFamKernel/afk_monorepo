@@ -70,6 +70,7 @@ import { ThemedStyleSheet } from '../styles';
 // Utilities
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
 import { initGoogleAnalytics, logPageView } from '../utils/analytics';
+import RightSidebar from 'src/modules/Layout/RightSideBar';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -285,7 +286,8 @@ const MainNavigator: React.FC = () => {
         headerTintColor: theme.theme.colors.text,
         overlayColor: theme.theme.colors.overlay70,
         drawerStyle: {
-          width: isDesktop ? 350 : 300,
+          maxWidth: 250,
+          // width: isDesktop ? 350 : 300,
         },
       })}
     >

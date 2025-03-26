@@ -6,7 +6,7 @@ import { ICashuInvoice } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
 import { randomUUID } from 'expo-crypto';
 import React, { useState } from 'react';
-import { Modal, SafeAreaView, TouchableOpacity, View } from 'react-native';
+import { Modal, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Text, TextInput } from 'react-native';
 
 import { CloseIcon, CopyIconStack, ScanQrIcon } from '../../../../assets/icons';
@@ -23,6 +23,7 @@ import {
 import { useCashuContext } from '../../../../providers/CashuProvider';
 import stylesheet from './styles';
 import { useToast } from '../../../../hooks/modals';
+import { invoicesApi } from 'src/utils/database';
 
 interface ReceiveProps {
   onClose: () => void;
@@ -77,6 +78,8 @@ export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
         unit: activeUnit,
       };
 
+      invoicesApi.add(cashuInvoice)
+      invoicesApi.setAll([...invoices, cashuInvoice])
       if (invoices) {
         setInvoices([...invoices, cashuInvoice]);
       } else {
@@ -177,7 +180,11 @@ export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
       case 'lightning':
         return (
           <>
-            <View style={styles.modalTabContentContainer}>
+            <ScrollView style={styles.modalTabContentContainer}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.modalTabContentContainerChildren}
+            >
               <TouchableOpacity
                 onPress={onClose}
                 style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
@@ -236,13 +243,17 @@ export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
                   </View>
                 ) : null}
               </>
-            </View>
+            </ScrollView>
           </>
         );
       case 'ecash':
         return (
           <>
-            <View style={styles.modalTabContentContainer}>
+            <ScrollView style={styles.modalTabContentContainer}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.modalTabContentContainerChildren}
+            >
               <TouchableOpacity
                 onPress={onClose}
                 style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
@@ -279,7 +290,7 @@ export const Receive: React.FC<ReceiveProps> = ({ onClose }) => {
               <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
                 <ScanQRCode onClose={handleCloseScanner} onSuccess={onClose} />
               </Modal>
-            </View>
+            </ScrollView>
           </>
         );
       default:

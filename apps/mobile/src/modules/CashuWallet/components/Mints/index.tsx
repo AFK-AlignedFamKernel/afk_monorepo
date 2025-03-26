@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../../../applyGlobalPolyfills';
 
-import {GetInfoResponse} from '@cashu/cashu-ts';
-import {useAuth, useCreateWalletEvent} from 'afk_nostr_sdk';
-import {MintData} from 'afk_nostr_sdk';
-import {getRandomBytes, randomUUID} from 'expo-crypto';
-import React, {useEffect, useState} from 'react';
-import {FlatList, Modal, TouchableOpacity, View} from 'react-native';
-import {Text, TextInput} from 'react-native';
+import { GetInfoResponse } from '@cashu/cashu-ts';
+import { useAuth, useCreateWalletEvent } from 'afk_nostr_sdk';
+import { MintData } from 'afk_nostr_sdk';
+import { getRandomBytes, randomUUID } from 'expo-crypto';
+import React, { useEffect, useState } from 'react';
+import { FlatList, Modal, Pressable, TouchableOpacity, View } from 'react-native';
+import { Text, TextInput } from 'react-native';
 
-import {CloseIcon, InfoIcon, TrashIcon} from '../../../../assets/icons';
-import {Button} from '../../../../components';
-import {useStyles, useTheme} from '../../../../hooks';
+import { CloseIcon, InfoIcon, TrashIcon } from '../../../../assets/icons';
+import { Button } from '../../../../components';
+import { useStyles, useTheme } from '../../../../hooks';
 import {
   useActiveMintStorage,
   useActiveUnitStorage,
@@ -20,9 +20,11 @@ import {
   useProofsStorage,
   useWalletIdStorage,
 } from '../../../../hooks/useStorageState';
-import {useCashuContext} from '../../../../providers/CashuProvider';
-import {formatCurrency} from '../../../../utils/helpers';
+import { useCashuContext } from '../../../../providers/CashuProvider';
+import { formatCurrency } from '../../../../utils/helpers';
 import stylesheet from './styles';
+import { MintListCashu } from './MintListCashu';
+import { mintsApi } from 'src/utils/database';
 
 export interface UnitInfo {
   unit: string;
@@ -30,18 +32,19 @@ export interface UnitInfo {
 }
 
 export const Mints = () => {
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
+  const [isOpenMintList, setIsOpenMintList] = useState<boolean>(false);
 
-  const {getUnitBalance, setActiveMint, setActiveUnit, setMints, buildMintData} =
+  const { getUnitBalance, setActiveMint, setActiveUnit, setMints, buildMintData } =
     useCashuContext()!;
-  const {publicKey, privateKey} = useAuth();
-  const {value: activeMint, setValue: setActiveMintStorage} = useActiveMintStorage();
-  const {value: mints, setValue: setMintsStorage} = useMintStorage();
-  const {value: proofs} = useProofsStorage();
-  const {setValue: setActiveUnitStorage} = useActiveUnitStorage();
-  const {value: privKey, setValue: setPrivKey} = usePrivKeySignerStorage();
-  const {value: walletId, setValue: setWalletId} = useWalletIdStorage();
+  const { publicKey, privateKey } = useAuth();
+  const { value: activeMint, setValue: setActiveMintStorage } = useActiveMintStorage();
+  const { value: mints, setValue: setMintsStorage } = useMintStorage();
+  const { value: proofs } = useProofsStorage();
+  const { setValue: setActiveUnitStorage } = useActiveUnitStorage();
+  const { value: privKey, setValue: setPrivKey } = usePrivKeySignerStorage();
+  const { value: walletId, setValue: setWalletId } = useWalletIdStorage();
 
   const [mintUnitsMap, setMintUnitsMap] = useState<Map<string, UnitInfo[]>>(new Map());
   const [mintInfo, setMintInfo] = useState<GetInfoResponse | null>(null);
@@ -49,7 +52,7 @@ export const Mints = () => {
   const [newUrl, setNewUrl] = useState<string>('');
   const [newMintError, setNewMintError] = useState<string>('');
 
-  const {mutateAsync: createWalletEvent} = useCreateWalletEvent();
+  const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
 
   // Load units and their balances for each mint
   useEffect(() => {
@@ -124,6 +127,8 @@ export const Mints = () => {
       setWalletId(id);
     }
 
+    mintsApi.add(data)
+    mintsApi.setAll([...mints, data])
     setMints([...mints, data]);
     setMintsStorage([...mints, data]);
 
@@ -131,7 +136,7 @@ export const Mints = () => {
       // nostr event
       await createWalletEvent({
         name: walletId,
-        mints: mints.map((mint) => mint.url),
+        mints: mints?.map((mint) => mint.url),
         privkey: privKey,
       });
     }
@@ -142,6 +147,8 @@ export const Mints = () => {
 
   const handleDeleteMint = (item: MintData) => {
     const filteredMints = mints.filter((mint) => mint.url !== item.url);
+
+    mintsApi.setAll([...filteredMints])
     setMints([...filteredMints]);
     setMintsStorage([...filteredMints]);
 
@@ -149,7 +156,7 @@ export const Mints = () => {
     handleSelectMint(defaultMint);
   };
 
-  const renderMintItem = ({item}: {item: MintData}) => {
+  const renderMintItem = ({ item }: { item: MintData }) => {
     const isSelected = activeMint === item.url;
     const unitsInfo = mintUnitsMap.get(item.url) || [];
 
@@ -216,13 +223,23 @@ export const Mints = () => {
             Add Mint
           </Button>
         ) : null}
+
+
+        <Pressable
+
+          style={{
+            marginTop: 10,
+            padding: 10, borderRadius: 4
+          }}
+          onPress={() => setIsOpenMintList(!isOpenMintList)}> {isOpenMintList ? "Close" : "Recommended Mints"} </Pressable>
+        {isOpenMintList && <MintListCashu />}
       </View>
       <Modal animationType="fade" transparent={true} visible={mintInfo !== null}>
         <View style={styles.mintInfoModalMainContainer}>
           <View style={styles.mintInfoModalContent}>
             <TouchableOpacity
               onPress={() => setMintInfo(null)}
-              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
             >
               <CloseIcon width={30} height={30} color={theme.colors.primary} />
             </TouchableOpacity>

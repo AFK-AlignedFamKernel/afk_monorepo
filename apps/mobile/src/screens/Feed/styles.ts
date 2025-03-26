@@ -50,6 +50,12 @@ export default ThemedStyleSheet((theme) => ({
     padding: 2,
     borderRadius: 0,
     height: 'auto',
+    display:"flex",
+    flexDirection:"row",
+    alignItems:"flex-end",
+    justifyContent:"space-between",
+    gap:10,
+    
   },
   toggleButtonText: {
     color: theme.colors.textPrimary,
@@ -62,8 +68,8 @@ export default ThemedStyleSheet((theme) => ({
     gap: Spacing.xsmall,
     // marginBottom: Spacing.small,
     height: '100%',
-    maxHeight: 70,
-    minHeight: 50,
+    maxHeight: 50,
+    minHeight: 30,
     marginLeft: 20
   },
 

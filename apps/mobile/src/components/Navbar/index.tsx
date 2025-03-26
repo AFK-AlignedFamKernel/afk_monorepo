@@ -7,6 +7,7 @@ import stylesheet from './styles';
 import CustomProfileMenu from '../Starknet/CustomProfile';
 import { Avatar } from '../Avatar';
 import { NostrKeyManager } from 'afk_nostr_sdk';
+import { ProfileManagement } from '../ProfileManagement';
 interface CustomHeaderInterface {
   title?: string;
   navigation?: any;
@@ -27,56 +28,29 @@ export const Navbar = ({ title, navigation, showLogo }: CustomHeaderInterface) =
   return (
     <View style={styles.header}>
       {showLogo && (
-        <View style={styles.logoContainer}>
-          <Image
-            style={styles.logo}
-            //  source={require('../../assets/pepe-logo.png')}
-            source={require('../../assets/afk_logo_circle.png')}
-          />
-          <Text style={styles.headerTitle}>{title}</Text>
+        <TouchableOpacity onPress={() => navigation?.navigate('Home')}>
+          <View style={styles.logoContainer}>
+            <Image
+              style={styles.logo}
+              //  source={require('../../assets/pepe-logo.png')}
+              source={require('../../assets/afk_logo_circle.png')}
+            />
+            <Text style={styles.headerTitle}>{title}</Text>
+            {/* <AFKIcon color={theme.colors.text} width={96} height={16} /> */}
+          </View>
+        </TouchableOpacity>
 
-          {/* <AFKIcon color={theme.colors.text} width={96} height={16} /> */}
-        </View>
       )}
 
       {/* <CustomProfileMenu></CustomProfileMenu> */}
 
 
       <View style={styles.rightContainer}>
-        {/* <View style={styles.profileContainer}>
-          <TouchableOpacity
-            style={styles.profileButton}
-            onPress={() => {
-              // navigation?.navigate('Profile')
-              setIsOpenProfile(!isOpenProfile)
-            }}
-          >
-            <View style={styles.avatarContainer}>
-              <Avatar
-                // style={styles.avatar}
-                source={require('../../assets/pepe-uhoh.png')}
-              // defaultSource={require('../../assets/pepe-uhoh.png')}
-              />
-            </View>
+        {/* todo finish nostr with menu/accordion and login multi account
+        add starknet wallet */}
+        <ProfileManagement isModalMode={true}></ProfileManagement>
+        {/* <NostrProfile></NostrProfile> */}
 
-
-            <Icon name="ChevronDown" size={16} />
-          </TouchableOpacity>
-          {isOpenProfile && (
-            <FlatList
-              style={styles.listProfile}
-              data={nostrAccounts}
-              renderItem={({ item }) => {
-                return (
-                  <View>
-                    <Text>{item.publicKey}</Text>
-                  </View>
-                )
-              }}
-            >
-            </FlatList>
-          )}
-        </View> */}
 
         {!isDesktop && (
           <TouchableOpacity onPress={() => navigation?.openDrawer()} style={styles.burgerIcon}>

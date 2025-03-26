@@ -14,6 +14,7 @@ export default (theme: any) =>
       // borderColor: '#2A2A2A',
       flex: 1,
       maxWidth: '100%',
+      justifyContent: 'space-evenly',
     },
     header: {
       flexDirection: 'column',

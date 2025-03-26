@@ -12,7 +12,7 @@ import { Button, SquareInput, Text } from '../../components';
 import { useStyles, useWaitConnection, useWindowDimensions } from '../../hooks';
 import { DeployTokenFormValues, useCreateToken } from '../../hooks/launchpad/useCreateToken';
 import { useToast, useWalletModal } from '../../hooks/modals';
-import stylesheet from '../../screens/CreateChannel/styles';
+import stylesheet from './styles';
 import { TipSuccessModalProps } from '../TipSuccessModal';
 import { Picker } from '@react-native-picker/picker';
 import { BondingType, MetadataOnchain } from '../../types/keys';
@@ -69,7 +69,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = (props) => {
     initialSupply: undefined,
     contract_address_salt: new Date().getTime()?.toString(),
     recipient: account?.address,
-    is_unruggable:false,
+    is_unruggable: false,
     creator_fee_percent: 0,
     creator_fee_destination: account?.address,
 
@@ -116,7 +116,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = (props) => {
         const data: DeployTokenFormValues = {
           recipient: account?.address,
           // name: byteArray.byteArrayFromString(values.name),
-          name:values.name,
+          name: values.name,
           symbol: values.symbol,
           initialSupply: values?.initialSupply,
           contract_address_salt: values.contract_address_salt,
@@ -140,11 +140,11 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = (props) => {
           bonding_type: values.bonding_type,
         };
 
-        if(!metadata){
+        if (!metadata) {
           tx = await deployTokenAndLaunch(account?.account, data).catch(err => {
             // showToast({ type: 'error', title: err?.message || "Something went wrong" });
             showToast({ type: 'error', title: "Something went wrong when deploy token and launch", description: err?.message || "Something went wrong" });
-  
+
             setLoading(false)
           });
         } else {
@@ -154,7 +154,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = (props) => {
             const result = await fileUpload.mutateAsync(image);
             if (result.data.url) imageUrl = result.data.url;
           }
-      
+
           if (video) {
             const result = await fileUpload.mutateAsync(video);
             if (result.data.url) imageUrl = result.data.url;
@@ -171,12 +171,12 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = (props) => {
           tx = await deployTokenAndLaunchWithMetadata(account?.account, data, metadataPrepared).catch(err => {
             // showToast({ type: 'error', title: err?.message || "Something went wrong" });
             showToast({ type: 'error', title: "Something went wrong when deploy token and launch", description: err?.message || "Something went wrong" });
-  
+
             setLoading(false)
           });
         }
-     
-      
+
+
       }
 
       if (tx) {
@@ -273,10 +273,13 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = (props) => {
                   ))}
               </Picker>
             </View>
-            
+
 
             <View>
-              <Button disabled={loading} variant="primary" onPress={() => setIsOpenFormMetadata(!isOpenFormMetadata)}>
+              <Button disabled={loading} 
+              // variant="primary" 
+              onPress={() => setIsOpenFormMetadata(!isOpenFormMetadata)}
+              >
                 {isOpenFormMetadata ? 'Close' : 'Add Metadata'}
               </Button>
 
@@ -284,7 +287,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = (props) => {
                 <FormMetadataChildren
                   // token={token}
                   // launch={launch}
-                  isModalVisibleProps={isOpenFormMetadata}  
+                  isModalVisibleProps={isOpenFormMetadata}
                   setIsModalVisibleProps={setIsOpenFormMetadata}
                   // imageProps={imageProps}
                   setMetadataProps={setMetadata}
@@ -295,24 +298,41 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = (props) => {
                 />
               )}
             </View>
-            <Button disabled={loading} variant="primary" onPress={() => onSubmitPress(TypeCreate.CREATE)}>
-              Create
-              {loading && type == TypeCreate.CREATE &&
-                <LoadingSpinner size={14} />
-              }
-            </Button>
 
-            <Button disabled={loading} variant="primary" onPress={() => onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)}>
-              Create & Launch
-              {loading && type !== TypeCreate.CREATE &&
-                <LoadingSpinner size={14} />
-              }
-            </Button>
+            <View
+            style={styles.buttonContainer}
+            >
+              <Button disabled={loading} 
+              style={{width: '30%'}}
+              onPress={() => onSubmitPress(TypeCreate.CREATE)}>
+                Create
+                {loading && type == TypeCreate.CREATE &&
+                  <LoadingSpinner size={14} />
+                }
+              </Button>
 
-            <View style={styles.gap} />
+              <Button disabled={loading} variant="primary" onPress={() => onSubmitPress(TypeCreate.CREATE_AND_LAUNCH)}>
+                Create & Launch
+                {loading && type !== TypeCreate.CREATE &&
+                  <LoadingSpinner size={14} />
+                }
+              </Button>
+              <View style={styles.gap} />
+            </View>
+
           </View>
         )}
+
       </Formik>
+      <Text
+        weight="semiBold"
+        color="inputPlaceholder"
+        fontSize={13}
+        align="center"
+        style={styles.comment}
+      >
+        Launch & pump the coins!
+      </Text>
     </ScrollView>
   );
 };

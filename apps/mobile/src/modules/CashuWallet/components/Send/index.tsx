@@ -1,58 +1,70 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../../../applyGlobalPolyfills';
 
-import {Picker} from '@react-native-picker/picker';
-import {MintData} from 'afk_nostr_sdk';
+import { Picker } from '@react-native-picker/picker';
+import { MintData, useGetCashuTokenEvents } from 'afk_nostr_sdk';
 import * as Clipboard from 'expo-clipboard';
-import {randomUUID} from 'expo-crypto';
-import React, {useEffect, useState} from 'react';
+import { randomUUID } from 'expo-crypto';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   Platform,
   SafeAreaView,
+  ScrollView,
   Share,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
 
-import {CloseIcon, CopyIconStack, ScanQrIcon, ShareIcon} from '../../../../assets/icons';
-import {Button, GenerateQRCode, Input, ScanQRCode} from '../../../../components';
-import {AnimatedToast} from '../../../../context/Toast/AnimatedToast';
-import {ToastConfig} from '../../../../context/Toast/ToastContext';
-import {useStyles, useTheme} from '../../../../hooks';
-import {usePayment} from '../../../../hooks/usePayment';
+import { CloseIcon, CopyIconStack, ScanQrIcon, ShareIcon } from '../../../../assets/icons';
+import { Button, GenerateQRCode, Input, ScanQRCode } from '../../../../components';
+import { AnimatedToast } from '../../../../context/Toast/AnimatedToast';
+import { ToastConfig } from '../../../../context/Toast/ToastContext';
+import { useAtomiqLab, useStyles, useTheme } from '../../../../hooks';
+import { usePayment } from '../../../../hooks/usePayment';
 import {
   useActiveMintStorage,
   useActiveUnitStorage,
   useMintStorage,
   useProofsStorage,
 } from '../../../../hooks/useStorageState';
-import {useCashuContext} from '../../../../providers/CashuProvider';
-import {UnitInfo} from '../../../Cashu/MintListCashu';
-import SendNostrContact from '../../../Cashu/SendContact';
+import { useCashuContext } from '../../../../providers/CashuProvider';
+import { UnitInfo } from '../Mints/MintListCashu';
+import SendNostrContact from './SendContact';
 import stylesheet from './styles';
+import { useToast } from 'src/hooks/modals';
+import { Proof } from '@cashu/cashu-ts';
+import { proofsApi, proofsByMintApi, proofsSpentsApi, proofsSpentsByMintApi } from 'src/utils/database';
 
 interface SendProps {
   onClose: () => void;
 }
 
-export const Send: React.FC<SendProps> = ({onClose}) => {
+export const Send: React.FC<SendProps> = ({ onClose }) => {
   type TabType = 'lightning' | 'ecash' | 'contact' | 'none';
-  const tabs = ['lightning', 'ecash', 'contact'] as const;
+  // const tabs = ['lightning', 'ecash', 'contact'] as const;
+  const tabs = ['lightning', 'ecash',
+    // 'contact'
 
-  const {theme} = useTheme();
+  ] as const;
+
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
-  const {handleGenerateEcash, handlePayInvoice} = usePayment();
+  const { handleGenerateEcash, handlePayInvoice } = usePayment();
 
-  const {getUnitBalance, setActiveMint, setActiveUnit} = useCashuContext()!;
+  const { getUnitBalance, setActiveMint, setActiveUnit } = useCashuContext()!;
+  const { data: tokensEvents } = useGetCashuTokenEvents();
 
-  const {value: activeMint, setValue: setActiveMintStorage} = useActiveMintStorage();
-  const {value: mints} = useMintStorage();
-  const {value: proofs} = useProofsStorage();
-  const {setValue: setActiveUnitStorage} = useActiveUnitStorage();
+  const { value: activeMint, setValue: setActiveMintStorage } = useActiveMintStorage();
+  const { value: mints } = useMintStorage();
+  const { value: proofs } = useProofsStorage();
+  const { setValue: setActiveUnitStorage } = useActiveUnitStorage();
 
+  const { handlePayInvoice: handlePayInvoiceAtomiq } = useAtomiqLab();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>('none');
   const [invoice, setInvoice] = useState<string | undefined>();
   const [generatedEcash, setGenerateEcash] = useState('');
@@ -65,6 +77,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
   const [showModalToast, setShowModalToast] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [isGeneratingEcash, setIsGeneratingEcash] = useState(false);
+  const [type, setType] = useState<"CASHU" | "STRK">("CASHU")
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -84,9 +97,30 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
       return;
     }
 
-    const ecash = await handleGenerateEcash(Number(invoiceAmount));
+    console.log("try generate ecash");
 
-    if (!ecash) {
+
+    const proofsMap: Proof[] = proofs || [];
+    let eventsProofs = tokensEvents?.pages[0]?.map((event: any) => {
+      // let eventContent = JSON.parse(event.content);
+      let eventContent = event.content;
+      eventContent?.proofs?.map((proof: any) => {
+        proofsMap.push(proof);
+        return proof;
+      })
+    })
+
+
+    console.log("handle parents proofsMap", proofsMap)
+    const { cashuToken, proofsToSend } = await handleGenerateEcash(Number(invoiceAmount), proofsMap);
+    console.log("ecash generated", cashuToken)
+
+    const oldProofs = await proofsByMintApi.getByMintUrl(activeMint);
+    const proofsToSendFiltered = proofsToSend.filter((proof) => !oldProofs.some((oldProof) => oldProof.C === proof.C));
+    proofsByMintApi.setAllForMint(proofsToSendFiltered, activeMint)
+    proofsSpentsApi.updateMany(proofsToSend)
+    proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
+    if (!cashuToken) {
       setModalToast({
         title: 'Error generating ecash token.',
         type: 'error',
@@ -96,9 +130,9 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
       setIsGeneratingEcash(false);
       return;
     }
-    setGenerateEcash(ecash);
+    setGenerateEcash(cashuToken);
     setIsGeneratingEcash(false);
-    return ecash;
+    return cashuToken;
   };
 
   const handleCopy = async (type: 'ecash' | 'link') => {
@@ -107,7 +141,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
       await Clipboard.setStringAsync(generatedEcash);
     } else if (type === 'link') {
       const baseUrl = window.location.origin;
-      await Clipboard.setStringAsync(`${baseUrl}/receive/ecash/${generatedEcash}`);
+      await Clipboard.setStringAsync(`${baseUrl}/app/receive/ecash/${generatedEcash}`);
     }
     const key = randomUUID();
     setModalToast({
@@ -120,29 +154,64 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
 
   const handleLightningPayment = async () => {
     setIsPaymentProcessing(true);
-    const key = randomUUID();
-    if (!invoice) {
-      setModalToast({
-        title: 'Invoice not found.',
-        type: 'error',
-        key,
-      });
-      setShowModalToast(true);
+    try {
+
+      if (type == "STRK") {
+        const res = await handlePayInvoiceAtomiq(invoice)
+        console.log("res", res)
+        setIsPaymentProcessing(false);
+        if (res) {
+          showToast({ title: 'Payment sent', type: 'success' });
+        } else {
+
+        }
+      } else {
+        const key = randomUUID();
+        if (!invoice) {
+          setModalToast({
+            title: 'Invoice not found.',
+            type: 'error',
+            key,
+          });
+          setShowModalToast(true);
+          setIsPaymentProcessing(false);
+          return;
+        }
+        const { meltResponse, proofsSent, proofsToKeep } = await handlePayInvoice(invoice);
+
+        const proofsToSend = proofsSent || [];
+        // const proofsToKeep = proofsToKeep || [];
+        try {
+          console.log("handleLightningPayment dexie db", proofsToSend)
+          const oldProofs = await proofsByMintApi.getByMintUrl(activeMint);
+          const proofsToKeepFiltered = oldProofs.filter((proof) => !proofsToSend.some((newProof) => newProof.C === proof.C));
+          proofsByMintApi.setAllForMint(proofsToKeep, activeMint)
+          proofsApi.setAll([...proofsToKeep])
+          proofsSpentsApi.updateMany(proofsToSend)
+          proofsSpentsByMintApi.addProofsForMint(proofsToSend, activeMint)
+        } catch (error) {
+          console.log("handleLightningPayment error", error)
+        }
+        setIsPaymentProcessing(false);
+        if (!meltResponse) {
+          setModalToast({
+            title: 'Error processing payment.',
+            type: 'error',
+            key,
+          });
+          setShowModalToast(true);
+        } else {
+          onClose();
+        }
+      }
+    } catch (error) {
+      console.log("handleLightningPayment error", error)
+      showToast({ title: 'Error processing payment.', type: 'error' });
+    } finally {
       setIsPaymentProcessing(false);
-      return;
     }
-    const {meltResponse} = await handlePayInvoice(invoice);
-    setIsPaymentProcessing(false);
-    if (!meltResponse) {
-      setModalToast({
-        title: 'Error processing payment.',
-        type: 'error',
-        key,
-      });
-      setShowModalToast(true);
-    } else {
-      onClose();
-    }
+
+
   };
 
   useEffect(() => {
@@ -207,7 +276,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
     } catch (error) {
       setShowModalToast(true);
       const key = randomUUID();
-      setModalToast({type: 'error', title: 'Failed to paste content.', key});
+      setModalToast({ type: 'error', title: 'Failed to paste content.', key });
     }
   };
 
@@ -240,7 +309,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
           await navigator.clipboard.writeText(`${baseUrl}/app/receive/ecash/${generatedEcash}`);
           const key = randomUUID();
           setShowModalToast(true);
-          setModalToast({type: 'success', title: 'Link copied to clipboard.,', key});
+          setModalToast({ type: 'success', title: 'Link copied to clipboard.,', key });
         }
       } else {
         // Mobile sharing for link
@@ -255,7 +324,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
       console.error('Error sharing link:', error);
       const key = randomUUID();
       setShowModalToast(true);
-      setModalToast({type: 'error', title: 'Error sharing.', key});
+      setModalToast({ type: 'error', title: 'Error sharing.', key });
     }
   };
 
@@ -266,7 +335,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
           <SafeAreaView style={styles.modalTabsMainContainer}>
             <TouchableOpacity
               onPress={onClose}
-              style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+              style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
             >
               <CloseIcon width={30} height={30} color={theme.colors.primary} />
             </TouchableOpacity>
@@ -283,10 +352,14 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
       case 'lightning':
         return (
           <>
-            <View style={styles.modalTabContentContainer}>
+            <ScrollView style={styles.modalTabContentContainer}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.modalTabContentContainerChildren}
+            >
               <TouchableOpacity
                 onPress={onClose}
-                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+                style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
               >
                 <CloseIcon width={30} height={30} color={theme.colors.primary} />
               </TouchableOpacity>
@@ -299,7 +372,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                   style={styles.input}
                 />
                 <View
-                  style={{display: 'flex', gap: 10, flexDirection: 'row', alignItems: 'center'}}
+                  style={{ display: 'flex', gap: 10, flexDirection: 'row', alignItems: 'center' }}
                 >
                   <TouchableOpacity style={styles.pasteButton} onPress={handlePaste}>
                     <Text style={styles.pasteButtonText}>PASTE</Text>
@@ -308,6 +381,17 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                     <ScanQrIcon width={40} height={40} color={theme.colors.primary} />
                   </TouchableOpacity>
                 </View>
+
+                <Text style={styles.text}>{type}</Text>
+
+                <Switch value={type == "STRK"} onValueChange={() => {
+                  if (type == "CASHU") {
+                    setType("STRK")
+                  } else {
+                    setType("CASHU")
+                  }
+                }} > {type}</Switch>
+
 
                 <Button
                   onPress={handleLightningPayment}
@@ -318,7 +402,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                   {isPaymentProcessing ? 'Processing...' : 'Pay invoice'}
                 </Button>
               </>
-            </View>
+            </ScrollView>
             <Modal visible={isScannerVisible} onRequestClose={handleCloseScanner}>
               <ScanQRCode onClose={handleCloseScanner} onSuccess={onClose} />
             </Modal>
@@ -330,7 +414,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
             <View style={styles.modalTabContentContainer}>
               <TouchableOpacity
                 onPress={onClose}
-                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+                style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
               >
                 <CloseIcon width={30} height={30} color={theme.colors.primary} />
               </TouchableOpacity>
@@ -383,15 +467,15 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                     >
                       {selectedMint
                         ? mintUnitsMap
-                            .get(selectedMint?.url)
-                            ?.map((unitInfo) => (
-                              <Picker.Item
-                                key={unitInfo.unit}
-                                label={unitInfo.unit.toUpperCase()}
-                                value={unitInfo.unit}
-                                color={theme.colors.inputText}
-                              />
-                            ))
+                          .get(selectedMint?.url)
+                          ?.map((unitInfo) => (
+                            <Picker.Item
+                              key={unitInfo.unit}
+                              label={unitInfo.unit.toUpperCase()}
+                              value={unitInfo.unit}
+                              color={theme.colors.inputText}
+                            />
+                          ))
                         : null}
                     </Picker>
                     <Text style={styles.modalTabLabel}>Amount</Text>
@@ -423,6 +507,13 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
                   >
                     <Text style={styles.text}>eCash token</Text>
                     <Input
+                      style={{
+                        backgroundColor: theme.colors.surface,
+                        color: theme.colors.inputText,
+                        paddingVertical: 5,
+                        paddingHorizontal: 8,
+                        width: '100%',
+                      }}
                       value={generatedEcash}
                       editable={false}
                       right={
@@ -482,7 +573,7 @@ export const Send: React.FC<SendProps> = ({onClose}) => {
             <View style={styles.modalTabContentContainer}>
               <TouchableOpacity
                 onPress={onClose}
-                style={{position: 'absolute', top: 15, right: 15, zIndex: 2000}}
+                style={{ position: 'absolute', top: 15, right: 15, zIndex: 2000 }}
               >
                 <CloseIcon width={30} height={30} color={theme.colors.primary} />
               </TouchableOpacity>

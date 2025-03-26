@@ -71,7 +71,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
     token: launch?.quote_token,
   });
 
-  const amountOwned = userShare?.data?.amount_owned 
+  const amountOwned = userShare?.data?.amount_owned
 
 
 
@@ -81,8 +81,10 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
       <View style={styles.tradingCard}>
         {/* Token Info Header */}
         <View style={styles.tokenInfo}>
-          <Text style={styles.tokenName}>{launch?.name || 'Token'}</Text>
-          <Text style={styles.tokenPrice}>{`$${launch?.price || '0.00'}`}</Text>
+          {/* <Text style={styles.tokenName}>{launch?.name || 'Token'}</Text> */}
+          {launch?.price &&
+            <Text style={styles.tokenPrice}>{`$${Number(launch?.price).toFixed(6) || '0.00'}`}</Text>
+          }
         </View>
 
         {/* Buy/Sell Toggle */}

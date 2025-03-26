@@ -1,21 +1,24 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import {BarcodeScanningResult, CameraView, useCameraPermissions} from 'expo-camera';
-import {randomUUID} from 'expo-crypto';
+import { BarcodeScanningResult, CameraView, useCameraPermissions } from 'expo-camera';
+import { randomUUID } from 'expo-crypto';
 import jsQR from 'jsqr';
-import React, {useEffect, useRef, useState} from 'react';
-import {Clipboard, Modal, Platform, Text, TouchableOpacity, View} from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Clipboard, Modal, Platform, Switch, Text, TouchableOpacity, View } from 'react-native';
 
-import {CopyIconStack} from '../../assets/icons';
-import {AnimatedToast} from '../../context/Toast/AnimatedToast';
-import {ToastConfig} from '../../context/Toast/ToastContext';
-import {useStyles, useTheme} from '../../hooks';
-import {useToast} from '../../hooks/modals';
-import {usePayment} from '../../hooks/usePayment';
-import {Button} from '../Button';
-import {Input} from '../Input';
+import { CopyIconStack } from '../../assets/icons';
+import { AnimatedToast } from '../../context/Toast/AnimatedToast';
+import { ToastConfig } from '../../context/Toast/ToastContext';
+import { useAtomiqLab, useStyles, useTheme } from '../../hooks';
+import { useToast } from '../../hooks/modals';
+import { usePayment } from '../../hooks/usePayment';
+import { Button } from '../Button';
+import { Input } from '../Input';
 import stylesheet from './styles';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps, MainStackParams } from '../../types';
+import Checkbox from 'expo-checkbox';
+import { TipSuccessModal } from 'src/modules/TipSuccessModal';
+import { SuccessModal } from 'src/modules/SuccessModal';
 
 interface ScanCashuQRCodeProps {
   onClose: () => void;
@@ -26,19 +29,30 @@ interface VideoElementRef extends HTMLVideoElement {
   srcObject: MediaStream | null;
 }
 
-export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess}) => {
+export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({ onClose, onSuccess }) => {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState<boolean>(false);
   const [scannedData, setScannedData] = useState<string | null>(null);
+  const [oldScannedData, setOldScannedData] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [modalProcessing, setModalProcessing] = useState<boolean>(false);
   const [webPermissionGranted, setWebPermissionGranted] = useState<boolean>(false);
   const [modalToast, setModalToast] = useState<ToastConfig | undefined>(undefined);
   const [showModalToast, setShowModalToast] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const {handlePayInvoice, handleReceiveEcash} = usePayment();
-  const {showToast} = useToast();
-  const {theme} = useTheme();
+  const { handlePayInvoice, handleReceiveEcash } = usePayment();
+  const [scannedType, setScannedType] = useState<"CASHU" | "STRK" | "LNURL" | "LNBC">("LNBC")
+  const { showToast } = useToast();
+  const { theme } = useTheme();
   const styles = useStyles(stylesheet);
+  const [type, setType] = useState<"CASHU" | "STRK">("CASHU")
+
+  const [amount, setAmount] = useState<string | undefined>("0")
+  const [isSuccessPay, setIsSuccessPay] = useState<boolean>(false)
+  const [isSuccessReceive, setIsSuccessReceive] = useState<boolean>(false)
+  const [isPreimage , setIsPreimage] = useState<string|undefined>(undefined)
+
+  const { handlePayInvoice: handlePayInvoiceAtomiq, handlePayLnurl } = useAtomiqLab()
 
   const navigation = useNavigation<MainStackNavigationProps>();
   // Web-specific refs and state
@@ -61,10 +75,10 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
     }
   };
 
-  const handleScannedCode = ({data}: BarcodeScanningResult) => {
+  const handleScannedCode = ({ data }: BarcodeScanningResult) => {
     console.log('Scanned data:', data);
     if (!data) {
-      showToast({title: 'Invalid QR code', type: 'error'});
+      showToast({ title: 'Invalid QR code', type: 'error' });
       return;
     }
     cleanup();
@@ -74,53 +88,121 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
   };
 
   const handlePay = async (): Promise<void> => {
-    if (scannedData) {
-      setIsProcessing(true);
-      const {meltResponse:tokens} = await handlePayInvoice(scannedData);
-      if (tokens) {
-        setModalVisible(false);
-        cleanup();
-        onClose();
-        onSuccess();
-      } else {
-        const key = randomUUID();
-        setModalToast({
-          title: 'Error processing payment.',
-          type: 'error',
-          key,
-        });
-        setShowModalToast(true);
-        setIsProcessing(false);
+
+    try {
+      if (scannedData) {
+        setIsProcessing(true);
+
+        if (type == "CASHU") {
+          const { meltResponse: tokens } = await handlePayInvoice(scannedData);
+          if (tokens) {
+            setModalVisible(false);
+            cleanup();
+            onClose();
+            onSuccess();
+            setOldScannedData(scannedData);
+            setIsSuccessPay(true);
+          } else {
+            const key = randomUUID();
+            setModalToast({
+              title: 'Error processing payment.',
+              type: 'error',
+              key,
+            });
+            setShowModalToast(true);
+            setIsProcessing(false);
+          }
+        } else {
+          if (scannedData?.toLowerCase().startsWith('lnurl')) {
+            setModalVisible(false);
+
+            const invoiceAtomiq = await handlePayLnurl(scannedData, Number(amount))
+            console.log("invoiceAtomiq", invoiceAtomiq)
+
+            setModalVisible(true);
+            if (invoiceAtomiq && invoiceAtomiq?.success) {
+              showToast({ title: 'Payment sent', type: 'success' });
+              setIsSuccessPay(true);
+              setIsPreimage(invoiceAtomiq?.lightningSecret);
+              setOldScannedData(scannedData);
+            } else {
+              const key = randomUUID();
+              setModalToast({
+                title: 'Error processing payment.',
+                type: 'error',
+                key,
+              });
+              setShowModalToast(true);
+              setIsProcessing(false);
+            }
+          } else {
+            setModalVisible(false);
+
+            const invoiceAtomiq = await handlePayInvoiceAtomiq(scannedData)
+            console.log("invoiceAtomiq", invoiceAtomiq)
+            setModalVisible(true);
+
+            if (invoiceAtomiq && invoiceAtomiq?.success) {
+              showToast({ title: 'Payment sent', type: 'success' });
+              setIsSuccessPay(true);
+              setIsPreimage(invoiceAtomiq?.lightningSecret);
+              setOldScannedData(scannedData);
+
+            } else {
+              const key = randomUUID();
+              setModalToast({
+                title: 'Error processing payment.',
+                type: 'error',
+                key,
+              });
+              setShowModalToast(true);
+              setIsProcessing(false);
+            }
+          }
+        }
+
       }
+    } catch (error) {
+      console.log("handlePay error", error)
+      showToast({ title: 'Error processing payment.', type: 'error' });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleReceive = async (): Promise<void> => {
-    if (scannedData) {
-      setIsProcessing(true);
-      const response = await handleReceiveEcash(scannedData);
-      if (response) {
-        setModalVisible(false);
-        cleanup();
-        onClose();
-        onSuccess();
-      } else {
-        const key = randomUUID();
-        setModalToast({
-          title: 'Error processing payment.',
-          type: 'error',
-          key,
-        });
-        setShowModalToast(true);
-        setIsProcessing(false);
+    try {
+      if (scannedData) {
+        setIsProcessing(true);
+        const response = await handleReceiveEcash(scannedData);
+        if (response) {
+          setModalVisible(false);
+          cleanup();
+          onClose();
+          onSuccess();
+        } else {
+          const key = randomUUID();
+          setModalToast({
+            title: 'Error processing payment.',
+            type: 'error',
+            key,
+          });
+          setShowModalToast(true);
+          setIsProcessing(false);
+        }
       }
+    } catch (error) {
+      console.log("handleReceive error", error)
+      showToast({ title: 'Error processing payment.', type: 'error' });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleCopyToClipboard = (): void => {
     if (scannedData) {
       Clipboard.setString(scannedData);
-      showToast({title: 'Copied to clipboard', type: 'success'});
+      showToast({ title: 'Copied to clipboard', type: 'success' });
     }
   };
 
@@ -129,7 +211,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
     try {
       if (!webPermissionGranted) {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: {facingMode: 'environment'},
+          video: { facingMode: 'environment' },
         });
         setWebStream(stream);
         setWebPermissionGranted(true);
@@ -139,7 +221,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
       }
     } catch (err) {
       console.error('Error accessing camera:', err);
-      showToast({title: 'Error accessing camera', type: 'error'});
+      showToast({ title: 'Error accessing camera', type: 'error' });
     }
   };
 
@@ -285,7 +367,7 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
             style={styles.cameraWeb}
             playsInline
           />
-          <canvas ref={canvasRef} style={{display: 'none'}} />
+          <canvas ref={canvasRef} style={{ display: 'none' }} />
         </>
       );
     }
@@ -304,35 +386,178 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
     );
   };
 
+
+  const renderSuccessPay = () => {
+
+    if (isSuccessPay) {
+      return (
+
+        <View style={styles.successContainer}>
+
+
+          {scannedData?.toLowerCase().startsWith("lnurl") ?
+            <View>
+              <Text style={styles.successText}>Pay {amount} sats successfully</Text>
+              <Text style={styles.text}>You can send more to this user or close this screen</Text>
+            </View>
+            :
+            <View>
+              <Text style={styles.successText}>This invoice is pay successfully</Text>
+              <Text>You can close this screen</Text>
+            </View>}
+
+          <Button onPress={() => setIsSuccessPay(false)}>Close</Button>
+
+        </View>
+      )
+    }
+
+  }
+
   return (
     <View style={styles.container}>
       {!scanned ? (
         <>
           {Platform.OS !== 'web' || webPermissionGranted ? (
             <View style={styles.header}>
-              <Text style={[styles.headerText, {color: theme.colors.text}]}>Scan QR Code</Text>
+              <Text style={[styles.headerText, { color: theme.colors.text }]}>Scan QR Code</Text>
             </View>
           ) : null}
           {renderCamera()}
           {Platform.OS === 'web' && !webPermissionGranted ? (
-            <View 
-            style={styles.waitingContainer}
+            <View
+              style={styles.waitingContainer}
             >
               <Button onPress={() => {
                 // navigation.goBack();
                 handleScannerClose()
-                }}>Cancel</Button>
+              }}>Cancel</Button>
               <Text style={styles.waitingText}>Waiting for permissions...</Text>
             </View>
           ) : null}
           {Platform.OS !== 'web' || webPermissionGranted ? (
-            <TouchableOpacity onPress={handleScannerClose}>
-              <Text style={styles.cancelText}>Close Scanner</Text>
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity onPress={handleScannerClose}>
+                <Text style={styles.cancelText}>Close Scanner</Text>
+              </TouchableOpacity>
+              <Text style={styles.text}>{type}</Text>
+
+              <Switch value={type == "STRK"} onValueChange={() => {
+                if (type == "CASHU") {
+                  setType("STRK")
+                } else {
+                  setType("CASHU")
+                }
+              }} > {type}</Switch>
+            </>
           ) : null}
         </>
       ) : null}
-      <Modal
+
+
+
+      {scannedData &&
+        <View
+        // visible={modalVisible}
+        // transparent={true}
+        // animationType="fade"
+        // onRequestClose={handleModalClose}
+        >
+          {showModalToast && modalToast ? (
+            <View style={styles.toastContainer}>
+              <AnimatedToast
+                key={modalToast.key}
+                toast={modalToast}
+                hide={() => setShowModalToast(false)}
+              />
+            </View>
+          ) : null}
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.resultText}>Scanned Data</Text>
+              {scannedData ? (
+                <Input
+                  autoFocus={false}
+                  value={scannedData}
+                  style={{
+                    width: "100%",
+                    height: 45,
+                    marginHorizontal: 20,
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.text,
+                  }}
+                  editable={false}
+                  right={
+                    <TouchableOpacity
+                      onPress={handleCopyToClipboard}
+                      style={{
+                        marginRight: 10,
+                      }}
+                    >
+                      <CopyIconStack color={theme.colors.primary} />
+                    </TouchableOpacity>
+                  }
+                />
+              ) : null}
+
+              <Text style={styles.text}>{type}</Text>
+              <Switch value={type == "STRK"} onValueChange={() => {
+                if (type == "CASHU") {
+                  setType("STRK")
+                } else {
+                  setType("CASHU")
+                }
+              }} > {type}</Switch>
+
+              <Text style={styles.modalText}>
+                {scannedData?.toLowerCase().startsWith('lnbc')
+                  ? 'Pay this invoice?'
+                  : scannedData?.toLowerCase().startsWith('lnurl')
+                    ? 'Pay this user with an amount'
+                    : 'Receive this eCash?'}
+              </Text>
+
+              {scannedData?.toLowerCase().startsWith('lnurl') ? (
+                <Input
+                  value={String(amount)}
+                  onChangeText={setAmount}
+                  placeholder='Amount to send'
+                ></Input>
+
+              ) : null}
+              <View style={styles.scannedModalButtonsContainer}>
+                <Button
+                  style={[styles.scannedModalActionButton, styles.scannedModalCancelButton]}
+                  textStyle={styles.scannedModalCancelButtonText}
+                  onPress={handleModalClose}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  style={[styles.scannedModalActionButton, styles.scannedModalOKButton]}
+                  textStyle={styles.scannedModalOKButtonText}
+                  disabled={isProcessing}
+                  onPress={scannedData?.toLowerCase().startsWith('lnbc') || scannedData?.toLowerCase().startsWith('lnurl') ? handlePay : handleReceive}
+                >
+                  {isProcessing
+                    ? 'Processing...'
+                    : scannedData?.toLowerCase().startsWith('lnbc')
+                      ? 'Pay'
+                      : scannedData?.toLowerCase().startsWith('lnurl')
+                        ? 'Pay'
+                        : 'Receive'}
+                </Button>
+
+              </View>
+            </View>
+          </View>
+        </View>
+      }
+
+      {renderSuccessPay()}
+
+
+      {/* <Modal
         visible={modalVisible}
         transparent={true}
         animationType="fade"
@@ -373,11 +598,30 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
                 }
               />
             ) : null}
+
+            <Switch value={type == "STRK"} onValueChange={() => {
+              if (type == "CASHU") {
+                setType("STRK")
+              } else {
+                setType("CASHU")
+              }
+            }} > {type}</Switch>
             <Text style={styles.modalText}>
               {scannedData?.toLowerCase().startsWith('lnbc')
                 ? 'Pay this invoice?'
-                : 'Receive this eCash?'}
+                : scannedData?.toLowerCase().startsWith('lnurl')
+                  ? 'Pay?'
+                  : 'Receive this eCash?'}
             </Text>
+
+            {scannedData?.toLowerCase().startsWith('lnurl') ? (
+              <Input
+                value={String(amount)}
+                onChangeText={setAmount}
+                placeholder='Amount to send'
+              ></Input>
+
+            ) : null}
             <View style={styles.scannedModalButtonsContainer}>
               <Button
                 style={[styles.scannedModalActionButton, styles.scannedModalCancelButton]}
@@ -390,18 +634,21 @@ export const ScanQRCode: React.FC<ScanCashuQRCodeProps> = ({onClose, onSuccess})
                 style={[styles.scannedModalActionButton, styles.scannedModalOKButton]}
                 textStyle={styles.scannedModalOKButtonText}
                 disabled={isProcessing}
-                onPress={scannedData?.toLowerCase().startsWith('lnbc') ? handlePay : handleReceive}
+                onPress={scannedData?.toLowerCase().startsWith('lnbc') || scannedData?.toLowerCase().startsWith('lnurl') ? handlePay : handleReceive}
               >
                 {isProcessing
                   ? 'Processing...'
                   : scannedData?.toLowerCase().startsWith('lnbc')
                     ? 'Pay'
-                    : 'Receive'}
+                    : scannedData?.toLowerCase().startsWith('lnurl')
+                      ? 'Pay'
+                      : 'Receive'}
               </Button>
+
             </View>
           </View>
         </View>
-      </Modal>
+      </Modal> */}
     </View>
   );
 };
