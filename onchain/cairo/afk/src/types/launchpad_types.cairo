@@ -87,7 +87,6 @@ pub struct TokenLaunch {
     pub starting_price: u256,
     pub protocol_fee_percent: u256, // TODO V2
     pub creator_fee_percent: u256
-
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]

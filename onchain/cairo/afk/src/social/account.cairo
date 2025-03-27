@@ -154,21 +154,18 @@ pub mod SocialAccount {
 }
 #[cfg(test)]
 mod tests {
+    use afk::bip340::{SchnorrSignature as Signature};
     use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use core::array::SpanTrait;
     use core::traits::Into;
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, 
-        // SpyOn,
-         EventSpy, 
-        // EventFetcher,
-        Event, 
-        // EventAssertions, 
-        // cheat_transaction_hash_global, 
+        declare, ContractClass, ContractClassTrait, spy_events, // SpyOn,
+         EventSpy, // EventFetcher,
+        Event, // EventAssertions,
+         // cheat_transaction_hash_global,
         // cheat_signature_global,
         // stop_cheat_transaction_hash_global, stop_cheat_signature_global,
-        DeclareResultTrait,
-        EventSpyAssertionsTrait
+        DeclareResultTrait, EventSpyAssertionsTrait
     };
     use starknet::{
         ContractAddress, get_caller_address, get_contract_address, contract_address_const
@@ -176,7 +173,6 @@ mod tests {
     use super::super::profile::NostrProfile;
 
     use super::super::request::{SocialRequest, Encode};
-    use afk::bip340::{SchnorrSignature as Signature};
 
     use super::super::transfer::Transfer;
     use super::{
@@ -260,16 +256,14 @@ mod tests {
 
         // recipient private key:
         // 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35 // just for testing, do
-        // not use for anything else 
+        // not use for anything else
         let recipient_public_key =
             0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
         let recipient = deploy_account(account_class, recipient_public_key);
 
-        let joyboy_public_key =
-        0x84603b4e300840036ca8cc812befcc8e240c09b73812639d5cdd8ece7d6eba40;
+        let joyboy_public_key = 0x84603b4e300840036ca8cc812befcc8e240c09b73812639d5cdd8ece7d6eba40;
 
-        let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 100,
-        sender.contract_address);
+        let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 100, sender.contract_address);
 
         let transfer = Transfer {
             amount: 1,
@@ -372,7 +366,7 @@ mod tests {
         let erc20_class = declare_erc20();
         let account_class = declare_account();
 
-        let dai = deploy_erc20( *erc20_class, 'DAI token', 'DAI', 100, 21.try_into().unwrap());
+        let dai = deploy_erc20(*erc20_class, 'DAI token', 'DAI', 100, 21.try_into().unwrap());
 
         let (request, sender, _, _) = request_fixture_custom_classes(*erc20_class, *account_class);
 
@@ -448,10 +442,8 @@ mod tests {
         // cheat_transaction_hash_global(invalid_hash);
 
         assert!(account.__validate__(Default::default()) != starknet::VALIDATED);
-
         // stop_cheat_transaction_hash_global();
-        // stop_cheat_signature_global();
+    // stop_cheat_signature_global();
     }
 }
-
 
