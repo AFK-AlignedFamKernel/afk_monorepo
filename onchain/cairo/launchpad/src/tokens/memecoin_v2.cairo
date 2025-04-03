@@ -1,7 +1,8 @@
 // use afk_launchpad::tokens::erc20::{IERC20};
 // use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
-use afk_launchpad::types::launchpad_types::{LiquidityType, LiquidityParameters,// SupportedExchanges,
-//  JediswapLiquidityParameters,
+use afk_launchpad::types::launchpad_types::{
+    LiquidityType, LiquidityParameters // SupportedExchanges,
+    //  JediswapLiquidityParameters,
 // EkuboLiquidityParameters,
 //  EkuboPoolParameters
 };
@@ -104,28 +105,27 @@ pub mod MemecoinV2 {
     use afk_launchpad::interfaces::factory::{IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk_launchpad::math::PercentageMath;
     use core::num::traits::Zero;
+    use openzeppelin::access::accesscontrol::AccessControlComponent;
+    use openzeppelin::access::ownable::OwnableComponent;
+    use openzeppelin::account::interface;
+    // use openzeppelin::governance::timelock::TimelockControllerComponent;
 
-    use openzeppelin_access::accesscontrol::AccessControlComponent;
-    use openzeppelin_access::ownable::OwnableComponent;
-    use openzeppelin_account::interface;
-    // use openzeppelin_governance::timelock::TimelockControllerComponent;
-
-    use openzeppelin_governance::votes::VotesComponent;
-    use openzeppelin_introspection::src5::SRC5Component;
-    use openzeppelin_token::erc20::ERC20Component;
-    use openzeppelin_utils::cryptography::nonces::NoncesComponent;
-    use openzeppelin_utils::cryptography::snip12::SNIP12Metadata;
+    use openzeppelin::governance::votes::VotesComponent;
+    use openzeppelin::introspection::src5::SRC5Component;
+    use openzeppelin::token::erc20::ERC20Component;
+    use openzeppelin::utils::cryptography::nonces::NoncesComponent;
+    use openzeppelin::utils::cryptography::snip12::SNIP12Metadata;
     // use core::OptionTrait;
     // use core::Option;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{
         ContractAddress, // contract_address_const,
-         get_caller_address, // get_tx_info,
-        get_block_timestamp, get_block_info
+        get_caller_address, // get_tx_info,
+        get_block_timestamp, get_block_info,
     };
-    use super::{LiquidityType, LiquidityParameters, //  SupportedExchanges,
+    use super::{LiquidityType, LiquidityParameters //  SupportedExchanges,
     //  JediswapLiquidityParameters,
     // EkuboLiquidityParameters,
     // EkuboPoolParameters
@@ -184,12 +184,12 @@ pub mod MemecoinV2 {
         creator: ContractAddress,
         owner: ContractAddress,
         factory_contract: ContractAddress,
-        balances: Map::<ContractAddress, u256>,
-        allowances: Map::<(ContractAddress, ContractAddress), u256>,
+        balances: Map<ContractAddress, u256>,
+        allowances: Map<(ContractAddress, ContractAddress), u256>,
         //memecoin
         team_allocation: u256,
         // tx_hash_tracker: LegacyMap<ContractAddress, felt252>,
-        tx_hash_tracker: Map::<ContractAddress, felt252>,
+        tx_hash_tracker: Map<ContractAddress, felt252>,
         transfer_restriction_delay: u64,
         launch_time: u64,
         launch_block_number: u64,
@@ -251,7 +251,7 @@ pub mod MemecoinV2 {
             ref self: ERC20Component::ComponentState<ContractState>,
             from: ContractAddress,
             recipient: ContractAddress,
-            amount: u256
+            amount: u256,
         ) {
             let mut contract_state = ERC20Component::HasComponent::get_contract_mut(ref self);
             contract_state.erc20_votes.transfer_voting_units(from, recipient, amount);
@@ -268,7 +268,7 @@ pub mod MemecoinV2 {
         decimals: u8,
         recipient: ContractAddress,
         factory: ContractAddress,
-        owner: ContractAddress
+        owner: ContractAddress,
     ) {
         let caller = get_caller_address();
         // self.name.write(name);
@@ -285,7 +285,7 @@ pub mod MemecoinV2 {
         self.liquidity_type.write(Option::None);
 
         // Initialize the token / internal logic
-        self.initializer(factory_address: factory, :initial_supply,);
+        self.initializer(factory_address: factory, :initial_supply);
 
         self.creator.write(caller.clone());
         self.owner.write(owner.clone());
@@ -350,7 +350,7 @@ pub mod MemecoinV2 {
             assert(!self.is_launched(), errors::ALREADY_LAUNCHED);
             assert(
                 max_percentage_buy_launch >= MIN_MAX_PERCENTAGE_BUY_LAUNCH,
-                errors::MAX_PERCENTAGE_BUY_LAUNCH_TOO_LOW
+                errors::MAX_PERCENTAGE_BUY_LAUNCH_TOO_LOW,
             );
 
             // save liquidity params and launch block number
@@ -376,7 +376,7 @@ pub mod MemecoinV2 {
             ref self: ContractState,
             sender: ContractAddress,
             recipient: ContractAddress,
-            amount: u256
+            amount: u256,
         ) {
             assert(!sender.is_zero(), 'ERC20: transfer from 0');
             assert(!recipient.is_zero(), 'ERC20: transfer to 0');
@@ -384,7 +384,7 @@ pub mod MemecoinV2 {
             self.balances.entry(recipient).write(self.balances.read(recipient) + amount);
         }
         fn spend_allowance(
-            ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256
+            ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256,
         ) {
             let current_allowance = self.allowances.read((owner, spender));
             assert(current_allowance >= amount, 'not enough allowance');
@@ -392,7 +392,7 @@ pub mod MemecoinV2 {
         }
 
         fn approve_helper(
-            ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256
+            ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256,
         ) {
             assert(!spender.is_zero(), 'ERC20: approve from 0');
             self.allowances.entry((owner, spender)).write(amount);
@@ -440,7 +440,7 @@ pub mod MemecoinV2 {
             ref self: ContractState,
             sender: ContractAddress,
             recipient: ContractAddress,
-            amount: u256
+            amount: u256,
         ) {
             // When we launch on jediswap on the factory, we invoke the add_liquidity() of the
             // router, which performs a transferFrom() to send the tokens to the pool.
@@ -474,7 +474,7 @@ pub mod MemecoinV2 {
             ref self: ContractState,
             sender: ContractAddress,
             recipient: ContractAddress,
-            amount: u256
+            amount: u256,
         ) {
             if self.is_after_time_restrictions() {
                 return;
@@ -503,7 +503,7 @@ pub mod MemecoinV2 {
                 },
                 LiquidityType::EkuboNFT(_) => {
                     let factory = IFactoryDispatcher {
-                        contract_address: self.factory_contract.read()
+                        contract_address: self.factory_contract.read(),
                     };
                     let ekubo_core_address = factory.ekubo_core_address();
                     if (get_caller_address() != ekubo_core_address) {
@@ -511,14 +511,14 @@ pub mod MemecoinV2 {
                         // to the recipient, so we return early if the caller is not Ekubo Core.
                         return;
                     }
-                }
+                },
             }
 
             assert(
                 amount <= self
                     .total_supply()
                     .percent_mul(self.max_percentage_buy_launch.read().into()),
-                'Max buy cap reached'
+                'Max buy cap reached',
             );
         }
 

@@ -48,8 +48,8 @@ pub mod LaunchpadMarketplace {
 
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
     use openzeppelin::introspection::src5::SRC5Component;
-    use openzeppelin_upgrades::UpgradeableComponent;
-    use openzeppelin_upgrades::interface::IUpgradeable;
+    use openzeppelin::upgrades::UpgradeableComponent;
+    use openzeppelin::upgrades::interface::IUpgradeable;
 
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
