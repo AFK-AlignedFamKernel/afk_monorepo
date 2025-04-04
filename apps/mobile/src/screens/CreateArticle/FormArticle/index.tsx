@@ -14,7 +14,7 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { $getRoot, $getSelection } from 'lexical';
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
-import { useSendNote, useSendVideoEvent } from 'afk_nostr_sdk';
+import { useSendArticle, useSendVideoEvent } from 'afk_nostr_sdk';
 import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import React from 'react';
@@ -106,7 +106,7 @@ export const FormCreateArticle: React.FC = () => {
 
   const styles = useStyles(stylesheet);
   const fileUpload = useFileUpload();
-  const sendNote = useSendNote();
+  const sendArticle = useSendArticle();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [note, setNote] = useState<string | undefined>();
@@ -166,7 +166,7 @@ export const FormCreateArticle: React.FC = () => {
     return imageUrl;
   };
 
-  const handleSendNote = async () => {
+  const handlesendArticle = async () => {
     // if (!note || note?.trim()?.length == 0) {
     //   showToast({type: 'error', title: 'Please write your note'});
     //   return;
@@ -233,7 +233,7 @@ export const FormCreateArticle: React.FC = () => {
       });
     } else {
       try {
-        sendNote.mutate(
+        sendArticle.mutate(
           {
             content: note || '',
             tags: [
@@ -257,7 +257,7 @@ export const FormCreateArticle: React.FC = () => {
           },
         );
       } catch (e) {
-        console.log('sendNote error', e);
+        console.log('sendArticle error', e);
       }
     }
   };
@@ -339,7 +339,7 @@ export const FormCreateArticle: React.FC = () => {
                 <LoadingSpinner color={theme.colors.text} />
               </Pressable>
             ) : (
-              <Pressable style={styles.sendButton} onPress={handleSendNote}>
+              <Pressable style={styles.sendButton} onPress={handlesendArticle}>
                 <SendIconContained width="56" height="56" color={theme.colors.primary} />
               </Pressable>
             )}

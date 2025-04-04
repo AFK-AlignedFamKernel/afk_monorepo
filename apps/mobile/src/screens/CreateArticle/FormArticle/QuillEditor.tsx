@@ -42,6 +42,8 @@ const QuillEditorForm = ({ onChange, onImageUpload }: QuillEditorFormProps) => {
       // Handle text change
       quillRef.current.on('text-change', () => {
         const content = quillRef.current?.root.innerHTML;
+
+        onChange(content);
         console.log('Editor content:', content);
       });
     }
