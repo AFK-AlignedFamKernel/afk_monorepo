@@ -41,6 +41,8 @@ import MiniVideoPlayer from '../../components/VideoPlayer/MiniVideoPlayer';
 import { useQuoteNoteModal } from 'src/hooks/modals/useQuoteNoteModal';
 
 import Markdown, { MarkdownIt } from 'react-native-markdown-display';
+import WebView from 'react-native-webview';
+import MarkdownViewer from '../../components/MarkdownViewer';
 
 export type PostProps = {
   asComment?: boolean;
@@ -466,10 +468,7 @@ export const Post: React.FC<PostProps> = ({
           )}
 
           {isArticle && Platform.OS !== 'web' && (
-            <>
-              <Markdown>{content}</Markdown>
-
-            </>
+            <MarkdownViewer content={content} />
           )}
 
           {isArticle && Platform.OS === 'web' && (
