@@ -362,9 +362,8 @@ export const Post: React.FC<PostProps> = ({
 
   }
 
-  console.log("isArticle", isArticle)
-
-  console.log("Platform.OS", Platform.OS)
+  // console.log("isArticle", isArticle)
+  // console.log("Platform.OS", Platform.OS)
   return (
     <View style={styles.container}>
 
