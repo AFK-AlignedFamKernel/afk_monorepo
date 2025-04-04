@@ -18,7 +18,7 @@ import { RenderEventCard } from '../Studio';
 import { Button } from '../../components';
 import { useNavigation } from '@react-navigation/native';
 
-export const FeedComponent: React.FC = () => {
+export const ArticlesFeed: React.FC = () => {
 
   const navigation = useNavigation<MainStackNavigationProps>();
   const { theme } = useTheme();
@@ -30,14 +30,14 @@ export const FeedComponent: React.FC = () => {
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [feedData, setFeedData] = useState(null);
   const [kinds, setKinds] = useState<NDKKind[]>([
-    NDKKind.Text,
-    NDKKind.ChannelMessage,
-    NDKKind.Metadata,
-    NDKKind.VerticalVideo,
-    NDKKind.HorizontalVideo,
-    30311 as NDKKind,
-    NDKKind.ChannelCreation,
-    NDKKind.GroupChat,
+    // NDKKind.Text,
+    // NDKKind.ChannelMessage,
+    // NDKKind.Metadata,
+    // NDKKind.VerticalVideo,
+    // NDKKind.HorizontalVideo,
+    // 30311 as NDKKind,
+    // NDKKind.ChannelCreation,
+    // NDKKind.GroupChat,
     NDKKind.Article,
   ]);
 
@@ -47,7 +47,7 @@ export const FeedComponent: React.FC = () => {
   const contacts = useContacts({ authors: [publicKey] });
   const notes = useSearch({
     limit: 10,
-    // since: 1000*60*60,
+    since: 1000*60*60*24*30,
     // getNextPageParam: (lastPage, allPages) => {
     //   if (!lastPage?.length) return undefined;
 
@@ -349,6 +349,8 @@ export const FeedComponent: React.FC = () => {
     await handleCheckNostrAndSendConnectDialog()
   };
 
+
+  console.log('articlesfeedData', feedData);
   return (
     <View style={styles.container}>
       <SearchComponent
@@ -456,6 +458,9 @@ export const FeedComponent: React.FC = () => {
             return <VideoPostCard event={item} />;
           } else if (item.kind === NDKKind.Text) {
             return <PostCard event={item} isReplyView={true} />;
+          }
+          else if (item.kind === NDKKind.Article) {
+            return <PostCard event={item} isReplyView={true} isArticle={true}/>;
           }
           else if (item.kind === 30311) {
 

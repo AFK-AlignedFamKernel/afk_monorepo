@@ -1100,3 +1100,23 @@ export function ReloadIcon(props: SvgProps) {
     </Svg>
   );
 } 
+
+export function ArticleIcon(props: SvgProps) {
+  return (
+    <Svg
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <Path d="M12 3a9 9 0 0 0-9 9 9 9 0 0 0 9 9 9 9 0 0 0 9-9 9 9 0 0 0-9-9z" />
+      <Path d="M12 7c2 0 3 1 3 2.5 0 1.5-1 2.5-3 2.5-2 0-3-1-3-2.5C9 8 10 7 12 7z" />
+      <Path d="M7 21v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2" />
+    </Svg>
+  );
+}

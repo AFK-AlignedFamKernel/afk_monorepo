@@ -12,6 +12,7 @@ import { StudioModuleView } from '../../modules/Studio';
 import { StudioModule } from '../../modules/Studio/StudioModule';
 import { logClickedEvent } from 'src/utils/analytics';
 import { AddPostIcon } from 'src/assets/icons';
+import { ArticlesFeed } from 'src/modules/Feed/ArticlesFeed';
 
 export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
@@ -19,7 +20,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
   const [isFeed, setIsFeed] = useState(true);
   const [viewFeed, setViewFeed] = useState<
-    'NOTES' | 'TOKENS' | "SHORTS" | "VIDEOS" | "STREAM"
+    'NOTES' | 'TOKENS' | "SHORTS" | "VIDEOS" | "STREAM" | "ARTICLES"
   >('NOTES');
 
   return (
@@ -68,6 +69,14 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
         }}>
           <Icon name="StreamIcon" size={15} style={{ marginRight: 5 }}></Icon>Stream</Button>
+
+
+          <Button style={[styles.toggleButton, viewFeed === 'ARTICLES' && styles.activeToggle]} onPress={() => {
+          setViewFeed('ARTICLES')
+          logClickedEvent('Articles', "user_action", "feed_toggle")
+
+        }}>
+          <Icon name="ArticleIcon" size={15} style={{ marginRight: 5 }}></Icon>Articles</Button>
         {/* <Button onPress={() => setViewFeed('TOKENS')}>Tokens</Button> */}
         {/* <Button style={[styles.toggleButton, viewFeed === 'VIDEOS' && styles.activeToggle]} onPress={() => setViewFeed('VIDEOS')}>Videos</Button> */}
 
@@ -80,6 +89,8 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
       {viewFeed === 'SHORTS' && <ShortVideosModule></ShortVideosModule>}
 
       {viewFeed === 'STREAM' && <StudioModule></StudioModule>}
+
+      {viewFeed === 'ARTICLES' && <ArticlesFeed></ArticlesFeed>}
 
       {/* <Pressable
         style={styles.createPostButton}
