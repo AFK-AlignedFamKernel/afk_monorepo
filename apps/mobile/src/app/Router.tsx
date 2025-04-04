@@ -62,6 +62,7 @@ import { ReceiveEcash } from '../screens/ReceiveEcash';
 import { Search } from '../screens/Search';
 import { Settings } from '../screens/Settings';
 import { TagsView } from '../screens/Tags';
+import TestFeatures from '../screens/TestFeatures';
 import { Tips } from '../screens/Tips';
 import { Wallet } from '../screens/Wallet';
 import { WalletBTC } from '../screens/WalletBTC';
@@ -346,6 +347,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="DAO" component={DAOScreen} />
       <MainStack.Screen name="DAOPage" component={DaoPage} />
       <MainStack.Screen name="Pixel" component={PixelScreen} />
+      <MainStack.Screen name="TestFeatures" component={TestFeatures} />
     </MainStack.Navigator>
   );
 };
@@ -500,6 +502,7 @@ const linking = {
             },
           },
           Pixel: 'app/pixel',
+          TestFeatures: 'app/test-features',
         },
       },
     },
