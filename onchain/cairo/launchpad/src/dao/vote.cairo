@@ -17,12 +17,11 @@ trait VoteTrait<T> {
 /// @dev Starknet Contract allowing three registered voters to vote on a proposal
 #[starknet::contract]
 mod Vote {
-    use core::starknet::ContractAddress;
-    use core::starknet::get_caller_address;
     use core::starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StorageMapReadAccess,
-        StorageMapWriteAccess, Map
+        Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
+        StoragePointerWriteAccess,
     };
+    use core::starknet::{ContractAddress, get_caller_address};
 
     const YES: u8 = 1_u8;
     const NO: u8 = 0_u8;
@@ -32,8 +31,8 @@ mod Vote {
     struct Storage {
         yes_votes: u8,
         no_votes: u8,
-        can_vote: Map::<ContractAddress, bool>,
-        registered_voter: Map::<ContractAddress, bool>,
+        can_vote: Map<ContractAddress, bool>,
+        registered_voter: Map<ContractAddress, bool>,
     }
 
     /// @dev Contract constructor initializing the contract with a list of registered voters and 0
@@ -43,7 +42,7 @@ mod Vote {
         ref self: ContractState,
         voter_1: ContractAddress,
         voter_2: ContractAddress,
-        voter_3: ContractAddress
+        voter_3: ContractAddress,
     ) {
         // Register all voters by calling the _register_voters function
         self._register_voters(voter_1, voter_2, voter_3);
@@ -108,7 +107,7 @@ mod Vote {
                 self.yes_votes.write(self.yes_votes.read() + 1_u8);
             }
 
-            self.emit(VoteCast { voter: caller, vote: vote, });
+            self.emit(VoteCast { voter: caller, vote: vote });
         }
     }
 
@@ -120,7 +119,7 @@ mod Vote {
             ref self: ContractState,
             voter_1: ContractAddress,
             voter_2: ContractAddress,
-            voter_3: ContractAddress
+            voter_3: ContractAddress,
         ) {
             self.registered_voter.write(voter_1, true);
             self.can_vote.write(voter_1, true);
@@ -142,7 +141,7 @@ mod Vote {
             let can_vote: bool = self.can_vote.read((address));
 
             if (!can_vote) {
-                self.emit(UnauthorizedAttempt { unauthorized_address: address, });
+                self.emit(UnauthorizedAttempt { unauthorized_address: address });
             }
 
             assert!(is_voter, "USER_NOT_REGISTERED");

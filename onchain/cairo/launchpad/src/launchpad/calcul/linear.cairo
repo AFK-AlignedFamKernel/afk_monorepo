@@ -1,8 +1,8 @@
 use afk_launchpad::launchpad::math::{dynamic_reduce_u256_to_u128, dynamic_scale_u128_to_u256};
 // use afk_launchpad::launchpad::math::{max_u256, min_u256};
-use afk_launchpad::types::launchpad_types::{TokenLaunch,};
-use alexandria_math::fast_root::{fast_sqrt};
-use ekubo::types::{i129::i129};
+use afk_launchpad::types::launchpad_types::{TokenLaunch};
+use alexandria_math::fast_root::fast_sqrt;
+use ekubo::types::i129::i129;
 
 const BPS: u256 = 10_000;
 

@@ -1,4 +1,4 @@
-use starknet::{ContractAddress};
+use starknet::ContractAddress;
 
 pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 

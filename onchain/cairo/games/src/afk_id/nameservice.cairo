@@ -29,13 +29,13 @@ pub mod Nameservice {
 
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
-    use openzeppelin_access::accesscontrol::AccessControlComponent;
+    use openzeppelin::access::accesscontrol::AccessControlComponent;
 
-    use openzeppelin_governance::votes::VotesComponent;
-    use openzeppelin_introspection::src5::SRC5Component;
-    use openzeppelin_token::erc20::{ERC20Component};
-    use openzeppelin_utils::cryptography::nonces::NoncesComponent;
-    use openzeppelin_utils::cryptography::snip12::SNIP12Metadata;
+    use openzeppelin::governance::votes::VotesComponent;
+    use openzeppelin::introspection::src5::SRC5Component;
+    use openzeppelin::token::erc20::{ERC20Component};
+    use openzeppelin::utils::cryptography::nonces::NoncesComponent;
+    use openzeppelin::utils::cryptography::snip12::SNIP12Metadata;
     use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
     use starknet::{
         ContractAddress, contract_address_const, get_caller_address, get_block_timestamp,

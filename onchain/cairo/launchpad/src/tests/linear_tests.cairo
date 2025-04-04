@@ -2,9 +2,9 @@
 mod linear_tests {
     use afk_launchpad::launchpad::calcul::linear::{get_coin_amount, get_meme_amount};
     use afk_launchpad::types::launchpad_types::{
-        TokenLaunch, BondingType, TokenQuoteBuyCoin, // LiquidityType
+        TokenLaunch, BondingType, TokenQuoteBuyCoin // LiquidityType
     };
-    use starknet::{ContractAddress};
+    use starknet::ContractAddress;
 
     fn OWNER() -> ContractAddress {
         'owner'.try_into().unwrap()
@@ -32,7 +32,7 @@ mod linear_tests {
 
 
     fn get_token_launch(
-        total_supply: u256, threshold_liquidity: u256, available_supply: u256
+        total_supply: u256, threshold_liquidity: u256, available_supply: u256,
     ) -> TokenLaunch {
         let token_quote_buy = TokenQuoteBuyCoin {
             token_address: '123'.try_into().unwrap(),
@@ -100,16 +100,16 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens",
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens",
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens",
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -140,19 +140,19 @@ mod linear_tests {
         // Final assertions
         assert!(
             amount_out_1 == 200_000_000_000_000_000_000_000_u256,
-            "Amount_out_1 should be 200_000 tokens"
+            "Amount_out_1 should be 200_000 tokens",
         );
         assert!(
             amount_out_2 == 200_000_000_000_000_000_000_000_u256,
-            "Amount_out_2 should be 200_000 tokens"
+            "Amount_out_2 should be 200_000 tokens",
         );
         assert!(
             amount_out_3 == 200_000_000_000_000_000_000_000_u256,
-            "Amount_out_3 should be 200_000 tokens"
+            "Amount_out_3 should be 200_000 tokens",
         );
         assert!(
             amount_out_4 == 200_000_000_000_000_000_000_000_u256,
-            "Amount_out_4 should be 200_000 tokens"
+            "Amount_out_4 should be 200_000 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -183,19 +183,19 @@ mod linear_tests {
         // Final assertions
         assert!(
             amount_out_1 == 20_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_1 should be 20_000_000 tokens"
+            "Amount_out_1 should be 20_000_000 tokens",
         );
         assert!(
             amount_out_2 == 20_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_2 should be 20_000_000 tokens"
+            "Amount_out_2 should be 20_000_000 tokens",
         );
         assert!(
             amount_out_3 == 20_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_3 should be 20_000_000 tokens"
+            "Amount_out_3 should be 20_000_000 tokens",
         );
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_4 should be 20_000_000 tokens"
+            "Amount_out_4 should be 20_000_000 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -226,19 +226,19 @@ mod linear_tests {
         // Final assertions
         assert!(
             amount_out_1 == 200_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_1 should be 200_000_000 tokens"
+            "Amount_out_1 should be 200_000_000 tokens",
         );
         assert!(
             amount_out_2 == 200_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_2 should be 200_000_000 tokens"
+            "Amount_out_2 should be 200_000_000 tokens",
         );
         assert!(
             amount_out_3 == 200_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_3 should be 200_000_000 tokens"
+            "Amount_out_3 should be 200_000_000 tokens",
         );
         assert!(
             amount_out_4 == 200_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_4 should be 200_000_000 tokens"
+            "Amount_out_4 should be 200_000_000 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -269,19 +269,19 @@ mod linear_tests {
         // Final assertions
         assert!(
             amount_out_1 == 2_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_1 should be 2_000_000_000 tokens"
+            "Amount_out_1 should be 2_000_000_000 tokens",
         );
         assert!(
             amount_out_2 == 2_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_2 should be 2_000_000_000 tokens"
+            "Amount_out_2 should be 2_000_000_000 tokens",
         );
         assert!(
             amount_out_3 == 2_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_3 should be 2_000_000_000 tokens"
+            "Amount_out_3 should be 2_000_000_000 tokens",
         );
         assert!(
             amount_out_4 == 2_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_4 should be 2_000_000_000 tokens"
+            "Amount_out_4 should be 2_000_000_000 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -312,19 +312,19 @@ mod linear_tests {
         // Final assertions
         assert!(
             amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_1 should be 20_000_000_000 tokens"
+            "Amount_out_1 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_2 should be 20_000_000_000 tokens"
+            "Amount_out_2 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_3 should be 20_000_000_000 tokens"
+            "Amount_out_3 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_4 should be 20_000_000_000 tokens"
+            "Amount_out_4 should be 20_000_000_000 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
     }
@@ -357,16 +357,16 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens",
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens",
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens",
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -396,16 +396,16 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens",
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens",
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens",
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -435,16 +435,16 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens",
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens",
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens",
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -474,16 +474,16 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens",
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens",
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens",
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -513,16 +513,16 @@ mod linear_tests {
 
         // Final assertions
         assert!(
-            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens"
+            amount_out_1 == 20_000_000_000_000_000_000_u256, "Amount_out_1 should be 20 tokens",
         );
         assert!(
-            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens"
+            amount_out_2 == 20_000_000_000_000_000_000_u256, "Amount_out_2 should be 20 tokens",
         );
         assert!(
-            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens"
+            amount_out_3 == 20_000_000_000_000_000_000_u256, "Amount_out_3 should be 20 tokens",
         );
         assert!(
-            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens"
+            amount_out_4 == 20_000_000_000_000_000_000_u256, "Amount_out_4 should be 20 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
     }
@@ -556,19 +556,19 @@ mod linear_tests {
         // Final assertions
         assert!(
             amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_1 should be 20_000_000_000 tokens"
+            "Amount_out_1 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_2 should be 20_000_000_000 tokens"
+            "Amount_out_2 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_3 should be 20_000_000_000 tokens"
+            "Amount_out_3 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_4 should be 20_000_000_000 tokens"
+            "Amount_out_4 should be 20_000_000_000 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -599,19 +599,19 @@ mod linear_tests {
         // Final assertions
         assert!(
             amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_1 should be 20_000_000_000 tokens"
+            "Amount_out_1 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_2 should be 20_000_000_000 tokens"
+            "Amount_out_2 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_3 should be 20_000_000_000 tokens"
+            "Amount_out_3 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_4 should be 20_000_000_000 tokens"
+            "Amount_out_4 should be 20_000_000_000 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -642,19 +642,19 @@ mod linear_tests {
         // Final assertions
         assert!(
             amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_1 should be 20_000_000_000 tokens"
+            "Amount_out_1 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_2 should be 20_000_000_000 tokens"
+            "Amount_out_2 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_3 should be 20_000_000_000 tokens"
+            "Amount_out_3 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_4 should be 20_000_000_000 tokens"
+            "Amount_out_4 should be 20_000_000_000 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -685,19 +685,19 @@ mod linear_tests {
         // Final assertions
         assert!(
             amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_1 should be 20_000_000_000 tokens"
+            "Amount_out_1 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_2 should be 20_000_000_000 tokens"
+            "Amount_out_2 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_3 should be 20_000_000_000 tokens"
+            "Amount_out_3 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_4 should be 20_000_000_000 tokens"
+            "Amount_out_4 should be 20_000_000_000 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
 
@@ -728,19 +728,19 @@ mod linear_tests {
         // Final assertions
         assert!(
             amount_out_1 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_1 should be 20_000_000_000 tokens"
+            "Amount_out_1 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_2 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_2 should be 20_000_000_000 tokens"
+            "Amount_out_2 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_3 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_3 should be 20_000_000_000 tokens"
+            "Amount_out_3 should be 20_000_000_000 tokens",
         );
         assert!(
             amount_out_4 == 20_000_000_000_000_000_000_000_000_000_u256,
-            "Amount_out_4 should be 20_000_000_000 tokens"
+            "Amount_out_4 should be 20_000_000_000 tokens",
         );
         assert!(token_launch.available_supply == 0, "Available supply should be 0");
     }
@@ -756,29 +756,29 @@ mod linear_tests {
         assert!(amount_out == 1_562_500_000_000_000_000_u256, "Amount_out should be 1.5625 coins");
 
         available_supply = 40_000_000_000_000_000_000_000_000_u256;
-        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,);
+        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply);
         amount_in = 20_000_000_000_000_000_000_000_000_u256;
         amount_out = get_coin_amount(token_launch, amount_in);
         assert!(amount_out == 2_187_500_000_000_000_000_u256, "Amount_out should be 2.1875 coins");
 
         available_supply = 20_000_000_000_000_000_000_000_000_u256;
-        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,);
+        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply);
         amount_in = 20_000_000_000_000_000_000_000_000_u256;
         amount_out = get_coin_amount(token_launch, amount_in);
         assert!(amount_out == 2_812_500_000_000_000_000_u256, "Amount_out should be 2.8125 coins");
 
         available_supply = 0_u256;
-        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,);
+        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply);
         amount_in = 20_000_000_000_000_000_000_000_000_u256;
         amount_out = get_coin_amount(token_launch, amount_in);
         assert!(amount_out == 3_437_500_000_000_000_000_u256, "Amount_out should be 3.4375 coins");
 
         available_supply = 0_u256;
-        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply,);
+        token_launch = get_token_launch(DEFAULT_SUPPLY_2, THRESHOLD_LIQUIDITY_1, available_supply);
         amount_in = 80_000_000_000_000_000_000_000_000_u256;
         amount_out = get_coin_amount(token_launch, amount_in);
         assert!(
-            amount_out == 10_000_000_000_000_000_000_u256, "Amount_out should be 10.0000 coins"
+            amount_out == 10_000_000_000_000_000_000_u256, "Amount_out should be 10.0000 coins",
         );
     }
     // #[test]

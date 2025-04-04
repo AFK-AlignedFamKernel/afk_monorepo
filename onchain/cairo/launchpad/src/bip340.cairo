@@ -1,4 +1,4 @@
-use afk_launchpad::utils::{shl, shr, compute_sha256_byte_array};
+use afk_launchpad::utils::{compute_sha256_byte_array, shl, shr};
 //! bip340 implementation
 
 use core::byte_array::ByteArrayTrait;
@@ -9,7 +9,8 @@ use core::result::ResultTrait;
 use core::starknet::SyscallResultTrait;
 use core::to_byte_array::{AppendFormattedToByteArray, FormatAsByteArray};
 use core::traits::Into;
-use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
+use starknet::secp256_trait::{Secp256PointTrait, Secp256Trait};
+use starknet::secp256k1::Secp256k1Point;
 
 const TWO_POW_32: u128 = 0x100000000;
 const TWO_POW_64: u128 = 0x10000000000000000;
@@ -106,7 +107,7 @@ pub fn verify(px: u256, rx: u256, s: u256, m: ByteArray) -> bool {
         match Secp256Trait::<Secp256k1Point>::secp256_ec_get_point_from_x_syscall(px, false)
             .unwrap_syscall() {
         Option::Some(P) => P,
-        Option::None => { return false; }
+        Option::None => { return false; },
     };
 
     // e = int(hashBIP0340/challenge(bytes(rx) || bytes(px) || m)) mod n.

@@ -1,7 +1,7 @@
 #[starknet::contract]
 pub mod LockPosition {
     use afk_launchpad::launchpad::locker::interface::{
-        ILockManagerDispatcher, ILockManagerDispatcherTrait
+        ILockManagerDispatcher, ILockManagerDispatcherTrait,
     };
     use core::num::traits::Zero;
 
@@ -16,7 +16,7 @@ pub mod LockPosition {
     #[storage]
     struct Storage {
         lock_manager: ContractAddress,
-        locked_token: ContractAddress
+        locked_token: ContractAddress,
     }
 
     #[constructor]
@@ -30,7 +30,7 @@ pub mod LockPosition {
 
         let max_uint = Bounded::<u256>::MAX;
         ERC20ABIDispatcher {
-            contract_address: locked_token
+            contract_address: locked_token,
         } // .approve(lock_manager, BoundedInt::<u256>::max());
             .approve(lock_manager, max_uint);
         // // Give infinite allowance to the lock manager to retrieve the locked balance.

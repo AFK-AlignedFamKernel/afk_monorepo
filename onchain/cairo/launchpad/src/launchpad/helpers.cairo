@@ -1,26 +1,21 @@
 use afk_launchpad::launchpad::errors;
-
 use afk_launchpad::launchpad::math::PercentageMath;
 use afk_launchpad::launchpad::utils::{
-    unique_count, sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds
+    get_initial_tick_from_starting_price, get_next_tick_bounds, sort_tokens, unique_count,
 };
 use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-use afk_launchpad::tokens::memecoin::{Memecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
-
+use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait, Memecoin};
 use afk_launchpad::types::launchpad_types::{
-    MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
-    TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
-    SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
-    LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
-    LaunchParameters, EkuboLP, LiquidityType, CallbackData, EkuboLaunchParameters, LaunchCallback
+    ADMIN_ROLE, BondingType, BuyToken, CallbackData, CreateLaunch, CreateToken, EkuboLP,
+    EkuboLaunchParameters, EkuboPoolParameters, LaunchCallback, LaunchParameters, LaunchUpdated,
+    LiquidityCanBeAdded, LiquidityCreated, LiquidityType, MINTER_ROLE, MetadataCoinAdded,
+    MetadataLaunch, SellToken, SetJediswapNFTRouterV2, SetJediswapV2Factory, SharesTokenUser,
+    StoredName, SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin,
 };
-
 use ekubo::types::bounds::Bounds;
 use ekubo::types::i129::i129;
-use starknet::{
-    ContractAddress, get_caller_address, storage_access::StorageBaseAddress, contract_address_const,
-    get_block_timestamp
-};
+use starknet::storage_access::StorageBaseAddress;
+use starknet::{ContractAddress, contract_address_const, get_block_timestamp, get_caller_address};
 
 const MAX_SUPPLY_PERCENTAGE_TEAM_ALLOCATION: u16 = 1_000; // 10%
 const MAX_HOLDERS_LAUNCH: u8 = 10;
@@ -58,13 +53,14 @@ const MAX_HOLDERS_LAUNCH: u8 = 10;
 /// * If the total team allocation exceeds the maximum allowed.
 ///
 pub fn check_common_launch_parameters(launch_parameters: LaunchParameters) -> (u256, u8) {
-    let LaunchParameters { memecoin_address,
-    transfer_restriction_delay,
-    max_percentage_buy_launch,
-    quote_address,
-    initial_holders,
-    initial_holders_amounts } =
-        launch_parameters;
+    let LaunchParameters {
+        memecoin_address,
+        transfer_restriction_delay,
+        max_percentage_buy_launch,
+        quote_address,
+        initial_holders,
+        initial_holders_amounts,
+    } = launch_parameters;
     let memecoin = IMemecoinDispatcher { contract_address: memecoin_address };
     let erc20 = IERC20Dispatcher { contract_address: memecoin_address };
 
@@ -96,7 +92,7 @@ pub fn check_common_launch_parameters(launch_parameters: LaunchParameters) -> (u
         team_allocation += amount;
         assert(team_allocation <= max_team_allocation, errors::MAX_TEAM_ALLOCATION_REACHED);
         i += 1;
-    };
+    }
 
     (team_allocation, unique_count(initial_holders).try_into().unwrap())
 }
@@ -105,7 +101,7 @@ pub fn distribute_team_alloc(
     // memecoin: IMemecoinDispatcher,
     memecoin: IERC20Dispatcher,
     mut initial_holders: Span<ContractAddress>,
-    mut initial_holders_amounts: Span<u256>
+    mut initial_holders_amounts: Span<u256>,
 ) {
     loop {
         match initial_holders.pop_front() {
@@ -113,10 +109,10 @@ pub fn distribute_team_alloc(
                 match initial_holders_amounts.pop_front() {
                     Option::Some(amount) => { memecoin.transfer(*holder, *amount); },
                     // Should never happen as the lengths of the spans are equal.
-                    Option::None => { break; }
+                    Option::None => { break; },
                 }
             },
-            Option::None => { break; }
+            Option::None => { break; },
         }
     }
 }

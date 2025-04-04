@@ -1,16 +1,16 @@
 // use social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
 // use afk::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
-use afk::social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
+use afk::social::request::{Encode, Signature, SocialRequest, SocialRequestImpl, SocialRequestTrait};
 use afk::types::keys_types::{
-    KeysBonding, KeysBondingImpl, MINTER_ROLE, ADMIN_ROLE, StoredName, BuyKeys, SellKeys,
-    CreateKeys, KeysUpdated, TokenQuoteBuyKeys, Keys, SharesKeys, BondingType, get_linear_price,
+    ADMIN_ROLE, BondingType, BuyKeys, CreateKeys, Keys, KeysBonding, KeysBondingImpl, KeysUpdated,
+    MINTER_ROLE, SellKeys, SharesKeys, StoredName, TokenQuoteBuyKeys, get_linear_price,
 };
 use starknet::ContractAddress;
 type NostrPublicKey = u256;
 
 #[derive(Clone, Debug, Drop, Serde)]
 pub struct LinkedNostrAddress {
-    pub starknet_address: ContractAddress
+    pub starknet_address: ContractAddress,
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
@@ -40,20 +40,20 @@ pub trait IKeysMarketplace<TContractState> {
     fn set_protocol_fee_percent(ref self: TContractState, protocol_fee_percent: u256);
     fn set_creator_fee_percent(ref self: TContractState, creator_fee_percent: u256);
     fn set_protocol_fee_destination(
-        ref self: TContractState, protocol_fee_destination: ContractAddress
+        ref self: TContractState, protocol_fee_destination: ContractAddress,
     );
-    fn instantiate_keys(ref self: TContractState, // token_quote: TokenQuoteBuyKeys,
+    fn instantiate_keys(ref self: TContractState // token_quote: TokenQuoteBuyKeys,
     // bonding_type: KeysMarketplace::BondingType,
     );
     fn instantiate_keys_with_nostr(
-        ref self: TContractState, request_nostr: SocialRequest<LinkedNostrAddress>
+        ref self: TContractState, request_nostr: SocialRequest<LinkedNostrAddress>,
         // token_quote: TokenQuoteBuyKeys, // bonding_type: KeysMarketplace::BondingType,
     );
     fn buy_keys(ref self: TContractState, address_user: ContractAddress, amount: u256);
     fn sell_keys(ref self: TContractState, address_user: ContractAddress, amount: u256);
     fn get_default_token(self: @TContractState) -> TokenQuoteBuyKeys;
     fn get_price_of_supply_key(
-        self: @TContractState, address_user: ContractAddress, amount: u256, is_decreased: bool
+        self: @TContractState, address_user: ContractAddress, amount: u256, is_decreased: bool,
     ) -> u256;
     fn get_key_of_user(self: @TContractState, key_user: ContractAddress) -> Keys;
     fn get_share_key_of_user(
@@ -67,22 +67,21 @@ mod KeysMarketplace {
     use afk::social::namespace::{INamespaceDispatcher, INamespaceDispatcherTrait};
     use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use core::num::traits::Zero;
-    use openzeppelin::access::accesscontrol::{AccessControlComponent};
+    use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
+    use starknet::storage_access::StorageBaseAddress;
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        contract_address_const, get_block_timestamp, get_contract_address,
+        ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
     use super::{
-        StoredName, BuyKeys, SellKeys, CreateKeys, KeysUpdated, TokenQuoteBuyKeys, Keys, SharesKeys,
-        KeysBonding, KeysBondingImpl, MINTER_ROLE, ADMIN_ROLE, BondingType,
+        ADMIN_ROLE, BondingType, BuyKeys, CreateKeys, Encode, Keys, KeysBonding, KeysBondingImpl,
+        KeysUpdated, LinkedNostrAddress, MINTER_ROLE, SellKeys, SharesKeys, Signature,
+        SocialRequest, SocialRequestImpl, SocialRequestTrait, StoredName, TokenQuoteBuyKeys,
     };
-
-    use super::{LinkedNostrAddress};
-    use super::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
     const MAX_STEPS_LOOP: u256 = 100;
 
     const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
@@ -111,11 +110,11 @@ mod KeysMarketplace {
 
     #[storage]
     struct Storage {
-        keys_of_users: Map::<ContractAddress, Keys>,
-        shares_by_users: Map::<(ContractAddress, ContractAddress), SharesKeys>,
-        bonding_type: Map::<ContractAddress, BondingType>,
-        array_keys_of_users: Map::<u64, Keys>,
-        is_tokens_buy_enable: Map::<ContractAddress, TokenQuoteBuyKeys>,
+        keys_of_users: Map<ContractAddress, Keys>,
+        shares_by_users: Map<(ContractAddress, ContractAddress), SharesKeys>,
+        bonding_type: Map<ContractAddress, BondingType>,
+        array_keys_of_users: Map<u64, Keys>,
+        is_tokens_buy_enable: Map<ContractAddress, TokenQuoteBuyKeys>,
         default_token: TokenQuoteBuyKeys,
         initial_key_price: u256,
         protocol_fee_percent: u256,
@@ -154,7 +153,7 @@ mod KeysMarketplace {
         // init_token: TokenQuoteBuyKeys,
         initial_key_price: u256,
         token_address: ContractAddress,
-        step_increase_linear: u256
+        step_increase_linear: u256,
     ) {
         // AccessControl-related initialization
         self.accesscontrol.initializer();
@@ -166,7 +165,7 @@ mod KeysMarketplace {
             initial_key_price,
             price: initial_key_price,
             is_enable: true,
-            step_increase_linear
+            step_increase_linear,
         };
         self.is_custom_key_enable.write(false);
         self.is_custom_token_enable.write(false);
@@ -199,7 +198,7 @@ mod KeysMarketplace {
         }
 
         fn set_protocol_fee_destination(
-            ref self: ContractState, protocol_fee_destination: ContractAddress
+            ref self: ContractState, protocol_fee_destination: ContractAddress,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.protocol_fee_destination.write(protocol_fee_destination);
@@ -217,7 +216,7 @@ mod KeysMarketplace {
         // User functions
 
         // Create keys for an user
-        fn instantiate_keys(ref self: ContractState, // token_quote: TokenQuoteBuyKeys,
+        fn instantiate_keys(ref self: ContractState // token_quote: TokenQuoteBuyKeys,
         // bonding_type: BondingType,
         ) {
             // let caller = get_caller_address();
@@ -248,7 +247,7 @@ mod KeysMarketplace {
                 created_at: get_block_timestamp(),
                 token_quote: token_to_use.clone(),
                 initial_key_price: token_to_use.initial_key_price,
-                nostr_public_key: 0_u256
+                nostr_public_key: 0_u256,
             };
 
             let share_user = SharesKeys {
@@ -258,7 +257,7 @@ mod KeysMarketplace {
                 amount_buy: 1,
                 amount_sell: 0,
                 created_at: get_block_timestamp(),
-                total_paid: 0
+                total_paid: 0,
             };
             self.shares_by_users.write((get_caller_address(), get_caller_address()), share_user);
             self.keys_of_users.entry(get_caller_address()).write(key.clone());
@@ -279,12 +278,12 @@ mod KeysMarketplace {
                         key_user: get_caller_address(),
                         amount: 1,
                         price: 1,
-                    }
+                    },
                 );
         }
 
         fn instantiate_keys_with_nostr(
-            ref self: ContractState, request_nostr: SocialRequest<LinkedNostrAddress>
+            ref self: ContractState, request_nostr: SocialRequest<LinkedNostrAddress>,
             // token_quote: TokenQuoteBuyKeys,
         // bonding_type: BondingType,
         ) {
@@ -325,7 +324,7 @@ mod KeysMarketplace {
                 amount_buy: 1,
                 amount_sell: 0,
                 created_at: get_block_timestamp(),
-                total_paid: 0
+                total_paid: 0,
             };
             self
                 .shares_by_users
@@ -349,7 +348,7 @@ mod KeysMarketplace {
                         key_user: get_caller_address(),
                         amount: 1,
                         price: 1,
-                    }
+                    },
                 );
         }
 
@@ -426,7 +425,7 @@ mod KeysMarketplace {
             // // // TODO uncomment after allowance check script
             erc20
                 .transfer_from(
-                    get_caller_address(), self.protocol_fee_destination.read(), amount_protocol_fee
+                    get_caller_address(), self.protocol_fee_destination.read(), amount_protocol_fee,
                 );
 
             // println!("get caller address {:?}", get_caller_address());
@@ -455,8 +454,8 @@ mod KeysMarketplace {
                         amount: amount,
                         price: total_price,
                         protocol_fee: amount_protocol_fee,
-                        creator_fee: amount_creator_fee
-                    }
+                        creator_fee: amount_creator_fee,
+                    },
                 );
         }
 
@@ -476,7 +475,7 @@ mod KeysMarketplace {
             // assert!(old_keys.total_supply == 1, "only key owner");
             assert!(
                 old_keys.total_supply == 1 && old_keys.owner == get_caller_address(),
-                "can't sell owner key"
+                "can't sell owner key",
             );
             // assert!(old_keys.total_supply - amount == 0 && old_keys.owner == caller, "cant sell
             // owner key");
@@ -568,8 +567,8 @@ mod KeysMarketplace {
                         amount: amount,
                         price: total_price,
                         protocol_fee: amount_protocol_fee,
-                        creator_fee: amount_creator_fee
-                    }
+                        creator_fee: amount_creator_fee,
+                    },
                 );
         }
 
@@ -578,7 +577,7 @@ mod KeysMarketplace {
         }
 
         fn get_price_of_supply_key(
-            self: @ContractState, address_user: ContractAddress, amount: u256, is_decreased: bool
+            self: @ContractState, address_user: ContractAddress, amount: u256, is_decreased: bool,
         ) -> u256 {
             assert!(amount <= MAX_STEPS_LOOP, "max step loop");
             let key = self.keys_of_users.read(address_user);
@@ -648,7 +647,7 @@ mod KeysMarketplace {
                     let end_price = initial_key_price + (step_increase_linear * final_supply);
                     let total_price = amount * (start_price + end_price) / 2;
                     total_price
-                }
+                },
             }
         }
 
@@ -692,7 +691,7 @@ mod KeysMarketplace {
             actual_supply: u256,
             amount: u256,
             initial_key_price: u256,
-            step_increase_linear: u256
+            step_increase_linear: u256,
         ) -> u256 {
             let mut total_supply = actual_supply.clone();
             let mut actual_supply = total_supply;

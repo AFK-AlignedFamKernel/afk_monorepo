@@ -4,7 +4,7 @@ pub fn add_liquidity_jediswap(
     address_jediswap_factory_v2: ContractAddress,
     address_jediswap_nft_router_v2: ContractAddress,
     launch: TokenLaunch,
-    coin_address: ContractAddress
+    coin_address: ContractAddress,
 ) -> u256 {
     let mut factory_address = address_jediswap_factory_v2.clone();
     let nft_router_address = address_jediswap_nft_router_v2.clone();

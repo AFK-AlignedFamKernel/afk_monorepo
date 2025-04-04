@@ -1,7 +1,7 @@
 use ekubo::types::bounds::Bounds;
-use ekubo::types::i129::{i129};
+use ekubo::types::i129::i129;
 use ekubo::types::keys::PoolKey;
-use starknet::{ContractAddress, // get_caller_address,
+use starknet::{ContractAddress // get_caller_address,
 // storage_access::StorageBaseAddress, contract_address_const,
 // get_block_timestamp,
 // get_contract_address,
@@ -21,7 +21,7 @@ pub enum SupportedExchanges {
 }
 
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, PartialEq //  PartialEq
+Drop, starknet::Store, PartialEq //  PartialEq
 )]
 pub enum BondingType {
     Linear,
@@ -51,7 +51,7 @@ pub struct TokenQuoteBuyCoin {
     pub starting_price: u256,
     pub price: u256,
     pub step_increase_linear: u256,
-    pub is_enable: bool
+    pub is_enable: bool,
 }
 
 
@@ -166,7 +166,7 @@ pub struct EkuboLaunchParameters {
     pub token_address: ContractAddress,
     pub quote_address: ContractAddress,
     pub lp_supply: u256,
-    pub pool_params: EkuboPoolParameters
+    pub pool_params: EkuboPoolParameters,
 }
 
 #[derive(Copy, Drop, Serde)]
@@ -177,7 +177,7 @@ pub struct EkuboUnrugLaunchParameters {
     pub lp_supply: u256,
     pub lp_quote_supply: u256,
     pub pool_params: EkuboPoolParameters,
-    pub caller: ContractAddress
+    pub caller: ContractAddress,
 }
 
 #[derive(Copy, Drop, Serde)]
@@ -219,7 +219,7 @@ pub struct EkuboPoolParameters {
 pub enum LiquidityType {
     JediERC20: ContractAddress,
     StarkDeFiERC20: ContractAddress,
-    EkuboNFT: u64
+    EkuboNFT: u64,
 }
 
 #[derive(Copy, Drop, Serde, starknet::Store)]
@@ -341,7 +341,7 @@ pub struct CreateToken {
     pub name: ByteArray,
     pub initial_supply: u256,
     pub total_supply: u256,
-    pub is_unruggable: bool
+    pub is_unruggable: bool,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -367,7 +367,7 @@ pub struct MemecoinCreated {
     pub name: felt252,
     pub symbol: felt252,
     pub initial_supply: u256,
-    pub memecoin_address: ContractAddress
+    pub memecoin_address: ContractAddress,
 }
 
 
@@ -409,7 +409,7 @@ pub struct LiquidityCreated {
     // pub token_id:u256,
     pub owner: ContractAddress,
     pub exchange: SupportedExchanges,
-    pub is_unruggable: bool
+    pub is_unruggable: bool,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -419,7 +419,7 @@ pub struct TokenClaimed {
     #[key]
     pub owner: ContractAddress,
     pub amount: u256,
-    pub timestamp: u64
+    pub timestamp: u64,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -428,7 +428,7 @@ pub struct MetadataCoinAdded {
     pub token_address: ContractAddress,
     pub url: ByteArray,
     pub nostr_event_id: u256,
-    pub timestamp: u64
+    pub timestamp: u64,
 }
 
 
@@ -452,12 +452,12 @@ pub struct LaunchUpdated {
     #[key]
     user: ContractAddress,
     supply: u256,
-    price: u256
+    price: u256,
 }
 
 
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, //  PartialEq
+Drop, starknet::Store //  PartialEq
 )]
 pub enum TokenType {
     ERC20,

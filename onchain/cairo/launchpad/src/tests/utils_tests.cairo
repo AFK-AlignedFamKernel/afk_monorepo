@@ -3,16 +3,15 @@ mod utils_tests {
     use afk_launchpad::interfaces::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
     };
-
     use afk_launchpad::interfaces::unrug::{
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
     };
     use afk_launchpad::launchpad::calcul::linear::{
         calculate_starting_price_launch, // get_coin_amount_by_quote_amount,
-         get_coin_amount
+        get_coin_amount,
     };
-    use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
-    use afk_launchpad::launchpad::math::{PercentageMath};
+    use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::Event as LaunchpadEvent;
+    use afk_launchpad::launchpad::math::PercentageMath;
     use afk_launchpad::launchpad::utils::{
         get_coin_amount, get_coin_amount_by_quote_amount, get_coin_amount_by_quote_amount_with_fees,
     };
@@ -21,9 +20,9 @@ mod utils_tests {
     use afk_launchpad::types::launchpad_types::{
         CreateToken, TokenQuoteBuyCoin, BondingType,
         CreateLaunch, // SetJediswapNFTRouterV2,SetJediswapV2Factory,
-         SupportedExchanges, EkuboLP,
+        SupportedExchanges, EkuboLP,
         EkuboPoolParameters, TokenLaunch, EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
-        EkuboUnrugLaunchParameters
+        EkuboUnrugLaunchParameters,
     };
 
 
@@ -81,7 +80,7 @@ mod utils_tests {
         erc20_class: ContractClass,
         meme_class: ContractClass,
         launch_class: ContractClass,
-        unrug_class: ContractClass
+        unrug_class: ContractClass,
     ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
         // ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher,
         // IUnrugLiquidityDispatcher) {
@@ -91,7 +90,7 @@ mod utils_tests {
             'USDC token',
             'USDC',
             1_000_000_000_000_000_000 * pow_256(10, 18),
-            sender_address
+            sender_address,
         );
         let token_address = erc20.contract_address.clone();
 
@@ -108,7 +107,7 @@ mod utils_tests {
             EKUBO_REGISTRY(),
             EKUBO_CORE(),
             EKUBO_POSITIONS(),
-            EKUBO_EXCHANGE_ADDRESS()
+            EKUBO_EXCHANGE_ADDRESS(),
         );
 
         let launchpad = deploy_launchpad(
@@ -246,7 +245,7 @@ mod utils_tests {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        recipient: ContractAddress
+        recipient: ContractAddress,
     ) -> IERC20Dispatcher {
         let mut calldata = array![];
 
@@ -274,7 +273,7 @@ mod utils_tests {
             1_000_000_000_u256 * pow_256(10, 18), // 1b
             10_000_000_000_u256 * pow_256(10, 18), // 10b
             100_000_000_000_u256 * pow_256(10, 18), // 100b
-            1_000_000_000_000_u256 * pow_256(10, 18), // 1t
+            1_000_000_000_000_u256 * pow_256(10, 18) // 1t
             // 10_000_000_000_000_u256, // 10t
         // 100_000_000_000_000_u256, // 100t
         // 100_000_000_000_000_000_000_000_000_000_000_u256
@@ -302,7 +301,7 @@ mod utils_tests {
         stop_cheat_caller_address(erc20.contract_address);
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
-        println!("buy coin {:?}", amount_quote,);
+        println!("buy coin {:?}", amount_quote);
         // launchpad.buy_coin_by_quote_amount(token_address, amount_quote, Option::None);
         launchpad.buy_coin_by_quote_amount(token_address, amount_quote);
         stop_cheat_caller_address(launchpad.contract_address);
@@ -344,7 +343,7 @@ mod utils_tests {
 
         let INITIAL_POOL_SUPPLY = TOTAL_SUPPLY / LIQUIDITY_RATIO;
         let starting_price = calculate_starting_price_launch(
-            INITIAL_POOL_SUPPLY.clone(), THRESHOLD_LIQUIDITY.clone()
+            INITIAL_POOL_SUPPLY.clone(), THRESHOLD_LIQUIDITY.clone(),
         );
 
         let mut x_y = if is_token1_quote {
@@ -395,7 +394,7 @@ mod utils_tests {
         // let total_token_holded: u256 = total_supply / LIQUIDITY_RATIO;
         println!("lp_meme_supply {:?}", lp_meme_supply);
         println!(
-            "sqrt_ratio {:?}", pool_price.sqrt_ratio
+            "sqrt_ratio {:?}", pool_price.sqrt_ratio,
         ); // 340282366920938463463374607431768211456
         println!("tick {:?}", pool_price.tick); // { mag: 0, sign: false } strange
 

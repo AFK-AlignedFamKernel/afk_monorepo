@@ -5,19 +5,17 @@
 pub mod LockManager {
     use afk_launchpad::launchpad::locker::errors;
     use afk_launchpad::launchpad::locker::interface::ILockManager;
-
     use core::num::traits::Zero;
     use core::starknet::SyscallResultTrait;
     use core::starknet::event::EventEmitter;
     use core::starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry, Vec,
-        MutableVecTrait, VecTrait
+        Map, MutableVecTrait, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
+        Vec, VecTrait,
     };
     use openzeppelin::token::erc20::{ERC20ABIDispatcher, ERC20ABIDispatcherTrait};
-
     use starknet::syscalls::deploy_syscall;
     use starknet::{
-        ContractAddress, contract_address_const, get_caller_address, get_block_timestamp, ClassHash
+        ClassHash, ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
     };
 
     #[storage]
@@ -42,7 +40,7 @@ pub mod LockManager {
         TokenWithdrawn: TokenWithdrawn,
         LockOwnershipTransferred: LockOwnershipTransferred,
         LockDurationIncreased: LockDurationIncreased,
-        LockAmountIncreased: LockAmountIncreased
+        LockAmountIncreased: LockAmountIncreased,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -65,7 +63,7 @@ pub mod LockManager {
     pub struct TokenWithdrawn {
         #[key]
         pub lock_address: ContractAddress,
-        pub amount: u256
+        pub amount: u256,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -85,7 +83,7 @@ pub mod LockManager {
     #[derive(Drop, starknet::Event)]
     struct LockAmountIncreased {
         lock_address: ContractAddress,
-        amount_to_increase: u256
+        amount_to_increase: u256,
     }
 
     #[derive(Drop, Copy, starknet::Store, Serde, PartialEq)]
@@ -100,7 +98,7 @@ pub mod LockManager {
         pub token: ContractAddress,
         pub amount: u256,
         pub owner: ContractAddress,
-        pub unlock_time: u64
+        pub unlock_time: u64,
     }
 
     /// Initializes a new instance of a LockManager contract.  The constructor
@@ -113,7 +111,7 @@ pub mod LockManager {
     /// * `lock_position_class_hash` - The class hash of the lock position contract deployed.
     #[constructor]
     fn constructor(
-        ref self: ContractState, min_lock_time: u64, lock_position_class_hash: ClassHash
+        ref self: ContractState, min_lock_time: u64, lock_position_class_hash: ClassHash,
     ) {
         self.min_lock_time.write(min_lock_time);
         self.lock_position_class_hash.write(lock_position_class_hash);
@@ -126,7 +124,7 @@ pub mod LockManager {
             token: ContractAddress,
             amount: u256,
             unlock_time: u64,
-            withdrawer: ContractAddress
+            withdrawer: ContractAddress,
         ) -> ContractAddress {
             assert(amount != 0, errors::ZERO_AMOUNT);
             assert(token.into() != 0_felt252, errors::ZERO_TOKEN);
@@ -134,14 +132,14 @@ pub mod LockManager {
             assert(unlock_time < 10000000000, errors::LOCK_NOT_IN_SECONDS);
             assert(
                 unlock_time >= get_block_timestamp() + self.min_lock_time.read(),
-                errors::LOCK_TOO_SHORT
+                errors::LOCK_TOO_SHORT,
             );
 
             self._proceed_lock(token, withdrawer, amount, unlock_time)
         }
 
         fn extend_lock(
-            ref self: ContractState, lock_address: ContractAddress, new_unlock_time: u64
+            ref self: ContractState, lock_address: ContractAddress, new_unlock_time: u64,
         ) {
             self.assert_only_lock_owner(lock_address);
 
@@ -157,7 +155,7 @@ pub mod LockManager {
         }
 
         fn increase_lock_amount(
-            ref self: ContractState, lock_address: ContractAddress, amount_to_increase: u256
+            ref self: ContractState, lock_address: ContractAddress, amount_to_increase: u256,
         ) {
             self.assert_only_lock_owner(lock_address);
 
@@ -198,8 +196,8 @@ pub mod LockManager {
                         TokenLock {
                             token: contract_address_const::<0>(),
                             owner: contract_address_const::<0>(),
-                            unlock_time: 0
-                        }
+                            unlock_time: 0,
+                        },
                     );
 
                 // Remove lock from user and token lists -> Set lock to false
@@ -216,7 +214,7 @@ pub mod LockManager {
         }
 
         fn transfer_lock(
-            ref self: ContractState, lock_address: ContractAddress, new_owner: ContractAddress
+            ref self: ContractState, lock_address: ContractAddress, new_owner: ContractAddress,
         ) {
             self.assert_only_lock_owner(lock_address);
             assert(new_owner.into() != 0_felt252, errors::ZERO_WITHDRAWER);
@@ -244,7 +242,7 @@ pub mod LockManager {
                     token: contract_address_const::<0>(),
                     amount: 0,
                     owner: contract_address_const::<0>(),
-                    unlock_time: 0
+                    unlock_time: 0,
                 };
             }
 
@@ -255,7 +253,7 @@ pub mod LockManager {
                 token: token_lock.token,
                 amount: actual_balance,
                 owner: token_lock.owner,
-                unlock_time: token_lock.unlock_time
+                unlock_time: token_lock.unlock_time,
             }
         }
 
@@ -284,13 +282,13 @@ pub mod LockManager {
                     active_count += 1;
                 }
                 i += 1;
-            };
+            }
 
             active_count
         }
 
         fn user_lock_at(
-            self: @ContractState, user: ContractAddress, index: u32
+            self: @ContractState, user: ContractAddress, index: u32,
         ) -> ContractAddress {
             // Return only active locks
             let mut active_index = 0;
@@ -308,7 +306,7 @@ pub mod LockManager {
                     active_index += 1;
                 }
                 i += 1;
-            };
+            }
 
             user_lock
         }
@@ -325,13 +323,13 @@ pub mod LockManager {
                     active_count += 1;
                 }
                 i += 1;
-            };
+            }
 
             active_count
         }
 
         fn token_locked_at(
-            self: @ContractState, token: ContractAddress, index: u32
+            self: @ContractState, token: ContractAddress, index: u32,
         ) -> ContractAddress {
             // Return only active locks
             let mut active_index = 0;
@@ -349,7 +347,7 @@ pub mod LockManager {
                     active_index += 1;
                 }
                 i += 1;
-            };
+            }
 
             token_lock
         }
@@ -407,7 +405,7 @@ pub mod LockManager {
             token: ContractAddress,
             withdrawer: ContractAddress,
             amount: u256,
-            unlock_time: u64
+            unlock_time: u64,
         ) -> ContractAddress {
             let token_lock = TokenLock { token, owner: withdrawer, unlock_time: unlock_time };
 
@@ -421,7 +419,7 @@ pub mod LockManager {
                 self.lock_position_class_hash.read(),
                 lock_nonce.into(),
                 array![token.into()].span(),
-                false
+                false,
             )
                 .unwrap_syscall();
 
@@ -449,13 +447,13 @@ pub mod LockManager {
         /// `lock_address`
         /// it set's it to false, which indicates that the lock is no longer available
         fn remove_user_lock(
-            ref self: ContractState, owner: ContractAddress, lock_address: ContractAddress
+            ref self: ContractState, owner: ContractAddress, lock_address: ContractAddress,
         ) {
             self.user_locks.entry((owner, lock_address)).write(false);
         }
 
         fn remove_token_lock(
-            ref self: ContractState, token: ContractAddress, lock_address: ContractAddress
+            ref self: ContractState, token: ContractAddress, lock_address: ContractAddress,
         ) {
             self.token_locks.entry((token, lock_address)).write(false);
         }

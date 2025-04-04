@@ -1,4 +1,4 @@
-use starknet::{ContractAddress};
+use starknet::ContractAddress;
 
 #[derive(Drop, Copy, starknet::Store, Serde)]
 pub struct QuestInfo {

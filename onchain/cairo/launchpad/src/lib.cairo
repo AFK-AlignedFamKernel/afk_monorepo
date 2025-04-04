@@ -27,10 +27,9 @@ pub mod launchpad {
         pub mod launch;
         pub mod linear;
     }
-    
 }
 
-pub mod mocks{
+pub mod mocks {
     pub mod router_lite;
 }
 
@@ -60,10 +59,10 @@ pub mod tokens {
 
 #[cfg(test)]
 pub mod tests {
-    pub mod init_price_tests;
     pub mod edge_cases_tests;
     pub mod end_to_end_tests;
     pub mod exponential_tests;
+    pub mod init_price_tests;
     pub mod launchpad_tests;
     pub mod linear_tests;
     pub mod liquidity_tests;

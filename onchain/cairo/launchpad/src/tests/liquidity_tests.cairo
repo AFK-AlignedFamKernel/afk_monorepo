@@ -4,15 +4,14 @@ mod liquidity_tests {
     use afk_launchpad::interfaces::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
     };
-    use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
+    use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::Event as LaunchpadEvent;
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk_launchpad::types::launchpad_types::{
-        CreateToken, TokenQuoteBuyCoin, BondingType, CreateLaunch, SetJediswapNFTRouterV2,
-        SetJediswapV2Factory, SupportedExchanges, EkuboLP, EkuboPoolParameters, TokenLaunch,
-        EkuboLaunchParameters, LaunchParameters, SharesTokenUser
+        BondingType, CreateLaunch, CreateToken, EkuboLP, EkuboLaunchParameters, EkuboPoolParameters,
+        LaunchParameters, SetJediswapNFTRouterV2, SetJediswapV2Factory, SharesTokenUser,
+        SupportedExchanges, TokenLaunch, TokenQuoteBuyCoin,
     };
-
     use core::num::traits::Zero;
     use core::traits::Into;
     use ekubo::interfaces::core::{ICore, ICoreDispatcher, ICoreDispatcherTrait};
@@ -20,19 +19,18 @@ mod liquidity_tests {
     use ekubo::interfaces::token_registry::{
         ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
     };
-
     use ekubo::types::i129::i129;
     use ekubo::types::keys::PoolKey;
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, start_cheat_caller_address,
+        ContractClass, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, declare,
+        spy_events, start_cheat_block_timestamp, start_cheat_caller_address,
         start_cheat_caller_address_global, stop_cheat_caller_address,
-        stop_cheat_caller_address_global, start_cheat_block_timestamp, DeclareResultTrait,
-        EventSpyAssertionsTrait
+        stop_cheat_caller_address_global,
     };
+    use starknet::class_hash::class_hash_const;
     use starknet::syscalls::call_contract_syscall;
-
-    use starknet::{ContractAddress, ClassHash, class_hash::class_hash_const};
+    use starknet::{ClassHash, ContractAddress};
 
     // fn DEFAULT_INITIAL_SUPPLY() -> u256 {
     //     // 21_000_000 * pow_256(10, 18)
@@ -186,7 +184,7 @@ mod liquidity_tests {
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, meme_class: ContractClass, launch_class: ContractClass
+        erc20_class: ContractClass, meme_class: ContractClass, launch_class: ContractClass,
     ) -> (ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher) {
         let sender_address: ContractAddress = 123.try_into().unwrap();
         let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 1_000_000, sender_address);
@@ -204,7 +202,7 @@ mod liquidity_tests {
             EKUBO_REGISTRY(),
             EKUBO_CORE(),
             EKUBO_POSITIONS(),
-            EKUBO_EXCHANGE_ADDRESS()
+            EKUBO_EXCHANGE_ADDRESS(),
             // ITokenRegistryDispatcher { contract_address: EKUBO_REGISTRY() },
         // ICoreDispatcher { contract_address: EKUBO_CORE() },
         // IPositionsDispatcher { contract_address: EKUBO_POSITIONS() },
@@ -283,7 +281,7 @@ mod liquidity_tests {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        recipient: ContractAddress
+        recipient: ContractAddress,
     ) -> IERC20Dispatcher {
         let mut calldata = array![];
 
@@ -314,7 +312,7 @@ mod liquidity_tests {
         stop_cheat_caller_address(erc20.contract_address);
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
-        println!("buy coin {:?}", amount_quote,);
+        println!("buy coin {:?}", amount_quote);
         // launchpad.buy_coin_by_quote_amount(token_address, amount_quote, Option::None);
         launchpad.buy_coin_by_quote_amount(token_address, amount_quote);
         stop_cheat_caller_address(launchpad.contract_address);
@@ -341,10 +339,10 @@ mod liquidity_tests {
         token_address: ContractAddress,
         sender_address: ContractAddress,
         is_decreased: bool,
-        is_quote_amount: bool
+        is_quote_amount: bool,
     ) -> u256 {
         start_cheat_caller_address(launchpad.contract_address, sender_address);
-        println!("buy coin",);
+        println!("buy coin");
         launchpad.get_coin_amount_by_quote_amount(token_address, amount_quote, is_decreased)
     }
 
@@ -369,13 +367,13 @@ mod liquidity_tests {
                 is_unruggable: false,
                 bonding_type: BondingType::Linear,
                 creator_fee_percent: MID_FEE_CREATOR,
-                creator_fee_destination: RECEIVER_ADDRESS()
+                creator_fee_destination: RECEIVER_ADDRESS(),
             );
         println!("token_address ekubo launch: {:?}", token_address);
         println!(
             "Balance of launchpad: {:?}",
             IERC20Dispatcher { contract_address: token_address }
-                .balance_of(launchpad.contract_address)
+                .balance_of(launchpad.contract_address),
         );
         let launch = launchpad.get_coin_launch(token_address);
         let starting_price = i129 { sign: true, mag: 100_u128 };
