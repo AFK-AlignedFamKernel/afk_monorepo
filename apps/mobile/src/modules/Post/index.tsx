@@ -40,6 +40,8 @@ import { SliderImages } from './SliderImages';
 import MiniVideoPlayer from '../../components/VideoPlayer/MiniVideoPlayer';
 import { useQuoteNoteModal } from 'src/hooks/modals/useQuoteNoteModal';
 
+import Markdown, { MarkdownIt } from 'react-native-markdown-display';
+
 export type PostProps = {
   asComment?: boolean;
   event?: NDKEvent;
@@ -58,6 +60,8 @@ export const Post: React.FC<PostProps> = ({
   isReplyView,
 }) => {
   const repostedEvent = repostedEventProps ?? undefined;
+
+  const isArticle = event?.kind == NDKKind.Article;
 
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
@@ -349,6 +353,8 @@ export const Post: React.FC<PostProps> = ({
     }
 
   }
+
+  console.log("isArticle", isArticle)
   return (
     <View style={styles.container}>
 
@@ -451,10 +457,30 @@ export const Post: React.FC<PostProps> = ({
       {/* //content */}
       <View style={styles.content}>
         <Pressable onPress={handleNavigateToPostDetails}>
-          <ContentWithClickableHashtags
-            content={isContentExpanded ? content : truncatedContent}
-            onHashtagPress={handleHashtagPress}
-          />
+
+          {!isArticle && (
+            <ContentWithClickableHashtags
+              content={isContentExpanded ? content : truncatedContent}
+              onHashtagPress={handleHashtagPress}
+            />
+          )}
+
+          {isArticle && Platform.OS !== 'web' && (
+            <>
+              <Markdown>{content}</Markdown>
+
+            </>
+          )}
+
+          {isArticle && Platform.OS === 'web' && (
+            <Markdown
+              markdownit={
+                MarkdownIt({ typographer: true }).disable(['link', 'image'])
+              }
+            >
+              {content}
+            </Markdown>
+          )}
 
           {content.length > 200 && (
             <Pressable onPress={toggleExpandedContent}>
