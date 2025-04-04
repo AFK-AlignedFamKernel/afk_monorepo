@@ -475,7 +475,11 @@ export const Post: React.FC<PostProps> = ({
           )}
 
           {isArticle && Platform.OS === 'web' && (
-            <MarkdownViewer content={content} />
+            <MarkdownViewer
+              content={content}
+              isExpanded={isContentExpanded}
+              toggleExpandedContent={toggleExpandedContent}
+            />
           )}
 
           {isArticle && Platform.OS !== 'web' && (
