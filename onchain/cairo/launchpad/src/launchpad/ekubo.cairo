@@ -1,42 +1,40 @@
 use afk_launchpad::exchanges::ekubo::launcher::{
-    IEkuboLauncherDispatcher, IEkuboLauncherDispatcherTrait, EkuboLP
+    EkuboLP, IEkuboLauncherDispatcher, IEkuboLauncherDispatcherTrait,
 };
-
 use afk_launchpad::launchpad::calcul::{
-    calculate_starting_price_launch, calculate_slope, calculate_pricing,
-    get_amount_by_type_of_coin_or_quote, get_coin_amount_by_quote_amount
+    calculate_pricing, calculate_slope, calculate_starting_price_launch,
+    get_amount_by_type_of_coin_or_quote, get_coin_amount_by_quote_amount,
 };
 use afk_launchpad::launchpad::errors;
-use afk_launchpad::launchpad::helpers::{distribute_team_alloc, check_common_launch_parameters};
+use afk_launchpad::launchpad::helpers::{check_common_launch_parameters, distribute_team_alloc};
 use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
 use afk_launchpad::launchpad::utils::{
-    sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
-    calculate_aligned_bound_mag
+    calculate_aligned_bound_mag, get_initial_tick_from_starting_price, get_next_tick_bounds,
+    sort_tokens, unique_count,
 };
 use afk_launchpad::types::launchpad_types::{
-    MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
-    TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
-    SetJediswapNFTRouterV2, SetJediswapV2Factory, SupportedExchanges, LiquidityCreated,
-    LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
-    LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback, LiquidityType,
-    EkuboLiquidityParameters, LiquidityParameters,
+    ADMIN_ROLE, BondingType, BuyToken, CallbackData, CreateLaunch, CreateToken, EkuboLP,
+    EkuboLaunchParameters, EkuboLiquidityParameters, EkuboPoolParameters, LaunchCallback,
+    LaunchParameters, LaunchUpdated, LiquidityCanBeAdded, LiquidityCreated, LiquidityParameters,
+    LiquidityType, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch, SellToken,
+    SetJediswapNFTRouterV2, SetJediswapV2Factory, SharesTokenUser, StoredName, SupportedExchanges,
+    Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin,
     // MemecoinCreated, MemecoinLaunched
 };
-use afk_launchpad::utils::{sqrt};
+use afk_launchpad::utils::sqrt;
 use core::num::traits::Zero;
 use ekubo::components::shared_locker::{call_core_with_callback, consume_callback_data};
 use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
 use ekubo::interfaces::erc20::{
-    IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait
+    IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait,
 };
 use ekubo::interfaces::positions::{IPositions, IPositionsDispatcher, IPositionsDispatcherTrait};
 use ekubo::interfaces::router::{IRouterDispatcher, IRouterDispatcherTrait};
-use ekubo::interfaces::token_registry::{ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,};
-use ekubo::types::bounds::{Bounds};
+use ekubo::interfaces::token_registry::{ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait};
+use ekubo::types::bounds::Bounds;
+use ekubo::types::i129::i129;
 use ekubo::types::keys::PoolKey;
-use ekubo::types::{i129::i129};
-
-use starknet::{get_contract_address, ContractAddress, ClassHash};
+use starknet::{ClassHash, ContractAddress, get_contract_address};
 
 #[starknet::interface]
 trait IEkuboAdapter<TContractState> {
@@ -45,7 +43,7 @@ trait IEkuboAdapter<TContractState> {
         launch: TokenLaunch,
         ekubo_core_address: ContractAddress,
         ekubo_exchange_address: ContractAddress,
-        positions_ekubo: ContractAddress
+        positions_ekubo: ContractAddress,
         // params: EkuboLaunchParameters
     ) -> (u64, EkuboLP);
 }
@@ -65,13 +63,13 @@ pub mod ekubo_adapter {
         ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
-        ekubo_exchange_address: ContractAddress
+        ekubo_exchange_address: ContractAddress,
     }
 
 
     #[generate_trait]
     pub impl InternalImpl<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
     > of InternalTrait<TContractState> {
         fn initializer(
             ref self: ComponentState<TContractState>,
@@ -80,7 +78,7 @@ pub mod ekubo_adapter {
             ekubo_registry: ContractAddress,
             core: ContractAddress,
             positions: ContractAddress,
-            ekubo_exchange_address: ContractAddress
+            ekubo_exchange_address: ContractAddress,
         ) {
             self.factory_address.write(factory_address);
             self.ekubo_registry.write(ekubo_registry);
@@ -92,14 +90,14 @@ pub mod ekubo_adapter {
 
     #[embeddable_as(EkuboAdapter)]
     impl EkuboAdapterImpl<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
     > of super::IEkuboAdapter<ComponentState<TContractState>> {
         fn add_liquidity_ekubo_bonding_curve(
             ref self: ComponentState<TContractState>,
             launch: TokenLaunch,
             ekubo_core_address: ContractAddress,
             ekubo_exchange_address: ContractAddress,
-            positions_ekubo: ContractAddress
+            positions_ekubo: ContractAddress,
             // params: EkuboLaunchParameters
         ) -> (u64, EkuboLP) {
             // TODO params of Ekubo launch
@@ -113,7 +111,7 @@ pub mod ekubo_adapter {
             // TODO calculate price
 
             let starting_price: i129 = calculate_starting_price_launch(
-                launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
+                launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone(),
             );
             let lp_meme_supply = launch.initial_pool_supply;
 
@@ -130,7 +128,7 @@ pub mod ekubo_adapter {
                     tick_spacing: 5000,
                     starting_price,
                     bound: calculate_aligned_bound_mag(starting_price, 2, 5000),
-                }
+                },
             };
 
             // println!("Bound computed: {}", params.pool_params.bound);
@@ -158,7 +156,7 @@ pub mod ekubo_adapter {
 
             let (id, position) = call_core_with_callback::<
                 // let span = call_core_with_callbac00k::<
-                CallbackData, (u64, EkuboLP)
+                CallbackData, (u64, EkuboLP),
             >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
             // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
             //TODO emit event
@@ -211,15 +209,15 @@ pub mod ekubo_adapter {
                     println!("step: {}", 1);
                     let launch_params: EkuboLaunchParameters = params.params;
                     let (token0, token1) = sort_tokens(
-                        launch_params.token_address, launch_params.quote_address
+                        launch_params.token_address, launch_params.quote_address,
                     );
                     println!("step: {}", 2);
                     let memecoin = EKIERC20Dispatcher {
-                        contract_address: launch_params.token_address
+                        contract_address: launch_params.token_address,
                     };
                     println!("step: {}", 3);
                     let base_token = EKIERC20Dispatcher {
-                        contract_address: launch_params.quote_address
+                        contract_address: launch_params.quote_address,
                     };
                     println!("step: {}", 4);
                     let registry = ITokenRegistryDispatcher { contract_address: registry_address };
@@ -248,7 +246,7 @@ pub mod ekubo_adapter {
                     let (initial_tick, full_range_bounds) = get_initial_tick_from_starting_price(
                         launch_params.pool_params.starting_price,
                         launch_params.pool_params.bound,
-                        is_token1_quote
+                        is_token1_quote,
                     );
                     println!("step: {}", 9);
 
@@ -264,7 +262,7 @@ pub mod ekubo_adapter {
                     println!("step: {}", 11);
 
                     let memecoin_balance = IERC20Dispatcher {
-                        contract_address: launch_params.token_address
+                        contract_address: launch_params.token_address,
                     }
                         .balance_of(launch_params.token_address);
                     println!("memecoin_balance of token: {}", memecoin_balance);
@@ -316,7 +314,7 @@ pub mod ekubo_adapter {
                             pool_key,
                             launch_params.token_address,
                             launch_params.lp_supply,
-                            full_range_bounds
+                            full_range_bounds,
                         );
 
                     // println!("IN HERE: {}", 6);
@@ -327,7 +325,7 @@ pub mod ekubo_adapter {
                         owner: launch_params.owner,
                         quote_address: launch_params.quote_address,
                         pool_key,
-                        bounds: full_range_bounds
+                        bounds: full_range_bounds,
                     };
                     // println!("position owner {:?}", owner);
                     // println!("position quote_address {:?}", quote_address);
@@ -344,13 +342,13 @@ pub mod ekubo_adapter {
                             owner: launch_params.owner,
                             quote_address: launch_params.quote_address,
                             pool_key,
-                            bounds: full_range_bounds
+                            bounds: full_range_bounds,
                         },
-                        ref return_data
+                        ref return_data,
                     );
                     println!("step: {}", 20);
                     return_data.span()
-                }
+                },
                 // CallbackData::WithdrawFeesCallback(params) => {
             //     let WithdrawFeesCallback{id, liquidity_type, recipient } = params;
             //     let positions = self.positions.read();
@@ -384,10 +382,10 @@ fn buy_tokens_from_pool(
     quote_address: ContractAddress,
 ) {
     let ekubo_router = IRouterDispatcher {
-        contract_address: ekubo_launchpad.ekubo_router_address()
+        contract_address: ekubo_launchpad.ekubo_router_address(),
     };
     let ekubo_clearer = IClearDispatcher {
-        contract_address: ekubo_launchpad.ekubo_router_address()
+        contract_address: ekubo_launchpad.ekubo_router_address(),
     };
 
     let token_to_buy = IUnruggableMemecoinDispatcher { contract_address: token_to_buy };
@@ -403,7 +401,7 @@ fn buy_tokens_from_pool(
     };
 
     let route_node = RouteNode {
-        pool_key: pool_key, sqrt_ratio_limit: sqrt_limit_swap1, skip_ahead: 0
+        pool_key: pool_key, sqrt_ratio_limit: sqrt_limit_swap1, skip_ahead: 0,
     };
 
     let quote_token = IERC20Dispatcher { contract_address: quote_address };
@@ -412,7 +410,7 @@ fn buy_tokens_from_pool(
     let token_amount = TokenAmount {
         token: token_to_buy.contract_address,
         amount: i129 { mag: amount.low, sign: true // negative (true) sign is exact output
-         },
+        },
     };
 
     // We transfer quote tokens to the swapper contract, which performs the swap
@@ -423,7 +421,7 @@ fn buy_tokens_from_pool(
     ekubo_clearer.clear(IERC20Dispatcher { contract_address: token_to_buy.contract_address });
     ekubo_clearer
         .clear_minimum_to_recipient(
-            IERC20Dispatcher { contract_address: quote_address }, 0, starknet::get_caller_address()
+            IERC20Dispatcher { contract_address: quote_address }, 0, starknet::get_caller_address(),
         );
 }
 
@@ -432,7 +430,7 @@ pub fn add_liquidity_ekubo_bonding_curve(
     launch: TokenLaunch,
     ekubo_core_address: ContractAddress,
     ekubo_exchange_address: ContractAddress,
-    positions_ekubo: ContractAddress
+    positions_ekubo: ContractAddress,
     // params: EkuboLaunchParameters
 ) -> (u64, EkuboLP) {
     // TODO params of Ekubo launch
@@ -446,7 +444,7 @@ pub fn add_liquidity_ekubo_bonding_curve(
     // TODO calculate price
 
     let starting_price: i129 = calculate_starting_price_launch(
-        launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone()
+        launch.initial_pool_supply.clone(), launch.threshold_liquidity.clone(),
     );
     let lp_meme_supply = launch.initial_pool_supply;
 
@@ -463,7 +461,7 @@ pub fn add_liquidity_ekubo_bonding_curve(
             tick_spacing: 5000,
             starting_price,
             bound: calculate_aligned_bound_mag(starting_price, 2, 5000),
-        }
+        },
     };
 
     // println!("Bound computed: {}", params.pool_params.bound);
@@ -491,7 +489,7 @@ pub fn add_liquidity_ekubo_bonding_curve(
 
     let (id, position) = call_core_with_callback::<
         // let span = call_core_with_callbac00k::<
-        CallbackData, (u64, EkuboLP)
+        CallbackData, (u64, EkuboLP),
     >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
     // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
     //TODO emit event

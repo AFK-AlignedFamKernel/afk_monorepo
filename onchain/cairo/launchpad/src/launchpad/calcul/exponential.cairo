@@ -1,4 +1,4 @@
-use afk_launchpad::types::launchpad_types::{TokenLaunch,};
+use afk_launchpad::types::launchpad_types::TokenLaunch;
 const BPS: u256 = 10_000;
 const DECIMAL_FACTOR: u256 = 1_000_000_000_000_000_000_u256;
 const MIN_PRICE: u256 = 1_u256;
@@ -29,7 +29,7 @@ pub fn exponential_approximation(x: u256, y: u256, terms: u256) -> u256 {
         term = term * x_scaled / (i * DECIMAL_FACTOR);
         result += term;
         i += 1_u256;
-    };
+    }
 
     result
 }
@@ -53,7 +53,7 @@ pub fn logarithm_approximation(x: u256, y: u256, terms: u256) -> u256 {
     while numerator > denominator {
         numerator /= 2;
         k += 1;
-    };
+    }
 
     result += k * LN_2;
 
@@ -68,7 +68,7 @@ pub fn logarithm_approximation(x: u256, y: u256, terms: u256) -> u256 {
         negative_result += scaled_term;
         term = term * (DECIMAL_FACTOR - numerator * DECIMAL_FACTOR / denominator) / DECIMAL_FACTOR;
         i += 1_u256;
-    };
+    }
     result -= negative_result;
     result
 }
@@ -134,7 +134,7 @@ pub fn logarithm_approximation_1px(x: u256, y: u256, terms: u256) -> u256 {
         top = denominator;
         bottom = numerator;
         changed = true;
-    };
+    }
 
     let mut term = top * DECIMAL_FACTOR / bottom;
     let mut i = 1_u256;
@@ -151,12 +151,12 @@ pub fn logarithm_approximation_1px(x: u256, y: u256, terms: u256) -> u256 {
         }
         term = term * top / bottom;
         i += 1_u256;
-    };
+    }
 
     if changed {
         let natural_log = logarithm_approximation(x, y, TAYLOR_TERMS);
         result = natural_log + result;
-    };
+    }
 
     result
 }
@@ -187,7 +187,7 @@ pub fn get_meme_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u
 
     if amount_out > current_supply {
         amount_out = current_supply;
-    };
+    }
     amount_out
 }
 /// Exponential Bonding Curve Algorithm Documentation
@@ -232,7 +232,7 @@ pub fn get_coin_amount_exponential(pool_coin: TokenLaunch, amount_in: u256) -> u
 
     if amount_out > liquidity_raised {
         amount_out = liquidity_raised;
-    };
+    }
     amount_out
 }
 // pub fn natural_log(x: u256, scale_factor: u256, terms: u256) -> u256 {

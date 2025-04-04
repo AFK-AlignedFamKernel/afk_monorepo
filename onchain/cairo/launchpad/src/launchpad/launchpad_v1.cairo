@@ -1,76 +1,75 @@
-use afk_launchpad::interfaces::launchpad::{ILaunchpadMarketplace};
-use afk_launchpad::types::jediswap_types::{MintParams};
+use afk_launchpad::interfaces::launchpad::ILaunchpadMarketplace;
+use afk_launchpad::types::jediswap_types::MintParams;
 use afk_launchpad::types::launchpad_types::{
-    MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, TokenQuoteBuyCoin,
-    TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch, SetJediswapNFTRouterV2,
-    SetJediswapV2Factory, SupportedExchanges, LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch,
-    TokenClaimed, MetadataCoinAdded, EkuboPoolParameters, LaunchParameters, EkuboLP, CallbackData,
-    EkuboLaunchParameters, LaunchCallback, LiquidityType, EkuboLiquidityParameters,
-    LiquidityParameters, EkuboUnrugLaunchParameters, AdminsFeesParams
+    ADMIN_ROLE, AdminsFeesParams, BondingType, BuyToken, CallbackData, CreateLaunch, CreateToken,
+    EkuboLP, EkuboLaunchParameters, EkuboLiquidityParameters, EkuboPoolParameters,
+    EkuboUnrugLaunchParameters, LaunchCallback, LaunchParameters, LiquidityCanBeAdded,
+    LiquidityCreated, LiquidityParameters, LiquidityType, MINTER_ROLE, MetadataCoinAdded,
+    MetadataLaunch, SellToken, SetJediswapNFTRouterV2, SetJediswapV2Factory, SharesTokenUser,
+    StoredName, SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin,
     // MemecoinCreated, MemecoinLaunched
 };
-use starknet::ClassHash;
-use starknet::ContractAddress;
+use starknet::{ClassHash, ContractAddress};
 
 #[starknet::contract]
 pub mod LaunchpadMarketplace {
-    use afk_launchpad::interfaces::launchpad::{ILaunchpadMarketplace};
+    use afk_launchpad::interfaces::launchpad::ILaunchpadMarketplace;
     use afk_launchpad::interfaces::unrug::{
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
         // Event as LaunchpadEvent
     };
     use afk_launchpad::launchpad::calcul::launch::{
-        get_initial_price, get_amount_by_type_of_coin_or_quote
+        get_amount_by_type_of_coin_or_quote, get_initial_price,
     };
     use afk_launchpad::launchpad::calcul::linear::{
         calculate_starting_price_launch, // get_coin_amount_by_quote_amount,
-         get_coin_amount
+        get_coin_amount,
     };
     use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
     use afk_launchpad::launchpad::utils::{
-        sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
-        calculate_aligned_bound_mag
+        calculate_aligned_bound_mag, get_initial_tick_from_starting_price, get_next_tick_bounds,
+        sort_tokens, unique_count,
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
-    use afk_launchpad::utils::{sqrt};
+    use afk_launchpad::utils::sqrt;
     use core::num::traits::Zero;
     use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
-
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
     use ekubo::interfaces::erc20::{
-        IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait
+        IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait,
     };
-    use ekubo::types::bounds::{Bounds};
+    use ekubo::types::bounds::Bounds;
+    use ekubo::types::i129::i129;
     use ekubo::types::keys::PoolKey;
-    use ekubo::types::{i129::i129};
-
-    use openzeppelin::access::accesscontrol::{AccessControlComponent};
+    use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
 
     use starknet::storage::{
         Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
-         StoragePointerReadAccess,
+        StoragePointerReadAccess,
         StoragePointerWriteAccess, StoragePathEntry,
         // MutableEntryStoragePathEntry, StorableEntryReadAccess, StorageAsPathReadForward,
     // MutableStorableEntryReadAccess, MutableStorableEntryWriteAccess,
     // StorageAsPathWriteForward,PathableStorageEntryImpl
     };
+    use starknet::storage_access::StorageBaseAddress;
     use starknet::syscalls::deploy_syscall;
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        contract_address_const, get_block_timestamp, get_contract_address, ClassHash
+        ClassHash, ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
     use super::{
-        StoredName, BuyToken, SellToken, CreateToken, SharesTokenUser, MINTER_ROLE, ADMIN_ROLE,
-        BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch, SetJediswapNFTRouterV2,
-        SetJediswapV2Factory, SupportedExchanges, MintParams, LiquidityCreated, LiquidityCanBeAdded,
-        MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters, LaunchParameters,
-        EkuboLP, LiquidityType, CallbackData, EkuboLaunchParameters, LaunchCallback,
-        EkuboLiquidityParameters, LiquidityParameters, EkuboUnrugLaunchParameters, AdminsFeesParams
+        ADMIN_ROLE, AdminsFeesParams, BondingType, BuyToken, CallbackData, CreateLaunch,
+        CreateToken, EkuboLP, EkuboLaunchParameters, EkuboLiquidityParameters, EkuboPoolParameters,
+        EkuboUnrugLaunchParameters, LaunchCallback, LaunchParameters, LiquidityCanBeAdded,
+        LiquidityCreated, LiquidityParameters, LiquidityType, MINTER_ROLE, MetadataCoinAdded,
+        MetadataLaunch, MintParams, SellToken, SetJediswapNFTRouterV2, SetJediswapV2Factory,
+        SharesTokenUser, StoredName, SupportedExchanges, Token, TokenClaimed, TokenLaunch,
+        TokenQuoteBuyCoin,
         // MemecoinCreated, MemecoinLaunched
     };
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
@@ -131,26 +130,26 @@ pub mod LaunchpadMarketplace {
     struct Storage {
         // Admin & others contract
         coin_class_hash: ClassHash,
-        quote_tokens: Map::<ContractAddress, bool>,
+        quote_tokens: Map<ContractAddress, bool>,
         exchange_configs: Map<SupportedExchanges, ContractAddress>,
         quote_token: ContractAddress,
         protocol_fee_destination: ContractAddress,
         // User states
-        token_created: Map::<ContractAddress, Token>,
-        launched_coins: Map::<ContractAddress, TokenLaunch>,
+        token_created: Map<ContractAddress, Token>,
+        launched_coins: Map<ContractAddress, TokenLaunch>,
         // distribute_team_alloc: Map::<ContractAddress, Map::<ContractAddress, SharesTokenUser>>,
-        metadata_coins: Map::<ContractAddress, MetadataLaunch>,
-        shares_by_users: Map::<ContractAddress, Map<ContractAddress, SharesTokenUser>>,
-        bonding_type: Map::<ContractAddress, BondingType>,
-        array_launched_coins: Map::<u64, TokenLaunch>,
-        tokens_created: Map::<u64, Token>,
-        launch_created: Map::<u64, TokenLaunch>,
+        metadata_coins: Map<ContractAddress, MetadataLaunch>,
+        shares_by_users: Map<ContractAddress, Map<ContractAddress, SharesTokenUser>>,
+        bonding_type: Map<ContractAddress, BondingType>,
+        array_launched_coins: Map<u64, TokenLaunch>,
+        tokens_created: Map<u64, Token>,
+        launch_created: Map<u64, TokenLaunch>,
         // Admin params
         default_init_supply: u256,
         is_default_init_supply: bool,
         admins_fees_params: AdminsFeesParams,
         // Parameters
-        is_tokens_buy_enable: Map::<ContractAddress, TokenQuoteBuyCoin>,
+        is_tokens_buy_enable: Map<ContractAddress, TokenQuoteBuyCoin>,
         default_token: TokenQuoteBuyCoin,
         dollar_price_launch_pool: u256,
         dollar_price_create_token: u256,
@@ -198,7 +197,7 @@ pub mod LaunchpadMarketplace {
         #[substorage(v0)]
         src5: SRC5Component::Storage,
         #[substorage(v0)]
-        upgradeable: UpgradeableComponent::Storage
+        upgradeable: UpgradeableComponent::Storage,
     }
 
     #[event]
@@ -222,7 +221,7 @@ pub mod LaunchpadMarketplace {
         #[flat]
         SRC5Event: SRC5Component::Event,
         #[flat]
-        UpgradeableEvent: UpgradeableComponent::Event
+        UpgradeableEvent: UpgradeableComponent::Event,
     }
 
     #[constructor]
@@ -294,7 +293,7 @@ pub mod LaunchpadMarketplace {
             starting_price,
             price: starting_price,
             is_enable: true,
-            step_increase_linear
+            step_increase_linear,
         };
         // TODO  test add case  if the payment are needed to create and launch
         self.is_custom_launch_enable.write(false);
@@ -341,7 +340,7 @@ pub mod LaunchpadMarketplace {
             self.threshold_liquidity.read()
         }
 
-        fn get_coin_launch(self: @ContractState, key_user: ContractAddress,) -> TokenLaunch {
+        fn get_coin_launch(self: @ContractState, key_user: ContractAddress) -> TokenLaunch {
             self.launched_coins.read(key_user)
         }
 
@@ -378,7 +377,7 @@ pub mod LaunchpadMarketplace {
         }
 
         fn set_is_fees_protocol_buy_enabled(
-            ref self: ContractState, is_fees_protocol_buy_enabled: bool
+            ref self: ContractState, is_fees_protocol_buy_enabled: bool,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
 
@@ -386,7 +385,7 @@ pub mod LaunchpadMarketplace {
         }
 
         fn set_is_fees_protocol_sell_enabled(
-            ref self: ContractState, is_fees_protocol_sell_enabled: bool
+            ref self: ContractState, is_fees_protocol_sell_enabled: bool,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_fees_protocol_sell_enabled.write(is_fees_protocol_sell_enabled);
@@ -409,14 +408,14 @@ pub mod LaunchpadMarketplace {
         }
 
         fn set_protocol_fee_destination(
-            ref self: ContractState, protocol_fee_destination: ContractAddress
+            ref self: ContractState, protocol_fee_destination: ContractAddress,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.protocol_fee_destination.write(protocol_fee_destination);
         }
 
         fn set_unrug_liquidity_address(
-            ref self: ContractState, unrug_liquidity_address: ContractAddress
+            ref self: ContractState, unrug_liquidity_address: ContractAddress,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.unrug_liquidity_address.write(unrug_liquidity_address);
@@ -451,7 +450,7 @@ pub mod LaunchpadMarketplace {
         }
 
         fn set_exchanges_address(
-            ref self: ContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
+            ref self: ContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let mut dex = exchanges;
@@ -462,7 +461,7 @@ pub mod LaunchpadMarketplace {
                         .exchange_configs
                         .entry(*exchange)
                         .write(*address),
-                    Option::None => { break; }
+                    Option::None => { break; },
                 }
             };
         }
@@ -474,7 +473,7 @@ pub mod LaunchpadMarketplace {
 
 
         fn set_is_paid_create_token_enable(
-            ref self: ContractState, is_paid_create_token_enable: bool
+            ref self: ContractState, is_paid_create_token_enable: bool,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_paid_create_token_enable.write(is_paid_create_token_enable);
@@ -497,7 +496,7 @@ pub mod LaunchpadMarketplace {
         }
 
         fn set_amount_to_paid_create_token(
-            ref self: ContractState, amount_to_paid_create_token: u256
+            ref self: ContractState, amount_to_paid_create_token: u256,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.amount_to_paid_create_token.write(amount_to_paid_create_token);
@@ -516,7 +515,7 @@ pub mod LaunchpadMarketplace {
             name: ByteArray,
             initial_supply: u256,
             contract_address_salt: felt252,
-            is_unruggable: bool
+            is_unruggable: bool,
         ) -> ContractAddress {
             let caller = get_caller_address();
             let contract_address = get_contract_address();
@@ -530,7 +529,7 @@ pub mod LaunchpadMarketplace {
                     is_unruggable,
                     recipient, // Send supply to this address
                     caller, // Owner of the address, Ownable access
-                    contract_address, // Factory address to set_launched and others stuff
+                    contract_address // Factory address to set_launched and others stuff
                 );
 
             token_address
@@ -547,7 +546,7 @@ pub mod LaunchpadMarketplace {
             initial_supply: u256,
             contract_address_salt: felt252,
             is_unruggable: bool,
-            bonding_type: BondingType
+            bonding_type: BondingType,
         ) -> ContractAddress {
             let contract_address = get_contract_address();
             let caller = get_caller_address();
@@ -560,11 +559,11 @@ pub mod LaunchpadMarketplace {
                     is_unruggable,
                     contract_address, // Send supply to this address
                     caller, // Owner of the address, Ownable access
-                    contract_address, // Factory address to set_launched and others stuff
+                    contract_address // Factory address to set_launched and others stuff
                 );
             self
                 ._launch_token(
-                    token_address, caller, contract_address, false, Option::Some(bonding_type)
+                    token_address, caller, contract_address, false, Option::Some(bonding_type),
                 );
             token_address
         }
@@ -574,7 +573,7 @@ pub mod LaunchpadMarketplace {
         // 80% percent on sale and 20% for the Liquidity pool when bonding curve reached threshold
         // Threshold is setup by the admin and save in the pool struct (in case we change)
         fn launch_token(
-            ref self: ContractState, coin_address: ContractAddress, bonding_type: BondingType
+            ref self: ContractState, coin_address: ContractAddress, bonding_type: BondingType,
         ) {
             let caller = get_caller_address();
             let contract_address = get_contract_address();
@@ -587,7 +586,7 @@ pub mod LaunchpadMarketplace {
                     caller,
                     contract_address,
                     is_unruggable,
-                    Option::Some(bonding_type)
+                    Option::Some(bonding_type),
                 );
         }
 
@@ -630,11 +629,11 @@ pub mod LaunchpadMarketplace {
                 threshold -= amount_protocol_fee;
                 // Transfer protocol fee
                 let quote_token = IERC20Dispatcher {
-                    contract_address: pool.token_quote.token_address
+                    contract_address: pool.token_quote.token_address,
                 };
                 quote_token
                     .transfer_from(
-                        caller, self.protocol_fee_destination.read(), amount_protocol_fee
+                        caller, self.protocol_fee_destination.read(), amount_protocol_fee,
                     );
             }
             let new_liquidity = pool.liquidity_raised + remain_quote_to_liquidity;
@@ -648,7 +647,7 @@ pub mod LaunchpadMarketplace {
             // High security risk.
             // Verify rounding issue and approximation of the quote amount caused overflow
             let coin_amount = get_amount_by_type_of_coin_or_quote(
-                pool.clone(), coin_address, remain_quote_to_liquidity, false, true
+                pool.clone(), coin_address, remain_quote_to_liquidity, false, true,
             );
 
             // Verify sufficient supply
@@ -712,7 +711,7 @@ pub mod LaunchpadMarketplace {
                             pool: pool.token_address,
                             asset: pool.token_address,
                             quote_token_address: pool.token_quote.token_address,
-                        }
+                        },
                     );
 
                 // Add liquidity to DEX Ekubo
@@ -734,8 +733,8 @@ pub mod LaunchpadMarketplace {
                         protocol_fee: amount_protocol_fee,
                         last_price: old_price,
                         timestamp: get_block_timestamp(),
-                        quote_amount: remain_quote_to_liquidity
-                    }
+                        quote_amount: remain_quote_to_liquidity,
+                    },
                 );
         }
 
@@ -775,7 +774,7 @@ pub mod LaunchpadMarketplace {
             assert(
                 protocol_fee_percent <= MAX_FEE_PROTOCOL
                     && protocol_fee_percent >= MIN_FEE_PROTOCOL,
-                errors::PROTOCOL_FEE_OUT_OF_BOUNDS
+                errors::PROTOCOL_FEE_OUT_OF_BOUNDS,
             );
             // assert(
             //     share.amount_owned <= pool.total_token_holded,
@@ -783,7 +782,7 @@ pub mod LaunchpadMarketplace {
             // );
             // Calculate quote token amounts to received with  the amount of memecoin sell
             let mut quote_amount_total = get_amount_by_type_of_coin_or_quote(
-                pool.clone(), coin_address, sell_amount, true, false
+                pool.clone(), coin_address, sell_amount, true, false,
             );
             let mut quote_amount = quote_amount_total.clone();
 
@@ -907,7 +906,7 @@ pub mod LaunchpadMarketplace {
                         timestamp: get_block_timestamp(),
                         last_price: pool.price,
                         coin_amount: sell_amount,
-                    }
+                    },
                 );
         }
 
@@ -948,14 +947,14 @@ pub mod LaunchpadMarketplace {
                         owner: caller,
                         timestamp: get_block_timestamp(),
                         amount,
-                    }
+                    },
                 );
         }
         // Claim call for a friend
         // Gonna be used to auto claim the rewards of all users of a pool bonding curve
         // So we can pay the fees for the customers
         fn claim_coin_all_for_friend(
-            ref self: ContractState, coin_address: ContractAddress, friend: ContractAddress
+            ref self: ContractState, coin_address: ContractAddress, friend: ContractAddress,
         ) {
             let caller = get_contract_address();
             // Verify if liquidity launch
@@ -985,12 +984,12 @@ pub mod LaunchpadMarketplace {
                         owner: friend,
                         timestamp: get_block_timestamp(),
                         amount,
-                    }
+                    },
                 );
         }
         // TODO finish add Metadata for Token and Launched and also updated it
         fn add_metadata(
-            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch
+            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch,
         ) {
             let caller = get_contract_address();
             // Verify if caller is owner
@@ -1005,7 +1004,7 @@ pub mod LaunchpadMarketplace {
                         url: metadata.url,
                         timestamp: get_block_timestamp(),
                         nostr_event_id: metadata.nostr_event_id,
-                    }
+                    },
                 );
         }
 
@@ -1015,11 +1014,11 @@ pub mod LaunchpadMarketplace {
             coin_address: ContractAddress,
             amount: u256,
             is_decreased: bool,
-            is_quote_amount: bool
+            is_quote_amount: bool,
         ) -> u256 {
             let pool = self.launched_coins.read(coin_address).clone();
             get_amount_by_type_of_coin_or_quote(
-                pool.clone(), coin_address, amount, is_decreased, is_quote_amount
+                pool.clone(), coin_address, amount, is_decreased, is_quote_amount,
             )
         }
         // Get the amount of coin received by quote amount
@@ -1028,7 +1027,7 @@ pub mod LaunchpadMarketplace {
             self: @ContractState,
             coin_address: ContractAddress,
             quote_amount: u256,
-            is_decreased: bool
+            is_decreased: bool,
         ) -> u256 {
             let pool = self.launched_coins.read(coin_address).clone();
             get_coin_amount(pool.clone(), quote_amount)
@@ -1077,11 +1076,11 @@ pub mod LaunchpadMarketplace {
                     .read();
                 let amount_to_paid_create_token = self.amount_to_paid_create_token.read();
                 let erc20 = IERC20Dispatcher {
-                    contract_address: token_address_to_paid_create_token
+                    contract_address: token_address_to_paid_create_token,
                 };
                 erc20
                     .transfer_from(
-                        caller, self.protocol_fee_destination.read(), amount_to_paid_create_token
+                        caller, self.protocol_fee_destination.read(), amount_to_paid_create_token,
                     );
             }
 
@@ -1095,7 +1094,7 @@ pub mod LaunchpadMarketplace {
             Serde::serialize(@factory, ref calldata);
 
             let (token_address, _) = deploy_syscall(
-                self.coin_class_hash.read(), contract_address_salt, calldata.span(), false
+                self.coin_class_hash.read(), contract_address_salt, calldata.span(), false,
             )
                 .unwrap();
             // .unwrap_syscall();
@@ -1110,7 +1109,7 @@ pub mod LaunchpadMarketplace {
                 initial_supply: initial_supply,
                 created_at: get_block_timestamp(),
                 token_type: Option::None,
-                is_unruggable: is_unruggable
+                is_unruggable: is_unruggable,
             };
 
             self.token_created.entry(token_address).write(token.clone());
@@ -1126,8 +1125,8 @@ pub mod LaunchpadMarketplace {
                         name: name,
                         initial_supply,
                         total_supply: initial_supply.clone(),
-                        is_unruggable: is_unruggable
-                    }
+                        is_unruggable: is_unruggable,
+                    },
                 );
             token_address
         }
@@ -1139,7 +1138,7 @@ pub mod LaunchpadMarketplace {
             caller: ContractAddress,
             creator: ContractAddress,
             is_unruggable: bool,
-            bonding_type: Option<BondingType>
+            bonding_type: Option<BondingType>,
         ) {
             let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
@@ -1156,14 +1155,14 @@ pub mod LaunchpadMarketplace {
                 let erc20 = IERC20Dispatcher { contract_address: token_address_to_paid_launch };
                 erc20
                     .transfer_from(
-                        caller, self.protocol_fee_destination.read(), amount_to_paid_launch
+                        caller, self.protocol_fee_destination.read(), amount_to_paid_launch,
                     );
             }
 
             // Set up bonding curve type
             let bond_type = match bonding_type {
                 Option::Some(curve_type) => curve_type,
-                Option::None => BondingType::Exponential
+                Option::None => BondingType::Exponential,
             };
 
             // Get token parameters
@@ -1240,8 +1239,8 @@ pub mod LaunchpadMarketplace {
                         threshold_liquidity: self.threshold_liquidity.read(),
                         quote_token_address,
                         is_unruggable,
-                        bonding_type: bond_type
-                    }
+                        bonding_type: bond_type,
+                    },
                 );
         }
 
@@ -1259,7 +1258,7 @@ pub mod LaunchpadMarketplace {
             // Get unrug liquidity contract
             let unrug_liquidity_address = self.unrug_liquidity_address.read();
             let unrug_liquidity = IUnrugLiquidityDispatcher {
-                contract_address: unrug_liquidity_address
+                contract_address: unrug_liquidity_address,
             };
 
             // Get launch info and validate
@@ -1282,7 +1281,7 @@ pub mod LaunchpadMarketplace {
                 fee: 0xc49ba5e353f7d00000000000000000,
                 tick_spacing: tick_spacing,
                 starting_price: calculate_starting_price_launch(
-                    launch.initial_pool_supply.clone(), launch.liquidity_raised.clone()
+                    launch.initial_pool_supply.clone(), launch.liquidity_raised.clone(),
                 ),
                 bound: bound_spacing,
             };
@@ -1294,7 +1293,7 @@ pub mod LaunchpadMarketplace {
 
             // Handle edge case where contract balance is insufficient
             let quote_token = IERC20Dispatcher {
-                contract_address: launch.token_quote.token_address.clone()
+                contract_address: launch.token_quote.token_address.clone(),
             };
             let contract_quote_balance = quote_token.balance_of(get_contract_address());
 
@@ -1316,7 +1315,7 @@ pub mod LaunchpadMarketplace {
                 lp_supply: lp_supply.clone(),
                 lp_quote_supply: lp_quote_supply.clone(),
                 pool_params: pool_params,
-                caller: get_caller_address()
+                caller: get_caller_address(),
             };
 
             // Approve tokens
@@ -1343,8 +1342,8 @@ pub mod LaunchpadMarketplace {
                         quote_token_address: launch.token_quote.token_address,
                         owner: launch.owner,
                         exchange: SupportedExchanges::Ekubo,
-                        is_unruggable: false
-                    }
+                        is_unruggable: false,
+                    },
                 );
 
             (id, position)
@@ -1353,10 +1352,10 @@ pub mod LaunchpadMarketplace {
         // TODO finish call Jediswap
         // Change preparation of state for lp_supply, approve etc for the Unrug V2
         fn _add_liquidity_jediswap(
-            ref self: ContractState, coin_address: ContractAddress, owner: ContractAddress
+            ref self: ContractState, coin_address: ContractAddress, owner: ContractAddress,
         ) -> u256 {
             let unrug_liquidity = IUnrugLiquidityDispatcher {
-                contract_address: self.unrug_liquidity_address.read()
+                contract_address: self.unrug_liquidity_address.read(),
             };
 
             let launch = self.launched_coins.read(coin_address);
@@ -1369,7 +1368,7 @@ pub mod LaunchpadMarketplace {
 
             let id = unrug_liquidity
                 .launch_on_jediswap(
-                    coin_address, quote_address, lp_supply, quote_supply, unlock_time, owner
+                    coin_address, quote_address, lp_supply, quote_supply, unlock_time, owner,
                 );
 
             self
@@ -1381,8 +1380,8 @@ pub mod LaunchpadMarketplace {
                         quote_token_address: quote_address,
                         owner: launch.owner,
                         exchange: SupportedExchanges::Jediswap,
-                        is_unruggable: false
-                    }
+                        is_unruggable: false,
+                    },
                 );
 
             id

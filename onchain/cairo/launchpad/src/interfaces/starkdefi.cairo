@@ -12,7 +12,7 @@ struct SwapPath {
 trait IStarkDRouter<TContractState> {
     fn factory(self: @TContractState) -> ContractAddress;
     fn sort_tokens(
-        self: @TContractState, tokenA: ContractAddress, tokenB: ContractAddress
+        self: @TContractState, tokenA: ContractAddress, tokenB: ContractAddress,
     ) -> (ContractAddress, ContractAddress);
     fn add_liquidity(
         ref self: TContractState,
@@ -25,16 +25,16 @@ trait IStarkDRouter<TContractState> {
         amountAMin: u256,
         amountBMin: u256,
         to: ContractAddress,
-        deadline: u64
+        deadline: u64,
     ) -> (u256, u256, u256);
     fn swap_exact_tokens_for_tokens(
         ref self: TContractState,
         amountIn: u256,
         amountOutMin: u256,
-        path: Array::<SwapPath>,
+        path: Array<SwapPath>,
         to: ContractAddress,
-        deadline: u64
-    ) -> Array::<u256>;
+        deadline: u64,
+    ) -> Array<u256>;
 }
 
 #[starknet::interface]
@@ -44,14 +44,14 @@ trait IStarkDFactory<TContractState> {
         tokenA: ContractAddress,
         tokenB: ContractAddress,
         stable: bool,
-        fee: u8
+        fee: u8,
     ) -> ContractAddress;
     fn create_pair(
         ref self: TContractState,
         tokenA: ContractAddress,
         tokenB: ContractAddress,
         stable: bool,
-        fee: u8
+        fee: u8,
     ) -> ContractAddress;
 }
 
@@ -68,5 +68,5 @@ trait IStarkDPair<TContractState> {
 struct StarkDeFiAdditionalParameters {
     lock_manager_address: ContractAddress,
     unlock_time: u64,
-    quote_amount: u256
+    quote_amount: u256,
 }
