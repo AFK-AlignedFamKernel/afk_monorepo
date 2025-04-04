@@ -51,6 +51,7 @@ export type PostProps = {
   isRepost?: boolean;
   isBookmarked?: boolean;
   isReplyView?: boolean;
+  isArticleProps?: boolean;
 };
 
 export const Post: React.FC<PostProps> = ({
@@ -60,10 +61,11 @@ export const Post: React.FC<PostProps> = ({
   isRepost,
   isBookmarked = false,
   isReplyView,
+  isArticleProps,
 }) => {
   const repostedEvent = repostedEventProps ?? undefined;
 
-  const isArticle = event?.kind == NDKKind.Article;
+  const isArticle = isArticleProps ?? event?.kind == NDKKind.Article;
 
   const { theme } = useTheme();
   const styles = useStyles(stylesheet);
@@ -361,6 +363,8 @@ export const Post: React.FC<PostProps> = ({
   }
 
   console.log("isArticle", isArticle)
+
+  console.log("Platform.OS", Platform.OS)
   return (
     <View style={styles.container}>
 

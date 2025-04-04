@@ -2,6 +2,7 @@ import React from 'react';
 import { useTheme } from '../../hooks';
 import { Platform, StyleSheet, View } from 'react-native';
 import Markdown, { MarkdownIt } from 'react-native-markdown-display';
+import WebView from 'react-native-webview';
 
 interface MarkdownViewerProps {
   content: string;
@@ -10,7 +11,7 @@ interface MarkdownViewerProps {
 const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content }) => {
   const { theme } = useTheme();
 
-  if (Platform.OS === 'web') {
+  if (Platform.OS !== 'web') {
     return (
       <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
         <Markdown
@@ -104,10 +105,12 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content }) => {
       </View>
     );
   }
-
   // Mobile implementation using WebView
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <WebView
+        source={{ html: content }}
+      />
       <Markdown
         markdownit={MarkdownIt({ typographer: true }).disable(['link', 'image'])}
         style={{
