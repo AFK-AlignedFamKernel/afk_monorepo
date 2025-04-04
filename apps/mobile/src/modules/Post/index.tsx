@@ -467,16 +467,12 @@ export const Post: React.FC<PostProps> = ({
             />
           )}
 
-          {isArticle && Platform.OS !== 'web' && (
+          {isArticle && Platform.OS === 'web' && (
             <MarkdownViewer content={content} />
           )}
 
-          {isArticle && Platform.OS === 'web' && (
-            <Markdown
-              markdownit={
-                MarkdownIt({ typographer: true }).disable(['link', 'image'])
-              }
-            >
+          {isArticle && Platform.OS !== 'web' && (
+            <Markdown markdownit={MarkdownIt({ typographer: true }).disable(['link', 'image'])}>
               {content}
             </Markdown>
           )}

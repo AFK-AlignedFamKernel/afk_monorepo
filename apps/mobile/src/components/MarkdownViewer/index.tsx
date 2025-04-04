@@ -1,6 +1,7 @@
 import React from 'react';
-import { WebView } from 'react-native-webview';
 import { useTheme } from '../../hooks';
+import { Platform, StyleSheet, View } from 'react-native';
+import Markdown, { MarkdownIt } from 'react-native-markdown-display';
 
 interface MarkdownViewerProps {
   content: string;
@@ -9,100 +10,201 @@ interface MarkdownViewerProps {
 const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content }) => {
   const { theme } = useTheme();
 
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            padding: 16px;
-            color: ${theme.colors.text};
-            background-color: ${theme.colors.background};
-            line-height: 1.6;
-          }
-          h1, h2, h3, h4, h5, h6 {
-            margin-top: 24px;
-            margin-bottom: 16px;
-            font-weight: 600;
-            line-height: 1.25;
-          }
-          h1 { font-size: 2em; }
-          h2 { font-size: 1.5em; }
-          h3 { font-size: 1.25em; }
-          h4 { font-size: 1em; }
-          h5 { font-size: 0.875em; }
-          h6 { font-size: 0.85em; }
-          p {
-            margin-top: 0;
-            margin-bottom: 16px;
-          }
-          a {
-            color: ${theme.colors.primary};
-            text-decoration: none;
-          }
-          a:hover {
-            text-decoration: underline;
-          }
-          code {
-            background-color: ${theme.colors.surface};
-            padding: 0.2em 0.4em;
-            border-radius: 3px;
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-            font-size: 85%;
-          }
-          pre {
-            background-color: ${theme.colors.surface};
-            padding: 16px;
-            border-radius: 6px;
-            overflow: auto;
-          }
-          blockquote {
-            margin: 0;
-            padding: 0 1em;
-            color: ${theme.colors.textSecondary};
-            border-left: 0.25em solid ${theme.colors.divider};
-          }
-          ul, ol {
-            padding-left: 2em;
-            margin-top: 0;
-            margin-bottom: 16px;
-          }
-          img {
-            max-width: 100%;
-            height: auto;
-          }
-          table {
-            border-spacing: 0;
-            border-collapse: collapse;
-            width: 100%;
-            margin-bottom: 16px;
-          }
-          th, td {
-            padding: 6px 13px;
-            border: 1px solid ${theme.colors.divider};
-          }
-          th {
-            background-color: ${theme.colors.surface};
-          }
-        </style>
-      </head>
-      <body>
-        ${content}
-      </body>
-    </html>
-  `;
+  if (Platform.OS === 'web') {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <Markdown
+          markdownit={MarkdownIt({ typographer: true }).disable(['link', 'image'])}
+          style={{
+            body: {
+              color: theme.colors.text,
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+              fontSize: 16,
+              lineHeight: 1.6,
+            },
+            heading1: {
+              fontSize: 32,
+              fontWeight: '600',
+              marginTop: 24,
+              marginBottom: 16,
+              color: theme.colors.text,
+            },
+            heading2: {
+              fontSize: 24,
+              fontWeight: '600',
+              marginTop: 24,
+              marginBottom: 16,
+              color: theme.colors.text,
+            },
+            heading3: {
+              fontSize: 20,
+              fontWeight: '600',
+              marginTop: 24,
+              marginBottom: 16,
+              color: theme.colors.text,
+            },
+            paragraph: {
+              marginTop: 0,
+              marginBottom: 16,
+            },
+            link: {
+              color: theme.colors.primary,
+            },
+            code_inline: {
+              backgroundColor: theme.colors.surface,
+              padding: '0.2em 0.4em',
+              borderRadius: 3,
+              fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
+              fontSize: '85%',
+            },
+            code_block: {
+              backgroundColor: theme.colors.surface,
+              padding: 16,
+              borderRadius: 6,
+              overflow: 'auto',
+            },
+            blockquote: {
+              margin: 0,
+              padding: '0 1em',
+              color: theme.colors.textSecondary,
+              borderLeft: `0.25em solid ${theme.colors.divider}`,
+            },
+            list_item: {
+              marginBottom: 8,
+            },
+            bullet_list: {
+              marginTop: 0,
+              marginBottom: 16,
+              paddingLeft: 32,
+            },
+            ordered_list: {
+              marginTop: 0,
+              marginBottom: 16,
+              paddingLeft: 32,
+            },
+            table: {
+              borderSpacing: 0,
+              borderCollapse: 'collapse',
+              width: '100%',
+              marginBottom: 16,
+            },
+            th: {
+              padding: '6px 13px',
+              border: `1px solid ${theme.colors.divider}`,
+              backgroundColor: theme.colors.surface,
+            },
+            td: {
+              padding: '6px 13px',
+              border: `1px solid ${theme.colors.divider}`,
+            },
+          }}
+        >
+          {content}
+        </Markdown>
+      </View>
+    );
+  }
 
+  // Mobile implementation using WebView
   return (
-    <WebView
-      source={{ html: htmlContent }}
-      style={{ flex: 1 }}
-      scrollEnabled={true}
-      showsVerticalScrollIndicator={false}
-      showsHorizontalScrollIndicator={false}
-    />
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Markdown
+        markdownit={MarkdownIt({ typographer: true }).disable(['link', 'image'])}
+        style={{
+          body: {
+            color: theme.colors.text,
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+            fontSize: 16,
+            lineHeight: 1.6,
+          },
+          heading1: {
+            fontSize: 32,
+            fontWeight: '600',
+            marginTop: 24,
+            marginBottom: 16,
+            color: theme.colors.text,
+          },
+          heading2: {
+            fontSize: 24,
+            fontWeight: '600',
+            marginTop: 24,
+            marginBottom: 16,
+            color: theme.colors.text,
+          },
+          heading3: {
+            fontSize: 20,
+            fontWeight: '600',
+            marginTop: 24,
+            marginBottom: 16,
+            color: theme.colors.text,
+          },
+          paragraph: {
+            marginTop: 0,
+            marginBottom: 16,
+          },
+          link: {
+            color: theme.colors.primary,
+          },
+          code_inline: {
+            backgroundColor: theme.colors.surface,
+            padding: '0.2em 0.4em',
+            borderRadius: 3,
+            fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
+            fontSize: '85%',
+          },
+          code_block: {
+            backgroundColor: theme.colors.surface,
+            padding: 16,
+            borderRadius: 6,
+            overflow: 'auto',
+          },
+          blockquote: {
+            margin: 0,
+            padding: '0 1em',
+            color: theme.colors.textSecondary,
+            borderLeft: `0.25em solid ${theme.colors.divider}`,
+          },
+          list_item: {
+            marginBottom: 8,
+          },
+          bullet_list: {
+            marginTop: 0,
+            marginBottom: 16,
+            paddingLeft: 32,
+          },
+          ordered_list: {
+            marginTop: 0,
+            marginBottom: 16,
+            paddingLeft: 32,
+          },
+          table: {
+            borderSpacing: 0,
+            borderCollapse: 'collapse',
+            width: '100%',
+            marginBottom: 16,
+          },
+          th: {
+            padding: '6px 13px',
+            border: `1px solid ${theme.colors.divider}`,
+            backgroundColor: theme.colors.surface,
+          },
+          td: {
+            padding: '6px 13px',
+            border: `1px solid ${theme.colors.divider}`,
+          },
+        }}
+      >
+        {content}
+      </Markdown>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+});
 
 export default MarkdownViewer; 
