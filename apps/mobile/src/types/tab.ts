@@ -8,6 +8,7 @@ export enum SelectedTab {
   CREATE_NOTE,
   CREATE_CHANNEL,
   CREATE_TOKEN,
+  CREATE_ARTICLE,
   DAO_OVERVIEW,
   LAUNCH_TOKEN,
   LAUNCH_TOKEN_UNRUGGABLE,
@@ -140,6 +141,11 @@ export const TABS_FORM_CREATE: { screen?: string; title: string; tab: SelectedTa
     title: 'Notes',
     screen: 'PostCreate',
     tab: SelectedTab.CREATE_NOTE,
+  },
+   {
+    title: 'Article',
+    screen: 'CreateArticle',
+    tab: SelectedTab.CREATE_ARTICLE,
   },
   {
     title: 'Channel',
