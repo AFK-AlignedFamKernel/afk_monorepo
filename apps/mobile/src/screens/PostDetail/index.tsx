@@ -12,8 +12,9 @@ import stylesheet from './styles';
 import { InputArea } from '../../components/InputArea';
 
 export const PostDetail: React.FC<PostDetailScreenProps> = ({ navigation, route }) => {
-  const { postId, post } = route.params;
+  const { postId, post, isArticle, isRepost, repostedEventProps, isBookmarked, isReplyView } = route.params;
   console.log('postId', postId);
+  console.log('isArticle', isArticle);
   console.log('route.path', route.path);
 
   const styles = useStyles(stylesheet);

@@ -201,8 +201,12 @@ export const Post: React.FC<PostProps> = ({
 
   const handleNavigateToPostDetails = () => {
     if (!event?.id) return;
-    // navigation.navigate('PostDetail', { postId: event?.id, post: event });
-    navigation.navigate('PostDetail', { postId: event?.id });
+
+    if (isArticle) {
+      navigation.navigate('PostDetail', { postId: event?.id, isArticle: true });
+    } else {
+      navigation.navigate('PostDetail', { postId: event?.id, post: event });
+    }
   };
 
   const handleToReplyView = () => {

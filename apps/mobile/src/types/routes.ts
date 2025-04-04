@@ -35,7 +35,7 @@ export type MainStackParams = {
   BottomBar: undefined;
   CreatePost: undefined;
   Profile: { publicKey: string };
-  PostDetail: { postId: string; post?: NDKEvent };
+  PostDetail: { postId: string; post?: NDKEvent, isArticle?: boolean, isRepost?: boolean, repostedEventProps?: string, isBookmarked?: boolean, isReplyView?: boolean };
   GroupChat: { groupId: string; post?: NDKEvent; groupName: string; groupAccess: string };
   GroupChatDetail: { groupId: string; groupName: string; post?: NDKEvent; groupAccess: string };
   GroupChatMemberRequest: {
