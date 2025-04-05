@@ -3,23 +3,22 @@ mod keys_tests {
     use afk_launchpad::keys::keys::{IKeysMarketplaceDispatcher, IKeysMarketplaceDispatcherTrait};
     use afk_launchpad::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::types::keys_types::{
-        MINTER_ROLE, ADMIN_ROLE, KeysBonding, TokenQuoteBuyKeys, BondingType
+        ADMIN_ROLE, BondingType, KeysBonding, MINTER_ROLE, TokenQuoteBuyKeys,
     };
     use core::array::SpanTrait;
     use core::traits::Into;
     use openzeppelin::account::interface::{ISRC6Dispatcher, ISRC6DispatcherTrait};
     use openzeppelin::utils::serde::SerializedAppend;
-
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, EventSpy, Event,
-        start_cheat_caller_address, start_cheat_caller_address_global, stop_cheat_caller_address,
-        stop_cheat_caller_address_global, start_cheat_block_timestamp, DeclareResultTrait,
+        ContractClass, ContractClassTrait, DeclareResultTrait, Event, EventSpy, declare, spy_events,
+        start_cheat_block_timestamp, start_cheat_caller_address, start_cheat_caller_address_global,
+        stop_cheat_caller_address, stop_cheat_caller_address_global,
     };
     // const INITIAL_KEY_PRICE:u256=1/100;
 
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        get_block_timestamp, get_contract_address
+        ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
+        storage_access::StorageBaseAddress,
     };
 
     // const INITIAL_KEY_PRICE:u256=1/100;
@@ -34,7 +33,7 @@ mod keys_tests {
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, escrow_class: ContractClass
+        erc20_class: ContractClass, escrow_class: ContractClass,
     ) -> (ContractAddress, IERC20Dispatcher, IKeysMarketplaceDispatcher) {
         let sender_address: ContractAddress = 123.try_into().unwrap();
         let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 1_000_000, sender_address);
@@ -44,7 +43,7 @@ mod keys_tests {
             sender_address,
             token_address.clone(),
             INITIAL_KEY_PRICE,
-            STEP_LINEAR_INCREASE
+            STEP_LINEAR_INCREASE,
         );
         (sender_address, erc20, keys)
     }
@@ -62,7 +61,7 @@ mod keys_tests {
         admin: ContractAddress,
         token_address: ContractAddress,
         initial_key_price: u256,
-        step_increase_linear: u256
+        step_increase_linear: u256,
     ) -> IKeysMarketplaceDispatcher {
         // println!("deploy marketplace");
         let mut calldata = array![admin.into()];
@@ -78,7 +77,7 @@ mod keys_tests {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        recipient: ContractAddress
+        recipient: ContractAddress,
     ) -> IERC20Dispatcher {
         let mut calldata = array![];
 
@@ -141,7 +140,7 @@ mod keys_tests {
         // println!("all_keys {:?}", all_keys);
         // println!("all_keys {:?}", all_keys);
         let amount_to_paid = keys
-            .get_price_of_supply_key(sender_address, amount_key_buy, false, //    1,
+            .get_price_of_supply_key(sender_address, amount_key_buy, false //    1,
             // BondingType::Basic, default_token.clone()
             );
         println!("test amount_to_paid {:?}", amount_to_paid);
@@ -169,7 +168,7 @@ mod keys_tests {
 
         // println!("all_keys {:?}", all_keys);
         let amount_to_paid = keys
-            .get_price_of_supply_key(sender_address, amount_key_buy, false, //    1,
+            .get_price_of_supply_key(sender_address, amount_key_buy, false //    1,
             // BondingType::Basic, default_token.clone()
             );
         start_cheat_caller_address(erc20.contract_address, sender_address);

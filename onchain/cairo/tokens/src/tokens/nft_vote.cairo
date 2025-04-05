@@ -1,10 +1,10 @@
 #[starknet::contract]
 pub mod ERC721VotesContract {
-    use openzeppelin_governance::votes::VotesComponent;
-    use openzeppelin_introspection::src5::SRC5Component;
-    use openzeppelin_token::erc721::ERC721Component;
-    use openzeppelin_utils::cryptography::nonces::NoncesComponent;
-    use openzeppelin_utils::cryptography::snip12::SNIP12Metadata;
+    use openzeppelin::governance::votes::VotesComponent;
+    use openzeppelin::introspection::src5::SRC5Component;
+    use openzeppelin::token::erc721::ERC721Component;
+    use openzeppelin::utils::cryptography::nonces::NoncesComponent;
+    use openzeppelin::utils::cryptography::snip12::SNIP12Metadata;
     use starknet::ContractAddress;
 
     component!(path: VotesComponent, storage: erc721_votes, event: ERC721VotesEvent);
@@ -35,7 +35,7 @@ pub mod ERC721VotesContract {
         #[substorage(v0)]
         pub src5: SRC5Component::Storage,
         #[substorage(v0)]
-        pub nonces: NoncesComponent::Storage
+        pub nonces: NoncesComponent::Storage,
     }
 
     #[event]
@@ -48,7 +48,7 @@ pub mod ERC721VotesContract {
         #[flat]
         SRC5Event: SRC5Component::Event,
         #[flat]
-        NoncesEvent: NoncesComponent::Event
+        NoncesEvent: NoncesComponent::Event,
     }
 
     /// Required for hash computation.
@@ -72,7 +72,7 @@ pub mod ERC721VotesContract {
             ref self: ERC721Component::ComponentState<ContractState>,
             to: ContractAddress,
             token_id: u256,
-            auth: ContractAddress
+            auth: ContractAddress,
         ) {
             let mut contract_state = ERC721Component::HasComponent::get_contract_mut(ref self);
 

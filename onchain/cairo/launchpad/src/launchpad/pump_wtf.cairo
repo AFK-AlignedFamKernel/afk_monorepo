@@ -1,14 +1,13 @@
-use afk_launchpad::types::jediswap_types::{MintParams};
+use afk_launchpad::types::jediswap_types::MintParams;
 use afk_launchpad::types::pump_types::{
-    MINTER_ROLE, ADMIN_ROLE, StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated,
-    TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, Token, CreateLaunch,
-    SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, LiquidityCreated,
-    LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded, EkuboPoolParameters,
-    LaunchParameters, EkuboLP, CallbackData, EkuboLaunchParameters, LaunchCallback, LiquidityType,
-    EkuboLiquidityParameters, LiquidityParameters
+    ADMIN_ROLE, BondingType, BuyToken, CallbackData, CreateLaunch, CreateToken, EkuboLP,
+    EkuboLaunchParameters, EkuboLiquidityParameters, EkuboPoolParameters, LaunchCallback,
+    LaunchParameters, LaunchUpdated, LiquidityCanBeAdded, LiquidityCreated, LiquidityParameters,
+    LiquidityType, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch, SellToken, SetJediwapNFTRouterV2,
+    SetJediwapV2Factory, SharesTokenUser, StoredName, SupportedExchanges, Token, TokenClaimed,
+    TokenLaunch, TokenQuoteBuyCoin,
 };
-use starknet::ClassHash;
-use starknet::ContractAddress;
+use starknet::{ClassHash, ContractAddress};
 
 #[starknet::interface]
 pub trait IPumpWtf<TContractState> {
@@ -20,7 +19,7 @@ pub trait IPumpWtf<TContractState> {
         name: ByteArray,
         initial_supply: u256,
         contract_address_salt: felt252,
-        is_unruggable: bool
+        is_unruggable: bool,
     ) -> ContractAddress;
 
     fn create_and_launch_token(
@@ -29,7 +28,7 @@ pub trait IPumpWtf<TContractState> {
         name: ByteArray,
         initial_supply: u256,
         contract_address_salt: felt252,
-        is_unruggable: bool
+        is_unruggable: bool,
     ) -> ContractAddress;
     fn launch_token(ref self: TContractState, coin_address: ContractAddress);
     fn launch_liquidity(ref self: TContractState, coin_address: ContractAddress);
@@ -42,12 +41,12 @@ pub trait IPumpWtf<TContractState> {
 
     fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn add_metadata(
-        ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunch
+        ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunch,
     );
 
     // Views
     fn get_threshold_liquidity(self: @TContractState) -> u256;
-    fn get_default_token(self: @TContractState,) -> TokenQuoteBuyCoin;
+    fn get_default_token(self: @TContractState) -> TokenQuoteBuyCoin;
 
     // Main function to calculate amount
     fn get_amount_by_type_of_coin_or_quote(
@@ -55,17 +54,23 @@ pub trait IPumpWtf<TContractState> {
         coin_address: ContractAddress,
         amount: u256,
         is_decreased: bool,
-        is_quote_amount: bool
+        is_quote_amount: bool,
     ) -> u256;
     fn get_coin_amount_by_quote_amount(
-        self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
+        self: @TContractState,
+        coin_address: ContractAddress,
+        quote_amount: u256,
+        is_decreased: bool,
     ) -> u256;
 
     fn get_quote_paid_by_amount_coin(
-        self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
+        self: @TContractState,
+        coin_address: ContractAddress,
+        quote_amount: u256,
+        is_decreased: bool,
     ) -> u256;
 
-    fn get_coin_launch(self: @TContractState, key_user: ContractAddress,) -> TokenLaunch;
+    fn get_coin_launch(self: @TContractState, key_user: ContractAddress) -> TokenLaunch;
     fn get_share_key_of_user(
         self: @TContractState, owner: ContractAddress, key_user: ContractAddress,
     ) -> SharesTokenUser;
@@ -82,19 +87,19 @@ pub trait IPumpWtf<TContractState> {
     fn set_dollar_paid_finish_percentage(ref self: TContractState, bps: u256);
     fn set_class_hash(ref self: TContractState, class_hash: ClassHash);
     fn set_protocol_fee_destination(
-        ref self: TContractState, protocol_fee_destination: ContractAddress
+        ref self: TContractState, protocol_fee_destination: ContractAddress,
     );
     fn set_threshold_liquidity(ref self: TContractState, threshold_liquidity: u256);
     fn set_address_jediswap_factory_v2(
-        ref self: TContractState, address_jediswap_factory_v2: ContractAddress
+        ref self: TContractState, address_jediswap_factory_v2: ContractAddress,
     );
     fn set_address_jediswap_nft_router_v2(
-        ref self: TContractState, address_jediswap_nft_router_v2: ContractAddress
+        ref self: TContractState, address_jediswap_nft_router_v2: ContractAddress,
     );
     fn set_address_ekubo_factory(ref self: TContractState, address_ekubo_factory: ContractAddress);
     fn set_address_ekubo_router(ref self: TContractState, address_ekubo_router: ContractAddress);
     fn set_exchanges_address(
-        ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
+        ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>,
     );
 
     //TODO
@@ -102,7 +107,7 @@ pub trait IPumpWtf<TContractState> {
         ref self: TContractState,
         coin_address: ContractAddress,
         launch_params: LaunchParameters,
-        ekubo_pool_params: EkuboPoolParameters
+        ekubo_pool_params: EkuboPoolParameters,
     ) -> (u64, EkuboLP);
 
     fn add_liquidity_unrug_lp(
@@ -111,7 +116,7 @@ pub trait IPumpWtf<TContractState> {
         quote_address: ContractAddress,
         lp_supply: u256,
         launch_params: LaunchParameters,
-        ekubo_pool_params: EkuboPoolParameters
+        ekubo_pool_params: EkuboPoolParameters,
     ) -> (u64, EkuboLP);
 
     fn add_liquidity_ekubo(
@@ -127,7 +132,7 @@ pub trait IPumpWtf<TContractState> {
         symbol: felt252,
         initial_supply: u256,
         contract_address_salt: felt252,
-        is_launch_bonding_now: bool
+        is_launch_bonding_now: bool,
     ) -> ContractAddress;
 }
 
@@ -144,7 +149,7 @@ pub mod PumpWtf {
     use afk_launchpad::launchpad::helpers::{distribute_team_alloc};
     use afk_launchpad::launchpad::math::PercentageMath;
     use afk_launchpad::launchpad::utils::{
-        sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count
+        get_initial_tick_from_starting_price, get_next_tick_bounds, sort_tokens, unique_count,
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     // use afk_launchpad::tokens::memecoin::{IERC20, ERC20, IERC20Dispatcher, IERC20DispatcherTrait,
@@ -158,38 +163,37 @@ pub mod PumpWtf {
     use afk_launchpad::utils::{sqrt};
     use core::num::traits::Zero;
     use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
-
     use ekubo::components::shared_locker::{call_core_with_callback, consume_callback_data};
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
     use ekubo::interfaces::erc20::{
-        IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait
+        IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait,
     };
     use ekubo::interfaces::positions::{IPositionsDispatcher, IPositionsDispatcherTrait};
     use ekubo::interfaces::router::{IRouterDispatcher, IRouterDispatcherTrait};
     use ekubo::interfaces::token_registry::{
         ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
     };
-    use ekubo::types::bounds::{Bounds};
+    use ekubo::types::bounds::Bounds;
+    use ekubo::types::i129::i129;
     use ekubo::types::keys::PoolKey;
-    use ekubo::types::{i129::i129};
-
-    use openzeppelin::access::accesscontrol::{AccessControlComponent};
+    use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
+    use starknet::storage_access::StorageBaseAddress;
     use starknet::syscalls::deploy_syscall;
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        contract_address_const, get_block_timestamp, get_contract_address, ClassHash
+        ClassHash, ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
     use super::{
-        StoredName, BuyToken, SellToken, CreateToken, LaunchUpdated, SharesTokenUser, MINTER_ROLE,
-        ADMIN_ROLE, BondingType, Token, TokenLaunch, TokenQuoteBuyCoin, CreateLaunch,
-        SetJediwapNFTRouterV2, SetJediwapV2Factory, SupportedExchanges, MintParams,
-        LiquidityCreated, LiquidityCanBeAdded, MetadataLaunch, TokenClaimed, MetadataCoinAdded,
-        EkuboPoolParameters, LaunchParameters, EkuboLP, LiquidityType, CallbackData,
-        EkuboLaunchParameters, LaunchCallback, EkuboLiquidityParameters, LiquidityParameters
+        ADMIN_ROLE, BondingType, BuyToken, CallbackData, CreateLaunch, CreateToken, EkuboLP,
+        EkuboLaunchParameters, EkuboLiquidityParameters, EkuboPoolParameters, LaunchCallback,
+        LaunchParameters, LaunchUpdated, LiquidityCanBeAdded, LiquidityCreated, LiquidityParameters,
+        LiquidityType, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch, MintParams, SellToken,
+        SetJediwapNFTRouterV2, SetJediwapV2Factory, SharesTokenUser, StoredName, SupportedExchanges,
+        Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin,
     };
 
 
@@ -242,7 +246,7 @@ pub mod PumpWtf {
     struct Storage {
         // Admin & others contract
         coin_class_hash: ClassHash,
-        quote_tokens: Map::<ContractAddress, bool>,
+        quote_tokens: Map<ContractAddress, bool>,
         exchange_configs: Map<SupportedExchanges, ContractAddress>,
         quote_token: ContractAddress,
         protocol_fee_destination: ContractAddress,
@@ -251,17 +255,17 @@ pub mod PumpWtf {
         address_ekubo_factory: ContractAddress,
         address_ekubo_router: ContractAddress,
         // User states
-        token_created: Map::<ContractAddress, Token>,
-        launched_coins: Map::<ContractAddress, TokenLaunch>,
-        metadata_coins: Map::<ContractAddress, MetadataLaunch>,
-        shares_by_users: Map::<(ContractAddress, ContractAddress), SharesTokenUser>,
-        bonding_type: Map::<ContractAddress, BondingType>,
-        array_launched_coins: Map::<u64, TokenLaunch>,
-        array_coins: Map::<u64, Token>,
-        tokens_created: Map::<u64, Token>,
-        launch_created: Map::<u64, TokenLaunch>,
+        token_created: Map<ContractAddress, Token>,
+        launched_coins: Map<ContractAddress, TokenLaunch>,
+        metadata_coins: Map<ContractAddress, MetadataLaunch>,
+        shares_by_users: Map<(ContractAddress, ContractAddress), SharesTokenUser>,
+        bonding_type: Map<ContractAddress, BondingType>,
+        array_launched_coins: Map<u64, TokenLaunch>,
+        array_coins: Map<u64, Token>,
+        tokens_created: Map<u64, Token>,
+        launch_created: Map<u64, TokenLaunch>,
         // Parameters
-        is_tokens_buy_enable: Map::<ContractAddress, TokenQuoteBuyCoin>,
+        is_tokens_buy_enable: Map<ContractAddress, TokenQuoteBuyCoin>,
         default_token: TokenQuoteBuyCoin,
         dollar_price_launch_pool: u256,
         dollar_price_create_token: u256,
@@ -328,7 +332,7 @@ pub mod PumpWtf {
         // ekubo_registry: ContractAddress,
         core: ContractAddress,
         positions: ContractAddress,
-        ekubo_exchange_address: ContractAddress
+        ekubo_exchange_address: ContractAddress,
     ) {
         self.coin_class_hash.write(coin_class_hash);
         // AccessControl-related initialization
@@ -341,7 +345,7 @@ pub mod PumpWtf {
             initial_key_price,
             price: initial_key_price,
             is_enable: true,
-            step_increase_linear
+            step_increase_linear,
         };
         self.is_custom_launch_enable.write(false);
         self.is_custom_token_enable.write(false);
@@ -383,7 +387,7 @@ pub mod PumpWtf {
         }
 
         fn set_protocol_fee_destination(
-            ref self: ContractState, protocol_fee_destination: ContractAddress
+            ref self: ContractState, protocol_fee_destination: ContractAddress,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.protocol_fee_destination.write(protocol_fee_destination);
@@ -419,32 +423,34 @@ pub mod PumpWtf {
 
         // Jediwswap factory address
         fn set_address_jediswap_factory_v2(
-            ref self: ContractState, address_jediswap_factory_v2: ContractAddress
+            ref self: ContractState, address_jediswap_factory_v2: ContractAddress,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             // self.ownable.assert_only_owner();
             self.address_jediswap_factory_v2.write(address_jediswap_factory_v2);
             self
                 .emit(
-                    SetJediwapV2Factory { address_jediswap_factory_v2: address_jediswap_factory_v2 }
+                    SetJediwapV2Factory {
+                        address_jediswap_factory_v2: address_jediswap_factory_v2,
+                    },
                 );
         }
 
         fn set_address_jediswap_nft_router_v2(
-            ref self: ContractState, address_jediswap_nft_router_v2: ContractAddress
+            ref self: ContractState, address_jediswap_nft_router_v2: ContractAddress,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.address_jediswap_nft_router_v2.write(address_jediswap_nft_router_v2);
             self
                 .emit(
                     SetJediwapNFTRouterV2 {
-                        address_jediswap_nft_router_v2: address_jediswap_nft_router_v2
-                    }
+                        address_jediswap_nft_router_v2: address_jediswap_nft_router_v2,
+                    },
                 );
         }
 
         fn set_address_ekubo_factory(
-            ref self: ContractState, address_ekubo_factory: ContractAddress
+            ref self: ContractState, address_ekubo_factory: ContractAddress,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.address_ekubo_factory.write(address_ekubo_factory);
@@ -452,7 +458,7 @@ pub mod PumpWtf {
         }
 
         fn set_address_ekubo_router(
-            ref self: ContractState, address_ekubo_router: ContractAddress
+            ref self: ContractState, address_ekubo_router: ContractAddress,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.address_ekubo_router.write(address_ekubo_router);
@@ -460,7 +466,7 @@ pub mod PumpWtf {
         }
 
         fn set_exchanges_address(
-            ref self: ContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
+            ref self: ContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let mut dex = exchanges;
@@ -471,7 +477,7 @@ pub mod PumpWtf {
                         .exchange_configs
                         .entry(*exchange)
                         .write(*address),
-                    Option::None => { break; }
+                    Option::None => { break; },
                 }
             };
         }
@@ -490,7 +496,7 @@ pub mod PumpWtf {
             name: ByteArray,
             initial_supply: u256,
             contract_address_salt: felt252,
-            is_unruggable: bool
+            is_unruggable: bool,
         ) -> ContractAddress {
             let caller = get_caller_address();
             let token_address = self
@@ -501,7 +507,7 @@ pub mod PumpWtf {
                     name,
                     initial_supply,
                     contract_address_salt,
-                    is_unruggable
+                    is_unruggable,
                 );
 
             token_address
@@ -515,7 +521,7 @@ pub mod PumpWtf {
             name: ByteArray,
             initial_supply: u256,
             contract_address_salt: felt252,
-            is_unruggable: bool
+            is_unruggable: bool,
         ) -> ContractAddress {
             let contract_address = get_contract_address();
             let caller = get_caller_address();
@@ -527,7 +533,7 @@ pub mod PumpWtf {
                     name,
                     initial_supply,
                     contract_address_salt,
-                    is_unruggable
+                    is_unruggable,
                 );
             let contract_address = get_contract_address();
             self._launch_token(token_address, caller, contract_address, false);
@@ -593,7 +599,7 @@ pub mod PumpWtf {
 
             erc20
                 .transfer_from(
-                    get_caller_address(), self.protocol_fee_destination.read(), amount_protocol_fee
+                    get_caller_address(), self.protocol_fee_destination.read(), amount_protocol_fee,
                 );
             // println!("remain_liquidity {:?}", remain_liquidity);
             erc20.transfer_from(get_caller_address(), get_contract_address(), remain_liquidity);
@@ -703,7 +709,7 @@ pub mod PumpWtf {
                             pool: pool_coin.token_address.clone(),
                             asset: pool_coin.token_address.clone(),
                             quote_token_address: pool_coin.token_quote.token_address.clone(),
-                        }
+                        },
                     );
                 // self._add_liquidity(coin_address, SupportedExchanges::Jediswap);
                 // self._add_liquidity(coin_address, SupportedExchanges::Ekubo);
@@ -722,8 +728,8 @@ pub mod PumpWtf {
                         // creator_fee: 0,
                         last_price: old_price,
                         timestamp: get_block_timestamp(),
-                        quote_amount: quote_amount
-                    }
+                        quote_amount: quote_amount,
+                    },
                 );
         }
 
@@ -775,7 +781,7 @@ pub mod PumpWtf {
             assert(
                 protocol_fee_percent <= MAX_FEE_PROTOCOL
                     && protocol_fee_percent >= MIN_FEE_PROTOCOL,
-                'protocol fee out'
+                'protocol fee out',
             );
             // assert(
             //     creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= MIN_FEE_CREATOR,
@@ -805,7 +811,7 @@ pub mod PumpWtf {
             let contract_quote_balance = erc20.balance_of(get_contract_address());
             assert!(
                 contract_quote_balance >= quote_amount,
-                "contract has insufficient quote token balance"
+                "contract has insufficient quote token balance",
             );
 
             // Transfer protocol fee to the designated destination
@@ -836,7 +842,8 @@ pub mod PumpWtf {
 
             // Assertion: Ensure pool liquidity remains consistent
             assert!(
-                old_pool.liquidity_raised >= quote_amount, "pool liquidity inconsistency after sale"
+                old_pool.liquidity_raised >= quote_amount,
+                "pool liquidity inconsistency after sale",
             );
 
             // TODO finish update state
@@ -876,7 +883,7 @@ pub mod PumpWtf {
                         creator_fee: amount_creator_fee,
                         timestamp: get_block_timestamp(),
                         last_price: old_pool.price,
-                    }
+                    },
                 );
         }
 
@@ -922,13 +929,13 @@ pub mod PumpWtf {
                         owner: caller,
                         timestamp: get_block_timestamp(),
                         amount,
-                    }
+                    },
                 );
         }
 
         // TODO finish add Metadata
         fn add_metadata(
-            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch
+            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch,
         ) {
             let caller = get_contract_address();
             // Verify if caller is owner
@@ -945,7 +952,7 @@ pub mod PumpWtf {
                         url: metadata.url,
                         timestamp: get_block_timestamp(),
                         nostr_event_id: metadata.nostr_event_id,
-                    }
+                    },
                 );
         }
 
@@ -959,7 +966,7 @@ pub mod PumpWtf {
         }
 
 
-        fn get_coin_launch(self: @ContractState, key_user: ContractAddress,) -> TokenLaunch {
+        fn get_coin_launch(self: @ContractState, key_user: ContractAddress) -> TokenLaunch {
             self.launched_coins.read(key_user)
         }
 
@@ -1005,11 +1012,11 @@ pub mod PumpWtf {
             coin_address: ContractAddress,
             amount: u256,
             is_decreased: bool,
-            is_quote_amount: bool
+            is_quote_amount: bool,
         ) -> u256 {
             self
                 ._get_amount_by_type_of_coin_or_quote(
-                    coin_address, amount, is_decreased, is_quote_amount
+                    coin_address, amount, is_decreased, is_quote_amount,
                 )
         }
 
@@ -1017,7 +1024,7 @@ pub mod PumpWtf {
             self: @ContractState,
             coin_address: ContractAddress,
             quote_amount: u256,
-            is_decreased: bool
+            is_decreased: bool,
         ) -> u256 {
             self._get_coin_amount_by_quote_amount(coin_address, quote_amount, is_decreased)
         }
@@ -1026,7 +1033,7 @@ pub mod PumpWtf {
             self: @ContractState,
             coin_address: ContractAddress,
             quote_amount: u256,
-            is_decreased: bool
+            is_decreased: bool,
         ) -> u256 {
             self._get_quote_paid_by_amount_coin(coin_address, quote_amount, is_decreased)
         }
@@ -1036,7 +1043,7 @@ pub mod PumpWtf {
             ref self: ContractState,
             coin_address: ContractAddress,
             launch_params: LaunchParameters,
-            ekubo_pool_params: EkuboPoolParameters
+            ekubo_pool_params: EkuboPoolParameters,
         ) -> (u64, EkuboLP) {
             //TODO restrict fn?
 
@@ -1052,14 +1059,19 @@ pub mod PumpWtf {
             quote_address: ContractAddress,
             lp_supply: u256,
             launch_params: LaunchParameters,
-            ekubo_pool_params: EkuboPoolParameters
+            ekubo_pool_params: EkuboPoolParameters,
         ) -> (u64, EkuboLP) {
             //TODO restrict fn?
 
             let caller = get_caller_address();
             self
                 ._add_internal_liquidity_unrug_lp(
-                    caller, coin_address, quote_address, lp_supply, launch_params, ekubo_pool_params
+                    caller,
+                    coin_address,
+                    quote_address,
+                    lp_supply,
+                    launch_params,
+                    ekubo_pool_params,
                 )
             // INTEGRATION not working
         // self._add_liquidity_unrug(launch_params, ekubo_pool_params)
@@ -1087,7 +1099,7 @@ pub mod PumpWtf {
                         name,
                         initial_supply,
                         contract_address_salt,
-                        true
+                        true,
                     );
                 self._launch_token(token_address, caller, contract_address, true);
                 token_address
@@ -1100,7 +1112,7 @@ pub mod PumpWtf {
                         name,
                         initial_supply,
                         contract_address_salt,
-                        true
+                        true,
                     );
                 let contract_address = get_contract_address();
 
@@ -1114,7 +1126,7 @@ pub mod PumpWtf {
                     initial_supply: initial_supply,
                     created_at: get_block_timestamp(),
                     token_type: Option::None,
-                    is_unruggable: true
+                    is_unruggable: true,
                 };
                 self.token_created.entry(token_address).write(token);
                 token_address
@@ -1141,7 +1153,7 @@ pub mod PumpWtf {
                 CallbackData::LaunchCallback(params) => {
                     let launch_params: EkuboLaunchParameters = params.params;
                     let (token0, token1) = sort_tokens(
-                        launch_params.token_address, launch_params.quote_address
+                        launch_params.token_address, launch_params.quote_address,
                     );
                     let pool_key = PoolKey {
                         token0: token0,
@@ -1159,7 +1171,7 @@ pub mod PumpWtf {
                     let (initial_tick, full_range_bounds) = get_initial_tick_from_starting_price(
                         launch_params.pool_params.starting_price,
                         launch_params.pool_params.bound,
-                        is_token1_quote
+                        is_token1_quote,
                     );
 
                     // println!("initial tick {:?}", initial_tick);
@@ -1177,7 +1189,7 @@ pub mod PumpWtf {
                             pool_key,
                             launch_params.token_address,
                             launch_params.lp_supply,
-                            full_range_bounds
+                            full_range_bounds,
                         );
 
                     let position = EkuboLP {
@@ -1185,7 +1197,7 @@ pub mod PumpWtf {
                         owner: launch_params.owner,
                         quote_address: launch_params.quote_address,
                         pool_key,
-                        bounds: full_range_bounds
+                        bounds: full_range_bounds,
                     };
                     // println!("position owner {:?}", owner);
                     // println!("position quote_address {:?}", quote_address);
@@ -1201,12 +1213,12 @@ pub mod PumpWtf {
                             owner: launch_params.owner,
                             quote_address: launch_params.quote_address,
                             pool_key,
-                            bounds: full_range_bounds
+                            bounds: full_range_bounds,
                         },
-                        ref return_data
+                        ref return_data,
                     );
                     return_data.span()
-                }
+                },
                 // CallbackData::WithdrawFeesCallback(params) => {
             //     let WithdrawFeesCallback{id, liquidity_type, recipient } = params;
             //     let positions = self.positions.read();
@@ -1242,7 +1254,7 @@ pub mod PumpWtf {
             name: ByteArray,
             initial_supply: u256,
             contract_address_salt: felt252,
-            is_unruggable: bool
+            is_unruggable: bool,
         ) -> ContractAddress {
             let mut calldata = array![name.into(), symbol.into()];
             Serde::serialize(@initial_supply, ref calldata);
@@ -1250,7 +1262,7 @@ pub mod PumpWtf {
             Serde::serialize(@18, ref calldata);
 
             let (token_address, _) = deploy_syscall(
-                self.coin_class_hash.read(), contract_address_salt, calldata.span(), false
+                self.coin_class_hash.read(), contract_address_salt, calldata.span(), false,
             )
                 .unwrap();
             // .unwrap_syscall();
@@ -1266,7 +1278,7 @@ pub mod PumpWtf {
                 initial_supply: initial_supply,
                 created_at: get_block_timestamp(),
                 token_type: Option::None,
-                is_unruggable: is_unruggable
+                is_unruggable: is_unruggable,
             };
 
             self.token_created.entry(token_address).write(token.clone());
@@ -1289,8 +1301,8 @@ pub mod PumpWtf {
                         name: name,
                         initial_supply,
                         total_supply: initial_supply.clone(),
-                        is_unruggable: is_unruggable
-                    }
+                        is_unruggable: is_unruggable,
+                    },
                 );
             token_address
         }
@@ -1301,7 +1313,7 @@ pub mod PumpWtf {
             coin_address: ContractAddress,
             caller: ContractAddress,
             creator: ContractAddress,
-            is_unruggable: bool
+            is_unruggable: bool,
         ) {
             // let caller = get_caller_address();
             let token = self.token_created.read(coin_address);
@@ -1358,7 +1370,7 @@ pub mod PumpWtf {
                 threshold_liquidity: threshold,
                 liquidity_type: Option::None,
                 protocol_fee_percent: protocol_fee_percent,
-                creator_fee_percent: creator_fee_percent
+                creator_fee_percent: creator_fee_percent,
             };
             // Send supply need to launch your coin
             let amount_needed = total_supply.clone();
@@ -1377,7 +1389,7 @@ pub mod PumpWtf {
                     // println!("allowance > amount_needed{:?}", allowance > amount_needed);
                     memecoin
                         .transfer_from(
-                            caller, get_contract_address(), total_supply - balance_contract
+                            caller, get_contract_address(), total_supply - balance_contract,
                         );
                 }
             }
@@ -1404,14 +1416,14 @@ pub mod PumpWtf {
                         slope: slope,
                         threshold_liquidity: threshold,
                         quote_token_address: quote_token_address,
-                    }
+                    },
                 );
         }
 
         // TODO add liquidity to Ekubo, Jediswap and others exchanges enabled
         // TODO Increased liquidity if pool already exist
         fn _add_liquidity(
-            ref self: ContractState, coin_address: ContractAddress, exchange: SupportedExchanges
+            ref self: ContractState, coin_address: ContractAddress, exchange: SupportedExchanges,
         ) {
             match exchange {
                 SupportedExchanges::Jediswap => { self._add_liquidity_jediswap(coin_address) },
@@ -1428,7 +1440,7 @@ pub mod PumpWtf {
             pool_key: PoolKey,
             token: ContractAddress,
             amount: u256,
-            bounds: Bounds
+            bounds: Bounds,
         ) -> u64 {
             let positions_address = self.positions.read();
             let positions = IPositionsDispatcher { contract_address: positions_address };
@@ -1467,7 +1479,7 @@ pub mod PumpWtf {
             // let starting_price = i129 { sign: true, mag: price_u128 };
             let starting_price: i129 = self
                 ._calculate_starting_price_launch(
-                    launch.initial_pool_supply, launch.threshold_liquidity
+                    launch.initial_pool_supply, launch.threshold_liquidity,
                 );
             let lp_meme_supply = launch.initial_pool_supply;
 
@@ -1484,7 +1496,7 @@ pub mod PumpWtf {
                     tick_spacing: 5982,
                     starting_price,
                     bound: 88719042,
-                }
+                },
             };
 
             // Register the token in Ekubo Registry
@@ -1511,7 +1523,7 @@ pub mod PumpWtf {
 
             let (id, position) = call_core_with_callback::<
                 // let span = call_core_with_callbac00k::<
-                CallbackData, (u64, EkuboLP)
+                CallbackData, (u64, EkuboLP),
             >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
             // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
             //TODO emit event
@@ -1530,8 +1542,8 @@ pub mod PumpWtf {
                         quote_token_address: base_token.contract_address,
                         owner: launch.owner,
                         exchange: SupportedExchanges::Ekubo,
-                        is_unruggable: false
-                    }
+                        is_unruggable: false,
+                    },
                 );
 
             (id, position)
@@ -1554,15 +1566,16 @@ pub mod PumpWtf {
 
         /// TODO fix change
         fn _check_common_launch_parameters(
-            ref self: ContractState, launch_parameters: LaunchParameters
+            ref self: ContractState, launch_parameters: LaunchParameters,
         ) -> (u256, u8) {
-            let LaunchParameters { memecoin_address,
-            transfer_restriction_delay,
-            max_percentage_buy_launch,
-            quote_address,
-            initial_holders,
-            initial_holders_amounts } =
-                launch_parameters;
+            let LaunchParameters {
+                memecoin_address,
+                transfer_restriction_delay,
+                max_percentage_buy_launch,
+                quote_address,
+                initial_holders,
+                initial_holders_amounts,
+            } = launch_parameters;
             let memecoin = IMemecoinV2Dispatcher { contract_address: memecoin_address };
             let erc20 = IERC20Dispatcher { contract_address: memecoin_address };
 
@@ -1593,7 +1606,7 @@ pub mod PumpWtf {
                 team_allocation += amount;
                 assert(team_allocation <= max_team_allocation, errors::MAX_TEAM_ALLOCATION_REACHED);
                 i += 1;
-            };
+            }
 
             (team_allocation, unique_count(initial_holders).try_into().unwrap())
         }
@@ -1602,14 +1615,14 @@ pub mod PumpWtf {
             ref self: ContractState,
             coin_address: ContractAddress,
             launch_params: LaunchParameters,
-            ekubo_pool_params: EkuboPoolParameters
+            ekubo_pool_params: EkuboPoolParameters,
         ) -> (u64, EkuboLP) {
             let launch = self.launched_coins.read(coin_address);
             // let starting_price = i129 { sign: true, mag: 100_u128 };
 
             let starting_price: i129 = self
                 ._calculate_starting_price_launch(
-                    launch.initial_pool_supply, launch.threshold_liquidity
+                    launch.initial_pool_supply, launch.threshold_liquidity,
                 );
 
             let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
@@ -1628,7 +1641,7 @@ pub mod PumpWtf {
                     tick_spacing: 5982,
                     starting_price,
                     bound: 88719042,
-                }
+                },
             };
             let (team_allocation, pre_holders) = self
                 ._check_common_launch_parameters(launch_params);
@@ -1637,19 +1650,20 @@ pub mod PumpWtf {
             assert(launch.is_liquidity_launch == false, 'liquidity already launch');
 
             assert(
-                ekubo_pool_params.fee <= 0x51eb851eb851ec00000000000000000, errors::FEE_TOO_HIGH
+                ekubo_pool_params.fee <= 0x51eb851eb851ec00000000000000000, errors::FEE_TOO_HIGH,
             );
             assert(ekubo_pool_params.tick_spacing >= 5982, errors::TICK_SPACING_TOO_LOW);
             assert(ekubo_pool_params.tick_spacing <= 19802, errors::TICK_SPACING_TOO_HIGH);
             assert(ekubo_pool_params.bound >= 88712960, errors::BOUND_TOO_LOW);
 
-            let LaunchParameters { memecoin_address,
-            transfer_restriction_delay,
-            max_percentage_buy_launch,
-            quote_address,
-            initial_holders,
-            initial_holders_amounts } =
-                launch_params;
+            let LaunchParameters {
+                memecoin_address,
+                transfer_restriction_delay,
+                max_percentage_buy_launch,
+                quote_address,
+                initial_holders,
+                initial_holders_amounts,
+            } = launch_params;
 
             // let launchpad_address = self.exchange_address(SupportedExchanges::Ekubo);
             let launchpad_address = self.ekubo_exchange_address.read();
@@ -1667,7 +1681,7 @@ pub mod PumpWtf {
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
 
             let (id, position) = call_core_with_callback::<
-                CallbackData, (u64, EkuboLP)
+                CallbackData, (u64, EkuboLP),
             >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
 
             distribute_team_alloc(erc20, initial_holders, initial_holders_amounts);
@@ -1679,8 +1693,8 @@ pub mod PumpWtf {
                     LiquidityType::EkuboNFT(id),
                     LiquidityParameters::Ekubo(
                         EkuboLiquidityParameters {
-                            quote_address, ekubo_pool_parameters: ekubo_pool_params
-                        }
+                            quote_address, ekubo_pool_parameters: ekubo_pool_params,
+                        },
                     ),
                     :transfer_restriction_delay,
                     :max_percentage_buy_launch,
@@ -1703,7 +1717,7 @@ pub mod PumpWtf {
             quote_address: ContractAddress,
             lp_supply: u256,
             launch_params: LaunchParameters,
-            ekubo_pool_params: EkuboPoolParameters
+            ekubo_pool_params: EkuboPoolParameters,
         ) -> (u64, EkuboLP) {
             let starting_price = i129 { sign: true, mag: 10_u128 };
 
@@ -1713,25 +1727,26 @@ pub mod PumpWtf {
                 quote_address: quote_address,
                 lp_supply: lp_supply,
                 // lp_supply: launch.liquidity_raised,
-                pool_params: ekubo_pool_params
+                pool_params: ekubo_pool_params,
             };
             let (team_allocation, pre_holders) = self
                 ._check_common_launch_parameters(launch_params);
 
             assert(
-                ekubo_pool_params.fee <= 0x51eb851eb851ec00000000000000000, errors::FEE_TOO_HIGH
+                ekubo_pool_params.fee <= 0x51eb851eb851ec00000000000000000, errors::FEE_TOO_HIGH,
             );
             assert(ekubo_pool_params.tick_spacing >= 5982, errors::TICK_SPACING_TOO_LOW);
             assert(ekubo_pool_params.tick_spacing <= 19802, errors::TICK_SPACING_TOO_HIGH);
             assert(ekubo_pool_params.bound >= 88712960, errors::BOUND_TOO_LOW);
 
-            let LaunchParameters { memecoin_address,
-            transfer_restriction_delay,
-            max_percentage_buy_launch,
-            quote_address,
-            initial_holders,
-            initial_holders_amounts } =
-                launch_params;
+            let LaunchParameters {
+                memecoin_address,
+                transfer_restriction_delay,
+                max_percentage_buy_launch,
+                quote_address,
+                initial_holders,
+                initial_holders_amounts,
+            } = launch_params;
 
             let launchpad_address = self.ekubo_exchange_address.read();
             assert(launchpad_address.is_non_zero(), errors::EXCHANGE_ADDRESS_ZERO);
@@ -1746,7 +1761,7 @@ pub mod PumpWtf {
             let core = ICoreDispatcher { contract_address: ekubo_core_address };
 
             let (id, position) = call_core_with_callback::<
-                CallbackData, (u64, EkuboLP)
+                CallbackData, (u64, EkuboLP),
             >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
 
             distribute_team_alloc(erc20, initial_holders, initial_holders_amounts);
@@ -1758,8 +1773,8 @@ pub mod PumpWtf {
                     LiquidityType::EkuboNFT(id),
                     LiquidityParameters::Ekubo(
                         EkuboLiquidityParameters {
-                            quote_address, ekubo_pool_parameters: ekubo_pool_params
-                        }
+                            quote_address, ekubo_pool_parameters: ekubo_pool_params,
+                        },
                     ),
                     :transfer_restriction_delay,
                     :max_percentage_buy_launch,
@@ -1784,7 +1799,7 @@ pub mod PumpWtf {
                 return;
             }
             let nft_router = IJediswapNFTRouterV2Dispatcher {
-                contract_address: nft_router_address
+                contract_address: nft_router_address,
             };
 
             let facto_address = nft_router.factory();
@@ -1872,8 +1887,8 @@ pub mod PumpWtf {
                             owner: launch.owner,
                             asset: asset_token_address,
                             exchange: SupportedExchanges::Jediswap,
-                            is_unruggable: false
-                        }
+                            is_unruggable: false,
+                        },
                     );
             } else { // TODO 
             // Increase liquidity of this pool.
@@ -1887,7 +1902,7 @@ pub mod PumpWtf {
             self: @ContractState,
             coin_address: ContractAddress,
             quote_amount: u256,
-            is_decreased: bool
+            is_decreased: bool,
         ) -> u256 {
             let pool_coin = self.launched_coins.read(coin_address);
             let total_supply = pool_coin.total_supply.clone();
@@ -1920,7 +1935,7 @@ pub mod PumpWtf {
             self: @ContractState,
             coin_address: ContractAddress,
             amount_to_buy: u256,
-            is_decreased: bool
+            is_decreased: bool,
         ) -> u256 {
             let pool_coin = self.launched_coins.read(coin_address);
             let current_supply = pool_coin.total_token_holded.clone();
@@ -1934,7 +1949,7 @@ pub mod PumpWtf {
 
 
         fn _trapezoidal_rule(
-            self: @ContractState, coin_address: ContractAddress, amount: u256, is_decreased: bool
+            self: @ContractState, coin_address: ContractAddress, amount: u256, is_decreased: bool,
         ) -> u256 {
             let pool = self.launched_coins.read(coin_address);
             let mut total_supply = pool.total_token_holded.clone();
@@ -2002,12 +2017,12 @@ pub mod PumpWtf {
                             if is_quote_amount == true {
                                 self
                                     ._get_coin_amount_by_quote_amount(
-                                        coin_address, amount, is_decreased
+                                        coin_address, amount, is_decreased,
                                     )
                             } else {
                                 self
                                     ._get_coin_amount_by_quote_amount(
-                                        coin_address, amount, is_decreased
+                                        coin_address, amount, is_decreased,
                                     )
                             }
                         },
@@ -2029,7 +2044,7 @@ pub mod PumpWtf {
                     let end_price = initial_key_price + (step_increase_linear * final_supply);
                     let total_price = amount * (start_price + end_price) / 2;
                     total_price
-                }
+                },
             }
         }
     }

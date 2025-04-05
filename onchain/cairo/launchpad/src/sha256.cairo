@@ -1,6 +1,6 @@
 // from alexandria
 
-use core::integer::{u32_wrapping_add, BoundedInt};
+use core::integer::{BoundedInt, u32_wrapping_add};
 
 fn ch(x: u32, y: u32, z: u32) -> u32 {
     (x & y) ^ ((x ^ BoundedInt::<u32>::max().into()) & z)
@@ -54,7 +54,7 @@ pub fn sha256(mut data: Array<u8>) -> Array<u8> {
     // add padding
     while ((64 * ((data.len() - 1) / 64 + 1)) - 8 != data.len()) {
         data.append(0);
-    };
+    }
 
     // add length to the end
     let mut res = (data_len & 0xff00000000000000) / 0x100000000000000;
@@ -93,7 +93,7 @@ fn from_u32Array_to_u8Array(mut data: Span<u32>) -> Array<u8> {
         result.append(res.try_into().unwrap());
         res = *val & 0xff;
         result.append(res.try_into().unwrap());
-    };
+    }
     result
 }
 
@@ -124,7 +124,7 @@ fn compression(w: Span<u32>, i: usize, k: Span<u32>, mut h: Span<u32>) -> Span<u
     let s1 = bsig1(*h[4]);
     let ch = ch(*h[4], *h[5], *h[6]);
     let temp1 = u32_wrapping_add(
-        u32_wrapping_add(u32_wrapping_add(u32_wrapping_add(*h[7], s1), ch), *k[i]), *w[i]
+        u32_wrapping_add(u32_wrapping_add(u32_wrapping_add(*h[7], s1), ch), *k[i]), *w[i],
     );
     let s0 = bsig0(*h[0]);
     let maj = maj(*h[0], *h[1], *h[2]);
@@ -148,17 +148,17 @@ fn create_message_schedule(data: Span<u32>, i: usize) -> Span<u32> {
     while (j < 16) {
         result.append(*data[i * 16 + j]);
         j += 1;
-    };
+    }
     let mut i = 16;
     while (i < 64) {
         let s0 = ssig0(*result[i - 15]);
         let s1 = ssig1(*result[i - 2]);
         let res = u32_wrapping_add(
-            u32_wrapping_add(u32_wrapping_add(*result[i - 16], s0), *result[i - 7]), s1
+            u32_wrapping_add(u32_wrapping_add(*result[i - 16], s0), *result[i - 7]), s1,
         );
         result.append(res);
         i += 1;
-    };
+    }
     result.span()
 }
 
@@ -173,7 +173,7 @@ fn from_u8Array_to_u32Array(mut data: Span<u8>) -> Array<u32> {
         value = value + (*val3).into() * 0x100;
         value = value + (*val4).into();
         result.append(value);
-    };
+    }
     result
 }
 
@@ -186,7 +186,7 @@ fn get_h() -> Array<u32> {
         0x510e527f,
         0x9b05688c,
         0x1f83d9ab,
-        0x5be0cd19
+        0x5be0cd19,
     ]
 }
 
@@ -255,6 +255,6 @@ fn get_k() -> Array<u32> {
         0x90befffa,
         0xa4506ceb,
         0xbef9a3f7,
-        0xc67178f2
+        0xc67178f2,
     ]
 }

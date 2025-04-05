@@ -6,12 +6,11 @@ mod unrug_tests {
         // Event as LaunchpadEvent
     };
     use afk_launchpad::launchpad::utils::{
-        sort_tokens, get_initial_tick_from_starting_price, get_next_tick_bounds, unique_count,
-        calculate_aligned_bound_mag, align_tick, MIN_TICK, MAX_TICK, MAX_TICK_U128, MIN_TICK_U128,
-        MAX_SQRT_RATIO, MIN_SQRT_RATIO, align_tick_with_max_tick_and_min_tick, calculate_bound_mag,
-        calculate_sqrt_ratio
+        MAX_SQRT_RATIO, MAX_TICK, MAX_TICK_U128, MIN_SQRT_RATIO, MIN_TICK, MIN_TICK_U128,
+        align_tick, align_tick_with_max_tick_and_min_tick, calculate_aligned_bound_mag,
+        calculate_bound_mag, calculate_sqrt_ratio, get_initial_tick_from_starting_price,
+        get_next_tick_bounds, sort_tokens, unique_count,
     };
-
     use afk_launchpad::math::PercentageMath;
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     // use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher,
@@ -24,43 +23,41 @@ mod unrug_tests {
         // SupportedExchanges,
         // EkuboLP,
         EkuboPoolParameters, // TokenLaunch,
-         // EkuboLaunchParameters,
+        // EkuboLaunchParameters,
         // LaunchParameters,
         //  SharesTokenUser,
-        EkuboUnrugLaunchParameters
+        EkuboUnrugLaunchParameters,
     };
-
     use core::num::traits::Zero;
     use core::traits::Into;
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait};
     use ekubo::interfaces::erc20::{
         IERC20Dispatcher as IERC20DispatcherEkubo,
-        IERC20DispatcherTrait as IERC20DispatcherTraitEkubo
+        IERC20DispatcherTrait as IERC20DispatcherTraitEkubo,
     };
     // use ekubo::interfaces::core::{ICore, ICoreDispatcher, ICoreDispatcherTrait};
     use ekubo::interfaces::positions::{IPositionsDispatcher, IPositionsDispatcherTrait};
     use ekubo::interfaces::token_registry::{ // ITokenRegistryDispatcher,
     // ITokenRegistryDispatcherTrait,
     };
-    use ekubo::types::bounds::{Bounds};
+    use ekubo::types::bounds::Bounds;
     use ekubo::types::i129::i129;
     use ekubo::types::keys::PoolKey;
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, // spy_events,
-         start_cheat_caller_address,
+        start_cheat_caller_address,
         // start_cheat_caller_address_global,
         stop_cheat_caller_address, // stop_cheat_caller_address_global,
-         // start_cheat_block_timestamp,
+        // start_cheat_block_timestamp,
         DeclareResultTrait,
         // EventSpyAssertionsTrait
     };
-    use starknet::syscalls::{library_call_syscall, deploy_syscall};
+    use starknet::SyscallResultTrait;
+    use starknet::syscalls::{deploy_syscall, library_call_syscall};
     // use starknet::syscalls::call_contract_syscall;
 
-    use starknet::{ContractAddress, ClassHash};
-
-    use starknet::{SyscallResultTrait};
+    use starknet::{ClassHash, ContractAddress};
 
     // fn DEFAULT_INITIAL_SUPPLY() -> u256 {
     //     // 21_000_000 * pow_256(10, 18)
@@ -231,7 +228,7 @@ mod unrug_tests {
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, meme_class: ContractClass, launch_class: ContractClass
+        erc20_class: ContractClass, meme_class: ContractClass, launch_class: ContractClass,
     ) -> (ContractAddress, IERC20Dispatcher, IUnrugLiquidityDispatcher) {
         let sender_address: ContractAddress = 123.try_into().unwrap();
         let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 1_000_000, sender_address);
@@ -249,7 +246,7 @@ mod unrug_tests {
             EKUBO_REGISTRY(),
             EKUBO_CORE(),
             EKUBO_POSITIONS(),
-            EKUBO_EXCHANGE_ADDRESS()
+            EKUBO_EXCHANGE_ADDRESS(),
             // ITokenRegistryDispatcher { contract_address: EKUBO_REGISTRY() },
         // ICoreDispatcher { contract_address: EKUBO_CORE() },
         // IPositionsDispatcher { contract_address: EKUBO_POSITIONS() },
@@ -325,7 +322,7 @@ mod unrug_tests {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        recipient: ContractAddress
+        recipient: ContractAddress,
     ) -> IERC20Dispatcher {
         let mut calldata = array![];
 
@@ -350,7 +347,7 @@ mod unrug_tests {
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT()
+                contract_address_salt: SALT(),
             );
         start_cheat_caller_address(unrug_liq.contract_address, OWNER());
 
@@ -358,7 +355,7 @@ mod unrug_tests {
         println!(
             "Balance of unrug_liq: {:?}",
             IERC20Dispatcher { contract_address: token_address }
-                .balance_of(unrug_liq.contract_address)
+                .balance_of(unrug_liq.contract_address),
         );
 
         let starting_price = i129 { sign: true, mag: 4600158 };
@@ -413,7 +410,7 @@ mod unrug_tests {
 
         let starting_price = Serde::<i129>::deserialize(ref res).unwrap();
         let bound_spacing: u128 = calculate_bound_mag(
-            fee.clone(), tick_spacing.clone().try_into().unwrap(), starting_price
+            fee.clone(), tick_spacing.clone().try_into().unwrap(), starting_price,
         );
         // Align the min and max ticks with the spacing
         let min_tick = MIN_TICK_U128.try_into().unwrap();
@@ -428,7 +425,7 @@ mod unrug_tests {
         // Full range bounds
         let mut full_range_bounds = Bounds {
             lower: i129 { mag: aligned_bound_spacing, sign: true },
-            upper: i129 { mag: aligned_bound_spacing, sign: false }
+            upper: i129 { mag: aligned_bound_spacing, sign: false },
         };
 
         let params: EkuboUnrugLaunchParameters = EkuboUnrugLaunchParameters {
@@ -445,8 +442,8 @@ mod unrug_tests {
                 starting_price,
                 bound: bound.clone(),
                 bounds: full_range_bounds,
-                bound_spacing: bound_spacing
-            }
+                bound_spacing: bound_spacing,
+            },
         };
         println!("add liquidity ekubo");
         stop_cheat_caller_address(unrug_liq.contract_address);
@@ -475,12 +472,12 @@ mod unrug_tests {
 
         assert(
             reserve_memecoin >= PercentageMath::percent_mul(lp_quote_supply, 9940),
-            'reserve too low meme'
+            'reserve too low meme',
         );
 
         assert(
             reserve_quote >= PercentageMath::percent_mul(lp_quote_supply, 9900),
-            'reserve too low quote'
+            'reserve too low quote',
         );
 
         let position_dispatcher = IPositionsDispatcher { contract_address: EKUBO_POSITIONS() };
@@ -490,11 +487,11 @@ mod unrug_tests {
             token1: token1,
             fee: 0xc49ba5e353f7d00000000000000000,
             tick_spacing: 5928,
-            extension: 0.try_into().unwrap()
+            extension: 0.try_into().unwrap(),
         };
         let pool_price = position_dispatcher.get_pool_price(pool_key);
         println!(
-            "sqrt_ratio {:?}", pool_price.sqrt_ratio
+            "sqrt_ratio {:?}", pool_price.sqrt_ratio,
         ); // 340282366920938463463374607431768211456
         println!("tick {:?}", pool_price.tick); // { mag: 0, sign: false } strange
         // No need to check +2% percent
@@ -622,7 +619,7 @@ mod unrug_tests {
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
-                contract_address_salt: SALT()
+                contract_address_salt: SALT(),
             );
         start_cheat_caller_address(unrug_liq.contract_address, OWNER());
 
@@ -656,7 +653,7 @@ mod unrug_tests {
 
         let unlock_time = starknet::get_block_timestamp() + DEFAULT_MIN_LOCKTIME;
 
-        println!("launch on jedi",);
+        println!("launch on jedi");
         unrug_liq
             .launch_on_jediswap(
                 token_address,
@@ -664,7 +661,7 @@ mod unrug_tests {
                 lp_meme_supply,
                 lp_quote_supply,
                 unlock_time,
-                OWNER()
+                OWNER(),
             );
 
         println!("liq jediswap launched");

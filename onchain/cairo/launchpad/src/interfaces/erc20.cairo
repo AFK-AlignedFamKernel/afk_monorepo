@@ -12,11 +12,11 @@ pub trait IERC20<TContractState> {
     fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) -> u256;
     fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
     fn transfer_from(
-        ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256
+        ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256,
     ) -> bool;
     fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
     fn increase_allowance(ref self: TContractState, spender: ContractAddress, added_value: u256);
     fn decrease_allowance(
-        ref self: TContractState, spender: ContractAddress, subtracted_value: u256
+        ref self: TContractState, spender: ContractAddress, subtracted_value: u256,
     );
 }
