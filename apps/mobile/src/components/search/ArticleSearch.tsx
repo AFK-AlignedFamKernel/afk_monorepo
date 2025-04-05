@@ -5,7 +5,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { useStyles, useWindowDimensions } from '../../hooks';
-import { SORT_OPTION_EVENT_NOSTR, SORT_OPTIONS } from '../../types/nostr';
+import { SORT_OPTION_EVENT_NOSTR, SORT_OPTIONS, SORT_OPTIONS_ARTICLE } from '../../types/nostr';
 import FilterMenu from '../Filter';
 import stylesheet from './styles';
 import { Icon } from '../Icon';
@@ -77,7 +77,7 @@ const ArticleSearchComponent: React.FC<IArticleSearchComponent> = ({
             showsVerticalScrollIndicator={false}
             style={styles.sortContainer}
           >
-            {SORT_OPTIONS.map((option, index) => (
+            {SORT_OPTIONS_ARTICLE.map((option, index) => (
               <Pressable
                 key={option.value}
                 style={[
@@ -95,7 +95,7 @@ const ArticleSearchComponent: React.FC<IArticleSearchComponent> = ({
 
           </ScrollView>
        
-       
+
         </View>
 
       </ScrollView>
