@@ -18,6 +18,7 @@ import { RenderEventCard } from '../Studio';
 import { Button } from '../../components';
 import { useNavigation } from '@react-navigation/native';
 import { ArticleCard } from '../ArticleCard';
+import ArticleSearchComponent from 'src/components/search/ArticleSearch';
 
 export const ArticlesFeed: React.FC = () => {
 
@@ -327,15 +328,6 @@ export const ArticlesFeed: React.FC = () => {
   }, [notes.data?.pages, search, activeSortBy]);
   // }, [search, activeSortBy]);
 
-  // useEffect(() => {
-  //   // const filtered = filteredNotes();
-  //   // setFeedData(filtered as any);
-  //   // filteredNotes();
-  //   if (publicKey && contacts?.data?.length && contacts?.data?.length > 0 || followersPubkey?.length && followersPubkey?.length > 0) {
-  //     setForYouNotes(notesForYou?.data?.pages?.flat() as any);
-  //   }
-  // }, [followersPubkey, contacts, publicKey])
-
 
   const handleNavigate = (id: string) => {
     navigation.navigate('WatchStream', { streamId: id });
@@ -355,7 +347,7 @@ export const ArticlesFeed: React.FC = () => {
   console.log('articlesfeedData', feedData);
   return (
     <View style={styles.container}>
-      <SearchComponent
+      <ArticleSearchComponent
         setSearchQuery={setSearch}
         searchQuery={search ?? ''}
         kinds={kinds}
@@ -368,14 +360,14 @@ export const ArticlesFeed: React.FC = () => {
         <ActivityIndicator color={theme.colors.primary} size={20}></ActivityIndicator>
       )}
 
-      {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() && !publicKey && (
+      {/* {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() && !publicKey && (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text>No users connected</Text>
           <Button onPress={handleConnect}>
             Connect
           </Button>
         </View>
-      )}
+      )} */}
 
 
       {
@@ -390,7 +382,7 @@ export const ArticlesFeed: React.FC = () => {
                 color: theme.colors.text,
               }}
             >
-              No notes found
+              No articles found
             </Text>
             <Text
               style={{
@@ -409,7 +401,7 @@ export const ArticlesFeed: React.FC = () => {
                 color: theme.colors.text,
               }}
             >
-              No notes found
+              No Articles found
             </Text>
             <Text
               style={{

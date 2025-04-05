@@ -11,3 +11,10 @@ export const SORT_OPTIONS = [
   // {label: 'Trending', value: SORT_OPTION_EVENT_NOSTR.TRENDING},
   // {label: 'Interests', value: SORT_OPTION_EVENT_NOSTR.INTERESTS},
 ];
+
+export const SORT_OPTIONS_ARTICLE = [
+  {label: 'Recent', value: SORT_OPTION_EVENT_NOSTR.TIME},
+  // {label: 'For You', value: SORT_OPTION_EVENT_NOSTR.FOR_YOU},
+  // {label: 'Trending', value: SORT_OPTION_EVENT_NOSTR.TRENDING},
+  // {label: 'Interests', value: SORT_OPTION_EVENT_NOSTR.INTERESTS},
+];
