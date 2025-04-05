@@ -1100,7 +1100,6 @@ export function ReloadIcon(props: SvgProps) {
     </Svg>
   );
 } 
-
 export function ArticleIcon(props: SvgProps) {
   return (
     <Svg
@@ -1114,9 +1113,11 @@ export function ArticleIcon(props: SvgProps) {
       strokeLinejoin="round"
       {...props}
     >
-      <Path d="M12 3a9 9 0 0 0-9 9 9 9 0 0 0 9 9 9 9 0 0 0 9-9 9 9 0 0 0-9-9z" />
-      <Path d="M12 7c2 0 3 1 3 2.5 0 1.5-1 2.5-3 2.5-2 0-3-1-3-2.5C9 8 10 7 12 7z" />
-      <Path d="M7 21v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2" />
+      <Path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <Path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      <Path d="M8 7h8" />
+      <Path d="M8 11h8" />
+      <Path d="M8 15h5" />
     </Svg>
   );
 }

@@ -49,9 +49,9 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content, isExpanded, to
 
   const markdownContent2 = MarkdownIt().render(content).replace(/<[^>]*>?/g, '');
 
-  console.log("content article: ", content)
-  console.log("markdownContent: ", markdownContent)
-  console.log("markdown.render(content)}", markdown.render(content))
+  // console.log("content article: ", content)
+  // console.log("markdownContent: ", markdownContent)
+  // console.log("markdown.render(content)}", markdown.render(content))
   if (isWeb) {
     return (
       <>
