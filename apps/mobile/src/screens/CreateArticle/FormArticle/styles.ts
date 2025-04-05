@@ -35,6 +35,9 @@ export default ThemedStyleSheet((theme) => ({
     fontSize: 16,
     lineHeight: 24,
     ...Typography.medium,
+    borderColor: theme.colors.divider,
+    borderWidth: 1,
+    borderRadius: 8,  
   },
   imageContainer: {
     padding: Spacing.pagePadding,
@@ -119,7 +122,7 @@ export default ThemedStyleSheet((theme) => ({
   },
   title: {
     color: theme.colors.text,
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     margin: 10,
   },
@@ -127,5 +130,17 @@ export default ThemedStyleSheet((theme) => ({
     color: theme.colors.text,
     fontSize: 16,
     margin: 10,
+  },
+  imageContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  imagePreview: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
 }));

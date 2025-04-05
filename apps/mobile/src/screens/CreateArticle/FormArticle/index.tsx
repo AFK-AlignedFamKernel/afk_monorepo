@@ -371,10 +371,13 @@ export const FormCreateArticle: React.FC = () => {
               onChangeText={setSummary}
               placeholder="Summary of your article"
             />
-            <Text style={styles.summary}>Image Preview</Text>
-            <Pressable onPress={onGalleryPress}>
-              <GalleryIcon width="24" height="24" color={theme.colors.red} />
-            </Pressable>
+            <Text style={styles.summary}>Image</Text>
+            <View style={styles.imageContainer}>
+              <Pressable onPress={onGalleryPress}>
+                <GalleryIcon width="50" height="50" color={theme.colors.red} />
+              </Pressable>
+            
+            </View>
           </View>
 
 
