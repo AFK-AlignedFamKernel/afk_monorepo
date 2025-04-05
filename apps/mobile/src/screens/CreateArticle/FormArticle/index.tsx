@@ -332,7 +332,7 @@ export const FormCreateArticle: React.FC = () => {
     console.log('handleImageWebUpload', file, callback);
     const reader = new FileReader()
     reader.onload = () => {
-      const convertBase64UrlToBlob = (urlData) => {
+      const convertBase64UrlToBlob = (urlData: string | ArrayBuffer) => {
         let arr = urlData.split(','), mime = arr[0].match(/:(.*?);/)[1]
         let bstr = atob(arr[1])
         let n = bstr.length
@@ -343,6 +343,9 @@ export const FormCreateArticle: React.FC = () => {
         return new Blob([u8arr], { type: mime })
       }
       const blob = convertBase64UrlToBlob(reader.result)
+      console.log('blob', blob);
+      console.log('reader.result', reader.result);
+      callback(reader?.result)
 
     }
     reader.readAsDataURL(file)
@@ -380,7 +383,7 @@ export const FormCreateArticle: React.FC = () => {
               <MdEditor style={{ height: '500px' }} renderHTML={text => mdParser.render(text)}
                 onChange={handleEditorChange}
                 onImageUpload={handleImageWebUpload}
-                onCustomImageUpload={handleImageWebUpload}
+                // onCustomImageUpload={handleImageWebUpload}
 
               />
               {/* <MdEditor></MdEditor> */}
