@@ -36,6 +36,7 @@ export type MainStackParams = {
   CreatePost: undefined;
   Profile: { publicKey: string };
   PostDetail: { postId: string; post?: NDKEvent, isArticle?: boolean, isRepost?: boolean, repostedEventProps?: string, isBookmarked?: boolean, isReplyView?: boolean };
+  ArticleDetail: { postId: string; post?: NDKEvent, isArticle?: boolean, isRepost?: boolean, repostedEventProps?: string, isBookmarked?: boolean, isReplyView?: boolean };
   GroupChat: { groupId: string; post?: NDKEvent; groupName: string; groupAccess: string };
   GroupChatDetail: { groupId: string; groupName: string; post?: NDKEvent; groupAccess: string };
   GroupChatMemberRequest: {
@@ -237,6 +238,11 @@ export type TagsScreenProps = CompositeScreenProps<
 
 export type PostDetailScreenProps = CompositeScreenProps<
   NativeStackScreenProps<MainStackParams, 'PostDetail'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type ArticleDetailScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'ArticleDetail'>,
   NativeStackScreenProps<RootStackParams>
 >;
 export type GroupChatScreenProps = CompositeScreenProps<

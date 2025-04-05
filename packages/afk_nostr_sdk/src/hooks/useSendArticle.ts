@@ -3,6 +3,11 @@ import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../context/NostrContext';
 
+/**
+ * Send an article to Nostr 
+ * https://github.com/nostr-protocol/nips/blob/master/23.md
+ * @returns 
+ */
 export const useSendArticle = () => {
   const {ndk} = useNostrContext();
 

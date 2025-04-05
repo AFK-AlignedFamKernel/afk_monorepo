@@ -35,7 +35,7 @@ import stylesheet from './styles';
 import { ToolbarPlugin } from "./Toolbar";
 import RichEditorForm from "./RichEditor";
 import QuillEditorForm from './QuillEditor';
-
+import MDEditor from '@uiw/react-md-editor';
 // Lexical React plugins are React components, which makes them
 // highly composable. Furthermore, you can lazy load plugins if
 // desired, so you don't pay the cost for plugins until you
@@ -110,6 +110,7 @@ export const FormCreateArticle: React.FC = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [note, setNote] = useState<string | undefined>();
+  const [value, setValue] = useState<string | undefined>();
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | undefined>();
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.NOTES);
   const navigation = useNavigation<MainStackNavigationProps>();
@@ -285,10 +286,18 @@ export const FormCreateArticle: React.FC = () => {
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
 
           {Platform.OS === 'web' ? (
-            <QuillEditorForm
-              onChange={handleTextChange}
-              onImageUpload={handleImageUpload}
-            />
+            <>
+              <MDEditor
+                value={note}
+                onChange={setNote}
+              />
+              <MDEditor.Markdown source={note} style={{ whiteSpace: 'pre-wrap' }} />
+              <QuillEditorForm
+                onChange={handleTextChange}
+                onImageUpload={handleImageUpload}
+              />
+            </>
+
           ) : (
             <LexicalComposer initialConfig={initialConfig}>
               <div className="editor-container">
