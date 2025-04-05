@@ -17,6 +17,7 @@ import { SORT_OPTIONS, SORT_OPTION_EVENT_NOSTR } from '../../types/nostr';
 import { RenderEventCard } from '../Studio';
 import { Button } from '../../components';
 import { useNavigation } from '@react-navigation/native';
+import { ArticleCard } from '../ArticleCard';
 
 export const ArticlesFeed: React.FC = () => {
 
@@ -450,7 +451,7 @@ export const ArticlesFeed: React.FC = () => {
         keyExtractor={(item) => item?.id}
         renderItem={({ item }) => {
           if (item.kind === NDKKind.Article) {
-            return <PostCard event={item} isReplyView={true} isArticle={true} />;
+            return <ArticleCard event={item} isArticle={true} />;
           }
           // if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
           //   return <ChannelComponent event={item} />;

@@ -35,7 +35,12 @@ import stylesheet from './styles';
 import { ToolbarPlugin } from "./Toolbar";
 import RichEditorForm from "./RichEditor";
 import QuillEditorForm from './QuillEditor';
-import MDEditor from '@uiw/react-md-editor';
+// import MDEditor from '@uiw/react-md-editor';
+import MdEditor from 'react-markdown-editor-lite';
+import { MarkdownIt } from "react-native-markdown-display";
+// import style manually
+import 'react-markdown-editor-lite/lib/index.css';
+
 // Lexical React plugins are React components, which makes them
 // highly composable. Furthermore, you can lazy load plugins if
 // desired, so you don't pay the cost for plugins until you
@@ -280,6 +285,12 @@ export const FormCreateArticle: React.FC = () => {
     setTags(newTags);
   };
 
+  // Initialize a markdown parser
+  const mdParser = new MarkdownIt(/* Markdown-it options */);
+
+  function handleEditorChange({ html, text }: { html: string; text: string }) {
+    console.log('handleEditorChange', html, text);
+  }
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView behavior="padding" style={styles.content}>
@@ -287,15 +298,17 @@ export const FormCreateArticle: React.FC = () => {
 
           {Platform.OS === 'web' ? (
             <>
-              <MDEditor
+              <MdEditor style={{ height: '500px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange} />
+              {/* <MdEditor></MdEditor> */}
+              {/* <MdEditor
                 value={note}
                 onChange={setNote}
               />
-              <MDEditor.Markdown source={note} style={{ whiteSpace: 'pre-wrap' }} />
-              <QuillEditorForm
+              <MdEditor.Markdown source={note} style={{ whiteSpace: 'pre-wrap' }} /> */}
+              {/* <QuillEditorForm
                 onChange={handleTextChange}
                 onImageUpload={handleImageUpload}
-              />
+              /> */}
             </>
 
           ) : (

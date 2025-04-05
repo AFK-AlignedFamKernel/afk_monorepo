@@ -17,6 +17,7 @@ import { SORT_OPTIONS, SORT_OPTION_EVENT_NOSTR } from '../../types/nostr';
 import { RenderEventCard } from '../Studio';
 import { Button } from '../../components';
 import { useNavigation } from '@react-navigation/native';
+import { ArticleCard } from '../ArticleCard';
 
 export const FeedComponent: React.FC = () => {
 
@@ -456,6 +457,9 @@ export const FeedComponent: React.FC = () => {
             return <VideoPostCard event={item} />;
           } else if (item.kind === NDKKind.Text) {
             return <PostCard event={item} isReplyView={true} />;
+          }
+          else if (item.kind === NDKKind.Article) {
+            return <ArticleCard event={item} isArticle={true}/>;
           }
           else if (item.kind === 30311) {
 
