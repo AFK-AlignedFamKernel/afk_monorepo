@@ -93,6 +93,12 @@ export const Profile: React.FC<ProfileScreenProps> = ({ route }) => {
                 <Text>Notes</Text>
               </Pressable>
               <Pressable
+                onPress={() => setNdkKind([NDKKind.Article])}
+                style={[styles.option, ndkKinds.includes(NDKKind.Article) && styles.selected]}
+              >
+                <Text>Articles</Text>
+              </Pressable>
+              <Pressable
                 onPress={() => setNdkKind([NDKKind.Repost])}
                 style={[styles.option, ndkKinds.includes(NDKKind.Repost) && styles.selected]}
               >

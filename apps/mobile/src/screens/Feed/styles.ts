@@ -43,6 +43,13 @@ export default ThemedStyleSheet((theme) => ({
     borderBottomWidth: 3,
     padding: 2,
     borderBottomColor: theme.colors.primary,
+    // color: theme.colors.primary,
+    textColor: theme.colors.primary,
+  },
+  activeIcon: {
+    color: theme.colors.primary,
+    textColor: theme.colors.primary,
+    // backgroundColor: theme.colors.primary,
   },
   toggleButton: {
     width: 'auto',

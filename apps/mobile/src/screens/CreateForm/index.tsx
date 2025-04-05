@@ -12,6 +12,7 @@ import {SelectedTab, TABS_FORM_CREATE} from '../../types/tab';
 import {FormCreateChannel} from '../CreateChannel/FormCreateChannel';
 import {FormCreatePost} from '../CreatePost/FormPost';
 import stylesheet from './styles';
+import { FormCreateArticle } from '../CreateArticle/FormArticle';
 
 export const CreateForm: React.FC<CreateFormScreenProps> = ({navigation}) => {
   const styles = useStyles(stylesheet);
@@ -46,6 +47,8 @@ export const CreateForm: React.FC<CreateFormScreenProps> = ({navigation}) => {
             <FormCreateChannel showBackButton={false}></FormCreateChannel>
           ) : selectedTab == SelectedTab.GROUP ? (
             <CreateGroup></CreateGroup>
+          ) : selectedTab == SelectedTab.CREATE_ARTICLE ? (
+            <FormCreateArticle></FormCreateArticle>
           ) : (
             selectedTab == SelectedTab.LAUNCH_TOKEN && (
               <>

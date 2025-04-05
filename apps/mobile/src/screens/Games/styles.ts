@@ -35,12 +35,12 @@ export default ThemedStyleSheet((theme) => ({
     cursor: 'pointer',
   },
   title: {
-    color: theme.colors.white,
+    color: theme.colors.text,
     fontWeight: 'bold',
     textAlign: 'left',
   },
   description: {
-    color: theme.colors.white,
+    color: theme.colors.text,
     marginTop: 10,
     textAlign: 'left',
     fontStyle: 'italic',

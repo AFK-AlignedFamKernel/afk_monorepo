@@ -13,7 +13,7 @@ export const useNote = (options: UseNoteOptions) => {
     queryKey: ['note', options.noteId, ndk],
     queryFn: async () => {
       const note = await ndk.fetchEvent({
-        kinds: [NDKKind.Text],
+        kinds: [NDKKind.Text, NDKKind.Article],
         ids: [options.noteId],
       });
 

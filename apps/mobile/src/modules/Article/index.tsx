@@ -44,7 +44,7 @@ import Markdown, { MarkdownIt } from 'react-native-markdown-display';
 import WebView from 'react-native-webview';
 import MarkdownViewer from '../../components/MarkdownViewer';
 
-export type PostProps = {
+export type ArticleProps = {
   asComment?: boolean;
   event?: NDKEvent;
   repostedEventProps?: string;
@@ -54,7 +54,7 @@ export type PostProps = {
   isArticleProps?: boolean;
 };
 
-export const Post: React.FC<PostProps> = ({
+export const Article: React.FC<ArticleProps> = ({
   asComment,
   event,
   repostedEventProps,
@@ -64,6 +64,8 @@ export const Post: React.FC<PostProps> = ({
   isArticleProps,
 }) => {
   const repostedEvent = repostedEventProps ?? undefined;
+
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const isArticle = isArticleProps ?? event?.kind == NDKKind.Article;
 
@@ -148,6 +150,7 @@ export const Post: React.FC<PostProps> = ({
   const [isContentExpanded, setIsContentExpanded] = useState(false);
 
   const toggleExpandedContent = () => {
+    console.log("toggleExpandedContent")
     setIsContentExpanded((prev) => !prev);
   };
 
@@ -483,13 +486,18 @@ export const Post: React.FC<PostProps> = ({
           )}
 
           {isArticle && Platform.OS !== 'web' && (
-            <Markdown markdownit={MarkdownIt({ typographer: true }).disable(['link', 'image'])}>
-              {content}
-            </Markdown>
+            <MarkdownViewer
+              content={content}
+              isExpanded={isContentExpanded}
+              toggleExpandedContent={toggleExpandedContent}
+            />
+            // <Markdown markdownit={MarkdownIt({ typographer: true }).disable(['link', 'image'])}>
+            //   {content}
+            // </Markdown>
           )}
 
           {content.length > 200 && (
-            <Pressable onPress={toggleExpandedContent}>
+            <Pressable onPress={() => toggleExpandedContent()}>
               <Text style={styles.seeMore}>{isContentExpanded ? 'See less' : 'See more...'}</Text>
             </Pressable>
           )}
