@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, View, Text } from 'react-native';
 import { useStyles, useTheme } from '../../hooks';
 import { ThemedStyleSheet } from 'src/styles';
@@ -24,6 +24,8 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content, isExpanded, to
 
   const isHtmlContent = content.includes('<html');
 
+  const [isExpandedContent, setIsExpandedContent] = useState(isExpanded);
+
   // const markdown=  MarkdownIt({
   //   html: false,
   // });
@@ -35,13 +37,16 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content, isExpanded, to
     typographer: true,
     markdown: true,
   });
+  const truncatedContent = !isExpanded && content.length > 200 ? `${content.slice(0, 200)}...` : content;
 
   const markdownContent = MarkdownIt({
     // html: false,
     html: true,
     linkify: true,
     typographer: true
-  }).render(content);
+  }).render(truncatedContent);
+
+
   const markdownContent2 = MarkdownIt().render(content).replace(/<[^>]*>?/g, '');
 
   console.log("content article: ", content)
@@ -62,7 +67,7 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content, isExpanded, to
             fontSize: 16,
             lineHeight: 1.6,
           }}
-          dangerouslySetInnerHTML={{ __html: markdown.render(content) }}
+          dangerouslySetInnerHTML={{ __html: markdown.render(truncatedContent) }}
         />
       </>
 
@@ -70,7 +75,6 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content, isExpanded, to
   }
 
 
-  const truncatedContent = content.length > 200 ? `${content.slice(0, 200)}...` : content;
 
   // if (!isExpanded) {
   //   return (
@@ -119,7 +123,7 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content, isExpanded, to
             fontSize: 16,
             lineHeight: 1.6,
           }}
-          dangerouslySetInnerHTML={{ __html: markdownContent }}
+          dangerouslySetInnerHTML={{ __html: truncatedContent }}
         />
       </View>
       {content.length > 200 && (

@@ -117,4 +117,15 @@ export default ThemedStyleSheet((theme) => ({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  title: {
+    color: theme.colors.text,
+    fontSize: 18,
+    fontWeight: 'bold',
+    margin: 10,
+  },
+  summary: {
+    color: theme.colors.text,
+    fontSize: 16,
+    margin: 10,
+  },
 }));

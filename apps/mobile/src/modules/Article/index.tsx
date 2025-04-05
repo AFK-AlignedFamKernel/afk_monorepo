@@ -65,6 +65,8 @@ export const Article: React.FC<ArticleProps> = ({
 }) => {
   const repostedEvent = repostedEventProps ?? undefined;
 
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const isArticle = isArticleProps ?? event?.kind == NDKKind.Article;
 
   const { theme } = useTheme();
@@ -148,6 +150,7 @@ export const Article: React.FC<ArticleProps> = ({
   const [isContentExpanded, setIsContentExpanded] = useState(false);
 
   const toggleExpandedContent = () => {
+    console.log("toggleExpandedContent")
     setIsContentExpanded((prev) => !prev);
   };
 
@@ -483,13 +486,18 @@ export const Article: React.FC<ArticleProps> = ({
           )}
 
           {isArticle && Platform.OS !== 'web' && (
-            <Markdown markdownit={MarkdownIt({ typographer: true }).disable(['link', 'image'])}>
-              {content}
-            </Markdown>
+            <MarkdownViewer
+              content={content}
+              isExpanded={isContentExpanded}
+              toggleExpandedContent={toggleExpandedContent}
+            />
+            // <Markdown markdownit={MarkdownIt({ typographer: true }).disable(['link', 'image'])}>
+            //   {content}
+            // </Markdown>
           )}
 
           {content.length > 200 && (
-            <Pressable onPress={toggleExpandedContent}>
+            <Pressable onPress={() => toggleExpandedContent()}>
               <Text style={styles.seeMore}>{isContentExpanded ? 'See less' : 'See more...'}</Text>
             </Pressable>
           )}

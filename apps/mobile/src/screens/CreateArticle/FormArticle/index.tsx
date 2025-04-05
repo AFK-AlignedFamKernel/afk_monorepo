@@ -40,6 +40,7 @@ import MdEditor from 'react-markdown-editor-lite';
 import { MarkdownIt } from "react-native-markdown-display";
 // import style manually
 import 'react-markdown-editor-lite/lib/index.css';
+import { Input } from "src/components";
 
 // Lexical React plugins are React components, which makes them
 // highly composable. Furthermore, you can lazy load plugins if
@@ -115,6 +116,8 @@ export const FormCreateArticle: React.FC = () => {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [note, setNote] = useState<string | undefined>();
+  const [title, setTitle] = useState<string | undefined>();
+  const [summary, setSummary] = useState<string | undefined>();
   const [value, setValue] = useState<string | undefined>();
   const [image, setImage] = useState<ImagePicker.ImagePickerAsset | undefined>();
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.NOTES);
@@ -245,6 +248,9 @@ export const FormCreateArticle: React.FC = () => {
             tags: [
               ...tags,
               ...(image && imageUrl ? [['image', imageUrl, `${image.width}x${image.height}`]] : []),
+              ['title', title],
+              ['summary', summary],
+              ['published_at', Math.floor(Date.now() / 1000).toString()],
             ],
           },
           {
@@ -295,6 +301,19 @@ export const FormCreateArticle: React.FC = () => {
     <View style={styles.container}>
       <KeyboardAvoidingView behavior="padding" style={styles.content}>
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
+
+          <Text style={styles.title}>Title</Text>
+          <TextInput
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Title of your article"
+          />
+          <Text style={styles.summary}>Summary</Text>
+          <TextInput
+            value={summary}
+            onChangeText={setSummary}
+            placeholder="Summary of your article"
+          />
 
           {Platform.OS === 'web' ? (
             <>
