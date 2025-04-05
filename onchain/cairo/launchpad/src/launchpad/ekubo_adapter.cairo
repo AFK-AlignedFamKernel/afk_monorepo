@@ -1,8 +1,8 @@
 use afk_launchpad::errors;
 use afk_launchpad::exchanges::ekubo::launcher::{
-    IEkuboLauncherDispatcher, IEkuboLauncherDispatcherTrait, EkuboLP
+    EkuboLP, IEkuboLauncherDispatcher, IEkuboLauncherDispatcherTrait,
 };
-use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait,};
+use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
 use afk_launchpad::utils::math::PercentageMath;
 use afk_launchpad::utils::sort_tokens;
 use array::ArrayTrait;
@@ -11,15 +11,16 @@ use core::traits::TryInto;
 use debug::PrintTrait;
 use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
 use ekubo::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-use ekubo::interfaces::router::{Depth, Delta, RouteNode, TokenAmount};
-use ekubo::interfaces::router::{IRouterDispatcher, IRouterDispatcherTrait};
+use ekubo::interfaces::router::{
+    Delta, Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount,
+};
 use ekubo::types::bounds::Bounds;
 use ekubo::types::i129::i129;
 use ekubo::types::keys::PoolKey;
 use openzeppelin::token::erc20::interface::{
-    IERC20, IERC20Metadata, ERC20ABIDispatcher, ERC20ABIDispatcherTrait
+    ERC20ABIDispatcher, ERC20ABIDispatcherTrait, IERC20, IERC20Metadata,
 };
-use starknet::{get_contract_address, ContractAddress, ClassHash};
+use starknet::{ClassHash, ContractAddress, get_contract_address};
 
 
 #[derive(Copy, Drop, Serde)]
@@ -28,7 +29,7 @@ struct EkuboLaunchParameters {
     token_address: ContractAddress,
     quote_address: ContractAddress,
     lp_supply: u256,
-    pool_params: EkuboPoolParameters
+    pool_params: EkuboPoolParameters,
 }
 
 #[derive(Drop, Copy, starknet::Store, Serde)]
@@ -43,7 +44,7 @@ struct EkuboPoolParameters {
 }
 
 impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
-    EkuboPoolParameters, (u64, EkuboLP)
+    EkuboPoolParameters, (u64, EkuboLP),
 > {
     fn create_and_add_liquidity_ekubo(
         exchange_address: ContractAddress,
@@ -62,7 +63,7 @@ impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
                 tick_spacing: additional_parameters.tick_spacing,
                 starting_price: additional_parameters.starting_price,
                 bound: additional_parameters.bound,
-            }
+            },
         };
         let ekubo_launchpad = IEkuboLauncherDispatcher { contract_address: exchange_address };
         assert(ekubo_launchpad.contract_address.is_non_zero(), errors::EXCHANGE_ADDRESS_ZERO);
@@ -70,7 +71,7 @@ impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
         // Transfer all tokens to the launchpad contract.
         // The team will buyback the tokens from the pool after the LPing operation to earn their
         // initial allocation.
-        let memecoin = IMemecoinDispatcher { contract_address: token_address, };
+        let memecoin = IMemecoinDispatcher { contract_address: token_address };
         let this = get_contract_address();
         memecoin.transfer(ekubo_launchpad.contract_address, memecoin.balance_of(this));
 
@@ -99,7 +100,7 @@ impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
         };
         let team_allocation = total_supply - lp_supply;
         buy_tokens_from_pool(
-            ekubo_launchpad, pool_key, team_allocation, token_address, quote_address
+            ekubo_launchpad, pool_key, team_allocation, token_address, quote_address,
         );
 
         assert(memecoin.balanceOf(this) >= team_allocation, 'failed buying team tokens');
@@ -125,7 +126,7 @@ impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
                 tick_spacing: additional_parameters.tick_spacing,
                 starting_price: additional_parameters.starting_price,
                 bound: additional_parameters.bound,
-            }
+            },
         };
         let ekubo_launchpad = IEkuboLauncherDispatcher { contract_address: exchange_address };
         assert(ekubo_launchpad.contract_address.is_non_zero(), errors::EXCHANGE_ADDRESS_ZERO);
@@ -133,7 +134,7 @@ impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
         // Transfer all tokens to the launchpad contract.
         // The team will buyback the tokens from the pool after the LPing operation to earn their
         // initial allocation.
-        let memecoin = IMemecoinDispatcher { contract_address: token_address, };
+        let memecoin = IMemecoinDispatcher { contract_address: token_address };
         let this = get_contract_address();
         memecoin.transfer(ekubo_launchpad.contract_address, memecoin.balance_of(this));
 
@@ -162,7 +163,7 @@ impl EkuboAdapterImpl of unruggable::exchanges::ExchangeAdapter<
         };
         let team_allocation = total_supply - lp_supply;
         buy_tokens_from_pool(
-            ekubo_launchpad, pool_key, team_allocation, token_address, quote_address
+            ekubo_launchpad, pool_key, team_allocation, token_address, quote_address,
         );
 
         assert(memecoin.balanceOf(this) >= team_allocation, 'failed buying team tokens');
@@ -196,10 +197,10 @@ fn buy_tokens_from_pool(
     quote_address: ContractAddress,
 ) {
     let ekubo_router = IRouterDispatcher {
-        contract_address: ekubo_launchpad.ekubo_router_address()
+        contract_address: ekubo_launchpad.ekubo_router_address(),
     };
     let ekubo_clearer = IClearDispatcher {
-        contract_address: ekubo_launchpad.ekubo_router_address()
+        contract_address: ekubo_launchpad.ekubo_router_address(),
     };
 
     let token_to_buy = IUnruggableMemecoinDispatcher { contract_address: token_to_buy };
@@ -215,7 +216,7 @@ fn buy_tokens_from_pool(
     };
 
     let route_node = RouteNode {
-        pool_key: pool_key, sqrt_ratio_limit: sqrt_limit_swap1, skip_ahead: 0
+        pool_key: pool_key, sqrt_ratio_limit: sqrt_limit_swap1, skip_ahead: 0,
     };
 
     let quote_token = IERC20Dispatcher { contract_address: quote_address };
@@ -224,7 +225,7 @@ fn buy_tokens_from_pool(
     let token_amount = TokenAmount {
         token: token_to_buy.contract_address,
         amount: i129 { mag: amount.low, sign: true // negative (true) sign is exact output
-         },
+        },
     };
 
     // We transfer quote tokens to the swapper contract, which performs the swap
@@ -235,6 +236,6 @@ fn buy_tokens_from_pool(
     ekubo_clearer.clear(IERC20Dispatcher { contract_address: token_to_buy.contract_address });
     ekubo_clearer
         .clear_minimum_to_recipient(
-            IERC20Dispatcher { contract_address: quote_address }, 0, starknet::get_caller_address()
+            IERC20Dispatcher { contract_address: quote_address }, 0, starknet::get_caller_address(),
         );
 }

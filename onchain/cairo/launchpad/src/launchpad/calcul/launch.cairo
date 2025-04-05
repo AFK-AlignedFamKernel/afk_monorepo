@@ -1,11 +1,11 @@
 use afk_launchpad::launchpad::calcul::exponential::{
-    get_coin_amount_exponential, get_meme_amount_exponential
+    get_coin_amount_exponential, get_meme_amount_exponential,
 };
 use afk_launchpad::launchpad::calcul::linear::{ // get_coin_amount_by_quote_amount, // calculate_pricing,
-    get_coin_amount, get_meme_amount
+    get_coin_amount, get_meme_amount,
 };
 use afk_launchpad::types::launchpad_types::{
-    TokenLaunch, BondingType, //  LaunchParameters, EkuboLP, LiquidityType, CallbackData,
+    TokenLaunch, BondingType //  LaunchParameters, EkuboLP, LiquidityType, CallbackData,
 };
 use starknet::ContractAddress;
 const BPS: u256 = 10_000; // 100% = 10_000 bps
@@ -21,7 +21,7 @@ const MIN_PRICE: u256 = 1_u256; // Minimum price to prevent division by zero
 const LIQUIDITY_RATIO: u256 = 5; // Divid by 5 the total supply.
 
 pub fn get_initial_price(
-    threshold_liquidity: u256, sellable_supply: u256, bonding_curve_type: BondingType
+    threshold_liquidity: u256, sellable_supply: u256, bonding_curve_type: BondingType,
 ) -> u256 {
     match bonding_curve_type {
         BondingType::Linear => { 0 },

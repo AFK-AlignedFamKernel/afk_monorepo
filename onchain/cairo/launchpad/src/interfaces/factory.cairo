@@ -1,5 +1,5 @@
 use afk_launchpad::types::launchpad_types::{
-    SupportedExchanges, LaunchParameters, EkuboLP, EkuboPoolParameters, LiquidityType
+    EkuboLP, EkuboPoolParameters, LaunchParameters, LiquidityType, SupportedExchanges,
 };
 use starknet::ContractAddress;
 
@@ -30,7 +30,7 @@ pub trait IFactory<TContractState> {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        contract_address_salt: felt252
+        contract_address_salt: felt252,
     ) -> ContractAddress;
 
     /// Launches the memecoin on Jediswap by creating a liquidity pair and adding liquidity to it.
@@ -168,7 +168,7 @@ pub trait IFactory<TContractState> {
     /// * `ContractAddress` - The address where the liquidity is locked.
     /// * `LiquidityType` - The type of liquidity pair (ERC20 address of NFT id)
     fn locked_liquidity(
-        self: @TContractState, token: ContractAddress
+        self: @TContractState, token: ContractAddress,
     ) -> Option<(ContractAddress, LiquidityType)>;
 
     /// Checks if a given address is a memecoin.

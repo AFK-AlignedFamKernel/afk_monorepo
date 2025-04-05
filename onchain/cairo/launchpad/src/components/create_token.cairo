@@ -1,4 +1,4 @@
-use afk::types::defi_types::{TokenPermitted, DepositUser, MintDepositEvent, WithdrawDepositEvent};
+use afk::types::defi_types::{DepositUser, MintDepositEvent, TokenPermitted, WithdrawDepositEvent};
 use starknet::ContractAddress;
 
 // TODO
@@ -6,23 +6,21 @@ use starknet::ContractAddress;
 #[starknet::component]
 pub mod CreateTokenComponent {
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
-    use afk::interfaces::vault::{IERCVault};
+    use afk::interfaces::vault::IERCVault;
     use afk::tokens::erc20::{ERC20, IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::constants::{MINTER_ROLE, ADMIN_ROLE};
+    use afk::types::constants::{ADMIN_ROLE, MINTER_ROLE};
     use core::num::traits::Zero;
-
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     use starknet::event::EventEmitter;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-
     use starknet::{
-        ContractAddress, get_caller_address, contract_address_const, get_block_timestamp,
-        get_contract_address, ClassHash
+        ClassHash, ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
-    use super::{DepositUser, TokenPermitted, MintDepositEvent, WithdrawDepositEvent};
+    use super::{DepositUser, MintDepositEvent, TokenPermitted, WithdrawDepositEvent};
 
 
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
@@ -41,7 +39,7 @@ pub mod CreateTokenComponent {
         token_permitted: Map<ContractAddress, TokenPermitted>,
         is_token_permitted: Map<ContractAddress, bool>,
         deposit_by_user: Map<ContractAddress, DepositUser>,
-        deposit_by_user_by_token: Map::<(ContractAddress, ContractAddress), DepositUser>,
+        deposit_by_user_by_token: Map<(ContractAddress, ContractAddress), DepositUser>,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -51,7 +49,7 @@ pub mod CreateTokenComponent {
 
     #[constructor]
     fn constructor(
-        ref self: ContractState, token_address: ContractAddress, admin: ContractAddress
+        ref self: ContractState, token_address: ContractAddress, admin: ContractAddress,
     ) {
         // Give MINTER role to the Vault for the token used
         self.token_address.write(token_address);
@@ -75,7 +73,7 @@ pub mod CreateTokenComponent {
     #[embeddable_as(Vault)]
     // impl VaultImpl of IERCVault<ContractState> {
     impl VaultImpl<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
     > of super::IERCVault<ComponentState<TContractState>> {
         // Mint a coin
         // Use one token
@@ -93,7 +91,7 @@ pub mod CreateTokenComponent {
 
             // Mint token and send it to the receiver
             let token_mintable = IERC20MintableDispatcher {
-                contract_address: self.token_address.read()
+                contract_address: self.token_address.read(),
             };
             let _token = self.token_permitted.read(token_address);
 
@@ -129,8 +127,8 @@ pub mod CreateTokenComponent {
                         caller: caller,
                         token_deposited: token_address,
                         amount_deposit: amount,
-                        mint_receive: amount
-                    }
+                        mint_receive: amount,
+                    },
                 );
         }
 
@@ -138,7 +136,7 @@ pub mod CreateTokenComponent {
         // Use one token
         // Used the specify ratio. Burn the token. Check the pooling withdraw
         fn withdraw_coin_by_token(
-            ref self: ContractState, token_address: ContractAddress, amount: u256
+            ref self: ContractState, token_address: ContractAddress, amount: u256,
         ) {
             let caller = get_caller_address();
             // Check if token valid
@@ -146,7 +144,7 @@ pub mod CreateTokenComponent {
 
             // Receive/burn token minted
             let token_mintable = IERC20MintableDispatcher {
-                contract_address: self.token_address.read()
+                contract_address: self.token_address.read(),
             };
             token_mintable.burn(caller, amount);
 
@@ -173,8 +171,11 @@ pub mod CreateTokenComponent {
                         amount_deposit: amount,
                         mint_receive: amount,
                         mint_to_get_after_poolin: 0,
-                        pooling_interval: self.token_permitted.read(token_address).pooling_timestamp
-                    }
+                        pooling_interval: self
+                            .token_permitted
+                            .read(token_address)
+                            .pooling_timestamp,
+                    },
                 );
         }
 
@@ -185,7 +186,7 @@ pub mod CreateTokenComponent {
             // ratio: u256,
             ratio_mint: u256,
             is_available: bool,
-            pooling_timestamp: u64
+            pooling_timestamp: u64,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let token_permitted = TokenPermitted {
@@ -195,7 +196,7 @@ pub mod CreateTokenComponent {
             self.is_token_permitted.entry(token_address).write(true);
         }
 
-        fn is_token_permitted(ref self: ContractState, token_address: ContractAddress,) -> bool {
+        fn is_token_permitted(ref self: ContractState, token_address: ContractAddress) -> bool {
             self.is_token_permitted.read(token_address)
         }
 
@@ -206,7 +207,7 @@ pub mod CreateTokenComponent {
 
         fn mint_quest_token_reward(ref self: ContractState, user: ContractAddress, amount: u32) {
             let token_mintable = IERC20MintableDispatcher {
-                contract_address: self.token_address.read()
+                contract_address: self.token_address.read(),
             };
             token_mintable.mint(user, amount.into());
         }

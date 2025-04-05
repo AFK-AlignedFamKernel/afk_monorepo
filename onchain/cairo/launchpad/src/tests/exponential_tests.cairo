@@ -1,12 +1,12 @@
 #[cfg(test)]
 mod exponential_tests {
     use afk_launchpad::launchpad::calcul::exponential::{
-        get_coin_amount_exponential, get_meme_amount_exponential
+        get_coin_amount_exponential, get_meme_amount_exponential,
     };
     use afk_launchpad::types::launchpad_types::{
-        TokenLaunch, BondingType, TokenQuoteBuyCoin, LiquidityType
+        BondingType, LiquidityType, TokenLaunch, TokenQuoteBuyCoin,
     };
-    use starknet::{ContractAddress};
+    use starknet::ContractAddress;
 
     fn OWNER() -> ContractAddress {
         'owner'.try_into().unwrap()
@@ -34,7 +34,7 @@ mod exponential_tests {
 
 
     fn get_token_launch(
-        total_supply: u256, threshold_liquidity: u256, available_supply: u256
+        total_supply: u256, threshold_liquidity: u256, available_supply: u256,
     ) -> TokenLaunch {
         let token_quote_buy = TokenQuoteBuyCoin {
             token_address: '123'.try_into().unwrap(),
@@ -93,7 +93,7 @@ mod exponential_tests {
 
         assert!(
             amount_out == 80_000_000_000_000_000_000_000_000_u256,
-            "Amount_out should be 80_000_000 tokens"
+            "Amount_out should be 80_000_000 tokens",
         );
 
         let mut token_launch = get_token_launch(
@@ -105,11 +105,11 @@ mod exponential_tests {
 
         assert!(
             19_999_999_000_000_000_000_000_000_u256 <= amount_out_1,
-            "Amount_out_1 should be around 20_000_000 tokens"
+            "Amount_out_1 should be around 20_000_000 tokens",
         );
         assert!(
             amount_out_1 <= 20_000_001_000_000_000_000_000_000_u256,
-            "Amount_out_1 should be around 20_000_000 tokens"
+            "Amount_out_1 should be around 20_000_000 tokens",
         );
 
         let amount_out_2 = get_meme_amount_exponential(token_launch, amount_in_2);
@@ -117,11 +117,11 @@ mod exponential_tests {
 
         assert!(
             19_999_999_000_000_000_000_000_000_u256 <= amount_out_2,
-            "Amount_out_2 should be around 20_000_000 tokens"
+            "Amount_out_2 should be around 20_000_000 tokens",
         );
         assert!(
             amount_out_2 <= 20_000_001_000_000_000_000_000_000_u256,
-            "Amount_out_2 should be around 20_000_000 tokens"
+            "Amount_out_2 should be around 20_000_000 tokens",
         );
 
         let amount_out_3 = get_meme_amount_exponential(token_launch, amount_in_3);
@@ -129,11 +129,11 @@ mod exponential_tests {
 
         assert!(
             19_999_999_000_000_000_000_000_000_u256 <= amount_out_3,
-            "Amount_out_3 should be around 20_000_000 tokens"
+            "Amount_out_3 should be around 20_000_000 tokens",
         );
         assert!(
             amount_out_3 <= 20_000_001_000_000_000_000_000_000_u256,
-            "Amount_out_3 should be around 20_000_000 tokens"
+            "Amount_out_3 should be around 20_000_000 tokens",
         );
 
         let amount_out_4 = get_meme_amount_exponential(token_launch, amount_in_4);
@@ -141,11 +141,11 @@ mod exponential_tests {
 
         assert!(
             19_999_999_000_000_000_000_000_000_u256 <= amount_out_4,
-            "Amount_out_4 should be around 20_000_000 tokens"
+            "Amount_out_4 should be around 20_000_000 tokens",
         );
         assert!(
             amount_out_4 <= 20_000_001_000_000_000_000_000_000_u256,
-            "Amount_out_4 should be around 20_000_000 tokens"
+            "Amount_out_4 should be around 20_000_000 tokens",
         );
     }
 
@@ -159,10 +159,10 @@ mod exponential_tests {
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
-            864_754_000_000_000_000_u256 <= amount_out, "Amount_out should be around 0.8647 coins"
+            864_754_000_000_000_000_u256 <= amount_out, "Amount_out should be around 0.8647 coins",
         );
         assert!(
-            amount_out <= 864_755_000_000_000_000_u256, "Amount_out should be around 0.8647 coins"
+            amount_out <= 864_755_000_000_000_000_u256, "Amount_out should be around 0.8647 coins",
         );
 
         let mut available_supply = 40_000_000_000_000_000_000_000_000_u256;
@@ -173,10 +173,10 @@ mod exponential_tests {
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
-            1_537_775_000_000_000_000 <= amount_out, "Amount_out should be around 1.5377 coins"
+            1_537_775_000_000_000_000 <= amount_out, "Amount_out should be around 1.5377 coins",
         );
         assert!(
-            amount_out <= 1_537_776_000_000_000_000, "Amount_out should be around 1.5377 coins"
+            amount_out <= 1_537_776_000_000_000_000, "Amount_out should be around 1.5377 coins",
         );
 
         let mut available_supply = 20_000_000_000_000_000_000_000_000_u256;
@@ -187,10 +187,12 @@ mod exponential_tests {
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
-            2_734_595_000_000_000_000_u256 <= amount_out, "Amount_out should be around 2.7345 coins"
+            2_734_595_000_000_000_000_u256 <= amount_out,
+            "Amount_out should be around 2.7345 coins",
         );
         assert!(
-            amount_out <= 2_734_596_000_000_000_000_u256, "Amount_out should be around 2.7345 coins"
+            amount_out <= 2_734_596_000_000_000_000_u256,
+            "Amount_out should be around 2.7345 coins",
         );
 
         let mut available_supply = 0_u256;
@@ -201,10 +203,12 @@ mod exponential_tests {
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
-            4_862_874_000_000_000_000_u256 <= amount_out, "Amount_out should be around 4.8628 coins"
+            4_862_874_000_000_000_000_u256 <= amount_out,
+            "Amount_out should be around 4.8628 coins",
         );
         assert!(
-            amount_out <= 4_862_875_000_000_000_000_u256, "Amount_out should be around 4.8628 coins"
+            amount_out <= 4_862_875_000_000_000_000_u256,
+            "Amount_out should be around 4.8628 coins",
         );
 
         let mut available_supply = 60_000_000_000_000_000_000_000_000_u256;
@@ -215,10 +219,10 @@ mod exponential_tests {
         let mut amount_in = 20_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
-            864_754_000_000_000_000_u256 <= amount_out, "Amount_out should be around 0.8647 coins"
+            864_754_000_000_000_000_u256 <= amount_out, "Amount_out should be around 0.8647 coins",
         );
         assert!(
-            amount_out <= 864_755_000_000_000_000_u256, "Amount_out should be around 0.8647 coins"
+            amount_out <= 864_755_000_000_000_000_u256, "Amount_out should be around 0.8647 coins",
         );
 
         let mut available_supply = 40_000_000_000_000_000_000_000_000_u256;
@@ -229,10 +233,12 @@ mod exponential_tests {
         let mut amount_in = 40_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
-            2_402_530_000_000_000_000_u256 <= amount_out, "Amount_out should be around 2.4025 coins"
+            2_402_530_000_000_000_000_u256 <= amount_out,
+            "Amount_out should be around 2.4025 coins",
         );
         assert!(
-            amount_out <= 2_402_531_000_000_000_000_u256, "Amount_out should be around 2.4025 coins"
+            amount_out <= 2_402_531_000_000_000_000_u256,
+            "Amount_out should be around 2.4025 coins",
         );
 
         let mut available_supply = 20_000_000_000_000_000_000_000_000_u256;
@@ -243,10 +249,12 @@ mod exponential_tests {
         let mut amount_in = 60_000_000_000_000_000_000_000_000_u256;
         let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
-            5_137_125_000_000_000_000_u256 <= amount_out, "Amount_out should be around 5.1371 coins"
+            5_137_125_000_000_000_000_u256 <= amount_out,
+            "Amount_out should be around 5.1371 coins",
         );
         assert!(
-            amount_out <= 5_137_126_000_000_000_000_u256, "Amount_out should be around 5.1371 coins"
+            amount_out <= 5_137_126_000_000_000_000_u256,
+            "Amount_out should be around 5.1371 coins",
         );
 
         let mut available_supply = 0_u256;
@@ -258,11 +266,11 @@ mod exponential_tests {
         let mut amount_out = get_coin_amount_exponential(token_launch, amount_in);
         assert!(
             9_999_999_000_000_000_000_u256 <= amount_out,
-            "Amount_out should be around 10.0000 coins"
+            "Amount_out should be around 10.0000 coins",
         );
         assert!(
             amount_out <= 10_000_000_000_000_000_000_u256,
-            "Amount_out should be around 10.0000 coins"
+            "Amount_out should be around 10.0000 coins",
         );
     }
     // #[test]

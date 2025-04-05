@@ -1,5 +1,5 @@
-use crate::launchpad::locker::lock_manager::LockManager::LockPosition;
 use starknet::ContractAddress;
+use crate::launchpad::locker::lock_manager::LockManager::LockPosition;
 
 #[starknet::interface]
 pub trait ILockManager<TContractState> {
@@ -39,7 +39,7 @@ pub trait ILockManager<TContractState> {
         token: ContractAddress,
         amount: u256,
         unlock_time: u64,
-        withdrawer: ContractAddress
+        withdrawer: ContractAddress,
     ) -> ContractAddress;
 
     /// Extends the unlock time of a specified lock.
@@ -163,7 +163,7 @@ pub trait ILockManager<TContractState> {
     /// * `new_owner` is zero (error code: `errors::ZERO_WITHDRAWER`).
     ///
     fn transfer_lock(
-        ref self: TContractState, lock_address: ContractAddress, new_owner: ContractAddress
+        ref self: TContractState, lock_address: ContractAddress, new_owner: ContractAddress,
     );
 
     // View
@@ -254,6 +254,6 @@ pub trait ILockManager<TContractState> {
     /// If the index is out of bounds, the function panics.
     ///
     fn token_locked_at(
-        self: @TContractState, token: ContractAddress, index: u32
+        self: @TContractState, token: ContractAddress, index: u32,
     ) -> ContractAddress;
 }
