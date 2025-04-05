@@ -18,7 +18,7 @@ import { useSendArticle, useSendVideoEvent } from 'afk_nostr_sdk';
 import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import React from 'react';
-import { Image, KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, TextInput, View, Text, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { GalleryIcon, SendIconContained, VideoIcon } from '../../../assets/icons';
@@ -192,8 +192,42 @@ export const FormCreateArticle: React.FC = () => {
     let imageUrl: string | undefined;
 
     if (image) {
-      const result = await fileUpload.mutateAsync(image);
-      if (result.data.url) imageUrl = result.data.url;
+      try {
+        const result = await fileUpload.mutateAsync(image);
+        if (result.data.url) imageUrl = result.data.url;
+      } catch (error) {
+        console.log('image upload error', error);
+      }
+    }
+    try {
+      sendArticle.mutate(
+        {
+          content: note || '',
+          tags: [
+            ...tags,
+            ...(image && imageUrl ? [['image', imageUrl, `${image.width}x${image.height}`]] : []),
+            ['title', title],
+            ['summary', summary],
+            ['published_at', Math.floor(Date.now() / 1000).toString()],
+          ],
+        },
+        {
+          onSuccess() {
+            showToast({ type: 'success', title: 'Note sent successfully' });
+            queryClient.invalidateQueries({ queryKey: ['rootNotes'] });
+            navigation.goBack();
+          },
+          onError(e) {
+            console.log('error', e);
+            showToast({
+              type: 'error',
+              title: 'Error! Note could not be sent. Please try again later.',
+            });
+          },
+        },
+      );
+    } catch (error) {
+      console.log('sendArticle error', error);
     }
 
     if (video) {
@@ -208,6 +242,32 @@ export const FormCreateArticle: React.FC = () => {
             fallbackUrls: [],
             useNip96: false,
           };
+          sendArticle.mutate(
+            {
+              content: note || '',
+              tags: [
+                ...tags,
+                ...(image && imageUrl ? [['image', imageUrl, `${image.width}x${image.height}`]] : []),
+                ['title', title],
+                ['summary', summary],
+                ['published_at', Math.floor(Date.now() / 1000).toString()],
+              ],
+            },
+            {
+              onSuccess() {
+                showToast({ type: 'success', title: 'Note sent successfully' });
+                queryClient.invalidateQueries({ queryKey: ['rootNotes'] });
+                navigation.goBack();
+              },
+              onError(e) {
+                console.log('error', e);
+                showToast({
+                  type: 'error',
+                  title: 'Error! Note could not be sent. Please try again later.',
+                });
+              },
+            },
+          );
           sendVideoEvent.mutate(
             {
               content: note || '',
@@ -240,37 +300,6 @@ export const FormCreateArticle: React.FC = () => {
           });
         },
       });
-    } else {
-      try {
-        sendArticle.mutate(
-          {
-            content: note || '',
-            tags: [
-              ...tags,
-              ...(image && imageUrl ? [['image', imageUrl, `${image.width}x${image.height}`]] : []),
-              ['title', title],
-              ['summary', summary],
-              ['published_at', Math.floor(Date.now() / 1000).toString()],
-            ],
-          },
-          {
-            onSuccess() {
-              showToast({ type: 'success', title: 'Note sent successfully' });
-              queryClient.invalidateQueries({ queryKey: ['rootNotes'] });
-              navigation.goBack();
-            },
-            onError(e) {
-              console.log('error', e);
-              showToast({
-                type: 'error',
-                title: 'Error! Note could not be sent. Please try again later.',
-              });
-            },
-          },
-        );
-      } catch (e) {
-        console.log('sendArticle error', e);
-      }
     }
   };
   const handleTabSelected = (tab: string | SelectedTab, screen?: string) => {
@@ -296,28 +325,64 @@ export const FormCreateArticle: React.FC = () => {
 
   function handleEditorChange({ html, text }: { html: string; text: string }) {
     console.log('handleEditorChange', html, text);
+    setNote(text)
+  }
+
+  const handleImageWebUpload = (file: any, callback: any) => {
+    console.log('handleImageWebUpload', file, callback);
+    const reader = new FileReader()
+    reader.onload = () => {
+      const convertBase64UrlToBlob = (urlData) => {
+        let arr = urlData.split(','), mime = arr[0].match(/:(.*?);/)[1]
+        let bstr = atob(arr[1])
+        let n = bstr.length
+        let u8arr = new Uint8Array(n)
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n)
+        }
+        return new Blob([u8arr], { type: mime })
+      }
+      const blob = convertBase64UrlToBlob(reader.result)
+
+    }
+    reader.readAsDataURL(file)
   }
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <KeyboardAvoidingView behavior="padding" style={styles.content}>
         <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.content}>
+          <View>
+            <Text style={styles.title}>Title</Text>
+            <Input
+              style={styles.input}
+              value={title}
+              onChangeText={setTitle}
+              numberOfLines={2}
+              placeholder="Title of your article"
+            />
+            <Text style={styles.summary}>Summary</Text>
+            <TextInput
+              value={summary}
+              style={styles.input}
+              multiline
+              onChangeText={setSummary}
+              placeholder="Summary of your article"
+            />
+            <Text style={styles.summary}>Image Preview</Text>
+            <Pressable onPress={onGalleryPress}>
+              <GalleryIcon width="24" height="24" color={theme.colors.red} />
+            </Pressable>
+          </View>
 
-          <Text style={styles.title}>Title</Text>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Title of your article"
-          />
-          <Text style={styles.summary}>Summary</Text>
-          <TextInput
-            value={summary}
-            onChangeText={setSummary}
-            placeholder="Summary of your article"
-          />
 
           {Platform.OS === 'web' ? (
             <>
-              <MdEditor style={{ height: '500px' }} renderHTML={text => mdParser.render(text)} onChange={handleEditorChange} />
+              <MdEditor style={{ height: '500px' }} renderHTML={text => mdParser.render(text)}
+                onChange={handleEditorChange}
+                onImageUpload={handleImageWebUpload}
+                onCustomImageUpload={handleImageWebUpload}
+
+              />
               {/* <MdEditor></MdEditor> */}
               {/* <MdEditor
                 value={note}
@@ -387,6 +452,6 @@ export const FormCreateArticle: React.FC = () => {
           </View>
         </SafeAreaView>
       </KeyboardAvoidingView>
-    </View>
+    </ScrollView>
   );
 };
