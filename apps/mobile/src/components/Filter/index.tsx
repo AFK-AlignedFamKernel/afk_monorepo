@@ -33,6 +33,7 @@ const NDK_KIND_OPTIONS = [
   { label: 'Stream', value: 30311 },
   { label: 'Video', value: NDKKind.HorizontalVideo },
   { label: 'Video shorts', value: NDKKind.VerticalVideo },
+  { label: 'Article', value: NDKKind.Article },
 ];
 
 const SORT_OPTIONS = [

@@ -57,7 +57,7 @@ async function getFunkitStripeCheckoutQuote(fastify: FastifyInstance, _options: 
           sponsorInitialTransferGasLimit: '0',
           recipientAddr: normalizedRecipientAddress as `0x${string}`,
           userId: normalizedRecipientAddress,
-          needsRefuel: false,
+          // needsRefuel: false,
         });
         if (!baseQuote || !baseQuote.quoteId) {
           return reply.status(500).send({ message: 'Failed to get a funkit quote.' });

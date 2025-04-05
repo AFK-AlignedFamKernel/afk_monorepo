@@ -1,5 +1,5 @@
 import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
-import { useAllProfiles, useNostrContext, useProfile, useSearch } from 'afk_nostr_sdk';
+import { useAllProfiles, useNostrContext, useProfile, useSearch, useSearchSince } from 'afk_nostr_sdk';
 import { useAuth, useContacts } from 'afk_nostr_sdk';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, View, Text } from 'react-native';
@@ -18,8 +18,9 @@ import { RenderEventCard } from '../Studio';
 import { Button } from '../../components';
 import { useNavigation } from '@react-navigation/native';
 import { ArticleCard } from '../ArticleCard';
+import ArticleSearchComponent from 'src/components/search/ArticleSearch';
 
-export const FeedComponent: React.FC = () => {
+export const ArticlesFeed: React.FC = () => {
 
   const navigation = useNavigation<MainStackNavigationProps>();
   const { theme } = useTheme();
@@ -31,14 +32,14 @@ export const FeedComponent: React.FC = () => {
   const [search, setSearch] = useState<string | undefined>(undefined);
   const [feedData, setFeedData] = useState(null);
   const [kinds, setKinds] = useState<NDKKind[]>([
-    NDKKind.Text,
-    NDKKind.ChannelMessage,
-    NDKKind.Metadata,
-    NDKKind.VerticalVideo,
-    NDKKind.HorizontalVideo,
-    30311 as NDKKind,
-    NDKKind.ChannelCreation,
-    NDKKind.GroupChat,
+    // NDKKind.Text,
+    // NDKKind.ChannelMessage,
+    // NDKKind.Metadata,
+    // NDKKind.VerticalVideo,
+    // NDKKind.HorizontalVideo,
+    // 30311 as NDKKind,
+    // NDKKind.ChannelCreation,
+    // NDKKind.GroupChat,
     NDKKind.Article,
   ]);
 
@@ -46,9 +47,11 @@ export const FeedComponent: React.FC = () => {
   const [followersPubkey, setFollowersPubkey] = useState<string[]>([]);
   const profile = useProfile({ publicKey });
   const contacts = useContacts({ authors: [publicKey] });
-  const notes = useSearch({
+  const notes = useSearchSince({
     limit: 10,
-    // since: 1000*60*60,
+    // since: Math.round(Date.now() / 1000) - 1 * 1000 * 60 * 60 * 24 * 30,
+    kinds,
+
     // getNextPageParam: (lastPage, allPages) => {
     //   if (!lastPage?.length) return undefined;
 
@@ -65,7 +68,6 @@ export const FeedComponent: React.FC = () => {
     //   }
     //   return undefined;
     // },
-    kinds,
     // search:search
     // limit: 20,
     // authors: []
@@ -326,15 +328,6 @@ export const FeedComponent: React.FC = () => {
   }, [notes.data?.pages, search, activeSortBy]);
   // }, [search, activeSortBy]);
 
-  // useEffect(() => {
-  //   // const filtered = filteredNotes();
-  //   // setFeedData(filtered as any);
-  //   // filteredNotes();
-  //   if (publicKey && contacts?.data?.length && contacts?.data?.length > 0 || followersPubkey?.length && followersPubkey?.length > 0) {
-  //     setForYouNotes(notesForYou?.data?.pages?.flat() as any);
-  //   }
-  // }, [followersPubkey, contacts, publicKey])
-
 
   const handleNavigate = (id: string) => {
     navigation.navigate('WatchStream', { streamId: id });
@@ -350,9 +343,11 @@ export const FeedComponent: React.FC = () => {
     await handleCheckNostrAndSendConnectDialog()
   };
 
+
+  console.log('articlesfeedData', feedData);
   return (
     <View style={styles.container}>
-      <SearchComponent
+      <ArticleSearchComponent
         setSearchQuery={setSearch}
         searchQuery={search ?? ''}
         kinds={kinds}
@@ -365,14 +360,14 @@ export const FeedComponent: React.FC = () => {
         <ActivityIndicator color={theme.colors.primary} size={20}></ActivityIndicator>
       )}
 
-      {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() && !publicKey && (
+      {/* {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() && !publicKey && (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text>No users connected</Text>
           <Button onPress={handleConnect}>
             Connect
           </Button>
         </View>
-      )}
+      )} */}
 
 
       {
@@ -387,7 +382,7 @@ export const FeedComponent: React.FC = () => {
                 color: theme.colors.text,
               }}
             >
-              No notes found
+              No articles found
             </Text>
             <Text
               style={{
@@ -406,7 +401,7 @@ export const FeedComponent: React.FC = () => {
                 color: theme.colors.text,
               }}
             >
-              No notes found
+              No Articles found
             </Text>
             <Text
               style={{
@@ -447,35 +442,35 @@ export const FeedComponent: React.FC = () => {
         // data={filteredNotes}
         keyExtractor={(item) => item?.id}
         renderItem={({ item }) => {
-          if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
-            return <ChannelComponent event={item} />;
-          } else if (item.kind === NDKKind.ChannelMessage) {
-            return <PostCard event={item}
-              isReplyView={true}
-            />;
-          } else if (item.kind === NDKKind.VerticalVideo || item.kind === NDKKind.HorizontalVideo) {
-            return <VideoPostCard event={item} />;
-          } else if (item.kind === NDKKind.Text) {
-            return <PostCard event={item} isReplyView={true} />;
+          if (item.kind === NDKKind.Article) {
+            return <ArticleCard event={item} isArticle={true} />;
           }
-          else if (item.kind === NDKKind.Article) {
-            return <ArticleCard event={item} isArticle={true}/>;
-          }
-          else if (item.kind === 30311) {
+          // if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
+          //   return <ChannelComponent event={item} />;
+          // } else if (item.kind === NDKKind.ChannelMessage) {
+          //   return <PostCard event={item}
+          //     isReplyView={true}
+          //   />;
+          // } else if (item.kind === NDKKind.VerticalVideo || item.kind === NDKKind.HorizontalVideo) {
+          //   return <VideoPostCard event={item} />;
+          // } else if (item.kind === NDKKind.Text) {
+          //   return <PostCard event={item} isReplyView={true} />;
+          // }
+          // else if (item.kind === 30311) {
 
-            if (item?.identifier) {
-              return <RenderEventCard
-                handleNavigateToStreamView={() => handleNavigateToStreamView(item?.identifier)}
-                streamKey={item?.identifier}
-                handleNavigation={() => handleNavigate(item?.identifier)}
-                pubKey={publicKey}
-                event={item}
-              />
-            }
-            else {
-              return <></>
-            }
-          }
+          //   if (item?.identifier) {
+          //     return <RenderEventCard
+          //       handleNavigateToStreamView={() => handleNavigateToStreamView(item?.identifier)}
+          //       streamKey={item?.identifier}
+          //       handleNavigation={() => handleNavigate(item?.identifier)}
+          //       pubKey={publicKey}
+          //       event={item}
+          //     />
+          //   }
+          //   else {
+          //     return <></>
+          //   }
+          // }
           return <></>;
         }}
         refreshControl={

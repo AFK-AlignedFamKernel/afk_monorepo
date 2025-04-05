@@ -35,7 +35,7 @@ async function createFunkitStripeCheckout(
         const sourceAsset = TOKEN_INFO.STARKNET_USDC;
         const { initializeCheckout, createStripeBuySession } = await import('@funkit/api-base');
         const depositAddress = await initializeCheckout({
-          userOp: null,
+          userOp: undefined,
           quoteId,
           sourceOfFund: SOURCE_OF_FUND_KEY,
           clientMetadata: generateClientMetadata({
@@ -54,7 +54,7 @@ async function createFunkitStripeCheckout(
           destinationAmount: paymentTokenAmount,
           destinationCurrency: sourceAsset.symbol,
           destinationNetwork: sourceAsset.network,
-          walletAddress: depositAddress,
+          walletAddress: depositAddress?.depositAddr,
           isSandbox: false,
         });
         if (!stripeSession || !stripeSession.id || !stripeSession.redirect_url) {

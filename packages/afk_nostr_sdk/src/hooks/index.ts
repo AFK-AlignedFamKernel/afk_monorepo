@@ -85,3 +85,5 @@ export {useSendZapNote} from './zap/useZap';
 export {useAddHashtagInterests} from './hashtag/useAddHashtagInterests';
 export {useQuote} from './useQuote';
 export {useGetSpendingTokens} from './cashu/useGetSpendingTokens';
+export {useSendArticle} from './useSendArticle';
+export {useSearchSince} from './search/useSearchSince';

@@ -5,10 +5,10 @@ import {Pressable, View} from 'react-native';
 
 import {Text} from '../../components';
 import {useStyles} from '../../hooks';
-import {Post} from '../Post';
+import {Article} from '../Article';
 import stylesheet from './styles';
 
-export type PostCardProps = {
+export type ArticleCardProps = {
   event?: NDKEvent;
   isRepostProps?: boolean;
   isBookmarked?: boolean;
@@ -17,7 +17,7 @@ export type PostCardProps = {
 };
 const hashtags = /\B#\w*[a-zA-Z]+\w*/g;
 
-export const PostCard: React.FC<PostCardProps> = ({event, isRepostProps, isBookmarked, isReplyView, isArticle}) => {
+export const ArticleCard: React.FC<ArticleCardProps> = ({event, isRepostProps, isBookmarked, isReplyView, isArticle}) => {
   const styles = useStyles(stylesheet);
 
   let repostedEvent = undefined;
@@ -30,7 +30,7 @@ export const PostCard: React.FC<PostCardProps> = ({event, isRepostProps, isBookm
   }
   return (
     <View style={styles.container}>
-      <Post
+      <Article
         event={event}
         asComment={false}
         repostedEventProps={repostedEvent}

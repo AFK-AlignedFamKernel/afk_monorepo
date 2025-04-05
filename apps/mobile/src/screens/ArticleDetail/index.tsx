@@ -6,12 +6,12 @@ import { FlatList, RefreshControl, View, Text, ActivityIndicator } from 'react-n
 import { Divider, Header, IconButton, Input, KeyboardFixedView } from '../../components';
 import { useNostrAuth, useStyles } from '../../hooks';
 import { useToast } from '../../hooks/modals';
-import { Post } from '../../modules/Post';
-import { PostDetailScreenProps } from '../../types';
+import { Article } from '../../modules/Article';
+import { ArticleDetailScreenProps } from '../../types';
 import stylesheet from './styles';
 import { InputArea } from '../../components/InputArea';
 
-export const PostDetail: React.FC<PostDetailScreenProps> = ({ navigation, route }) => {
+export const ArticleDetail: React.FC<ArticleDetailScreenProps> = ({ navigation, route }) => {
   const { postId, post, isArticle, isRepost, repostedEventProps, isBookmarked, isReplyView } = route.params;
   console.log('postId', postId);
   console.log('isArticle', isArticle);
@@ -102,7 +102,13 @@ export const PostDetail: React.FC<PostDetailScreenProps> = ({ navigation, route 
           ListHeaderComponent={
             <>
               <View style={styles.post}>
-                <Post event={note} />
+                <Article event={note}
+                  isArticle={isArticle}
+                  isRepost={isRepost}
+                  repostedEventProps={repostedEventProps}
+                  isBookmarked={isBookmarked}
+                  isReplyView={isReplyView}
+                />
               </View>
 
               <Divider />
