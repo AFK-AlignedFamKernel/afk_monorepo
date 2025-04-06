@@ -1008,7 +1008,6 @@ pub mod UnrugLiquidity {
                         extension: 0.try_into().unwrap(),
                     };
 
-
                     let initial_tick = launch_params.pool_params.starting_price;
 
                     // Get full range bounds

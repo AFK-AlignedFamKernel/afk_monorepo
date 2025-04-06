@@ -215,13 +215,10 @@ export const UNRUGGABLE_LIQUIDITY_ADDRESSES = {
   //   "0xe39ea1a892ea736b2720cae35186cec2961364e88de4c502d0c076da916305",
   [constants.StarknetChainId.SN_MAIN]:
     '0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc',
-  // [constants.StarknetChainId.SN_SEPOLIA]:
-  // "0xadbfdaa6d61bdc65e912c7bdb92881e55d42dfed4e367c8feaee734eee4676",
-  // [constants.StarknetChainId.SN_SEPOLIA]:
-  // "0x4f9a2d7613dbe428b7b8508acce666febd5a656dbb4387f6c6de7e5c52787f6",
-  // [constants.StarknetChainId.SN_SEPOLIA]: "0x6168fce59e226c864f49216b0f3fab2a45c0631723dcdc81261688c3e837ba3"
+
   [constants.StarknetChainId.SN_SEPOLIA]:
-    '0x6e171a9e1efd2e15b77628377523e05afd91608f8c12aea2523a8c76c8ca695',
+    '0x59519f8c82fcb0503fda34b30c1758a40bd7da43b96abaab106f5141fa7f53f',
+    
 
   // "0x1762c43e814c9e2319e08479df2764fa83436569aefa9a42d4911c43afc5302"
   // "0x3ea02b0aee81e72c4b79cd4205dccc0b0d497ca23162bd0e8f7174d449d7980",

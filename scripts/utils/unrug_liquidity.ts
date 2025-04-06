@@ -112,6 +112,7 @@ export const createUnrugLiquidity = async (
       });
       console.log("declareIfNotToken", declareIfNotToken);
       coin_class_hash_memecoin_last = declareIfNotToken?.class_hash ?? coin_class_hash
+      console.log("coin_class_hash_memecoin_last", coin_class_hash_memecoin_last);
 
       console.log("try declare unrug liquidity");
       const declareResponse = await account0.declareIfNot({

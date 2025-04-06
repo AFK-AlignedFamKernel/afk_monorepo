@@ -25,29 +25,25 @@ pub mod LaunchpadMarketplace {
     use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
     use afk_launchpad::launchpad::utils::{
-        MAX_SQRT_RATIO, MAX_TICK, MAX_TICK_U128, MIN_SQRT_RATIO, MIN_TICK, MIN_TICK_U128,
-        UINT_128_MAX, align_tick, align_tick_with_max_tick_and_min_tick,
-        calculate_aligned_bound_mag, calculate_bound_mag, calculate_sqrt_ratio,
-        get_initial_tick_from_starting_price, get_next_tick_bounds, sort_tokens, unique_count,
+        MAX_TICK, MAX_TICK_U128, MIN_SQRT_RATIO, MIN_TICK, MIN_TICK_U128, UINT_128_MAX,
+        align_tick_with_max_tick_and_min_tick, calculate_bound_mag, calculate_sqrt_ratio,
+        sort_tokens,
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
-    use afk_launchpad::utils::sqrt;
     use core::num::traits::Zero;
-    use cubit::f128::math::ops::sqrt as sqrt_cubit;
-    use cubit::f128::types::fixed::{Fixed, FixedPrint, FixedTrait, FixedTryIntoU128, ONE, ONE_u128};
-    use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
-    use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
-    use ekubo::interfaces::erc20::{
-        IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait,
-    };
+    // use cubit::f128::types::fixed::{Fixed, FixedPrint, FixedTrait, FixedTryIntoU128, ONE, ONE_u128};
+    // use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
+    // use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
+    // use ekubo::interfaces::erc20::{
+    //     IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait,
+    // };
     // use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher, dispatcher};
     // use ekubo::interfaces::mathlib::{IMathLib, dispatcher};
     // use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher};
     use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher};
     use ekubo::types::bounds::Bounds;
     use ekubo::types::i129::i129;
-    use ekubo::types::keys::PoolKey;
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::upgrades::UpgradeableComponent;
@@ -201,10 +197,6 @@ pub mod LaunchpadMarketplace {
         min_supply_launch: u256,
         is_creator_fee_sent_before_graduated: bool,
         // External contract
-        address_jediswap_factory_v2: ContractAddress,
-        address_jediswap_nft_router_v2: ContractAddress,
-        address_ekubo_factory: ContractAddress,
-        address_ekubo_router: ContractAddress,
         unrug_liquidity_address: ContractAddress,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
@@ -781,7 +773,7 @@ pub mod LaunchpadMarketplace {
                         caller, self.protocol_fee_destination.read(), amount_protocol_fee,
                     );
             }
-            let new_liquidity = pool.liquidity_raised + remain_quote_to_liquidity;
+            // let new_liquidity = pool.liquidity_raised + remain_quote_to_liquidity;
             // assert(new_liquidity <= threshold_liquidity, errors::THRESHOLD_LIQUIDITY_EXCEEDED);
             // Transfer quote tokens to contract
             let quote_token = IERC20Dispatcher { contract_address: pool.token_quote.token_address };
@@ -953,8 +945,6 @@ pub mod LaunchpadMarketplace {
             let protocol_fee_percent = self.protocol_fee_percent.read();
             // TODO V2: used creator fees setup by admin/user
             // HIGH SECURITY RISK
-            let creator_fee_percent = 0_u256;
-            // let creator_fee_percent = self.creator_fee_percent.read();
             assert(
                 protocol_fee_percent <= MAX_FEE_PROTOCOL
                     && protocol_fee_percent >= MIN_FEE_PROTOCOL,
@@ -984,9 +974,6 @@ pub mod LaunchpadMarketplace {
             // Rounding and approximation of the Linear and Exponential bonding curve can occurs
             // Calculate fees for protocol based on this quote amount calculated
             //
-            let protocol_fee_amount = quote_amount * protocol_fee_percent / BPS;
-            let creator_fee_amount = quote_amount * creator_fee_percent / BPS;
-
             // let protocol_fee_amount = sell_amount * protocol_fee_percent / BPS;
             // let creator_fee_amount = sell_amount * creator_fee_percent / BPS;
 
@@ -1143,7 +1130,7 @@ pub mod LaunchpadMarketplace {
             let caller = get_contract_address();
             // Verify if liquidity launch
             let mut launch = self.launched_coins.read(coin_address);
-            assert(launch.is_liquidity_launch == true, errors::NOT_LAUNCHED_YET);
+            assert(launch.is_liquidity_launch, errors::NOT_LAUNCHED_YET);
 
             // Verify share of user
             let mut share_user = self
@@ -1556,6 +1543,9 @@ pub mod LaunchpadMarketplace {
         }
 
 
+        // Create pool and Liquidity on Ekubo
+        // Full range bounds
+        // Used the liquidity_raised and the initial_pool_supply of the launch
         // TODO AUDIT: check rounding and approximation issue
         // HIGH SECURITY RISK and Vulnerability
         // ADD more test case for Unrug
@@ -1577,7 +1567,7 @@ pub mod LaunchpadMarketplace {
             assert(launch.is_liquidity_launch, errors::LIQUIDITY_ALREADY_LAUNCHED);
 
             // Calculate thresholds
-            let threshold_liquidity = launch.threshold_liquidity.clone();
+            // let threshold_liquidity = launch.threshold_liquidity.clone();
             // let slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
 
             // We use fee and tick size from the Unruguable as it seems as working POC

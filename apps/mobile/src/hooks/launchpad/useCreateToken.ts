@@ -217,11 +217,19 @@ export const useCreateToken = () => {
       console.log("byteArray.byteArrayFromString(data.symbol ?? 'LFG'),", symbolByteArray)
       console.log('initial supply', initial_supply);
       const urlMetadata = byteArray.byteArrayFromString(metadata?.url ? metadata.url : 'LFG');
+      const twitterByteArray = byteArray.byteArrayFromString(metadata?.twitter ? metadata.twitter : 'LFG');
+      const githubByteArray = byteArray.byteArrayFromString(metadata?.github ? metadata.github : 'LFG');
+      const telegramByteArray = byteArray.byteArrayFromString(metadata?.telegram ? metadata.telegram : 'LFG');
+      const websiteByteArray = byteArray.byteArrayFromString(metadata?.website ? metadata.website : 'LFG');
       const nostrEventIdUint = uint256.bnToUint256(`0x${metadata?.nostr_event_id}`); // Recipient nostr pubkey
       const metadataLaunch = {
         token_address: metadata?.token_address ?? account?.address,
         url: urlMetadata,
-        nostr_event_id: nostrEventIdUint
+        nostr_event_id: nostrEventIdUint,
+        twitter: twitterByteArray,
+        github: githubByteArray,
+        telegram: telegramByteArray,
+        website: websiteByteArray,
       };
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],

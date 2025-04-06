@@ -361,15 +361,15 @@ pub fn calculate_sqrt_ratio(liquidity_raised: u256, initial_pool_supply: u256) -
     // Assert if our calculated sqrt_ratio is within the min and max limits
     sqrt_ratio =
         if sqrt_ratio < min_sqrt_ratio_limit {
-            println!("sqrt_ratio < min_sqrt_ratio_limit");
+            // println!("sqrt_ratio < min_sqrt_ratio_limit");
             min_sqrt_ratio_limit
         } else if sqrt_ratio > max_sqrt_ratio_limit {
-            println!("sqrt_ratio > max_sqrt_ratio_limit");
+            // println!("sqrt_ratio > max_sqrt_ratio_limit");
             // This will resolve in smaller tick than MAX_TICK but as this scenario is obsure, we
             // can make it work like this To minimise need of new code
             max_sqrt_ratio_limit - 1
         } else {
-            println!("sqrt_ratio is between min and max");
+            // println!("sqrt_ratio is between min and max");
             sqrt_ratio
         };
 

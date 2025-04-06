@@ -13,6 +13,10 @@ export interface MetadataOnchain {
   nostr_event_id?: string;
   tags?: string[];
   is_verified?: boolean;
+  twitter?: string;
+  website?:string;
+  telegram?:string;
+  github?:string;
 }
 
 export interface KeysUser {
