@@ -10,7 +10,6 @@ use afk_launchpad::types::launchpad_types::{
     TokenQuoteBuyCoin,
     // MemecoinCreated, MemecoinLaunched
 };
-use starknet::{ClassHash, ContractAddress};
 
 #[starknet::contract]
 pub mod LaunchpadMarketplace {
@@ -22,10 +21,7 @@ pub mod LaunchpadMarketplace {
     use afk_launchpad::launchpad::calcul::launch::{
         get_amount_by_type_of_coin_or_quote, get_initial_price,
     };
-    use afk_launchpad::launchpad::calcul::linear::{
-        calculate_starting_price_launch, // get_coin_amount_by_quote_amount,
-        get_coin_amount,
-    };
+    use afk_launchpad::launchpad::calcul::linear::get_coin_amount;
     use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::math::{PercentageMath, pow_256};
     use afk_launchpad::launchpad::utils::{
@@ -68,17 +64,15 @@ pub mod LaunchpadMarketplace {
     use starknet::storage_access::StorageBaseAddress;
     use starknet::syscalls::{deploy_syscall, library_call_syscall};
     use starknet::{
-        ClassHash, ContractAddress, SyscallResultTrait, contract_address_const, get_block_timestamp,
-        get_caller_address, get_contract_address,
+        ClassHash, ContractAddress, SyscallResultTrait, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
 
     use super::{
-        ADMIN_ROLE, AdminsFeesParams, BondingType, BuyToken, CallbackData, CreateLaunch,
-        CreateToken, CreatorFeeDistributed, EkuboLP, EkuboLaunchParameters,
-        EkuboLiquidityParameters, EkuboPoolParameters, EkuboUnrugLaunchParameters, LaunchCallback,
-        LaunchParameters, LiquidityCanBeAdded, LiquidityCreated, LiquidityParameters, LiquidityType,
-        MINTER_ROLE, MetadataCoinAdded, MetadataLaunch, MintParams, SellToken,
-        SetJediswapNFTRouterV2, SetJediswapV2Factory, SharesTokenUser, StoredName,
+        ADMIN_ROLE, AdminsFeesParams, BondingType, BuyToken, CreateLaunch, CreateToken,
+        CreatorFeeDistributed, EkuboLP, EkuboPoolParameters, EkuboUnrugLaunchParameters,
+        LiquidityCanBeAdded, LiquidityCreated, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch,
+        SellToken, SetJediswapNFTRouterV2, SetJediswapV2Factory, SharesTokenUser, StoredName,
         SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin,
         // MemecoinCreated, MemecoinLaunched
     };
@@ -1188,15 +1182,10 @@ pub mod LaunchpadMarketplace {
         // Check if user can receive the fee now
 
         fn distribute_creator_fee(ref self: ContractState, coin_address: ContractAddress) {
-            let caller = get_contract_address();
             // Verify if liquidity launch
             let mut launch = self.launched_coins.read(coin_address);
 
-            let is_creator_fee_sent_before_graduated = self
-                .is_creator_fee_sent_before_graduated
-                .read();
-
-            assert(launch.is_liquidity_launch == true, errors::NOT_LAUNCHED_YET);
+            assert(launch.is_liquidity_launch, errors::NOT_LAUNCHED_YET);
             // Check if creator fees are accumulated to be be distributed at the launch
             assert(launch.creator_amount_to_distribute > 0_u256, errors::NO_FEE_RECEIVED);
             let quote_token = IERC20Dispatcher {
@@ -1204,7 +1193,6 @@ pub mod LaunchpadMarketplace {
             };
 
             let creator_fee_amount = launch.creator_amount_received;
-            let creator_fee_distributed = launch.creator_amount_distributed;
             let creator_fee_to_distribute = launch.creator_amount_to_distribute;
 
             launch.creator_amount_received = 0_u256;
@@ -1231,10 +1219,9 @@ pub mod LaunchpadMarketplace {
         fn claim_coin_all_for_friend(
             ref self: ContractState, coin_address: ContractAddress, friend: ContractAddress,
         ) {
-            let caller = get_contract_address();
             // Verify if liquidity launch
             let mut launch = self.launched_coins.read(coin_address);
-            assert(launch.is_liquidity_launch == true, errors::NOT_LAUNCHED_YET);
+            assert(launch.is_liquidity_launch, errors::NOT_LAUNCHED_YET);
 
             // Verify share of user
             let mut share_user = self.shares_by_users.entry(friend).entry(coin_address).read();
@@ -1350,8 +1337,6 @@ pub mod LaunchpadMarketplace {
         ) -> ContractAddress {
             let caller = get_caller_address();
 
-            // println!("caller: {:?}", caller);
-
             // Check supply of coin and threshold
             // Need to be *10 the current threshold
             // And memecoin pool supply has to be smaller than U128_MAX
@@ -1449,7 +1434,6 @@ pub mod LaunchpadMarketplace {
 
             // Assert supply of coin compared to threshold
             // Need to be *10 the current threshold
-            let threshold_liquidity = self.threshold_liquidity.read();
             // Get token parameters
             let token_to_use = self.default_token.read();
 
@@ -1590,11 +1574,11 @@ pub mod LaunchpadMarketplace {
 
             // Get launch info and validate
             let launch = self.launched_coins.read(coin_address);
-            assert(launch.is_liquidity_launch == false, errors::LIQUIDITY_ALREADY_LAUNCHED);
+            assert(launch.is_liquidity_launch, errors::LIQUIDITY_ALREADY_LAUNCHED);
 
             // Calculate thresholds
             let threshold_liquidity = launch.threshold_liquidity.clone();
-            let slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
+            // let slippage_threshold: u256 = threshold_liquidity * SLIPPAGE_THRESHOLD / BPS;
 
             // We use fee and tick size from the Unruguable as it seems as working POC
             let fee_percent = 0xc49ba5e353f7d00000000000000000; // This is recommended value 0.3%
@@ -1615,7 +1599,7 @@ pub mod LaunchpadMarketplace {
                 launch.liquidity_raised, launch.initial_pool_supply,
             );
 
-            println!("sqrt_ratio after assert {}", sqrt_ratio.clone());
+            // println!("sqrt_ratio after assert {}", sqrt_ratio.clone());
             // Define the minimum and maximum sqrt ratios
             // Convert to a tick value
             let mut call_data: Array<felt252> = array![];
@@ -1762,7 +1746,7 @@ pub mod LaunchpadMarketplace {
             };
 
             let launch = self.launched_coins.read(coin_address);
-            assert(launch.is_liquidity_launch == false, errors::LIQUIDITY_ALREADY_LAUNCHED);
+            assert(!launch.is_liquidity_launch, errors::LIQUIDITY_ALREADY_LAUNCHED);
 
             let quote_address = launch.token_quote.token_address;
             let lp_supply = launch.initial_pool_supply;

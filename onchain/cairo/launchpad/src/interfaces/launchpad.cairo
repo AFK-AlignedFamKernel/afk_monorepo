@@ -1,9 +1,9 @@
 use afk_launchpad::types::launchpad_types::{
-    TokenQuoteBuyCoin, TokenLaunch, SharesTokenUser, BondingType, SupportedExchanges, MetadataLaunch
+    BondingType, MetadataLaunch, SharesTokenUser, SupportedExchanges, TokenLaunch,
+    TokenQuoteBuyCoin,
     // MemecoinCreated, MemecoinLaunched
 };
-use starknet::ClassHash;
-use starknet::ContractAddress;
+use starknet::{ClassHash, ContractAddress};
 
 #[starknet::interface]
 pub trait ILaunchpadMarketplace<TContractState> {
@@ -15,7 +15,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         name: ByteArray,
         initial_supply: u256,
         contract_address_salt: felt252,
-        is_unruggable: bool
+        is_unruggable: bool,
     ) -> ContractAddress;
 
     fn create_and_launch_token(
@@ -27,7 +27,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         is_unruggable: bool,
         bonding_type: BondingType,
         creator_fee_percent: u256,
-        creator_fee_destination: ContractAddress
+        creator_fee_destination: ContractAddress,
     ) -> ContractAddress;
     fn create_and_launch_token_with_metadata(
         ref self: TContractState,
@@ -39,7 +39,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         bonding_type: BondingType,
         creator_fee_percent: u256,
         creator_fee_destination: ContractAddress,
-        metadata: MetadataLaunch
+        metadata: MetadataLaunch,
     ) -> ContractAddress;
     // fn launch_token(ref self: TContractState, coin_address: ContractAddress);
     fn launch_token(
@@ -47,7 +47,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         coin_address: ContractAddress,
         bonding_type: BondingType,
         creator_fee_percent: u256,
-        creator_fee_destination: ContractAddress
+        creator_fee_destination: ContractAddress,
     );
     fn buy_coin_by_quote_amount(
         ref self: TContractState, coin_address: ContractAddress, quote_amount: u256,
@@ -56,15 +56,15 @@ pub trait ILaunchpadMarketplace<TContractState> {
     // fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn claim_coin_all(ref self: TContractState, coin_address: ContractAddress);
     fn claim_coin_all_for_friend(
-        ref self: TContractState, coin_address: ContractAddress, friend: ContractAddress
+        ref self: TContractState, coin_address: ContractAddress, friend: ContractAddress,
     );
     fn add_metadata(
-        ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunch
+        ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunch,
     );
 
     // Views
     fn get_threshold_liquidity(self: @TContractState) -> u256;
-    fn get_default_token(self: @TContractState,) -> TokenQuoteBuyCoin;
+    fn get_default_token(self: @TContractState) -> TokenQuoteBuyCoin;
 
     // Main function to calculate amount
     fn get_amount_by_type_of_coin_or_quote(
@@ -72,10 +72,13 @@ pub trait ILaunchpadMarketplace<TContractState> {
         coin_address: ContractAddress,
         amount: u256,
         is_decreased: bool,
-        is_quote_amount: bool
+        is_quote_amount: bool,
     ) -> u256;
     fn get_coin_amount_by_quote_amount(
-        self: @TContractState, coin_address: ContractAddress, quote_amount: u256, is_decreased: bool
+        self: @TContractState,
+        coin_address: ContractAddress,
+        quote_amount: u256,
+        is_decreased: bool,
     ) -> u256;
 
     fn get_is_paid_launch_enable(self: @TContractState) -> bool;
@@ -84,7 +87,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn get_amount_to_paid_create_token(self: @TContractState) -> u256;
 
     // Views
-    fn get_coin_launch(self: @TContractState, key_user: ContractAddress,) -> TokenLaunch;
+    fn get_coin_launch(self: @TContractState, key_user: ContractAddress) -> TokenLaunch;
     fn get_share_of_user_by_contract(
         self: @TContractState, owner: ContractAddress, key_user: ContractAddress,
     ) -> SharesTokenUser;
@@ -103,22 +106,22 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn set_dollar_paid_finish_percentage(ref self: TContractState, bps: u256);
     fn set_class_hash(ref self: TContractState, class_hash: ClassHash);
     fn set_protocol_fee_destination(
-        ref self: TContractState, protocol_fee_destination: ContractAddress
+        ref self: TContractState, protocol_fee_destination: ContractAddress,
     );
     fn set_unrug_liquidity_address(
-        ref self: TContractState, unrug_liquidity_address: ContractAddress
+        ref self: TContractState, unrug_liquidity_address: ContractAddress,
     );
     fn set_threshold_liquidity(ref self: TContractState, threshold_liquidity: u256);
     fn set_exchanges_address(
-        ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>
+        ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>,
     );
     fn set_is_fees(ref self: TContractState, is_fees_protocol_enabled: bool);
     fn set_is_fees_protocol_enabled(ref self: TContractState, is_fees_protocol_enabled: bool);
     fn set_is_fees_protocol_buy_enabled(
-        ref self: TContractState, is_fees_protocol_buy_enabled: bool
+        ref self: TContractState, is_fees_protocol_buy_enabled: bool,
     );
     fn set_is_fees_protocol_sell_enabled(
-        ref self: TContractState, is_fees_protocol_sell_enabled: bool
+        ref self: TContractState, is_fees_protocol_sell_enabled: bool,
     );
     fn set_is_paid_launch_enable(ref self: TContractState, is_paid_launch_enable: bool);
     fn set_is_paid_create_token_enable(ref self: TContractState, is_paid_create_token_enable: bool);
@@ -126,18 +129,18 @@ pub trait ILaunchpadMarketplace<TContractState> {
     fn set_amount_to_paid_create_token(ref self: TContractState, amount_to_paid_create_token: u256);
     fn set_token_address_for_action(ref self: TContractState, token_address: ContractAddress);
     fn set_is_fees_creator_sell_enabled(
-        ref self: TContractState, is_fees_creator_sell_enabled: bool
+        ref self: TContractState, is_fees_creator_sell_enabled: bool,
     );
     fn set_is_fees_creator_buy_enabled(ref self: TContractState, is_fees_creator_buy_enabled: bool);
     fn set_is_fees_creator_enabled(ref self: TContractState, is_fees_creator_enabled: bool);
     fn set_is_creator_fee_sent_before_graduated(
-        ref self: TContractState, is_creator_fee_sent_before_graduated: bool
+        ref self: TContractState, is_creator_fee_sent_before_graduated: bool,
     );
 
     fn distribute_creator_fee(ref self: TContractState, coin_address: ContractAddress);
     fn set_admin(ref self: TContractState, admin: ContractAddress);
     fn set_role_address(ref self: TContractState, contract_address: ContractAddress, role: felt252);
     fn set_revoke_address(
-        ref self: TContractState, contract_address: ContractAddress, role: felt252
+        ref self: TContractState, contract_address: ContractAddress, role: felt252,
     );
 }

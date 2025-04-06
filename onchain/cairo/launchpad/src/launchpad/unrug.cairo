@@ -11,44 +11,38 @@ pub mod UnrugLiquidity {
         IJediswapNFTRouterV2, IJediswapNFTRouterV2Dispatcher, IJediswapNFTRouterV2DispatcherTrait,
     };
     use afk_launchpad::interfaces::unrug::IUnrugLiquidity;
-
-    use afk_launchpad::launchpad::calcul::linear::{
-        calculate_starting_price_launch // calculate_slope, calculate_pricing,
-    };
     use afk_launchpad::launchpad::errors;
-    use afk_launchpad::launchpad::helpers::{check_common_launch_parameters, distribute_team_alloc};
-    use afk_launchpad::launchpad::locker::interface::{
-        ILockManagerDispatcher, ILockManagerDispatcherTrait,
-    };
+    // use afk_launchpad::launchpad::helpers::{check_common_launch_parameters,
+    // distribute_team_alloc};
+    // use afk_launchpad::launchpad::locker::interface::{
+    //     ILockManagerDispatcher, ILockManagerDispatcherTrait,
+    // };
     use afk_launchpad::launchpad::math::{PercentageMath // pow_256
     };
     use afk_launchpad::launchpad::utils::{
-        MAX_TICK, MAX_TICK_U128, MIN_TICK, MIN_TICK_U128, align_tick,
-        align_tick_with_max_tick_and_min_tick, calculate_aligned_bound_mag, calculate_bound_mag,
-        get_initial_tick_from_starting_price, get_next_tick_bounds, sort_tokens, unique_count,
+        MAX_TICK_U128, MIN_TICK, MIN_TICK_U128, align_tick_with_max_tick_and_min_tick,
+        calculate_bound_mag, sort_tokens, unique_count,
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk_launchpad::types::jediswap_types::MintParams;
     use afk_launchpad::types::launchpad_types::{
-        ADMIN_ROLE, BondingType, BuyToken, CallbackData, CreateLaunch, CreateToken,
-        DEFAULT_MIN_LOCKTIME, EkuboLP, EkuboLaunchParameters, EkuboLiquidityParameters,
-        EkuboPoolParameters, EkuboUnrugLaunchParameters, LaunchCallback, LaunchParameters,
-        LaunchUpdated, LiquidityCanBeAdded, LiquidityCreated, LiquidityParameters, LiquidityType,
-        LockPosition, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch, SellToken,
-        SetJediswapNFTRouterV2, SetJediswapRouterV2, SetJediswapV2Factory, SharesTokenUser,
-        StoredName, SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin,
-        UnrugCallbackData, UnrugLaunchCallback,
-        // MemecoinCreated, MemecoinLaunched
+        ADMIN_ROLE, BuyToken, CreateLaunch, CreateToken, EkuboLP, EkuboLaunchParameters,
+        EkuboUnrugLaunchParameters, LaunchParameters, LaunchUpdated, LiquidityCanBeAdded,
+        LiquidityCreated, LockPosition, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch, SellToken,
+        SetJediswapNFTRouterV2, SetJediswapRouterV2, SetJediswapV2Factory, StoredName,
+        SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin, UnrugCallbackData,
+        UnrugLaunchCallback,
+        // EkuboLiquidityParameters, DEFAULT_MIN_LOCKTIME, EkuboPoolParameters, CallbackData,
+    // BondingType, LaunchCallback MemecoinCreated, MemecoinLaunched
     };
-    use afk_launchpad::utils::sqrt;
     use core::num::traits::Zero;
     use ekubo::components::shared_locker::{call_core_with_callback, consume_callback_data};
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
     use ekubo::interfaces::erc20::{
-        IERC20Dispatcher as EKIERC20Dispatcher, // IERC20DispatcherTrait as EKIERC20DispatcherTrait,
+        IERC20Dispatcher as EKIERC20Dispatcher // IERC20DispatcherTrait as EKIERC20DispatcherTrait,
     };
-    use ekubo::interfaces::positions::{IPositions, IPositionsDispatcher, IPositionsDispatcherTrait};
+    use ekubo::interfaces::positions::{IPositionsDispatcher, IPositionsDispatcherTrait};
     // use ekubo::interfaces::router::{IRouterDispatcher, IRouterDispatcherTrait};
     use ekubo::interfaces::token_registry::{
         ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
@@ -59,8 +53,7 @@ pub mod UnrugLiquidity {
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::token::erc20::interface::{
-        ERC20ABIDispatcher, ERC20ABIDispatcherTrait, 
-        // IERC20Dispatcher as OZIERC20Dispatcher,
+        ERC20ABIDispatcher, ERC20ABIDispatcherTrait // IERC20Dispatcher as OZIERC20Dispatcher,
         // IERC20DispatcherTrait as OZIERC20DispatcherTrait,
     };
     use starknet::storage::{
@@ -69,8 +62,8 @@ pub mod UnrugLiquidity {
     use starknet::storage_access::StorageBaseAddress;
     use starknet::syscalls::deploy_syscall;
     use starknet::{
-        ClassHash, ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
-        get_contract_address,
+        ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
+        // contract_address_const
     };
     // use core::integer::{u32_wrapping_add, BoundedInt};
 
@@ -433,25 +426,14 @@ pub mod UnrugLiquidity {
             token_address
         }
 
-
-        // TODO finish check
-        //  Launch liquidity if threshold ok
-        // Add more exchanges. Start with EKUBO by default
-        fn launch_liquidity(
-            ref self: ContractState, coin_address: ContractAddress // exchange:SupportedExchanges
-        ) {
-            // TODO auto distrib and claim?
-
-            let caller = get_caller_address();
-
-            let pool = self.launched_coins.read(coin_address);
-            // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
-        // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
-
-            // self._add_liquidity_ekubo(coin_address, params);
-        // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
-        // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
+        fn launch_on_ekubo(
+            ref self: ContractState,
+            coin_address: ContractAddress,
+            unrug_params: EkuboUnrugLaunchParameters,
+        ) -> (u64, EkuboLP) {
+            self._add_liquidity_ekubo(coin_address, unrug_params)
         }
+
         fn launch_on_jediswap(
             ref self: ContractState,
             coin_address: ContractAddress,
@@ -460,25 +442,12 @@ pub mod UnrugLiquidity {
             quote_amount: u256,
             unlock_time: u64,
             owner: ContractAddress,
-        ) -> u256 { // TODO auto distrib and claim?
-            // let caller = get_caller_address();
-            // self._add_liquidity_jediswap_v1(coin_address, quote_address, lp_supply, quote_amount,
-            // unlock_time);
-            // self
-            //     ._add_liquidity_jediswap_v1(
-            //         coin_address, quote_address, lp_supply, quote_amount, unlock_time
-            //     );
-            // let (pair_address, lock_position) = self
-            //     ._add_liquidity_jediswap(coin_address, quote_address, lp_supply,
-            //         // quote_amount,// unlock_time
-            //     );
+        ) -> u256 {
             let id_cast = self
                 ._add_liquidity_jediswap(
                     coin_address, quote_address, lp_supply, quote_amount, unlock_time, owner,
                 );
             id_cast
-            // self._add_liquidity(coin_address, SupportedExchanges::Jediswap, ekubo_pool_params);
-        // self._add_liquidity(coin_address, SupportedExchanges::Ekubo, ekubo_pool_params);
         }
 
 
@@ -516,195 +485,8 @@ pub mod UnrugLiquidity {
         fn get_position_ekubo_address(self: @ContractState) -> ContractAddress {
             self.positions.read()
         }
-
-
-        fn launch_on_ekubo(
-            ref self: ContractState,
-            coin_address: ContractAddress,
-            unrug_params: EkuboUnrugLaunchParameters,
-        ) -> (u64, EkuboLP) {
-            let caller = get_caller_address();
-            self._add_liquidity_ekubo(coin_address, unrug_params)
-        }
-
-        fn launch_on_starkdefi(
-            ref self: ContractState, coin_address: ContractAddress, params: EkuboLaunchParameters,
-            // ) ->  Span<felt252>  {
-        ) {
-            let caller = get_caller_address();
-            // assert(caller == pool.owner, errors::OWNER_DIFFERENT);
-        // assert(caller == pool.owner || caller == pool.creator, errors::OWNER_DIFFERENT);
-        // self._add_liquidity_ekubo(coin_address, params)
-
-        }
     }
 
-    #[external(v0)]
-    impl LockerImpl of ILocker<ContractState> {
-        /// Callback function called by the core contract.
-        /// Callback sent and consumed in the _add_liquidity_ekubo
-        fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
-            let core_address = self.core.read();
-            let core = ICoreDispatcher { contract_address: core_address };
-            // let ekubo_core_address = self.core.read();
-            // let ekubo_exchange_address = self.ekubo_exchange_address.read();
-            // let positions_address = self.positions.read();
-
-            match consume_callback_data::<UnrugCallbackData>(core, data) {
-                UnrugCallbackData::UnrugLaunchCallback(params) => {
-                    let launch_params: EkuboUnrugLaunchParameters = params.unrug_params;
-                    let (token0, token1) = sort_tokens(
-                        launch_params.token_address, launch_params.quote_address,
-                    );
-                    let memecoin = EKIERC20Dispatcher {
-                        contract_address: launch_params.token_address,
-                    };
-                    let base_token = EKIERC20Dispatcher {
-                        contract_address: launch_params.quote_address,
-                    };
-
-                    let pool_key = PoolKey {
-                        token0: token0,
-                        token1: token1,
-                        fee: launch_params.pool_params.fee,
-                        tick_spacing: launch_params.pool_params.tick_spacing,
-                        extension: 0.try_into().unwrap(),
-                    };
-
-                    // TODO uncomment this and comment others part of test scaling
-                    let is_token1_quote = launch_params.quote_address == token1;
-                    // let is_token1_quote = true;
-                    println!("is_token1_quote {:?}", is_token1_quote);
-
-                    // TODO
-                    // Check align ticks based on tick spacing and fee
-                    let fee_percent = launch_params.pool_params.fee;
-                    let tick_spacing = launch_params.pool_params.tick_spacing;
-                    let min_tick = MIN_TICK_U128.try_into().unwrap();
-                    let max_tick = MAX_TICK_U128.try_into().unwrap();
-                    // println!("min_tick {}", min_tick.clone());
-                    // println!("max_tick {}", max_tick.clone());
-
-                    // Align the min and max ticks with the spacing
-                    let starting_price = launch_params.pool_params.starting_price;
-                    let aligned_min_tick = align_tick_with_max_tick_and_min_tick(
-                        min_tick, launch_params.pool_params.tick_spacing,
-                    );
-                    let aligned_max_tick = align_tick_with_max_tick_and_min_tick(
-                        max_tick, launch_params.pool_params.tick_spacing,
-                    );
-                    let bound_spacing: u128 = calculate_bound_mag(
-                        fee_percent.clone(),
-                        tick_spacing.clone().try_into().unwrap(),
-                        starting_price,
-                    );
-
-                    let aligned_bound_spacing = (aligned_min_tick / tick_spacing)
-                        * tick_spacing.try_into().unwrap();
-                    // println!("aligned_min_tick {}", aligned_min_tick.clone());
-                    // println!("aligned_max_tick {}", aligned_max_tick.clone());
-                    // println!("is_token1_quote {}", is_token1_quote);
-                    // println!("bound_spacing {}", bound_spacing);
-
-                    // println!("aligned_bound_spacing {}", aligned_bound_spacing.clone());
-
-                    // let aligned_min_tick = align_tick(MIN_TICK,
-                    // launch_params.pool_params.tick_spacing);
-                    // let aligned_max_tick = align_tick(MAX_TICK,
-                    // launch_params.pool_params.tick_spacing);
-
-                    // let (initial_tick, full_range_bounds_initial) =
-                    //     get_initial_tick_from_starting_price(
-                    //         starting_price,
-                    //         bound_spacing,
-                    //         is_token1_quote
-                    //     );
-
-                    // Get initial tick and full range bounds_initial
-                    // let (initial_tick_check, full_range_bounds_initial) =
-                    //     get_initial_tick_from_starting_price(
-                    //     starting_price,
-                    //     // launch_params.pool_params.bound,
-                    //     aligned_bound_spacing.clone(), // aligned_max_tick,
-                    //     is_token1_quote
-                    // );
-
-                    let initial_tick = launch_params.pool_params.starting_price;
-
-                    // Get full range bounds
-
-                    // TODO Check alignement of the ticks and bounds
-                    // let mut full_range_bounds =  Bounds {
-                    //     lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
-                    //     upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
-                    // };
-
-                    // let (initial_tick, full_range_bounds_initial) =
-                    //     get_initial_tick_from_starting_price(
-                    //     launch_params.pool_params.starting_price,
-                    //     launch_params.pool_params.bound,
-                    //     is_token1_quote
-                    // );
-
-                    // WORKING
-                    // Align tick with max ticks
-                    // Verify the bounds is as expected
-                    // let mut full_range_bounds = Bounds {
-                    //     lower: i129 { mag: aligned_bound_spacing, sign: true },
-                    //     upper: i129 { mag: aligned_bound_spacing, sign: false }
-                    // };
-
-                    let memecoin_balance = IERC20Dispatcher {
-                        contract_address: launch_params.token_address,
-                    }
-                        .balance_of(launch_params.token_address);
-
-                    // TODO check the initial_tick with the good sign used
-                    core.maybe_initialize_pool(:pool_key, :initial_tick);
-                    // core.maybe_initialize_pool(:pool_key, initial_tick:starting_price);
-                    let bound_to_use = launch_params.pool_params.bounds;
-
-                    // Verify tick spacing, fee, bounding_space,
-                    // initial_tick and and bounds calculated
-                    let id = self
-                        ._supply_liquidity_ekubo(
-                            pool_key,
-                            launch_params.token_address,
-                            launch_params.quote_address,
-                            launch_params.lp_supply,
-                            launch_params.lp_quote_supply,
-                            bound_to_use,
-                            // full_range_bounds_initial,
-                            // full_range_bounds,
-                            // single_tick_bound,
-                            launch_params.owner,
-                        );
-
-                    let position = EkuboLP {
-                        owner: launch_params.owner,
-                        quote_address: launch_params.quote_address,
-                        pool_key,
-                        bounds: bound_to_use,
-                        // bounds: full_range_bounds
-                    };
-
-                    let mut return_data: Array<felt252> = Default::default();
-                    Serde::serialize(@id, ref return_data);
-                    Serde::serialize(
-                        @EkuboLP {
-                            owner: launch_params.owner,
-                            quote_address: launch_params.quote_address,
-                            pool_key,
-                            bounds: bound_to_use,
-                            // bounds: full_range_bounds
-                        },
-                        ref return_data,
-                    );
-                    return_data.span()
-                },
-            }
-        }
-    }
 
     // // Could be a group of functions about a same topic
     #[generate_trait]
@@ -807,10 +589,10 @@ pub mod UnrugLiquidity {
             // let mut unrug_params = unrug_params_inputs.clone();
             let mut unrug_params = unrug_params_inputs;
 
-            let lp_meme_supply = unrug_params.lp_supply.clone();
+            // let lp_meme_supply = unrug_params.lp_supply.clone();
 
             let ekubo_core_address = self.core.read();
-            let ekubo_exchange_address = self.ekubo_exchange_address.read();
+            // let ekubo_exchange_address = self.ekubo_exchange_address.read();
             // let memecoin = EKIERC20Dispatcher {
             //     contract_address: unrug_params.token_address.clone()
             // };
@@ -943,7 +725,7 @@ pub mod UnrugLiquidity {
 
             // println!("try mint and deposit");
             // let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
-            let (id, liquidity) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
+            let (id, _) = positions.mint_and_deposit(pool_key, bounds, min_liquidity: 0);
 
             // println!("pool id {}", id.clone());
             id
@@ -1190,6 +972,84 @@ pub mod UnrugLiquidity {
             // (pair.contract_address, lock_position)
 
             id_token_lp
+        }
+    }
+
+
+    #[external(v0)]
+    impl LockerImpl of ILocker<ContractState> {
+        /// Callback function called by the core contract.
+        /// Callback sent and consumed in the _add_liquidity_ekubo
+        fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
+            let core_address = self.core.read();
+            let core = ICoreDispatcher { contract_address: core_address };
+            // let ekubo_core_address = self.core.read();
+            // let ekubo_exchange_address = self.ekubo_exchange_address.read();
+            // let positions_address = self.positions.read();
+
+            match consume_callback_data::<UnrugCallbackData>(core, data) {
+                UnrugCallbackData::UnrugLaunchCallback(params) => {
+                    let launch_params: EkuboUnrugLaunchParameters = params.unrug_params;
+                    let (token0, token1) = sort_tokens(
+                        launch_params.token_address, launch_params.quote_address,
+                    );
+                    // let memecoin = EKIERC20Dispatcher {
+                    //     contract_address: launch_params.token_address,
+                    // };
+                    // let base_token = EKIERC20Dispatcher {
+                    //     contract_address: launch_params.quote_address,
+                    // };
+
+                    let pool_key = PoolKey {
+                        token0: token0,
+                        token1: token1,
+                        fee: launch_params.pool_params.fee,
+                        tick_spacing: launch_params.pool_params.tick_spacing,
+                        extension: 0.try_into().unwrap(),
+                    };
+
+
+                    let initial_tick = launch_params.pool_params.starting_price;
+
+                    // Get full range bounds
+                    // WORKING
+                    // Align tick with max ticks
+                    // Verify the bounds is as expected
+                    core.maybe_initialize_pool(:pool_key, :initial_tick);
+                    // core.maybe_initialize_pool(:pool_key, initial_tick:starting_price);
+                    let bound_to_use = launch_params.pool_params.bounds;
+
+                    // Verify tick spacing, fee, bounding_space,
+                    // initial_tick and and bounds calculated
+                    let id = self
+                        ._supply_liquidity_ekubo(
+                            pool_key,
+                            launch_params.token_address,
+                            launch_params.quote_address,
+                            launch_params.lp_supply,
+                            launch_params.lp_quote_supply,
+                            bound_to_use,
+                            // full_range_bounds_initial,
+                            // full_range_bounds,
+                            // single_tick_bound,
+                            launch_params.owner,
+                        );
+
+                    let mut return_data: Array<felt252> = Default::default();
+                    Serde::serialize(@id, ref return_data);
+                    Serde::serialize(
+                        @EkuboLP {
+                            owner: launch_params.owner,
+                            quote_address: launch_params.quote_address,
+                            pool_key,
+                            bounds: bound_to_use,
+                            // bounds: full_range_bounds
+                        },
+                        ref return_data,
+                    );
+                    return_data.span()
+                },
+            }
         }
     }
 }

@@ -31,9 +31,7 @@ pub trait IUnrugLiquidity<TContractState> {
         coin_address: ContractAddress,
         unrug_params: EkuboUnrugLaunchParameters,
     ) -> (u64, EkuboLP);
-    fn launch_on_starkdefi(
-        ref self: TContractState, coin_address: ContractAddress, params: EkuboLaunchParameters,
-    );
+
     // ) -> Span<felt252>;
     fn launch_on_jediswap(
         ref self: TContractState,
@@ -45,8 +43,10 @@ pub trait IUnrugLiquidity<TContractState> {
         owner: ContractAddress,
     ) -> u256;
 
-    fn launch_liquidity(ref self: TContractState, coin_address: ContractAddress);
-
+    // fn launch_liquidity(ref self: TContractState, coin_address: ContractAddress);
+    // fn launch_on_starkdefi(
+    //     ref self: TContractState, coin_address: ContractAddress, params: EkuboLaunchParameters,
+    // );
     // fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn add_metadata(
         ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunch,
