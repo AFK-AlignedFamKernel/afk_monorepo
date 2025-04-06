@@ -15,7 +15,6 @@ pub trait ILaunchpadMarketplace<TContractState> {
         name: ByteArray,
         initial_supply: u256,
         contract_address_salt: felt252,
-        is_unruggable: bool,
     ) -> ContractAddress;
 
     fn create_and_launch_token(
@@ -24,23 +23,23 @@ pub trait ILaunchpadMarketplace<TContractState> {
         name: ByteArray,
         initial_supply: u256,
         contract_address_salt: felt252,
-        is_unruggable: bool,
         bonding_type: BondingType,
         creator_fee_percent: u256,
         creator_fee_destination: ContractAddress,
+        metadata: Option<MetadataLaunch>,
     ) -> ContractAddress;
-    fn create_and_launch_token_with_metadata(
-        ref self: TContractState,
-        symbol: ByteArray,
-        name: ByteArray,
-        initial_supply: u256,
-        contract_address_salt: felt252,
-        is_unruggable: bool,
-        bonding_type: BondingType,
-        creator_fee_percent: u256,
-        creator_fee_destination: ContractAddress,
-        metadata: MetadataLaunch,
-    ) -> ContractAddress;
+    // fn create_and_launch_token_with_metadata(
+    //     ref self: TContractState,
+    //     symbol: ByteArray,
+    //     name: ByteArray,
+    //     initial_supply: u256,
+    //     contract_address_salt: felt252,
+    //     is_unruggable: bool,
+    //     bonding_type: BondingType,
+    //     creator_fee_percent: u256,
+    //     creator_fee_destination: ContractAddress,
+    //     metadata: MetadataLaunch,
+    // ) -> ContractAddress;
     // fn launch_token(ref self: TContractState, coin_address: ContractAddress);
     fn launch_token(
         ref self: TContractState,
@@ -112,9 +111,9 @@ pub trait ILaunchpadMarketplace<TContractState> {
         ref self: TContractState, unrug_liquidity_address: ContractAddress,
     );
     fn set_threshold_liquidity(ref self: TContractState, threshold_liquidity: u256);
-    fn set_exchanges_address(
-        ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>,
-    );
+    // fn set_exchanges_address(
+    //     ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>,
+    // );
     fn set_is_fees(ref self: TContractState, is_fees_protocol_enabled: bool);
     fn set_is_fees_protocol_enabled(ref self: TContractState, is_fees_protocol_enabled: bool);
     fn set_is_fees_protocol_buy_enabled(

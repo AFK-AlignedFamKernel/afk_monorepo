@@ -67,7 +67,6 @@ pub trait IUnrugLiquidity<TContractState> {
     fn set_protocol_fee_destination(
         ref self: TContractState, protocol_fee_destination: ContractAddress,
     );
-    fn set_threshold_liquidity(ref self: TContractState, threshold_liquidity: u256);
     fn set_address_jediswap_factory_v2(
         ref self: TContractState, address_jediswap_factory_v2: ContractAddress,
     );
@@ -84,9 +83,6 @@ pub trait IUnrugLiquidity<TContractState> {
     fn set_address_ekubo_router(ref self: TContractState, address_ekubo_router: ContractAddress);
     fn set_address_ekubo_registry(
         ref self: TContractState, new_ekubo_registry_address: ContractAddress,
-    );
-    fn set_exchanges_address(
-        ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>,
     );
     fn set_lock_manager_address(ref self: TContractState, lock_manager_address: ContractAddress);
 }

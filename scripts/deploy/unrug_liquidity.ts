@@ -72,7 +72,21 @@ export const deployUnrugLiquidity = async () => {
   const threshold_marketcap = formatFloatToUint256(threshold_marketcap_nb);
   // const threshold_marketcap = cairo.uint256(threshold_marketcap_nb);
   // const threshold_liquidity = cairo.uint256(threshold_liquidity_nb);
+  // if (chainId == constants.StarknetChainId.SN_MAIN) {
+  //   JEDISWAP_ADDRESS_NFT =
+  //     JEDISWAP_V2_NFT_ROUTER[constants.StarknetChainId.SN_MAIN];
+  //   JEDISWAP_FACTORY_ADDRESS =
+  //     JEDISWAP_V2_FACTORY[constants.StarknetChainId.SN_MAIN];
 
+  //     EKUBO_POSITION_ADDRESS =
+  //     EKUBO_POSITION[constants.StarknetChainId.SN_MAIN];
+  //    EKUBO_CORE_ADDRESS =
+  //     EKUBO_CORE[constants.StarknetChainId.SN_MAIN];
+
+  //     UNRUG_FACTORY_ADDRESS= UNRUGGABLE_FACTORY_ADDRESS[constants.StarknetChainId.SN_MAIN]
+  //     EKUBO_REGISTRY_ADDRESS= EKUBO_REGISTRY[constants.StarknetChainId.SN_MAIN]
+  // }
+  
   const TOKEN_CLASS_HASH =
     CLASS_HASH.TOKEN[constants.StarknetChainId.SN_SEPOLIA];
   if (process.env.IS_DEPLOY_CONTRACT == "true") {

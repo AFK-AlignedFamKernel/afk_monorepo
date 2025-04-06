@@ -139,14 +139,10 @@ pub mod UnrugLiquidity {
         dollar_price_launch_pool: u256,
         dollar_price_create_token: u256,
         dollar_price_percentage: u256,
-        starting_price: u256,
-        threshold_liquidity: u256,
-        threshold_market_cap: u256,
         liquidity_raised_amount_in_dollar: u256,
         protocol_fee_percent: u256,
         creator_fee_percent: u256,
         is_fees_protocol: bool,
-        step_increase_linear: u256,
         is_custom_launch_enable: bool,
         is_custom_token_enable: bool,
         is_paid_launch_enable: bool,
@@ -201,12 +197,8 @@ pub mod UnrugLiquidity {
     fn constructor(
         ref self: ContractState,
         admin: ContractAddress,
-        starting_price: u256,
         token_address: ContractAddress,
-        step_increase_linear: u256,
         coin_class_hash: ClassHash,
-        threshold_liquidity: u256,
-        threshold_market_cap: u256,
         factory_address: ContractAddress,
         ekubo_registry: ContractAddress,
         core: ContractAddress,
@@ -221,20 +213,15 @@ pub mod UnrugLiquidity {
 
         let init_token = TokenQuoteBuyCoin {
             token_address: token_address,
-            starting_price,
-            price: starting_price,
+            // starting_price,
+            price: 0_256,
             is_enable: true,
-            step_increase_linear,
+            // step_increase_linear,
         };
         self.is_custom_launch_enable.write(false);
         self.is_custom_token_enable.write(false);
         self.default_token.write(init_token.clone());
-        self.starting_price.write(init_token.starting_price);
-
-        self.threshold_liquidity.write(threshold_liquidity);
-        self.threshold_market_cap.write(threshold_market_cap);
         self.protocol_fee_destination.write(admin);
-        self.step_increase_linear.write(step_increase_linear);
         self.total_token.write(0);
         self.total_launch.write(0);
         self.protocol_fee_percent.write(MID_FEE_PROTOCOL);
@@ -291,12 +278,6 @@ pub mod UnrugLiquidity {
         fn set_dollar_paid_finish_percentage(ref self: ContractState, bps: u256) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.dollar_price_percentage.write(bps);
-        }
-
-        // Set threshold liquidity
-        fn set_threshold_liquidity(ref self: ContractState, threshold_liquidity: u256) {
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            self.threshold_liquidity.write(threshold_liquidity);
         }
 
         // Jediwswap factory address
@@ -378,22 +359,6 @@ pub mod UnrugLiquidity {
             self.lock_manager_address.write(lock_manager_address);
         }
 
-        fn set_exchanges_address(
-            ref self: ContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>,
-        ) {
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            let mut dex = exchanges;
-            // Add Exchanges configurations
-            loop {
-                match dex.pop_front() {
-                    Option::Some((exchange, address)) => self
-                        .exchange_configs
-                        .entry(*exchange)
-                        .write(*address),
-                    Option::None => { break; },
-                }
-            };
-        }
 
         fn set_class_hash(ref self: ContractState, class_hash: ClassHash) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
@@ -527,7 +492,6 @@ pub mod UnrugLiquidity {
                 initial_supply: initial_supply,
                 created_at: get_block_timestamp(),
                 token_type: Option::None,
-                is_unruggable: true,
             };
 
             self.token_created.entry(token_address).write(token.clone());
@@ -550,7 +514,6 @@ pub mod UnrugLiquidity {
                         name: name,
                         initial_supply,
                         total_supply: initial_supply.clone(),
-                        is_unruggable: true,
                     },
                 );
             token_address
@@ -680,7 +643,7 @@ pub mod UnrugLiquidity {
                         quote_token_address: base_token.contract_address,
                         owner: caller,
                         exchange: SupportedExchanges::Ekubo,
-                        is_unruggable: false,
+                        is_unruggable: true,
                     },
                 );
             (id, position)
@@ -941,7 +904,7 @@ pub mod UnrugLiquidity {
                             owner: recipient_lp,
                             asset: asset_token_address,
                             exchange: SupportedExchanges::Jediswap,
-                            is_unruggable: false,
+                            is_unruggable: true,
                         },
                     );
                 id_token_lp
