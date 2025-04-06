@@ -137,6 +137,10 @@ pub struct MetadataLaunch {
     pub url: ByteArray,
     // pub ipfs_hash: ByteArray,
     pub nostr_event_id: u256,
+    pub twitter: ByteArray,
+    pub github: ByteArray,
+    pub telegram: ByteArray,
+    pub website: ByteArray,
 }
 
 
@@ -429,6 +433,10 @@ pub struct MetadataCoinAdded {
     pub url: ByteArray,
     pub nostr_event_id: u256,
     pub timestamp: u64,
+    pub twitter: ByteArray,
+    pub website: ByteArray,
+    pub telegram: ByteArray,
+    pub github: ByteArray,
 }
 
 

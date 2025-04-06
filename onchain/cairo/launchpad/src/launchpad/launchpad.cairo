@@ -1283,6 +1283,10 @@ pub mod LaunchpadMarketplace {
                         url: metadata.url,
                         timestamp: get_block_timestamp(),
                         nostr_event_id: metadata.nostr_event_id,
+                        twitter: metadata.twitter,
+                        website: metadata.website,
+                        telegram: metadata.telegram,
+                        github: metadata.github,
                     },
                 );
         }
