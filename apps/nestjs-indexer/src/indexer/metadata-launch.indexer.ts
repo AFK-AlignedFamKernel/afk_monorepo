@@ -102,8 +102,14 @@ export class MetadataLaunchIndexer {
       urlFelt,
       nostrEventIdLow,
       nostrEventIdHigh,
-      timestampFelt
+      timestampFelt,
+      twitterFelt,
+      telegramFelt,
+      githubFelt,
+      websiteFelt,
     ] = event.data;
+
+    console.log("event.data", event.data);
 
     let i = 1;
     
@@ -148,6 +154,33 @@ export class MetadataLaunchIndexer {
       Number(FieldElement.toBigInt(timestampFelt)) * 1000,
     );
 
+    /** TODO: 
+     * ADD Twitter, Telegram, Github, Website */
+    let twitter = '';
+    let telegram = '';
+    let github = '';
+    let website = '';
+
+    try {
+      twitter = shortString.decodeShortString(
+        FieldElement.toBigInt(twitterFelt).toString(),
+      );
+      telegram = shortString.decodeShortString(
+        FieldElement.toBigInt(telegramFelt).toString(),
+      );
+      github = shortString.decodeShortString(
+        FieldElement.toBigInt(githubFelt).toString(),
+      );
+      website = shortString.decodeShortString(
+        FieldElement.toBigInt(websiteFelt).toString(),
+      );
+    } catch(e) {
+      console.log("error decoding metadata bytearray : ", e);
+    }
+    console.log("twitter", twitter);
+    console.log("telegram", telegram);
+    console.log("github", github);
+    console.log("website", website);
     const data = {
       transferId,
       network: 'starknet-sepolia',
@@ -160,6 +193,10 @@ export class MetadataLaunchIndexer {
       url: url,
       timestamp,
       transactionType: 'buy',
+      twitter,
+      telegram,
+      github,
+      website,
     };
 
 

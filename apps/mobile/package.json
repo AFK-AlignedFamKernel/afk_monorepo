@@ -30,7 +30,7 @@
     "fix:all": "prettier --write \"src/**/*.{ts,tsx}\" && eslint --fix \"src/**/*.{ts,tsx}\""
   },
   "dependencies": {
-    "@atomiqlabs/chain-starknet": "^1.0.3",
+    "@atomiqlabs/chain-starknet": "^1.0.8",
     "@atomiqlabs/sdk": "^2.1.2",
     "@babel/runtime": "^7.24.8",
     "@cartridge/connector": "0.6.0",

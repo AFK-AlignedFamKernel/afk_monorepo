@@ -11,4 +11,8 @@ export interface MetadataLaunch {
   nostr_event_id?: string;
   timestamp: Date;
   transactionType: string;
+  twitter?: string;
+  telegram?: string;
+  github?: string;
+  website?: string;
 }

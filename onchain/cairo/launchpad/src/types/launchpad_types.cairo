@@ -48,9 +48,9 @@ pub struct AdminsFeesParams {
 #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 pub struct TokenQuoteBuyCoin {
     pub token_address: ContractAddress,
-    pub starting_price: u256,
+    // pub starting_price: u256,
     pub price: u256,
-    pub step_increase_linear: u256,
+    // pub step_increase_linear: u256,
     pub is_enable: bool,
 }
 
@@ -66,7 +66,6 @@ pub struct Token {
     pub initial_supply: u256,
     pub token_type: Option<TokenType>,
     pub created_at: u64,
-    pub is_unruggable: bool,
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store)]
@@ -137,6 +136,10 @@ pub struct MetadataLaunch {
     pub url: ByteArray,
     // pub ipfs_hash: ByteArray,
     pub nostr_event_id: u256,
+    pub twitter: ByteArray,
+    pub github: ByteArray,
+    pub telegram: ByteArray,
+    pub website: ByteArray,
 }
 
 
@@ -341,7 +344,6 @@ pub struct CreateToken {
     pub name: ByteArray,
     pub initial_supply: u256,
     pub total_supply: u256,
-    pub is_unruggable: bool,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -357,7 +359,6 @@ pub struct CreateLaunch {
     pub total_supply: u256,
     pub slope: u256,
     pub threshold_liquidity: u256,
-    pub is_unruggable: bool,
     pub bonding_type: BondingType,
 }
 
@@ -429,6 +430,10 @@ pub struct MetadataCoinAdded {
     pub url: ByteArray,
     pub nostr_event_id: u256,
     pub timestamp: u64,
+    pub twitter: ByteArray,
+    pub website: ByteArray,
+    pub telegram: ByteArray,
+    pub github: ByteArray,
 }
 
 

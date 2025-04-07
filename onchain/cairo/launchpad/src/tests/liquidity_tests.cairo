@@ -364,10 +364,10 @@ mod liquidity_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
-                is_unruggable: false,
                 bonding_type: BondingType::Linear,
                 creator_fee_percent: MID_FEE_CREATOR,
                 creator_fee_destination: RECEIVER_ADDRESS(),
+                metadata: None,
             );
         println!("token_address ekubo launch: {:?}", token_address);
         println!(

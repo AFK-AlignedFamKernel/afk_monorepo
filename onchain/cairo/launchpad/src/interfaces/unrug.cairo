@@ -31,9 +31,7 @@ pub trait IUnrugLiquidity<TContractState> {
         coin_address: ContractAddress,
         unrug_params: EkuboUnrugLaunchParameters,
     ) -> (u64, EkuboLP);
-    fn launch_on_starkdefi(
-        ref self: TContractState, coin_address: ContractAddress, params: EkuboLaunchParameters,
-    );
+
     // ) -> Span<felt252>;
     fn launch_on_jediswap(
         ref self: TContractState,
@@ -45,8 +43,10 @@ pub trait IUnrugLiquidity<TContractState> {
         owner: ContractAddress,
     ) -> u256;
 
-    fn launch_liquidity(ref self: TContractState, coin_address: ContractAddress);
-
+    // fn launch_liquidity(ref self: TContractState, coin_address: ContractAddress);
+    // fn launch_on_starkdefi(
+    //     ref self: TContractState, coin_address: ContractAddress, params: EkuboLaunchParameters,
+    // );
     // fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn add_metadata(
         ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunch,
@@ -67,7 +67,6 @@ pub trait IUnrugLiquidity<TContractState> {
     fn set_protocol_fee_destination(
         ref self: TContractState, protocol_fee_destination: ContractAddress,
     );
-    fn set_threshold_liquidity(ref self: TContractState, threshold_liquidity: u256);
     fn set_address_jediswap_factory_v2(
         ref self: TContractState, address_jediswap_factory_v2: ContractAddress,
     );
@@ -84,9 +83,6 @@ pub trait IUnrugLiquidity<TContractState> {
     fn set_address_ekubo_router(ref self: TContractState, address_ekubo_router: ContractAddress);
     fn set_address_ekubo_registry(
         ref self: TContractState, new_ekubo_registry_address: ContractAddress,
-    );
-    fn set_exchanges_address(
-        ref self: TContractState, exchanges: Span<(SupportedExchanges, ContractAddress)>,
     );
     fn set_lock_manager_address(ref self: TContractState, lock_manager_address: ContractAddress);
 }

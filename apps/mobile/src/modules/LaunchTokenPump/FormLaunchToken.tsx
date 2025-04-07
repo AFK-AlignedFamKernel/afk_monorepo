@@ -141,7 +141,7 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = (props) => {
         };
 
         if (!metadata) {
-          tx = await deployTokenAndLaunch(account?.account, data).catch(err => {
+          tx = await deployTokenAndLaunch(account?.account, data,).catch(err => {
             // showToast({ type: 'error', title: err?.message || "Something went wrong" });
             showToast({ type: 'error', title: "Something went wrong when deploy token and launch", description: err?.message || "Something went wrong" });
 
@@ -165,6 +165,11 @@ export const FormLaunchToken: React.FC<FormTokenCreatedProps> = (props) => {
             ...metadata,
             url: imageUrl ?? "",
             nostr_event_id: metadata?.nostr_event_id,
+            token_address: account?.address,
+            twitter: metadata?.twitter,
+            github: metadata?.github,
+            telegram: metadata?.telegram,
+            website: metadata?.website,
           }
           console.log("metadataPrepared", metadataPrepared)
 

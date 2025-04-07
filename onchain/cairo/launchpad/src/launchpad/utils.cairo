@@ -6,6 +6,7 @@ use core::num::traits::Zero;
 use ekubo::types::bounds::Bounds;
 use ekubo::types::i129::i129;
 use starknet::ContractAddress;
+use crate::types::unrug_types::EkuboLaunchParameters;
 
 pub const MIN_TICK: i32 = -88722883;
 pub const MAX_TICK: i32 = 88722883;
@@ -317,7 +318,7 @@ pub fn scaling_factor(decimals: u8) -> u256 {
         POW_32
     } else if decimals == 64 {
         POW_64
-    }// This should never happen in our context but leave it for sure
+    } // This should never happen in our context but leave it for sure
     else if decimals == 128 {
         POW_128
     } else {
@@ -360,17 +361,60 @@ pub fn calculate_sqrt_ratio(liquidity_raised: u256, initial_pool_supply: u256) -
     // Assert if our calculated sqrt_ratio is within the min and max limits
     sqrt_ratio =
         if sqrt_ratio < min_sqrt_ratio_limit {
-            println!("sqrt_ratio < min_sqrt_ratio_limit");
+            // println!("sqrt_ratio < min_sqrt_ratio_limit");
             min_sqrt_ratio_limit
         } else if sqrt_ratio > max_sqrt_ratio_limit {
-            println!("sqrt_ratio > max_sqrt_ratio_limit");
+            // println!("sqrt_ratio > max_sqrt_ratio_limit");
             // This will resolve in smaller tick than MAX_TICK but as this scenario is obsure, we
             // can make it work like this To minimise need of new code
             max_sqrt_ratio_limit - 1
         } else {
-            println!("sqrt_ratio is between min and max");
+            // println!("sqrt_ratio is between min and max");
             sqrt_ratio
         };
 
     sqrt_ratio
 }
+
+
+pub fn calculate_tick(launch_params: EkuboLaunchParameters) -> (u128, u128, u128, u128) {
+    // Check align ticks based on tick spacing and fee
+    let fee_percent = launch_params.pool_params.fee;
+    let tick_spacing = launch_params.pool_params.tick_spacing;
+    let min_tick = MIN_TICK_U128.try_into().unwrap();
+    let max_tick = MAX_TICK_U128.try_into().unwrap();
+    // println!("min_tick {}", min_tick.clone());
+    // println!("max_tick {}", max_tick.clone());
+
+    let starting_price = launch_params.pool_params.starting_price;
+    let aligned_min_tick = align_tick_with_max_tick_and_min_tick(
+        min_tick, launch_params.pool_params.tick_spacing,
+    );
+    let aligned_max_tick = align_tick_with_max_tick_and_min_tick(
+        max_tick, launch_params.pool_params.tick_spacing,
+    );
+    let bound_spacing: u128 = calculate_bound_mag(
+        fee_percent.clone(), tick_spacing.clone().try_into().unwrap(), starting_price,
+    );
+
+    let aligned_bound_spacing = (aligned_min_tick / tick_spacing)
+        * tick_spacing.try_into().unwrap();
+    // println!("aligned_min_tick {}", aligned_min_tick.clone());
+    // println!("aligned_max_tick {}", aligned_max_tick.clone());
+    // println!("bound_spacing {}", bound_spacing);
+
+    // let mut full_range_bounds =  Bounds {
+    //     lower: i129 { mag: aligned_min_tick.try_into().unwrap(), sign: true },
+    //     upper: i129 { mag: aligned_max_tick.try_into().unwrap(), sign: false }
+    // };
+
+    // let (initial_tick, full_range_bounds_initial) =
+    //     get_initial_tick_from_starting_price(
+    //     launch_params.pool_params.starting_price,
+    //     launch_params.pool_params.bound,
+    //     is_token1_quote
+    // );
+
+    (aligned_bound_spacing, bound_spacing, aligned_min_tick, aligned_max_tick)
+}
+

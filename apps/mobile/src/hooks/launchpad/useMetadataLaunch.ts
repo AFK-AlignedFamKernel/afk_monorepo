@@ -12,6 +12,10 @@ export type DeployTokenFormValues = {
   image?: string | undefined;
   url?: string | undefined;
   nostr_event_id?: string | undefined;
+  twitter?: string | undefined;
+  github?: string | undefined;
+  telegram?: string | undefined;
+  website?: string | undefined;
 };
 
 export const useMetadataLaunch = () => {
@@ -29,12 +33,19 @@ export const useMetadataLaunch = () => {
       console.log("urlMetadata", urlMetadata);
       // const nostrEventId= byteArray.byteArrayFromString(data.nostr_event_id ?? 'LFG')
       const nostrEventIdUint = uint256.bnToUint256(`0x${data.nostr_event_id}`); // Recipient nostr pubkey
-
+      const twitterByteArray = byteArray.byteArrayFromString(data.twitter ? data.twitter : 'LFG');
+      const githubByteArray = byteArray.byteArrayFromString(data.github ? data.github : 'LFG');
+      const telegramByteArray = byteArray.byteArrayFromString(data.telegram ? data.telegram : 'LFG');
+      const websiteByteArray = byteArray.byteArrayFromString(data.website ? data.website : 'LFG');
 
       const metadataLaunch = {
         token_address: data.coin_address,
         url: urlMetadata,
-        nostr_event_id: nostrEventIdUint
+        nostr_event_id: nostrEventIdUint,
+        twitter: twitterByteArray,
+        github: githubByteArray,
+        telegram: telegramByteArray,
+        website: websiteByteArray,
       };
       const metadataCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],

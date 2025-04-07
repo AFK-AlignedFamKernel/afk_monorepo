@@ -1,8 +1,8 @@
-import NDK, {NDKEvent, NDKPrivateKeySigner, NDKUserProfile} from '@nostr-dev-kit/ndk';
-import {useMutation} from '@tanstack/react-query';
+import NDK, { NDKEvent, NDKPrivateKeySigner, NDKUserProfile } from '@nostr-dev-kit/ndk';
+import { useMutation } from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context/NostrContext';
-import {useAuth, useSettingsStore} from '../../store';
+import { useNostrContext } from '../../context/NostrContext';
+import { useAuth, useSettingsStore } from '../../store';
 import {
   deriveSharedKey,
   fixPubKey,
@@ -10,17 +10,17 @@ import {
   generateRandomKeypair,
   randomTimeUpTo2DaysInThePast,
 } from '../../utils/keypair';
-import {v2} from '../../utils/nip44';
-import {AFK_RELAYS} from '../../utils/relay';
+import { v2 } from '../../utils/nip44';
+import { AFK_RELAYS } from '../../utils/relay';
 
 // import {v2} from '../../utils/nip44';
 // import {AFK_RELAYS} from '../../utils/relay';
 // /** NIP-17 Private message: https://nips.nostr.com/17 */
 export const useSendPrivateMessage = () => {
-  const {ndk} = useNostrContext();
-  const {publicKey, privateKey} = useAuth();
+  const { ndk } = useNostrContext();
+  const { publicKey, privateKey } = useAuth();
 
-  const {relays} = useSettingsStore();
+  const { relays } = useSettingsStore();
   return useMutation({
     mutationKey: ['sendPrivateMessage', ndk],
     mutationFn: async (data: {
@@ -30,11 +30,12 @@ export const useSendPrivateMessage = () => {
       tags?: string[][];
       isEncrypted?: boolean;
       encryptedMessage?: string;
+      conversationTitle?: string;
     }) => {
       const senderName = (await getUser(ndk, publicKey))?.nip05 || 'AFK ANON';
       const receiverName = (await getUser(ndk, data.receiverPublicKeyProps))?.nip05 || 'AFK ANON';
 
-      const {relayUrl, receiverPublicKeyProps, isEncrypted, tags, encryptedMessage, content} = data;
+      const { relayUrl, receiverPublicKeyProps, isEncrypted, tags, encryptedMessage, content } = data;
 
       console.log('receiverPublicKeyProps', receiverPublicKeyProps);
       // let receiverPublicKey = fixPubKey(stringToHex(receiverPublicKeyProps))
@@ -52,7 +53,12 @@ export const useSendPrivateMessage = () => {
       // ["p", "<receiver-2-pubkey>", "<relay-url>"],
       // ["e", "<kind-14-id>", "<relay-url>", "reply"] // if this is a reply
       // ["subject", "<conversation-title>"],
-      eventDirectMessage.tags = data.tags ?? [];
+      eventDirectMessage.tags = data.tags ?? [
+        // ["p", "<receiver-1-pubkey>", "<relay-url>"],
+        ["p", receiverPublicKeyProps ?? '', relayUrl ?? ''],
+        ["e", eventDirectMessage.id, relayUrl ?? '', "reply"], // if this is a reply
+        ["subject", data.conversationTitle ?? ''],
+      ];
       // console.log('eventDirectMessage', eventDirectMessage)
 
       // const eventDirectMessage = {
@@ -63,7 +69,7 @@ export const useSendPrivateMessage = () => {
       //   pubkey:publicKey
       // }
       // Generate random private key and conversion key
-      const {publicKey: randomPublicKey, privateKey: randomPrivateKeyStr} = generateRandomKeypair();
+      const { publicKey: randomPublicKey, privateKey: randomPrivateKeyStr } = generateRandomKeypair();
       const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
       console.log('conversationKey', conversationKey);
       // Generate a random IV (initialization vector)
@@ -132,27 +138,50 @@ export const useSendPrivateMessage = () => {
       // TODO generate public key random
       // Used random private
       // How to retrieve it easily as a sender?
-      const eventGift = new NDKEvent(ndk);
-      eventGift.pubkey = publicKey;
+      const eventGiftReceiver = new NDKEvent(ndk);
+      eventGiftReceiver.pubkey = publicKey;
       // TODO Fix the random sender and the way to retrieve it
 
       // eventGift.pubkey = randomPublicKey;
       // let eventGift = new NDKEvent(ndkRandom);
-      eventGift.kind = 1059;
-      eventGift.created_at = new Date().getTime();
+      eventGiftReceiver.kind = 1059;
+      eventGiftReceiver.created_at = new Date().getTime();
       /** Used encryption of the sealed event */
       // eventGift.content = v2.encrypt(JSON.stringify(sealedEvent), conversationKey, nonce);
       // eventGift.content = "gm";
-      eventGift.content = v2.encrypt(JSON.stringify(sealedEvent), conversationKey, nonce);
-      eventGift.tags = [
+      eventGiftReceiver.content = v2.encrypt(JSON.stringify(sealedEvent), conversationKey, nonce);
+      eventGiftReceiver.tags = [
         ['p', receiverPublicKeyProps ?? '', relayUrl ?? ''],
-        ['sender', publicKey, senderName],
+        // ['sender', publicKey, senderName],
         ['receiverName', receiverName],
       ] as string[][];
 
       // await eventGift.sign()
-      const eventPublish = await eventGift?.publish();
-      return eventPublish;
+      const eventPublishReceiver = await eventGiftReceiver?.publish();
+
+      // TODO generate public key random
+      // Used random private
+      // How to retrieve it easily as a sender?
+      const eventGiftSender = new NDKEvent(ndk);
+      eventGiftSender.pubkey = publicKey;
+      // TODO Fix the random sender and the way to retrieve it
+
+      // eventGift.pubkey = randomPublicKey;
+      // let eventGift = new NDKEvent(ndkRandom);
+      eventGiftSender.kind = 1059;
+      eventGiftSender.created_at = new Date().getTime();
+      /** Used encryption of the sealed event */
+      // eventGift.content = v2.encrypt(JSON.stringify(sealedEvent), conversationKey, nonce);
+      // eventGift.content = "gm";
+      eventGiftSender.content = v2.encrypt(JSON.stringify(sealedEvent), conversationKey, nonce);
+      eventGiftSender.tags = [
+        ['p', publicKey ?? '', relayUrl ?? ''],
+        ['receiverName', receiverName],
+      ] as string[][];
+
+      // await eventGift.sign()
+      const eventPublishSender = await eventGiftSender?.publish();
+      return { eventPublishSender, eventPublishReceiver };
     },
   });
 };
@@ -176,6 +205,6 @@ export const useSendPrivateMessage = () => {
 // // let recipientHexKey = stringToHex(privateKey);
 
 async function getUser(ndk: any, pubKey: string): Promise<NDKUserProfile> {
-  const user = await ndk.getUser({pubkey: pubKey});
+  const user = await ndk.getUser({ pubkey: pubKey });
   return user.fetchProfile();
 }

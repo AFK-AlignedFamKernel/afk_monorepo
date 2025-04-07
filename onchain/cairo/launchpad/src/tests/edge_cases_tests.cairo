@@ -759,10 +759,10 @@ mod edge_cases_tests {
                     .unwrap(), // find way to predine below quote token
                 // contract_address_salt: (i.try_into().unwrap() / pow_256(10,
                 // 18)).try_into().unwrap(),
-                is_unruggable: false,
                 bonding_type: BondingType::Linear,
                 creator_fee_percent: MID_FEE_CREATOR,
                 creator_fee_destination: RECEIVER_ADDRESS(),
+                metadata: None,
             );
 
         let expected_price_ratio = (*init_supplies.at(i) / 5) / launchpad.get_threshold_liquidity();
@@ -875,10 +875,10 @@ mod edge_cases_tests {
                         .unwrap(), // find way to predine below quote token
                     // contract_address_salt: (i.try_into().unwrap() / pow_256(10,
                     // 18)).try_into().unwrap(),
-                    is_unruggable: false,
                     bonding_type: BondingType::Linear,
                     creator_fee_percent: MID_FEE_CREATOR,
                     creator_fee_destination: RECEIVER_ADDRESS(),
+                    metadata: None,
                 );
 
             token_addresses.append(token_address.clone());
@@ -989,10 +989,10 @@ mod edge_cases_tests {
                     initial_supply: *init_supplies.at(i),
                     // contract_address_salt: SALT(),
                     contract_address_salt: i.try_into().unwrap(),
-                    is_unruggable: false,
                     bonding_type: BondingType::Exponential,
                     creator_fee_percent: MID_FEE_CREATOR,
                     creator_fee_destination: RECEIVER_ADDRESS(),
+                    metadata: None,
                 );
 
             token_addresses.append(token_address);

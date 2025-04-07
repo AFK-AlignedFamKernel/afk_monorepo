@@ -1,5 +1,5 @@
 import { LAUNCHPAD_ADDRESS } from 'common';
-import { AccountInterface, cairo, CairoCustomEnum, CallData, constants, uint256 } from 'starknet';
+import { AccountInterface, cairo, CairoCustomEnum, CairoOption, CairoOptionVariant, CallData, constants, uint256 } from 'starknet';
 
 // import { LAUNCHPAD_ADDRESS, UNRUGGABLE_FACTORY_ADDRESS } from "../../constants/contracts";
 import { formatFloatToUint256 } from '../../utils/format';
@@ -57,7 +57,7 @@ export const useCreateToken = () => {
           contract_address_salt: cairo.felt(String(new Date().getTime() / 1000)),
           // contract_address_salt: new Date().getTime(),
           // is_unruggable: false,
-          is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
+          // is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
 
           // bonding_type:bondingEnum
           // contract_address_salt:CONTRACT_ADDRESS_SALT_DEFAULT + Math.random() + Math.random() / 1000
@@ -78,7 +78,7 @@ export const useCreateToken = () => {
     }
   };
 
-  const deployTokenAndLaunch = async (account: AccountInterface, data: DeployTokenFormValues) => {
+  const deployTokenAndLaunch = async (account: AccountInterface, data: DeployTokenFormValues, metadata?: MetadataOnchain) => {
     try {
       // const CONTRACT_ADDRESS_SALT_DEFAULT =
       //   data?.contract_address_salt ??
@@ -120,6 +120,21 @@ export const useCreateToken = () => {
       console.log("byteArray.byteArrayFromString(data.name ?? 'LFG'),", nameByteArray)
       console.log("byteArray.byteArrayFromString(data.symbol ?? 'LFG'),", symbolByteArray)
       console.log('initial supply', initial_supply);
+      const urlMetadata = byteArray.byteArrayFromString(metadata?.url ? metadata.url : 'LFG');
+      const twitterByteArray = byteArray.byteArrayFromString(metadata?.twitter ? metadata.twitter : 'LFG');
+      const githubByteArray = byteArray.byteArrayFromString(metadata?.github ? metadata.github : 'LFG');
+      const telegramByteArray = byteArray.byteArrayFromString(metadata?.telegram ? metadata.telegram : 'LFG');
+      const websiteByteArray = byteArray.byteArrayFromString(metadata?.website ? metadata.website : 'LFG');
+      const nostrEventIdUint = metadata?.nostr_event_id ? uint256.bnToUint256(`0x${metadata?.nostr_event_id}`) : cairo.uint256(0); // Recipient nostr pubkey
+      const metadataLaunch = {
+        token_address: metadata?.token_address ?? account?.address,
+        url: urlMetadata,
+        nostr_event_id: nostrEventIdUint,
+        twitter: twitterByteArray,
+        github: githubByteArray,
+        telegram: telegramByteArray,
+        website: websiteByteArray,
+      };
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         entrypoint: 'create_and_launch_token',
@@ -134,10 +149,11 @@ export const useCreateToken = () => {
           // contract_address_salt: new Date().getTime().toString(),
           contract_address_salt: cairo.felt(String(new Date().getTime() / 1000)),
           // is_unruggable: data?.is_unruggable
-          is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
+          // is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           bonding_type: bondingEnum,
           creator_fee_percent: creator_fee_percent,
           creator_fee_destination: creator_fee_destination,
+          metadata: metadata ? new CairoOption(CairoOptionVariant.Some, metadataLaunch) : new CairoOption(CairoOptionVariant.None)
         }),
       };
 
@@ -217,11 +233,19 @@ export const useCreateToken = () => {
       console.log("byteArray.byteArrayFromString(data.symbol ?? 'LFG'),", symbolByteArray)
       console.log('initial supply', initial_supply);
       const urlMetadata = byteArray.byteArrayFromString(metadata?.url ? metadata.url : 'LFG');
+      const twitterByteArray = byteArray.byteArrayFromString(metadata?.twitter ? metadata.twitter : 'LFG');
+      const githubByteArray = byteArray.byteArrayFromString(metadata?.github ? metadata.github : 'LFG');
+      const telegramByteArray = byteArray.byteArrayFromString(metadata?.telegram ? metadata.telegram : 'LFG');
+      const websiteByteArray = byteArray.byteArrayFromString(metadata?.website ? metadata.website : 'LFG');
       const nostrEventIdUint = uint256.bnToUint256(`0x${metadata?.nostr_event_id}`); // Recipient nostr pubkey
       const metadataLaunch = {
         token_address: metadata?.token_address ?? account?.address,
         url: urlMetadata,
-        nostr_event_id: nostrEventIdUint
+        nostr_event_id: nostrEventIdUint,
+        twitter: twitterByteArray,
+        github: githubByteArray,
+        telegram: telegramByteArray,
+        website: websiteByteArray,
       };
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
@@ -237,7 +261,7 @@ export const useCreateToken = () => {
           // contract_address_salt: new Date().getTime().toString(),
           contract_address_salt: cairo.felt(String(new Date().getTime() / 1000)),
           // is_unruggable: data?.is_unruggable
-          is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
+          // is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           bonding_type: bondingEnum,
           creator_fee_percent: creator_fee_percent,
           creator_fee_destination: creator_fee_destination,
