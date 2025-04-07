@@ -188,7 +188,7 @@ export const LabelsComponent: React.FC<ILabelComponentProps> = ({ labelsEventsPr
           <ActivityIndicator color={theme.colors.primary} size={20}></ActivityIndicator>
         )}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View >Selected Label: <Text style={styles.text}>{selectedLabel}</Text></View>
+          <View >Selected Label: <Text style={styles.text}>#{selectedLabel}</Text></View>
           {/* <Text style={styles.text}>Selected Label Namespace: {selectedLabelNamespace}</Text> */}
         </View>
         <FlatList
@@ -341,18 +341,6 @@ export const LabelsComponent: React.FC<ILabelComponentProps> = ({ labelsEventsPr
           }}
         /> */}
       </View>
-
-
-      {/* {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() && !publicKey && (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text>No users connected</Text>
-          <Button onPress={handleConnect}>
-            Connect
-          </Button>
-        </View>
-      )} */}
-
-
 
       {isInternalLabelFeedProps && (
         <TagsComponent tagName={selectedLabelProps ?? selectedLabel} />

@@ -1,5 +1,5 @@
 import {NDKKind} from '@nostr-dev-kit/ndk';
-import {useAllProfiles, useProfileTagsInterests, useSearchTag} from 'afk_nostr_sdk';
+import { useProfileTagsInterests, useSearchTag} from 'afk_nostr_sdk';
 import React, {useMemo} from 'react';
 import {
   ActivityIndicator,

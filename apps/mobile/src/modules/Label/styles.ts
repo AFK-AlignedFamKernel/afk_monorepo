@@ -9,7 +9,7 @@ export default ThemedStyleSheet((theme) => ({
   containerLabel: {
     flex: 1,
     backgroundColor: theme.colors.background,
-    maxHeight: 250,
+    maxHeight: 175,
   },
 
   backgroundImage: {
