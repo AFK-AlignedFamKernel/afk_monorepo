@@ -1121,3 +1121,27 @@ export function ArticleIcon(props: SvgProps) {
     </Svg>
   );
 }
+
+
+
+export function LabelTopicIcon(props: SvgProps) {
+  return (
+    <Svg
+      width={24}
+      height={24}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <Path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+      <Path d="M7 7h.01" />
+      <Path d="M12 17.5c0-2.76 2.24-5 5-5s5 2.24 5 5-2.24 5-5 5-5-2.24-5-5z" />
+      <Path d="M17 14.5v6" />
+      <Path d="M14 17.5h6" />
+    </Svg>
+  );
+}
