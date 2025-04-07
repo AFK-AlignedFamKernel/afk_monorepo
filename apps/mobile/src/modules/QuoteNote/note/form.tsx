@@ -59,7 +59,7 @@ export const FormQuoteNostr: React.FC<FormQuoteNostrProps> = ({
     quoteMutation.mutate(
       {
         // event, content: quoteContent, tags: [['e', event?.id ?? '', '', 'root', event?.pubkey ?? '']] 
-        event, content: quoteContent, tags: [['e', event?.id ?? '', '', 'root', event?.pubkey ?? '']]
+        event, content: quoteContent, tags: [['e', event?.id ?? '', '', 'root', event?.pubkey ?? ''], ['q', event?.id ?? '', '', 'root', event?.pubkey ?? '']]
       },
       {
         onSuccess() {
