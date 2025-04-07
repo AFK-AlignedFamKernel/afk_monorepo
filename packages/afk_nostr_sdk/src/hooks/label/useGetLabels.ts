@@ -44,7 +44,7 @@ export const useGetLabels = (options?: UseRootNotesOptions) => {
         kinds: options?.kinds ?? [NDKKind.Label],
         authors: options?.authors,
         search: options?.search,
-        since: sinceTimestamp,
+        // since: sinceTimestamp,
         until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit ?? 20,
       });
