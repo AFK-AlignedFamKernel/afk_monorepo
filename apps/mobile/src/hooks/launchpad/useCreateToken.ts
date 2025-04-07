@@ -57,7 +57,7 @@ export const useCreateToken = () => {
           contract_address_salt: cairo.felt(String(new Date().getTime() / 1000)),
           // contract_address_salt: new Date().getTime(),
           // is_unruggable: false,
-          is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
+          // is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
 
           // bonding_type:bondingEnum
           // contract_address_salt:CONTRACT_ADDRESS_SALT_DEFAULT + Math.random() + Math.random() / 1000

@@ -141,9 +141,17 @@ export const FormMetadataChildren: React.FC<LaunchCoinProps> = ({
   const [metadata, setMetadata] = useState<{
     url: string;
     nostr_event_id: string;
+    website: string;
+    twitter: string;
+    github: string;
+    telegram: string;
   }>({
     url: '',
     nostr_event_id: '',
+    website: '',
+    twitter: '',
+    github: '',
+    telegram: '',
   });
   const handleAddMetadata = async () => {
     if (!token?.memecoin_address && !launch?.token_address) {
@@ -210,7 +218,7 @@ export const FormMetadataChildren: React.FC<LaunchCoinProps> = ({
 
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Description</Text>
+              <Text style={styles.label}>Nostr event ID / pubkey linked</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="Nostr event id"
@@ -224,42 +232,107 @@ export const FormMetadataChildren: React.FC<LaunchCoinProps> = ({
               />
             </View>
 
+
+
+
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Media</Text>
+              <Text style={styles.label}>Website</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Website"
+                multiline
+                numberOfLines={4}
+                value={metadata.website}
+                onChangeText={(text) => {
+                  setMetadata({ ...metadata, website: text })
+                  setMetadataProps?.({ ...metadataProps, website: text })
+                }}
+              />
+            </View>
+
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Twitter</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Twitter"
+                multiline
+                numberOfLines={4}
+                value={metadata.twitter}
+                onChangeText={(text) => {
+                  setMetadata({ ...metadata, twitter: text })
+                  setMetadataProps?.({ ...metadataProps, twitter: text })
+                }}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Twitter</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Telegram"
+                multiline
+                numberOfLines={4}
+                value={metadata.telegram}
+                onChangeText={(text) => {
+                  setMetadata({ ...metadata, telegram: text })
+                  setMetadataProps?.({ ...metadataProps, telegram: text })
+                }}
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Github</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Github"
+                multiline
+                numberOfLines={4}
+                value={metadata.github}
+                onChangeText={(text) => {
+                  setMetadata({ ...metadata, github: text })
+                  setMetadataProps?.({ ...metadataProps, github: text })
+                }}
+              />
+            </View>
+
+                
+
+            <Text style={styles.label}>Media</Text>
 
 
 
-              {image && (
-                <View style={styles.imageContainer}>
-                  <Image
-                    source={{ uri: image.uri }}
-                    style={[styles.image, { aspectRatio: getImageRatio(image.width, image.height) }]}
-                  />
-                </View>
-              )}
+            {image && (
+              <View style={styles.imageContainer}>
+                <Image
+                  source={{ uri: image.uri }}
+                  style={[styles.image, { aspectRatio: getImageRatio(image.width, image.height) }]}
+                />
+              </View>
+            )}
 
-              {video && (
-                <View style={styles.videoContainer}>
-                  <VideoPlayer uri={video.uri} />
-                </View>
-              )}
+            {video && (
+              <View style={styles.videoContainer}>
+                <VideoPlayer uri={video.uri} />
+              </View>
+            )}
 
-              <View style={styles.mediaUpload}>
+            <View style={styles.mediaUpload}>
 
-                <View style={styles.mediaButtons}>
-                  {!video && (
-                    <Pressable onPress={onGalleryPress}>
-                      <GalleryIcon width="24" height="24" color={theme.colors.red} />
-                    </Pressable>
-                  )}
+              <View style={styles.mediaButtons}>
+                {!video && (
+                  <Pressable onPress={onGalleryPress}>
+                    <GalleryIcon width="24" height="24" color={theme.colors.red} />
+                  </Pressable>
+                )}
 
-                  {!image && (
-                    <Pressable onPress={handleVideoSelect}>
-                      <VideoIcon width="30" height="30" color={theme.colors.red} />
-                    </Pressable>
-                  )}
-                </View>
-                {/* <TouchableOpacity
+                {!image && (
+                  <Pressable onPress={handleVideoSelect}>
+                    <VideoIcon width="30" height="30" color={theme.colors.red} />
+                  </Pressable>
+                )}
+              </View>
+              {/* <TouchableOpacity
                     style={styles.uploadButton}
                     onPress={() => {
                       // Handle media upload
@@ -267,35 +340,33 @@ export const FormMetadataChildren: React.FC<LaunchCoinProps> = ({
                   >
                     <Text style={styles.uploadButtonText}>Upload Image/Video</Text>
                   </TouchableOpacity> */}
-              </View>
             </View>
+          </View>
 
-            <View style={styles.buttonGroup}>
+          <View style={styles.buttonGroup}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setIsModalVisible(false)}
+            >
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+
+            {isHandleMetadata &&
               <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setIsModalVisible(false)}
+                style={styles.submitButton}
+                onPress={() => {
+                  handleAddMetadata()
+                  // Handle form submission
+                  // setIsModalVisible(false);
+                }}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>Submit</Text>
               </TouchableOpacity>
+            }
 
-              {isHandleMetadata &&
-                <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={() => {
-                    handleAddMetadata()
-                    // Handle form submission
-                    // setIsModalVisible(false);
-                  }}
-                >
-                  <Text style={styles.buttonText}>Submit</Text>
-                </TouchableOpacity>
-              }
-
-            </View>
           </View>
         </ScrollView>
       )}
-
-    </View >
+    </View>
   );
 };

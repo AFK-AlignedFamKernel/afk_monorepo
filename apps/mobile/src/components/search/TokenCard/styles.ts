@@ -80,8 +80,10 @@ export default (theme: any) =>
     },
     label: {
       color: theme.colors.textSecondary,
-      fontSize: 14,
-      minWidth: 100,
+      fontSize: 18,
+      // minWidth: 100,
+      fontWeight:"bold",
+      fontStyle:"italic"
     },
     value: {
       color: theme.colors.text,
@@ -106,7 +108,11 @@ export default (theme: any) =>
       backgroundColor: theme.colors.cardBg,
       padding: 12,
       borderRadius: 8,
-      marginBottom: 10,
+      marginBottom: 10, 
+      borderWidth: 1,
+      borderColor: theme.colors.border, 
+      color: theme.colors.text,
+      maxHeight: 100,
     },
     buttonGroup: {
       flexDirection: 'row',
