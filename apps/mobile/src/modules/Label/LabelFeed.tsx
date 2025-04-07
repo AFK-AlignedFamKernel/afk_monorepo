@@ -15,7 +15,8 @@ import { useNavigation } from '@react-navigation/native';
 import { ArticleCard } from '../ArticleCard';
 import ArticleSearchComponent from 'src/components/search/ArticleSearch';
 import { LabelsComponent } from './LabelsComponent';
-
+import { TagsComponent } from 'src/screens/Tags/TagsComponent';
+import { TAGS_DEFAULT } from 'common';
 export const LabelFeed: React.FC = () => {
 
   const navigation = useNavigation<MainStackNavigationProps>();
@@ -209,7 +210,7 @@ export const LabelFeed: React.FC = () => {
   const filtedNotesCallback = useCallback(async () => {
     return filteredNotes();
   }, [notes.data?.pages, search, activeSortBy, publicKey, contacts?.data, followersPubkey]);
- 
+
   // Filter notes based on the search query
   useEffect(() => {
     filteredNotes();
@@ -222,152 +223,32 @@ export const LabelFeed: React.FC = () => {
     await handleCheckNostrAndSendConnectDialog()
   };
 
+  const [labelsEvents, setLabelsEvents] = useState<NDKEvent[]>([]);
+  const [labelsNamespaces, setLabelsNamespaces] = useState<string[]>([]);
+  const [labelsNames, setLabelsNames] = useState<string[]>(TAGS_DEFAULT);
+  const [myLabels, setMyLabels] = useState<NDKEvent[]>([]);
+  const [selectedLabel, setSelectedLabel] = useState<string | undefined>("bitcoin");
+  const [selectedLabelNamespace, setSelectedLabelNamespace] = useState<string | undefined>("bitcoin");
+
   return (
     <View style={styles.container}>
-      <LabelsComponent></LabelsComponent>
-{/* 
-      <ArticleSearchComponent
-        setSearchQuery={setSearch}
-        searchQuery={search ?? ''}
-        kinds={kinds}
-        setKinds={setKinds}
-        setSortBy={setSortBy}
-        sortBy={activeSortBy}
-      /> */}
 
-      {notes?.isFetching && (
-        <ActivityIndicator color={theme.colors.primary} size={20}></ActivityIndicator>
-      )}
-
-      {/* {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() && !publicKey && (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text>No users connected</Text>
-          <Button onPress={handleConnect}>
-            Connect
-          </Button>
-        </View>
-      )} */}
-
-
-      {
-        publicKey &&
-        activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() || forYouNotes?.length == 0 && !notesForYou?.isFetching
-        && notesForYou?.data?.pages?.length == 0
-        && !notesForYou?.isFetching
-        && (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text
-              style={{
-                color: theme.colors.text,
-              }}
-            >
-              No articles found
-            </Text>
-            <Text
-              style={{
-                color: theme.colors.text,
-              }}
-            >
-              Try to refresh the page or contact the support please!
-            </Text>
-          </View>
-        )}
-      {!notes?.isLoading ||
-        (!notes?.isFetching && notes?.data?.pages?.length == 0 && (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text
-              style={{
-                color: theme.colors.text,
-              }}
-            >
-              No Articles found
-            </Text>
-            <Text
-              style={{
-                color: theme.colors.text,
-              }}
-            >
-              Try to refresh the page or contact the support please!
-            </Text>
-          </View>
-        ))}
-
-      <FlatList
-
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        // ListHeaderComponent={
-        //   <>
-        //     <FlatList
-        //       contentContainerStyle={styles.stories}
-        //       horizontal
-        //       data={profilesSearch}
-        //       showsHorizontalScrollIndicator={false}
-        //       onEndReached={() => profiles.fetchNextPage()}
-        //       refreshControl={
-        //         <RefreshControl
-        //           refreshing={profiles.isFetching}
-        //           onRefresh={() => profiles.refetch()}
-        //         />
-        //       }
-        //       ItemSeparatorComponent={() => <View style={styles.storySeparator} />}
-        //       renderItem={({item}) => <BubbleUser event={item} />}
-        //     />
-        //   </>
-        // }
-        contentContainerStyle={styles.flatListContent}
-        // data={feedData}
-        data={activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() ? forYouNotes : feedData}
-        // data={filteredNotes}
-        keyExtractor={(item) => item?.id}
-        renderItem={({ item }) => {
-          if (item.kind === NDKKind.Article) {
-            return <ArticleCard event={item} isArticle={true} />;
-          }
-          // if (item.kind === NDKKind.ChannelCreation || item.kind === NDKKind.ChannelMetadata) {
-          //   return <ChannelComponent event={item} />;
-          // } else if (item.kind === NDKKind.ChannelMessage) {
-          //   return <PostCard event={item}
-          //     isReplyView={true}
-          //   />;
-          // } else if (item.kind === NDKKind.VerticalVideo || item.kind === NDKKind.HorizontalVideo) {
-          //   return <VideoPostCard event={item} />;
-          // } else if (item.kind === NDKKind.Text) {
-          //   return <PostCard event={item} isReplyView={true} />;
-          // }
-          // else if (item.kind === 30311) {
-
-          //   if (item?.identifier) {
-          //     return <RenderEventCard
-          //       handleNavigateToStreamView={() => handleNavigateToStreamView(item?.identifier)}
-          //       streamKey={item?.identifier}
-          //       handleNavigation={() => handleNavigate(item?.identifier)}
-          //       pubKey={publicKey}
-          //       event={item}
-          //     />
-          //   }
-          //   else {
-          //     return <></>
-          //   }
-          // }
-          return <></>;
-        }}
-        refreshControl={
-          <RefreshControl refreshing={notes.isFetching} onRefresh={() => notes.refetch()} />
-        }
-        onEndReached={() => {
-          if (activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString()) {
-            notesForYou.fetchNextPage();
-          }
-          else if (activeSortBy === SORT_OPTION_EVENT_NOSTR.TRENDING?.toString()) {
-            notes.fetchNextPage();
-            notesForYou.fetchNextPage();
-          } else {
-            notes.fetchNextPage();
-          }
-        }}
-      // onEndReached={() => notes.fetchNextPage()}
+      <LabelsComponent
+        labelsEventsProps={labelsEvents}
+        labelsNamespacesProps={labelsNamespaces}
+        labelsNamesProps={labelsNames}
+        setLabelsNamespacesProps={setLabelsNamespaces}
+        setLabelsNamesProps={setLabelsNames}
+        setMyLabelsProps={setMyLabels}
+        selectedLabelProps={selectedLabel}
+        setSelectedLabelProps={setSelectedLabel}
+        selectedLabelNamespaceProps={selectedLabelNamespace}
+        setSelectedLabelNamespaceProps={setSelectedLabelNamespace}
+        isInternalLabelFeedProps={true}
       />
+
+
+      {/* <TagsComponent tagName={selectedLabel} /> */}
 
       <Pressable
         style={styles.createPostButton}

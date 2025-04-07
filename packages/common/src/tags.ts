@@ -1,0 +1,28 @@
+export const TAGS_DEFAULT= [
+    "bitcoin",
+    "nostr",
+    "freedom",
+    "privacy",
+    "p2p",
+    "cashu",
+    "lightning",
+    "lightning network",
+    "memes",
+    "art",
+    "zk",
+    // "zero-knowledge-proof",
+    // "zkp",
+    "crypto",
+    "cryptography",
+    "math",
+    "ordinals",
+    "runes",
+    "music",
+    "blockchain",
+    "web3",
+    "defi",
+    "nft",
+    "economics",
+    "finance"
+    
+]

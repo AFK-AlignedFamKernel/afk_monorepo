@@ -6,6 +6,11 @@ export default ThemedStyleSheet((theme) => ({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
+  containerLabel: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    maxHeight: 250,
+  },
 
   backgroundImage: {
     position: 'absolute',
@@ -15,13 +20,22 @@ export default ThemedStyleSheet((theme) => ({
     height: '100%',
   },
 
+  flatListContentLabel: {
+    marginTop: 10,
+    paddingHorizontal: 25,
+    scrollbarWidth: "none",
+    scrollbarHeight: "none",
+    height: '100%',
+    maxHeight: 250,
+  },
+
   flatListContent: {
     marginTop: 10,
     paddingHorizontal: 25,
     scrollbarWidth: "none",
     scrollbarHeight: "none",
+    height: '100%',
   },
-
   createPostButton: {
     position: 'absolute',
     bottom: Spacing.large,
@@ -40,6 +54,11 @@ export default ThemedStyleSheet((theme) => ({
   },
   storySeparator: {
     width: Spacing.medium,
+  },
+  text: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.text,
   },
 
   // stories: {
