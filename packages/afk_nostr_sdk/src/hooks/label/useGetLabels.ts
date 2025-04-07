@@ -36,8 +36,8 @@ export const useGetLabels = (options?: UseRootNotesOptions) => {
     queryFn: async ({ pageParam }) => {
 
       const sinceTimestamp = pageParam
-        ? pageParam - 1 * 60 * 60 * 24 :// Restart from pageParam minus 1 hour
-        Math.round(Date.now() / 1000) - 1 * 60 * 60 * 24 * 31; // Start from 1 hour ago
+        ? pageParam - 1 * 60 * 60 * 24 * 31 :// Restart from pageParam minus 1 month
+        Math.round(Date.now() / 1000) - 1 * 60 * 60 * 24 * 31; // Start from 1 month ago
 
 
       const notes = await ndk.fetchEvents({

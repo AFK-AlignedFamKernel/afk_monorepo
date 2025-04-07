@@ -49,20 +49,15 @@ export const LabelsComponent: React.FC<ILabelComponentProps> = ({ labelsEventsPr
   const { publicKey } = useAuth();
   const { ndk } = useNostrContext();
   const styles = useStyles(stylesheet);
-  const profiles = useAllProfiles({ limit: 10 });
   const myLabelsEvents = useGetLabels({
     authors: [publicKey],
     kinds: [NDKKind.Label],
-    limit: 10,
+    limit: 20,
   });
-  console.log("myLabelsEvents", myLabelsEvents);
   const labels = useGetLabels({
     kinds: [NDKKind.Label],
     limit: 20,
   });
-
-  console.log("labelsEventsProps", labelsEventsProps);
-  console.log("labels", labels?.data?.pages?.flat());
 
   const [labelsNamespaces, setLabelsNamespaces] = useState<string[]>(labelsNamespacesProps ?? []);
   const [labelsNames, setLabelsNames] = useState<string[]>(labelsNamesProps ?? []);
@@ -89,36 +84,61 @@ export const LabelsComponent: React.FC<ILabelComponentProps> = ({ labelsEventsPr
 
   const [labelsData, setLabelsData] = useState<ILabelData[]>([]);
 
-  useEffect(() => {
-    console.log("TAGS_DEFAULT", TAGS_DEFAULT);
-
-    const handleLabels = () => {
+  const [isFetchtedOneTime, setIsFetchtedOneTime] = useState(false);
+  const [isScrapingNeeded, setIsScrapingNeeded] = useState(false);
+  const handleLabels = () => {
+  
+    try {
       const labelsNamespacesFind = labels?.data?.pages?.flat().map((label) => {
         return label?.tags?.find((tag: string[]) => tag[0] === 'L');
       });
-      setLabelsNamespaces([...labelsNamespaces, ...labelsNamespacesFind]);
+  
+      const newLabelsNamespaces = labelsNamespacesFind.map((item) => item?.[1]);
+      const uniqueLabelsNamespaces = [...new Set([...labelsNamespaces, ...newLabelsNamespaces])];
+      setLabelsNamespaces(uniqueLabelsNamespaces);
       if (setLabelsNamespacesProps) {
-        setLabelsNamespacesProps(labelsNamespaces);
+        setLabelsNamespacesProps(uniqueLabelsNamespaces);
       }
-
+  
       const labelsNamesFind = labels?.data?.pages?.flat().map((label) => {
         return label?.tags?.find((tag: string[]) => tag[0] === 'l');
       });
-      setLabelsNames([...labelsNames, ...labelsNamesFind]);
+      const newLabelsNames = labelsNamesFind.map((item) => item?.[1]);
+      const uniqueLabelsNames = [...new Set([...labelsNames, ...newLabelsNames])];
+      setLabelsNames(uniqueLabelsNames);
       if (setLabelsNamesProps) {
-        setLabelsNamesProps(labelsNames);
+        setLabelsNamesProps(uniqueLabelsNames);
       }
-
+  
       const myLabelsFind = myLabelsEvents?.data?.pages?.flat().map((label) => {
         return label?.tags?.find((tag: string[]) => tag[0] === 'l');
       });
-      setMyLabels([...myLabels, ...myLabelsFind]);
+      const newMyLabels = myLabelsFind.map((item) => item?.[1]);
+      const uniqueMyLabels = [...new Set([...myLabels, ...newMyLabels])];
+      setMyLabels(uniqueMyLabels);
       if (setMyLabelsProps) {
-        setMyLabelsProps(myLabels);
+        setMyLabelsProps(uniqueMyLabels);
       }
+      setIsFetchtedOneTime(true);
+      setIsScrapingNeeded(false);
+    } catch (error) {
+      console.log("error", error);
     }
-    // handleLabels();
-  }, [labels, myLabels]);
+    finally {
+      setIsFetchtedOneTime(true);
+      setIsScrapingNeeded(false);
+    }
+  }
+
+
+  useEffect(() => {
+
+
+    if ((labels?.isFetched && !isFetchtedOneTime) || isScrapingNeeded) {
+      // if ((labels?.isFetched && !isFetchtedOneTime) || isScrapingNeeded) {
+      handleLabels();
+    }
+  }, [labels, myLabels, isFetchtedOneTime, isScrapingNeeded]);
 
   const handleAddLabel = (labelNamespace: string, labelName: string, label: NDKEvent) => {
     console.log("handleAddLabel")
@@ -149,29 +169,8 @@ export const LabelsComponent: React.FC<ILabelComponentProps> = ({ labelsEventsPr
     }
   }
 
-
-  const profilesSearch =
-    profiles?.data?.pages?.flat() ??
-    //   .filter((item) => (search && search?.length > 0 ? item?.content?.includes(search) : true)) ??
-    [];
-
-
-  const handleNavigate = (id: string) => {
-    navigation.navigate('WatchStream', { streamId: id });
-  };
-
-  const handleNavigateToStreamView = (id: string) => {
-    navigation.navigate('ViewStreamGuest', { streamId: id });
-  };
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
 
-  const handleConnect = async () => {
-    // navigation.navigate('MainStack', { screen: 'Settings' });
-    await handleCheckNostrAndSendConnectDialog()
-  };
-
-
-  console.log('articlesfeedData', feedData);
   return (
     <View style={styles.container}>
       {/* <ArticleSearchComponent
@@ -184,9 +183,9 @@ export const LabelsComponent: React.FC<ILabelComponentProps> = ({ labelsEventsPr
       /> */}
 
       <View style={styles.flatListContentLabel}>
-        {labels?.isFetching && (
+        {/* {labels?.isFetching && (
           <ActivityIndicator color={theme.colors.primary} size={20}></ActivityIndicator>
-        )}
+        )} */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View >Selected Label: <Text style={styles.text}>#{selectedLabel}</Text></View>
           {/* <Text style={styles.text}>Selected Label Namespace: {selectedLabelNamespace}</Text> */}
@@ -228,7 +227,7 @@ export const LabelsComponent: React.FC<ILabelComponentProps> = ({ labelsEventsPr
                 }}
                 // onPress={() => { handleAddLabel(labelNamespace, labelName, item) }}
                 >
-                  {item && item != "#t" && (
+                  {item && (
                     <Text style={{
                       color: theme.colors.text,
                       fontSize: 14,
@@ -259,8 +258,11 @@ export const LabelsComponent: React.FC<ILabelComponentProps> = ({ labelsEventsPr
             <RefreshControl refreshing={labels.isFetching} onRefresh={() => labels.refetch()} />
           }
           onEndReached={() => {
+       
             labels.fetchNextPage();
-
+            labels.refetch();
+            setIsFetchtedOneTime(false);
+            setIsScrapingNeeded(true);
           }}
         />
         {/* <FlatList
