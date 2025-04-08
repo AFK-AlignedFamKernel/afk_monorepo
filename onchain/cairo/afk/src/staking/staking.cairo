@@ -2,13 +2,13 @@
 pub mod StakingComponent {
     use core::num::traits::Zero;
     use core::starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use core::starknet::{
-        ContractAddress, get_block_timestamp, contract_address_const, get_caller_address,
-        get_contract_address
+        ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
-    use crate::staking::interfaces::{IStaking, IERC20Dispatcher, IERC20DispatcherTrait};
+    use crate::staking::interfaces::{IERC20Dispatcher, IERC20DispatcherTrait, IStaking};
 
     const ONE_E18: u256 = 1000000000000000000_u256;
 
@@ -33,25 +33,25 @@ pub mod StakingComponent {
     pub enum Event {
         StakedSuccessful: StakedSuccessful,
         WithdrawalSuccessful: WithdrawalSuccessful,
-        RewardsWithdrawn: RewardsWithdrawn
+        RewardsWithdrawn: RewardsWithdrawn,
     }
 
     #[derive(Drop, starknet::Event)]
     struct StakedSuccessful {
         user: ContractAddress,
-        amount: u256
+        amount: u256,
     }
 
     #[derive(Drop, starknet::Event)]
     struct WithdrawalSuccessful {
         user: ContractAddress,
-        amount: u256
+        amount: u256,
     }
 
     #[derive(Drop, starknet::Event)]
     struct RewardsWithdrawn {
         user: ContractAddress,
-        amount: u256
+        amount: u256,
     }
 
     pub mod Errors {
@@ -66,7 +66,7 @@ pub mod StakingComponent {
 
     #[embeddable_as(StakingImpl)]
     impl Staking<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
     > of IStaking<ComponentState<TContractState>> {
         fn set_rewards_duration(ref self: ComponentState<TContractState>, duration: u256) {
             let caller = get_caller_address();
@@ -108,7 +108,7 @@ pub mod StakingComponent {
             assert(
                 self.reward_rate.read()
                     * self.duration.read() <= rewards_token.balance_of(this_contract),
-                Errors::REWARD_AMOUNT_GREATER_THAN_CONTRACT_BALANCE
+                Errors::REWARD_AMOUNT_GREATER_THAN_CONTRACT_BALANCE,
             );
 
             self.finish_at.write(get_block_timestamp().try_into().unwrap() + self.duration.read());
@@ -231,7 +231,7 @@ pub mod StakingComponent {
         }
 
         fn user_reward_per_token_paid(
-            self: @ComponentState<TContractState>, user: ContractAddress
+            self: @ComponentState<TContractState>, user: ContractAddress,
         ) -> u256 {
             self.user_reward_per_token_paid.entry(user).read()
         }
@@ -259,7 +259,7 @@ pub mod StakingComponent {
 
     #[generate_trait]
     pub impl InternalImpl<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
     > of InternalTrait<TContractState> {
         /// Initializes the contract by setting the owner, staking_token and reward_token.
         /// To prevent reinitialization, this should only be used inside of a contract's
@@ -268,7 +268,7 @@ pub mod StakingComponent {
             ref self: ComponentState<TContractState>,
             owner: ContractAddress,
             staking_token: ContractAddress,
-            reward_token: ContractAddress
+            reward_token: ContractAddress,
         ) {
             self.owner.write(owner);
             self.staking_token.write(staking_token);

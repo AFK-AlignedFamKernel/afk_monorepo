@@ -34,6 +34,29 @@ impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
         @format!("link to {:?}", recipient_address_user_felt)
     }
 }
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
+struct LinkedThisNostrNote {
+    nostr_address: NostrPublicKey,
+    nostr_event_id: NostrPublicKey,
+    starknet_address: ContractAddress,
+    // Add NIP-05 and stats profil after. Gonna write a proposal for it
+}
+
+
+// TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
+impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
+    fn encode(self: @LinkedStarknetAddress) -> @ByteArray {
+        let recipient_address_user_felt: felt252 = self
+            .starknet_address
+            .clone()
+            .try_into()
+            .unwrap();
+
+        @format!("link to {:?}", recipient_address_user_felt)
+    }
+}
+
 impl LinkedStarknetAddressImpl of ConvertToBytes<LinkedStarknetAddress> {
     fn convert_to_bytes(self: @LinkedStarknetAddress) -> ByteArray {
         let mut ba: ByteArray = "";
@@ -49,7 +72,7 @@ pub enum LinkedResult {
 }
 
 #[starknet::interface]
-pub trait INamespace<TContractState> {
+pub trait INostrFiScoring<TContractState> {
     // Getters
     fn get_nostr_by_sn_default(
         self: @TContractState, nostr_public_key: NostrPublicKey,
@@ -63,9 +86,12 @@ pub trait INamespace<TContractState> {
         ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
     );
     // User
-    fn linked_nostr_default_account(
+    fn linked_nostr_profile(
         ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>,
     );
+
+    fn linked_nostr_note(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
+    fn linked_this_nostr_note(ref self: TContractState, request: SocialRequest<LinkedThisNostrNote>);
     // // External call protocol
 // fn protocol_linked_nostr_default_account(
 //     ref self: TContractState,
@@ -75,7 +101,7 @@ pub trait INamespace<TContractState> {
 }
 
 #[starknet::contract]
-pub mod Namespace {
+pub mod NostrFiScoring {
     use afk::bip340;
     use afk::bip340::{SchnorrSignature, Signature};
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
@@ -84,7 +110,7 @@ pub mod Namespace {
     use openzeppelin::introspection::src5::SRC5Component;
     use starknet::account::Call;
     use starknet::storage::{
-        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,  Vec, VecTrait, MutableVecTrait,
     };
     use starknet::{
         ContractAddress, get_block_timestamp, get_caller_address, get_contract_address, get_tx_info,
@@ -115,10 +141,34 @@ pub mod Namespace {
         }
     }
 
+    impl LinkedThisNostrNoteDefault of Default<LinkedThisNostrNote> {
+        #[inline(always)]
+        fn default() -> LinkedThisNostrNote {
+            LinkedThisNostrNote {
+                starknet_address: 0.try_into().unwrap(),
+                nostr_address: 0.try_into().unwrap(),
+                nostr_event_id: 0.try_into().unwrap(),
+            }
+        }
+    }
+
+    struct NostrFiAdminStorage {
+        quote_token_address: ContractAddress,
+        is_paid_storage_pubkey_profile: bool,
+        is_paid_storage_event_id: bool,
+        amount_paid_storage_pubkey_profile: u256,
+        amount_paid_storage_event_id: u256,
+    }
+
     #[storage]
     struct Storage {
         nostr_to_sn: Map<NostrPublicKey, ContractAddress>,
         sn_to_nostr: Map<ContractAddress, NostrPublicKey>,
+        nostr_event_id_to_sn: Map<NostrPublicKey, ContractAddress>,
+        sn_to_nostr_event_id: Map<ContractAddress, NostrPublicKey>,
+        events_by_user:Map<ContractAddress, Vec<LinkedThisNostrNote>>,
+        events_by_nostr_user:Map<NostrPublicKey, Vec<LinkedThisNostrNote>>,
+        admin_storage: NostrFiAdminStorage,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -127,6 +177,14 @@ pub mod Namespace {
 
     #[derive(Drop, starknet::Event)]
     struct LinkedDefaultStarknetAddressEvent {
+        #[key]
+        nostr_address: NostrPublicKey,
+        #[key]
+        starknet_address: ContractAddress,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct LinkedNoteToCheckEvent {
         #[key]
         nostr_address: NostrPublicKey,
         #[key]
@@ -161,7 +219,7 @@ pub mod Namespace {
     }
 
     #[abi(embed_v0)]
-    impl NamespaceImpl of INamespace<ContractState> {
+    impl NostrFiScoringImpl of INostrFiScoring<ContractState> {
         // Admin
         // Add OPERATOR role to the Deposit escrow
         fn set_control_role(
@@ -197,10 +255,8 @@ pub mod Namespace {
 
 
         // Create list getter
-
         // User request with a Nostr event
-
-        fn linked_nostr_default_account(
+        fn linked_nostr_profile(
             ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
         ) {
             let profile_default = request.content.clone();
@@ -217,23 +273,40 @@ pub mod Namespace {
                     },
                 );
         }
-        // Protocol request with OPERATOR_ROLE
-    // Call by Deposit Escrow at this stage in claim or deposit functions
-    // fn protocol_linked_nostr_default_account(
-    //     ref self: ContractState,
-    //     nostr_public_key: NostrPublicKey,
-    //     starknet_address: ContractAddress
-    // ) {
-    //     self.accesscontrol.assert_only_role(OPERATOR_ROLE);
-    //     self.nostr_to_sn.write(nostr_public_key, starknet_address);
-    //     self
-    //         .emit(
-    //             LinkedDefaultStarknetAddressEvent {
-    //                 nostr_address: nostr_public_key, starknet_address,
-    //             }
-    //         );
-    // }
 
+
+        fn linked_nostr_note(
+            ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
+        ) {
+            let note_default = request.content.clone();
+            let starknet_address: ContractAddress = note_default.starknet_address;
+
+            assert!(starknet_address == get_caller_address(), "invalid caller");
+            request.verify().expect('can\'t verify signature');
+            self.nostr_to_sn.entry(request.public_key).write(note_default.starknet_address);
+            self.sn_to_nostr.entry(note_default.starknet_address).write(request.public_key);
+            self
+                .emit(
+                    LinkedNoteToCheckEvent { nostr_address: request.public_key, starknet_address },
+                );
+        }
+
+
+        fn linked_this_nostr_note(
+            ref self: ContractState, request: SocialRequest<LinkedThisNostrNote>,
+        ) {
+            let note_default = request.content.clone();
+            let starknet_address: ContractAddress = note_default.starknet_address;
+            let nostr_event_id: NostrPublicKey = note_default.nostr_event_id;
+            assert!(starknet_address == get_caller_address(), "invalid caller");
+            request.verify().expect('can\'t verify signature');
+            self.nostr_to_sn.entry(request.public_key).write(note_default.starknet_address);
+            self.sn_to_nostr.entry(note_default.starknet_address).write(request.public_key);
+            self
+                .emit(
+                    LinkedNoteToCheckEvent { nostr_address: request.public_key, starknet_address },
+                );
+        }
     }
 }
 
@@ -255,22 +328,22 @@ mod tests {
     use super::super::request::{Encode, SocialRequest};
     use super::super::transfer::Transfer;
     use super::{
-        AddressId, INamespace, INamespaceDispatcher, INamespaceDispatcherTrait, LinkedResult,
+        AddressId, INamespace, INostrFiScoring, INostrFiScoringTrait, LinkedResult,
         LinkedStarknetAddress, LinkedWalletProfileDefault, NostrPublicKey,
     };
 
     fn declare_namespace() -> ContractClass {
         // declare("Namespace").unwrap().contract_class()
-        *declare("Namespace").unwrap().contract_class()
+        *declare("NostrFiScoring").unwrap().contract_class()
     }
 
-    fn deploy_namespace(class: ContractClass) -> INamespaceDispatcher {
+    fn deploy_namespace(class: ContractClass) -> INostrFiScoringDispatcher {
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
         let mut calldata = array![];
         ADMIN_ADDRESS.serialize(ref calldata);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
 
-        INamespaceDispatcher { contract_address }
+        INostrFiScoringDispatcher { contract_address }
     }
 
     fn request_fixture_custom_classes(
@@ -279,7 +352,7 @@ mod tests {
         SocialRequest<LinkedStarknetAddress>,
         NostrPublicKey,
         ContractAddress,
-        INamespaceDispatcher,
+        INostrFiScoringDispatcher,
         SocialRequest<LinkedStarknetAddress>,
     ) {
         // recipient private key: 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35
@@ -350,7 +423,7 @@ mod tests {
         SocialRequest<LinkedStarknetAddress>,
         NostrPublicKey,
         ContractAddress,
-        INamespaceDispatcher,
+        INostrFiScoringDispatcher,
         SocialRequest<LinkedStarknetAddress>,
     ) {
         let namespace_class = declare_namespace();

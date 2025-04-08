@@ -5,14 +5,12 @@ mod vault_test {
     use afk::interfaces::vault::{IERCVaultDispatcher, IERCVaultDispatcherTrait};
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::types::defi_types::{ // TokenPermitted, DepositUser,
-        MintDepositEvent, WithdrawDepositEvent
+        MintDepositEvent, WithdrawDepositEvent,
     };
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
-        stop_cheat_caller_address, spy_events, DeclareResultTrait, EventSpyAssertionsTrait
+        ContractClass, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, declare,
+        spy_events, start_cheat_caller_address, stop_cheat_caller_address,
     };
-
-
     use starknet::ContractAddress;
 
     fn ADMIN() -> ContractAddress {
@@ -33,7 +31,7 @@ mod vault_test {
 
     const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 
-    fn setup() -> (IERCVaultDispatcher, IERC20Dispatcher, IERC20Dispatcher,) {
+    fn setup() -> (IERCVaultDispatcher, IERC20Dispatcher, IERC20Dispatcher) {
         let erc20_mintable_class = declare("ERC20Mintable").unwrap().contract_class();
         let erc20_class = declare("ERC20").unwrap().contract_class();
 
@@ -54,14 +52,14 @@ mod vault_test {
 
         // set minter role in erc20 mintable token
         let abtc_mintable_dispathcer = IERC20MintableDispatcher {
-            contract_address: abtc_dispathcer.contract_address
+            contract_address: abtc_dispathcer.contract_address,
         };
 
         start_cheat_caller_address(abtc_dispathcer.contract_address, ADMIN());
         abtc_mintable_dispathcer.set_role(vaultDispatcher.contract_address, MINTER_ROLE, true);
         stop_cheat_caller_address(abtc_dispathcer.contract_address);
 
-        (vaultDispatcher, wbtc_dispathcer, abtc_dispathcer,)
+        (vaultDispatcher, wbtc_dispathcer, abtc_dispathcer)
     }
 
     fn deploy_erc20_mint(
@@ -88,7 +86,7 @@ mod vault_test {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        recipient: ContractAddress
+        recipient: ContractAddress,
     ) -> IERC20Dispatcher {
         let mut calldata = array![];
 
@@ -131,7 +129,8 @@ mod vault_test {
         stop_cheat_caller_address(vault_dispatcher.contract_address);
 
         assert(
-            wbtc_dispatcher.balance_of(vault_dispatcher.contract_address) == amount, 'wrong balance'
+            wbtc_dispatcher.balance_of(vault_dispatcher.contract_address) == amount,
+            'wrong balance',
         );
         // assert(
         //     wbtc_dispatcher.balance_of(CALLER()) == caller_initial_balance - amount, 'wrong
@@ -151,11 +150,11 @@ mod vault_test {
 
         assert(
             abtc_dispatcher.balance_of(CALLER()) == caller_init_aBTC_balance - amount,
-            'wrong balance'
+            'wrong balance',
         );
         assert(
             wbtc_dispatcher.balance_of(CALLER()) == caller_init_wBTC_balance + amount,
-            'wrong balance'
+            'wrong balance',
         );
 
         let expected_deposit_event = Event::MintDepositEvent(
@@ -164,7 +163,7 @@ mod vault_test {
                 token_deposited: wbtc_dispatcher.contract_address,
                 amount_deposit: amount,
                 mint_receive: amount,
-            }
+            },
         );
 
         let expected_withdraw_event = Event::WithdrawDepositEvent(
@@ -174,23 +173,23 @@ mod vault_test {
                 amount_deposit: amount,
                 mint_receive: amount,
                 mint_to_get_after_poolin: 0,
-                pooling_interval: 1_64
-            }
+                pooling_interval: 1_64,
+            },
         );
 
         spy
             .assert_emitted(
                 @array![
                     (vault_dispatcher.contract_address, expected_deposit_event),
-                    (vault_dispatcher.contract_address, expected_withdraw_event)
-                ]
+                    (vault_dispatcher.contract_address, expected_withdraw_event),
+                ],
             );
     }
 
     #[test]
     #[should_panic(expected: ('Non permitted token',))]
     fn test_mint_by_token_with_non_permitted_token() {
-        let (vault_dispatcher, wbtc_dispatcher, _,) = setup();
+        let (vault_dispatcher, wbtc_dispatcher, _) = setup();
 
         start_cheat_caller_address(vault_dispatcher.contract_address, CALLER());
         vault_dispatcher.mint_by_token(wbtc_dispatcher.contract_address, 200);
@@ -199,7 +198,7 @@ mod vault_test {
     #[test]
     #[should_panic(expected: ('Non permitted token',))]
     fn test_withdraw_coin_by_token_with_non_permitted_token() {
-        let (vault_dispatcher, wbtc_dispatcher, _,) = setup();
+        let (vault_dispatcher, wbtc_dispatcher, _) = setup();
 
         start_cheat_caller_address(vault_dispatcher.contract_address, CALLER());
         vault_dispatcher.withdraw_coin_by_token(wbtc_dispatcher.contract_address, 200);
@@ -207,14 +206,14 @@ mod vault_test {
 
     #[test]
     fn test_set_token_permitted() {
-        let (vault_dispatcher, wbtc_dispatcher, _,) = setup();
+        let (vault_dispatcher, wbtc_dispatcher, _) = setup();
 
         start_cheat_caller_address(vault_dispatcher.contract_address, ADMIN());
         vault_dispatcher.set_token_permitted(wbtc_dispatcher.contract_address, 2_u256, true, 1_64);
 
         assert(
             vault_dispatcher.is_token_permitted(wbtc_dispatcher.contract_address),
-            'token should be permitted'
+            'token should be permitted',
         );
         stop_cheat_caller_address(vault_dispatcher.contract_address);
     }
@@ -222,7 +221,7 @@ mod vault_test {
     #[test]
     #[should_panic(expected: ('Non permitted token',))]
     fn test_get_token_ratio_with_non_permitted_token() {
-        let (vault_dispatcher, _, abtc_dispatcher,) = setup();
+        let (vault_dispatcher, _, abtc_dispatcher) = setup();
 
         start_cheat_caller_address(vault_dispatcher.contract_address, CALLER());
         vault_dispatcher.get_token_ratio(abtc_dispatcher.contract_address);
@@ -230,7 +229,7 @@ mod vault_test {
 
     #[test]
     fn test_get_token_ratio() {
-        let (vault_dispatcher, wbtc_dispatcher, _,) = setup();
+        let (vault_dispatcher, wbtc_dispatcher, _) = setup();
         let ratio = 5;
 
         start_cheat_caller_address(vault_dispatcher.contract_address, ADMIN());

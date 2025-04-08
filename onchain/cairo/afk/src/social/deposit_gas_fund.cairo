@@ -1,8 +1,8 @@
-use core::fmt::{Display, Formatter, Error};
+use core::fmt::{Display, Error, Formatter};
 use core::to_byte_array::FormatAsByteArray;
 use core::traits::Into;
-use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
-use super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode, Signature};
+use starknet::{ContractAddress, get_caller_address, get_contract_address, get_tx_info};
+use super::request::{Encode, Signature, SocialRequest, SocialRequestImpl, SocialRequestTrait};
 
 pub type DepositId = felt252;
 
@@ -23,7 +23,7 @@ impl ClaimEncodeImpl of Encode<Claim> {
             self.deposit_id,
             recipient_address,
             gas_token_address,
-            *self.gas_amount
+            *self.gas_amount,
         )
     }
 }
@@ -33,7 +33,7 @@ type NostrPublicKey = u256;
 #[derive(Copy, Debug, Drop, Serde)]
 pub enum DepositResult {
     Transfer: ContractAddress,
-    Deposit: DepositId
+    Deposit: DepositId,
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
@@ -53,13 +53,13 @@ pub trait IDepositEscrowGasFund<TContractState> {
         amount: u256,
         token_address: ContractAddress,
         nostr_recipient: NostrPublicKey,
-        timelock: u64
+        timelock: u64,
     ) -> DepositResult;
     fn cancel(ref self: TContractState, deposit_id: DepositId);
     fn claim(ref self: TContractState, request: SocialRequest<Claim>, gas_amount: u256);
     fn get_starknet_address(self: @TContractState, nostr_pubkey: NostrPublicKey) -> ContractAddress;
     fn get_nostr_address(
-        self: @TContractState, starknet_address: ContractAddress
+        self: @TContractState, starknet_address: ContractAddress,
     ) -> NostrPublicKey;
 }
 
@@ -71,12 +71,11 @@ pub mod DepositEscrowGasFund {
     use core::num::traits::Zero;
     use starknet::account::Call;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-    use starknet::{get_block_timestamp, get_caller_address, get_contract_address, ContractAddress};
-    use super::super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait,};
-
-    use super::{Deposit, DepositId, DepositResult, IDepositEscrowGasFund, NostrPublicKey, Claim};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
+    use super::super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait};
+    use super::{Claim, Deposit, DepositId, DepositResult, IDepositEscrowGasFund, NostrPublicKey};
 
     impl DepositDefault of Default<Deposit> {
         #[inline(always)]
@@ -86,7 +85,7 @@ pub mod DepositEscrowGasFund {
                 amount: 0.into(),
                 token_address: 0.try_into().unwrap(),
                 recipient: 0_u256,
-                ttl: 0_u64
+                ttl: 0_u64,
             }
         }
     }
@@ -112,7 +111,7 @@ pub mod DepositEscrowGasFund {
         amount: u256,
         token_address: ContractAddress,
         gas_token_address: ContractAddress,
-        gas_amount: u256
+        gas_amount: u256,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -172,13 +171,13 @@ pub mod DepositEscrowGasFund {
         }
 
         fn get_nostr_address(
-            self: @ContractState, starknet_address: ContractAddress
+            self: @ContractState, starknet_address: ContractAddress,
         ) -> NostrPublicKey {
             self.sn_to_nostr.read(starknet_address)
         }
 
         fn get_starknet_address(
-            self: @ContractState, nostr_pubkey: NostrPublicKey
+            self: @ContractState, nostr_pubkey: NostrPublicKey,
         ) -> ContractAddress {
             self.nostr_to_sn.read(nostr_pubkey)
         }
@@ -188,7 +187,7 @@ pub mod DepositEscrowGasFund {
             amount: u256,
             token_address: ContractAddress,
             nostr_recipient: NostrPublicKey,
-            timelock: u64
+            timelock: u64,
         ) -> DepositResult {
             let recipient = self.nostr_to_sn.read(nostr_recipient);
 
@@ -202,8 +201,8 @@ pub mod DepositEscrowGasFund {
                             nostr_recipient,
                             starknet_recipient: recipient,
                             amount: amount,
-                            token_address: token_address
-                        }
+                            token_address: token_address,
+                        },
                     );
                 return DepositResult::Transfer(recipient);
             }
@@ -223,8 +222,8 @@ pub mod DepositEscrowGasFund {
                         amount,
                         token_address,
                         recipient: nostr_recipient,
-                        ttl: get_block_timestamp() + timelock
-                    }
+                        ttl: get_block_timestamp() + timelock,
+                    },
                 );
 
             DepositResult::Deposit(deposit_id)
@@ -235,7 +234,7 @@ pub mod DepositEscrowGasFund {
             assert!(deposit != Default::default(), "can't find deposit");
             assert!(deposit.sender == get_caller_address(), "not authorized");
             assert!(
-                deposit.ttl <= get_block_timestamp(), "can't cancel before timelock expiration"
+                deposit.ttl <= get_block_timestamp(), "can't cancel before timelock expiration",
             );
 
             let erc20 = IERC20Dispatcher { contract_address: deposit.token_address };
@@ -249,8 +248,8 @@ pub mod DepositEscrowGasFund {
                         sender: get_caller_address(),
                         nostr_recipient: deposit.recipient,
                         amount: deposit.amount,
-                        token_address: deposit.token_address
-                    }
+                        token_address: deposit.token_address,
+                    },
                 );
         }
 
@@ -283,8 +282,8 @@ pub mod DepositEscrowGasFund {
                         starknet_recipient: *claim.starknet_recipient,
                         token_address: deposit.token_address,
                         gas_token_address: *claim.gas_token_address,
-                        gas_amount: *claim.gas_amount
-                    }
+                        gas_amount: *claim.gas_amount,
+                    },
                 );
         }
     }
@@ -295,15 +294,16 @@ mod tests {
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::option::OptionTrait;
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
-        start_cheat_caller_address_global, stop_cheat_caller_address_global,
-        start_cheat_block_timestamp, DeclareResultTrait
+        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_block_timestamp,
+        start_cheat_caller_address, start_cheat_caller_address_global,
+        stop_cheat_caller_address_global,
     };
-    use starknet::{ContractAddress, get_block_timestamp,};
-
-    use super::super::request::{SocialRequest, Signature};
-    use super::{DepositResult, NostrPublicKey, Claim};
-    use super::{IDepositEscrowGasFundDispatcher, IDepositEscrowGasFundDispatcherTrait};
+    use starknet::{ContractAddress, get_block_timestamp};
+    use super::super::request::{Signature, SocialRequest};
+    use super::{
+        Claim, DepositResult, IDepositEscrowGasFundDispatcher, IDepositEscrowGasFundDispatcherTrait,
+        NostrPublicKey,
+    };
 
     fn declare_escrow() -> @ContractClass {
         declare("DepositEscrow").unwrap().contract_class()
@@ -326,7 +326,7 @@ mod tests {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        recipient: ContractAddress
+        recipient: ContractAddress,
     ) -> IERC20Dispatcher {
         let mut calldata = array![];
 
@@ -342,7 +342,7 @@ mod tests {
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, escrow_class: ContractClass
+        erc20_class: ContractClass, escrow_class: ContractClass,
     ) -> (
         SocialRequest<Claim>,
         NostrPublicKey,
@@ -369,7 +369,7 @@ mod tests {
             deposit_id: 1,
             starknet_recipient: recipient_address,
             gas_amount: 0,
-            gas_token_address: erc20.contract_address
+            gas_token_address: erc20.contract_address,
         };
 
         let request = SocialRequest {
@@ -380,8 +380,8 @@ mod tests {
             content: claim,
             sig: Signature {
                 r: 0xf1dac3f8d0d19767805ca85933bdf0e744594aeee04058eedaa29e26de087be9_u256,
-                s: 0x144c4636083c7d0e3b8186c8c0bc6fa38bd9c6a629ec6e2ce5e437797a6e911c_u256
-            }
+                s: 0x144c4636083c7d0e3b8186c8c0bc6fa38bd9c6a629ec6e2ce5e437797a6e911c_u256,
+            },
         };
 
         (request, recipient_public_key, sender_address, erc20, escrow)
@@ -428,7 +428,7 @@ mod tests {
         // Sender check
         assert!(
             sender_balance_before_deposit - amount == sender_balance_after_deposit,
-            "sender amount to deposit not send"
+            "sender amount to deposit not send",
         );
 
         // Recipient check
@@ -456,16 +456,16 @@ mod tests {
             deposit_id: 1,
             starknet_recipient: recipient_address,
             gas_amount: gas_amount,
-            gas_token_address: erc20.contract_address
+            gas_token_address: erc20.contract_address,
         };
 
         let request_gas_amount = SocialRequest {
             content: claim_gas_amount,
             sig: Signature {
                 r: 0x68e441c1f8756b5278c815cc110efb302c2a08bcf0349328ba7bd7683e8b0b29_u256,
-                s: 0xd592a5a5e9fc85334ab6801d6dde984c85d67fcd726fce38b9fb06874c25832e_u256
+                s: 0xd592a5a5e9fc85334ab6801d6dde984c85d67fcd726fce38b9fb06874c25832e_u256,
             },
-            ..request
+            ..request,
         };
 
         start_cheat_caller_address_global(sender_address);
@@ -486,7 +486,7 @@ mod tests {
         // Sender check
         assert!(
             sender_balance_before_deposit - amount == sender_balance_after_deposit,
-            "sender deposit amount not send"
+            "sender deposit amount not send",
         );
 
         // AFK account claim user for recipient with gas fees paid by the claim deposit
@@ -499,7 +499,7 @@ mod tests {
         assert!(recipient_balance_before_claim == 0, "recipient balance before claim != 0");
         assert!(
             recipient_balance_after_claim == amount - gas_amount,
-            "recipient after claim != (amount - gas)"
+            "recipient after claim != (amount - gas)",
         );
 
         // Check gas amount receive by AFK account

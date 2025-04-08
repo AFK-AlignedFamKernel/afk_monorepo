@@ -26,22 +26,21 @@ pub trait ISRC6<TState> {
 
 #[starknet::contract(account)]
 pub mod SocialAccount {
-    use afk::bip340::{SchnorrSignature};
     use afk::bip340;
+    use afk::bip340::SchnorrSignature;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
-        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls, // is_valid_stark_signature
+        MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls // is_valid_stark_signature
     };
     use core::num::traits::Zero;
     use starknet::account::Call;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-    use starknet::{get_caller_address, get_contract_address, get_tx_info, ContractAddress};
-    use super::ISRC6;
-    use super::super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
+    use starknet::{ContractAddress, get_caller_address, get_contract_address, get_tx_info};
+    use super::super::request::{Encode, SocialRequest, SocialRequestImpl, SocialRequestTrait};
     use super::super::transfer::Transfer;
-    use super::{ISocialAccountDispatcher, ISocialAccountDispatcherTrait};
+    use super::{ISRC6, ISocialAccountDispatcher, ISocialAccountDispatcherTrait};
     #[storage]
     struct Storage {
         #[key]
@@ -58,7 +57,7 @@ pub mod SocialAccount {
     #[derive(Drop, starknet::Event)]
     struct AccountCreated {
         #[key]
-        public_key: u256
+        public_key: u256,
     }
 
     #[constructor]
@@ -80,12 +79,12 @@ pub mod SocialAccount {
             assert!(erc20.symbol() == request.content.token, "wrong token");
 
             let recipient = ISocialAccountDispatcher {
-                contract_address: request.content.recipient_address
+                contract_address: request.content.recipient_address,
             };
 
             assert!(
                 recipient.get_public_key() == request.content.recipient.public_key,
-                "wrong recipient"
+                "wrong recipient",
             );
 
             if let Option::Some(id) = request.verify() {
@@ -122,7 +121,7 @@ pub mod SocialAccount {
         }
 
         fn is_valid_signature(
-            self: @ContractState, hash: felt252, signature: Array<felt252>
+            self: @ContractState, hash: felt252, signature: Array<felt252>,
         ) -> felt252 {
             self._is_valid_signature(hash, signature.span())
         }
@@ -131,7 +130,7 @@ pub mod SocialAccount {
     #[generate_trait]
     impl InternalImpl of InternalTrait {
         fn _is_valid_signature(
-            self: @ContractState, hash: felt252, signature: Span<felt252>
+            self: @ContractState, hash: felt252, signature: Span<felt252>,
         ) -> felt252 {
             let public_key = self.public_key.read();
 
@@ -154,33 +153,30 @@ pub mod SocialAccount {
 }
 #[cfg(test)]
 mod tests {
-    use afk::bip340::{SchnorrSignature as Signature};
+    use afk::bip340::SchnorrSignature as Signature;
     use afk::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use core::array::SpanTrait;
     use core::traits::Into;
     use snforge_std::{
         declare, ContractClass, ContractClassTrait, spy_events, // SpyOn,
-         EventSpy, // EventFetcher,
+        EventSpy, // EventFetcher,
         Event, // EventAssertions,
-         // cheat_transaction_hash_global,
+        // cheat_transaction_hash_global,
         // cheat_signature_global,
         // stop_cheat_transaction_hash_global, stop_cheat_signature_global,
-        DeclareResultTrait, EventSpyAssertionsTrait
+        DeclareResultTrait, EventSpyAssertionsTrait,
     };
     use starknet::{
-        ContractAddress, get_caller_address, get_contract_address, contract_address_const
+        ContractAddress, contract_address_const, get_caller_address, get_contract_address,
     };
     use super::super::profile::NostrProfile;
-
-    use super::super::request::{SocialRequest, Encode};
-
+    use super::super::request::{Encode, SocialRequest};
     use super::super::transfer::Transfer;
     use super::{
-        ISocialAccountDispatcher, ISocialAccountDispatcherTrait, ISocialAccountSafeDispatcher,
-        ISocialAccountSafeDispatcherTrait
+        ISRC6Dispatcher, ISRC6DispatcherTrait, ISocialAccountDispatcher,
+        ISocialAccountDispatcherTrait, ISocialAccountSafeDispatcher,
+        ISocialAccountSafeDispatcherTrait,
     };
-
-    use super::{ISRC6Dispatcher, ISRC6DispatcherTrait};
 
     fn declare_account() -> @ContractClass {
         declare("SocialAccount").unwrap().contract_class()
@@ -224,7 +220,7 @@ mod tests {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        recipient: ContractAddress
+        recipient: ContractAddress,
     ) -> IERC20Dispatcher {
         let mut calldata = array![];
 
@@ -240,12 +236,12 @@ mod tests {
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, account_class: ContractClass
+        erc20_class: ContractClass, account_class: ContractClass,
     ) -> (
         SocialRequest<Transfer>,
         ISocialAccountDispatcher,
         ISocialAccountDispatcher,
-        IERC20Dispatcher
+        IERC20Dispatcher,
     ) {
         // sender private key: 70aca2a9ab722bd56a9a1aadae7f39bc747c7d6735a04d677e0bc5dbefa71d47
         // just for testing, do not use for anything else
@@ -270,10 +266,10 @@ mod tests {
             token: erc20.symbol(),
             token_address: erc20.contract_address,
             joyboy: NostrProfile {
-                public_key: joyboy_public_key, relays: array!["wss://relay.joyboy.community.com"]
+                public_key: joyboy_public_key, relays: array!["wss://relay.joyboy.community.com"],
             },
             recipient: NostrProfile { public_key: recipient_public_key, relays: array![] },
-            recipient_address: recipient.contract_address
+            recipient_address: recipient.contract_address,
         };
 
         // for test data see: https://replit.com/@maciejka/WanIndolentKilobyte-2
@@ -287,7 +283,7 @@ mod tests {
             sig: Signature {
                 r: 0x3570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a4e_u256,
                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
-            }
+            },
         };
 
         (request, sender, recipient, erc20)
@@ -297,7 +293,7 @@ mod tests {
         SocialRequest<Transfer>,
         ISocialAccountDispatcher,
         ISocialAccountDispatcher,
-        IERC20Dispatcher
+        IERC20Dispatcher,
     ) {
         let erc20_class = declare_erc20();
         let account_class = declare_account();
@@ -338,7 +334,7 @@ mod tests {
     fn wrong_sender() {
         let (request, sender, _, _) = request_fixture();
 
-        let request = SocialRequest { public_key: 123_u256, ..request, };
+        let request = SocialRequest { public_key: 123_u256, ..request };
 
         sender.handle_transfer(request);
     }
@@ -352,7 +348,7 @@ mod tests {
 
         let request = SocialRequest {
             content: Transfer {
-                recipient_address: sender.contract_address, ..request.content.clone()
+                recipient_address: sender.contract_address, ..request.content.clone(),
             },
             ..request,
         };

@@ -40,7 +40,7 @@ pub impl NostrProfileImpl of NostrProfileTrait {
                 },
                 Option::None => { break (); },
             }
-        };
+        }
 
         data.append_byte(0);
         data.append_byte(32);
@@ -63,8 +63,8 @@ mod tests {
         let profile = NostrProfile {
             public_key: 0x84603b4e300840036ca8cc812befcc8e240c09b73812639d5cdd8ece7d6eba40,
             relays: array![
-                "wss://relay.nostr.example.mydomain.example.com", "wss://nostr.banana.com"
-            ]
+                "wss://relay.nostr.example.mydomain.example.com", "wss://nostr.banana.com",
+            ],
         };
 
         let expected =
@@ -77,7 +77,7 @@ mod tests {
     fn test_encode_02() {
         let profile = NostrProfile {
             public_key: 0xa87622b57b52f366457e867e1dccc60ea631ccac94b7c74ab08254c489ef12c6,
-            relays: array![]
+            relays: array![],
         };
 
         let expected = "nprofile1qqs2sa3zk4a49umxg4lgvlsaenrqaf33ejkffd78f2cgy4xy38h393s2w22mm";
@@ -89,7 +89,7 @@ mod tests {
     fn test_encode_03() {
         let profile = NostrProfile {
             public_key: 0x9e70a69f8f27c89d940dcdde0459798cd69ef291830e2ffa44ebfdad47df094c,
-            relays: array!["wss://nostr.banana.com"]
+            relays: array!["wss://nostr.banana.com"],
         };
 
         let expected =

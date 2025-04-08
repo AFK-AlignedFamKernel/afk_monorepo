@@ -1,7 +1,6 @@
 use afk::sha256::sha256;
 use core::ecdsa::check_ecdsa_signature;
-use core::integer::{u32_wide_mul, u8_wide_mul, BoundedInt};
-
+use core::integer::{BoundedInt, u32_wide_mul, u8_wide_mul};
 use starknet::SyscallResultTrait;
 use starknet::account::Call;
 
@@ -103,7 +102,7 @@ pub fn shl<
     +Drop<V>,
     +Drop<W>,
 >(
-    x: V, n: N
+    x: V, n: N,
 ) -> V {
     (WideMul::wide_mul(x, Pow2::pow2(n)) & BoundedInt::<V>::max().into()).try_into().unwrap()
 }
@@ -115,7 +114,7 @@ pub fn compute_sha256_byte_array(m: @ByteArray) -> [u32; 8] {
     while i != len {
         ba.append(m.at(i).unwrap());
         i += 1;
-    };
+    }
 
     let sha = sha256(ba);
 
@@ -173,7 +172,7 @@ pub fn execute_calls(mut calls: Array<Call>) -> Array<Span<felt252>> {
             },
             Option::None(_) => { break (); },
         };
-    };
+    }
     res
 }
 
@@ -183,7 +182,7 @@ fn execute_single_call(call: Call) -> Span<felt252> {
 }
 
 pub fn is_valid_stark_signature(
-    msg_hash: felt252, public_key: felt252, signature: Span<felt252>
+    msg_hash: felt252, public_key: felt252, signature: Span<felt252>,
 ) -> bool {
     let valid_length = signature.len() == 2;
 
@@ -201,7 +200,7 @@ pub fn sqrt(y: u256) -> u256 {
     while z < x {
         x = z;
         z = (y / z + z) / 2;
-    };
+    }
 
     x
 }
