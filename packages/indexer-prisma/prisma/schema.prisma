@@ -33,10 +33,10 @@ model token_deploy {
   image_url         String?
   metadata          Json?
   nostr_event_id    String?
-  website String?
-  twitter String?
-  telegram String?
-  github String?
+  github            String?
+  telegram          String?
+  twitter           String?
+  website           String?
 }
 
 model token_launch {
@@ -70,10 +70,10 @@ model token_launch {
   nostr_event_id          String?
   nostr_id                String?
   url                     String?
-  website String?
-  twitter String?
-  telegram String?
-  github String?
+  github                  String?
+  telegram                String?
+  twitter                 String?
+  website                 String?
 }
 
 model unrugmeme_deploy {
