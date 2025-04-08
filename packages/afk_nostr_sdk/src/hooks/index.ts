@@ -87,3 +87,7 @@ export {useQuote} from './useQuote';
 export {useGetSpendingTokens} from './cashu/useGetSpendingTokens';
 export {useSendArticle} from './useSendArticle';
 export {useSearchSince} from './search/useSearchSince';
+export {useSendLabel} from './label/useSendLabel';
+export {useGetLabels} from './label/useGetLabels';
+export {useProfileTagsInterests} from './search/useProfileTagsInterests';
+export {useProfileTags} from './search/useProfileTags';

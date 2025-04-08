@@ -13,6 +13,7 @@ import { StudioModule } from '../../modules/Studio/StudioModule';
 import { logClickedEvent } from 'src/utils/analytics';
 import { AddPostIcon } from 'src/assets/icons';
 import { ArticlesFeed } from 'src/modules/Feed/ArticlesFeed';
+import { LabelFeed } from 'src/modules/Label/LabelFeed';
 
 export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   const { theme } = useTheme();
@@ -20,7 +21,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
   const [isFeed, setIsFeed] = useState(true);
   const [viewFeed, setViewFeed] = useState<
-    'NOTES' | 'TOKENS' | "SHORTS" | "VIDEOS" | "STREAM" | "ARTICLES"
+    'NOTES' | 'TOKENS' | "SHORTS" | "VIDEOS" | "STREAM" | "ARTICLES" | "LABELS"
   >('NOTES');
 
   return (
@@ -77,7 +78,15 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
         }}>
           <Icon name="ArticleIcon" size={15} style={[{ marginRight: 5, }, viewFeed === "ARTICLES" && styles.activeIcon]}></Icon>Articles</Button>
+      
+          <Button style={[styles.toggleButton, viewFeed === 'LABELS' && styles.activeToggle]} onPress={() => {
+          setViewFeed('LABELS')
+          logClickedEvent('Labels', "user_action", "feed_toggle")
+
+        }}>
+          <Icon name="LabelTopicIcon" size={15} style={[{ marginRight: 5, }, viewFeed === "LABELS" && styles.activeIcon]}></Icon>Labels</Button>
       {/* <Button onPress={() => setViewFeed('TOKENS')}>Tokens</Button> */}
+
       {/* <Button style={[styles.toggleButton, viewFeed === 'VIDEOS' && styles.activeToggle]} onPress={() => setViewFeed('VIDEOS')}>Videos</Button> */}
 
     </ScrollView>
@@ -91,6 +100,8 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
   { viewFeed === 'STREAM' && <StudioModule></StudioModule> }
 
   { viewFeed === 'ARTICLES' && <ArticlesFeed></ArticlesFeed> }
+
+  { viewFeed === 'LABELS' && <LabelFeed></LabelFeed> }
 
   {/* <Pressable
         style={styles.createPostButton}

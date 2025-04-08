@@ -84,8 +84,15 @@ export const Chat: React.FC<ChatProps> = ({item, handleGoBack, user, messagesSen
 
   const handleSendMessage = async (message: string) => {
     if (!message) return;
-    const receiverPublicKey = roomIds.find((id) => id !== publicKey);
-    if (!receiverPublicKey) {
+    console.log('roomIds', roomIds);
+    let receiverPublicKey = roomIds.find((id) => id !== publicKey);
+
+
+    // TODO auto saved message
+    if(roomIds[0] === roomIds[1]){ 
+      receiverPublicKey = roomIds[0] ?? publicKey;
+    }
+    if (!receiverPublicKey && roomIds.length > 1 && roomIds[0] != roomIds[1]) {
       showToast({title: 'Invalid receiver', type: 'error'});
       return;
     }

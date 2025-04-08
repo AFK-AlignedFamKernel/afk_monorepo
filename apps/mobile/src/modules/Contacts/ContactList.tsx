@@ -99,7 +99,15 @@ export const ContactList: React.FC<ContactListProps> = ({ onClose }) => {
   const renderProfileInfo = () => {
     if (!nostrAddress) return null;
 
-    if (Object.keys(profile as object).length === 0)
+    if(!profile) {
+      return showToast({
+        type: 'error',
+        title: 'Failed to add contact',
+      });
+    }
+
+    console.log('profile', profile);
+    if (Object?.keys(profile as object)?.length === 0)
       return (
         <View style={styles.profileInfo}>
           <Text style={styles.profileDetail}>Unrecognized address.</Text>
