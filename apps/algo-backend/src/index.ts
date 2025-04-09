@@ -13,7 +13,7 @@ import declareRoutes from './router';
 import fastifySession from '@fastify/session';
 import fastifyOauth2 from '@fastify/oauth2';
 import fastifyMultipart from '@fastify/multipart';
-import { getTrendingAndViralByEvents } from './services/nostr/trending';
+import { getTrendingAndViralByEvents } from './services/nostr/scoring';
 import { fetchEvents } from './services/nostr/utils';
 import { initAllCronJobs } from './services/cron';
 
@@ -142,7 +142,7 @@ async function start() {
       } catch (error) {
         console.log('Error launching bot:', error);
       }
-    } 
+    }
   } catch (err) {
     console.error(err);
     process.exit(1);

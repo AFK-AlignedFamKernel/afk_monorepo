@@ -6,20 +6,20 @@ import { fetchReactions, fetchReplies, fetchReposts, fetchBookmarks, fetchEvents
 
 export const WEIGHT_INTERACTIONS_VIRALITY = {
     "reaction": 1,
-    "reply": 1,
-    "bookmark": 1,
-    "repost": 1,
+    "reply": 2.5,
+    "bookmark": 1.1,
+    "repost": 1.5,
 }
 
 export const WEIGHT_INTERACTIONS_TRENDING = {
-    "reaction": 1,
-    "reply": 1,
-    "bookmark": 1,
-    "repost": 1,
+    "reaction": 1.5,
+    "reply": 2.5,
+    "bookmark": 1.1,
+    "repost": 1.5,
 
 }
 // Calculate the virality score for an event
-export function calculateViralityScore(event: NDKEvent, timestamp: number, reactions: any[], replies: any[], bookmarks: any[], reposts: any[], viralityWeight: number): { viralityScore?: number, repostViralityScore?: number, bookmarkViralityScore?: number, replyViralityScore?: number, reactionViralityScore?: number } {
+export function calculateViralityScore(event: NDKEvent, timestamp: number, reactions: any[], replies: any[], bookmarks: any[], reposts: any[], isWeighted: boolean = false): { viralityScore?: number, repostViralityScore?: number, bookmarkViralityScore?: number, replyViralityScore?: number, reactionViralityScore?: number, isWeighted?: boolean } {
     const currentTime = Date.now();
     const timeDiff = currentTime - timestamp; // Time difference in milliseconds
     const timeFactor = Math.max(0, 1 - (timeDiff / (1000 * 60 * 60 * 24))); // A factor decaying over time
@@ -32,13 +32,21 @@ export function calculateViralityScore(event: NDKEvent, timestamp: number, react
     console.log('Reply Score', replyViralityScore);
     console.log('Bookmark Score', bookmarkViralityScore);
     console.log('Repost Score', repostViralityScore);
-    const viralityScore = reactionViralityScore + replyViralityScore + bookmarkViralityScore + repostViralityScore;
-    console.log('Virality Score', viralityScore);
-    return { viralityScore, repostViralityScore, bookmarkViralityScore, replyViralityScore, reactionViralityScore };
+
+    if (isWeighted) {
+        const viralityScore = (reactionViralityScore * WEIGHT_INTERACTIONS_VIRALITY.reaction) + (replyViralityScore * WEIGHT_INTERACTIONS_VIRALITY.reply) + (bookmarkViralityScore * WEIGHT_INTERACTIONS_VIRALITY.bookmark) + (repostViralityScore * WEIGHT_INTERACTIONS_VIRALITY.repost);
+        console.log('Virality weighted Score', viralityScore);
+        return { viralityScore, repostViralityScore, bookmarkViralityScore, replyViralityScore, reactionViralityScore };
+    } else {
+        const viralityScore = reactionViralityScore + replyViralityScore + bookmarkViralityScore + repostViralityScore;
+        console.log('Virality Score', viralityScore);
+        return { viralityScore, repostViralityScore, bookmarkViralityScore, replyViralityScore, reactionViralityScore };
+    }
 }
 
+
 // Calculate the trending score for an event
-export function calculateEngagementsScore(note: NDKEvent, timestamp: number, reactions: any[], replies: any[], bookmarks: any[], reposts: any[]): { reactionEngagementRate?: number, replyEngagementRate?: number, bookmarkEngagementRate?: number, repostEngagementRate?: number, overviewEngagementRate?: number } {
+export function calculateEngagementsScore(note: NDKEvent, timestamp: number, reactions: any[], replies: any[], bookmarks: any[], reposts: any[], isWeighted: boolean = false): { reactionEngagementRate?: number, replyEngagementRate?: number, bookmarkEngagementRate?: number, repostEngagementRate?: number, overviewEngagementRate?: number , isWeighted?: boolean} {
     const currentTime = Date.now();
     const timeDiff = currentTime - timestamp;
     const reactionEngagementRate = reactions.length / timeDiff; // reactions per millisecond
@@ -50,8 +58,13 @@ export function calculateEngagementsScore(note: NDKEvent, timestamp: number, rea
     console.log('Bookmark Engagement Rate', bookmarkEngagementRate);
     console.log('Repost Engagement Rate', repostEngagementRate);
 
-    const overviewEngagementRate = (bookmarkEngagementRate + repostEngagementRate + reactionEngagementRate + replyEngagementRate);
-    return { reactionEngagementRate, replyEngagementRate, bookmarkEngagementRate, repostEngagementRate, overviewEngagementRate: overviewEngagementRate ?? 0 };
+    if (isWeighted) {
+        const overviewEngagementRate = (bookmarkEngagementRate * WEIGHT_INTERACTIONS_TRENDING.bookmark) + (repostEngagementRate * WEIGHT_INTERACTIONS_TRENDING.repost) + (reactionEngagementRate * WEIGHT_INTERACTIONS_TRENDING.reaction) + (replyEngagementRate * WEIGHT_INTERACTIONS_TRENDING.reply);
+        return { reactionEngagementRate, replyEngagementRate, bookmarkEngagementRate, repostEngagementRate, overviewEngagementRate: overviewEngagementRate ?? 0 };
+    } else {
+        const overviewEngagementRate = (bookmarkEngagementRate + repostEngagementRate + reactionEngagementRate + replyEngagementRate);
+        return { reactionEngagementRate, replyEngagementRate, bookmarkEngagementRate, repostEngagementRate, overviewEngagementRate: overviewEngagementRate ?? 0 };
+    }
 }
 
 export function calculateTrendingScore(note: NDKEvent, timestamp: number, overviewEngagementRate: number, viralityScore: number, mindshareScore: number): { reactionEngagementRate?: number, replyEngagementRate?: number, bookmarkEngagementRate?: number, repostEngagementRate?: number, overviewScoring?: number, trendingScore?: number } {
@@ -71,8 +84,8 @@ export async function rankEvents(events: NDKEvent[]): Promise<any[]> {
         const bookmarks = await fetchBookmarks(note.id);
         const reposts = await fetchReposts(note.id);
         const timestamp = note?.created_at ?? 0;
-        const { viralityScore, repostViralityScore, bookmarkViralityScore, replyViralityScore, reactionViralityScore } = calculateViralityScore(note, timestamp, reactions, replies, bookmarks, reposts, 1);
-        const { reactionEngagementRate, replyEngagementRate, bookmarkEngagementRate, repostEngagementRate, overviewEngagementRate } = calculateEngagementsScore(note, timestamp, reactions, replies, bookmarks, reposts);
+        const { viralityScore, repostViralityScore, bookmarkViralityScore, replyViralityScore, reactionViralityScore } = calculateViralityScore(note, timestamp, reactions, replies, bookmarks, reposts, true);
+        const { reactionEngagementRate, replyEngagementRate, bookmarkEngagementRate, repostEngagementRate, overviewEngagementRate } = calculateEngagementsScore(note, timestamp, reactions, replies, bookmarks, reposts, true);
         console.log('Overview Scoring', overviewEngagementRate);
         const trendingScore = (viralityScore ?? 0) + (overviewEngagementRate ?? 0);
         console.log('Virality Score', viralityScore);
@@ -108,8 +121,17 @@ export async function getTrendingAndViralByEvents(events: NDKEvent[]): Promise<a
     return rankedEvents;
 }
 
-// // Usage
-// (async () => {
-//     const trendingAndViralEvents = await getTrendingAndViralEvents(1);  // Example kind: 1 for text notes
-//     console.log(trendingAndViralEvents);
-// })();
+
+// Calculate Decay Factor
+export function calculateDecayFactor(timeSincePost: number, constant: number): number {
+    return Math.min(timeSincePost / constant, 1); // Ensure it decays but doesn't go over 1
+}
+
+
+// Calculate the Final Score
+export function calculateFinalScore(viralityScore: number, trendingScore: number, timeSincePost: number, decayConstant: number): number {
+   
+    const decayFactor = calculateDecayFactor(timeSincePost, decayConstant);
+
+    return viralityScore * (1 - decayFactor) + trendingScore;
+}

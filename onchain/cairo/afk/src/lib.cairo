@@ -46,7 +46,7 @@ pub mod types {
 pub mod components {
     // pub mod voting_proposal;
     pub mod voting;
-    pub mod nostr_namespace;
+    // pub mod nostr_namespace;
 }
 
 pub mod account {
