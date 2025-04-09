@@ -1,6 +1,6 @@
 import NDK, { NDKEvent, NDKRelay, NostrEvent, NDKKind } from '@nostr-dev-kit/ndk';
 
-import { fetchReactions, fetchReplies, fetchReposts, fetchBookmarks, fetchEvents } from './utils';
+import { fetchReactions, fetchReplies, fetchReposts, fetchBookmarks, fetchEvents } from '../utils';
 
 
 

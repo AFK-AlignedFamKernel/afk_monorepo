@@ -13,7 +13,7 @@ import declareRoutes from './router';
 import fastifySession from '@fastify/session';
 import fastifyOauth2 from '@fastify/oauth2';
 import fastifyMultipart from '@fastify/multipart';
-import { getTrendingAndViralByEvents } from './services/nostr/scoring';
+import { getTrendingAndViralByEvents } from './services/nostr/content/scoring';
 import { fetchEvents } from './services/nostr/utils';
 import { initAllCronJobs } from './services/cron';
 

@@ -16,13 +16,15 @@ interface FetchEventsParams {
     limit?: number;
     authors?: string[];
     kinds?: NDKKind[];
+    until?: number;
+    since?: number;
 }
 
 
 // Fetch a list of events
-export async function fetchEvents({ kind, limit = 100, authors, kinds = [NDKKind.Text, NDKKind.Article, NDKKind.VerticalVideo, NDKKind.HorizontalVideo] }: FetchEventsParams): Promise<NDKEvent[]> {
+export async function fetchEvents({ kind, limit = 100, authors, kinds = [NDKKind.Text, NDKKind.Article, NDKKind.VerticalVideo, NDKKind.HorizontalVideo], until, since }: FetchEventsParams): Promise<NDKEvent[]> {
     const ndk = await initNDK();
-    const events = await ndk.fetchEvents({ kinds, limit, authors });
+    const events = await ndk.fetchEvents({ kinds, limit, authors, until, since });
     // console.log('Events', events);
     console.log('Events length', Array.from(events).length);
     return Array.from(events);
@@ -87,4 +89,11 @@ export async function fetchFollowings(userId: string): Promise<NDKEvent[]> {
         '#p': [userId]
     });
     return Array.from(events);
+}
+
+// Fetch a list of events
+export async function fetchEventMetadata(id: string): Promise<NDKEvent | null> {
+    const ndk = await initNDK();
+    const metadata = await ndk.fetchEvent({ authors: [id] , kinds: [NDKKind.Metadata]});
+    return metadata;
 }
