@@ -1,7 +1,5 @@
-use core::fmt::Display;
-use core::to_byte_array::FormatAsByteArray;
-use starknet::{ContractAddress, get_caller_address, get_contract_address, get_tx_info};
-use super::request::{ConvertToBytes, Encode, SocialRequest, SocialRequestImpl, SocialRequestTrait};
+use afk::social::request::{ConvertToBytes, Encode, SocialRequest, SocialRequestImpl};
+use starknet::ContractAddress;
 
 // Add this ROLE on a constants file
 pub const OPERATOR_ROLE: felt252 = selector!("OPERATOR_ROLE");
@@ -16,7 +14,7 @@ pub struct LinkedStarknetAddress {
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
-struct LinkedWalletProfileDefault {
+pub struct LinkedWalletProfileDefault {
     nostr_address: NostrPublicKey,
     starknet_address: ContractAddress,
     // Add NIP-05 and stats profil after. Gonna write a proposal for it
@@ -34,7 +32,7 @@ pub impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
         @format!("link to {:?}", recipient_address_user_felt)
     }
 }
-impl LinkedStarknetAddressImpl of ConvertToBytes<LinkedStarknetAddress> {
+pub impl LinkedStarknetAddressImpl of ConvertToBytes<LinkedStarknetAddress> {
     fn convert_to_bytes(self: @LinkedStarknetAddress) -> ByteArray {
         let mut ba: ByteArray = "";
         let starknet_address_felt: felt252 = (*self.starknet_address).into();
@@ -48,8 +46,18 @@ pub enum LinkedResult {
     // LinkedStarknetAddress: LinkedStarknetAddress
 }
 
+impl LinkedWalletDefault of Default<LinkedWalletProfileDefault> {
+    #[inline(always)]
+    fn default() -> LinkedWalletProfileDefault {
+        LinkedWalletProfileDefault {
+            starknet_address: 0.try_into().unwrap(), nostr_address: 0.try_into().unwrap(),
+        }
+    }
+}
+
+
 #[starknet::interface]
-pub trait INostrNamespace<TContractState> {
+pub trait INostrNamespaceComponent<TContractState> {
     // Getters
     fn get_nostr_by_sn_default(
         self: @TContractState, nostr_public_key: NostrPublicKey,
@@ -58,10 +66,10 @@ pub trait INostrNamespace<TContractState> {
     fn get_sn_by_nostr_default(
         self: @TContractState, starknet_address: ContractAddress,
     ) -> NostrPublicKey;
-    // Admin
-    fn set_control_role(
-        ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
-    );
+    // // Admin
+    // fn set_control_role(
+    //     ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
+    // );
     // User
     fn linked_nostr_default_account(
         ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>,
@@ -76,12 +84,14 @@ pub trait INostrNamespace<TContractState> {
 
 #[starknet::component]
 pub mod NostrNamespaceComponent {
-    use afk::bip340;
-    use afk::bip340::{SchnorrSignature, Signature};
+    use afk::social::request::{Encode, SocialRequest, SocialRequestImpl, SocialRequestTrait};
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::num::traits::Zero;
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
+    use openzeppelin::introspection::src5::SRC5Component::{
+        InternalImpl as SRC5InternalImpl, SRC5Impl,
+    };
     use starknet::account::Call;
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
@@ -89,40 +99,30 @@ pub mod NostrNamespaceComponent {
     use starknet::{
         ContractAddress, get_block_timestamp, get_caller_address, get_contract_address, get_tx_info,
     };
-    use super::super::request::{Encode, SocialRequest, SocialRequestImpl, SocialRequestTrait};
     use super::{
-        ADMIN_ROLE, INamespace, LinkedResult, LinkedStarknetAddress,
+        ADMIN_ROLE, INostrNamespaceComponent, LinkedResult, LinkedStarknetAddress,
         LinkedStarknetAddressEncodeImpl, LinkedWalletProfileDefault, NostrPublicKey, OPERATOR_ROLE,
     };
-    component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
-    component!(path: SRC5Component, storage: src5, event: SRC5Event);
-    // AccessControl
-    #[abi(embed_v0)]
-    impl AccessControlImpl =
-        AccessControlComponent::AccessControlImpl<ContractState>;
-    impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<ContractState>;
+    // component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
+    // // // AccessControl
+    // // #[abi(embed_v0)]
+    // impl AccessControlImpl =
+    //     AccessControlComponent::AccessControlImpl<TContractState>;
+    // impl AccessControlInternalImpl = AccessControlComponent::InternalImpl<TContractState>;
+    // // component!(path: SRC5Component, storage: src5, event: SRC5Event);
 
-    // SRC5
-    #[abi(embed_v0)]
-    impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
-
-    impl LinkedWalletDefault of Default<LinkedWalletProfileDefault> {
-        #[inline(always)]
-        fn default() -> LinkedWalletProfileDefault {
-            LinkedWalletProfileDefault {
-                starknet_address: 0.try_into().unwrap(), nostr_address: 0.try_into().unwrap(),
-            }
-        }
-    }
+    // // SRC5
+    // #[abi(embed_v0)]
+    // impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
 
     #[storage]
-    struct Storage {
+    pub struct Storage {
         nostr_to_sn: Map<NostrPublicKey, ContractAddress>,
         sn_to_nostr: Map<ContractAddress, NostrPublicKey>,
-        #[substorage(v0)]
-        accesscontrol: AccessControlComponent::Storage,
-        #[substorage(v0)]
-        src5: SRC5Component::Storage,
+        //     #[substorage(v0)]
+    // accesscontrol: AccessControlComponent::Storage,
+    // #[substorage(v0)]
+    // src5: SRC5Component::Storage,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -145,54 +145,82 @@ pub mod NostrNamespaceComponent {
 
     #[event]
     #[derive(Drop, starknet::Event)]
-    enum Event {
+    pub enum Event {
         LinkedDefaultStarknetAddressEvent: LinkedDefaultStarknetAddressEvent,
         AddStarknetAddressEvent: AddStarknetAddressEvent,
-        #[flat]
-        AccessControlEvent: AccessControlComponent::Event,
-        #[flat]
-        SRC5Event: SRC5Component::Event,
+        // #[flat]
+    // AccessControlEvent: AccessControlComponent::Event,
+    // #[flat]
+    // SRC5Event: SRC5Component::Event,
     }
 
-    #[constructor]
-    fn constructor(ref self: ContractState, admin: ContractAddress) {
-        self.accesscontrol.initializer();
-        self.accesscontrol._grant_role(ADMIN_ROLE, admin);
-    }
+    // #[constructor]
+    // fn constructor(ref self: ContractState, admin: ContractAddress) {
+    //     self.accesscontrol.initializer();
+    //     self.accesscontrol._grant_role(ADMIN_ROLE, admin);
+    // }
 
-    #[embeddable_as(NostrNamespace)]
-    impl NostrNamespaceImpl<
-        TContractState, +HasComponent<TContractState>,
-    > of IVoteProposal<ComponentState<TContractState>> {
-        // Admin
-        // Add OPERATOR role to the Deposit escrow
-        fn set_control_role(
-            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
-        ) {
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            assert!(
-                role == ADMIN_ROLE
-                    || role == OPERATOR_ROLE // Think and Add others roles needed on the protocol
-                    ,
-                "role not enable",
-            );
-            if is_enable {
-                self.accesscontrol._grant_role(role, recipient);
-            } else {
-                self.accesscontrol._revoke_role(role, recipient);
-            }
+    #[generate_trait]
+    pub impl NostrNamespaceInternalImpl<
+        TContractState,
+        +HasComponent<
+            TContractState,
+        >, // impl AccessControl: AccessControlComponent::HasComponent<TContractState>,
+        // impl SRC5: SRC5Component::HasComponent<TContractState>,
+        +Drop<TContractState>,
+    > of NostrNamespaceInternalTrait<TContractState> {
+        fn initializer(
+            ref self: ComponentState<TContractState>, token_contract_address: ContractAddress,
+        ) { // self.token_contract_address.write(token_contract_address);
+        // self.is_only_dao_execution.write(true);
+        // self.minimum_threshold_percentage.write(60);
+        //     self.accesscontrol.initializer();
+        // let mut accesscontrol_component = get_dep_component_mut!(ref self, AccessControl);
+        // accesscontrol_component.initializer();
+        // accesscontrol_component._grant_role(ADMIN_ROLE, admin);
+        // let mut src5_component = get_dep_component_mut!(ref self, SRC5);
+        // src5_component.register_interface(interface::IACCESSCONTROL_ID);
         }
+    }
+
+    #[embeddable_as(NostrNamespaceImpl)]
+    pub impl NostrNamespaceComponentImpl<
+        TContractState,
+        +HasComponent<TContractState>, // +AccessControlComponent::HasComponent<TContractState>,
+        // +SRC5Component::HasComponent<TContractState>,
+        +Drop<TContractState>,
+        // +HasComponent<AccessControlComponent>,
+    > of super::INostrNamespaceComponent<ComponentState<TContractState>> {
+        // // Admin
+        // // Add OPERATOR role to the Deposit escrow
+        // fn set_control_role(
+        //         ref self: ComponentState<TContractState>, recipient: ContractAddress, role:
+        //         felt252, is_enable: bool,
+        // ) {
+        //     // self.accesscontrol.assert_only_role(ADMIN_ROLE);
+        //     // assert!(
+        //     //     role == ADMIN_ROLE
+        //     //         || role == OPERATOR_ROLE // Think and Add others roles needed on the
+        //     protocol //         ,
+        //     //     "role not enable",
+        //     // );
+        //     // if is_enable {
+        //     //     self.accesscontrol._grant_role(role, recipient);
+        //     // } else {
+        //     //     self.accesscontrol._revoke_role(role, recipient);
+        //     // }
+        // }
 
         // Getters
         fn get_nostr_by_sn_default(
-            self: @ContractState, nostr_public_key: NostrPublicKey,
+            self: @ComponentState<TContractState>, nostr_public_key: NostrPublicKey,
         ) -> ContractAddress {
             self.nostr_to_sn.read(nostr_public_key)
         }
 
 
         fn get_sn_by_nostr_default(
-            self: @ContractState, starknet_address: ContractAddress,
+            self: @ComponentState<TContractState>, starknet_address: ContractAddress,
         ) -> NostrPublicKey {
             self.sn_to_nostr.read(starknet_address)
         }
@@ -203,7 +231,7 @@ pub mod NostrNamespaceComponent {
         // User request with a Nostr event
 
         fn linked_nostr_default_account(
-            ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
+            ref self: ComponentState<TContractState>, request: SocialRequest<LinkedStarknetAddress>,
         ) {
             let profile_default = request.content.clone();
             let starknet_address: ContractAddress = profile_default.starknet_address;
@@ -238,7 +266,6 @@ pub mod NostrNamespaceComponent {
 
     }
 }
-
 // #[cfg(test)]
 // mod tests {
 //     use afk::bip340::SchnorrSignature;
@@ -284,9 +311,9 @@ pub mod NostrNamespaceComponent {
 //         INostrNamespaceDispatcher,
 //         SocialRequest<LinkedStarknetAddress>,
 //     ) {
-//         // recipient private key: 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35
-//         // just for testing, do not use for anything else
-//         // let recipient_public_key =
+//         // recipient private key:
+//         59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35 // just for testing, do
+//         not use for anything else // let recipient_public_key =
 //         //     0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
 
 //         let recipient_public_key =
@@ -298,8 +325,8 @@ pub mod NostrNamespaceComponent {
 
 //         let recipient_address_user: ContractAddress = 678.try_into().unwrap();
 
-//         // TODO change with the correct signature with the content LinkedWalletProfileDefault id and
-//         // strk recipient TODO Uint256 to felt on Starknet js
+//         // TODO change with the correct signature with the content LinkedWalletProfileDefault id
+//         and // strk recipient TODO Uint256 to felt on Starknet js
 //         // for test data see claim to:
 //         // https://replit.com/@msghais135/WanIndolentKilobyte-claimto#linked_to.js
 
@@ -417,3 +444,5 @@ pub mod NostrNamespaceComponent {
 //         namespace.linked_nostr_default_account(fail_request_linked_wallet_to);
 //     }
 // }
+
+

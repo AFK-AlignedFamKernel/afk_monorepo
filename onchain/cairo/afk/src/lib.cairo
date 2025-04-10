@@ -8,6 +8,7 @@ pub mod social;
 pub mod staking;
 pub mod utils;
 
+
 pub mod interfaces {
     pub mod erc20;
     pub mod erc20_mintable;
@@ -45,8 +46,8 @@ pub mod types {
 
 pub mod components {
     // pub mod voting_proposal;
+    pub mod nostr_namespace;
     pub mod voting;
-    // pub mod nostr_namespace;
 }
 
 pub mod account {
@@ -65,6 +66,10 @@ pub mod tokens {
         pub mod dn404_mirror_preset;
         pub mod dn404_preset;
     }
+}
+
+pub mod infofi {
+    pub mod nostrfi_scoring;
 }
 
 #[cfg(test)]

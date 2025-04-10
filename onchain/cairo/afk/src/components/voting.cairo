@@ -1,9 +1,10 @@
 #[starknet::component]
 pub mod VotingComponent {
     use afk::interfaces::voting::{
-        Calldata, ConfigParams, ConfigResponse, IVoteProposal, Proposal, ProposalCanceled,
-        ProposalCreated, ProposalParams, ProposalResolved, ProposalResult, ProposalType,
-        ProposalVoted, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, UserVote, VoteState,
+        Calldata, ConfigParams, ConfigResponse, IVoteProposal, MetadataDAO, Proposal,
+        ProposalCanceled, ProposalCreated, ProposalParams, ProposalResolved, ProposalResult,
+        ProposalType, ProposalVoted, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, UserVote,
+        VoteState,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::execute_calls;
@@ -49,6 +50,9 @@ pub mod VotingComponent {
         max_executable_clone: Map<felt252, u64>,
         current_max_tx_count: u64, // optimized for get iteration
         total_voters: u128,
+        deployer: ContractAddress,
+        owner: ContractAddress,
+        metadata_dao: MetadataDAO,
     }
 
     #[event]
@@ -305,6 +309,12 @@ pub mod VotingComponent {
             }
             is_executable
         }
+
+        fn add_metadata_dao(ref self: ComponentState<TContractState>, metadata: MetadataDAO) {
+            let caller = get_caller_address();
+            assert(caller == self.owner.read(), 'UNAUTHORIZED CALLER');
+            self.metadata_dao.write(metadata);
+        }
     }
 
     #[generate_trait]
@@ -312,11 +322,16 @@ pub mod VotingComponent {
         TContractState, +HasComponent<TContractState>,
     > of VoteInternalTrait<TContractState> {
         fn _init(
-            ref self: ComponentState<TContractState>, token_contract_address: ContractAddress,
+            ref self: ComponentState<TContractState>,
+            token_contract_address: ContractAddress,
+            deployer: ContractAddress,
+            owner: ContractAddress,
         ) {
             self.token_contract_address.write(token_contract_address);
             self.is_only_dao_execution.write(true);
             self.minimum_threshold_percentage.write(60);
+            self.deployer.write(deployer);
+            self.owner.write(owner);
         }
         fn _get_proposal(self: @ComponentState<TContractState>, proposal_id: u256) -> Proposal {
             let opt_proposal = self.proposals.entry(proposal_id).read();

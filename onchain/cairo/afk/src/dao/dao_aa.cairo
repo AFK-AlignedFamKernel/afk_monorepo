@@ -1,6 +1,5 @@
-// use starknet::{ContractAddress, get_caller_address, get_contract_address,
 // contract_address_const};
-use afk::interfaces::voting::{ConfigParams, ConfigResponse};
+use afk::interfaces::voting::{ConfigParams, ConfigResponse, MetadataDAO};
 use afk::social::profile::NostrProfile;
 use afk::social::request::SocialRequest;
 use afk::social::transfer::Transfer;
@@ -14,6 +13,7 @@ pub trait IDaoAA<TContractState> {
     fn update_config(ref self: TContractState, config_params: ConfigParams);
     fn get_config(self: @TContractState) -> ConfigResponse;
     fn set_public_key(ref self: TContractState, public_key: u256);
+    fn add_metadata(ref self: TContractState, metadata: MetadataDAO);
     // fn __execute__(self: @TContractState, calls: Array<Call>) -> Array<Span<felt252>>;
 // fn __validate__(self: @TContractState, calls: Array<Call>) -> felt252;
 // fn is_valid_signature(self: @TContractState, hash: felt252, signature: Array<felt252>) ->
@@ -66,7 +66,7 @@ pub mod DaoAA {
         ContractAddress, contract_address_const, get_caller_address, get_contract_address,
         get_tx_info,
     };
-    use super::{IDaoAADispatcher, IDaoAADispatcherTrait, ISRC6};
+    use super::{IDaoAADispatcher, IDaoAADispatcherTrait, ISRC6, MetadataDAO};
 
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     // component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
@@ -108,6 +108,7 @@ pub mod DaoAA {
         owner: ContractAddress,
         transfers: Map<u256, bool>,
         starknet_address: felt252,
+        metadata_dao: MetadataDAO,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -150,7 +151,7 @@ pub mod DaoAA {
         self.src5.register_interface(ISRC6_ID);
         self.starknet_address.write(starknet_address);
         self.owner.write(owner);
-        self.voting._init(token_contract_address);
+        self.voting._init(token_contract_address, owner, owner);
         // self.accesscontrol.initializer();
         // self.accesscontrol._grant_role(ADMIN_ROLE, owner);
         // self.accesscontrol._grant_role(MINTER_ROLE, admin);
@@ -179,6 +180,12 @@ pub mod DaoAA {
         fn set_public_key(ref self: ContractState, public_key: u256) {
             assert(get_caller_address() == self.owner.read(), 'UNAUTHORIZED CALLER');
             self.public_key.write(public_key);
+        }
+
+        fn add_metadata(ref self: ContractState, metadata: MetadataDAO) {
+            assert(get_caller_address() == self.owner.read(), 'UNAUTHORIZED CALLER');
+            self.metadata_dao.write(metadata.clone());
+            self.voting.add_metadata_dao(metadata);
         }
     }
 

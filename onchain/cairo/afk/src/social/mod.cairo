@@ -2,8 +2,8 @@
 pub mod bech32;
 pub mod deposit;
 pub mod namespace;
-pub mod request;
 pub mod nostrfi_scoring;
+pub mod request;
 // pub mod deposit_gas_fund;
 
 

@@ -85,6 +85,25 @@ pub struct ProposalParams {
     pub proposal_automated_transaction: ProposalAutomatedTransaction,
 }
 
+#[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
+pub struct MetadataDAO {
+    pub created_at: u64,
+    pub title: ByteArray,
+    pub description: ByteArray,
+    pub image_url: ByteArray,
+    pub owner: ContractAddress,
+    pub deployer: ContractAddress,
+    pub website_url: ByteArray,
+    pub nostr_address: u256,
+    pub nostr_group_id: u256,
+    pub twitter_handle: ByteArray,
+    pub telegram_handle: ByteArray,
+    pub discord_handle: ByteArray,
+    pub github_handle: ByteArray,
+    pub discord_server_id: u256,
+    pub discord_channel_id: u256,
+}
+
 #[derive(Drop, Copy, starknet::Event)]
 pub struct ProposalCreated {
     #[key]
@@ -183,6 +202,7 @@ pub trait IVoteProposal<TContractState> {
     fn process_result(ref self: TContractState, proposal_id: u256);
     // debugging
     fn is_executable(ref self: TContractState, calldata: Call) -> bool;
+    fn add_metadata_dao(ref self: TContractState, metadata: MetadataDAO);
 }
 // Possible extracted Proposal Functions
 // Mint the token with a specific ratio

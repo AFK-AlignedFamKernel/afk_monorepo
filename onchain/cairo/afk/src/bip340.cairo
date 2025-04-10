@@ -12,8 +12,8 @@ use starknet::secp256k1::Secp256k1Point;
 //! bip340 implementation
 
 use starknet::{ContractAddress, get_caller_address};
+use super::components::nostr_namespace::LinkedStarknetAddress;
 use super::social::deposit::Claim;
-use super::social::namespace::LinkedStarknetAddress;
 use super::social::request::{
     ConvertToBytes, SocialRequest, UnsignedSocialRequest, UnsignedSocialRequestMessage,
 };

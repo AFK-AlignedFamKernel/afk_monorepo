@@ -283,3 +283,24 @@ model token_metadata {
   updated_at       DateTime? @default(now()) @db.Timestamp(6)
   nostr_event_id   String?
 }
+
+
+
+model profile_data {
+  transaction_hash String    @id
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  contract_address String?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  event_id         String?
+  nostr_id         String?
+  nostr_pubkey String?
+  nostr_created_at DateTime? @db.Timestamp(6)
+  starknet_address String?
+  cursor           BigInt?   @map("_cursor")
+  time_stamp       DateTime? @db.Timestamp(6)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+  nostr_event_id   String?
+}
