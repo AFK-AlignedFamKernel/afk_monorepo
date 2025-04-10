@@ -1628,9 +1628,7 @@ mod launchpad_tests {
         let (_, erc20, launchpad) = request_fixture();
 
         let expected_token = TokenQuoteBuyCoin {
-            token_address: erc20.contract_address,
-            price: INITIAL_KEY_PRICE,
-            is_enable: true,
+            token_address: erc20.contract_address, price: INITIAL_KEY_PRICE, is_enable: true,
         };
 
         assert(expected_token == launchpad.get_default_token(), 'wrong default token');
@@ -1680,7 +1678,7 @@ mod launchpad_tests {
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
                 contract_address_salt: SALT(),
-                    bonding_type: BondingType::Linear,
+                bonding_type: BondingType::Linear,
                 creator_fee_percent: MID_FEE_CREATOR,
                 creator_fee_destination: RECEIVER_ADDRESS(),
                 metadata: None,
@@ -2192,9 +2190,7 @@ mod launchpad_tests {
         let (_, erc20, launchpad) = request_fixture();
 
         let expected_token = TokenQuoteBuyCoin {
-            token_address: erc20.contract_address,
-            price: INITIAL_KEY_PRICE,
-            is_enable: true,
+            token_address: erc20.contract_address, price: INITIAL_KEY_PRICE, is_enable: true,
         };
 
         start_cheat_caller_address(launchpad.contract_address, ALICE());
@@ -2392,7 +2388,6 @@ mod launchpad_tests {
 
         launchpad.set_threshold_liquidity(50_u256);
     }
-
 
 
     #[test]

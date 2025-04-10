@@ -12,6 +12,7 @@ pub mod launchpad {
 
     pub mod errors;
     pub mod helpers;
+    pub mod ico;
     pub mod launchpad;
     pub mod math;
     pub mod unrug;
@@ -37,6 +38,7 @@ pub mod interfaces {
     pub mod erc20;
     pub mod erc20_mintable;
     pub mod factory;
+    pub mod ico;
     pub mod jediswap;
     pub mod launchpad;
     pub mod unrug;

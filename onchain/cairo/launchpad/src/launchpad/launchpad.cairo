@@ -5,20 +5,27 @@ pub mod LaunchpadMarketplace {
         IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait,
         // Event as LaunchpadEvent
     };
-    use afk_launchpad::launchpad::calcul::launch::{
-        get_amount_by_type_of_coin_or_quote,
-    };
+    use afk_launchpad::launchpad::calcul::launch::get_amount_by_type_of_coin_or_quote;
     use afk_launchpad::launchpad::calcul::linear::get_coin_amount;
     use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::utils::{
-        MAX_TICK_U128, MIN_TICK_U128, UINT_128_MAX,
-        align_tick_with_max_tick_and_min_tick, calculate_bound_mag, calculate_sqrt_ratio,
-        sort_tokens,
+        MAX_TICK_U128, MIN_TICK_U128, UINT_128_MAX, align_tick_with_max_tick_and_min_tick,
+        calculate_bound_mag, calculate_sqrt_ratio, sort_tokens,
     };
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+
+    use afk_launchpad::types::launchpad_types::{
+        ADMIN_ROLE, AdminsFeesParams, BondingType, BuyToken, CreateLaunch, CreateToken,
+        CreatorFeeDistributed, EkuboLP, EkuboPoolParameters, EkuboUnrugLaunchParameters,
+        LiquidityCanBeAdded, LiquidityCreated, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch,
+        SellToken, SetJediswapNFTRouterV2, SetJediswapV2Factory, SharesTokenUser, StoredName,
+        SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin,
+        // MemecoinCreated, MemecoinLaunched
+    };
     // use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use core::num::traits::Zero;
-    // use cubit::f128::types::fixed::{Fixed, FixedPrint, FixedTrait, FixedTryIntoU128, ONE, ONE_u128};
+    // use cubit::f128::types::fixed::{Fixed, FixedPrint, FixedTrait, FixedTryIntoU128, ONE,
+    // ONE_u128};
     // use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
     // use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
     // use ekubo::interfaces::erc20::{
@@ -48,15 +55,6 @@ pub mod LaunchpadMarketplace {
     use starknet::{
         ClassHash, ContractAddress, SyscallResultTrait, get_block_timestamp, get_caller_address,
         get_contract_address,
-    };
-
-    use afk_launchpad::types::launchpad_types::{
-        ADMIN_ROLE, AdminsFeesParams, BondingType, BuyToken, CreateLaunch, CreateToken,
-        CreatorFeeDistributed, EkuboLP, EkuboPoolParameters, EkuboUnrugLaunchParameters,
-        LiquidityCanBeAdded, LiquidityCreated, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch,
-        SellToken, SetJediswapNFTRouterV2, SetJediswapV2Factory, SharesTokenUser, StoredName,
-        SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin,
-        // MemecoinCreated, MemecoinLaunched
     };
 
 
@@ -284,10 +282,8 @@ pub mod LaunchpadMarketplace {
         self.admins_fees_params.write(admins_fees_params);
 
         let init_token = TokenQuoteBuyCoin {
-            token_address: token_address,
-            // starting_price,
-            price: starting_price,
-            is_enable: true,
+            token_address: token_address, // starting_price,
+            price: starting_price, is_enable: true,
             // step_increase_linear,
         };
         // TODO  test add case  if the payment are needed to create and launch
@@ -1672,43 +1668,42 @@ pub mod LaunchpadMarketplace {
             // Check that pool supply is less than the maximum value
             assert(total_supply / 5 < UINT_128_MAX, errors::MAX_NUM);
         }
-
         // TODO finish call Jediswap
-        // Change preparation of state for lp_supply, approve etc for the Unrug V2
-        // fn _add_liquidity_jediswap(
-        //     ref self: ContractState, coin_address: ContractAddress, owner: ContractAddress,
-        // ) -> u256 {
-        //     let unrug_liquidity = IUnrugLiquidityDispatcher {
-        //         contract_address: self.unrug_liquidity_address.read(),
-        //     };
+    // Change preparation of state for lp_supply, approve etc for the Unrug V2
+    // fn _add_liquidity_jediswap(
+    //     ref self: ContractState, coin_address: ContractAddress, owner: ContractAddress,
+    // ) -> u256 {
+    //     let unrug_liquidity = IUnrugLiquidityDispatcher {
+    //         contract_address: self.unrug_liquidity_address.read(),
+    //     };
 
         //     let launch = self.launched_coins.read(coin_address);
-        //     assert(!launch.is_liquidity_launch, errors::LIQUIDITY_ALREADY_LAUNCHED);
+    //     assert(!launch.is_liquidity_launch, errors::LIQUIDITY_ALREADY_LAUNCHED);
 
         //     let quote_address = launch.token_quote.token_address;
-        //     let lp_supply = launch.initial_pool_supply;
-        //     let quote_supply = launch.liquidity_raised;
-        //     let unlock_time = starknet::get_block_timestamp() + DEFAULT_MIN_LOCKTIME;
+    //     let lp_supply = launch.initial_pool_supply;
+    //     let quote_supply = launch.liquidity_raised;
+    //     let unlock_time = starknet::get_block_timestamp() + DEFAULT_MIN_LOCKTIME;
 
         //     let id = unrug_liquidity
-        //         .launch_on_jediswap(
-        //             coin_address, quote_address, lp_supply, quote_supply, unlock_time, owner,
-        //         );
+    //         .launch_on_jediswap(
+    //             coin_address, quote_address, lp_supply, quote_supply, unlock_time, owner,
+    //         );
 
         //     self
-        //         .emit(
-        //             LiquidityCreated {
-        //                 id,
-        //                 pool: coin_address,
-        //                 asset: coin_address,
-        //                 quote_token_address: quote_address,
-        //                 owner: launch.owner,
-        //                 exchange: SupportedExchanges::Jediswap,
-        //                 is_unruggable: false,
-        //             },
-        //         );
+    //         .emit(
+    //             LiquidityCreated {
+    //                 id,
+    //                 pool: coin_address,
+    //                 asset: coin_address,
+    //                 quote_token_address: quote_address,
+    //                 owner: launch.owner,
+    //                 exchange: SupportedExchanges::Jediswap,
+    //                 is_unruggable: false,
+    //             },
+    //         );
 
         //     id
-        // }
+    // }
     }
 }
