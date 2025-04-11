@@ -7,7 +7,6 @@ import {
   VStack,
   Grid,
   Button,
-  useColorModeValue,
   Icon,
   Container,
   Stack,
@@ -62,13 +61,18 @@ const sectors = [
 ];
 
 export default function FeaturesPage() {
-  const bg = useColorModeValue("gray.50", "gray.900");
+  // const bg = useColorModeValue("gray.50", "gray.900");
 
   return (
-    <Box bg={bg} minH="100vh">
+    <Box
+      // bg={bg}
+      minH="100vh"
+    >
       <Navbar />
       <Container maxW="7xl" py={16}>
-        <VStack spacing={14} align="start">
+        <VStack
+          // spacing={14}
+          align="start">
           <MotionBox
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -90,11 +94,13 @@ export default function FeaturesPage() {
                 p={8}
                 rounded="2xl"
                 shadow="lg"
-                bg={useColorModeValue("white", "gray.800")}
+                // bg={useColorModeValue("white", "gray.800")}
                 border="1px solid"
-                borderColor={useColorModeValue("gray.200", "gray.700")}
+                // borderColor={useColorModeValue("gray.200", "gray.700")}
               >
-                <Stack spacing={4} direction="row" align="center">
+                <Stack 
+                // spacing={"10px"}
+                 direction="row" align="center">
                   <Icon as={feature.icon} w={6} h={6} color="green.400" />
                   <Heading size="md">{feature.title}</Heading>
                 </Stack>
@@ -120,11 +126,11 @@ export default function FeaturesPage() {
                 <Box
                   key={idx}
                   p={6}
-                  bg={useColorModeValue("white", "gray.800")}
+                  // bg={useColorModeValue("white", "gray.800")}
                   rounded="2xl"
                   shadow="md"
                   border="1px solid"
-                  borderColor={useColorModeValue("gray.200", "gray.700")}
+                  // borderColor={useColorModeValue("gray.200", "gray.700")}
                 >
                   <Text fontWeight="bold" fontSize="lg">{item.sector}</Text>
                   <Text mt={2}><strong>Problem:</strong> {item.problem}</Text>

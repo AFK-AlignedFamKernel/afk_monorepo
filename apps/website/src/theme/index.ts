@@ -1,32 +1,15 @@
 import {
   ChakraProvider,
-  createSystem,
-  defaultConfig,
-  defineConfig,
+  extendTheme,
+  // theme,
+  ThemeConfig,
+  // createSystem,
+  // defaultConfig,
+  // defineConfig,
 } from "@chakra-ui/react"
 import {mode, StyleFunctionProps} from '@chakra-ui/theme-tools';
 
-
-
-// 2. Add your color mode config
-// const config: ThemeConfig = {
-//   initialColorMode: "light",
-//   useSystemColorMode: false,
-// };
-
-// const config: defineConfig  {
-//   initialColorMode: 'dark',
-//   useSystemColorMode: true,
-// };
-
-// const config = defineConfig({
-//   theme: {
-//     tokens: {
-//       colors: {},
-//     },
-//   },
-// })
-export const configChakra = defineConfig({
+const colors ={
   theme: {
     breakpoints: {
       sm: "320px",
@@ -122,73 +105,95 @@ export const configChakra = defineConfig({
   body: {
     body: {
       // bg: mode("#153e75","#153e75")
-      fontFamily: 'monospace',
+      fontFamily: 'Droid Sans, sans-serif',
       bg: '#153e75',
       // useColorMode("#153e75", "#153e75")
+    }
+  },
+}
+
+// 2. Add your color mode config
+const config: ThemeConfig = {
+  initialColorMode: 'light',
+  useSystemColorMode: false,
+};
+
+// const config: defineConfig  {
+//   initialColorMode: 'dark',
+//   useSystemColorMode: true,
+// };
+
+// const config = defineConfig({
+//   theme: {
+//     tokens: {
+//       colors: {},
+//     },
+//   },
+// })
+// export const configChakra = defineConfig({
+
+// })
+
+const theme = extendTheme({
+  colors,
+  config,
+  styles: {
+    global: (props: StyleFunctionProps) => ({
+      body: {
+        color: mode('gray.800', 'whiteAlpha.900')(props),
+        bg: mode('white', 'gray.800')(props),
+        fontFamily: 'Droid Sans, sans-serif',
+        lineHeight: 'base',
+      },
+      'h1, h2, h3, h4, h5, h6': {
+        color: mode('gray.800', 'whiteAlpha.900')(props),
+      },
+      p: {
+        color: mode('gray.700', 'whiteAlpha.700')(props),
+      },
+      li: {
+        color: mode('gray.700', 'whiteAlpha.700')(props),
+      },
+      span: {
+        color: mode('gray.700', 'whiteAlpha.700')(props),
+      },
+      a: {
+        color: mode('blue.500', 'blue.300')(props),
+        _hover: {
+          color: mode('blue.600', 'blue.200')(props),
+        },
+      },
+    }),
+  },
+  components: {
+    Text: {
+      baseStyle: (props: StyleFunctionProps) => ({
+        color: mode('gray.800', 'whiteAlpha.900')(props),
+        fontFamily: 'Droid Sans, sans-serif',
+      }),
+      variants: {
+        primary: (props: StyleFunctionProps) => ({
+          color: mode('gray.800', 'whiteAlpha.900')(props),
+        }),
+        secondary: (props: StyleFunctionProps) => ({
+          color: mode('gray.600', 'whiteAlpha.700')(props),
+        }),
+        tertiary: (props: StyleFunctionProps) => ({
+          color: mode('gray.500', 'whiteAlpha.500')(props),
+        }),
+      },
+      defaultProps: {
+        variant: 'primary',
+      },
+    },
+    Heading: {
+      baseStyle: (props: StyleFunctionProps) => ({
+        color: mode('gray.800', 'whiteAlpha.900')(props),
+        fontFamily: 'Droid Sans, sans-serif',
+      }),
     },
   },
-})
+});
 
-// const theme = extendTheme({
-//   colors,
-//   config,
-//   styles: {
-//     global: (props: StyleFunctionProps) => ({
-//       body: {
-//         color: mode('gray.800', 'whiteAlpha.900')(props),
-//         bg: mode('white', 'gray.800')(props),
-//         fontFamily: 'monospace',
-//         lineHeight: 'base',
-//       },
-//       'h1, h2, h3, h4, h5, h6': {
-//         color: mode('gray.800', 'whiteAlpha.900')(props),
-//       },
-//       p: {
-//         color: mode('gray.700', 'whiteAlpha.700')(props),
-//       },
-//       li: {
-//         color: mode('gray.700', 'whiteAlpha.700')(props),
-//       },
-//       span: {
-//         color: mode('gray.700', 'whiteAlpha.700')(props),
-//       },
-//       a: {
-//         color: mode('blue.500', 'blue.300')(props),
-//         _hover: {
-//           color: mode('blue.600', 'blue.200')(props),
-//         },
-//       },
-//     }),
-//   },
-//   components: {
-//     Text: {
-//       baseStyle: (props: StyleFunctionProps) => ({
-//         color: mode('gray.800', 'whiteAlpha.900')(props),
-//         fontFamily: 'monospace',
-//       }),
-//       variants: {
-//         primary: (props: StyleFunctionProps) => ({
-//           color: mode('gray.800', 'whiteAlpha.900')(props),
-//         }),
-//         secondary: (props: StyleFunctionProps) => ({
-//           color: mode('gray.600', 'whiteAlpha.700')(props),
-//         }),
-//         tertiary: (props: StyleFunctionProps) => ({
-//           color: mode('gray.500', 'whiteAlpha.500')(props),
-//         }),
-//       },
-//       defaultProps: {
-//         variant: 'primary',
-//       },
-//     },
-//     Heading: {
-//       baseStyle: (props: StyleFunctionProps) => ({
-//         color: mode('gray.800', 'whiteAlpha.900')(props),
-//         fontFamily: 'monospace',
-//       }),
-//     },
-//   },
-// });
-
-export default createSystem(defaultConfig, configChakra)
-// export default theme;
+// export default createSystem(defaultConfig, configChakra)
+export default theme;

@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 
 import { MobileNavBar } from './MobileNavBar';
 import { NavigationLinks } from './NavigationLinks';
-import { Box, Button, Text, Image as ImageChakra } from '@chakra-ui/react';
+import { Box, Button, Text, Image as ImageChakra, Link as LinkChakra } from '@chakra-ui/react';
 
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);
@@ -20,9 +20,11 @@ export function Navbar() {
           className="desktop:h-[52px] w-9 h-9 desktop:w-[52px]"
           alt=""
         />
-        <Link href="/">
-          <Text className="desktop:text-2xl text-lg leading-7 font-bold">AFK</Text>
-        </Link>
+        <LinkChakra href="/"
+          className="desktop:text-2xl text-lg leading-7 font-bold">
+          AFK
+          {/* <Text >AFK</Text> */}
+        </LinkChakra>
       </Box>
       <NavigationLinks />
 

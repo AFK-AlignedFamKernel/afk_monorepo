@@ -27,31 +27,31 @@ export function Footer() {
         </Box>
         <Box className="flex gap-x-[40px] tab:gap-x-[122px] text-[14px] leading-[21px] font-normal pt-[46px]">
 
-          <List.Root className="flex flex-col gap-y-10">
-            <List.Item className="font-bold text-base leading-6">Product</List.Item>
-            <List.Item>
+          <List className="flex flex-col gap-y-10">
+            <ListItem className="font-bold text-base leading-6">Product</ListItem>
+            <ListItem>
               <Link href="https://afk-community.xyz">Nostr client</Link>
-            </List.Item>
-            <List.Item>
+            </ListItem>
+            <ListItem>
               <Link href="https://afk-community.xyz">SocialFi features</Link>
-            </List.Item>
+            </ListItem>
             <ListItem>
               <Link href="/infofi">Info Fi</Link>
             </ListItem>
 
-          </List.Root>
-          <List.Root className="flex flex-col gap-y-10">
-            <List.Item className="font-bold text-base leading-6">Company</List.Item>
-            <List.Item>
+          </List>
+          <List className="flex flex-col gap-y-10">
+            <ListItem className="font-bold text-base leading-6">Company</ListItem>
+            <ListItem>
               <Text fontFamily="monospace"
                 fontStyle={"italic"}
                 fontSize="14px" lineHeight="21px">DAO and Community owned</Text>
-            </List.Item>
-            <List.Item>
+            </ListItem>
+            <ListItem>
               <Link href="/solutions">Solutions</Link>
-            </List.Item>
+            </ListItem>
 
-          </List.Root>
+          </List>
         </Box>
         <Box className="flex items-center gap-x-[14px] mt-5 tab:mt-0 self-center tab:self-end">
           <a href="https://x.com/AFK_AlignedFamK" target="_blank">

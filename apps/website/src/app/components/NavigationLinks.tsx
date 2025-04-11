@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export function NavigationLinks() {
   return (
-    <List.Root
+        <List
     className="items-center gap-x-[32px] font-normal text-lg leading-[21px] hidden desktop:flex"
     >
       {/* <ListItem>
@@ -12,15 +12,15 @@ export function NavigationLinks() {
           <Text>Features</Text>
         </Link>
       </ListItem> */}
-      <List.Item>
+      <ListItem>
         <Link href="/solutions">
           <Text>Solutions</Text>
         </Link>
-      </List.Item>
-      <List.Item>
+      </ListItem>
+      <ListItem>
         <Link href="/infofi">InfoFi </Link>
-      </List.Item>
-      <List.Item>
+      </ListItem>
+      <ListItem>
         <Box className="desktop:flex hidden items-center gap-x-4 font-bold text-sm leading-[16px]">
           <Button className="py-[15px] px-[48px] bg-white">
             <a href="https://afk-community.xyz" target="_blank">
@@ -29,7 +29,7 @@ export function NavigationLinks() {
           </Button>
         </Box>
 
-      </List.Item>
+      </ListItem>
       {/* <li>
         <Link href="/pixel">Pixel </Link>
       </li> */}
@@ -39,6 +39,6 @@ export function NavigationLinks() {
         ></CustomConnectButtonWallet>
       </li> */}
       {/* <ConnectButton></ConnectButton> */}
-    </List.Root>
+    </List>
   );
 }
