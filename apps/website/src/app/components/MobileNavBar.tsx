@@ -65,7 +65,7 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
         >
           <List className="flex w-[90%] flex-col gap-8 text-left">
             <ListItem className="">
-              <Link href="/market">Market </Link>
+              <Link href="/solutions">Solutions </Link>
             </ListItem>
 
             <ListItem>

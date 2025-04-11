@@ -4,7 +4,7 @@ import {motion} from 'framer-motion';
 
 export function DownloadSection() {
   return (
-    <div className="desktop:pt-[84px] pt-[40px] pb-[50px] desktop:pb-[180px] text-center bg-gradientBg bg-center">
+    <div className="desktop:pt-[34px] pt-[40px]  desktop:pb-[180px] text-center bg-gradientBg bg-center">
       <motion.div
         animate={{x: [-1200, 0]}}
         transition={{
@@ -23,7 +23,7 @@ export function DownloadSection() {
           Download AFK
         </h3>
         <p className="text-sm desktop:text-[24px] desktop:leading-7 mb-6 tab:mb-[47px] desktop:w-[623px] w-[80%]">
-          AFK is available on Android, iOS, iPadOS and macOS. It’s free and open source.
+          AFK is available on Android, iOS, iPadOS and macOS.
         </p>
         <p>Coming soon</p>
         <div className="flex items-center gap-x-5">

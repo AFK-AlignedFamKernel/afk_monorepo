@@ -14,7 +14,7 @@ export default function App() {
       <HeroSection />
       <About />
       <DescriptionSection />
-      <div className="flex flex-col desktop:gap-y-[80px] gap-y-[50px] mt-[50px] desktop:mt-[180px]">
+      <div className="flex flex-col desktop:gap-y-[80px] gap-y-[50px] mt-[10px]">
         <ContributeSection />
         <DownloadSection />
         <Faq />

@@ -11,7 +11,7 @@ export function NavigationLinks() {
         </Link>
       </ListItem> */}
       <ListItem>
-        <Link href="/market">
+        <Link href="/solutions">
           <Text>Solutions</Text>
         </Link>
       </ListItem>

@@ -8,7 +8,7 @@ import {Feature} from './Feature';
 export function DescriptionSection() {
   return (
     <div className="flex flex-col items-center text-center  px-6 desktop:px-[120px] bg-gradientBg bg-no-repeat bg-contain">
-      <div className="desktop:py-[112px] py-[50px] flex flex-col items-center desktop:gap-y-[72px] gap-y-[36px]">
+      <div className="desktop:py-[30px] py-[10px] flex flex-col items-center  gap-y-[36px]">
         <motion.div
           initial={{opacity: 0}}
           whileInView={{opacity: 1}}
@@ -52,7 +52,7 @@ export function DescriptionSection() {
           />
         </motion.div>
       </div>
-      <div className="desktop:pt-[140px] pt-[50px] w-full">
+      <div className="w-full">
         <div className="flex desktop:flex-row items-center desktop:items-start flex-col-reverse justify-center gap-y-7 gap-x-[181px] mb-[100px] desktop:mb-[280px]">
           <motion.div
             animate={{x: [-1200, 0]}}

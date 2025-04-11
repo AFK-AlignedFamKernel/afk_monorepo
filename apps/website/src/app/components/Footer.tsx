@@ -1,4 +1,5 @@
 import { Box, List, ListItem, Text, Button } from "@chakra-ui/react";
+import Link from "next/link";
 
 export function Footer() {
   return (
@@ -14,24 +15,40 @@ export function Footer() {
             Free, open-source decentralized social media platform.
           </Text>
           <Box className="flex items-center gap-x-5">
-            <Button>
+            <Box  >
               <img src="/assets/appStoreBtn.svg" className="w-[100px] tab:w-auto" alt="" />
-            </Button>
-            <Button>
+            </Box>
+            <Box>
               <img src="/assets/googlePlaybtn.svg" className="w-[100px] tab:w-auto" alt="" />
-            </Button>
+            </Box>
           </Box>
         </Box>
         <Box className="flex gap-x-[40px] tab:gap-x-[122px] text-[14px] leading-[21px] font-normal pt-[46px]">
-              <List className="flex flex-col gap-y-10">
-            <ListItem className="font-bold text-base leading-6">Company</ListItem>
-            <ListItem>DAO and Community owned</ListItem>
-            <ListItem>Solutions</ListItem>
-          </List>
+
           <List className="flex flex-col gap-y-10">
             <ListItem className="font-bold text-base leading-6">Product</ListItem>
-            <ListItem>Nostr client</ListItem>
-            <ListItem>SocialFi features</ListItem>
+            <ListItem>
+              <Link href="https://afk-community.xyz">Nostr client</Link>
+            </ListItem>
+            <ListItem>
+              <Link href="https://afk-community.xyz">SocialFi features</Link>
+            </ListItem>
+            <ListItem>
+              <Link href="/infofi">Info Fi</Link>
+            </ListItem>
+
+          </List>
+          <List className="flex flex-col gap-y-10">
+            <ListItem className="font-bold text-base leading-6">Company</ListItem>
+            <ListItem>
+              <Text fontFamily="monospace"
+                fontStyle={"italic"}
+                fontSize="14px" lineHeight="21px">DAO and Community owned</Text>
+            </ListItem>
+            <ListItem>
+              <Link href="/solutions">Solutions</Link>
+            </ListItem>
+
           </List>
         </Box>
         <Box className="flex items-center gap-x-[14px] mt-5 tab:mt-0 self-center tab:self-end">

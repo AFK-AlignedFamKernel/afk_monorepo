@@ -1,4 +1,5 @@
 'use client';
+const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS; // Replace with your actual tracking ID
 
 // import '@rainbow-me/rainbowkit/styles.css';
 import { ChakraProvider, theme } from '@chakra-ui/react';
@@ -10,6 +11,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // import { mainnet, sepolia } from 'wagmi/chains';
 
 import StarknetProvider from '@/context/StarknetProvider';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 // import {TanstackProvider} from 'afk_nostr_sdk';
 // import {NostrProvider} from 'afk_nostr_sdk';
@@ -58,6 +61,22 @@ import StarknetProvider from '@/context/StarknetProvider';
 const queryClient = new QueryClient();
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+
+  const router = useRouter();
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      if (typeof window !== 'undefined') {
+        window.gtag('config', GA_TRACKING_ID, {
+          page_path: url,
+        });
+      }
+    };
+    router?.events?.on('routeChangeComplete', handleRouteChange);
+    return () => {
+      router?.events?.off('routeChangeComplete', handleRouteChange);
+    };
+  }, [router]);
+  
   return (
     <>
       <ChakraProvider

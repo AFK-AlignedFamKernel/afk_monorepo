@@ -1,5 +1,6 @@
-import './index.css';
-import '@rainbow-me/rainbowkit/styles.css';
+// "use client"
+// import './index.css';
+// import '@rainbow-me/rainbowkit/styles.css';
 
 import type {Metadata} from 'next';
 // import {useRouter} from 'next/router';
@@ -7,6 +8,8 @@ import Script from 'next/script';
 
 // import {useEffect} from 'react';
 import Providers from './providers';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 export const metadata: Metadata = {
   title: 'AFK community portal',
   description: 'AFK community is a Social payment network for thoughts, data and money.',
