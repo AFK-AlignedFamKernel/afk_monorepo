@@ -71,6 +71,9 @@ export const handleClassification = async (content: string) => {
 
 
         const classificationSchema = z.object({
+            nsfw: z
+                .boolean()
+                .describe("If the text is NSFW"),
             topics: z
                 .array(z.string())
                 .describe("The topics of the text"),

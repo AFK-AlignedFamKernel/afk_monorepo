@@ -16,101 +16,147 @@ const limit = 1;
 const limitEventsProfileScroring = 200;
 
 
-export const handleTrendingAndViralEvents = async () => {
-    console.log('Getting trending events from user pay scoring');
+interface IHandleTrendingAndViralEventsProps {
+    pubkey?: string,
+    limit?: number,
+    limitEventsProfileScroring?: number,
+    sinceTimestamp?: number,
+    authors?: string[]
+}
 
-    const followersEvents = await fetchFollowers(PUBKEY_EXAMPLE);
-    console.log('Followers Events', followersEvents?.length);
-    const followingsEvents = await fetchFollowings(PUBKEY_EXAMPLE);
-    console.log('Followings Events', followingsEvents?.length);
+export const handleTrendingAndViralEvents = async (props: IHandleTrendingAndViralEventsProps): Promise<{ trendingEvents: any[], eventsWithClassification: { note: NDKEvent, ml?: any | any[], llm?: any }[] }> => {
+
+    try {
+        console.log('Getting trending events from user pay scoring');
+
+        const followersEvents = await fetchFollowers(PUBKEY_EXAMPLE);
+        console.log('Followers Events', followersEvents?.length);
+        const followingsEvents = await fetchFollowings(PUBKEY_EXAMPLE);
+        console.log('Followings Events', followingsEvents?.length);
 
 
-    const events = await fetchEvents({
-        kinds: [
-            // NDKKind.Text,
-            NDKKind.Article,
-            // NDKKind.HorizontalVideo,
-            // NDKKind.VerticalVideo
-        ], limit: limit, authors: [
-            // process.env.NOSTR_AFK_BOT_PUBKEY!,
-            PUBKEY_EXAMPLE
-        ]
-    });
-
-    const eventsWithClassification: { note: NDKEvent, ml?: any | any[], llm?: any }[] = [];
-
-    for (const event of events) {
-        console.log("Event content", event?.content);
-        const classification = await handleZeroShotClassification(event?.content);
-        console.log('Classification', classification);
-        const llmClassification = await handleClassification(event?.content);
-        console.log('LLM Classification', llmClassification);
-        eventsWithClassification.push({
-            note: event,
-            ml: classification,
-            llm: llmClassification?.result
+        const events = await fetchEvents({
+            kinds: [
+                // NDKKind.Text,
+                NDKKind.Article,
+                // NDKKind.HorizontalVideo,
+                // NDKKind.VerticalVideo
+            ],
+            limit: props?.limit ?? limit,
+            authors: props?.authors ?? [
+                // process.env.NOSTR_AFK_BOT_PUBKEY!,
+                props?.pubkey ?? PUBKEY_EXAMPLE
+            ]
         });
+
+        const eventsWithClassification: { note: NDKEvent, ml?: any | any[], llm?: any }[] = [];
+
+        for (const event of events) {
+            console.log("Event content", event?.content);
+            const classification = await handleZeroShotClassification(event?.content);
+            console.log('Classification', classification);
+            const llmClassification = await handleClassification(event?.content);
+            console.log('LLM Classification', llmClassification);
+            eventsWithClassification.push({
+                note: event,
+                ml: classification,
+                llm: llmClassification?.result
+            });
+        }
+
+        console.log('Events with classification', eventsWithClassification);
+        // console.log('Events', events);
+        // console.log('Events length', events.length);
+        const trendingEvents = await getTrendingAndViralByEvents(events);
+
+        return {
+            trendingEvents,
+            eventsWithClassification
+        }
+        // console.log('Trending Events', trendingEvents);
+    } catch (error) {
+        console.error(error);
+        return {
+            trendingEvents: [],
+            eventsWithClassification: []
+        }
     }
 
-    console.log('Events with classification', eventsWithClassification);
-    // console.log('Events', events);
-    // console.log('Events length', events.length);
-    const trendingEvents = await getTrendingAndViralByEvents(events);
-    // console.log('Trending Events', trendingEvents);
 }
 // handleTrendingAndViralEvents();
 // setInterval(handleTrendingAndViralEvents, 1000 * 60 * 60 * 24);
 
-export const handleProfilesScoring = async () => {
-    console.log('Getting trending events from user pay scoring');
+export const handleProfilesScoring = async (
+    pubkey: string,
+    eventsProps?: NDKEvent[],
+    eventsClassification?: { note: NDKEvent, ml?: any | any[], llm?: any }[]
+): Promise<{ profileNoted: any, eventsClassification?: { note: NDKEvent, ml?: any | any[], llm?: any }[] }> => {
 
-    const followersEvents = await fetchFollowers(PUBKEY_EXAMPLE);
-    console.log('Followers Events', followersEvents?.length);
-    const followingsEvents = await fetchFollowings(PUBKEY_EXAMPLE);
-    console.log('Followings Events', followingsEvents?.length);
+    try {
+        console.log('Getting trending events from user pay scoring');
 
-    const eventProfile = await fetchEventMetadata(PUBKEY_EXAMPLE);
-    console.log('Event Profile', eventProfile);
+        const followersEvents = await fetchFollowers(PUBKEY_EXAMPLE);
+        console.log('Followers Events', followersEvents?.length);
+        const followingsEvents = await fetchFollowings(PUBKEY_EXAMPLE);
+        console.log('Followings Events', followingsEvents?.length);
 
-    const sinceTimestamp = new Date().getTime() - 1000 * 60 * 60 * 24 * 7
+        const eventProfile = await fetchEventMetadata(PUBKEY_EXAMPLE);
+        console.log('Event Profile', eventProfile);
 
-    const events = await fetchEvents({
-        kinds: [
-            NDKKind.Text,
-            NDKKind.Article,
-            // NDKKind.HorizontalVideo,
-            // NDKKind.VerticalVideo
-        ], limit: limitEventsProfileScroring, authors: [
-            // process.env.NOSTR_AFK_BOT_PUBKEY!,
-            PUBKEY_EXAMPLE
-        ],
-        // since: sinceTimestamp
-    });
-    console.log('Events notes and articles', events?.length);
+        const sinceTimestamp = new Date().getTime() - 1000 * 60 * 60 * 24 * 7
+        console.log('Events with classification', eventsClassification);
 
-    const eventsWithClassification: { note: NDKEvent, ml?: any | any[], llm?: any }[] = [];
-    // // console.log('Events', events);
-    // // console.log('Events length', events.length);
-    const algoAnalyze = await analyzeProfile(PUBKEY_EXAMPLE, events, sinceTimestamp);
-    console.log('Analyse', algoAnalyze);
-    const llmClassification = await handleClassificationProfile(eventProfile?.content ?? "", events?.map(e => e?.content));
-    console.log('LLM Classificatio  n', llmClassification);
-    eventsWithClassification.push({
-        note: events?.[0],
-        ml: undefined,
-        llm: llmClassification?.result
-    });
-    console.log('Events with classification', eventsWithClassification);
+        let events = eventsProps;
 
-    const profileNoted = {
-        profile: {
-            ...eventProfile,
+        if (!events || eventsProps) {
+            events = await fetchEvents({
+                kinds: [
+                    NDKKind.Text,
+                    NDKKind.Article,
+                    // NDKKind.HorizontalVideo,
+                    // NDKKind.VerticalVideo
+                ], limit: limitEventsProfileScroring, authors: [
+                    // process.env.NOSTR_AFK_BOT_PUBKEY!,
+                    pubkey ?? PUBKEY_EXAMPLE
+                ],
+                // since: sinceTimestamp
+            });
+        }
 
-        },
-        algo: algoAnalyze,
-        llm: llmClassification?.result
+        console.log('Events notes and articles', events?.length);
+
+        // // console.log('Events', events);
+        // // console.log('Events length', events.length);
+        const algoAnalyze = await analyzeProfile(PUBKEY_EXAMPLE, events, sinceTimestamp);
+        console.log('Analyse', algoAnalyze);
+        const llmClassification = await handleClassificationProfile(eventProfile?.content ?? "", events?.map(e => e?.content));
+        console.log('LLM Classificatio  n', llmClassification);
+
+
+
+        const profileNoted = {
+            profile: {
+                ...eventProfile,
+            },
+            notes: events,
+            algo: algoAnalyze,
+            llm: llmClassification?.result
+        }
+
+        console.log('profileNoted', profileNoted);
+
+        return {
+            profileNoted,
+            eventsClassification
+        }
+    } catch (error) {
+        console.error("Error in handleProfilesScoring", error);
+        return {
+            profileNoted: null,
+            eventsClassification: []
+        }
     }
 
-    console.log('profileNoted', profileNoted);
+
 
 }
