@@ -1,12 +1,33 @@
 'use client';
+import { List, ListItem, Box, Button, Text } from '@chakra-ui/react';
 import Link from 'next/link';
 
 export function NavigationLinks() {
   return (
-    <ul className="items-center gap-x-[32px] font-normal text-lg leading-[21px] text-white hidden desktop:flex">
-      <li>
-        <Link href="/features">Features </Link>
-      </li>
+    <List className="items-center gap-x-[32px] font-normal text-lg leading-[21px] hidden desktop:flex">
+      {/* <ListItem>
+        <Link href="/features">
+          <Text>Features</Text>
+        </Link>
+      </ListItem> */}
+      <ListItem>
+        <Link href="/market">
+          <Text>Solutions</Text>
+        </Link>
+      </ListItem>
+      <ListItem>
+        <Link href="/infofi">InfoFi </Link>
+      </ListItem>
+      <ListItem>
+        <Box className="desktop:flex hidden items-center gap-x-4 font-bold text-sm leading-[16px]">
+          <Button className="py-[15px] px-[48px] bg-white">
+            <a href="https://afk-community.xyz" target="_blank">
+              Go AFK
+            </a>
+          </Button>
+        </Box>
+
+      </ListItem>
       {/* <li>
         <Link href="/pixel">Pixel </Link>
       </li> */}
@@ -16,6 +37,6 @@ export function NavigationLinks() {
         ></CustomConnectButtonWallet>
       </li> */}
       {/* <ConnectButton></ConnectButton> */}
-    </ul>
+    </List>
   );
 }

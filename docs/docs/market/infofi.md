@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# 🔥InfoFi — The Marketplace of Attention & Insights
+# InfoFi — The Marketplace of Attention & Insights
 
 AFK is building on the **InfoFi**: the Information Finance layer of the new internet.
 
@@ -20,8 +20,8 @@ Everyone contributes to trends. Now everyone can earn from them.
 - Earn AFK tokens by supporting creators and curating content.
 
 ### 🧠 What You Can Do
-- 🗳️ Vote on content and trends
 - 💡 Discover topics you care about, not just what's viral
+- 🗳️ Vote on content and trends
 - 🎁 Get rewarded by Topic Vaults for engagement
 
 ### 💎 InfoFi Benefits
@@ -34,14 +34,14 @@ Everyone contributes to trends. Now everyone can earn from them.
 ## 🧑‍🎨 For Creators
 
 ### 🚀 Why Use AFK?
-- Get visibility through merit, not just followers.
+- Get visibility and rewards through merit and your produced value.
 - Monetize content directly with tips and Vault rewards.
 - Build an on-chain reputation you own (zkDID coming soon).
 
 ### 🛠️ What You Can Do
 - Post across topics tied to Vaults
 - Receive tips and DAO-based scores
-- Rank on content leaderboards by value, not virality
+- Rank on content leaderboards by value provided, topics, AI algorithm and DAO users vote.
 
 ### 💎 InfoFi Benefits
 - Algorithmic + community-based content boost

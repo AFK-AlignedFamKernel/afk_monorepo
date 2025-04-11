@@ -1,12 +1,13 @@
 'use client';
 
+import { Text, Box } from '@chakra-ui/react';
 import {motion} from 'framer-motion';
 
 import {Feature} from './Feature';
 
 export function DescriptionSection() {
   return (
-    <div className="flex flex-col items-center text-center text-white  px-6 desktop:px-[120px] bg-gradientBg bg-no-repeat bg-contain">
+    <div className="flex flex-col items-center text-center  px-6 desktop:px-[120px] bg-gradientBg bg-no-repeat bg-contain">
       <div className="desktop:py-[112px] py-[50px] flex flex-col items-center desktop:gap-y-[72px] gap-y-[36px]">
         <motion.div
           initial={{opacity: 0}}
@@ -70,13 +71,13 @@ export function DescriptionSection() {
             <h5 className="desktop:text-[24px] text-base desktop:leading-10 text-[#9D9797] desktop:mb-6 mb-2">
               Freedom requires censorship resistance, and Nostr provides exactly that.
             </h5>
-            <p className="text-sm leading-7 desktop:text-base desktop:leading-10">
+            <Text className="text-sm leading-7 desktop:leading-10">
               Freedom requires censorship resistance, and Nostr provides exactly that.
               AlIgnedFamKernel leverages Nostr’s decentralized and open social network to give you a
               platform free from ads, toxic algorithms, and censorship. With Nostr, your social
               interactions are safeguarded from any centralized control, ensuring your voice is
               heard without interference.
-            </p>
+            </Text>
           </motion.div>
           <motion.img
             src="/assets/save-your-keys.png"

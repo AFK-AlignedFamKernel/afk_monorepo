@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import React, {useState} from 'react';
-import {createPortal} from 'react-dom';
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 
-import {MobileNavBar} from './MobileNavBar';
-import {NavigationLinks} from './NavigationLinks';
-import { Box, Button, Text } from '@chakra-ui/react';
+import { MobileNavBar } from './MobileNavBar';
+import { NavigationLinks } from './NavigationLinks';
+import { Box, Button, Text, Image as ImageChakra } from '@chakra-ui/react';
 
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);
@@ -21,7 +21,7 @@ export function Navbar() {
           alt=""
         />
         <Link href="/">
-          <Text className="desktop:text-2xl text-lg leading-7 font-bold text-white">AFK</Text>
+          <Text className="desktop:text-2xl text-lg leading-7 font-bold">AFK</Text>
         </Link>
       </Box>
       <NavigationLinks />
@@ -39,22 +39,19 @@ export function Navbar() {
       {/* {toggleParamsNav &&
         createPortal(<MenuNav setToggle={setToggleParamsNav} toggle={toggleParamsNav} />, document.body)
       } */}
-      <Box className="desktop:flex hidden items-center gap-x-4 font-bold text-sm leading-[16px]">
-        <Button className="py-[15px] px-[48px] bg-white">
-          <a href="https://afk-community.xyz" target="_blank">
-            Go AFK
-          </a>
-        </Button>
-      </Box>
 
       <Button
         className="flex"
         onClick={() => {
-          setToggleNav(true);
-          window.scrollTo({top: 0, left: 0, behavior: 'smooth'});
+          if (toggleNav) {
+            setToggleNav(false);
+          } else {
+            setToggleNav(true);
+            window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+          }
         }}
       >
-        <img src="assets/hamburger-icon.svg" className="w-6 h-6" alt="" />
+        <ImageChakra src="assets/hamburger-icon.svg" className="w-6 h-6" alt="" color="currentColor" />
       </Button>
 
       {toggleNav &&

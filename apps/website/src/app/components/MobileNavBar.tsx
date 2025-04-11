@@ -35,9 +35,20 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
   }, [toggle]);
 
   return (
-    <Box className="absolute inset-0 z-[900] backdrop-blur-[30px]">
+    <Box className="absolute inset-0 z-[900] backdrop-blur-[30px]"
+
+      maxWidth={{ sm: "100%", lg: "40%" }}
+      as={motion.div}
+      initial={{ x: '100%' }}
+      animate={{ x: 0 }}
+      exit={{ x: '100%' }}
+    // transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+    // onClick={(e) => e.stopPropagation()}
+    >
       <Box className={`list-none pt-[60px] text-center`}>
-        <Box className="absolute right-[51px] top-[39px] h-fit w-fit" onClick={toggleNav}>
+        <Box className="absolute right-[51px] top-[39px] h-fit w-fit" onClick={toggleNav}
+          cursor="pointer"
+        >
           <ImageChakra src="/assets/cancel-icon.svg" alt="" />
         </Box>
 
@@ -54,13 +65,13 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
         >
           <List className="flex w-[90%] flex-col gap-8 text-left">
             <ListItem className="">
-              <Link href="/market">Features </Link>
+              <Link href="/market">Market </Link>
             </ListItem>
 
             <ListItem>
               <Link href="/infofi">
-              <Text>
-                InfoFi: Market of Attention & Knowledge
+                <Text>
+                  InfoFi: Attention & Knowledge
                 </Text>
               </Link>
             </ListItem>
@@ -76,7 +87,7 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
                   Sign up
                 </a>
               </Button>
-        
+
 
             </ListItem>
             <ListItem>

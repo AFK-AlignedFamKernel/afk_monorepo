@@ -50,7 +50,7 @@ export function Footer() {
         </Box>
       </Box>
       <Text className="text-xs tab:text-sm leading-[14px] font-normal text-center mt-4">
-        © 2024 AFK. All Rights Reserved.
+        © {new Date().getFullYear()} AFK. All Rights Reserved.
       </Text>
     </Box>
   );

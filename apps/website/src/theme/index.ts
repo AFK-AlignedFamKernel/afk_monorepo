@@ -111,6 +111,12 @@ const theme = extendTheme({
       p: {
         color: mode('gray.700', 'whiteAlpha.700')(props),
       },
+      li: {
+        color: mode('gray.700', 'whiteAlpha.700')(props),
+      },
+      span: {
+        color: mode('gray.700', 'whiteAlpha.700')(props),
+      },
       a: {
         color: mode('blue.500', 'blue.300')(props),
         _hover: {

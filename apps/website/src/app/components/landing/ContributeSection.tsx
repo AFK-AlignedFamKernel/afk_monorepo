@@ -4,7 +4,7 @@ import {motion} from 'framer-motion';
 
 export function ContributeSection() {
   return (
-    <div className="desktop:pt-[84px] pt-[40px] pb-[50px] desktop:pb-[180px] bg-contributeBg bg-contain tab:bg-cover bg-center bg-no-repeat text-white h-auto desktop:h-[654px]">
+    <div className="desktop:pt-[84px] pt-[40px] pb-[50px] desktop:pb-[180px] bg-contributeBg bg-contain tab:bg-cover bg-center bg-no-repeat h-auto desktop:h-[654px]">
       <motion.div
         animate={{x: [-1200, 0]}}
         transition={{

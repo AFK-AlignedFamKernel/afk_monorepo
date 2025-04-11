@@ -40,6 +40,7 @@ const config: Config = {
           trackingID: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS ?? "",
           anonymizeIP: true,
         },
+        blog:false,
         docs: {
           // id: 'docs',
           routeBasePath: 'docs',
