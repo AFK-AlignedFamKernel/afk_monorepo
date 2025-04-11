@@ -10,11 +10,14 @@ import Script from 'next/script';
 import Providers from './providers';
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { createSystem, defaultConfig } from '@chakra-ui/react';
 export const metadata: Metadata = {
   title: 'AFK community portal',
   description: 'AFK community is a Social payment network for thoughts, data and money.',
 };
 const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS; // Replace with your actual tracking ID
+
+
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   // // Track page views

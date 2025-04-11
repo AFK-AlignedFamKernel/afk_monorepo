@@ -3,11 +3,10 @@
 import { motion } from 'framer-motion';
 import { Box, Text } from '@chakra-ui/react';
 import { GRADIENT_STYLES } from '@/theme/variable';
-import { useTheme } from '@chakra-ui/react';
 const MotionBox = motion(Box);
 
 export function About() {
-  const theme = useTheme();
+  // const theme = useTheme();
   return (
     <Box className="py-[10px] tab:py-[140px] text-center text-base tab:text-[32px] leading-[32px] desktop:leading-[50px] font-normal z-[50] relative px-6 desktop:px-[171px]">
       <MotionBox
@@ -25,7 +24,7 @@ export function About() {
 
 
         <Text
-          bgGradient={`linear(to-l, ${theme.colors?.brand?.primary}, ${theme.colors?.brand?.complement})`}
+          // bgGradient={`linear(to-l, ${theme.colors?.brand?.primary}, ${theme.colors?.brand?.complement})`}
           // bgGradient='linear(to-l, #7928CA, #FF0080)'
           bgClip='text'
           // fontSize='6xl'

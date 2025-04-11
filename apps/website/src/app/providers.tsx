@@ -1,8 +1,8 @@
 'use client';
-const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS; // Replace with your actual tracking ID
+// const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS; // Replace with your actual tracking ID
 
 // import '@rainbow-me/rainbowkit/styles.css';
-import { ChakraProvider, theme } from '@chakra-ui/react';
+import { ChakraProvider, createSystem, defaultConfig, defaultSystem, theme } from '@chakra-ui/react';
 // import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // import { Chain } from 'viem';
@@ -11,8 +11,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // import { mainnet, sepolia } from 'wagmi/chains';
 
 import StarknetProvider from '@/context/StarknetProvider';
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { configChakra } from '@/theme';
 
 // import {TanstackProvider} from 'afk_nostr_sdk';
 // import {NostrProvider} from 'afk_nostr_sdk';
@@ -60,29 +59,31 @@ import { useRouter } from 'next/router';
 
 const queryClient = new QueryClient();
 
+
+const system = createSystem(defaultConfig, configChakra)
 export default function Providers({ children }: { children: React.ReactNode }) {
 
-  const router = useRouter();
-  useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      if (typeof window !== 'undefined') {
-        window.gtag('config', GA_TRACKING_ID, {
-          page_path: url,
-        });
-      }
-    };
-    router?.events?.on('routeChangeComplete', handleRouteChange);
-    return () => {
-      router?.events?.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router]);
+  // const router = useRouter();
+  // useEffect(() => {
+  //   const handleRouteChange = (url: string) => {
+  //     if (typeof window !== 'undefined') {
+  //       window.gtag('config', GA_TRACKING_ID, {
+  //         page_path: url,
+  //       });
+  //     }
+  //   };
+  //   router?.events?.on('routeChangeComplete', handleRouteChange);
+  //   return () => {
+  //     router?.events?.off('routeChangeComplete', handleRouteChange);
+  //   };
+  // }, [router]);
   
   return (
     <>
       <ChakraProvider
-        theme={theme}
         // defaultColorMode="dark"
         // value={defaultSystem}
+        value={system}
       >
         <StarknetProvider>
           {/* <WagmiProvider config={config}> */}

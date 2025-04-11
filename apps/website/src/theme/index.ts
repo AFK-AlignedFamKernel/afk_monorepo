@@ -1,10 +1,56 @@
-// 1. Import the extendTheme function
-import {type ThemeConfig, extendTheme, StyleFunctionProps} from '@chakra-ui/react';
-import {mode} from '@chakra-ui/theme-tools';
+import {
+  ChakraProvider,
+  createSystem,
+  defaultConfig,
+  defineConfig,
+} from "@chakra-ui/react"
+import {mode, StyleFunctionProps} from '@chakra-ui/theme-tools';
 
 
-// 2. Extend the theme to include custom colors, fonts, etc
-const colors = {
+
+// 2. Add your color mode config
+// const config: ThemeConfig = {
+//   initialColorMode: "light",
+//   useSystemColorMode: false,
+// };
+
+// const config: defineConfig  {
+//   initialColorMode: 'dark',
+//   useSystemColorMode: true,
+// };
+
+// const config = defineConfig({
+//   theme: {
+//     tokens: {
+//       colors: {},
+//     },
+//   },
+// })
+export const configChakra = defineConfig({
+  theme: {
+    breakpoints: {
+      sm: "320px",
+      md: "768px",
+      lg: "960px",
+      xl: "1200px",
+    },
+    tokens: {
+      colors: {
+        red: "#EE0F0F",
+      },
+    },
+    semanticTokens: {
+      colors: {
+        danger: { value: "{colors.red}" },
+      },
+    },
+    keyframes: {
+      spin: {
+        from: { transform: "rotate(0deg)" },
+        to: { transform: "rotate(360deg)" },
+      },
+    },
+  },
   brand: {
     primary: '#4FA89B',
     secondary: '#4f89a8',
@@ -81,78 +127,68 @@ const colors = {
       // useColorMode("#153e75", "#153e75")
     },
   },
-};
+})
 
-// 2. Add your color mode config
-// const config: ThemeConfig = {
-//   initialColorMode: "light",
-//   useSystemColorMode: false,
-// };
+// const theme = extendTheme({
+//   colors,
+//   config,
+//   styles: {
+//     global: (props: StyleFunctionProps) => ({
+//       body: {
+//         color: mode('gray.800', 'whiteAlpha.900')(props),
+//         bg: mode('white', 'gray.800')(props),
+//         fontFamily: 'monospace',
+//         lineHeight: 'base',
+//       },
+//       'h1, h2, h3, h4, h5, h6': {
+//         color: mode('gray.800', 'whiteAlpha.900')(props),
+//       },
+//       p: {
+//         color: mode('gray.700', 'whiteAlpha.700')(props),
+//       },
+//       li: {
+//         color: mode('gray.700', 'whiteAlpha.700')(props),
+//       },
+//       span: {
+//         color: mode('gray.700', 'whiteAlpha.700')(props),
+//       },
+//       a: {
+//         color: mode('blue.500', 'blue.300')(props),
+//         _hover: {
+//           color: mode('blue.600', 'blue.200')(props),
+//         },
+//       },
+//     }),
+//   },
+//   components: {
+//     Text: {
+//       baseStyle: (props: StyleFunctionProps) => ({
+//         color: mode('gray.800', 'whiteAlpha.900')(props),
+//         fontFamily: 'monospace',
+//       }),
+//       variants: {
+//         primary: (props: StyleFunctionProps) => ({
+//           color: mode('gray.800', 'whiteAlpha.900')(props),
+//         }),
+//         secondary: (props: StyleFunctionProps) => ({
+//           color: mode('gray.600', 'whiteAlpha.700')(props),
+//         }),
+//         tertiary: (props: StyleFunctionProps) => ({
+//           color: mode('gray.500', 'whiteAlpha.500')(props),
+//         }),
+//       },
+//       defaultProps: {
+//         variant: 'primary',
+//       },
+//     },
+//     Heading: {
+//       baseStyle: (props: StyleFunctionProps) => ({
+//         color: mode('gray.800', 'whiteAlpha.900')(props),
+//         fontFamily: 'monospace',
+//       }),
+//     },
+//   },
+// });
 
-const config: ThemeConfig = {
-  initialColorMode: 'dark',
-  useSystemColorMode: true,
-};
-
-const theme = extendTheme({
-  colors,
-  config,
-  styles: {
-    global: (props: StyleFunctionProps) => ({
-      body: {
-        color: mode('gray.800', 'whiteAlpha.900')(props),
-        bg: mode('white', 'gray.800')(props),
-        fontFamily: 'monospace',
-        lineHeight: 'base',
-      },
-      'h1, h2, h3, h4, h5, h6': {
-        color: mode('gray.800', 'whiteAlpha.900')(props),
-      },
-      p: {
-        color: mode('gray.700', 'whiteAlpha.700')(props),
-      },
-      li: {
-        color: mode('gray.700', 'whiteAlpha.700')(props),
-      },
-      span: {
-        color: mode('gray.700', 'whiteAlpha.700')(props),
-      },
-      a: {
-        color: mode('blue.500', 'blue.300')(props),
-        _hover: {
-          color: mode('blue.600', 'blue.200')(props),
-        },
-      },
-    }),
-  },
-  components: {
-    Text: {
-      baseStyle: (props: StyleFunctionProps) => ({
-        color: mode('gray.800', 'whiteAlpha.900')(props),
-        fontFamily: 'monospace',
-      }),
-      variants: {
-        primary: (props: StyleFunctionProps) => ({
-          color: mode('gray.800', 'whiteAlpha.900')(props),
-        }),
-        secondary: (props: StyleFunctionProps) => ({
-          color: mode('gray.600', 'whiteAlpha.700')(props),
-        }),
-        tertiary: (props: StyleFunctionProps) => ({
-          color: mode('gray.500', 'whiteAlpha.500')(props),
-        }),
-      },
-      defaultProps: {
-        variant: 'primary',
-      },
-    },
-    Heading: {
-      baseStyle: (props: StyleFunctionProps) => ({
-        color: mode('gray.800', 'whiteAlpha.900')(props),
-        fontFamily: 'monospace',
-      }),
-    },
-  },
-});
-
-export default theme;
+export default createSystem(defaultConfig, configChakra)
+// export default theme;
