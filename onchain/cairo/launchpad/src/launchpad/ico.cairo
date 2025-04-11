@@ -8,8 +8,8 @@ pub mod ICO {
     use starknet::syscalls::deploy_syscall;
     use starknet::{ClassHash, ContractAddress, get_caller_address};
     use crate::interfaces::ico::{
-        IICO, IICOConfig, PresaleDetails, Token, TokenConfig, TokenCreated, TokenDetails,
-        TokenInitParams, default_presale_details, PresaleStatus
+        IICO, IICOConfig, PresaleDetails, PresaleStatus, Token, TokenConfig, TokenCreated,
+        TokenDetails, TokenInitParams, default_presale_details,
     };
     use crate::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
 
@@ -126,15 +126,18 @@ pub mod ICO {
             assert!(
                 details.soft_cap * PRECISION >= details.hard_cap,
                 "SOFT CAP IS LESS THAN THRESHOLD {} WITH PRECISION {}",
-                soft_cap_threshold, PRECISION
+                soft_cap_threshold,
+                PRECISION,
             );
             assert(details.start_time < details.end_time, 'INVALID START AND END TIME');
-            assert(details.liquidity_percentage > 51 && details.liquidity_percentage <= 100, 'INVALID LIQUIDITY RANGE');
+            assert(
+                details.liquidity_percentage > 51 && details.liquidity_percentage <= 100,
+                'INVALID LIQUIDITY RANGE',
+            );
             let token = self.tokens.entry(token_address);
 
             token.presale_details.write(Option::Some(details));
             token.status.write(PresaleStatus::Pending);
-
             // Emit a Presale launched event here.
         }
     }
@@ -164,7 +167,7 @@ pub mod ICO {
                 assert(owner == caller, 'NOT VERIFIED');
             }
             // Check balance... and token params
-            // and set the owner as Option::Some
+        // and set the owner as Option::Some
         }
     }
 
