@@ -12,6 +12,8 @@ export const handleScoringByUsersLinked = async () => {
     // Fetch profile to analyze
 
 
+    
+
     // Get recent events from user to score and analyze
     handleTrendingAndViralEvents({
         pubkey: PUBKEY_EXAMPLE,
@@ -35,5 +37,16 @@ export const handleScoringByUsersLinked = async () => {
 
 
 }
+
+
+export const handleTrendingEvents = async () => {
+    // setInterval(handleTrendingAndViralEvents, 1000 * 60 * 60 * 24);
+
+    const trending = await externalTrendings();
+    console.log("trending events from external", trending);
+
+}
+
+
 
 

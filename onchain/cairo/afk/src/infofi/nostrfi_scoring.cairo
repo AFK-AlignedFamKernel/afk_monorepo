@@ -187,10 +187,14 @@ pub trait INostrFiScoring<TContractState> {
     fn set_control_role(
         ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
     );
-    // User
     fn init_nostr_profile(
         ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>,
     );
+    fn add_nostr_profile_admin(
+        ref self: TContractState, nostr_event_id: u256,
+    );
+    // User
+  
 
     fn linked_nostr_profile(
         ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>,
@@ -358,24 +362,7 @@ pub mod NostrFiScoring {
 
     #[abi(embed_v0)]
     impl NostrFiScoringImpl of INostrFiScoring<ContractState> {
-        // Admin
-        // Add OPERATOR role to the Deposit escrow
-        fn set_control_role(
-            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
-        ) {
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
-            assert!(
-                role == ADMIN_ROLE
-                    || role == OPERATOR_ROLE // Think and Add others roles needed on the protocol
-                    ,
-                "role not enable",
-            );
-            if is_enable {
-                self.accesscontrol._grant_role(role, recipient);
-            } else {
-                self.accesscontrol._revoke_role(role, recipient);
-            }
-        }
+      
 
         // Getters
         fn get_nostr_by_sn_default(
@@ -426,42 +413,6 @@ pub mod NostrFiScoring {
                 );
         }
 
-
-        // User request to be on the Marketplace for:
-        // Visibility as a Content creator
-        // Scoring users by Algo AFK with NLP, LLM and more
-        // Get rewards from the protocol
-        // Vote by users
-        fn init_nostr_profile(
-            ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
-        ) {
-            // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
-
-            // TODO assert if address is owner
-            let caller = get_caller_address();
-            assert(caller != self.owner.read()|| caller != self.admin.read(), errors::INVALID_CALLER);
-            let profile_default = request.content.clone();
-            let starknet_address: ContractAddress = profile_default.starknet_address;
-
-            assert!(starknet_address == get_caller_address(), "invalid caller");
-            request.verify().expect('can\'t verify signature');
-            self.nostr_pubkeys.entry(self.total_pubkeys.read()).write(request.public_key);
-            self.total_pubkeys.write(self.total_pubkeys.read() + 1);
-
-            let nostr_account_scoring = NostrAccountScoring {
-                nostr_address: request.public_key,
-                starknet_address,
-                ai_score: 0,
-                token_launch_type: TokenLaunchType::Fairlaunch,
-            };
-            self.nostr_account_scoring.entry(request.public_key).write(nostr_account_scoring);
-            self
-                .emit(
-                    LinkedDefaultStarknetAddressEvent {
-                        nostr_address: request.public_key, starknet_address,
-                    },
-                );
-        }
 
 
         fn create_token_profile(
@@ -526,6 +477,87 @@ pub mod NostrFiScoring {
         fn vote_token_profile(
             ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
         ) {}
+
+
+        // Admin functions
+
+        // Add OPERATOR role to the Deposit escrow
+        fn set_control_role(
+            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            assert!(
+                role == ADMIN_ROLE
+                    || role == OPERATOR_ROLE // Think and Add others roles needed on the protocol
+                    ,
+                "role not enable",
+            );
+            if is_enable {
+                self.accesscontrol._grant_role(role, recipient);
+            } else {
+                self.accesscontrol._revoke_role(role, recipient);
+            }
+        }
+
+        // Init nostr profile
+        fn init_nostr_profile(
+            ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
+        ) {
+            // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
+
+            // TODO assert if address is owner
+            let caller = get_caller_address();
+            assert(caller != self.owner.read()|| caller != self.admin.read(), errors::INVALID_CALLER);
+            let profile_default = request.content.clone();
+            let starknet_address: ContractAddress = profile_default.starknet_address;
+
+            assert!(starknet_address == get_caller_address(), "invalid caller");
+            request.verify().expect('can\'t verify signature');
+            self.nostr_pubkeys.entry(self.total_pubkeys.read()).write(request.public_key);
+            self.total_pubkeys.write(self.total_pubkeys.read() + 1);
+
+            let nostr_account_scoring = NostrAccountScoring {
+                nostr_address: request.public_key,
+                starknet_address,
+                ai_score: 0,
+                token_launch_type: TokenLaunchType::Fairlaunch,
+            };
+            self.nostr_account_scoring.entry(request.public_key).write(nostr_account_scoring);
+            self
+                .emit(
+                    LinkedDefaultStarknetAddressEvent {
+                        nostr_address: request.public_key, starknet_address,
+                    },
+                );
+        }
+
+        // Init nostr profile
+        fn add_nostr_profile_admin(
+            ref self: ContractState, nostr_event_id: u256,
+        ) {
+            // TODO assert if address is owner
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            let caller = get_caller_address();
+            assert(caller != self.owner.read()|| caller != self.admin.read(), errors::INVALID_CALLER);
+            self.nostr_pubkeys.entry(self.total_pubkeys.read()).write(nostr_event_id);
+            self.total_pubkeys.write(self.total_pubkeys.read() + 1);
+
+            let nostr_account_scoring = NostrAccountScoring {
+                nostr_address: nostr_event_id,
+                starknet_address: 0.try_into().unwrap(),
+                ai_score: 0,
+                token_launch_type: TokenLaunchType::Fairlaunch,
+            };
+            self.nostr_account_scoring.entry(nostr_event_id).write(nostr_account_scoring);
+            self
+                .emit(
+                    LinkedDefaultStarknetAddressEvent {
+                        nostr_address: nostr_event_id, starknet_address: 0.try_into().unwrap(),
+                    },
+                );
+        }
+
+
         // fn linked_nostr_note(
     //     ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
     // ) {

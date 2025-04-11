@@ -52,11 +52,6 @@ model SocialAccount {
   @@map("social_accounts")
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
 model NoteNostr {
   id            String   @id @default(cuid())
   eventId       String
@@ -75,4 +70,9 @@ model TrendingNotesNostr {
   eventsIds   String?
   notes       Json[]
   notesScores Json[]
+}
+
+enum Role {
+  USER
+  ADMIN
 }

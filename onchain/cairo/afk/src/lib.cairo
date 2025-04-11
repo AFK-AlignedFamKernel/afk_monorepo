@@ -70,6 +70,7 @@ pub mod tokens {
 }
 
 pub mod infofi {
+    pub mod errors;
     pub mod nostrfi_scoring;
 }
 
