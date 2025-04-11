@@ -105,7 +105,7 @@ const colors ={
   body: {
     body: {
       // bg: mode("#153e75","#153e75")
-      fontFamily: 'Droid Sans, sans-serif',
+      fontFamily: 'monospace',
       bg: '#153e75',
       // useColorMode("#153e75", "#153e75")
     }
@@ -142,7 +142,7 @@ const theme = extendTheme({
       body: {
         color: mode('gray.800', 'whiteAlpha.900')(props),
         bg: mode('white', 'gray.800')(props),
-        fontFamily: 'Droid Sans, sans-serif',
+        fontFamily: 'monospace',
         lineHeight: 'base',
       },
       'h1, h2, h3, h4, h5, h6': {
@@ -158,9 +158,9 @@ const theme = extendTheme({
         color: mode('gray.700', 'whiteAlpha.700')(props),
       },
       a: {
-        color: mode('blue.500', 'blue.300')(props),
+        color: mode('black.500', 'gray.300')(props),
         _hover: {
-          color: mode('blue.600', 'blue.200')(props),
+          color: mode('gray.600', 'gray.200')(props),
         },
       },
     }),
@@ -169,7 +169,7 @@ const theme = extendTheme({
     Text: {
       baseStyle: (props: StyleFunctionProps) => ({
         color: mode('gray.800', 'whiteAlpha.900')(props),
-        fontFamily: 'Droid Sans, sans-serif',
+        fontFamily: 'monospace',
       }),
       variants: {
         primary: (props: StyleFunctionProps) => ({
@@ -186,10 +186,17 @@ const theme = extendTheme({
         variant: 'primary',
       },
     },
+    Button: {
+      baseStyle: (props: StyleFunctionProps) => ({
+        color: mode('gray.800', 'whiteAlpha.900')(props),
+        fontFamily: 'monospace',
+        backgroundColor: mode('white', 'gray.800')(props),
+      }),
+    },
     Heading: {
       baseStyle: (props: StyleFunctionProps) => ({
         color: mode('gray.800', 'whiteAlpha.900')(props),
-        fontFamily: 'Droid Sans, sans-serif',
+        fontFamily: 'monospace',
       }),
     },
   },

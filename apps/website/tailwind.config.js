@@ -2,7 +2,8 @@ module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx,html}"],
   theme: {
     fontFamily: {
-      sans: ["Droid Sans", "sans-serif"],
+      // sans: ["Droid Sans", "sans-serif"],
+      sans: ['monospace', 'sans-serif'],
     },
     extend: {
       screens: {

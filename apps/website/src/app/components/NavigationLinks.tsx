@@ -18,7 +18,9 @@ export function NavigationLinks() {
         </Link>
       </ListItem>
       <ListItem>
-        <Link href="/infofi">InfoFi </Link>
+        <Link href="/infofi">
+          <Text>InfoFi</Text>
+        </Link>
       </ListItem>
       <ListItem>
         <Box className="desktop:flex hidden items-center gap-x-4 font-bold text-sm leading-[16px]">

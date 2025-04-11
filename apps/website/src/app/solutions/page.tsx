@@ -16,22 +16,14 @@ import Link from "next/link";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { FaLock, FaUserSecret, FaComments, FaGlobe } from "react-icons/fa";
-
+import { Metadata } from "next";
+const metadata: Metadata = {
+  title: "AFK Solutions",
+  description: "AFK is your all-in-one decentralized platform — combining social, payments, identity, and privacy into a seamless and sovereign experience.",
+}
 const MotionBox = motion(Box);
 
 const features = [
-  {
-    icon: FaGlobe,
-    title: "Uncensorable Social Layer",
-    description: "Share freely with Nostr. Coming soon: X, Farcaster, and Lens integrations.",
-    href: "/features/social"
-  },
-  {
-    icon: FaLock,
-    title: "Integrated Payments",
-    description: "Seamless Bitcoin, Ethereum, and Starknet transactions.",
-    href: "/features/payments"
-  },
   {
     icon: FaComments,
     title: "InfoFi: Attention & Knowledge",
@@ -39,11 +31,24 @@ const features = [
     href: "/infofi"
   },
   {
-    icon: FaUserSecret,
-    title: "Decentralized Identity",
-    description: "zkDID on Starknet for self-sovereign identity.",
-    href: "/features/identity"
+    icon: FaGlobe,
+    title: "Uncensorable Social Layer",
+    description: "Share freely with Nostr. Coming soon: X, Farcaster, and Lens integrations.",
+    // href: "/features/social"
   },
+  {
+    icon: FaLock,
+    title: "Integrated Payments",
+    description: "Seamless Bitcoin, Ethereum, and Starknet transactions.",
+    // href: "/features/payments"
+  },
+
+  // {
+  //   icon: FaUserSecret,
+  //   title: "Decentralized Identity",
+  //   description: "zkDID on Starknet for self-sovereign identity.",
+  //   // href: "/features/identity"
+  // },
   // {
   //   icon: FaComments,
   //   title: "Encrypted Messaging",
@@ -55,9 +60,9 @@ const features = [
 const sectors = [
   { sector: "Finance", problem: "Bankless payments, remittance", solution: "Lightning, USDC, Starknet bridge" },
   { sector: "Social Media", problem: "Censorship, deplatforming", solution: "Nostr + zkDID + relays" },
+  { sector: "Insights & Knowledge", problem: "Censorship, gatekeeping", solution: "InfoFi market of Attention" },
   { sector: "Privacy", problem: "Surveillance, doxxing", solution: "Encrypted chat, stealth protocols" },
-  { sector: "Identity", problem: "Web2 login lock-in", solution: "zkDID + universal passport" },
-  { sector: "Insights & Knowledge", problem: "Censorship, gatekeeping", solution: "InfoFi market of Attention" }
+  // { sector: "Identity", problem: "Web2 login lock-in", solution: "zkDID + universal passport" },
 ];
 
 export default function FeaturesPage() {
@@ -96,20 +101,23 @@ export default function FeaturesPage() {
                 shadow="lg"
                 // bg={useColorModeValue("white", "gray.800")}
                 border="1px solid"
-                // borderColor={useColorModeValue("gray.200", "gray.700")}
+              // borderColor={useColorModeValue("gray.200", "gray.700")}
               >
-                <Stack 
-                // spacing={"10px"}
-                 direction="row" align="center">
+                <Stack
+                  // spacing={"10px"}
+                  direction="row" align="center">
                   <Icon as={feature.icon} w={6} h={6} color="green.400" />
                   <Heading size="md">{feature.title}</Heading>
                 </Stack>
                 <Text mt={3} color="gray.500">{feature.description}</Text>
-                <Link href={feature.href} passHref>
-                  <Button mt={4} variant="solid" colorScheme="green">
-                    Learn More
-                  </Button>
-                </Link>
+
+                {feature.href && (
+                  <Link href={feature.href} passHref>
+                    <Button mt={4} variant="solid" colorScheme="green">
+                      Learn More
+                    </Button>
+                  </Link>
+                )}
               </MotionBox>
             ))}
           </Grid>
@@ -130,7 +138,7 @@ export default function FeaturesPage() {
                   rounded="2xl"
                   shadow="md"
                   border="1px solid"
-                  // borderColor={useColorModeValue("gray.200", "gray.700")}
+                // borderColor={useColorModeValue("gray.200", "gray.700")}
                 >
                   <Text fontWeight="bold" fontSize="lg">{item.sector}</Text>
                   <Text mt={2}><strong>Problem:</strong> {item.problem}</Text>
