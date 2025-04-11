@@ -2,13 +2,13 @@
 
 import '@rainbow-me/rainbowkit/styles.css';
 
-import {ChakraProvider} from '@chakra-ui/react';
-import {getDefaultConfig, RainbowKitProvider} from '@rainbow-me/rainbowkit';
-import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
-import {Chain} from 'viem';
-import {createConfig, http} from 'wagmi';
-import {WagmiProvider} from 'wagmi';
-import {mainnet, sepolia} from 'wagmi/chains';
+import { ChakraProvider, theme } from '@chakra-ui/react';
+import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Chain } from 'viem';
+import { createConfig, http } from 'wagmi';
+import { WagmiProvider } from 'wagmi';
+import { mainnet, sepolia } from 'wagmi/chains';
 
 import StarknetProvider from '@/context/StarknetProvider';
 
@@ -27,12 +27,12 @@ const kakarotEvm: Chain = {
     symbol: 'ETH ',
   },
   rpcUrls: {
-    public: {http: ['https://sepolia-rpc.kakarot.org']},
-    default: {http: ['https://sepolia-rpc.kakarot.org']},
+    public: { http: ['https://sepolia-rpc.kakarot.org'] },
+    default: { http: ['https://sepolia-rpc.kakarot.org'] },
   },
   blockExplorers: {
-    default: {name: 'Explorer', url: 'https://sepolia.kakarotscan.org/'},
-    etherscan: {name: 'Explorer', url: 'https://sepolia.kakarotscan.org/'},
+    default: { name: 'Explorer', url: 'https://sepolia.kakarotscan.org/' },
+    etherscan: { name: 'Explorer', url: 'https://sepolia.kakarotscan.org/' },
   },
   // testnet: true,
 };
@@ -58,20 +58,23 @@ const configRainbow = getDefaultConfig({
 
 const queryClient = new QueryClient();
 
-export default function Providers({children}: {children: React.ReactNode}) {
+export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <>
       <ChakraProvider
-      // theme={theme}
+        theme={theme}
+        // defaultColorMode="dark"
+        // value={defaultSystem}
       >
         <StarknetProvider>
-          <WagmiProvider config={config}>
-            <QueryClientProvider client={queryClient}>
-              <RainbowKitProvider>{children}</RainbowKitProvider>
-            </QueryClientProvider>
-          </WagmiProvider>
+          {/* <WagmiProvider config={config}> */}
+          {/* <QueryClientProvider client={queryClient}> */}
+          {/* <RainbowKitProvider>{children}</RainbowKitProvider> */}
+          {children}
+          {/* </QueryClientProvider> */}
+          {/* </WagmiProvider> */}
         </StarknetProvider>
-      </ChakraProvider>
+      </ChakraProvider >
     </>
   );
 }

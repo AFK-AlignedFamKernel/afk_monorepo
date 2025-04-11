@@ -2,7 +2,7 @@
 sidebar_position: 2
 ---
 
-# 🔥 AFK InfoFi — The Marketplace of Attention & Insights
+# 🔥InfoFi — The Marketplace of Attention & Insights
 
 AFK is building on the **InfoFi**: the Information Finance layer of the new internet.
 
