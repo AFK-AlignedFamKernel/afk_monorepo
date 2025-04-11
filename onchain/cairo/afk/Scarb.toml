@@ -11,6 +11,7 @@ openzeppelin = "1.0.0"
 ekubo = { git = "https://github.com/EkuboProtocol/abis", rev = "edb6de8c9baf515f1053bbab3d86825d54a63bc3"}
 stark_vrf = {git = "https://github.com/dojoengine/stark-vrf"}
 alexandria_math = { git = "https://github.com/keep-starknet-strange/alexandria.git" }
+afk_launchpad = { path = "../launchpad/" }
 
 [dev-dependencies]
 snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry", tag = "v0.40.0" }

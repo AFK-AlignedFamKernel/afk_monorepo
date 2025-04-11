@@ -188,6 +188,10 @@ pub trait INostrFiScoring<TContractState> {
         ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
     );
     // User
+    fn init_nostr_profile(
+        ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>,
+    );
+
     fn linked_nostr_profile(
         ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>,
     );
@@ -217,7 +221,10 @@ pub trait INostrFiScoring<TContractState> {
 pub mod NostrFiScoring {
     // use afk::bip340::{SchnorrSignature, Signature};
     // use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    // use core::num::traits::Zero;
+    use core::num::traits::Zero;
+    use afk::infofi::errors;
+    // use afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
+    // use crate::afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
     use afk::social::request::{Encode, SocialRequest, SocialRequestImpl, SocialRequestTrait};
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
@@ -267,6 +274,9 @@ pub mod NostrFiScoring {
 
     #[storage]
     struct Storage {
+     
+        nostr_pubkeys: Map<u64, u256>,
+        total_pubkeys: u64,
         nostr_to_sn: Map<NostrPublicKey, ContractAddress>,
         sn_to_nostr: Map<ContractAddress, NostrPublicKey>,
         nostr_event_id_to_sn: Map<NostrPublicKey, ContractAddress>,
@@ -283,6 +293,8 @@ pub mod NostrFiScoring {
         protocol_rewards: u256,
         protocol_rewards_claimed: u256,
         // Admin setup
+        owner: ContractAddress,
+        admin: ContractAddress,
         admin_storage: NostrFiAdminStorage,
         // External contract
         token_vault: ContractAddress,
@@ -339,6 +351,9 @@ pub mod NostrFiScoring {
     fn constructor(ref self: ContractState, admin: ContractAddress) {
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
+        self.total_pubkeys.write(0);
+        self.owner.write(admin);
+        self.admin.write(admin);
     }
 
     #[abi(embed_v0)]
@@ -394,6 +409,8 @@ pub mod NostrFiScoring {
             self.nostr_to_sn.entry(request.public_key).write(profile_default.starknet_address);
             self.sn_to_nostr.entry(profile_default.starknet_address).write(request.public_key);
 
+            self.nostr_pubkeys.entry(self.total_pubkeys.read()).write(request.public_key);
+            self.total_pubkeys.write(self.total_pubkeys.read() + 1);
             let nostr_account_scoring = NostrAccountScoring {
                 nostr_address: request.public_key,
                 starknet_address,
@@ -408,6 +425,44 @@ pub mod NostrFiScoring {
                     },
                 );
         }
+
+
+        // User request to be on the Marketplace for:
+        // Visibility as a Content creator
+        // Scoring users by Algo AFK with NLP, LLM and more
+        // Get rewards from the protocol
+        // Vote by users
+        fn init_nostr_profile(
+            ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
+        ) {
+            // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
+
+            // TODO assert if address is owner
+            let caller = get_caller_address();
+            assert(caller != self.owner.read()|| caller != self.admin.read(), errors::INVALID_CALLER);
+            let profile_default = request.content.clone();
+            let starknet_address: ContractAddress = profile_default.starknet_address;
+
+            assert!(starknet_address == get_caller_address(), "invalid caller");
+            request.verify().expect('can\'t verify signature');
+            self.nostr_pubkeys.entry(self.total_pubkeys.read()).write(request.public_key);
+            self.total_pubkeys.write(self.total_pubkeys.read() + 1);
+
+            let nostr_account_scoring = NostrAccountScoring {
+                nostr_address: request.public_key,
+                starknet_address,
+                ai_score: 0,
+                token_launch_type: TokenLaunchType::Fairlaunch,
+            };
+            self.nostr_account_scoring.entry(request.public_key).write(nostr_account_scoring);
+            self
+                .emit(
+                    LinkedDefaultStarknetAddressEvent {
+                        nostr_address: request.public_key, starknet_address,
+                    },
+                );
+        }
+
 
         fn create_token_profile(
             ref self: ContractState,
@@ -436,7 +491,10 @@ pub mod NostrFiScoring {
                 TokenLaunchType::Later => {// TODO: add a new event to the contract
                 },
                 TokenLaunchType::Fairlaunch => { // external call to the fairlaunch contract
-                // let fairlaunch_address = self.fairlaunch_address.read();
+                    let fairlaunch_address = self.fairlaunch_address.read();
+                    assert!(fairlaunch_address != 0.try_into().unwrap(), "fairlaunch address not set");
+
+                    // ILaunchpadDispatcher::create_and_launch_vault(fairlaunch_address, starknet_address);
 
                 },
                 TokenLaunchType::PrivateSale => { // external call to the private sale contract

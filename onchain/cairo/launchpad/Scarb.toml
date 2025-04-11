@@ -17,7 +17,10 @@ cubit = { git = "https://github.com/MSGhais/cubit", rev = "f59f90ce519dcc56de8da
 snforge_std = "0.40.0"
 assert_macros = "2.11.2"
 
-#[lib]
+
+[workspace.package]
+version = "0.1.0"
+
 
 [scripts]
 test = "snforge test"
