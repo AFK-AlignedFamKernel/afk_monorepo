@@ -7,7 +7,7 @@ pub mod NostrFiScoring {
         NostrAccountScoring, NostrFiAdminStorage, NostrPublicKey, OPERATOR_ROLE,
         ProfileAlgorithmScoring, ProfileVoteScoring, TipByUser, TokenLaunchType,
         TotalDepositRewards, TotalScoreRewards, Vote, VoteNostrNote, VoteProfile,
-        VoteUserForProfile,
+        VoteUserForProfile, VoteParams
     };
     // use afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
     // use crate::afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
@@ -91,6 +91,7 @@ pub mod NostrFiScoring {
         sn_to_nostr_event_id: Map<ContractAddress, NostrPublicKey>,
         is_nostr_address_added: Map<NostrPublicKey, bool>,
         is_nostr_address_linked_to_sn: Map<NostrPublicKey, bool>,
+        tip_to_claim_by_user_because_not_linked: Map<NostrPublicKey, u256>,
         // Vote setup
         nostr_account_scoring: Map<u256, NostrAccountScoring>,
         nostr_account_scoring_algo: Map<u256, ProfileAlgorithmScoring>,
@@ -135,6 +136,13 @@ pub mod NostrFiScoring {
         nostr_address: NostrPublicKey,
     }
 
+    #[derive(Drop, starknet::Event)]
+    struct TipToClaimByUserBecauseNotLinked {
+        #[key]
+        nostr_address: NostrPublicKey,
+        amount_token: u256,
+    }
+
 
     #[derive(Drop, starknet::Event)]
     struct LinkedNoteToCheckEvent {
@@ -171,6 +179,7 @@ pub mod NostrFiScoring {
         AddStarknetAddressEvent: AddStarknetAddressEvent,
         CreateTokenProfileEvent: CreateTokenProfileEvent,
         AdminAddNostrProfile: AdminAddNostrProfile,
+        TipToClaimByUserBecauseNotLinked: TipToClaimByUserBecauseNotLinked,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -249,93 +258,93 @@ pub mod NostrFiScoring {
             now>=next_time 
         }
 
+    
 
-        fn _vote_nostr_event(ref self: ContractState, request: SocialRequest<VoteNostrNote>) {
-            let vote_token_profile = request.content.clone();
-            // let nostr_address: NostrPublicKey = vote_token_profile.nostr_address;
-            // let starknet_address: ContractAddress = vote_token_profile.starknet_address;
-            // let vote: Vote = vote_token_profile.vote;
-            // let is_upvote: bool = vote_token_profile.is_upvote;
-            // let upvote_amount: u256 = vote_token_profile.upvote_amount;
-            // let downvote_amount: u256 = vote_token_profile.downvote_amount;
 
-            let nostr_pubkey = vote_token_profile.nostr_address;
+        fn _generic_vote_nostr_event(          
+            ref self: ContractState,
+            vote_params: VoteParams,
+            // nostr_address: NostrPublicKey,
+            // vote: Vote,
+            // is_upvote: bool,
+            // upvote_amount: u256,
+            // downvote_amount: u256,
+            // amount: u256,
+            // amount_token: u256,
+        
+        ) {
+         
 
-            let nostr_to_sn = self.nostr_to_sn.read(nostr_pubkey);
-            assert(nostr_to_sn != 0.try_into().unwrap(), 'Starknet address not linked');
+            let nostr_to_sn = self.nostr_to_sn.read(vote_params.nostr_address);
+            let old_tip_by_user = self.total_tip_by_user.read(vote_params.nostr_address);
 
-            let erc20_token_address = self.main_token_address.read();
-            assert(erc20_token_address != 0.try_into().unwrap(), 'Main token address not set');
+            let mut reward_to_claim_by_user_because_not_linked = old_tip_by_user.reward_to_claim_by_user_because_not_linked;
+            let mut new_reward_to_claim_by_user_because_not_linked =    reward_to_claim_by_user_because_not_linked;
+            if nostr_to_sn == 0.try_into().unwrap() {
+                reward_to_claim_by_user_because_not_linked = reward_to_claim_by_user_because_not_linked + vote_params.amount_token;
+                new_reward_to_claim_by_user_because_not_linked = reward_to_claim_by_user_because_not_linked + vote_params.amount_token;
+                self.tip_to_claim_by_user_because_not_linked.entry(vote_params.nostr_address).write(vote_params.amount_token);
+                self.emit(TipToClaimByUserBecauseNotLinked {
+                    nostr_address: vote_params.nostr_address,
+                    amount_token: vote_params.amount_token,
+                });
+            } else {
+                // assert(nostr_to_sn != 0.try_into().unwrap(), 'Starknet address not linked');
+                let erc20_token_address = self.main_token_address.read();
+                assert(erc20_token_address != 0.try_into().unwrap(), 'Main token address not set');
 
-            let erc20 = IERC20Dispatcher { contract_address: erc20_token_address };
-            erc20
-                .transfer_from(get_caller_address(), nostr_to_sn, vote_token_profile.amount_token);
+                let erc20 = IERC20Dispatcher { contract_address: erc20_token_address };
 
+                if reward_to_claim_by_user_because_not_linked > 0 {
+
+                    new_reward_to_claim_by_user_because_not_linked = 0;
+                    erc20
+                        .transfer_from(get_caller_address(), nostr_to_sn, reward_to_claim_by_user_because_not_linked + vote_params.amount_token);
+                } else {
+                    erc20
+                    .transfer_from(get_caller_address(), nostr_to_sn, vote_params.amount_token);
+                }
+            }
+  
             // V2
             // Add weight based on profile score
 
-            let old_tip_by_user = self.total_tip_by_user.read(nostr_pubkey);
             let tip_by_user = TipByUser {
-                nostr_address: vote_token_profile.nostr_address,
+                nostr_address:vote_params.nostr_address,
                 total_amount_deposit: old_tip_by_user.total_amount_deposit
-                    + vote_token_profile.upvote_amount,
+                    + vote_params.upvote_amount,
                 total_amount_deposit_by_algo: old_tip_by_user.total_amount_deposit_by_algo
-                    + vote_token_profile.downvote_amount,
+                    + vote_params.downvote_amount,
                 rewards_amount: old_tip_by_user.rewards_amount,
                 is_claimed: old_tip_by_user.is_claimed,
                 end_epoch_time: old_tip_by_user.end_epoch_time,
                 start_epoch_time: old_tip_by_user.start_epoch_time,
                 epoch_duration: old_tip_by_user.epoch_duration,
+                reward_to_claim_by_user_because_not_linked: new_reward_to_claim_by_user_because_not_linked,
+                is_claimed_tip_by_user_because_not_linked: old_tip_by_user.is_claimed_tip_by_user_because_not_linked,
             };
 
-            self.total_tip_by_user.entry(vote_token_profile.nostr_address).write(tip_by_user);
+            self.total_tip_by_user.entry(vote_params.nostr_address).write(tip_by_user);
         }
 
-        fn _vote_nostr_profile_starknet_only(
-            ref self: ContractState,
-            nostr_address: NostrPublicKey,
-            vote: Vote,
-            is_upvote: bool,
-            upvote_amount: u256,
-            downvote_amount: u256,
-            amount: u256,
-            amount_token: u256,
-        ) {
-            // let nostr_address: NostrPublicKey = vote_token_profile.nostr_address;
+        fn _verify_and_extract_vote_nostr_event(ref self: ContractState, request: SocialRequest<VoteNostrNote>) -> VoteParams {
+            let vote_token_profile = request.content.clone();
             // let starknet_address: ContractAddress = vote_token_profile.starknet_address;
-            // let vote: Vote = vote_token_profile.vote;
-            // let is_upvote: bool = vote_token_profile.is_upvote;
-            // let upvote_amount: u256 = vote_token_profile.upvote_amount;
-            // let downvote_amount: u256 = vote_token_profile.downvote_amount;
+            // assert!(starknet_address == get_caller_address(), "invalid caller");
+            request.verify().expect('can\'t verify signature');
 
-            let nostr_pubkey = nostr_address;
-
-            let nostr_to_sn = self.nostr_to_sn.read(nostr_pubkey);
-            assert(nostr_to_sn != 0.try_into().unwrap(), 'Starknet address not linked');
-
-            let erc20_token_address = self.main_token_address.read();
-            assert(erc20_token_address != 0.try_into().unwrap(), 'Main token address not set');
-
-            let erc20 = IERC20Dispatcher { contract_address: erc20_token_address };
-            erc20.transfer_from(get_caller_address(), nostr_to_sn, amount_token);
-
-            let old_tip_by_user = self.total_tip_by_user.read(nostr_address);
-
-            let tip_by_user = TipByUser {
-                nostr_address: nostr_address,
-                total_amount_deposit: old_tip_by_user.total_amount_deposit + upvote_amount,
-                total_amount_deposit_by_algo: old_tip_by_user.total_amount_deposit_by_algo
-                    + downvote_amount,
-                rewards_amount: old_tip_by_user.rewards_amount,
-                is_claimed: old_tip_by_user.is_claimed,
-                end_epoch_time: old_tip_by_user.end_epoch_time,
-                start_epoch_time: old_tip_by_user.start_epoch_time,
-                epoch_duration: old_tip_by_user.epoch_duration,
+            let vote_params = VoteParams {
+                nostr_address: vote_token_profile.nostr_address,
+                vote: vote_token_profile.vote,
+                is_upvote: vote_token_profile.is_upvote,
+                upvote_amount: vote_token_profile.upvote_amount,
+                downvote_amount: vote_token_profile.downvote_amount,
+                amount: vote_token_profile.amount,
+                amount_token: vote_token_profile.amount_token,
             };
 
-            self.total_tip_by_user.entry(nostr_address).write(tip_by_user);
+            return vote_params;
         }
-
 
         fn get_tokens_address_accepted(
             self: @ContractState, token_address: ContractAddress,
@@ -435,6 +444,9 @@ pub mod NostrFiScoring {
                 end_epoch_time: self.end_epoch_time.read(),
                 start_epoch_time: now,
                 epoch_duration: self.epoch_duration.read(),
+                is_claimed_tip_by_user_because_not_linked: false,
+                reward_to_claim_by_user_because_not_linked: 0,
+
             };
 
             self.total_tip_by_user.entry(request.public_key).write(tip_by_user);
@@ -446,20 +458,14 @@ pub mod NostrFiScoring {
                 );
         }
 
-
         fn vote_token_profile(ref self: ContractState, request: SocialRequest<VoteNostrNote>) {
-            self._vote_nostr_event(request);
+            let vote_params = self._verify_and_extract_vote_nostr_event(request);
+            self._generic_vote_nostr_event(vote_params);
         }
 
         fn vote_nostr_note(ref self: ContractState, request: SocialRequest<VoteNostrNote>) {
-            // let vote_nostr_note = request.content.clone();
-            // let nostr_address: NostrPublicKey = vote_nostr_note.nostr_address;
-            // let starknet_address: ContractAddress = vote_nostr_note.starknet_address;
-            // let vote: Vote = vote_nostr_note.vote;
-            // let is_upvote: bool = vote_nostr_note.is_upvote;
-            // let upvote_amount: u256 = vote_nostr_note.upvote_amount;
-            // let downvote_amount: u256 = vote_nostr_note.downvote_amount;
-            self._vote_nostr_event(request);
+            let vote_params = self._verify_and_extract_vote_nostr_event(request);
+            self._generic_vote_nostr_event(vote_params);
         }
 
         // Vote for profile without Nostr event verification
@@ -473,16 +479,18 @@ pub mod NostrFiScoring {
             amount: u256,
             amount_token: u256,
         ) {
-            self
-                ._vote_nostr_profile_starknet_only(
-                    nostr_address,
-                    vote,
-                    is_upvote,
-                    upvote_amount,
-                    downvote_amount,
-                    amount,
-                    amount_token,
-                );
+
+            let vote_params = VoteParams {
+                nostr_address: nostr_address,
+                vote: vote,
+                is_upvote: is_upvote,
+                upvote_amount: upvote_amount,
+                downvote_amount: downvote_amount,
+                amount: amount,
+                amount_token: amount_token,
+            };  
+            self._generic_vote_nostr_event(vote_params);
+       
         }
 
 
@@ -517,13 +525,28 @@ pub mod NostrFiScoring {
                     end_epoch_time: tip_by_user.end_epoch_time,
                     start_epoch_time: tip_by_user.start_epoch_time,
                     epoch_duration: tip_by_user.epoch_duration,
+                    reward_to_claim_by_user_because_not_linked: tip_by_user.reward_to_claim_by_user_because_not_linked,
+                    is_claimed_tip_by_user_because_not_linked: tip_by_user.is_claimed_tip_by_user_because_not_linked,
                 };
                 self.total_tip_by_user.entry(nostr_address).write(update_tip_by_user);
             }
 
             // Ditribute Topic User vote
 
+            let tip_by_user = self.total_tip_by_user.read(nostr_address);
+
+
+            // Distribute general rewards send to vault
+            let total_deposit_rewards = self.total_deposit_rewards.read();
+            let profile_vote_scoring_by_user = self.nostr_vote_profile.read(nostr_address);
+
+            // Calculate rewards by user
+            // Depends on User tips and Algorithm scoring
+
+
             // Distribute rewards by Algorithm scoring
+
+            let profile_scoring_by_user = self.nostr_account_scoring.read(nostr_address);
 
             // Update all state
 
@@ -560,6 +583,101 @@ pub mod NostrFiScoring {
         // let downvote_amount: u256 = vote_nostr_note.downvote_amount;
         }
 
+
+        fn claim_and_distribute_my_rewards(ref self: ContractState) {
+            let caller = get_caller_address();
+            let now = get_block_timestamp();
+            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
+            assert(now >= next_time, 'Epoch not ended');
+
+            // check profile nostr id link
+            let nostr_address = self.sn_to_nostr.read(caller);
+            assert(nostr_address != 0.try_into().unwrap(), 'Profile not linked');
+
+            // Distribute tips rewards
+            let tip_by_user = self.total_tip_by_user.read(nostr_address);
+
+            if !tip_by_user.is_claimed {
+                // Distribute Topic tips
+                let tip_by_user = self.total_tip_by_user.read(nostr_address);
+                let tip_by_user_amount = tip_by_user.total_amount_deposit;
+                let tip_by_user_amount_by_algo = tip_by_user.total_amount_deposit_by_algo;
+                let tip_by_user_amount_rewards = tip_by_user.rewards_amount;
+
+                // Distribute rewards by Algorithm scoring
+
+                let update_tip_by_user = TipByUser {
+                    nostr_address,
+                    total_amount_deposit: tip_by_user_amount,
+                    total_amount_deposit_by_algo: tip_by_user_amount_by_algo,
+                    rewards_amount: tip_by_user_amount_rewards,
+                    is_claimed: true,
+                    end_epoch_time: tip_by_user.end_epoch_time,
+                    start_epoch_time: tip_by_user.start_epoch_time,
+                    epoch_duration: tip_by_user.epoch_duration,
+                    reward_to_claim_by_user_because_not_linked: tip_by_user.reward_to_claim_by_user_because_not_linked,
+                    is_claimed_tip_by_user_because_not_linked: tip_by_user.is_claimed_tip_by_user_because_not_linked,
+                };
+                self.total_tip_by_user.entry(nostr_address).write(update_tip_by_user);
+            }
+
+            // Ditribute Topic User vote
+
+            let tip_by_user = self.total_tip_by_user.read(nostr_address);
+
+
+            // Distribute general rewards send to vault
+            let total_deposit_rewards = self.total_deposit_rewards.read();
+            let profile_vote_scoring_by_user = self.nostr_vote_profile.read(nostr_address);
+
+            // Calculate rewards by user
+            // Depends on User tips and Algorithm scoring
+
+
+            // Distribute rewards by Algorithm scoring
+
+            let profile_scoring_by_user = self.nostr_account_scoring.read(nostr_address);
+
+            // Update all state
+
+            // let old_nostr_account_scoring = self.nostr_account_scoring.read(nostr_address);
+            // let old_nostr_vote_profile = self.nostr_vote_profile.read(nostr_address);
+
+            // self.old_nostr_account_scoring.entry(nostr_address).write(old_nostr_account_scoring);
+            // self.old_nostr_vote_profile.entry(nostr_address).write(old_nostr_vote_profile);
+
+            let profile_algorithm_scoring = ProfileAlgorithmScoring {
+                nostr_address: 0.try_into().unwrap(),
+                starknet_address: 0.try_into().unwrap(),
+                ai_score: 0,
+                overview_score: 0,
+                skills_score: 0,
+                value_shared_score: 0,
+                is_claimed: false,
+                ai_score_to_claimed: 0,
+                overview_score_to_claimed: 0,
+                skills_score_to_claimed: 0,
+                value_shared_score_to_claimed: 0,
+            };
+            // Reinit vote per batch
+            let profile_vote_scoring = ProfileVoteScoring {
+                nostr_address: 0.try_into().unwrap(),
+                starknet_address: 0.try_into().unwrap(),
+                upvote_amount: 0,
+                downvote_amount: 0,
+                rewards_amount: 0,
+                unique_address: 0,
+            };
+            // self.nostr_account_scoring.entry(nostr_address).write(profile_algorithm_scoring);
+        // self.nostr_vote_profile.entry(nostr_address).write(profile_vote_scoring);
+
+            // let vote: Vote = vote_nostr_note.vote;
+        // let is_upvote: bool = vote_nostr_note.is_upvote;
+        // let upvote_amount: u256 = vote_nostr_note.upvote_amount;
+        // let downvote_amount: u256 = vote_nostr_note.downvote_amount;
+        }
+
+
         fn distribute_algo_rewards_by_user(ref self: ContractState) {
             let caller = get_caller_address();
             let owner = self.owner.read();
@@ -592,6 +710,10 @@ pub mod NostrFiScoring {
                 skills_score: 0,
                 value_shared_score: 0,
                 is_claimed: false,
+                ai_score_to_claimed: 0,
+                overview_score_to_claimed: 0,
+                skills_score_to_claimed: 0,
+                value_shared_score_to_claimed: 0,
             };
             // Reinit vote per batch
             let profile_vote_scoring = ProfileVoteScoring {
@@ -723,6 +845,10 @@ pub mod NostrFiScoring {
             nostr_account_scoring.overview_score = score_algo.overview_score;
             nostr_account_scoring.skills_score = score_algo.skills_score;
             nostr_account_scoring.value_shared_score = score_algo.value_shared_score;
+            nostr_account_scoring.ai_score_to_claimed = score_algo.ai_score_to_claimed;
+            nostr_account_scoring.overview_score_to_claimed = score_algo.overview_score_to_claimed;
+            nostr_account_scoring.skills_score_to_claimed = score_algo.skills_score_to_claimed;
+            nostr_account_scoring.value_shared_score_to_claimed = score_algo.value_shared_score_to_claimed;
             self.nostr_account_scoring_algo.entry(request.public_key).write(nostr_account_scoring);
 
             self.last_timestamp_oracle_score_by_user.entry(request.public_key).write(now);

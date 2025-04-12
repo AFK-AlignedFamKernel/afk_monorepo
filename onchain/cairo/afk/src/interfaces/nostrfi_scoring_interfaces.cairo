@@ -62,6 +62,7 @@ pub trait INostrFiScoring<TContractState> {
         amount_token: u256,
     );
     fn distribute_rewards_by_user(ref self: TContractState);
+    fn claim_and_distribute_my_rewards(ref self: TContractState);
     fn distribute_algo_rewards_by_user(ref self: TContractState);
 
     fn deposit_rewards(
@@ -187,6 +188,17 @@ pub struct NostrFiAdminStorage {
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
+pub struct VoteParams {
+    pub nostr_address: NostrPublicKey,
+    pub vote: Vote,
+    pub is_upvote: bool,
+    pub upvote_amount: u256,
+    pub downvote_amount: u256,
+    pub amount: u256,
+    pub amount_token: u256,
+}
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct TipByUser {
     pub nostr_address: u256,
     pub total_amount_deposit: u256,
@@ -196,6 +208,8 @@ pub struct TipByUser {
     pub end_epoch_time: u64,
     pub start_epoch_time: u64,
     pub epoch_duration: u64,
+    pub reward_to_claim_by_user_because_not_linked: u256,
+    pub is_claimed_tip_by_user_because_not_linked: bool,
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
@@ -224,7 +238,7 @@ pub struct TotalScoreRewards {
 }
 
 
-#[derive(Copy, Debug, Drop, Serde, starknet::Store)]
+#[derive(Copy, Debug, Drop, Serde, starknet::Store, PartialEq)]
 pub enum Vote {
     Good,
     Bad,
@@ -278,9 +292,13 @@ pub struct ProfileAlgorithmScoring {
     pub nostr_address: u256,
     pub starknet_address: ContractAddress,
     pub ai_score: u256,
+    pub ai_score_to_claimed: u256,
     pub overview_score: u256,
+    pub overview_score_to_claimed: u256,
     pub skills_score: u256,
+    pub skills_score_to_claimed: u256,
     pub value_shared_score: u256,
+    pub value_shared_score_to_claimed: u256,
     pub is_claimed: bool,
 }
 
