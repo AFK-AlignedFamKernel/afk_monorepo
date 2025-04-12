@@ -27,7 +27,7 @@ pub trait INostrFiScoring<TContractState> {
     fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
     fn push_profile_score_algo(
         ref self: TContractState,
-        request: SocialRequest<LinkedStarknetAddress>,
+        request: SocialRequest<PushAlgoScoreNostrNote>,
         score_algo: ProfileAlgorithmScoring,
     );
 
@@ -55,10 +55,10 @@ pub trait INostrFiScoring<TContractState> {
     fn vote_token_profile(ref self: TContractState, request: SocialRequest<VoteNostrNote>);
     fn vote_nostr_note(ref self: TContractState, request: SocialRequest<VoteNostrNote>);
     fn vote_nostr_profile_starknet_only(ref self: TContractState, vote_params: VoteParams);
-    fn distribute_rewards_by_user(ref self: TContractState);
+ 
+    // Distribution of rewards
+    fn distribute_rewards_by_user(ref self: TContractState, starknet_user_address: ContractAddress);
     fn claim_and_distribute_my_rewards(ref self: TContractState);
-    fn distribute_algo_rewards_by_user(ref self: TContractState);
-
 
     // Getters
     fn get_admin_params(self: @TContractState) -> NostrFiAdminStorage;
@@ -74,6 +74,27 @@ pub trait INostrFiScoring<TContractState> {
 #[derive(Clone, Debug, Drop, Serde)]
 pub struct LinkedStarknetAddress {
     pub starknet_address: ContractAddress,
+}
+
+#[derive(Clone, Debug, Drop, Serde)]
+pub struct PushAlgoScoreNostrNote {
+    pub nostr_address: NostrPublicKey,
+    // pub starknet_address: ContractAddress,
+}
+
+// TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
+
+pub impl PushAlgoScoreNostrNoteEncodeImpl of Encode<PushAlgoScoreNostrNote> {
+    fn encode(self: @PushAlgoScoreNostrNote) -> @ByteArray {
+        // let recipient_address_user_felt: felt252 = self
+        //     .starknet_address
+        //     .clone()
+        //     .try_into()
+        //     .unwrap();
+        let nostr_address_felt: felt252 = self.nostr_address.clone().try_into().unwrap();
+
+        @format!("score notr profile {:?}", nostr_address_felt)
+    }
 }
 
 #[derive(Clone, Debug, Drop, Serde)]
@@ -174,8 +195,8 @@ pub struct LinkedThisNostrNote {
     // Add NIP-05 and stats profil after. Gonna write a proposal for it
 }
 
-#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
-pub struct DistributionRewardsByUser {
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]
+pub struct DistributionRewardsByUserEvent {
     #[key]
     pub starknet_address: ContractAddress,
     #[key]
@@ -184,6 +205,26 @@ pub struct DistributionRewardsByUser {
     pub amount_algo: u256,
     pub amount_vote: u256,
     pub amount_total: u256,
+    pub veracity_score: u256,
+    // Add NIP-05 and stats profil after. Gonna write a proposal for it
+}
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]
+pub struct PushAlgoScoreEvent {
+    #[key]
+    pub starknet_address: ContractAddress,
+    #[key]
+    pub nostr_address: NostrPublicKey,
+    pub claimed_at: u64,
+    pub total_score_ai: u256,
+    pub total_score_overview: u256,
+    pub total_score_skills: u256,
+    pub total_score_value_shared: u256,
+    pub total_nostr_address: u256,
+    pub rewards_amount: u256,
+    pub total_points_weight: u256,
+    pub is_claimed: bool,
+    pub veracity_score: u256,
     // Add NIP-05 and stats profil after. Gonna write a proposal for it
 }
 
@@ -300,6 +341,7 @@ pub struct TotalAlgoScoreRewards {
     pub rewards_amount: u256,
     pub total_points_weight: u256,
     pub is_claimed: bool,
+    pub veracity_score: u256,
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
@@ -374,6 +416,8 @@ pub struct ProfileAlgorithmScoring {
     pub value_shared_score: u256,
     pub value_shared_score_to_claimed: u256,
     pub is_claimed: bool,
+    pub total_score: u256,
+    pub veracity_score: u256,
 }
 
 #[derive(Copy, Debug, Drop, starknet::Store, Serde)]
