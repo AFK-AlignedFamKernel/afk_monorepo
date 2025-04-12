@@ -174,32 +174,32 @@ mod nostrfi_scoring_tests {
     #[test]
     fn vote_user_for_profile() {
         let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) = request_fixture();
-        start_cheat_caller_address_global(sender_address);  
+        start_cheat_caller_address_global(sender_address);
         nostrfi_scoring.vote_user_for_profile(request);
     }
 
     #[test]
     fn vote_user_for_profile_starknet() {
         let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) = request_fixture();
-        start_cheat_caller_address_global(sender_address);  
+        start_cheat_caller_address_global(sender_address);
 
         let vote_params = VoteParams {
             nostr_address: recipient_nostr_key,
             vote: Vote::Good,
             is_upvote: true,
             upvote_amount: 100,
-            downvote_amount: 0, 
+            downvote_amount: 0,
             amount: 100,
             amount_token: 100,
         };
-        
+
         nostrfi_scoring.vote_nostr_profile_starknet_only(vote_params);
     }
 
     #[test]
     fn claim_and_distribute_my_rewards() {
         let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) = request_fixture();
-        start_cheat_caller_address_global(sender_address);  
+        start_cheat_caller_address_global(sender_address);
         nostrfi_scoring.claim_and_distribute_my_rewards();
     }
 
@@ -208,5 +208,5 @@ mod nostrfi_scoring_tests {
         let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) = request_fixture();
         start_cheat_caller_address_global(sender_address);
         nostrfi_scoring.distribute_algo_rewards_by_user();
-    }   
+    }
 }

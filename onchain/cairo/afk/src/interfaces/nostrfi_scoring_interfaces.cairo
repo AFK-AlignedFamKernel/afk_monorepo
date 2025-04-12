@@ -25,7 +25,11 @@ pub trait INostrFiScoring<TContractState> {
     );
     fn init_nostr_profile(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
     fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
-    fn push_profile_score_algo(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>, score_algo:ProfileAlgorithmScoring);
+    fn push_profile_score_algo(
+        ref self: TContractState,
+        request: SocialRequest<LinkedStarknetAddress>,
+        score_algo: ProfileAlgorithmScoring,
+    );
 
     fn set_change_batch_interval(ref self: TContractState, next_epoch: u64);
     fn set_admin_params(ref self: TContractState, admin_params: NostrFiAdminStorage);
@@ -43,17 +47,14 @@ pub trait INostrFiScoring<TContractState> {
         is_create_staking_vault: bool,
         is_create_dao: bool,
     );
- 
+
     // Deposit, Voting and tips
     fn deposit_rewards(
         ref self: TContractState, amount: u256, deposit_rewards_type: DepositRewardsType,
     );
     fn vote_token_profile(ref self: TContractState, request: SocialRequest<VoteNostrNote>);
     fn vote_nostr_note(ref self: TContractState, request: SocialRequest<VoteNostrNote>);
-    fn vote_nostr_profile_starknet_only(
-        ref self: TContractState,
-        vote_params: VoteParams,
-    );
+    fn vote_nostr_profile_starknet_only(ref self: TContractState, vote_params: VoteParams);
     fn distribute_rewards_by_user(ref self: TContractState);
     fn claim_and_distribute_my_rewards(ref self: TContractState);
     fn distribute_algo_rewards_by_user(ref self: TContractState);
@@ -77,9 +78,10 @@ pub struct LinkedStarknetAddress {
 
 #[derive(Clone, Debug, Drop, Serde)]
 pub enum DepositRewardsType {
-    // General,
-    User,
-    Algo,
+    General,
+    // V2 users can select the type of rewards they want to deposit
+// User,
+// Algo,
 }
 
 
@@ -171,6 +173,21 @@ pub struct LinkedThisNostrNote {
     pub starknet_address: ContractAddress,
     // Add NIP-05 and stats profil after. Gonna write a proposal for it
 }
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
+pub struct DistributionRewardsByUser {
+    #[key]
+    pub starknet_address: ContractAddress,
+    #[key]
+    pub nostr_address: NostrPublicKey,
+    pub claimed_at: u64,
+    pub amount_algo: u256,
+    pub amount_vote: u256,
+    pub amount_total: u256,
+    // Add NIP-05 and stats profil after. Gonna write a proposal for it
+}
+
+
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct NostrFiAdminStorage {
     pub quote_token_address: ContractAddress,
@@ -197,6 +214,20 @@ pub struct VoteParams {
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
+pub struct TotalTipByUserVote {
+    pub nostr_address: u256,
+    pub total_amount_tips: u256,
+    pub total_to_claim_because_not_linked: u256,
+    pub rewards_amount: u256,
+    pub end_epoch_time: u64,
+    pub start_epoch_time: u64,
+    pub epoch_duration: u64,
+    pub total_vote_amount: u256,
+    pub total_points: u256,
+    pub total_points_weight: u256,
+}
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct TipByUser {
     pub nostr_address: u256,
     pub total_amount_deposit: u256,
@@ -211,6 +242,21 @@ pub struct TipByUser {
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
+pub struct OverviewTotalContractState {
+    pub epoch_duration: u64,
+    pub start_epoch_time: u64,
+    pub end_epoch_time: u64,
+    pub general_total_amount_deposit: u256, // V2
+    pub total_amount_deposit: u256,
+    pub user_total_amount_deposit: u256,
+    pub algo_total_amount_deposit: u256,
+    pub rewards_amount: u256,
+    pub total_amount_to_claim: u256,
+    pub total_amount_claimed: u256,
+}
+
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct TotalDepositRewards {
     pub epoch_duration: u64,
     pub start_epoch_time: u64,
@@ -221,6 +267,7 @@ pub struct TotalDepositRewards {
     pub algo_total_amount_deposit: u256,
     pub rewards_amount: u256,
     pub is_claimed: bool,
+    pub total_amount_to_claim: u256,
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
@@ -229,6 +276,7 @@ pub struct TotalScoreRewards {
     pub end_epoch_time: u64,
     pub total_score_ai: u256,
     pub total_score_vote: u256,
+    pub total_tips_amount_token_vote: u256,
     pub total_nostr_address: u256,
     pub rewards_amount: u256,
     pub total_points_weight: u256,
@@ -241,8 +289,8 @@ pub struct TotalAlgoScoreRewards {
     pub epoch_duration: u64,
     pub end_epoch_time: u64,
     pub total_score_ai: u256,
-    pub total_score_overview: u256, 
-    pub total_score_skills: u256, 
+    pub total_score_overview: u256,
+    pub total_score_skills: u256,
     pub total_score_value_shared: u256,
     pub total_nostr_address: u256,
     pub to_claimed_ai_score: u256,
