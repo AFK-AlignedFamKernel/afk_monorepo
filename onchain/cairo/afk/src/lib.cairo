@@ -1,4 +1,3 @@
-
 pub mod bip340;
 
 pub mod errors;
@@ -15,6 +14,7 @@ pub mod interfaces {
     pub mod erc20_mintable;
     pub mod nameservice;
     pub mod nfts;
+    pub mod nostrfi_scoring_interfaces;
     pub mod username_store;
     pub mod vault;
     pub mod voting;

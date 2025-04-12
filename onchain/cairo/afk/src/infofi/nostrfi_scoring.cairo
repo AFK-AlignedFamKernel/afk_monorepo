@@ -1,249 +1,35 @@
-use afk::social::request::{ConvertToBytes, Encode, SocialRequest, SocialRequestImpl};
-use core::fmt::Display;
-use starknet::ContractAddress;
-
-// Add this ROLE on a constants file
-pub const OPERATOR_ROLE: felt252 = selector!("OPERATOR_ROLE");
-pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
-
-type NostrPublicKey = u256;
-type AddressId = felt252;
-
-#[derive(Clone, Debug, Drop, Serde)]
-pub struct LinkedStarknetAddress {
-    pub starknet_address: ContractAddress,
-}
-
-
-#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
-pub struct LinkedWalletProfileDefault {
-    nostr_address: NostrPublicKey,
-    starknet_address: ContractAddress,
-    // Add NIP-05 and stats profil after. Gonna write a proposal for it
-}
-
-// TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
-pub impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
-    fn encode(self: @LinkedStarknetAddress) -> @ByteArray {
-        let recipient_address_user_felt: felt252 = self
-            .starknet_address
-            .clone()
-            .try_into()
-            .unwrap();
-
-        @format!("link to {:?}", recipient_address_user_felt)
-    }
-}
-
-
-#[derive(Clone, Debug, Drop, Serde)]
-pub struct CreateTokenProfile {
-    pub starknet_address: ContractAddress,
-    pub is_create_staking_vault: bool,
-}
-
-// TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
-pub impl CreateTokenProfileEncodeImpl of Encode<CreateTokenProfile> {
-    fn encode(self: @CreateTokenProfile) -> @ByteArray {
-        let recipient_address_user_felt: felt252 = self
-            .starknet_address
-            .clone()
-            .try_into()
-            .unwrap();
-
-        let is_create_staking_vault_felt: felt252 = self
-            .is_create_staking_vault
-            .clone()
-            .try_into()
-            .unwrap();
-
-        @format!("link to {:?}", recipient_address_user_felt)
-    }
-}
-
-
-#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
-pub struct LinkedThisNostrNote {
-    nostr_address: NostrPublicKey,
-    nostr_event_id: NostrPublicKey,
-    starknet_address: ContractAddress,
-    // Add NIP-05 and stats profil after. Gonna write a proposal for it
-}
-#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
-pub struct NostrFiAdminStorage {
-    quote_token_address: ContractAddress,
-    is_paid_storage_pubkey_profile: bool,
-    is_paid_storage_event_id: bool,
-    amount_paid_storage_pubkey_profile: u256,
-    amount_paid_storage_event_id: u256,
-    is_multi_token_vote: bool,
-    vote_token_address: ContractAddress,
-}
-
-
-#[derive(Copy, Debug, Drop, Serde, starknet::Store)]
-pub enum Vote {
-    Good,
-    Bad,
-}
-#[derive(Copy, Debug, Drop, Serde, starknet::Store)]
-pub enum TokenLaunchType {
-    Later,
-    Fairlaunch,
-    PrivateSale,
-    PublicSale,
-    ICO,
-    DutchAuction,
-}
-
-#[derive(Copy, Debug, Drop, starknet::Store, Serde)]
-pub struct NostrAccountBasic {
-    nostr_address: u256,
-    starknet_address: ContractAddress,
-}
-
-#[derive(Copy, Debug, Drop, starknet::Store, Serde)]
-pub struct NostrAccountScoring {
-    nostr_address: u256,
-    starknet_address: ContractAddress,
-    ai_score: u256,
-    token_launch_type: TokenLaunchType,
-}
-
-#[derive(Copy, Debug, Drop, starknet::Store, Serde)]
-pub struct VoteProfile {
-    nostr_address: u256,
-    starknet_address: ContractAddress,
-    good_score: u256,
-    bad_score: u256,
-    unique_address: u256,
-    vote: Vote,
-    ai_score: u256,
-    points: u256,
-    invested_points: u256,
-}
-
-#[derive(Copy, Debug, Drop, starknet::Store, Serde)]
-pub struct VoteUserForProfile {
-    nostr_address: u256,
-    starknet_address: ContractAddress,
-    vote: Vote,
-    points: u256,
-    invested_points: u256,
-    token_address: ContractAddress,
-    staked_token_amount: u256,
-}
-#[derive(Copy, Debug, Drop, starknet::Store, Serde)]
-pub struct NostrAccountParams {
-    starknet_address: ContractAddress,
-    token_address: ContractAddress,
-    vault_address: ContractAddress,
-    tip_address: ContractAddress,
-    dao_address: ContractAddress,
-    token_launch_type: TokenLaunchType,
-    is_create_staking_vault: bool,
-    is_create_dao: bool,
-}
-
-
-// TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
-// impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
-//     fn encode(self: @LinkedStarknetAddress) -> @ByteArray {
-//         let recipient_address_user_felt: felt252 = self
-//             .starknet_address
-//             .clone()
-//             .try_into()
-//             .unwrap();
-
-//         @format!("link to {:?}", recipient_address_user_felt)
-//     }
-// }
-
-pub impl LinkedStarknetAddressImpl of ConvertToBytes<LinkedStarknetAddress> {
-    fn convert_to_bytes(self: @LinkedStarknetAddress) -> ByteArray {
-        let mut ba: ByteArray = "";
-        let starknet_address_felt: felt252 = (*self.starknet_address).into();
-        ba.append_word(starknet_address_felt, 1_u32);
-        ba
-    }
-}
-#[derive(Copy, Debug, Drop, Serde)]
-pub enum LinkedResult {
-    Transfer: ContractAddress,
-    // LinkedStarknetAddress: LinkedStarknetAddress
-}
-
-#[starknet::interface]
-pub trait INostrFiScoring<TContractState> {
-    // Getters
-    fn get_nostr_by_sn_default(
-        self: @TContractState, nostr_public_key: NostrPublicKey,
-    ) -> ContractAddress;
-
-    fn get_sn_by_nostr_default(
-        self: @TContractState, starknet_address: ContractAddress,
-    ) -> NostrPublicKey;
-    // Admin
-    fn set_control_role(
-        ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
-    );
-    fn init_nostr_profile(
-        ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>,
-    );
-    fn add_nostr_profile_admin(
-        ref self: TContractState, nostr_event_id: u256,
-    );
-    // User
-  
-
-    fn linked_nostr_profile(
-        ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>,
-    );
-
-    fn create_token_profile(
-        ref self: TContractState,
-        request: SocialRequest<LinkedStarknetAddress>,
-        token_type: TokenLaunchType,
-        is_create_staking_vault: bool,
-        is_create_dao: bool,
-    );
-
-    fn vote_token_profile(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
-    // fn linked_nostr_note(ref self: TContractState, request:
-// SocialRequest<LinkedStarknetAddress>);
-// fn linked_this_nostr_note(ref self: TContractState, request:
-// SocialRequest<LinkedThisNostrNote>);
-// // External call protocol
-// fn protocol_linked_nostr_default_account(
-//     ref self: TContractState,
-//     nostr_public_key: NostrPublicKey,
-//     starknet_address: ContractAddress
-// );
-}
-
 #[starknet::contract]
 pub mod NostrFiScoring {
-    // use afk::bip340::{SchnorrSignature, Signature};
-    // use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use core::num::traits::Zero;
     use afk::infofi::errors;
+    use afk::interfaces::nostrfi_scoring_interfaces::{
+        ADMIN_ROLE, CreateTokenProfile, DepositRewardsType, INostrFiScoring, LinkedResult,
+        LinkedStarknetAddress, LinkedStarknetAddressEncodeImpl, LinkedWalletProfileDefault,
+        NostrAccountScoring, NostrFiAdminStorage, NostrPublicKey, OPERATOR_ROLE,
+        ProfileAlgorithmScoring, ProfileVoteScoring, TipByUser, TokenLaunchType,
+        TotalDepositRewards, TotalScoreRewards, Vote, VoteNostrNote, VoteProfile,
+        VoteUserForProfile,
+    };
     // use afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
     // use crate::afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
     use afk::social::request::{Encode, SocialRequest, SocialRequestImpl, SocialRequestTrait};
+    use core::num::traits::Zero;
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::introspection::src5::SRC5Component;
-    // use starknet::account::Call;
+    use openzeppelin::token::erc20::interface::{
+        IERC20CamelDispatcherTrait, IERC20Dispatcher, IERC20DispatcherTrait,
+    };
+
     use starknet::storage::{
-        Map, MutableVecTrait, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
-        Vec, VecTrait,
+        Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
+        StoragePointerReadAccess,
+        StoragePointerWriteAccess, StoragePathEntry, Vec, VecTrait,
+        // MutableEntryStoragePathEntry, StorableEntryReadAccess, StorageAsPathReadForward,
+    // MutableStorableEntryReadAccess, MutableStorableEntryWriteAccess,
+    // StorageAsPathWriteForward,PathableStorageEntryImpl
     };
-    use starknet::{ClassHash, ContractAddress, get_caller_address};
-    use super::{
-        ADMIN_ROLE, CreateTokenProfile, INostrFiScoring, LinkedResult, LinkedStarknetAddress,
-        LinkedStarknetAddressEncodeImpl, LinkedWalletProfileDefault, NostrAccountScoring,
-        NostrFiAdminStorage, NostrPublicKey, OPERATOR_ROLE, TokenLaunchType, Vote, VoteProfile,
-        VoteUserForProfile,
-    };
+    use starknet::storage_access::StorageBaseAddress;
+    use starknet::syscalls::{deploy_syscall, library_call_syscall};
+    use starknet::{ClassHash, ContractAddress, get_block_timestamp, get_caller_address};
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     // AccessControl
@@ -265,47 +51,68 @@ pub mod NostrFiScoring {
         }
     }
 
-    // impl LinkedThisNostrNoteDefault of Default<LinkedThisNostrNote> {
-    //     #[inline(always)]
-    //     fn default() -> LinkedThisNostrNote {
-    //         LinkedThisNostrNote {
-    //             starknet_address: 0.try_into().unwrap(),
-    //             nostr_address: 0.try_into().unwrap(),
-    //             nostr_event_id: 0.try_into().unwrap(),
-    //         }
-    //     }
-    // }
+    const EPOCH_DURATION_7d: u64 = 604800; // 7 days
+    const EPOCH_DURATION_DEFAULT: u64 = EPOCH_DURATION_7d; // 7 days
+
+    const EPOCH_DURATION_1d: u64 = 86400; // 1 day
 
     #[storage]
     struct Storage {
-     
+        // Admin setup
+        main_token_address: ContractAddress,
+        vote_token_address: ContractAddress,
+        admin_nostr_pubkey: u256, // Admin Nostr pubkey
+        oracle_nostr_pubkey: u256, // Oracle Nostr pubkey for Scoring Algorithm data
+        name: ByteArray,
+        description: ByteArray,
+        owner: ContractAddress,
+        admin: ContractAddress,
+        admin_params: NostrFiAdminStorage,
+        // Duration
+        epoch_duration: u64,
+        batch_timestamp: u64,
+        last_batch_timestamp: u64,
+        end_epoch_time: u64,
+        start_epoch_time: u64,
+        new_epoch_duration: u64,
+        // Rewards
+        total_deposit_rewards: TotalDepositRewards,
+        total_score_rewards: TotalScoreRewards,
+        total_tip_by_user: Map<u256, TipByUser>,
+        last_timestamp_oracle_score_by_user: Map<u256, u64>,
+        // total_tip_by_user_list: Map<u256, TipByUser>,
+        old_total_deposit_rewards_for_user: u256,
+        // Logic map
         nostr_pubkeys: Map<u64, u256>,
         total_pubkeys: u64,
         nostr_to_sn: Map<NostrPublicKey, ContractAddress>,
         sn_to_nostr: Map<ContractAddress, NostrPublicKey>,
         nostr_event_id_to_sn: Map<NostrPublicKey, ContractAddress>,
         sn_to_nostr_event_id: Map<ContractAddress, NostrPublicKey>,
+        is_nostr_address_added: Map<NostrPublicKey, bool>,
+        is_nostr_address_linked_to_sn: Map<NostrPublicKey, bool>,
+        // Vote setup
         nostr_account_scoring: Map<u256, NostrAccountScoring>,
+        nostr_account_scoring_algo: Map<u256, ProfileAlgorithmScoring>,
         nostr_vote_profile: Map<u256, VoteProfile>,
-        // events_by_user: Map<ContractAddress, Vec<LinkedThisNostrNote>>,
-        // events_by_nostr_user: Map<NostrPublicKey, Vec<LinkedThisNostrNote>>,
-
-        // rewards to refacto in a new contract
-        rewards_contract: ContractAddress,
-        deposited_rewards: Map<ContractAddress, u256>,
-        claimed_rewards: Map<ContractAddress, u256>,
-        protocol_rewards: u256,
-        protocol_rewards_claimed: u256,
-        // Admin setup
-        owner: ContractAddress,
-        admin: ContractAddress,
-        admin_storage: NostrFiAdminStorage,
+        old_nostr_account_scoring: Map<Map<ContractAddress, u256>, NostrAccountScoring>,
+        old_nostr_vote_profile: Map<Map<ContractAddress, u256>, VoteProfile>,
+        events_by_user: Map<ContractAddress, Vec<u256>>,
+        events_by_nostr_user: Map<u256, Vec<u256>>,
+        tokens_address_accepted: Map<ContractAddress, bool>,
+        is_point_vote_accepted: bool,
         // External contract
         token_vault: ContractAddress,
         fairlaunch_address: ContractAddress,
         class_hash_memecoin: ClassHash,
         vault_staking_class_hash: ClassHash,
         dao_class_hash: ClassHash,
+        // rewards to refacto in a new contract
+        rewards_contract: ContractAddress,
+        deposited_rewards: Map<ContractAddress, u256>,
+        claimed_rewards: Map<ContractAddress, u256>,
+        protocol_rewards: u256,
+        protocol_rewards_claimed: u256,
         // dutch_auction_address: ContractAddress,
         // ico_address: ContractAddress,
         #[substorage(v0)]
@@ -321,6 +128,13 @@ pub mod NostrFiScoring {
         #[key]
         starknet_address: ContractAddress,
     }
+
+    #[derive(Drop, starknet::Event)]
+    struct AdminAddNostrProfile {
+        #[key]
+        nostr_address: NostrPublicKey,
+    }
+
 
     #[derive(Drop, starknet::Event)]
     struct LinkedNoteToCheckEvent {
@@ -340,11 +154,23 @@ pub mod NostrFiScoring {
         id: u8,
     }
 
+    #[derive(Drop, starknet::Event)]
+    struct CreateTokenProfileEvent {
+        #[key]
+        nostr_address: NostrPublicKey,
+        #[key]
+        starknet_address: ContractAddress,
+        token_address: ContractAddress,
+        token_type: TokenLaunchType,
+    }
+
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         LinkedDefaultStarknetAddressEvent: LinkedDefaultStarknetAddressEvent,
         AddStarknetAddressEvent: AddStarknetAddressEvent,
+        CreateTokenProfileEvent: CreateTokenProfileEvent,
+        AdminAddNostrProfile: AdminAddNostrProfile,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -352,18 +178,208 @@ pub mod NostrFiScoring {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, admin: ContractAddress) {
+    fn constructor(ref self: ContractState, admin: ContractAddress, deployer: ContractAddress) {
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
+        self.accesscontrol._grant_role(OPERATOR_ROLE, admin);
+        self.accesscontrol._grant_role(OPERATOR_ROLE, deployer);
+        self.accesscontrol._grant_role(ADMIN_ROLE, deployer);
         self.total_pubkeys.write(0);
         self.owner.write(admin);
         self.admin.write(admin);
+        self.is_point_vote_accepted.write(false);
+        self.epoch_duration.write(EPOCH_DURATION_DEFAULT); // 7 days
+
+        let now = get_block_timestamp();
+        self.start_epoch_time.write(now);
+
+        let end_epoch_time = now + EPOCH_DURATION_DEFAULT;
+        self.end_epoch_time.write(end_epoch_time);
+
+        self
+            .total_deposit_rewards
+            .write(
+                TotalDepositRewards {
+                    epoch_duration: EPOCH_DURATION_DEFAULT,
+                    end_epoch_time: end_epoch_time,
+                    start_epoch_time: now,
+                    general_total_amount_deposit: 0,
+                    user_total_amount_deposit: 0,
+                    algo_total_amount_deposit: 0,
+                    rewards_amount: 0,
+                    is_claimed: false,
+                    total_amount_deposit: 0,
+                },
+            );
     }
 
+    // #[abi(embed_v0)]
+    // impl UpgradeableImpl of IUpgradeable<ContractState> {
+    //     fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
+    //         // This function can only be called by the ADMIN
+    //         self.accesscontrol.assert_only_role(ADMIN_ROLE);
+    //         // Replace the class hash upgrading the contract
+    //         self.upgradeable.upgrade(new_class_hash);
+    //     }
+    // }
+
+    #[generate_trait]
+    impl InternalFunctions of InternalFunctionsTrait {
+
+        fn _assert_check_if_new_epoch_is_started(ref self: ContractState) {
+            let now = get_block_timestamp();
+            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
+            assert(now >= next_time, 'Epoch not ended');
+        }
+
+        fn _assert_epoch_is_ended(ref self: ContractState, end_epoch_time: u64) {
+            let now = get_block_timestamp();
+            assert(now >= end_epoch_time, 'Epoch not ended');
+        }
+
+        fn _check_epoch_is_ended(ref self: ContractState, end_epoch_time: u64) -> bool {
+            let now = get_block_timestamp();
+            now>=end_epoch_time 
+
+        }
+
+        fn _check_epoch_next_time_started(ref self: ContractState) -> bool {
+            let now = get_block_timestamp();
+            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
+            now>=next_time 
+        }
+
+
+        fn _vote_nostr_event(ref self: ContractState, request: SocialRequest<VoteNostrNote>) {
+            let vote_token_profile = request.content.clone();
+            // let nostr_address: NostrPublicKey = vote_token_profile.nostr_address;
+            // let starknet_address: ContractAddress = vote_token_profile.starknet_address;
+            // let vote: Vote = vote_token_profile.vote;
+            // let is_upvote: bool = vote_token_profile.is_upvote;
+            // let upvote_amount: u256 = vote_token_profile.upvote_amount;
+            // let downvote_amount: u256 = vote_token_profile.downvote_amount;
+
+            let nostr_pubkey = vote_token_profile.nostr_address;
+
+            let nostr_to_sn = self.nostr_to_sn.read(nostr_pubkey);
+            assert(nostr_to_sn != 0.try_into().unwrap(), 'Starknet address not linked');
+
+            let erc20_token_address = self.main_token_address.read();
+            assert(erc20_token_address != 0.try_into().unwrap(), 'Main token address not set');
+
+            let erc20 = IERC20Dispatcher { contract_address: erc20_token_address };
+            erc20
+                .transfer_from(get_caller_address(), nostr_to_sn, vote_token_profile.amount_token);
+
+            // V2
+            // Add weight based on profile score
+
+            let old_tip_by_user = self.total_tip_by_user.read(nostr_pubkey);
+            let tip_by_user = TipByUser {
+                nostr_address: vote_token_profile.nostr_address,
+                total_amount_deposit: old_tip_by_user.total_amount_deposit
+                    + vote_token_profile.upvote_amount,
+                total_amount_deposit_by_algo: old_tip_by_user.total_amount_deposit_by_algo
+                    + vote_token_profile.downvote_amount,
+                rewards_amount: old_tip_by_user.rewards_amount,
+                is_claimed: old_tip_by_user.is_claimed,
+                end_epoch_time: old_tip_by_user.end_epoch_time,
+                start_epoch_time: old_tip_by_user.start_epoch_time,
+                epoch_duration: old_tip_by_user.epoch_duration,
+            };
+
+            self.total_tip_by_user.entry(vote_token_profile.nostr_address).write(tip_by_user);
+        }
+
+        fn _vote_nostr_profile_starknet_only(
+            ref self: ContractState,
+            nostr_address: NostrPublicKey,
+            vote: Vote,
+            is_upvote: bool,
+            upvote_amount: u256,
+            downvote_amount: u256,
+            amount: u256,
+            amount_token: u256,
+        ) {
+            // let nostr_address: NostrPublicKey = vote_token_profile.nostr_address;
+            // let starknet_address: ContractAddress = vote_token_profile.starknet_address;
+            // let vote: Vote = vote_token_profile.vote;
+            // let is_upvote: bool = vote_token_profile.is_upvote;
+            // let upvote_amount: u256 = vote_token_profile.upvote_amount;
+            // let downvote_amount: u256 = vote_token_profile.downvote_amount;
+
+            let nostr_pubkey = nostr_address;
+
+            let nostr_to_sn = self.nostr_to_sn.read(nostr_pubkey);
+            assert(nostr_to_sn != 0.try_into().unwrap(), 'Starknet address not linked');
+
+            let erc20_token_address = self.main_token_address.read();
+            assert(erc20_token_address != 0.try_into().unwrap(), 'Main token address not set');
+
+            let erc20 = IERC20Dispatcher { contract_address: erc20_token_address };
+            erc20.transfer_from(get_caller_address(), nostr_to_sn, amount_token);
+
+            let old_tip_by_user = self.total_tip_by_user.read(nostr_address);
+
+            let tip_by_user = TipByUser {
+                nostr_address: nostr_address,
+                total_amount_deposit: old_tip_by_user.total_amount_deposit + upvote_amount,
+                total_amount_deposit_by_algo: old_tip_by_user.total_amount_deposit_by_algo
+                    + downvote_amount,
+                rewards_amount: old_tip_by_user.rewards_amount,
+                is_claimed: old_tip_by_user.is_claimed,
+                end_epoch_time: old_tip_by_user.end_epoch_time,
+                start_epoch_time: old_tip_by_user.start_epoch_time,
+                epoch_duration: old_tip_by_user.epoch_duration,
+            };
+
+            self.total_tip_by_user.entry(nostr_address).write(tip_by_user);
+        }
+
+
+        fn get_tokens_address_accepted(
+            self: @ContractState, token_address: ContractAddress,
+        ) -> bool {
+            self.tokens_address_accepted.read(token_address)
+        }
+
+        fn get_admin_params(self: @ContractState) -> NostrFiAdminStorage {
+            self.admin_params.read()
+        }
+
+        fn get_is_pay_subscription(self: @ContractState) -> bool {
+            self.admin_params.read().is_paid_storage_pubkey_profile
+        }
+
+        fn get_amount_paid_for_subscription(self: @ContractState) -> u256 {
+            self.admin_params.read().amount_paid_for_subscription
+        }
+
+        fn get_token_to_pay_subscription(self: @ContractState) -> ContractAddress {
+            self.admin_params.read().quote_token_address
+        }
+
+
+        fn set_tokens_address_accepted(
+            self: @ContractState, token_address: ContractAddress, is_accepted: bool,
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            // self.tokens_address_accepted.entry(token_address).write(*is_accepted);
+        }
+
+        fn deploy_token_to_use(self: @ContractState) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+
+            let fairlaunch_address = self.fairlaunch_address.read();
+            assert!(fairlaunch_address != 0.try_into().unwrap(), "fairlaunch address not set");
+            // let token_address = ILaunchpadDispatcher::create_token(fairlaunch_address,
+        // starknet_address);
+        // self.tokens_address_accepted.entry(token_address).write(true);
+
+        }
+    }
     #[abi(embed_v0)]
     impl NostrFiScoringImpl of INostrFiScoring<ContractState> {
-      
-
         // Getters
         fn get_nostr_by_sn_default(
             self: @ContractState, nostr_public_key: NostrPublicKey,
@@ -377,6 +393,8 @@ pub mod NostrFiScoring {
         ) -> NostrPublicKey {
             self.sn_to_nostr.read(starknet_address)
         }
+
+        // Users functions
 
 
         // User request to be on the Marketplace for:
@@ -395,7 +413,8 @@ pub mod NostrFiScoring {
             request.verify().expect('can\'t verify signature');
             self.nostr_to_sn.entry(request.public_key).write(profile_default.starknet_address);
             self.sn_to_nostr.entry(profile_default.starknet_address).write(request.public_key);
-
+            self.is_nostr_address_added.entry(request.public_key).write(true);
+            self.is_nostr_address_linked_to_sn.entry(request.public_key).write(true);
             self.nostr_pubkeys.entry(self.total_pubkeys.read()).write(request.public_key);
             self.total_pubkeys.write(self.total_pubkeys.read() + 1);
             let nostr_account_scoring = NostrAccountScoring {
@@ -405,6 +424,20 @@ pub mod NostrFiScoring {
                 token_launch_type: TokenLaunchType::Fairlaunch,
             };
             self.nostr_account_scoring.entry(request.public_key).write(nostr_account_scoring);
+
+            let now = get_block_timestamp();
+            let tip_by_user = TipByUser {
+                nostr_address: request.public_key,
+                total_amount_deposit: 0,
+                total_amount_deposit_by_algo: 0,
+                rewards_amount: 0,
+                is_claimed: false,
+                end_epoch_time: self.end_epoch_time.read(),
+                start_epoch_time: now,
+                epoch_duration: self.epoch_duration.read(),
+            };
+
+            self.total_tip_by_user.entry(request.public_key).write(tip_by_user);
             self
                 .emit(
                     LinkedDefaultStarknetAddressEvent {
@@ -414,14 +447,310 @@ pub mod NostrFiScoring {
         }
 
 
+        fn vote_token_profile(ref self: ContractState, request: SocialRequest<VoteNostrNote>) {
+            self._vote_nostr_event(request);
+        }
 
-        fn create_token_profile(
+        fn vote_nostr_note(ref self: ContractState, request: SocialRequest<VoteNostrNote>) {
+            // let vote_nostr_note = request.content.clone();
+            // let nostr_address: NostrPublicKey = vote_nostr_note.nostr_address;
+            // let starknet_address: ContractAddress = vote_nostr_note.starknet_address;
+            // let vote: Vote = vote_nostr_note.vote;
+            // let is_upvote: bool = vote_nostr_note.is_upvote;
+            // let upvote_amount: u256 = vote_nostr_note.upvote_amount;
+            // let downvote_amount: u256 = vote_nostr_note.downvote_amount;
+            self._vote_nostr_event(request);
+        }
+
+        // Vote for profile without Nostr event verification
+        fn vote_nostr_profile_starknet_only(
+            ref self: ContractState,
+            nostr_address: NostrPublicKey,
+            vote: Vote,
+            is_upvote: bool,
+            upvote_amount: u256,
+            downvote_amount: u256,
+            amount: u256,
+            amount_token: u256,
+        ) {
+            self
+                ._vote_nostr_profile_starknet_only(
+                    nostr_address,
+                    vote,
+                    is_upvote,
+                    upvote_amount,
+                    downvote_amount,
+                    amount,
+                    amount_token,
+                );
+        }
+
+
+        fn distribute_rewards_by_user(ref self: ContractState) {
+            let caller = get_caller_address();
+            let now = get_block_timestamp();
+            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
+            assert(now >= next_time, 'Epoch not ended');
+
+            // check profile nostr id link
+            let nostr_address = self.sn_to_nostr.read(caller);
+            assert(nostr_address != 0.try_into().unwrap(), 'Profile not linked');
+
+            // Distribute tips rewards
+            let tip_by_user = self.total_tip_by_user.read(nostr_address);
+
+            if !tip_by_user.is_claimed {
+                // Distribute Topic tips
+                let tip_by_user = self.total_tip_by_user.read(nostr_address);
+                let tip_by_user_amount = tip_by_user.total_amount_deposit;
+                let tip_by_user_amount_by_algo = tip_by_user.total_amount_deposit_by_algo;
+                let tip_by_user_amount_rewards = tip_by_user.rewards_amount;
+
+                // Distribute rewards by Algorithm scoring
+
+                let update_tip_by_user = TipByUser {
+                    nostr_address,
+                    total_amount_deposit: tip_by_user_amount,
+                    total_amount_deposit_by_algo: tip_by_user_amount_by_algo,
+                    rewards_amount: tip_by_user_amount_rewards,
+                    is_claimed: true,
+                    end_epoch_time: tip_by_user.end_epoch_time,
+                    start_epoch_time: tip_by_user.start_epoch_time,
+                    epoch_duration: tip_by_user.epoch_duration,
+                };
+                self.total_tip_by_user.entry(nostr_address).write(update_tip_by_user);
+            }
+
+            // Ditribute Topic User vote
+
+            // Distribute rewards by Algorithm scoring
+
+            // Update all state
+
+            // let old_nostr_account_scoring = self.nostr_account_scoring.read(nostr_address);
+            // let old_nostr_vote_profile = self.nostr_vote_profile.read(nostr_address);
+
+            // self.old_nostr_account_scoring.entry(nostr_address).write(old_nostr_account_scoring);
+            // self.old_nostr_vote_profile.entry(nostr_address).write(old_nostr_vote_profile);
+
+            let profile_algorithm_scoring = ProfileAlgorithmScoring {
+                nostr_address: 0.try_into().unwrap(),
+                starknet_address: 0.try_into().unwrap(),
+                ai_score: 0,
+                overview_score: 0,
+                skills_score: 0,
+                value_shared_score: 0,
+                is_claimed: false,
+            };
+            // Reinit vote per batch
+            let profile_vote_scoring = ProfileVoteScoring {
+                nostr_address: 0.try_into().unwrap(),
+                starknet_address: 0.try_into().unwrap(),
+                upvote_amount: 0,
+                downvote_amount: 0,
+                rewards_amount: 0,
+                unique_address: 0,
+            };
+            // self.nostr_account_scoring.entry(nostr_address).write(profile_algorithm_scoring);
+        // self.nostr_vote_profile.entry(nostr_address).write(profile_vote_scoring);
+
+            // let vote: Vote = vote_nostr_note.vote;
+        // let is_upvote: bool = vote_nostr_note.is_upvote;
+        // let upvote_amount: u256 = vote_nostr_note.upvote_amount;
+        // let downvote_amount: u256 = vote_nostr_note.downvote_amount;
+        }
+
+        fn distribute_algo_rewards_by_user(ref self: ContractState) {
+            let caller = get_caller_address();
+            let owner = self.owner.read();
+            assert(caller == owner, 'Only owner can distribute');
+
+            // check profile nostr id link
+            let nostr_address = self.sn_to_nostr.read(caller);
+            assert(nostr_address != 0.try_into().unwrap(), 'Profile not linked');
+
+            let now = get_block_timestamp();
+            let tip_by_user = self.total_tip_by_user.read(nostr_address);
+
+            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
+            // let next_time = tip_by_user.end_epoch_time;
+            assert(now >= next_time, 'Epoch not ended');
+
+
+            let last_timestamp_oracle_score_by_user = self.last_timestamp_oracle_score_by_user.read(nostr_address);
+          
+
+            assert(now - last_timestamp_oracle_score_by_user > 1000, 'Not enough time has passed');
+
+            let mut old_profile_algorithm_scoring = self.nostr_account_scoring_algo.read(nostr_address);
+
+            let profile_algorithm_scoring = ProfileAlgorithmScoring {
+                nostr_address: 0.try_into().unwrap(),
+                starknet_address: 0.try_into().unwrap(),
+                ai_score: 0,
+                overview_score: 0,
+                skills_score: 0,
+                value_shared_score: 0,
+                is_claimed: false,
+            };
+            // Reinit vote per batch
+            let profile_vote_scoring = ProfileVoteScoring {
+                nostr_address: 0.try_into().unwrap(),
+                starknet_address: 0.try_into().unwrap(),
+                upvote_amount: 0,
+                downvote_amount: 0,
+                rewards_amount: 0,
+                unique_address: 0,
+            };
+        
+        }
+
+        fn deposit_rewards(
+            ref self: ContractState, amount: u256, deposit_rewards_type: DepositRewardsType,
+        ) {
+            // self.accesscontrol.assert_only_role(OPERATOR_ROLE);
+            let now = get_block_timestamp();
+            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
+            let next_time_if_ended = now + self.epoch_duration.read();
+
+            let old_total_deposit_rewards = self.total_deposit_rewards.read();
+
+            let end_epoch_time = old_total_deposit_rewards.end_epoch_time;
+
+            assert(now >= end_epoch_time, 'Epoch not ended');
+
+            let mut new_epoch_duration = old_total_deposit_rewards.epoch_duration;
+            let mut new_start_epoch_time = old_total_deposit_rewards.start_epoch_time;
+            let mut new_end_epoch_time = old_total_deposit_rewards.end_epoch_time;
+            if now >= end_epoch_time {
+                // TODO: add event to the contract
+            } else {
+                new_start_epoch_time = now;
+                self.last_batch_timestamp.write(now);
+                self.end_epoch_time.write(now + new_epoch_duration);
+                self.last_batch_timestamp.write(now);
+            }
+
+
+
+            let total_deposit_rewards = match deposit_rewards_type {
+                // DepositRewardsType::General => {
+                //     TotalDepositRewards {
+                //         epoch_duration:old_total_deposit_rewards.epoch_duration,
+                //         start_epoch_time:old_total_deposit_rewards.start_epoch_time,
+                //         end_epoch_time:old_total_deposit_rewards.end_epoch_time,
+                //         // epoch_duration: self.epoch_duration.read(),
+                //         // end_epoch_time: self.last_batch_timestamp.read()
+                //         //     + self.epoch_duration.read(),
+                //         total_amount_deposit: amount,
+                //         total_amount_deposit_for_user: old_total_deposit_rewards
+                //             .total_amount_deposit_for_user,
+                //         total_amount_deposit_for_algo: old_total_deposit_rewards
+                //             .total_amount_deposit_for_algo,
+                //         rewards_amount: old_total_deposit_rewards.rewards_amount,
+                //         is_claimed: old_total_deposit_rewards.is_claimed,
+                //     }
+                // },
+                DepositRewardsType::User => {
+                    // TODO: add user deposit rewards
+                    TotalDepositRewards {
+                        epoch_duration:old_total_deposit_rewards.epoch_duration,
+                        start_epoch_time:old_total_deposit_rewards.start_epoch_time,
+                        end_epoch_time:old_total_deposit_rewards.end_epoch_time,
+                        general_total_amount_deposit: old_total_deposit_rewards.general_total_amount_deposit,
+                        // epoch_duration: self.epoch_duration.read(),
+                        // end_epoch_time: self.last_batch_timestamp.read()
+                        //     + self.epoch_duration.read(),
+                        total_amount_deposit: old_total_deposit_rewards.total_amount_deposit,
+                        user_total_amount_deposit: old_total_deposit_rewards
+                            .user_total_amount_deposit
+                            + amount,
+                        algo_total_amount_deposit: old_total_deposit_rewards
+                            .algo_total_amount_deposit,
+                        rewards_amount: old_total_deposit_rewards.rewards_amount,
+                        is_claimed: old_total_deposit_rewards.is_claimed,
+                    }
+                },
+                DepositRewardsType::Algo => {
+                    // TODO: add algo deposit rewards
+                    TotalDepositRewards {
+                        epoch_duration:old_total_deposit_rewards.epoch_duration,
+                        start_epoch_time:old_total_deposit_rewards.start_epoch_time,
+                        end_epoch_time:old_total_deposit_rewards.end_epoch_time,
+                        general_total_amount_deposit: old_total_deposit_rewards.general_total_amount_deposit,
+                        // epoch_duration: self.epoch_duration.read(),
+                        // end_epoch_time: self.last_batch_timestamp.read()
+                        //     + self.epoch_duration.read(),
+                        total_amount_deposit: old_total_deposit_rewards.total_amount_deposit,
+                        user_total_amount_deposit: old_total_deposit_rewards
+                            .user_total_amount_deposit,
+                        algo_total_amount_deposit: old_total_deposit_rewards
+                            .algo_total_amount_deposit
+                            + amount,
+                        rewards_amount: old_total_deposit_rewards.rewards_amount,
+                        is_claimed: old_total_deposit_rewards.is_claimed,
+                    }
+                },
+            };
+
+            self.total_deposit_rewards.write(total_deposit_rewards);
+        }
+
+
+        // Operator and admin functions
+
+        fn push_profile_score_algo(ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>, score_algo:ProfileAlgorithmScoring) {
+            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), 'Role required');
+
+            // Verify if the token address is set
+            // V2 let change users main address or add multi token vault
+            assert(
+                self.main_token_address.read() != 0.try_into().unwrap(),
+                'Main token address not set',
+            );
+
+            // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
+            let profile_default = request.content.clone();
+            let starknet_address: ContractAddress = profile_default.starknet_address;
+
+            assert!(starknet_address == get_caller_address(), "invalid caller");
+            request.verify().expect('can\'t verify signature');
+
+            let now = get_block_timestamp();
+
+            let mut nostr_account_scoring = self.nostr_account_scoring_algo.read(request.public_key);
+            nostr_account_scoring.ai_score = score_algo.ai_score;
+            nostr_account_scoring.overview_score = score_algo.overview_score;
+            nostr_account_scoring.skills_score = score_algo.skills_score;
+            nostr_account_scoring.value_shared_score = score_algo.value_shared_score;
+            self.nostr_account_scoring_algo.entry(request.public_key).write(nostr_account_scoring);
+
+            self.last_timestamp_oracle_score_by_user.entry(request.public_key).write(now);
+        }
+
+
+        fn set_change_batch_interval(ref self: ContractState, next_epoch: u64) {
+            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), 'Role required');
+            self.last_batch_timestamp.write(next_epoch);
+        }
+
+        // Factory or deployer of the contract
+        fn create_token_topic_reward_and_vote(
             ref self: ContractState,
             request: SocialRequest<LinkedStarknetAddress>,
             token_type: TokenLaunchType,
             is_create_staking_vault: bool,
             is_create_dao: bool,
         ) {
+            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), 'Role required');
+
+            // Verify if the token address is set
+            // V2 let change users main address or add multi token vault
+            assert(
+                self.main_token_address.read() != 0.try_into().unwrap(),
+                'Main token address not set',
+            );
+
             // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
             let profile_default = request.content.clone();
             let starknet_address: ContractAddress = profile_default.starknet_address;
@@ -430,7 +759,7 @@ pub mod NostrFiScoring {
             request.verify().expect('can\'t verify signature');
             self.nostr_to_sn.entry(request.public_key).write(profile_default.starknet_address);
             self.sn_to_nostr.entry(profile_default.starknet_address).write(request.public_key);
-
+            self.is_nostr_address_added.entry(request.public_key).write(true);
             let nostr_account_scoring = NostrAccountScoring {
                 nostr_address: request.public_key,
                 starknet_address,
@@ -439,13 +768,15 @@ pub mod NostrFiScoring {
             };
 
             match token_type {
-                TokenLaunchType::Later => {// TODO: add a new event to the contract
+                TokenLaunchType::Later => { // TODO: add a new event to the contract
                 },
                 TokenLaunchType::Fairlaunch => { // external call to the fairlaunch contract
                     let fairlaunch_address = self.fairlaunch_address.read();
-                    assert!(fairlaunch_address != 0.try_into().unwrap(), "fairlaunch address not set");
-
-                    // ILaunchpadDispatcher::create_and_launch_vault(fairlaunch_address, starknet_address);
+                    assert!(
+                        fairlaunch_address != 0.try_into().unwrap(), "fairlaunch address not set",
+                    );
+                    // ILaunchpadDispatcher::create_and_launch_vault(fairlaunch_address,
+                // starknet_address);
 
                 },
                 TokenLaunchType::PrivateSale => { // external call to the private sale contract
@@ -474,9 +805,17 @@ pub mod NostrFiScoring {
                 );
         }
 
-        fn vote_token_profile(
-            ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
-        ) {}
+        // Create a new DAO for this topic with the main token address
+        // TODO:
+        // Implement logic to create a new DAO for this topic with the main token address
+        fn create_dao(ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>) {
+            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), 'Role required');
+            let profile_default = request.content.clone();
+            let starknet_address: ContractAddress = profile_default.starknet_address;
+
+            assert!(starknet_address == get_caller_address(), "invalid caller");
+            request.verify().expect('can\'t verify signature');
+        }
 
 
         // Admin functions
@@ -507,7 +846,9 @@ pub mod NostrFiScoring {
 
             // TODO assert if address is owner
             let caller = get_caller_address();
-            assert(caller != self.owner.read()|| caller != self.admin.read(), errors::INVALID_CALLER);
+            assert(
+                caller != self.owner.read() || caller != self.admin.read(), errors::INVALID_CALLER,
+            );
             let profile_default = request.content.clone();
             let starknet_address: ContractAddress = profile_default.starknet_address;
 
@@ -532,13 +873,13 @@ pub mod NostrFiScoring {
         }
 
         // Init nostr profile
-        fn add_nostr_profile_admin(
-            ref self: ContractState, nostr_event_id: u256,
-        ) {
+        fn add_nostr_profile_admin(ref self: ContractState, nostr_event_id: u256) {
             // TODO assert if address is owner
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let caller = get_caller_address();
-            assert(caller != self.owner.read()|| caller != self.admin.read(), errors::INVALID_CALLER);
+            assert(
+                caller != self.owner.read() || caller != self.admin.read(), errors::INVALID_CALLER,
+            );
             self.nostr_pubkeys.entry(self.total_pubkeys.read()).write(nostr_event_id);
             self.total_pubkeys.write(self.total_pubkeys.read() + 1);
 
@@ -551,29 +892,11 @@ pub mod NostrFiScoring {
             self.nostr_account_scoring.entry(nostr_event_id).write(nostr_account_scoring);
             self
                 .emit(
-                    LinkedDefaultStarknetAddressEvent {
-                        nostr_address: nostr_event_id, starknet_address: 0.try_into().unwrap(),
+                    AdminAddNostrProfile {
+                        nostr_address: nostr_event_id // starknet_address: 0.try_into().unwrap(),
                     },
                 );
         }
-
-
-        // fn linked_nostr_note(
-    //     ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
-    // ) {
-    //     let note_default = request.content.clone();
-    //     let starknet_address: ContractAddress = note_default.starknet_address;
-
-        //     assert!(starknet_address == get_caller_address(), "invalid caller");
-    //     request.verify().expect('can\'t verify signature');
-    //     self.nostr_to_sn.entry(request.public_key).write(note_default.starknet_address);
-    //     self.sn_to_nostr.entry(note_default.starknet_address).write(request.public_key);
-    //     self
-    //         .emit(
-    //             LinkedNoteToCheckEvent { nostr_address: request.public_key, starknet_address
-    //             },
-    //         );
-    // }
 
         // fn linked_this_nostr_note(
     //     ref self: ContractState, request: SocialRequest<LinkedThisNostrNote>,
@@ -597,6 +920,10 @@ pub mod NostrFiScoring {
 #[cfg(test)]
 mod tests {
     use afk::bip340::SchnorrSignature;
+    use afk::interfaces::nostrfi_scoring_interfaces::{
+        INostrFiScoring, INostrFiScoringDispatcher, INostrFiScoringDispatcherTrait, LinkedResult,
+        LinkedStarknetAddress, NostrPublicKey,
+    };
     use afk::social::request::SocialRequest;
     // use core::array::SpanTrait;
     // use core::traits::Into;
@@ -605,10 +932,6 @@ mod tests {
         start_cheat_caller_address_global, stop_cheat_caller_address_global,
     };
     use starknet::ContractAddress;
-    use super::{
-        INostrFiScoring, INostrFiScoringDispatcher, INostrFiScoringDispatcherTrait, LinkedResult,
-        LinkedStarknetAddress, NostrPublicKey,
-    };
 
     fn declare_nostrfi_scoring() -> ContractClass {
         // declare("nostrfi_scoring").unwrap().contract_class()
