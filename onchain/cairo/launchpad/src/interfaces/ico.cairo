@@ -1,5 +1,5 @@
-use core::num::traits::Zero;
-use starknet::ContractAddress;
+use starknet::storage::Map;
+use starknet::{ContractAddress, get_block_timestamp};
 
 #[starknet::interface]
 pub trait IICO<TContractState> {
@@ -14,11 +14,21 @@ pub trait IICO<TContractState> {
         presale_details: Option<PresaleDetails>,
     );
     // fn launch_dutch_auction(ref self: TContractState);
-// fn launch_liquidity_providing(ref self: TContractState, token_address: ContractAddress);
-// fn buy_token(ref self: TContractState);
-// fn cancel_buy(ref self: TContractState, token_address: ContractAddress);    // This might
-// need the timelock component.
-// fn claim(ref self: TContractState);
+
+    /// This function first checks if the token liquidity providing phase has reached, and makes
+    /// necessary changes
+    fn launch_liquidity_providing(ref self: TContractState, token_address: ContractAddress);
+
+    /// Buys a certain amount of token with `token_address` worth of `amount`
+    ///
+    /// #param
+    /// - `token_address`: Contract Address of the token
+    /// - `amount`: Amount of buy_token to give in exchange for presale token
+    fn buy_token(ref self: TContractState, token_address: ContractAddress, amount: u256);
+    fn cancel_buy(ref self: TContractState, token_address: ContractAddress);
+    fn claim(ref self: TContractState, token_address: ContractAddress);
+    fn claim_all(ref self: TContractState);
+    fn whitelist(ref self: TContractState, token_address: ContractAddress, buyer: ContractAddress);
 }
 
 #[starknet::interface]
@@ -39,8 +49,9 @@ pub struct TokenDetails {
     pub salt: felt252,
 }
 
-#[derive(Drop, Copy, Serde, Default, starknet::Store)]
+#[derive(Drop, Copy, Serde, starknet::Store)]
 pub struct PresaleDetails {
+    pub buy_token: ContractAddress,
     pub presale_rate: u256,
     pub whitelist: bool,
     pub soft_cap: u256,
@@ -51,6 +62,62 @@ pub struct PresaleDetails {
     pub end_time: u64,
     pub liquidity_lockup: u64 // in hours.
 }
+
+// Give room for precision too.
+#[starknet::storage_node]
+pub struct Token {
+    pub owner_access: Option<ContractAddress>,
+    pub presale_details: PresaleDetails,
+    pub status: PresaleStatus,
+    pub current_supply: u256,
+    pub funds_raised: u256,
+    pub whitelist: Map<ContractAddress, bool>,
+    pub buyers: Map<ContractAddress, u256>, // with buy_token
+    pub holders: Map<ContractAddress, u256>, // holders of token
+    pub successful: bool,
+}
+
+#[derive(Drop, Copy, Default, Serde, PartialEq, starknet::Store)]
+pub enum PresaleStatus {
+    #[default]
+    None,
+    Launched,
+    Liquidity,
+    Active,
+    Finished: u256,
+}
+
+#[starknet::storage_node]
+pub struct TokenInitParams {
+    pub max_token_supply: u256,
+    pub fee_amount: u256,
+    pub fee_to: ContractAddress,
+    pub paid_in: ContractAddress,
+}
+
+// TODO:
+// To be edited
+pub fn default_presale_details() -> PresaleDetails {
+    PresaleDetails {
+        buy_token: ETH,
+        presale_rate: 0,
+        whitelist: false,
+        soft_cap: 0,
+        hard_cap: 0,
+        liquidity_percentage: 0,
+        listing_rate: 0,
+        start_time: get_block_timestamp(),
+        end_time: get_block_timestamp() + 100000,
+        liquidity_lockup: get_block_timestamp() + (60 * 24 * 30 * 30) // in seconds
+    }
+}
+
+const ETH: ContractAddress = 0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
+    .try_into()
+    .unwrap();
+
+#[derive(Drop, Copy, Serde)]
+pub struct TokenConfig {}
 
 #[derive(Drop, starknet::Event)]
 pub struct TokenCreated {
@@ -63,43 +130,16 @@ pub struct TokenCreated {
     pub created_at: u64,
 }
 
-// Give room for precision too.
-#[starknet::storage_node]
-pub struct Token {
-    pub owner_access: Option<ContractAddress>,
-    pub presale_details: Option<PresaleDetails>,
-    pub status: PresaleStatus,
-    pub current_supply: u256,
+#[derive(Drop, starknet::Event)]
+pub struct PresaleLaunched {
+    pub buy_token: ContractAddress,
+    pub presale_rate: u256,
+    pub soft_cap: u256,
+    pub hard_cap: u256,
+    pub liquidity_percentage: u64,
+    pub listing_rate: u256,
+    pub start_time: u64,
+    pub end_time: u64,
+    pub liquidity_lockup: u64,
 }
 
-#[derive(Drop, Copy, Default, Serde, PartialEq, starknet::Store)]
-pub enum PresaleStatus {
-    #[default]
-    None,
-    Pending,
-    InProgress,
-    Finished: u256,
-}
-
-#[starknet::storage_node]
-pub struct TokenInitParams {
-    pub max_token_supply: u256,
-    pub fee_amount: u256,
-    pub fee_to: ContractAddress,
-    pub paid_in: ContractAddress,
-}
-
-// pub struct PresaleDetails {
-//     pub coin_address: ContractAddress,
-//     pub whitelist: bool,
-//     pub fee: ContractAddress,
-// }
-
-// TODO:
-// use default values for now
-pub fn default_presale_details() -> PresaleDetails {
-    Default::default()
-}
-
-#[derive(Drop, Copy, Serde)]
-pub struct TokenConfig {}
