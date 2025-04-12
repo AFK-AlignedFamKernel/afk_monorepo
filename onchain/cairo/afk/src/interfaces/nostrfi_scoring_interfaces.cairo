@@ -28,6 +28,9 @@ pub trait INostrFiScoring<TContractState> {
     fn push_profile_score_algo(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>, score_algo:ProfileAlgorithmScoring);
 
     fn set_change_batch_interval(ref self: TContractState, next_epoch: u64);
+    fn set_admin_params(ref self: TContractState, admin_params: NostrFiAdminStorage);
+    fn create_dao(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
+
     // Users functions
     fn linked_nostr_profile(
         ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>,
@@ -40,34 +43,28 @@ pub trait INostrFiScoring<TContractState> {
         is_create_staking_vault: bool,
         is_create_dao: bool,
     );
-    fn create_dao(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
-    // fn create_token_profile(
-    //     ref self: TContractState,
-    //     request: SocialRequest<LinkedStarknetAddress>,
-    //     token_type: TokenLaunchType,
-    //     is_create_staking_vault: bool,
-    //     is_create_dao: bool,
-    // );
-
+ 
+    // Deposit, Voting and tips
+    fn deposit_rewards(
+        ref self: TContractState, amount: u256, deposit_rewards_type: DepositRewardsType,
+    );
     fn vote_token_profile(ref self: TContractState, request: SocialRequest<VoteNostrNote>);
     fn vote_nostr_note(ref self: TContractState, request: SocialRequest<VoteNostrNote>);
     fn vote_nostr_profile_starknet_only(
         ref self: TContractState,
-        nostr_address: NostrPublicKey,
-        vote: Vote,
-        is_upvote: bool,
-        upvote_amount: u256,
-        downvote_amount: u256,
-        amount: u256,
-        amount_token: u256,
+        vote_params: VoteParams,
     );
     fn distribute_rewards_by_user(ref self: TContractState);
     fn claim_and_distribute_my_rewards(ref self: TContractState);
     fn distribute_algo_rewards_by_user(ref self: TContractState);
 
-    fn deposit_rewards(
-        ref self: TContractState, amount: u256, deposit_rewards_type: DepositRewardsType,
-    );
+
+    // Getters
+    fn get_admin_params(self: @TContractState) -> NostrFiAdminStorage;
+    fn get_is_pay_subscription(self: @TContractState) -> bool;
+    fn get_amount_paid_for_subscription(self: @TContractState) -> u256;
+    fn get_token_to_pay_subscription(self: @TContractState) -> ContractAddress;
+    fn get_tokens_address_accepted(self: @TContractState, token_address: ContractAddress) -> bool;
     // fn deposit_rewards_topic_to_vault_for_user(ref self: TContractState, amount: u256,);
 // fn deposit_rewards_topic_to_vault_for_algo(ref self: TContractState, amount: u256);
 }
@@ -185,6 +182,7 @@ pub struct NostrFiAdminStorage {
     pub amount_paid_for_subscription: u256,
     pub vote_token_address: ContractAddress,
     pub subscription_time: u64,
+    pub percentage_algo_score_distribution: u256,
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
@@ -232,6 +230,34 @@ pub struct TotalScoreRewards {
     pub total_score_ai: u256,
     pub total_score_vote: u256,
     pub total_nostr_address: u256,
+    pub rewards_amount: u256,
+    pub total_points_weight: u256,
+    pub is_claimed: bool,
+}
+
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
+pub struct TotalAlgoScoreRewards {
+    pub epoch_duration: u64,
+    pub end_epoch_time: u64,
+    pub total_score_ai: u256,
+    pub total_score_overview: u256, 
+    pub total_score_skills: u256, 
+    pub total_score_value_shared: u256,
+    pub total_nostr_address: u256,
+    pub to_claimed_ai_score: u256,
+    pub to_claimed_overview_score: u256,
+    pub to_claimed_skills_score: u256,
+    pub to_claimed_value_shared_score: u256,
+    pub rewards_amount: u256,
+    pub total_points_weight: u256,
+    pub is_claimed: bool,
+}
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
+pub struct TotalVoteTipsRewards {
+    pub epoch_duration: u64,
+    pub total_amount_deposit: u256,
     pub rewards_amount: u256,
     pub total_points_weight: u256,
     pub is_claimed: bool,

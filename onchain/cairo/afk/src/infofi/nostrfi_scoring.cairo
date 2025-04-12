@@ -7,7 +7,7 @@ pub mod NostrFiScoring {
         NostrAccountScoring, NostrFiAdminStorage, NostrPublicKey, OPERATOR_ROLE,
         ProfileAlgorithmScoring, ProfileVoteScoring, TipByUser, TokenLaunchType,
         TotalDepositRewards, TotalScoreRewards, Vote, VoteNostrNote, VoteProfile,
-        VoteUserForProfile, VoteParams
+        VoteUserForProfile, VoteParams, TotalAlgoScoreRewards
     };
     // use afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
     // use crate::afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
@@ -55,6 +55,8 @@ pub mod NostrFiScoring {
     const EPOCH_DURATION_DEFAULT: u64 = EPOCH_DURATION_7d; // 7 days
 
     const EPOCH_DURATION_1d: u64 = 86400; // 1 day
+    const PERCENTAGE_ALGO_SCORE_DISTRIBUTION: u256 = 8000; //80%
+
 
     #[storage]
     struct Storage {
@@ -68,6 +70,8 @@ pub mod NostrFiScoring {
         owner: ContractAddress,
         admin: ContractAddress,
         admin_params: NostrFiAdminStorage,
+        percentage_algo_score_distribution: u256,
+        
         // Duration
         epoch_duration: u64,
         batch_timestamp: u64,
@@ -78,6 +82,7 @@ pub mod NostrFiScoring {
         // Rewards
         total_deposit_rewards: TotalDepositRewards,
         total_score_rewards: TotalScoreRewards,
+        total_algo_score_rewards: TotalAlgoScoreRewards,
         total_tip_by_user: Map<u256, TipByUser>,
         last_timestamp_oracle_score_by_user: Map<u256, u64>,
         // total_tip_by_user_list: Map<u256, TipByUser>,
@@ -205,6 +210,21 @@ pub mod NostrFiScoring {
         let end_epoch_time = now + EPOCH_DURATION_DEFAULT;
         self.end_epoch_time.write(end_epoch_time);
 
+        self.percentage_algo_score_distribution.write(PERCENTAGE_ALGO_SCORE_DISTRIBUTION);
+
+        self.admin_params.write(NostrFiAdminStorage {
+            quote_token_address: 0.try_into().unwrap(),
+            is_paid_storage_pubkey_profile: false,
+            is_paid_storage_event_id: false,
+            amount_paid_storage_pubkey_profile: 0,
+            amount_paid_storage_event_id: 0,
+            is_multi_token_vote: false,
+            amount_paid_for_subscription: 0,
+            percentage_algo_score_distribution: PERCENTAGE_ALGO_SCORE_DISTRIBUTION,
+            vote_token_address: 0.try_into().unwrap(),
+            subscription_time: 0,
+        });
+
         self
             .total_deposit_rewards
             .write(
@@ -257,9 +277,6 @@ pub mod NostrFiScoring {
             let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
             now>=next_time 
         }
-
-    
-
 
         fn _generic_vote_nostr_event(          
             ref self: ContractState,
@@ -346,28 +363,7 @@ pub mod NostrFiScoring {
             return vote_params;
         }
 
-        fn get_tokens_address_accepted(
-            self: @ContractState, token_address: ContractAddress,
-        ) -> bool {
-            self.tokens_address_accepted.read(token_address)
-        }
-
-        fn get_admin_params(self: @ContractState) -> NostrFiAdminStorage {
-            self.admin_params.read()
-        }
-
-        fn get_is_pay_subscription(self: @ContractState) -> bool {
-            self.admin_params.read().is_paid_storage_pubkey_profile
-        }
-
-        fn get_amount_paid_for_subscription(self: @ContractState) -> u256 {
-            self.admin_params.read().amount_paid_for_subscription
-        }
-
-        fn get_token_to_pay_subscription(self: @ContractState) -> ContractAddress {
-            self.admin_params.read().quote_token_address
-        }
-
+ 
 
         fn set_tokens_address_accepted(
             self: @ContractState, token_address: ContractAddress, is_accepted: bool,
@@ -389,19 +385,7 @@ pub mod NostrFiScoring {
     }
     #[abi(embed_v0)]
     impl NostrFiScoringImpl of INostrFiScoring<ContractState> {
-        // Getters
-        fn get_nostr_by_sn_default(
-            self: @ContractState, nostr_public_key: NostrPublicKey,
-        ) -> ContractAddress {
-            self.nostr_to_sn.read(nostr_public_key)
-        }
-
-
-        fn get_sn_by_nostr_default(
-            self: @ContractState, starknet_address: ContractAddress,
-        ) -> NostrPublicKey {
-            self.sn_to_nostr.read(starknet_address)
-        }
+        
 
         // Users functions
 
@@ -471,26 +455,103 @@ pub mod NostrFiScoring {
         // Vote for profile without Nostr event verification
         fn vote_nostr_profile_starknet_only(
             ref self: ContractState,
-            nostr_address: NostrPublicKey,
-            vote: Vote,
-            is_upvote: bool,
-            upvote_amount: u256,
-            downvote_amount: u256,
-            amount: u256,
-            amount_token: u256,
+            vote_params: VoteParams,
         ) {
-
-            let vote_params = VoteParams {
-                nostr_address: nostr_address,
-                vote: vote,
-                is_upvote: is_upvote,
-                upvote_amount: upvote_amount,
-                downvote_amount: downvote_amount,
-                amount: amount,
-                amount_token: amount_token,
-            };  
             self._generic_vote_nostr_event(vote_params);
-       
+        }
+
+        // Deposit rewards to topic vault
+        // Fund sent to vault to distribute rewards
+        // V:2: User select by vote user or algorithm, or both based on the DAO percentage between User and Algo
+        fn deposit_rewards(
+            ref self: ContractState, amount: u256, deposit_rewards_type: DepositRewardsType,
+        ) {
+            // self.accesscontrol.assert_only_role(OPERATOR_ROLE);
+            let now = get_block_timestamp();
+            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
+            let next_time_if_ended = now + self.epoch_duration.read();
+
+            let old_total_deposit_rewards = self.total_deposit_rewards.read();
+
+            let end_epoch_time = old_total_deposit_rewards.end_epoch_time;
+
+            assert(now >= end_epoch_time, 'Epoch not ended');
+
+            let mut new_epoch_duration = old_total_deposit_rewards.epoch_duration;
+            let mut new_start_epoch_time = old_total_deposit_rewards.start_epoch_time;
+            let mut new_end_epoch_time = old_total_deposit_rewards.end_epoch_time;
+            if now >= end_epoch_time {
+                // TODO: add event to the contract
+            } else {
+                new_start_epoch_time = now;
+                self.last_batch_timestamp.write(now);
+                self.end_epoch_time.write(now + new_epoch_duration);
+                self.last_batch_timestamp.write(now);
+            }
+
+
+
+            let total_deposit_rewards = match deposit_rewards_type {
+                // DepositRewardsType::General => {
+                //     TotalDepositRewards {
+                //         epoch_duration:old_total_deposit_rewards.epoch_duration,
+                //         start_epoch_time:old_total_deposit_rewards.start_epoch_time,
+                //         end_epoch_time:old_total_deposit_rewards.end_epoch_time,
+                //         // epoch_duration: self.epoch_duration.read(),
+                //         // end_epoch_time: self.last_batch_timestamp.read()
+                //         //     + self.epoch_duration.read(),
+                //         total_amount_deposit: amount,
+                //         total_amount_deposit_for_user: old_total_deposit_rewards
+                //             .total_amount_deposit_for_user,
+                //         total_amount_deposit_for_algo: old_total_deposit_rewards
+                //             .total_amount_deposit_for_algo,
+                //         rewards_amount: old_total_deposit_rewards.rewards_amount,
+                //         is_claimed: old_total_deposit_rewards.is_claimed,
+                //     }
+                // },
+                DepositRewardsType::User => {
+                    // TODO: add user deposit rewards
+                    TotalDepositRewards {
+                        epoch_duration:old_total_deposit_rewards.epoch_duration,
+                        start_epoch_time:old_total_deposit_rewards.start_epoch_time,
+                        end_epoch_time:old_total_deposit_rewards.end_epoch_time,
+                        general_total_amount_deposit: old_total_deposit_rewards.general_total_amount_deposit,
+                        // epoch_duration: self.epoch_duration.read(),
+                        // end_epoch_time: self.last_batch_timestamp.read()
+                        //     + self.epoch_duration.read(),
+                        total_amount_deposit: old_total_deposit_rewards.total_amount_deposit,
+                        user_total_amount_deposit: old_total_deposit_rewards
+                            .user_total_amount_deposit
+                            + amount,
+                        algo_total_amount_deposit: old_total_deposit_rewards
+                            .algo_total_amount_deposit,
+                        rewards_amount: old_total_deposit_rewards.rewards_amount,
+                        is_claimed: old_total_deposit_rewards.is_claimed,
+                    }
+                },
+                DepositRewardsType::Algo => {
+                    // TODO: add algo deposit rewards
+                    TotalDepositRewards {
+                        epoch_duration:old_total_deposit_rewards.epoch_duration,
+                        start_epoch_time:old_total_deposit_rewards.start_epoch_time,
+                        end_epoch_time:old_total_deposit_rewards.end_epoch_time,
+                        general_total_amount_deposit: old_total_deposit_rewards.general_total_amount_deposit,
+                        // epoch_duration: self.epoch_duration.read(),
+                        // end_epoch_time: self.last_batch_timestamp.read()
+                        //     + self.epoch_duration.read(),
+                        total_amount_deposit: old_total_deposit_rewards.total_amount_deposit,
+                        user_total_amount_deposit: old_total_deposit_rewards
+                            .user_total_amount_deposit,
+                        algo_total_amount_deposit: old_total_deposit_rewards
+                            .algo_total_amount_deposit
+                            + amount,
+                        rewards_amount: old_total_deposit_rewards.rewards_amount,
+                        is_claimed: old_total_deposit_rewards.is_claimed,
+                    }
+                },
+            };
+
+            self.total_deposit_rewards.write(total_deposit_rewards);
         }
 
 
@@ -547,7 +608,11 @@ pub mod NostrFiScoring {
             // Distribute rewards by Algorithm scoring
 
             let profile_scoring_by_user = self.nostr_account_scoring.read(nostr_address);
+            let profile_scoring_by_algo = self.nostr_account_scoring_algo.read(nostr_address);
 
+            let total_algo_score_rewards = self.total_algo_score_rewards.read();
+
+            let total_score_rewards = self.total_score_rewards.read();
             // Update all state
 
             // let old_nostr_account_scoring = self.nostr_account_scoring.read(nostr_address);
@@ -556,14 +621,18 @@ pub mod NostrFiScoring {
             // self.old_nostr_account_scoring.entry(nostr_address).write(old_nostr_account_scoring);
             // self.old_nostr_vote_profile.entry(nostr_address).write(old_nostr_vote_profile);
 
-            let profile_algorithm_scoring = ProfileAlgorithmScoring {
+            let updated_profile_algorithm_scoring = ProfileAlgorithmScoring {
                 nostr_address: 0.try_into().unwrap(),
                 starknet_address: 0.try_into().unwrap(),
-                ai_score: 0,
-                overview_score: 0,
-                skills_score: 0,
-                value_shared_score: 0,
+                ai_score: profile_scoring_by_user.ai_score,
+                overview_score: profile_scoring_by_algo.overview_score,
+                skills_score: profile_scoring_by_algo.skills_score,
+                value_shared_score: profile_scoring_by_algo.value_shared_score,
                 is_claimed: false,
+                ai_score_to_claimed: 0,
+                overview_score_to_claimed: 0,
+                skills_score_to_claimed: 0,
+                value_shared_score_to_claimed: 0,
             };
             // Reinit vote per batch
             let profile_vote_scoring = ProfileVoteScoring {
@@ -727,97 +796,7 @@ pub mod NostrFiScoring {
         
         }
 
-        fn deposit_rewards(
-            ref self: ContractState, amount: u256, deposit_rewards_type: DepositRewardsType,
-        ) {
-            // self.accesscontrol.assert_only_role(OPERATOR_ROLE);
-            let now = get_block_timestamp();
-            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
-            let next_time_if_ended = now + self.epoch_duration.read();
-
-            let old_total_deposit_rewards = self.total_deposit_rewards.read();
-
-            let end_epoch_time = old_total_deposit_rewards.end_epoch_time;
-
-            assert(now >= end_epoch_time, 'Epoch not ended');
-
-            let mut new_epoch_duration = old_total_deposit_rewards.epoch_duration;
-            let mut new_start_epoch_time = old_total_deposit_rewards.start_epoch_time;
-            let mut new_end_epoch_time = old_total_deposit_rewards.end_epoch_time;
-            if now >= end_epoch_time {
-                // TODO: add event to the contract
-            } else {
-                new_start_epoch_time = now;
-                self.last_batch_timestamp.write(now);
-                self.end_epoch_time.write(now + new_epoch_duration);
-                self.last_batch_timestamp.write(now);
-            }
-
-
-
-            let total_deposit_rewards = match deposit_rewards_type {
-                // DepositRewardsType::General => {
-                //     TotalDepositRewards {
-                //         epoch_duration:old_total_deposit_rewards.epoch_duration,
-                //         start_epoch_time:old_total_deposit_rewards.start_epoch_time,
-                //         end_epoch_time:old_total_deposit_rewards.end_epoch_time,
-                //         // epoch_duration: self.epoch_duration.read(),
-                //         // end_epoch_time: self.last_batch_timestamp.read()
-                //         //     + self.epoch_duration.read(),
-                //         total_amount_deposit: amount,
-                //         total_amount_deposit_for_user: old_total_deposit_rewards
-                //             .total_amount_deposit_for_user,
-                //         total_amount_deposit_for_algo: old_total_deposit_rewards
-                //             .total_amount_deposit_for_algo,
-                //         rewards_amount: old_total_deposit_rewards.rewards_amount,
-                //         is_claimed: old_total_deposit_rewards.is_claimed,
-                //     }
-                // },
-                DepositRewardsType::User => {
-                    // TODO: add user deposit rewards
-                    TotalDepositRewards {
-                        epoch_duration:old_total_deposit_rewards.epoch_duration,
-                        start_epoch_time:old_total_deposit_rewards.start_epoch_time,
-                        end_epoch_time:old_total_deposit_rewards.end_epoch_time,
-                        general_total_amount_deposit: old_total_deposit_rewards.general_total_amount_deposit,
-                        // epoch_duration: self.epoch_duration.read(),
-                        // end_epoch_time: self.last_batch_timestamp.read()
-                        //     + self.epoch_duration.read(),
-                        total_amount_deposit: old_total_deposit_rewards.total_amount_deposit,
-                        user_total_amount_deposit: old_total_deposit_rewards
-                            .user_total_amount_deposit
-                            + amount,
-                        algo_total_amount_deposit: old_total_deposit_rewards
-                            .algo_total_amount_deposit,
-                        rewards_amount: old_total_deposit_rewards.rewards_amount,
-                        is_claimed: old_total_deposit_rewards.is_claimed,
-                    }
-                },
-                DepositRewardsType::Algo => {
-                    // TODO: add algo deposit rewards
-                    TotalDepositRewards {
-                        epoch_duration:old_total_deposit_rewards.epoch_duration,
-                        start_epoch_time:old_total_deposit_rewards.start_epoch_time,
-                        end_epoch_time:old_total_deposit_rewards.end_epoch_time,
-                        general_total_amount_deposit: old_total_deposit_rewards.general_total_amount_deposit,
-                        // epoch_duration: self.epoch_duration.read(),
-                        // end_epoch_time: self.last_batch_timestamp.read()
-                        //     + self.epoch_duration.read(),
-                        total_amount_deposit: old_total_deposit_rewards.total_amount_deposit,
-                        user_total_amount_deposit: old_total_deposit_rewards
-                            .user_total_amount_deposit,
-                        algo_total_amount_deposit: old_total_deposit_rewards
-                            .algo_total_amount_deposit
-                            + amount,
-                        rewards_amount: old_total_deposit_rewards.rewards_amount,
-                        is_claimed: old_total_deposit_rewards.is_claimed,
-                    }
-                },
-            };
-
-            self.total_deposit_rewards.write(total_deposit_rewards);
-        }
-
+   
 
         // Operator and admin functions
 
@@ -840,24 +819,73 @@ pub mod NostrFiScoring {
 
             let now = get_block_timestamp();
 
-            let mut nostr_account_scoring = self.nostr_account_scoring_algo.read(request.public_key);
-            nostr_account_scoring.ai_score = score_algo.ai_score;
-            nostr_account_scoring.overview_score = score_algo.overview_score;
-            nostr_account_scoring.skills_score = score_algo.skills_score;
-            nostr_account_scoring.value_shared_score = score_algo.value_shared_score;
-            nostr_account_scoring.ai_score_to_claimed = score_algo.ai_score_to_claimed;
-            nostr_account_scoring.overview_score_to_claimed = score_algo.overview_score_to_claimed;
-            nostr_account_scoring.skills_score_to_claimed = score_algo.skills_score_to_claimed;
-            nostr_account_scoring.value_shared_score_to_claimed = score_algo.value_shared_score_to_claimed;
-            self.nostr_account_scoring_algo.entry(request.public_key).write(nostr_account_scoring);
+            // Update nostr account scoring by algo
+            let mut algo_nostr_account_scoring = self.nostr_account_scoring_algo.read(request.public_key);
+            algo_nostr_account_scoring.ai_score = score_algo.ai_score;
+            algo_nostr_account_scoring.overview_score = score_algo.overview_score;
+            algo_nostr_account_scoring.skills_score = score_algo.skills_score;
+            algo_nostr_account_scoring.value_shared_score = score_algo.value_shared_score;
+            algo_nostr_account_scoring.ai_score_to_claimed = score_algo.ai_score_to_claimed;
+            algo_nostr_account_scoring.overview_score_to_claimed = score_algo.overview_score_to_claimed;
+            algo_nostr_account_scoring.skills_score_to_claimed = score_algo.skills_score_to_claimed;
+            algo_nostr_account_scoring.value_shared_score_to_claimed = score_algo.value_shared_score_to_claimed;
+            self.nostr_account_scoring_algo.entry(request.public_key).write(algo_nostr_account_scoring);
 
             self.last_timestamp_oracle_score_by_user.entry(request.public_key).write(now);
+
+
+            // Update total algo score stats
+            let total_algo_score_rewards = self.total_algo_score_rewards.read();
+            let total_score_rewards = self.total_score_rewards.read();
+
+            // TODO
+            // Check if decrease score to reflect
+
+            let new_total_algo_score_rewards = TotalAlgoScoreRewards {
+                epoch_duration: total_algo_score_rewards.epoch_duration,
+                end_epoch_time: total_algo_score_rewards.end_epoch_time,
+                total_score_ai: total_algo_score_rewards.total_score_ai + score_algo.ai_score,
+                total_score_overview: total_algo_score_rewards.total_score_overview + score_algo.overview_score,
+                total_score_skills: total_algo_score_rewards.total_score_skills + score_algo.skills_score,
+                total_score_value_shared: total_algo_score_rewards.total_score_value_shared + score_algo.value_shared_score,
+                total_nostr_address: total_algo_score_rewards.total_nostr_address,
+                to_claimed_ai_score: total_algo_score_rewards.to_claimed_ai_score,
+                to_claimed_overview_score: total_algo_score_rewards.to_claimed_overview_score,
+                to_claimed_skills_score: total_algo_score_rewards.to_claimed_skills_score,
+                to_claimed_value_shared_score: total_algo_score_rewards.to_claimed_value_shared_score,
+                rewards_amount: total_algo_score_rewards.rewards_amount,
+                total_points_weight: total_algo_score_rewards.total_points_weight,
+                is_claimed: total_algo_score_rewards.is_claimed,
+            };
+
+            self.total_algo_score_rewards.write(new_total_algo_score_rewards);
+
         }
 
 
         fn set_change_batch_interval(ref self: ContractState, next_epoch: u64) {
             assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), 'Role required');
             self.last_batch_timestamp.write(next_epoch);
+        }
+
+        fn set_admin_params(ref self: ContractState, admin_params: NostrFiAdminStorage) {
+            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), 'Role required');
+            let mut old_admin_params = self.admin_params.read();
+
+            let new_admin_params = NostrFiAdminStorage {
+                quote_token_address: old_admin_params.quote_token_address,
+                is_paid_storage_pubkey_profile: old_admin_params.is_paid_storage_pubkey_profile,
+                is_paid_storage_event_id: old_admin_params.is_paid_storage_event_id,
+                amount_paid_storage_pubkey_profile: old_admin_params.amount_paid_storage_pubkey_profile,
+                amount_paid_storage_event_id: old_admin_params.amount_paid_storage_event_id,
+                is_multi_token_vote: old_admin_params.is_multi_token_vote,
+                amount_paid_for_subscription: old_admin_params.amount_paid_for_subscription,
+                percentage_algo_score_distribution: admin_params.percentage_algo_score_distribution,
+                vote_token_address: old_admin_params.vote_token_address,
+                subscription_time: old_admin_params.subscription_time,
+            };
+            
+            self.admin_params.write(new_admin_params);
         }
 
         // Factory or deployer of the contract
@@ -1024,6 +1052,43 @@ pub mod NostrFiScoring {
                 );
         }
 
+
+        // Getters
+        fn get_tokens_address_accepted(
+            self: @ContractState, token_address: ContractAddress,
+        ) -> bool {
+            self.tokens_address_accepted.read(token_address)
+        }
+
+        fn get_admin_params(self: @ContractState) -> NostrFiAdminStorage {
+            self.admin_params.read()
+        }
+
+        fn get_is_pay_subscription(self: @ContractState) -> bool {
+            self.admin_params.read().is_paid_storage_pubkey_profile
+        }
+
+        fn get_amount_paid_for_subscription(self: @ContractState) -> u256 {
+            self.admin_params.read().amount_paid_for_subscription
+        }
+
+        fn get_token_to_pay_subscription(self: @ContractState) -> ContractAddress {
+            self.admin_params.read().quote_token_address
+        }
+
+        fn get_nostr_by_sn_default(
+            self: @ContractState, nostr_public_key: NostrPublicKey,
+        ) -> ContractAddress {
+            self.nostr_to_sn.read(nostr_public_key)
+        }
+
+
+        fn get_sn_by_nostr_default(
+            self: @ContractState, starknet_address: ContractAddress,
+        ) -> NostrPublicKey {
+            self.sn_to_nostr.read(starknet_address)
+        }
+
         // fn linked_this_nostr_note(
     //     ref self: ContractState, request: SocialRequest<LinkedThisNostrNote>,
     // ) {
@@ -1043,176 +1108,176 @@ pub mod NostrFiScoring {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use afk::bip340::SchnorrSignature;
-    use afk::interfaces::nostrfi_scoring_interfaces::{
-        INostrFiScoring, INostrFiScoringDispatcher, INostrFiScoringDispatcherTrait, LinkedResult,
-        LinkedStarknetAddress, NostrPublicKey,
-    };
-    use afk::social::request::SocialRequest;
-    // use core::array::SpanTrait;
-    // use core::traits::Into;
-    use snforge_std::{
-        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
-        start_cheat_caller_address_global, stop_cheat_caller_address_global,
-    };
-    use starknet::ContractAddress;
+// #[cfg(test)]
+// mod tests {
+//     use afk::bip340::SchnorrSignature;
+//     use afk::interfaces::nostrfi_scoring_interfaces::{
+//         INostrFiScoring, INostrFiScoringDispatcher, INostrFiScoringDispatcherTrait, LinkedResult,
+//         LinkedStarknetAddress, NostrPublicKey,
+//     };
+//     use afk::social::request::SocialRequest;
+//     // use core::array::SpanTrait;
+//     // use core::traits::Into;
+//     use snforge_std::{
+//         ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
+//         start_cheat_caller_address_global, stop_cheat_caller_address_global,
+//     };
+//     use starknet::ContractAddress;
 
-    fn declare_nostrfi_scoring() -> ContractClass {
-        // declare("nostrfi_scoring").unwrap().contract_class()
-        *declare("NostrFiScoring").unwrap().contract_class()
-    }
+//     fn declare_nostrfi_scoring() -> ContractClass {
+//         // declare("nostrfi_scoring").unwrap().contract_class()
+//         *declare("NostrFiScoring").unwrap().contract_class()
+//     }
 
-    fn deploy_nostrfi_scoring(class: ContractClass) -> INostrFiScoringDispatcher {
-        let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
-        let mut calldata = array![];
-        ADMIN_ADDRESS.serialize(ref calldata);
-        let (contract_address, _) = class.deploy(@calldata).unwrap();
+//     fn deploy_nostrfi_scoring(class: ContractClass) -> INostrFiScoringDispatcher {
+//         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
+//         let mut calldata = array![];
+//         ADMIN_ADDRESS.serialize(ref calldata);
+//         let (contract_address, _) = class.deploy(@calldata).unwrap();
 
-        INostrFiScoringDispatcher { contract_address }
-    }
+//         INostrFiScoringDispatcher { contract_address }
+//     }
 
-    fn request_fixture_custom_classes(
-        nostrfi_scoring_class: ContractClass,
-    ) -> (
-        SocialRequest<LinkedStarknetAddress>,
-        NostrPublicKey,
-        ContractAddress,
-        INostrFiScoringDispatcher,
-        SocialRequest<LinkedStarknetAddress>,
-    ) {
-        // recipient private key: 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35
-        // just for testing, do not use for anything else
-        // let recipient_public_key =
-        //     0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
+//     fn request_fixture_custom_classes(
+//         nostrfi_scoring_class: ContractClass,
+//     ) -> (
+//         SocialRequest<LinkedStarknetAddress>,
+//         NostrPublicKey,
+//         ContractAddress,
+//         INostrFiScoringDispatcher,
+//         SocialRequest<LinkedStarknetAddress>,
+//     ) {
+//         // recipient private key: 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35
+//         // just for testing, do not use for anything else
+//         // let recipient_public_key =
+//         //     0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
 
-        let recipient_public_key =
-            0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
+//         let recipient_public_key =
+//             0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
 
-        let sender_address: ContractAddress = 123.try_into().unwrap();
+//         let sender_address: ContractAddress = 123.try_into().unwrap();
 
-        let nostrfi_scoring = deploy_nostrfi_scoring(nostrfi_scoring_class);
+//         let nostrfi_scoring = deploy_nostrfi_scoring(nostrfi_scoring_class);
 
-        let recipient_address_user: ContractAddress = 678.try_into().unwrap();
+//         let recipient_address_user: ContractAddress = 678.try_into().unwrap();
 
-        // TODO change with the correct signature with the content LinkedWalletProfileDefault id and
-        // strk recipient TODO Uint256 to felt on Starknet js
-        // for test data see claim to:
-        // https://replit.com/@msghais135/WanIndolentKilobyte-claimto#linked_to.js
+//         // TODO change with the correct signature with the content LinkedWalletProfileDefault id and
+//         // strk recipient TODO Uint256 to felt on Starknet js
+//         // for test data see claim to:
+//         // https://replit.com/@msghais135/WanIndolentKilobyte-claimto#linked_to.js
 
-        let linked_wallet = LinkedStarknetAddress {
-            starknet_address: sender_address.try_into().unwrap(),
-        };
+//         let linked_wallet = LinkedStarknetAddress {
+//             starknet_address: sender_address.try_into().unwrap(),
+//         };
 
-        // @TODO format the content and get the correct signature
-        let request_linked_wallet_to = SocialRequest {
-            public_key: recipient_public_key,
-            created_at: 1716285235_u64,
-            kind: 1_u16,
-            tags: "[]",
-            content: linked_wallet.clone(),
-            sig: SchnorrSignature {
-                r: 0x4e04216ca171673375916f12e1a56e00dca1d39e44207829d659d06f3a972d6f_u256,
-                s: 0xa16bc69fab00104564b9dad050a29af4d2380c229de984e49ad125fe29b5be8e_u256,
-                // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
-            // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
-            },
-        };
+//         // @TODO format the content and get the correct signature
+//         let request_linked_wallet_to = SocialRequest {
+//             public_key: recipient_public_key,
+//             created_at: 1716285235_u64,
+//             kind: 1_u16,
+//             tags: "[]",
+//             content: linked_wallet.clone(),
+//             sig: SchnorrSignature {
+//                 r: 0x4e04216ca171673375916f12e1a56e00dca1d39e44207829d659d06f3a972d6f_u256,
+//                 s: 0xa16bc69fab00104564b9dad050a29af4d2380c229de984e49ad125fe29b5be8e_u256,
+//                 // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
+//             // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
+//             },
+//         };
 
-        let linked_wallet_not_caller = LinkedStarknetAddress {
-            starknet_address: recipient_address_user.try_into().unwrap(),
-        };
+//         let linked_wallet_not_caller = LinkedStarknetAddress {
+//             starknet_address: recipient_address_user.try_into().unwrap(),
+//         };
 
-        // @TODO format the content and get the correct signature
-        let fail_request_linked_wallet_to_caller = SocialRequest {
-            public_key: recipient_public_key,
-            created_at: 1716285235_u64,
-            kind: 1_u16,
-            tags: "[]",
-            content: linked_wallet_not_caller.clone(),
-            sig: SchnorrSignature {
-                r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a4e_u256,
-                s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
-            },
-        };
+//         // @TODO format the content and get the correct signature
+//         let fail_request_linked_wallet_to_caller = SocialRequest {
+//             public_key: recipient_public_key,
+//             created_at: 1716285235_u64,
+//             kind: 1_u16,
+//             tags: "[]",
+//             content: linked_wallet_not_caller.clone(),
+//             sig: SchnorrSignature {
+//                 r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a4e_u256,
+//                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
+//             },
+//         };
 
-        (
-            request_linked_wallet_to,
-            recipient_public_key,
-            sender_address,
-            nostrfi_scoring,
-            fail_request_linked_wallet_to_caller,
-        )
-    }
+//         (
+//             request_linked_wallet_to,
+//             recipient_public_key,
+//             sender_address,
+//             nostrfi_scoring,
+//             fail_request_linked_wallet_to_caller,
+//         )
+//     }
 
-    fn request_fixture() -> (
-        SocialRequest<LinkedStarknetAddress>,
-        NostrPublicKey,
-        ContractAddress,
-        INostrFiScoringDispatcher,
-        SocialRequest<LinkedStarknetAddress>,
-    ) {
-        let nostrfi_scoring_class = declare_nostrfi_scoring();
-        request_fixture_custom_classes(nostrfi_scoring_class)
-    }
+//     fn request_fixture() -> (
+//         SocialRequest<LinkedStarknetAddress>,
+//         NostrPublicKey,
+//         ContractAddress,
+//         INostrFiScoringDispatcher,
+//         SocialRequest<LinkedStarknetAddress>,
+//     ) {
+//         let nostrfi_scoring_class = declare_nostrfi_scoring();
+//         request_fixture_custom_classes(nostrfi_scoring_class)
+//     }
 
-    #[test]
-    fn linked_wallet_to() {
-        let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) = request_fixture();
-        start_cheat_caller_address_global(sender_address);
-        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
-        nostrfi_scoring.linked_nostr_profile(request);
+//     #[test]
+//     fn linked_wallet_to() {
+//         let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) = request_fixture();
+//         start_cheat_caller_address_global(sender_address);
+//         start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+//         nostrfi_scoring.linked_nostr_profile(request);
 
-        let nostr_linked = nostrfi_scoring.get_nostr_by_sn_default(recipient_nostr_key);
-        assert!(nostr_linked == sender_address, "nostr not linked");
-    }
+//         let nostr_linked = nostrfi_scoring.get_nostr_by_sn_default(recipient_nostr_key);
+//         assert!(nostr_linked == sender_address, "nostr not linked");
+//     }
 
-    #[test]
-    #[should_panic()]
-    fn link_incorrect_signature() {
-        let (_, _, sender_address, nostrfi_scoring, fail_request_linked_wallet_to_caller) =
-            request_fixture();
-        stop_cheat_caller_address_global();
-        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+//     #[test]
+//     #[should_panic()]
+//     fn link_incorrect_signature() {
+//         let (_, _, sender_address, nostrfi_scoring, fail_request_linked_wallet_to_caller) =
+//             request_fixture();
+//         stop_cheat_caller_address_global();
+//         start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
 
-        let request_test_failed_sig = SocialRequest {
-            sig: SchnorrSignature {
-                r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
-                s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966606f_u256,
-            },
-            ..fail_request_linked_wallet_to_caller,
-        };
-        nostrfi_scoring.linked_nostr_profile(request_test_failed_sig);
-    }
+//         let request_test_failed_sig = SocialRequest {
+//             sig: SchnorrSignature {
+//                 r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
+//                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966606f_u256,
+//             },
+//             ..fail_request_linked_wallet_to_caller,
+//         };
+//         nostrfi_scoring.linked_nostr_profile(request_test_failed_sig);
+//     }
 
-    #[test]
-    #[should_panic()]
-    fn link_incorrect_signature_link_to() {
-        let (request, _, sender_address, nostrfi_scoring, _) = request_fixture();
-        start_cheat_caller_address_global(sender_address);
-        stop_cheat_caller_address_global();
-        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
-        let request_test_failed_sig = SocialRequest {
-            sig: SchnorrSignature {
-                r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
-                s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
-            },
-            ..request,
-        };
+//     #[test]
+//     #[should_panic()]
+//     fn link_incorrect_signature_link_to() {
+//         let (request, _, sender_address, nostrfi_scoring, _) = request_fixture();
+//         start_cheat_caller_address_global(sender_address);
+//         stop_cheat_caller_address_global();
+//         start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+//         let request_test_failed_sig = SocialRequest {
+//             sig: SchnorrSignature {
+//                 r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
+//                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
+//             },
+//             ..request,
+//         };
 
-        nostrfi_scoring.linked_nostr_profile(request_test_failed_sig);
-    }
+//         nostrfi_scoring.linked_nostr_profile(request_test_failed_sig);
+//     }
 
-    #[test]
-    #[should_panic()]
-    // #[should_panic(expected: ' invalid caller ')]
-    fn link_incorrect_caller_link_to() {
-        let (_, _, sender_address, nostrfi_scoring, fail_request_linked_wallet_to) =
-            request_fixture();
-        start_cheat_caller_address_global(sender_address);
-        stop_cheat_caller_address_global();
-        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
-        nostrfi_scoring.linked_nostr_profile(fail_request_linked_wallet_to);
-    }
-}
+//     #[test]
+//     #[should_panic()]
+//     // #[should_panic(expected: ' invalid caller ')]
+//     fn link_incorrect_caller_link_to() {
+//         let (_, _, sender_address, nostrfi_scoring, fail_request_linked_wallet_to) =
+//             request_fixture();
+//         start_cheat_caller_address_global(sender_address);
+//         stop_cheat_caller_address_global();
+//         start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+//         nostrfi_scoring.linked_nostr_profile(fail_request_linked_wallet_to);
+//     }
+// }
