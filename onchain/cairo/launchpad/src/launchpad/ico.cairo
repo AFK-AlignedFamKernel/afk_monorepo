@@ -4,18 +4,16 @@ pub mod ICO {
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
-    use starknet::storage::{Map, StoragePathEntry};
+    use starknet::storage::{Map, MutableVecTrait, StoragePathEntry, Vec};
     use starknet::syscalls::deploy_syscall;
     use starknet::{
         ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
     };
     use crate::interfaces::ico::{
-        IICO, IICOConfig, PresaleDetails, PresaleLaunched, PresaleStatus, Token, TokenConfig,
-        TokenCreated, TokenDetails, TokenInitParams, default_presale_details,
+        IICO, IICOConfig, PresaleDetails, PresaleLaunched, PresaleStatus, Token, TokenBought,
+        TokenConfig, TokenCreated, TokenDetails, TokenInitParams, default_presale_details,
     };
     use crate::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-
-    const PRECISION: u256 = 1_000;
 
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -23,6 +21,7 @@ pub mod ICO {
     #[storage]
     pub struct Storage {
         tokens: Map<ContractAddress, Token>,
+        token_list: Vec<ContractAddress>,
         token_init: TokenInitParams,
         presale_count: u256,
         token_class_hash: ClassHash,
@@ -36,6 +35,7 @@ pub mod ICO {
     #[derive(Drop, starknet::Event)]
     pub enum Event {
         TokenCreated: TokenCreated,
+        TokenBought: TokenBought,
         PresaleLauched: PresaleLaunched,
         #[flat]
         UpgradeableEvent: UpgradeableComponent::Event,
@@ -157,6 +157,8 @@ pub mod ICO {
             token.status.write(PresaleStatus::Launched);
             self.presale_count.write(self.presale_count.read() + 1);
 
+            self.token_list.push(token_address);
+
             let event = PresaleLaunched {
                 buy_token: details.buy_token,
                 presale_rate: details.presale_rate,
@@ -175,18 +177,16 @@ pub mod ICO {
         fn launch_liquidity_providing(ref self: ContractState, token_address: ContractAddress) {
             let token = self.tokens.entry(token_address);
             assert(token.status.read() != Default::default(), 'INVALID LAUNCH');
-            let presale_details = token.presale_details.read();
+            let details = token.presale_details.read();
             let owner = token.owner_access.read();
             let mut status = token.status.read();
 
-            if status == PresaleStatus::Launched
-                && presale_details.end_time > get_block_timestamp() {
-                status = PresaleStatus::Liquidity;
-                token.status.write(status);
-            }
+            // finalize, if applicable
+            self._update_status(details, ref status);
+            token.status.write(status);
 
             assert(token.successful.read(), 'PRESALE FAILED');
-            assert(owner.is_some() && status == PresaleStatus::Liquidity, 'LAUNCHING FAILED');
+            assert(owner.is_some() && status == PresaleStatus::Finalized, 'LAUNCHING FAILED');
 
             // TODO: Keep track of tokens whose liquidity providing has been launched.
             // Incomplete yet
@@ -198,13 +198,16 @@ pub mod ICO {
         }
 
         fn buy_token(ref self: ContractState, token_address: ContractAddress, amount: u256) {
-            /// This takes in amount to be bought
             let caller = get_caller_address();
             let token = self.tokens.entry(token_address);
-            let funds_raised = token.funds_raised.read();
-            assert(token.status.read() == PresaleStatus::Launched, 'TOKEN ERROR');
-
+            let mut status = token.status.read();
             let details = token.presale_details.read();
+
+            self._update_status(details, ref status);
+            token.status.write(status);
+            assert(status != PresaleStatus::Finalized, 'PRESALE HAS BEEN FINALIZED');
+            assert(status == PresaleStatus::Launched, 'PRESALE STATUS ERROR');
+
             if details.whitelist {
                 assert(token.whitelist.entry(caller).read(), 'CALLER NOT WHITELISTED');
             }
@@ -212,6 +215,7 @@ pub mod ICO {
             let dispatcher = IERC20Dispatcher { contract_address: details.buy_token };
             assert(dispatcher.balance_of(caller) > amount, 'INSUFFICIENT FUNDS');
 
+            let funds_raised = token.funds_raised.read();
             // Stops buyer from buying all available tokens, at any instance.
             let (threshold, _) = get_trade_threshold(details, token.current_supply.read());
             let current_funds = funds_raised + amount;
@@ -227,27 +231,64 @@ pub mod ICO {
             token.buyers.entry(caller).write(bought + amount);
             token.holders.entry(caller).write(token.holders.entry(caller).read() + token_amount);
 
-            // check hard_cap value, and resolve presale
+            // check cap value, and resolve presale
             if current_funds >= details.soft_cap {
                 token.successful.write(true);
                 if current_funds >= details.hard_cap {
-                    token.status.write(PresaleStatus::Liquidity);
+                    token.status.write(PresaleStatus::Finalized);
                 }
             }
-            // emit TokenBought
+
+            let event = TokenBought {
+                token_address,
+                amount: token_amount,
+                buyer: caller,
+                bought_at: get_block_timestamp(),
+            };
+            self.emit(event);
         }
-        fn cancel_buy(
-            ref self: ContractState, token_address: ContractAddress,
-        ) { // refund all to caller, reverse buy process
+
+        fn cancel_buy(ref self: ContractState, token_address: ContractAddress) {
+            // There's no timer set on this. The caller can cancel a buy as far as the token's
+            // presale is not finalized.
+            let caller = get_caller_address();
+            let token = self.tokens.entry(token_address);
+            assert(token.status.read() == PresaleStatus::Launched, 'ACTION NOT ALLOWED');
+            let token = self.tokens.entry(token_address);
+            let token_amount = token.holders.entry(caller).read();
+            assert(token_amount > 0, 'INSUFFICIENT AMOUNT'); // change error message
+
+            let amount = token.buyers.entry(caller).read();
+            let dispatcher = IERC20Dispatcher {
+                contract_address: token.presale_details.read().buy_token,
+            };
+            dispatcher.transfer(caller, amount);
+            token.buyers.entry(caller).write(0);
+
+            let funds_raised = token.funds_raised.read();
+            token.funds_raised.write(funds_raised - amount);
+            token.holders.entry(caller).write(0);
+            token.current_supply.write(token.current_supply.read() - token_amount);
         }
-        fn claim(ref self: ContractState, token_address: ContractAddress) {}
+
+        fn claim(ref self: ContractState, token_address: ContractAddress) {
+            self._claim(token_address, get_caller_address());
+        }
+
         fn claim_all(
             ref self: ContractState,
         ) { // investors cannot claim token until liquidity has been added
         }
         fn whitelist(
-            ref self: ContractState, token_address: ContractAddress, buyer: ContractAddress,
-        ) {}
+            ref self: ContractState, token_address: ContractAddress, target: Array<ContractAddress>,
+        ) {
+            assert(target.len() > 0, 'TARGET IS EMPTY');
+            let token = self.tokens.entry(token_address);
+            assert!(token.presale_details.read().whitelist, "PRESALE DOES NOT ACCEPT WHITELIST");
+            for address in target {
+                token.whitelist.entry(address).write(true);
+            }
+        }
     }
 
     #[abi(embed_v0)]
@@ -279,6 +320,14 @@ pub mod ICO {
             verify_balance(dispatcher, caller);
             // TODO: Other checks to meet ICO standard, if any
             self.tokens.entry(token_address).owner_access.write(Option::Some(caller));
+        }
+
+        fn _update_status(
+            ref self: ContractState, details: PresaleDetails, ref status: PresaleStatus,
+        ) {
+            if status == PresaleStatus::Launched && details.end_time > get_block_timestamp() {
+                status = PresaleStatus::Finalized;
+            }
         }
 
         fn _claim(ref self: ContractState, token_address: ContractAddress, to: ContractAddress) {}

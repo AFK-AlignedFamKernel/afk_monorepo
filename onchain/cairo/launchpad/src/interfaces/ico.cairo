@@ -28,7 +28,9 @@ pub trait IICO<TContractState> {
     fn cancel_buy(ref self: TContractState, token_address: ContractAddress);
     fn claim(ref self: TContractState, token_address: ContractAddress);
     fn claim_all(ref self: TContractState);
-    fn whitelist(ref self: TContractState, token_address: ContractAddress, buyer: ContractAddress);
+    fn whitelist(
+        ref self: TContractState, token_address: ContractAddress, target: Array<ContractAddress>,
+    );
 }
 
 #[starknet::interface]
@@ -82,7 +84,7 @@ pub enum PresaleStatus {
     #[default]
     None,
     Launched,
-    Liquidity,
+    Finalized,
     Active,
     Finished: u256,
 }
@@ -143,3 +145,10 @@ pub struct PresaleLaunched {
     pub liquidity_lockup: u64,
 }
 
+#[derive(Drop, starknet::Event)]
+pub struct TokenBought {
+    pub token_address: ContractAddress,
+    pub amount: u256,
+    pub buyer: ContractAddress,
+    pub bought_at: u64,
+}
