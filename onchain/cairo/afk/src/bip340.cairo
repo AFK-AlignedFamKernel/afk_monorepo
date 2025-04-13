@@ -1,6 +1,5 @@
-use afk::utils::{compute_sha256_byte_array, shl, shr};
+use afk::utils::{compute_sha256_byte_array,     };
 use core::byte_array::ByteArrayTrait;
-use core::ec::stark_curve::{GEN_X, GEN_Y, ORDER};
 use core::ec::{EcPoint, ec_point_unwrap};
 use core::option::OptionTrait;
 // TODO: uncomment once Cairo 2.7 is available

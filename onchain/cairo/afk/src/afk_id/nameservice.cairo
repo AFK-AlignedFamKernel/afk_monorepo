@@ -233,7 +233,7 @@ pub mod Nameservice {
     }
 
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl UpgradeableImpl of IUpgradeable<ContractState> {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
             // This function can only be called by the owner
@@ -302,7 +302,7 @@ pub mod Nameservice {
             let price = self.subscription_price.read();
             let quote_token = self.token_quote.read();
 
-            let username_storage = self.username_storage.entry(key);
+            // let username_storage = self.username_storage.entry(key);
 
             //   TODO uncomment. User can claimed few users name.
             // Check for user having username
@@ -412,7 +412,7 @@ pub mod Nameservice {
             assert(auction.owner == caller, UserNameClaimErrors::USER_NOT_AUCTION_OWNER);
 
             let order = self.orders.entry((username, id)).read();
-            assert(order.is_active == true, UserNameClaimErrors::ORDER_INACTIVE);
+            assert(order.is_active, UserNameClaimErrors::ORDER_INACTIVE);
 
             let bidder = order.bidder;
 
@@ -421,7 +421,7 @@ pub mod Nameservice {
             updated_order.is_active = false;
             self.orders.entry((username, id)).write(order);
 
-            let mut updated_auction = auction;
+            // let mut updated_auction = auction;
 
             // Send token from contract to auction owner
             let token = IERC20Dispatcher { contract_address: self.token_quote.read() };

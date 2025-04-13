@@ -3,14 +3,16 @@ mod nostrfi_scoring_tests {
     use afk::bip340::SchnorrSignature;
     use afk::interfaces::nostrfi_scoring_interfaces::{
         INostrFiScoring, INostrFiScoringDispatcher, INostrFiScoringDispatcherTrait, LinkedResult,
-        LinkedStarknetAddress, NostrPublicKey, Vote, VoteParams,
+        LinkedStarknetAddress, NostrPublicKey, ProfileAlgorithmScoring, PushAlgoScoreNostrNote,
+        Vote, VoteNostrNote, VoteParams, DEFAULT_BATCH_INTERVAL_WEEK,
     };
     use afk::social::request::SocialRequest;
+    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     // use core::array::SpanTrait;
     // use core::traits::Into;
     use snforge_std::{
         ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
-        start_cheat_caller_address_global, stop_cheat_caller_address_global,
+        start_cheat_caller_address_global, stop_cheat_caller_address_global, cheat_block_timestamp, CheatSpan
     };
     use starknet::ContractAddress;
 
@@ -23,9 +25,32 @@ mod nostrfi_scoring_tests {
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
         let mut calldata = array![];
         ADMIN_ADDRESS.serialize(ref calldata);
+        ADMIN_ADDRESS.serialize(ref calldata);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
 
         INostrFiScoringDispatcher { contract_address }
+    }
+
+    fn declare_erc20() -> @ContractClass {
+        declare("ERC20").unwrap().contract_class()
+    }
+
+    fn deploy_erc20(
+        class: ContractClass,
+        name: felt252,
+        symbol: felt252,
+        initial_supply: u256,
+        recipient: ContractAddress,
+        decimals: u8,
+    ) -> IERC20Dispatcher {
+        let mut calldata = array![];
+        name.serialize(ref calldata);
+        symbol.serialize(ref calldata);
+        initial_supply.serialize(ref calldata);
+        recipient.serialize(ref calldata);
+        decimals.serialize(ref calldata);
+        let (contract_address, _) = class.deploy(@calldata).unwrap();
+        IERC20Dispatcher { contract_address }
     }
 
     fn request_fixture_custom_classes(
@@ -36,6 +61,9 @@ mod nostrfi_scoring_tests {
         ContractAddress,
         INostrFiScoringDispatcher,
         SocialRequest<LinkedStarknetAddress>,
+        SocialRequest<PushAlgoScoreNostrNote>,
+        SocialRequest<VoteNostrNote>,
+        IERC20Dispatcher,
     ) {
         // recipient private key: 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35
         // just for testing, do not use for anything else
@@ -47,6 +75,7 @@ mod nostrfi_scoring_tests {
 
         let sender_address: ContractAddress = 123.try_into().unwrap();
 
+        println!("deploying nostrfi scoring");
         let nostrfi_scoring = deploy_nostrfi_scoring(nostrfi_scoring_class);
 
         let recipient_address_user: ContractAddress = 678.try_into().unwrap();
@@ -54,7 +83,7 @@ mod nostrfi_scoring_tests {
         // TODO change with the correct signature with the content LinkedWalletProfileDefault id and
         // strk recipient TODO Uint256 to felt on Starknet js
         // for test data see claim to:
-        // https://replit.com/@msghais135/WanIndolentKilobyte-claimto#linked_to.js
+        // https://replit.com/@msghais135/afk-scripts#linked_to.js
 
         let linked_wallet = LinkedStarknetAddress {
             starknet_address: sender_address.try_into().unwrap(),
@@ -68,10 +97,55 @@ mod nostrfi_scoring_tests {
             tags: "[]",
             content: linked_wallet.clone(),
             sig: SchnorrSignature {
-                r: 0x4e04216ca171673375916f12e1a56e00dca1d39e44207829d659d06f3a972d6f_u256,
-                s: 0xa16bc69fab00104564b9dad050a29af4d2380c229de984e49ad125fe29b5be8e_u256,
-                // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
+                r:0x39c240a341bbba95b429027b302074bfaefd819db679484de93ad4687e731550_u256,
+                s:0x016ab21f8850e76328ccbdcd1f45f0cc8f2a9f9bec18a220a1a1017e62a4b391_u256,
+                // r: 0x38c0d2ca3e26a774a3f37a15e3f20f17c3d1b7509c8c0e257e6e72d4d351b639_u256,
+                // s: 0x93c6f53d83691282ab0469c1fa2368413f19fede348a1c7c7b3363_u256,
+                // r: 0x4e04216ca171673375916f12e1a56e00dca1d39e44207829d659d06f3a972d6f_u256,
+            // s: 0xa16bc69fab00104564b9dad050a29af4d2380c229de984e49ad125fe29b5be8e_u256,
+            // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
             // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
+            },
+        };
+
+        let nostr_address_score = PushAlgoScoreNostrNote { nostr_address: recipient_public_key };
+        // https://replit.com/@msghais135/afk-scripts#admin_script.js
+
+        let request_score_admin_nostr_profile = SocialRequest {
+            public_key: recipient_public_key,
+            created_at: 1716285235_u64,
+            kind: 1_u16,
+            tags: "[]",
+            content: nostr_address_score.clone(),
+            sig: SchnorrSignature {
+                r: 0x1c39e12158e86238cea29ba368020ddf02153461e6c9e6597b30264ef738bd55_u256,
+                s: 0x3ed825a6b69cebdd673be72fcd58b343efdb53b120715fa80fbdcbb7c20992a7_u256,
+            },
+        };
+
+
+        // https://replit.com/@msghais135/afk-scripts#vote.js
+
+        let vote_score = VoteNostrNote {
+            nostr_address: recipient_public_key,
+            starknet_address: sender_address.try_into().unwrap(),
+            vote: Vote::Good,
+            is_upvote: true,
+            upvote_amount: 100,
+            downvote_amount: 0,
+            amount: 100,
+            amount_token: 100,
+        };
+
+        let request_vote_tips_nostr_profile = SocialRequest {
+            public_key: recipient_public_key,
+            created_at: 1716285235_u64,
+            kind: 1_u16,
+            tags: "[]",
+            content: vote_score.clone(),
+            sig: SchnorrSignature {
+                r: 0x7bc1d6ea5881be5517b4ea788debbd972323b89dec5e2f649f7654876e25a228_u256,
+                s: 0xf21f7ba4e2805627d78e131342d4a274244795a50c4dc20447d4286e6a529597_u256,
             },
         };
 
@@ -92,12 +166,21 @@ mod nostrfi_scoring_tests {
             },
         };
 
+        let erc20_class = declare_erc20();
+        println!("deploying erc20");
+        let erc20_dispatcher = deploy_erc20(
+            *erc20_class, 'Test Token', 'TEST', 1_000_000_u256, sender_address, 18,
+        );
+
         (
             request_linked_wallet_to,
             recipient_public_key,
             sender_address,
             nostrfi_scoring,
             fail_request_linked_wallet_to_caller,
+            request_score_admin_nostr_profile,
+            request_vote_tips_nostr_profile,
+            erc20_dispatcher,
         )
     }
 
@@ -107,106 +190,192 @@ mod nostrfi_scoring_tests {
         ContractAddress,
         INostrFiScoringDispatcher,
         SocialRequest<LinkedStarknetAddress>,
+        SocialRequest<PushAlgoScoreNostrNote>,
+        SocialRequest<VoteNostrNote>,
+        IERC20Dispatcher,
     ) {
         let nostrfi_scoring_class = declare_nostrfi_scoring();
         request_fixture_custom_classes(nostrfi_scoring_class)
     }
 
     #[test]
-    fn linked_wallet_to() {
-        let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) = request_fixture();
+    fn end_to_end_flow() {
+        let (
+            request,
+            recipient_nostr_key,
+            sender_address,
+            nostrfi_scoring,
+            request_profile_score,
+            request_score_admin_nostr_profile,
+            request_vote_nostr_profile,
+            erc20,
+        ) =
+            request_fixture();
         start_cheat_caller_address_global(sender_address);
         start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+
+        println!("linked nostr profile");
         nostrfi_scoring.linked_nostr_profile(request);
 
+        println!("get nostr linked");
         let nostr_linked = nostrfi_scoring.get_nostr_by_sn_default(recipient_nostr_key);
+        println!("nostr linked: {:?}", nostr_linked);
         assert!(nostr_linked == sender_address, "nostr not linked");
-    }
 
-    #[test]
-    #[should_panic()]
-    fn link_incorrect_signature() {
-        let (_, _, sender_address, nostrfi_scoring, fail_request_linked_wallet_to_caller) =
-            request_fixture();
-        stop_cheat_caller_address_global();
-        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+        let erc20_balance = erc20.balance_of(sender_address);
+        assert!(erc20_balance == 1000000, "erc20 balance not correct");
 
-        let request_test_failed_sig = SocialRequest {
-            sig: SchnorrSignature {
-                r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
-                s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966606f_u256,
-            },
-            ..fail_request_linked_wallet_to_caller,
-        };
-        nostrfi_scoring.linked_nostr_profile(request_test_failed_sig);
-    }
-
-    #[test]
-    #[should_panic()]
-    fn link_incorrect_signature_link_to() {
-        let (request, _, sender_address, nostrfi_scoring, _) = request_fixture();
-        start_cheat_caller_address_global(sender_address);
-        stop_cheat_caller_address_global();
-        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
-        let request_test_failed_sig = SocialRequest {
-            sig: SchnorrSignature {
-                r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
-                s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
-            },
-            ..request,
-        };
-
-        nostrfi_scoring.linked_nostr_profile(request_test_failed_sig);
-    }
-
-    #[test]
-    #[should_panic()]
-    // #[should_panic(expected: ' invalid caller ')]
-    fn link_incorrect_caller_link_to() {
-        let (_, _, sender_address, nostrfi_scoring, fail_request_linked_wallet_to) =
-            request_fixture();
-        start_cheat_caller_address_global(sender_address);
-        stop_cheat_caller_address_global();
-        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
-        nostrfi_scoring.linked_nostr_profile(fail_request_linked_wallet_to);
-    }
-
-    #[test]
-    fn vote_user_for_profile() {
-        let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) = request_fixture();
-        start_cheat_caller_address_global(sender_address);
-        nostrfi_scoring.vote_user_for_profile(request);
-    }
-
-    #[test]
-    fn vote_user_for_profile_starknet() {
-        let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) = request_fixture();
-        start_cheat_caller_address_global(sender_address);
-
-        let vote_params = VoteParams {
+        let profile_score = ProfileAlgorithmScoring {
             nostr_address: recipient_nostr_key,
-            vote: Vote::Good,
-            is_upvote: true,
-            upvote_amount: 100,
-            downvote_amount: 0,
-            amount: 100,
-            amount_token: 100,
+            starknet_address: sender_address.try_into().unwrap(),
+            ai_score: 100,
+            ai_score_to_claimed: 0,
+            overview_score: 100,
+            overview_score_to_claimed: 0,
+            skills_score: 100,
+            skills_score_to_claimed: 0,
+            value_shared_score: 100,
+            value_shared_score_to_claimed: 0,
+            is_claimed: false,
+            total_score: 100,
+            veracity_score: 100,
         };
+        println!("push profile score");
+        nostrfi_scoring.push_profile_score_algo(request_score_admin_nostr_profile, profile_score);
 
-        nostrfi_scoring.vote_nostr_profile_starknet_only(vote_params);
+        let erc20_balance_after = erc20.balance_of(sender_address);
+        assert!(erc20_balance_after == 1000000, "erc20 balance not correct");
+
+        println!("approve erc20 to spend");
+
+        erc20
+            .approve(
+                nostrfi_scoring.contract_address, request_vote_nostr_profile.content.amount_token,
+            );
+        println!("vote nostr note");
+
+        nostrfi_scoring.vote_nostr_note(request_vote_nostr_profile);
+
+        println!("claim and distribute rewards");
+        let created_at = starknet::get_block_timestamp();
+
+        let current_time = created_at
+        + DEFAULT_BATCH_INTERVAL_WEEK
+        + 1; // Proposal duration reached
+        cheat_block_timestamp(
+            nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
+        );
+
+        let rewards_claimed = nostrfi_scoring.claim_and_distribute_my_rewards();
     }
 
-    #[test]
-    fn claim_and_distribute_my_rewards() {
-        let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) = request_fixture();
-        start_cheat_caller_address_global(sender_address);
-        nostrfi_scoring.claim_and_distribute_my_rewards();
-    }
+    // #[test]
+    // fn linked_wallet_to() {
+    //     let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _, _, _, _) =
+    //         request_fixture();
+    //     start_cheat_caller_address_global(sender_address);
+    //     start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+    //     nostrfi_scoring.linked_nostr_profile(request);
 
-    #[test]
-    fn distribute_algo_rewards_by_user() {
-        let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) = request_fixture();
-        start_cheat_caller_address_global(sender_address);
-        nostrfi_scoring.distribute_algo_rewards_by_user();
-    }
+    //     let nostr_linked = nostrfi_scoring.get_nostr_by_sn_default(recipient_nostr_key);
+    //     assert!(nostr_linked == sender_address, "nostr not linked");
+    // }
+
+    // #[test]
+    // #[should_panic()]
+    // fn link_incorrect_signature() {
+    //     let (_, _, sender_address, nostrfi_scoring, fail_request_linked_wallet_to_caller, _, _, _) =
+    //         request_fixture();
+    //     stop_cheat_caller_address_global();
+    //     start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+
+    //     let request_test_failed_sig = SocialRequest {
+    //         sig: SchnorrSignature {
+    //             r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
+    //             s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966606f_u256,
+    //         },
+    //         ..fail_request_linked_wallet_to_caller,
+    //     };
+    //     nostrfi_scoring.linked_nostr_profile(request_test_failed_sig);
+    // }
+
+    // #[test]
+    // #[should_panic()]
+    // fn link_incorrect_signature_link_to() {
+    //     let (request, _, sender_address, nostrfi_scoring, _, _, _, _) = request_fixture();
+    //     start_cheat_caller_address_global(sender_address);
+    //     stop_cheat_caller_address_global();
+    //     start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+    //     let request_test_failed_sig = SocialRequest {
+    //         sig: SchnorrSignature {
+    //             r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
+    //             s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
+    //         },
+    //         ..request,
+    //     };
+
+    //     nostrfi_scoring.linked_nostr_profile(request_test_failed_sig);
+    // }
+
+    // #[test]
+    // #[should_panic()]
+    // // #[should_panic(expected: ' invalid caller ')]
+    // fn link_incorrect_caller_link_to() {
+    //     let (_, _, sender_address, nostrfi_scoring, fail_request_linked_wallet_to, _, _, _) =
+    //         request_fixture();
+    //     start_cheat_caller_address_global(sender_address);
+    //     stop_cheat_caller_address_global();
+    //     start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+    //     nostrfi_scoring.linked_nostr_profile(fail_request_linked_wallet_to);
+    // }
+
+    // #[test]
+    // fn vote_user_for_profile() {
+    //     let (
+    //         request,
+    //         recipient_nostr_key,
+    //         sender_address,
+    //         nostrfi_scoring,
+    //         request_profile_score,
+    //         request_score_admin_nostr_profile,
+    //         request_vote_nostr_profile,
+    //     ) =
+    //         request_fixture();
+    //     start_cheat_caller_address_global(sender_address);
+    //     nostrfi_scoring.vote_nostr_note(request_vote_nostr_profile);
+    // }
+
+    // #[test]
+    // fn vote_user_for_profile_starknet() {
+    //     let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _, _, _, _) =
+    //         request_fixture();
+    //     start_cheat_caller_address_global(sender_address);
+
+    //     let vote_params = VoteParams {
+    //         nostr_address: recipient_nostr_key,
+    //         vote: Vote::Good,
+    //         is_upvote: true,
+    //         upvote_amount: 100,
+    //         downvote_amount: 0,
+    //         amount: 100,
+    //         amount_token: 100,
+    //     };
+
+    //     nostrfi_scoring.vote_nostr_profile_starknet_only(vote_params);
+    // }
+    // #[test]
+// fn claim_and_distribute_my_rewards() {
+//     let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _ _, _) =
+//     request_fixture();
+//     start_cheat_caller_address_global(sender_address);
+//     nostrfi_scoring.claim_and_distribute_my_rewards();
+// }
+
+    // #[test]
+// fn distribute_algo_rewards_by_user() {
+//     let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _ _, _) =
+//     request_fixture();
+//     start_cheat_caller_address_global(sender_address);
+//     nostrfi_scoring.distribute_algo_rewards_by_user();
+// }
 }

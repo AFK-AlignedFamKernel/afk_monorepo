@@ -40,8 +40,6 @@ pub mod types {
     pub mod defi_types;
     pub mod identity_types;
     pub mod jediswap_types;
-    pub mod keys_types;
-    pub mod pump_types;
     pub mod tap_types;
 }
 
@@ -58,15 +56,15 @@ pub mod account {
 pub mod tokens {
     pub mod erc20;
     pub mod erc20_mintable;
-    pub mod token;
-    pub mod dn404 {
-        pub mod dn404;
-        pub mod dn404_component;
-        pub mod dn404_mirror;
-        pub mod dn404_mirror_component;
-        pub mod dn404_mirror_preset;
-        pub mod dn404_preset;
-    }
+    // pub mod token;
+    // pub mod dn404 {
+    //     pub mod dn404;
+    //     pub mod dn404_component;
+    //     pub mod dn404_mirror;
+    //     pub mod dn404_mirror_component;
+    //     pub mod dn404_mirror_preset;
+    //     pub mod dn404_preset;
+    // }
 }
 
 pub mod infofi {

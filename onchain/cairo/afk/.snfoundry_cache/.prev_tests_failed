@@ -1,11 +1,1 @@
-afk::account::nostr_account::tests::is_valid_signature
-afk::account::nostr_account::tests::test_generate_nostr_event
-afk::account::nostr_account::tests::test_sign_message
-afk::account::nostr_account::tests::test_sign_nostr_event
-afk::social::deposit::tests::claim_incorrect_gas_amount
-afk::social::account::tests::validate_transaction
-afk::account::nostr_account::tests::test_generate_nostr_signature_based_on_inputs
-afk::social::deposit::tests::deposit_claim
-afk::social::deposit::tests::deposit_claim_gas_fee
-afk::social::deposit::tests::deposit_with_known_starknet_recipient
-afk::bip340::tests::test_20
+afk::tests::nostrfi_scoring_tests::nostrfi_scoring_tests::end_to_end_flow

@@ -1,5 +1,5 @@
 use afk::social::request::{ConvertToBytes, Encode, SocialRequest, SocialRequestImpl};
-use core::fmt::Display;
+// use core::fmt::Display;
 use starknet::ContractAddress;
 
 // Add this ROLE on a constants file
@@ -8,6 +8,7 @@ pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
 
 pub type NostrPublicKey = u256;
 pub type AddressId = felt252;
+pub const DEFAULT_BATCH_INTERVAL_WEEK: u64 = 60 * 60 * 24 * 7; // 1 week, can be adjusted.
 
 #[starknet::interface]
 pub trait INostrFiScoring<TContractState> {
@@ -55,7 +56,7 @@ pub trait INostrFiScoring<TContractState> {
     fn vote_token_profile(ref self: TContractState, request: SocialRequest<VoteNostrNote>);
     fn vote_nostr_note(ref self: TContractState, request: SocialRequest<VoteNostrNote>);
     fn vote_nostr_profile_starknet_only(ref self: TContractState, vote_params: VoteParams);
- 
+
     // Distribution of rewards
     fn distribute_rewards_by_user(ref self: TContractState, starknet_user_address: ContractAddress);
     fn claim_and_distribute_my_rewards(ref self: TContractState);
@@ -141,22 +142,21 @@ pub struct VoteNostrNote {
 // TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
 pub impl VoteNostrNoteEncodeImpl of Encode<VoteNostrNote> {
     fn encode(self: @VoteNostrNote) -> @ByteArray {
-        let recipient_address_user_felt: felt252 = self
-            .starknet_address
-            .clone()
-            .try_into()
-            .unwrap();
+        // let recipient_address_user_felt: felt252 = self
+        //     .starknet_address
+        //     .clone()
+        //     .try_into()
+        //     .unwrap();
 
         let nostr_address_felt: felt252 = self.nostr_address.clone().try_into().unwrap();
 
         @format!(
-            "vote to {:?} {:?} {:?} {:?} {:?} {:?} ",
-            recipient_address_user_felt,
+            "vote to {:?}, {:?} {:?} {:?}",
             nostr_address_felt,
             self.vote,
             self.is_upvote,
-            self.upvote_amount,
-            self.downvote_amount,
+            self.amount_token,
+            // self.amount,
         )
     }
 }
@@ -192,7 +192,6 @@ pub struct LinkedThisNostrNote {
     pub nostr_address: NostrPublicKey,
     pub nostr_event_id: NostrPublicKey,
     pub starknet_address: ContractAddress,
-    // Add NIP-05 and stats profil after. Gonna write a proposal for it
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]
@@ -206,7 +205,6 @@ pub struct DistributionRewardsByUserEvent {
     pub amount_vote: u256,
     pub amount_total: u256,
     pub veracity_score: u256,
-    // Add NIP-05 and stats profil after. Gonna write a proposal for it
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]

@@ -313,6 +313,8 @@ pub mod NostrFiScoring {
 
             let mut is_amount_to_send = false;
             if nostr_to_sn == 0.try_into().unwrap() {
+                println!("user not linked, rewards to claim after");
+
                 reward_to_claim_by_user_because_not_linked =
                     reward_to_claim_by_user_because_not_linked
                     + vote_params.amount_token;
@@ -331,6 +333,7 @@ pub mod NostrFiScoring {
                         },
                     );
             } else {
+                println!("user already linked");
                 // assert(nostr_to_sn != 0.try_into().unwrap(), 'Starknet address not linked');
                 let erc20_token_address = self.main_token_address.read();
                 assert(erc20_token_address != 0.try_into().unwrap(), 'Main token address not set');
@@ -513,11 +516,15 @@ pub mod NostrFiScoring {
             let total_amount_to_claim = total_deposit_rewards.total_amount_to_claim;
 
             let amount_for_algo = total_amount_deposit * percentage_distribution_algo / BPS;
+            println!("amount_for_algo: {}", amount_for_algo);
 
             let total_ai_score = total_algo_score_rewards.total_score_ai;
 
+            println!("total_ai_score: {}", total_ai_score);
+
             let data_algo_score = self.nostr_account_scoring_algo.read(nostr_address);
             let my_ai_score = data_algo_score.ai_score;
+            println!("my_ai_score: {}", my_ai_score);
 
             // V2 weight
             let my_vote_score = data_algo_score.overview_score;
@@ -527,6 +534,8 @@ pub mod NostrFiScoring {
             // User share by Algo score
             // V2 create weight and equations based on several parameters of the algorith scoring
             let mut user_share_algo = my_ai_score * amount_for_algo / total_ai_score;
+            println!("user_share_algo: {}", user_share_algo);
+            println!("balance_contract: {}", balance_contract);
 
             if user_share_algo > balance_contract {
                 user_share_algo = balance_contract;
@@ -555,14 +564,16 @@ pub mod NostrFiScoring {
 
             let tip_by_user = self.total_tip_by_user.read(nostr_address);
 
-            let mut total_user_share_vote = total_amount_deposit
+            let mut total_amount_to_claim_user_vote = total_amount_deposit
                 * remaining_percentage_distribution_user
                 / BPS;
+            println!("total_amount_to_claim_user_vote: {}", total_amount_to_claim_user_vote);
 
             let my_vote_score = total_score_vote * percentage_distribution_algo / BPS;
             let my_vote_score = total_score_vote * percentage_distribution_algo / BPS;
-            let mut user_share_vote = my_vote_score * total_user_share_vote / total_score_vote;
-
+            let mut user_share_vote = my_vote_score * total_amount_to_claim_user_vote / total_score_vote;
+            println!("user_share_vote: {}", user_share_vote);
+            println!("balance_contract: {}", balance_contract);
             let mut veracity_score = 0;
 
             let tip_by_user_amount = tip_by_user.total_amount_deposit;
@@ -824,17 +835,16 @@ pub mod NostrFiScoring {
         fn distribute_rewards_by_user(
             ref self: ContractState, starknet_user_address: ContractAddress,
         ) {
-            let caller = get_caller_address();
-            self._distribute_rewards_by_user(caller);
+            self._distribute_rewards_by_user(starknet_user_address);
         }
 
 
         fn claim_and_distribute_my_rewards(ref self: ContractState) {
             let caller = get_caller_address();
-
             self._distribute_rewards_by_user(caller);
         }
 
+        // ADMINS Access control
         // Operator and admin functions
 
         // Algorithm profil scoring

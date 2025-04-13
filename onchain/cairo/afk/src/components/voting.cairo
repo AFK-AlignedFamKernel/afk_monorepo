@@ -3,7 +3,7 @@ pub mod VotingComponent {
     use afk::interfaces::voting::{
         Calldata, ConfigParams, ConfigResponse, IVoteProposal, MetadataDAO, Proposal,
         ProposalCanceled, ProposalCreated, ProposalParams, ProposalResolved, ProposalResult,
-        ProposalType, ProposalVoted, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, UserVote,
+     ProposalVoted, SET_PROPOSAL_DURATION_IN_SECONDS, UserVote,
         VoteState,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
@@ -17,8 +17,7 @@ pub mod VotingComponent {
         StoragePointerWriteAccess, Vec,
     };
     use starknet::{
-        ContractAddress, contract_address_const, get_caller_address, get_contract_address,
-        get_tx_info,
+        ContractAddress, contract_address_const, get_caller_address,
     };
 
     #[storage]
@@ -174,7 +173,8 @@ pub mod VotingComponent {
 
             vote_state.user_votes.entry(caller).write((vote_type, caller_votes));
             vote_state.user_has_voted.entry(caller).write(true);
-            vote_state.voters_list.append().write(caller);
+            // vote_state.voters_list.append().write(caller);
+            // vote_state.voters_list.push(caller);
             self.total_voters.write(self.total_voters.read() + 1);
 
             // NOTE: Config for abstention currently does nothing in this function

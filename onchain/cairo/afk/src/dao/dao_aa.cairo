@@ -1,8 +1,5 @@
 // contract_address_const};
 use afk::interfaces::voting::{ConfigParams, ConfigResponse, MetadataDAO};
-use afk::social::profile::NostrProfile;
-use afk::social::request::SocialRequest;
-use afk::social::transfer::Transfer;
 use starknet::ContractAddress;
 use starknet::account::Call;
 
@@ -32,8 +29,6 @@ pub trait ISRC6<TContractState> {
 
 #[starknet::contract(account)]
 pub mod DaoAA {
-    use afk::bip340;
-    use afk::bip340::{SchnorrSignature, Signature};
     use afk::components::voting::VotingComponent;
     // use afk::interfaces::voting::{
     //     IVoteProposal, Proposal, ProposalParams, ProposalResult, ProposalType, UserVote,
@@ -42,8 +37,6 @@ pub mod DaoAA {
     //     Calldata,
     // };
     use afk::interfaces::voting::{ConfigParams, ConfigResponse};
-    use afk::social::request::{Encode, SocialRequest, SocialRequestImpl, SocialRequestTrait};
-    use afk::social::transfer::Transfer;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
         MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls // is_valid_stark_signature
@@ -53,10 +46,8 @@ pub mod DaoAA {
     use core::num::traits::Zero;
     // use core::poseidon::{PoseidonTrait, poseidon_hash_span};
     use openzeppelin::access::accesscontrol::AccessControlComponent;
-    use openzeppelin::governance::timelock::TimelockControllerComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::upgrades::upgradeable::UpgradeableComponent;
-    use openzeppelin::utils::cryptography::snip12::StructHash;
     use starknet::account::Call;
     use starknet::storage::{
         Map, MutableVecTrait, StorageMapWriteAccess, StoragePathEntry, StoragePointerReadAccess,
@@ -277,17 +268,17 @@ pub mod DaoAA {
 mod tests {
     use afk::components::voting::VotingComponent;
     use afk::interfaces::voting::{
-        ConfigParams, ConfigResponse, IVoteProposalDispatcher, IVoteProposalDispatcherTrait,
-        ProposalCreated, ProposalParams, ProposalResolved, ProposalResult, ProposalType,
+        ConfigParams, IVoteProposalDispatcher, IVoteProposalDispatcherTrait,
+        ProposalCreated, ProposalParams, ProposalResolved, ProposalResult,
         ProposalVoted, SET_PROPOSAL_DURATION_IN_SECONDS, UserVote,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::num::traits::Zero;
     use openzeppelin::utils::serde::SerializedAppend;
-    use snforge_std::cheatcodes::events::Event;
+    // use snforge_std::cheatcodes::events::Event;
     use snforge_std::{
-        CheatSpan, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, EventSpyTrait,
-        EventsFilterTrait, cheat_block_timestamp, cheat_caller_address, declare, spy_events,
+        CheatSpan, ContractClassTrait, DeclareResultTrait, EventsFilterTrait, EventSpyTrait,
+     cheat_block_timestamp, cheat_caller_address, declare, spy_events, EventSpyAssertionsTrait
     };
     use starknet::account::Call;
     use starknet::{ContractAddress, contract_address_const};
