@@ -164,13 +164,20 @@ pub impl VoteNostrNoteEncodeImpl of Encode<VoteNostrNote> {
 
         // let nostr_address_felt: felt252 = self.nostr_address.clone().try_into().unwrap();
         @format!(
-            "vote to {:?}, {:?} {:?} {:?}",
+            "vote to {:?} {:?} {:?}",
             self.nostr_address,
-            self.vote,
             self.is_upvote,
             self.amount_token,
             // self.amount,
         )
+        // @format!(
+        //     "vote to {:?}, {:?} {:?} {:?}",
+        //     self.nostr_address,
+        //     self.vote,
+        //     self.is_upvote,
+        //     self.amount_token,
+        //     // self.amount,
+        // )
         // @format!(
         //     "vote to {:?}, {:?} {:?} {:?}",
         //     nostr_address_felt,
@@ -332,6 +339,7 @@ pub struct TotalDepositRewards {
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct TotalScoreRewards {
+    pub start_epoch_time: u64,
     pub epoch_duration: u64,
     pub end_epoch_time: u64,
     pub total_score_ai: u256,
@@ -346,6 +354,7 @@ pub struct TotalScoreRewards {
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct TotalAlgoScoreRewards {
+    pub start_epoch_time: u64,
     pub epoch_duration: u64,
     pub end_epoch_time: u64,
     pub total_score_ai: u256,

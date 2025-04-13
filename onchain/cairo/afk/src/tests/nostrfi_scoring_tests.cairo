@@ -130,10 +130,18 @@ mod nostrfi_scoring_tests {
             tags: "[]",
             content: nostr_address_score.clone(),
             sig: SchnorrSignature {
-                // 0xfb135f3c1ab3edcea0e18b3eb1089df0bc587b4f0f37bff8ab5769b031de2e61
-// 0x199b34a4ff5fb7a44dade27bc449fc59cf2e1368d2eb8f61beacbd17f3627f75
-                r: 0x315cfcf10274c4c99c940d3885920a5e243fc58f0222a7c71c43296105dce674_u256,
-                s: 0x01b663ddca40625da7fa85f32e7563c24fbf818a820f0717ddd532e615bf5d31_u256,
+                r:0x127c0d1ef0e58b746b7f370cf1e97ee64c3f057f4dbb1081e682dae90c89c90c_u256,
+                s:0xf3388d2095c0fca6006d0f430b934834c93ec45be80d56c59d28b821dc57d0f8_u256,
+
+                // working
+                // r: 0x315cfcf10274c4c99c940d3885920a5e243fc58f0222a7c71c43296105dce674_u256,
+                // s: 0x01b663ddca40625da7fa85f32e7563c24fbf818a820f0717ddd532e615bf5d31_u256,
+
+
+                // not working
+                // score nostr profile cairo.uint256()
+                // r:0x2559fa484427561a7475a9620280dd20b62f029513bee2ddd713793257f38f45_u256,
+                // s:0x199b34a4ff5fb7a44dade27bc449fc59cf2e1368d2eb8f61beacbd17f3627f75_u256,
                 // r: 0x87333f6b4e8a3c67a5ad26898e40f1e07cb88b39094ffa116a2d8c019c30ec0f_u256,
                 // s: 0x983f5e296fa0f6413118f5d1d8b5d3dd3abf6c7a320a8cab071482d08aa34b01_u256,
                 // r: 0x1c39e12158e86238cea29ba368020ddf02153461e6c9e6597b30264ef738bd55_u256,
@@ -162,8 +170,19 @@ mod nostrfi_scoring_tests {
             tags: "[]",
             content: vote_score.clone(),
             sig: SchnorrSignature {
-                r: 0x7bc1d6ea5881be5517b4ea788debbd972323b89dec5e2f649f7654876e25a228_u256,
-                s: 0xf21f7ba4e2805627d78e131342d4a274244795a50c4dc20447d4286e6a529597_u256,
+                r: 0x5e6a5b9a4e17f09760dc7f3c3eb73fcc409b3fb6cbe1eb6de49ce7efe50f4301_u256,
+                s: 0x181b5121d93b083e74b7c081a7170ee3971ca5aab887aa8343632f9116370020_u256,
+            
+                // not working
+                    // r: 0xba5fd33681ac29194bb0c2bd4292293ffde57fa45d67a6f7c674b602d644dd19_u256,
+                // s: 0x706177f057ebcf8eafc28eb1639616b8fd618cf9ec4b6fad6d585eca536ca2f5_u256,
+                // r: 0x5fe83e6e2566643bcd8d90e1e0af66da97e1e1bb49774c27ff6e4cb709b4f176_u256,
+                // s: 0x91cf9a0a109dbc851fc182fda61f5cf40b14d9f523cd37531dbc8886ffdda3f6_u256,
+
+                // r: 0x69f502afad80fe36615b0c0dfa89df5dd063c6e35ac6b7bc6a7a692e92a02711_u256,
+                // s: 0x05c7bba57f76185f2feb93691ab081b2368dd3cfa4c5ec946eca1c7d5a5266d6_u256,
+                // r: 0x7bc1d6ea5881be5517b4ea788debbd972323b89dec5e2f649f7654876e25a228_u256,
+                // s: 0xf21f7ba4e2805627d78e131342d4a274244795a50c4dc20447d4286e6a529597_u256,
             },
         };
 
@@ -210,8 +229,85 @@ mod nostrfi_scoring_tests {
         request_fixture_custom_classes(nostrfi_scoring_class)
     }
 
+    // #[test]
+    // fn end_to_end_flow() {
+    //     let (
+    //         request,
+    //         recipient_nostr_key,
+    //         sender_address,
+    //         nostrfi_scoring,
+    //         request_profile_score,
+    //         request_score_admin_nostr_profile,
+    //         request_vote_tips_nostr_profile,
+    //         erc20,
+    //     ) =
+    //         request_fixture();
+    //     start_cheat_caller_address_global(sender_address);
+    //     start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+
+    //     println!("linked nostr profile");
+    //     nostrfi_scoring.linked_nostr_profile(request);
+
+    //     println!("get nostr linked");
+    //     let nostr_linked = nostrfi_scoring.get_nostr_by_sn_default(recipient_nostr_key);
+    //     println!("nostr linked: {:?}", nostr_linked);
+    //     assert!(nostr_linked == sender_address, "nostr not linked");
+
+    //     let erc20_balance = erc20.balance_of(sender_address);
+    //     assert!(erc20_balance == 1000000, "erc20 balance not correct");
+
+
+    //     // Setup NostrFi Scoring Admin
+    //     println!("set admin nostr pubkey");
+    //     nostrfi_scoring.set_admin_nostr_pubkey(recipient_nostr_key, true);
+
+    //     let profile_score = ProfileAlgorithmScoring {
+    //         nostr_address: recipient_nostr_key,
+    //         starknet_address: sender_address.try_into().unwrap(),
+    //         ai_score: 100,
+    //         ai_score_to_claimed: 0,
+    //         overview_score: 100,
+    //         overview_score_to_claimed: 0,
+    //         skills_score: 100,
+    //         skills_score_to_claimed: 0,
+    //         value_shared_score: 100,
+    //         value_shared_score_to_claimed: 0,
+    //         is_claimed: false,
+    //         total_score: 100,
+    //         veracity_score: 100,
+    //     };
+    //     println!("push profile score");
+    //     nostrfi_scoring.push_profile_score_algo(request_score_admin_nostr_profile, profile_score);
+
+    //     let erc20_balance_after = erc20.balance_of(sender_address);
+    //     assert!(erc20_balance_after == 1000000, "erc20 balance not correct");
+
+    //     println!("approve erc20 to spend");
+    //     start_cheat_caller_address(erc20.contract_address, sender_address);
+    //     erc20
+    //         .approve(
+    //             nostrfi_scoring.contract_address, request_vote_tips_nostr_profile.content.amount_token,
+    //         );
+    //     println!("vote nostr note");
+
+    //     nostrfi_scoring.vote_nostr_note(request_vote_tips_nostr_profile);
+
+    //     println!("claim and distribute rewards");
+    //     let created_at = starknet::get_block_timestamp();
+
+    //     let current_time = created_at
+    //     + DEFAULT_BATCH_INTERVAL_WEEK
+    //     + 1; // Proposal duration reached
+    //     cheat_block_timestamp(
+    //         nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
+    //     );
+
+    //     let rewards_claimed = nostrfi_scoring.claim_and_distribute_my_rewards();
+    // }
+
+
     #[test]
-    fn end_to_end_flow() {
+    fn end_to_end_flow_strk() {
         let (
             request,
             recipient_nostr_key,
@@ -219,7 +315,7 @@ mod nostrfi_scoring_tests {
             nostrfi_scoring,
             request_profile_score,
             request_score_admin_nostr_profile,
-            request_vote_nostr_profile,
+            request_vote_tips_nostr_profile,
             erc20,
         ) =
             request_fixture();
@@ -264,14 +360,34 @@ mod nostrfi_scoring_tests {
         assert!(erc20_balance_after == 1000000, "erc20 balance not correct");
 
         println!("approve erc20 to spend");
-
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+        let vote_params = VoteParams {
+            nostr_address: recipient_nostr_key,
+            vote: Vote::Good,
+            is_upvote: true,
+            upvote_amount: 100,
+            downvote_amount: 0,
+            amount: 100,
+            amount_token: 100,
+        };
         erc20
             .approve(
-                nostrfi_scoring.contract_address, request_vote_nostr_profile.content.amount_token,
+                nostrfi_scoring.contract_address, vote_params.amount_token*2,
             );
+        // erc20
+        //     .approve(
+        //         nostrfi_scoring.contract_address, vote_params.amount_token,
+        //     );
+        let erc20_allowance = erc20.allowance(sender_address, nostrfi_scoring.contract_address);
+        println!("erc20 allowance: {:?}", erc20_allowance);
+        println!("amount token: {:?}", vote_params.amount_token);
+        assert!(erc20_allowance >= vote_params.amount_token, "erc20 allowance not correct");
+
         println!("vote nostr note");
 
-        nostrfi_scoring.vote_nostr_note(request_vote_nostr_profile);
+        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+  
+        nostrfi_scoring.vote_nostr_profile_starknet_only(vote_params);
 
         println!("claim and distribute rewards");
         let created_at = starknet::get_block_timestamp();

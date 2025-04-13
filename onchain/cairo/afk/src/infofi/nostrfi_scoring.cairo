@@ -86,6 +86,7 @@ pub mod NostrFiScoring {
         start_epoch_time: u64,
         new_epoch_duration: u64,
         // Rewards
+        overall_total_deposit_rewards: u256,
         total_deposit_rewards: TotalDepositRewards,
         total_score_rewards: TotalScoreRewards,
         total_algo_score_rewards: TotalAlgoScoreRewards,
@@ -235,7 +236,7 @@ pub mod NostrFiScoring {
             .admin_params
             .write(
                 NostrFiAdminStorage {
-                    quote_token_address: 0.try_into().unwrap(),
+                    quote_token_address: main_token_address,
                     is_paid_storage_pubkey_profile: false,
                     is_paid_storage_event_id: false,
                     amount_paid_storage_pubkey_profile: 0,
@@ -243,10 +244,43 @@ pub mod NostrFiScoring {
                     is_multi_token_vote: false,
                     amount_paid_for_subscription: 0,
                     percentage_algo_score_distribution: PERCENTAGE_ALGO_SCORE_DISTRIBUTION,
-                    vote_token_address: 0.try_into().unwrap(),
+                    vote_token_address: main_token_address,
                     subscription_time: 0,
                 },
             );
+
+
+        self.total_score_rewards.write(TotalScoreRewards {
+            start_epoch_time: now,
+            total_score_ai: 0,
+            total_score_vote: 0,
+            total_tips_amount_token_vote: 0,
+            total_nostr_address: 0,
+            rewards_amount: 0,
+            total_points_weight: 0,
+            is_claimed: false,
+            epoch_duration: EPOCH_DURATION_DEFAULT,
+            end_epoch_time: end_epoch_time,
+        });
+
+        self.total_algo_score_rewards.write(TotalAlgoScoreRewards {
+            total_score_ai: 0,
+            total_score_overview: 0,
+            total_score_skills: 0,
+            total_score_value_shared: 0,
+            total_nostr_address: 0,
+            to_claimed_ai_score: 0,
+            to_claimed_overview_score: 0,
+            to_claimed_skills_score: 0,
+            to_claimed_value_shared_score: 0,
+            rewards_amount: 0,
+            total_points_weight: 0,
+            is_claimed: false,
+            veracity_score: 0,
+            epoch_duration: EPOCH_DURATION_DEFAULT,
+            end_epoch_time: end_epoch_time,
+            start_epoch_time: now,
+        });
 
         self
             .total_deposit_rewards
@@ -319,6 +353,16 @@ pub mod NostrFiScoring {
                 reward_to_claim_by_user_because_not_linked;
 
             let mut is_amount_to_send = false;
+
+            let erc20_token_address = self.main_token_address.read();
+            assert(erc20_token_address != 0.try_into().unwrap(), 'Main token address not set');
+
+            let erc20 = IERC20Dispatcher { contract_address: erc20_token_address };
+
+
+            let allowance = erc20.allowance(get_caller_address(), get_contract_address());
+            println!("allowance: {:?}", allowance);
+            println!("amount token: {:?}", vote_params.amount_token);
             if nostr_to_sn == 0.try_into().unwrap() {
                 println!("user not linked, rewards to claim after");
 
@@ -332,6 +376,14 @@ pub mod NostrFiScoring {
                     .tip_to_claim_by_user_because_not_linked
                     .entry(vote_params.nostr_address)
                     .write(vote_params.amount_token);
+
+                    // erc20
+                    // .transfer_from(
+                    //     get_caller_address(),
+                    //     get_contract_address(),
+                    //      vote_params.amount_token,
+                    // );
+                    
                 self
                     .emit(
                         TipToClaimByUserBecauseNotLinked {
@@ -342,23 +394,29 @@ pub mod NostrFiScoring {
             } else {
                 println!("user already linked");
                 // assert(nostr_to_sn != 0.try_into().unwrap(), 'Starknet address not linked');
-                let erc20_token_address = self.main_token_address.read();
-                assert(erc20_token_address != 0.try_into().unwrap(), 'Main token address not set');
-
+     
                 is_amount_to_send = true;
-                let erc20 = IERC20Dispatcher { contract_address: erc20_token_address };
 
                 if reward_to_claim_by_user_because_not_linked > 0 {
+                    println!("reward to claim by user because not linked: {:?}", reward_to_claim_by_user_because_not_linked);
                     new_reward_to_claim_by_user_because_not_linked = 0;
-                    erc20
-                        .transfer_from(
-                            get_caller_address(),
-                            nostr_to_sn,
-                            reward_to_claim_by_user_because_not_linked + vote_params.amount_token,
-                        );
+                    // erc20
+                    //     .transfer_from(
+                    //         get_caller_address(),
+                    //         nostr_to_sn,
+                    //         reward_to_claim_by_user_because_not_linked + vote_params.amount_token,
+                    //     );
+                    // erc20
+                    // .transfer_from(
+                    //     get_caller_address(),
+                    //     nostr_to_sn,
+                    //      vote_params.amount_token,
+                    // );
+
+                    // erc20.transfer(nostr_to_sn, reward_to_claim_by_user_because_not_linked);
                 } else {
-                    erc20
-                        .transfer_from(get_caller_address(), nostr_to_sn, vote_params.amount_token);
+                    // erc20
+                    //     .transfer_from(get_caller_address(), nostr_to_sn, vote_params.amount_token);
                 }
             }
 
@@ -382,6 +440,27 @@ pub mod NostrFiScoring {
             };
 
             self.total_tip_by_user.entry(vote_params.nostr_address).write(tip_by_user);
+
+
+            let old_total_score_rewards = self.total_score_rewards.read();
+            println!("total_score_vote: {:?}", old_total_score_rewards.total_score_vote);
+
+            let new_total_score_vote = old_total_score_rewards.total_score_vote + vote_params.amount_token;
+            let update_total_score_vote = TotalScoreRewards {
+                total_score_ai: old_total_score_rewards.total_score_ai,
+                total_score_vote: new_total_score_vote,
+                total_nostr_address: old_total_score_rewards.total_nostr_address,
+                total_tips_amount_token_vote: old_total_score_rewards.total_tips_amount_token_vote,
+                rewards_amount: old_total_score_rewards.rewards_amount,
+                total_points_weight: old_total_score_rewards.total_points_weight,
+                is_claimed: old_total_score_rewards.is_claimed,
+                epoch_duration: old_total_score_rewards.epoch_duration,
+                end_epoch_time: old_total_score_rewards.end_epoch_time,
+                start_epoch_time: old_total_score_rewards.start_epoch_time,
+            };
+
+            self.total_score_rewards.write(update_total_score_vote);
+            
         }
 
         fn _verify_and_extract_vote_nostr_event(
@@ -434,7 +513,9 @@ pub mod NostrFiScoring {
             let now = get_block_timestamp();
 
             // check profile nostr id link
+            println!("starknet_user_address: {:?}", starknet_user_address);
             let nostr_address = self.sn_to_nostr.read(starknet_user_address);
+            println!("nostr_address: {:?}", nostr_address);
             assert(nostr_address != 0.try_into().unwrap(), 'Profile not linked');
 
             let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
@@ -447,7 +528,7 @@ pub mod NostrFiScoring {
             assert(now - last_timestamp_oracle_score_by_user > 1000, 'Not enough time has passed');
 
             // Distribute tips rewards
-            let tip_by_user = self.total_tip_by_user.read(nostr_address);
+            // let tip_by_user = self.total_tip_by_user.read(nostr_address);
 
             // if !tip_by_user.is_claimed {
             //     // Distribute Topic tips
@@ -478,6 +559,7 @@ pub mod NostrFiScoring {
             // Verify the epoch params
 
             let old_total_deposit_rewards = self.total_deposit_rewards.read();
+            println!("old_total_deposit_rewards: {:?}", old_total_deposit_rewards.total_amount_deposit);
             let end_epoch_time = old_total_deposit_rewards.end_epoch_time;
 
             let mut new_epoch_duration = old_total_deposit_rewards.epoch_duration;
@@ -498,11 +580,13 @@ pub mod NostrFiScoring {
 
             let total_algo_score_rewards = self.total_algo_score_rewards.read();
             let profile_scoring_by_algo = self.nostr_account_scoring_algo.read(nostr_address);
+            println!("total_algo_score_rewards: {:?}", total_algo_score_rewards.total_score_ai);
 
             // Start distribution by algo
             let total_score_rewards = self.total_score_rewards.read();
-
+            println!("total_score_rewards: {:?}", total_score_rewards.total_score_ai);
             let total_score_vote = total_score_rewards.total_score_vote;
+            println!("total_score_vote: {:?}", total_score_vote);
             let total_algo_score_rewards = self.total_algo_score_rewards.read();
 
             let percentage_distribution_algo = self
@@ -513,7 +597,8 @@ pub mod NostrFiScoring {
             let total_deposit_rewards = self.total_deposit_rewards.read();
 
             let total_amount_deposit = total_deposit_rewards.total_amount_deposit;
-            let erc20_token_address = self.admin_params.read().quote_token_address;
+            // let erc20_token_address = self.admin_params.read().quote_token_address;
+            let erc20_token_address = self.main_token_address.read();
             let erc20 = IERC20Dispatcher { contract_address: erc20_token_address };
             let balance_contract = erc20.balance_of(get_contract_address());
 
@@ -534,9 +619,9 @@ pub mod NostrFiScoring {
             println!("my_ai_score: {}", my_ai_score);
 
             // V2 weight
-            let my_vote_score = data_algo_score.overview_score;
-            let my_vote_score = data_algo_score.skills_score;
-            let my_vote_score = data_algo_score.value_shared_score;
+            let my_overview_score = data_algo_score.overview_score;
+            let my_skills_score = data_algo_score.skills_score;
+            let my_value_shared_score = data_algo_score.value_shared_score;
 
             // User share by Algo score
             // V2 create weight and equations based on several parameters of the algorith scoring
@@ -556,8 +641,10 @@ pub mod NostrFiScoring {
 
             // Distribute general rewards send to vault
             let total_deposit_rewards = self.total_deposit_rewards.read();
-            let profile_vote_scoring_by_user = self.nostr_vote_profile.read(nostr_address);
+            println!("total_deposit_rewards: {:?}", total_deposit_rewards.total_amount_deposit);
+            // let profile_vote_scoring_by_user = self.nostr_vote_profile.read(nostr_address);
 
+            println!("percentage_distribution_algo: {:?}", percentage_distribution_algo);
             // Calculate rewards by user
             // Depends on User tips + Weight + Vote
             // Distribute rewards by User vote tips
@@ -566,25 +653,32 @@ pub mod NostrFiScoring {
             // DAO whitelisted
             // Algo whitelist based on Algo score
             let remaining_percentage_distribution_user = BPS - percentage_distribution_algo;
-
+            println!("remaining_percentage_distribution_user: {}", remaining_percentage_distribution_user);
             let profile_scoring_by_user = self.nostr_account_scoring.read(nostr_address);
-
+            println!("profile_scoring_by_user: {:?}", profile_scoring_by_user.ai_score);
             let tip_by_user = self.total_tip_by_user.read(nostr_address);
-
+            println!("tip_by_user: {:?}", tip_by_user.total_amount_deposit);
             let mut total_amount_to_claim_user_vote = total_amount_deposit
                 * remaining_percentage_distribution_user
                 / BPS;
             println!("total_amount_to_claim_user_vote: {}", total_amount_to_claim_user_vote);
 
             let my_vote_score = total_score_vote * percentage_distribution_algo / BPS;
-            let my_vote_score = total_score_vote * percentage_distribution_algo / BPS;
-            let mut user_share_vote = my_vote_score * total_amount_to_claim_user_vote / total_score_vote;
+            println!("my_vote_score: {}", my_vote_score);
+            let mut user_share_vote = 0;
+            println!("total_score_vote: {:?}", total_score_vote);
+
+            if total_score_vote == 0 {
+                user_share_vote = 0;
+            } else {
+                user_share_vote = my_vote_score * total_amount_to_claim_user_vote / total_score_vote;
+            }
             println!("user_share_vote: {}", user_share_vote);
             println!("balance_contract: {}", balance_contract);
             let mut veracity_score = 0;
 
-            let tip_by_user_amount = tip_by_user.total_amount_deposit;
-            let tip_by_user_amount_rewards = tip_by_user.rewards_amount;
+            // let tip_by_user_amount = tip_by_user.total_amount_deposit;
+            // let tip_by_user_amount_rewards = tip_by_user.rewards_amount;
 
             if user_share_vote > balance_contract {
                 user_share_vote = balance_contract;
@@ -594,6 +688,10 @@ pub mod NostrFiScoring {
                 user_share_vote = total_amount_to_claim;
             }
 
+            println!("user_share_algo: {}", user_share_algo);
+            println!("user_share_vote: {}", user_share_vote);
+
+            println!("update state");
             // Update all state
             let update_total_deposit_rewards = TotalDepositRewards {
                 epoch_duration: total_deposit_rewards.epoch_duration,
@@ -645,8 +743,12 @@ pub mod NostrFiScoring {
 
             // Transfer token user share by algo and user vote
 
+            println!("transfer token user share by algo");
+            println!("user_share_algo: {}", user_share_algo);
             erc20.transfer(starknet_user_address, user_share_algo);
 
+            println!("transfer token user share by vote");
+            println!("user_share_vote: {}", user_share_vote);
             erc20.transfer(starknet_user_address, user_share_vote);
             // Emit Event distribution by user
 
@@ -965,7 +1067,8 @@ pub mod NostrFiScoring {
                 rewards_amount: total_algo_score_rewards.rewards_amount,
                 total_points_weight: total_algo_score_rewards.total_points_weight,
                 is_claimed: total_algo_score_rewards.is_claimed,
-                veracity_score: 0,
+                veracity_score: total_algo_score_rewards.veracity_score,
+                start_epoch_time: total_algo_score_rewards.start_epoch_time,
             };
 
             self.total_algo_score_rewards.write(new_total_algo_score_rewards);
