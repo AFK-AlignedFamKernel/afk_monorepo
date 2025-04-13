@@ -21,11 +21,13 @@ mod nostrfi_scoring_tests {
         *declare("NostrFiScoring").unwrap().contract_class()
     }
 
-    fn deploy_nostrfi_scoring(class: ContractClass) -> INostrFiScoringDispatcher {
+    fn deploy_nostrfi_scoring(class: ContractClass, main_token_address: ContractAddress, admin_nostr_pubkey: NostrPublicKey) -> INostrFiScoringDispatcher {
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
         let mut calldata = array![];
         ADMIN_ADDRESS.serialize(ref calldata);
         ADMIN_ADDRESS.serialize(ref calldata);
+        main_token_address.serialize(ref calldata);
+        admin_nostr_pubkey.serialize(ref calldata);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
 
         INostrFiScoringDispatcher { contract_address }
@@ -75,8 +77,16 @@ mod nostrfi_scoring_tests {
 
         let sender_address: ContractAddress = 123.try_into().unwrap();
 
+
+        let erc20_class = declare_erc20();
+        println!("deploying erc20");
+        let erc20_dispatcher = deploy_erc20(
+            *erc20_class, 'Test Token', 'TEST', 1_000_000_u256, sender_address, 18,
+        );
+
+
         println!("deploying nostrfi scoring");
-        let nostrfi_scoring = deploy_nostrfi_scoring(nostrfi_scoring_class);
+        let nostrfi_scoring = deploy_nostrfi_scoring(nostrfi_scoring_class, erc20_dispatcher.contract_address, recipient_public_key);
 
         let recipient_address_user: ContractAddress = 678.try_into().unwrap();
 
@@ -108,9 +118,11 @@ mod nostrfi_scoring_tests {
             },
         };
 
-        let nostr_address_score = PushAlgoScoreNostrNote { nostr_address: recipient_public_key };
         // https://replit.com/@msghais135/afk-scripts#admin_script.js
 
+        println!("inot nostr push algo score {:?}", recipient_public_key);
+        // let nostr_address_score = PushAlgoScoreNostrNote { nostr_address: recipient_public_key.try_into().unwrap()};
+        let nostr_address_score = PushAlgoScoreNostrNote { nostr_address: recipient_public_key};
         let request_score_admin_nostr_profile = SocialRequest {
             public_key: recipient_public_key,
             created_at: 1716285235_u64,
@@ -118,8 +130,14 @@ mod nostrfi_scoring_tests {
             tags: "[]",
             content: nostr_address_score.clone(),
             sig: SchnorrSignature {
-                r: 0x1c39e12158e86238cea29ba368020ddf02153461e6c9e6597b30264ef738bd55_u256,
-                s: 0x3ed825a6b69cebdd673be72fcd58b343efdb53b120715fa80fbdcbb7c20992a7_u256,
+                // 0xfb135f3c1ab3edcea0e18b3eb1089df0bc587b4f0f37bff8ab5769b031de2e61
+// 0x199b34a4ff5fb7a44dade27bc449fc59cf2e1368d2eb8f61beacbd17f3627f75
+                r: 0x315cfcf10274c4c99c940d3885920a5e243fc58f0222a7c71c43296105dce674_u256,
+                s: 0x01b663ddca40625da7fa85f32e7563c24fbf818a820f0717ddd532e615bf5d31_u256,
+                // r: 0x87333f6b4e8a3c67a5ad26898e40f1e07cb88b39094ffa116a2d8c019c30ec0f_u256,
+                // s: 0x983f5e296fa0f6413118f5d1d8b5d3dd3abf6c7a320a8cab071482d08aa34b01_u256,
+                // r: 0x1c39e12158e86238cea29ba368020ddf02153461e6c9e6597b30264ef738bd55_u256,
+                // s: 0x3ed825a6b69cebdd673be72fcd58b343efdb53b120715fa80fbdcbb7c20992a7_u256,
             },
         };
 
@@ -165,12 +183,6 @@ mod nostrfi_scoring_tests {
                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
             },
         };
-
-        let erc20_class = declare_erc20();
-        println!("deploying erc20");
-        let erc20_dispatcher = deploy_erc20(
-            *erc20_class, 'Test Token', 'TEST', 1_000_000_u256, sender_address, 18,
-        );
 
         (
             request_linked_wallet_to,
@@ -224,6 +236,11 @@ mod nostrfi_scoring_tests {
 
         let erc20_balance = erc20.balance_of(sender_address);
         assert!(erc20_balance == 1000000, "erc20 balance not correct");
+
+
+        // Setup NostrFi Scoring Admin
+        println!("set admin nostr pubkey");
+        nostrfi_scoring.set_admin_nostr_pubkey(recipient_nostr_key, true);
 
         let profile_score = ProfileAlgorithmScoring {
             nostr_address: recipient_nostr_key,

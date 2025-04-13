@@ -33,6 +33,7 @@ pub trait INostrFiScoring<TContractState> {
     );
 
     fn set_change_batch_interval(ref self: TContractState, next_epoch: u64);
+    fn set_admin_nostr_pubkey(ref self: TContractState, admin_nostr_pubkey: NostrPublicKey, is_enable: bool);
     fn set_admin_params(ref self: TContractState, admin_params: NostrFiAdminStorage);
     fn create_dao(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
 
@@ -80,6 +81,7 @@ pub struct LinkedStarknetAddress {
 #[derive(Clone, Debug, Drop, Serde)]
 pub struct PushAlgoScoreNostrNote {
     pub nostr_address: NostrPublicKey,
+    // pub nostr_address: felt252,
     // pub starknet_address: ContractAddress,
 }
 
@@ -92,9 +94,21 @@ pub impl PushAlgoScoreNostrNoteEncodeImpl of Encode<PushAlgoScoreNostrNote> {
         //     .clone()
         //     .try_into()
         //     .unwrap();
-        let nostr_address_felt: felt252 = self.nostr_address.clone().try_into().unwrap();
+        println!("try get nostr_address_felt");
+        // let nostr_address_felt: felt252 = self.nostr_address.clone().try_into().unwrap();
 
-        @format!("score notr profile {:?}", nostr_address_felt)
+        // println!("nostr_address_felt {:?}", nostr_address_felt);
+        @format!("score nostr profile {}", self.nostr_address.clone())
+    }
+}
+
+
+impl PushAlgoScoreNostrNoteImpl of ConvertToBytes<PushAlgoScoreNostrNote> {
+    fn convert_to_bytes(self: @PushAlgoScoreNostrNote) -> ByteArray {
+        let mut ba: ByteArray = "";
+        let nostr_address: felt252 = self.nostr_address.clone().try_into().unwrap();
+        ba.append_word(nostr_address, 1_u32);
+        ba
     }
 }
 
@@ -148,16 +162,23 @@ pub impl VoteNostrNoteEncodeImpl of Encode<VoteNostrNote> {
         //     .try_into()
         //     .unwrap();
 
-        let nostr_address_felt: felt252 = self.nostr_address.clone().try_into().unwrap();
-
+        // let nostr_address_felt: felt252 = self.nostr_address.clone().try_into().unwrap();
         @format!(
             "vote to {:?}, {:?} {:?} {:?}",
-            nostr_address_felt,
+            self.nostr_address,
             self.vote,
             self.is_upvote,
             self.amount_token,
             // self.amount,
         )
+        // @format!(
+        //     "vote to {:?}, {:?} {:?} {:?}",
+        //     nostr_address_felt,
+        //     self.vote,
+        //     self.is_upvote,
+        //     self.amount_token,
+        //     // self.amount,
+        // )
     }
 }
 

@@ -29,7 +29,7 @@ pub mod NostrFiScoring {
     // StorageAsPathWriteForward,PathableStorageEntryImpl
     };
     use starknet::storage_access::StorageBaseAddress;
-    use starknet::syscalls::{deploy_syscall, library_call_syscall};
+    // use starknet::syscalls::{deploy_syscall, library_call_syscall};
     use starknet::{
         ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
     };
@@ -68,6 +68,9 @@ pub mod NostrFiScoring {
         main_token_address: ContractAddress,
         vote_token_address: ContractAddress,
         admin_nostr_pubkey: u256, // Admin Nostr pubkey
+        total_admin_nostr_pubkeys: u64,
+        all_admin_nostr_pubkeys: Map<u64, NostrPublicKey>,
+        is_admin_nostr_pubkey_added: Map<NostrPublicKey, bool>,
         oracle_nostr_pubkey: u256, // Oracle Nostr pubkey for Scoring Algorithm data
         name: ByteArray,
         description: ByteArray,
@@ -204,7 +207,7 @@ pub mod NostrFiScoring {
     }
 
     #[constructor]
-    fn constructor(ref self: ContractState, admin: ContractAddress, deployer: ContractAddress) {
+    fn constructor(ref self: ContractState, admin: ContractAddress, deployer: ContractAddress, main_token_address: ContractAddress, admin_nostr_pubkey: NostrPublicKey) {
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
         self.accesscontrol._grant_role(OPERATOR_ROLE, admin);
@@ -215,9 +218,13 @@ pub mod NostrFiScoring {
         self.admin.write(admin);
         self.is_point_vote_accepted.write(false);
         self.epoch_duration.write(EPOCH_DURATION_DEFAULT); // 7 days
-
+        self.main_token_address.write(main_token_address);
         let now = get_block_timestamp();
         self.start_epoch_time.write(now);
+        self.admin_nostr_pubkey.write(admin_nostr_pubkey);
+        self.all_admin_nostr_pubkeys.entry(0).write(admin_nostr_pubkey);
+        self.is_admin_nostr_pubkey_added.entry(admin_nostr_pubkey).write(true);
+        self.total_admin_nostr_pubkeys.write(1);
 
         let end_epoch_time = now + EPOCH_DURATION_DEFAULT;
         self.end_epoch_time.write(end_epoch_time);
@@ -274,12 +281,12 @@ pub mod NostrFiScoring {
         fn _assert_check_if_new_epoch_is_started(ref self: ContractState) {
             let now = get_block_timestamp();
             let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
-            assert(now >= next_time, 'Epoch not ended');
+            assert(now >= next_time, errors::EPOCH_NOT_ENDED);
         }
 
         fn _assert_epoch_is_ended(ref self: ContractState, end_epoch_time: u64) {
             let now = get_block_timestamp();
-            assert(now >= end_epoch_time, 'Epoch not ended');
+            assert(now >= end_epoch_time, errors::EPOCH_NOT_ENDED);
         }
 
         fn _check_epoch_is_ended(ref self: ContractState, end_epoch_time: u64) -> bool {
@@ -855,47 +862,82 @@ pub mod NostrFiScoring {
             request: SocialRequest<PushAlgoScoreNostrNote>,
             score_algo: ProfileAlgorithmScoring,
         ) {
-            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), 'Role required');
+            println!("push_profile_score_algo");
+            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), errors::ROLE_REQUIRED);
+            let admin_nostr_pubkey = self.admin_nostr_pubkey.read();
+
+
+            println!("admin_nostr_pubkey: {}", admin_nostr_pubkey);
+
+            let is_admin_nostr_pubkey_added = self.is_admin_nostr_pubkey_added.read(admin_nostr_pubkey);
+            assert(is_admin_nostr_pubkey_added || request.public_key == admin_nostr_pubkey, errors::INVALID_PUBKEY);
 
             // Verify if the token address is set
-            // V2 let change users main address or add multi token vault
-            assert(
-                self.main_token_address.read() != 0.try_into().unwrap(),
-                'Main token address not set',
-            );
+            // // V2 let change users main address or add multi token vault
+            // assert(
+            //     self.main_token_address.read() != 0.try_into().unwrap(),
+            //     errors::MAIN_TOKEN_ADDRESS_NOT_SET,
+            // );
 
             // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
+            println!("push_profile_score_algo");
             let profile_default = request.content.clone();
-            let nostr_address: NostrPublicKey = profile_default.nostr_address;
+            let nostr_address: NostrPublicKey = profile_default.nostr_address.try_into().unwrap();
             let sn_address_linked = self.nostr_to_sn.read(nostr_address);
 
-            let admin_nostr_pubkey = self.admin_nostr_pubkey.read();
+            println!("verify signature");
             // Verify signature Nostr oracle admin
-            assert(request.public_key == admin_nostr_pubkey, 'Invalid pubkey');
             //
             request.verify().expect('can\'t verify signature');
 
             let now = get_block_timestamp();
 
             // Update nostr account scoring by algo
+
+            println!("algo_nostr_account_scoring");
             let mut algo_nostr_account_scoring = self
                 .nostr_account_scoring_algo
                 .read(nostr_address);
-            algo_nostr_account_scoring.ai_score = score_algo.ai_score;
-            algo_nostr_account_scoring.overview_score = score_algo.overview_score;
-            algo_nostr_account_scoring.skills_score = score_algo.skills_score;
-            algo_nostr_account_scoring.value_shared_score = score_algo.value_shared_score;
-            algo_nostr_account_scoring.ai_score_to_claimed = score_algo.ai_score_to_claimed;
-            algo_nostr_account_scoring
-                .overview_score_to_claimed = score_algo
-                .overview_score_to_claimed;
-            algo_nostr_account_scoring.skills_score_to_claimed = score_algo.skills_score_to_claimed;
-            algo_nostr_account_scoring
-                .value_shared_score_to_claimed = score_algo
-                .value_shared_score_to_claimed;
-            self.nostr_account_scoring_algo.entry(nostr_address).write(algo_nostr_account_scoring);
 
-            self.last_timestamp_oracle_score_by_user.entry(nostr_address).write(now);
+            if algo_nostr_account_scoring.nostr_address != 0.try_into().unwrap() {
+                println!("algo_nostr_account_scoring.nostr_address != 0.try_into().unwrap()");
+                algo_nostr_account_scoring.starknet_address = sn_address_linked;
+                algo_nostr_account_scoring.ai_score = score_algo.ai_score;
+                algo_nostr_account_scoring.overview_score = score_algo.overview_score;
+                algo_nostr_account_scoring.skills_score = score_algo.skills_score;
+                algo_nostr_account_scoring.value_shared_score = score_algo.value_shared_score;
+                algo_nostr_account_scoring.ai_score_to_claimed = score_algo.ai_score_to_claimed;
+                algo_nostr_account_scoring
+                    .overview_score_to_claimed = score_algo
+                    .overview_score_to_claimed;
+                algo_nostr_account_scoring.skills_score_to_claimed = score_algo.skills_score_to_claimed;
+                algo_nostr_account_scoring
+                    .value_shared_score_to_claimed = score_algo
+                    .value_shared_score_to_claimed;
+                algo_nostr_account_scoring.total_score = score_algo.ai_score + score_algo.overview_score + score_algo.skills_score + score_algo.value_shared_score;
+                self.nostr_account_scoring_algo.entry(nostr_address).write(algo_nostr_account_scoring);
+    
+                self.last_timestamp_oracle_score_by_user.entry(nostr_address).write(now);
+            } else {
+                println!("algo_nostr_account_scoring.nostr_address == 0.try_into().unwrap()");
+                println!("init algo_nostr_account_scoring: {}", nostr_address);
+                algo_nostr_account_scoring = ProfileAlgorithmScoring {
+                    nostr_address: nostr_address.try_into().unwrap(),
+                    starknet_address: sn_address_linked,
+                    ai_score: score_algo.ai_score,
+                    overview_score: score_algo.overview_score,
+                    skills_score: score_algo.skills_score,
+                    value_shared_score: score_algo.value_shared_score,
+                    is_claimed: false,
+                    ai_score_to_claimed: score_algo.ai_score,
+                    overview_score_to_claimed: score_algo.overview_score,
+                    skills_score_to_claimed: score_algo.skills_score,
+                    value_shared_score_to_claimed: score_algo.value_shared_score,
+                    total_score: score_algo.ai_score + score_algo.overview_score + score_algo.skills_score + score_algo.value_shared_score,
+                    veracity_score: score_algo.veracity_score,
+                };
+            }
+        
 
             // Update total algo score stats
             let total_algo_score_rewards = self.total_algo_score_rewards.read();
@@ -953,12 +995,12 @@ pub mod NostrFiScoring {
 
 
         fn set_change_batch_interval(ref self: ContractState, next_epoch: u64) {
-            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), 'Role required');
+            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), errors::ADMIN_ROLE_REQUIRED);
             self.last_batch_timestamp.write(next_epoch);
         }
 
         fn set_admin_params(ref self: ContractState, admin_params: NostrFiAdminStorage) {
-            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), 'Role required');
+            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), errors::ADMIN_ROLE_REQUIRED);
             let mut old_admin_params = self.admin_params.read();
 
             let new_admin_params = NostrFiAdminStorage {
@@ -980,6 +1022,28 @@ pub mod NostrFiScoring {
 
 
         // Admin functions
+
+        fn set_admin_nostr_pubkey(ref self: ContractState, admin_nostr_pubkey: NostrPublicKey, is_enable: bool) {
+            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), errors::ROLE_REQUIRED);
+            let mut total_admin_nostr_pubkeys = self.total_admin_nostr_pubkeys.read();
+
+            let is_admin_nostr_pubkey_added = self.is_admin_nostr_pubkey_added.read(admin_nostr_pubkey);
+            if is_enable {
+                if is_admin_nostr_pubkey_added {
+                    return;
+                }
+                self.is_admin_nostr_pubkey_added.entry(admin_nostr_pubkey).write(true);
+                self.all_admin_nostr_pubkeys.entry(total_admin_nostr_pubkeys).write(admin_nostr_pubkey);
+                self.total_admin_nostr_pubkeys.write(total_admin_nostr_pubkeys + 1);
+            } else {
+                if !is_admin_nostr_pubkey_added {
+                    self.total_admin_nostr_pubkeys.write(total_admin_nostr_pubkeys - 1);
+                    return;
+                }
+                self.is_admin_nostr_pubkey_added.entry(admin_nostr_pubkey).write(false);
+                self.all_admin_nostr_pubkeys.entry(total_admin_nostr_pubkeys).write(admin_nostr_pubkey);
+            }
+        }
 
         // Add OPERATOR role to the Deposit escrow
         fn set_control_role(
@@ -1011,13 +1075,13 @@ pub mod NostrFiScoring {
             assert(
                 self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address())
                     || self.accesscontrol.has_role(OPERATOR_ROLE, get_caller_address()),
-                'Role required',
+                errors::ROLE_REQUIRED,
             );
             let mut main_token_address = self.main_token_address.read();
 
             // Verify if the token address is set
             // V2 let change users main address or add multi token vault
-            assert(main_token_address == 0.try_into().unwrap(), 'Main token address already set');
+            assert(main_token_address == 0.try_into().unwrap(), errors::MAIN_TOKEN_ADDRESS_ALREADY_SET);
 
             // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
             let profile_default = request.content.clone();
@@ -1077,7 +1141,7 @@ pub mod NostrFiScoring {
         // TODO:
         // Implement logic to create a new DAO for this topic with the main token address
         fn create_dao(ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>) {
-            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), 'Role required');
+            assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), errors::ADMIN_ROLE_REQUIRED);
             let profile_default = request.content.clone();
             let starknet_address: ContractAddress = profile_default.starknet_address;
 
@@ -1097,7 +1161,7 @@ pub mod NostrFiScoring {
             assert(
                 self.accesscontrol.has_role(ADMIN_ROLE, caller)
                     || self.accesscontrol.has_role(OPERATOR_ROLE, caller),
-                'Role required',
+                errors::ROLE_REQUIRED,
             );
             // assert(
             //     caller != self.owner.read() || caller != self.admin.read(),
@@ -1135,7 +1199,7 @@ pub mod NostrFiScoring {
             assert(
                 self.accesscontrol.has_role(ADMIN_ROLE, caller)
                     || self.accesscontrol.has_role(OPERATOR_ROLE, caller),
-                'Role required',
+                errors::ROLE_REQUIRED,
             );
 
             self.nostr_pubkeys.entry(self.total_pubkeys.read()).write(nostr_event_id);
@@ -1210,180 +1274,3 @@ pub mod NostrFiScoring {
     // }
     }
 }
-// #[cfg(test)]
-// mod tests {
-//     use afk::bip340::SchnorrSignature;
-//     use afk::interfaces::nostrfi_scoring_interfaces::{
-//         INostrFiScoring, INostrFiScoringDispatcher, INostrFiScoringDispatcherTrait, LinkedResult,
-//         LinkedStarknetAddress, NostrPublicKey,
-//     };
-//     use afk::social::request::SocialRequest;
-//     // use core::array::SpanTrait;
-//     // use core::traits::Into;
-//     use snforge_std::{
-//         ContractClass, ContractClassTrait, DeclareResultTrait, declare,
-//         start_cheat_caller_address, start_cheat_caller_address_global,
-//         stop_cheat_caller_address_global,
-//     };
-//     use starknet::ContractAddress;
-
-//     fn declare_nostrfi_scoring() -> ContractClass {
-//         // declare("nostrfi_scoring").unwrap().contract_class()
-//         *declare("NostrFiScoring").unwrap().contract_class()
-//     }
-
-//     fn deploy_nostrfi_scoring(class: ContractClass) -> INostrFiScoringDispatcher {
-//         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
-//         let mut calldata = array![];
-//         ADMIN_ADDRESS.serialize(ref calldata);
-//         let (contract_address, _) = class.deploy(@calldata).unwrap();
-
-//         INostrFiScoringDispatcher { contract_address }
-//     }
-
-//     fn request_fixture_custom_classes(
-//         nostrfi_scoring_class: ContractClass,
-//     ) -> (
-//         SocialRequest<LinkedStarknetAddress>,
-//         NostrPublicKey,
-//         ContractAddress,
-//         INostrFiScoringDispatcher,
-//         SocialRequest<LinkedStarknetAddress>,
-//     ) {
-//         // recipient private key:
-//         59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35 // just for testing, do
-//         not use for anything else // let recipient_public_key =
-//         //     0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
-
-//         let recipient_public_key =
-//             0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
-
-//         let sender_address: ContractAddress = 123.try_into().unwrap();
-
-//         let nostrfi_scoring = deploy_nostrfi_scoring(nostrfi_scoring_class);
-
-//         let recipient_address_user: ContractAddress = 678.try_into().unwrap();
-
-//         // TODO change with the correct signature with the content LinkedWalletProfileDefault id
-//         and // strk recipient TODO Uint256 to felt on Starknet js
-//         // for test data see claim to:
-//         // https://replit.com/@msghais135/WanIndolentKilobyte-claimto#linked_to.js
-
-//         let linked_wallet = LinkedStarknetAddress {
-//             starknet_address: sender_address.try_into().unwrap(),
-//         };
-
-//         // @TODO format the content and get the correct signature
-//         let request_linked_wallet_to = SocialRequest {
-//             public_key: recipient_public_key,
-//             created_at: 1716285235_u64,
-//             kind: 1_u16,
-//             tags: "[]",
-//             content: linked_wallet.clone(),
-//             sig: SchnorrSignature {
-//                 r: 0x4e04216ca171673375916f12e1a56e00dca1d39e44207829d659d06f3a972d6f_u256,
-//                 s: 0xa16bc69fab00104564b9dad050a29af4d2380c229de984e49ad125fe29b5be8e_u256,
-//                 // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
-//             // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
-//             },
-//         };
-
-//         let linked_wallet_not_caller = LinkedStarknetAddress {
-//             starknet_address: recipient_address_user.try_into().unwrap(),
-//         };
-
-//         // @TODO format the content and get the correct signature
-//         let fail_request_linked_wallet_to_caller = SocialRequest {
-//             public_key: recipient_public_key,
-//             created_at: 1716285235_u64,
-//             kind: 1_u16,
-//             tags: "[]",
-//             content: linked_wallet_not_caller.clone(),
-//             sig: SchnorrSignature {
-//                 r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a4e_u256,
-//                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
-//             },
-//         };
-
-//         (
-//             request_linked_wallet_to,
-//             recipient_public_key,
-//             sender_address,
-//             nostrfi_scoring,
-//             fail_request_linked_wallet_to_caller,
-//         )
-//     }
-
-//     fn request_fixture() -> (
-//         SocialRequest<LinkedStarknetAddress>,
-//         NostrPublicKey,
-//         ContractAddress,
-//         INostrFiScoringDispatcher,
-//         SocialRequest<LinkedStarknetAddress>,
-//     ) {
-//         let nostrfi_scoring_class = declare_nostrfi_scoring();
-//         request_fixture_custom_classes(nostrfi_scoring_class)
-//     }
-
-//     #[test]
-//     fn linked_wallet_to() {
-//         let (request, recipient_nostr_key, sender_address, nostrfi_scoring, _) =
-//         request_fixture();
-//         start_cheat_caller_address_global(sender_address);
-//         start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
-//         nostrfi_scoring.linked_nostr_profile(request);
-
-//         let nostr_linked = nostrfi_scoring.get_nostr_by_sn_default(recipient_nostr_key);
-//         assert!(nostr_linked == sender_address, "nostr not linked");
-//     }
-
-//     #[test]
-//     #[should_panic()]
-//     fn link_incorrect_signature() {
-//         let (_, _, sender_address, nostrfi_scoring, fail_request_linked_wallet_to_caller) =
-//             request_fixture();
-//         stop_cheat_caller_address_global();
-//         start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
-
-//         let request_test_failed_sig = SocialRequest {
-//             sig: SchnorrSignature {
-//                 r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
-//                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966606f_u256,
-//             },
-//             ..fail_request_linked_wallet_to_caller,
-//         };
-//         nostrfi_scoring.linked_nostr_profile(request_test_failed_sig);
-//     }
-
-//     #[test]
-//     #[should_panic()]
-//     fn link_incorrect_signature_link_to() {
-//         let (request, _, sender_address, nostrfi_scoring, _) = request_fixture();
-//         start_cheat_caller_address_global(sender_address);
-//         stop_cheat_caller_address_global();
-//         start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
-//         let request_test_failed_sig = SocialRequest {
-//             sig: SchnorrSignature {
-//                 r: 0x2570a9a0c92c180bd4ac826c887e63844b043e3b65da71a857d2aa29e7cd3a5e_u256,
-//                 s: 0x1c0c0a8b7a8330b6b8915985c9cd498a407587213c2e7608e7479b4ef966605f_u256,
-//             },
-//             ..request,
-//         };
-
-//         nostrfi_scoring.linked_nostr_profile(request_test_failed_sig);
-//     }
-
-//     #[test]
-//     #[should_panic()]
-//     // #[should_panic(expected: ' invalid caller ')]
-//     fn link_incorrect_caller_link_to() {
-//         let (_, _, sender_address, nostrfi_scoring, fail_request_linked_wallet_to) =
-//             request_fixture();
-//         start_cheat_caller_address_global(sender_address);
-//         stop_cheat_caller_address_global();
-//         start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
-//         nostrfi_scoring.linked_nostr_profile(fail_request_linked_wallet_to);
-//     }
-// }
-
-
