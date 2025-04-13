@@ -657,7 +657,9 @@ pub mod NostrFiScoring {
             let profile_scoring_by_user = self.nostr_account_scoring.read(nostr_address);
             println!("profile_scoring_by_user: {:?}", profile_scoring_by_user.ai_score);
             let tip_by_user = self.total_tip_by_user.read(nostr_address);
-            println!("tip_by_user: {:?}", tip_by_user.total_amount_deposit);
+
+            let tip_user_total_amount_deposit = tip_by_user.total_amount_deposit;
+            println!("tip_user.total_amount_deposit: {}", tip_user_total_amount_deposit);
             let mut total_amount_to_claim_user_vote = total_amount_deposit
                 * remaining_percentage_distribution_user
                 / BPS;
@@ -668,10 +670,10 @@ pub mod NostrFiScoring {
             let mut user_share_vote = 0;
             println!("total_score_vote: {:?}", total_score_vote);
 
-            if total_score_vote == 0 {
+            if total_amount_to_claim_user_vote == 0 {
                 user_share_vote = 0;
             } else {
-                user_share_vote = my_vote_score * total_amount_to_claim_user_vote / total_score_vote;
+                user_share_vote = my_vote_score * total_amount_to_claim_user_vote / total_amount_to_claim_user_vote;
             }
             println!("user_share_vote: {}", user_share_vote);
             println!("balance_contract: {}", balance_contract);
@@ -684,14 +686,17 @@ pub mod NostrFiScoring {
                 user_share_vote = balance_contract;
             }
 
-            if user_share_vote > total_amount_to_claim {
-                user_share_vote = total_amount_to_claim;
+            if user_share_vote > total_amount_to_claim_user_vote {
+                user_share_vote = total_amount_to_claim_user_vote;
             }
 
             println!("user_share_algo: {}", user_share_algo);
             println!("user_share_vote: {}", user_share_vote);
 
             println!("update state");
+            println!("total_amount_to_claim: {}", total_amount_to_claim);
+            println!("user_share_algo: {}", user_share_algo);
+            println!("user_share_vote: {}", user_share_vote);
             // Update all state
             let update_total_deposit_rewards = TotalDepositRewards {
                 epoch_duration: total_deposit_rewards.epoch_duration,
@@ -703,7 +708,7 @@ pub mod NostrFiScoring {
                 algo_total_amount_deposit: total_deposit_rewards.algo_total_amount_deposit,
                 rewards_amount: total_deposit_rewards.rewards_amount,
                 is_claimed: total_deposit_rewards.is_claimed,
-                total_amount_to_claim: total_amount_to_claim - user_share_algo - user_share_vote,
+                total_amount_to_claim: total_deposit_rewards.total_amount_deposit - user_share_algo - user_share_vote,
             };
 
             self.total_deposit_rewards.write(update_total_deposit_rewards);
@@ -931,8 +936,21 @@ pub mod NostrFiScoring {
             // }
             // },
             };
+            let erc20_contract_address = self.main_token_address.read();
+            let erc20 = IERC20Dispatcher{contract_address: erc20_contract_address};
+
+            let caller=get_caller_address();
+            let contract_address=get_contract_address();
+            let allowed_amount = erc20.allowance(caller, contract_address);
+          
+            println!("allowed_amount: {}", allowed_amount);
+            erc20.transfer_from(caller, contract_address, amount);
+
 
             self.total_deposit_rewards.write(total_deposit_rewards);
+
+
+         
         }
 
 

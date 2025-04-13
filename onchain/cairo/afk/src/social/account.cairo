@@ -76,7 +76,7 @@ pub mod SocialAccount {
             assert!(request.public_key == self.public_key.read(), "wrong sender");
 
             let erc20 = IERC20Dispatcher { contract_address: request.content.token_address };
-            assert!(erc20.symbol() == request.content.token, "wrong token");
+            // assert!(erc20.symbol() == request.content.token, "wrong token");
 
             let recipient = ISocialAccountDispatcher {
                 contract_address: request.content.recipient_address,
@@ -263,7 +263,7 @@ mod tests {
 
         let transfer = Transfer {
             amount: 1,
-            token: erc20.symbol(),
+            // token: erc20.symbol(),
             token_address: erc20.contract_address,
             joyboy: NostrProfile {
                 public_key: joyboy_public_key, relays: array!["wss://relay.joyboy.community.com"],

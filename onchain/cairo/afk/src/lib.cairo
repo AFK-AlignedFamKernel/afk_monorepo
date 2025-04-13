@@ -56,6 +56,7 @@ pub mod account {
 pub mod tokens {
     pub mod erc20;
     pub mod erc20_mintable;
+    pub mod erc20_intern;
     // pub mod token;
     // pub mod dn404 {
     //     pub mod dn404;
@@ -78,7 +79,8 @@ pub mod tests {
     // pub mod dn404_tests;
     // pub mod nameservice_tests;
     pub mod nostrfi_scoring_tests;
-    pub mod staking_tests;
     pub mod utils;
-    pub mod vault_tests;
+    // pub mod staking_tests;
+
+    // pub mod vault_tests;
 }

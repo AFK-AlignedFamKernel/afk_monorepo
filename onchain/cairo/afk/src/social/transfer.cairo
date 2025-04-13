@@ -4,7 +4,7 @@ use super::request::{ConvertToBytes, Encode};
 #[derive(Clone, Debug, Drop, Serde)]
 pub struct Transfer {
     pub amount: u256,
-    pub token: felt252,
+    // pub token: felt252,
     pub token_address: ContractAddress,
     pub joyboy: NostrProfile,
     pub recipient: NostrProfile,
@@ -24,13 +24,15 @@ fn len(f: felt252) -> usize {
 impl TransferEncodeImpl of Encode<Transfer> {
     fn encode(self: @Transfer) -> @ByteArray {
         let mut token: ByteArray = Default::default();
+
+        let token_address = *self.token_address;
+        let token_address_felt252: felt252 = token_address.try_into().unwrap();
         // assuming token is no longer than 16 bytes
-        token.append_word(*self.token, len(*self.token));
         @format!(
             "{} send {} {} to {}",
             self.joyboy.encode(),
             self.amount,
-            token,
+            token_address_felt252,
             self.recipient.encode(),
         )
     }
@@ -56,7 +58,7 @@ impl TransferImpl of ConvertToBytes<Transfer> {
         ba.append_word(amount_felt252, amount_count);
 
         // Encode token
-        ba.append_word(*self.token, 1_u32);
+        // ba.append_word(*self.token, 1_u32);
 
         // Encode token_address
         //  let addr:felt252 = self.token_address.into();
@@ -120,7 +122,7 @@ mod tests {
 
         let request = Transfer {
             amount: 1,
-            token: 'USDC',
+            // token: 'USDC',
             token_address: 1.try_into().unwrap(),
             joyboy,
             recipient,

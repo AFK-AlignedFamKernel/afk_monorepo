@@ -27,7 +27,7 @@ pub trait ISRC6<TState> {
 #[starknet::contract(account)]
 pub mod NostrDAOAccount {
     use afk::bip340;
-    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20_intern::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
         MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls // is_valid_stark_signature
     };
@@ -77,7 +77,7 @@ pub mod NostrDAOAccount {
             assert!(request.public_key == self.public_key.read(), "wrong sender");
 
             let erc20 = IERC20Dispatcher { contract_address: request.content.token_address };
-            assert!(erc20.symbol() == request.content.token, "wrong token");
+            // assert!(erc20.symbol() == request.content.token, "wrong token");
 
             let recipient = INostrDAOAccountDispatcher {
                 contract_address: request.content.recipient_address,

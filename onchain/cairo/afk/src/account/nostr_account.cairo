@@ -57,7 +57,7 @@ pub mod NostrAccount {
         UnsignedSocialRequest, UnsignedSocialRequestMessage,
     };
     use afk::social::transfer::Transfer;
-    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20_intern::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
         MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls // is_valid_stark_signature
     };
@@ -541,7 +541,7 @@ mod tests {
 
         let transfer = Transfer {
             amount: 1,
-            token: erc20.symbol(),
+            // token: erc20.symbol(),
             token_address: erc20.contract_address,
             joyboy: NostrProfile {
                 public_key: joyboy_public_key, relays: array!["wss://relay.joyboy.community.com"],

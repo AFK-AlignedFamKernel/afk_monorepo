@@ -4,15 +4,16 @@ mod nostrfi_scoring_tests {
     use afk::interfaces::nostrfi_scoring_interfaces::{
         INostrFiScoring, INostrFiScoringDispatcher, INostrFiScoringDispatcherTrait, LinkedResult,
         LinkedStarknetAddress, NostrPublicKey, ProfileAlgorithmScoring, PushAlgoScoreNostrNote,
-        Vote, VoteNostrNote, VoteParams, DEFAULT_BATCH_INTERVAL_WEEK,
+        Vote, VoteNostrNote, VoteParams, DEFAULT_BATCH_INTERVAL_WEEK, DepositRewardsType
     };
     use afk::social::request::SocialRequest;
-    use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
+    use afk::tokens::erc20_intern::{IERC20Dispatcher, IERC20DispatcherTrait};
+    // use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     // use core::array::SpanTrait;
     // use core::traits::Into;
     use snforge_std::{
         ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
-        start_cheat_caller_address_global, stop_cheat_caller_address_global, cheat_block_timestamp, CheatSpan
+        start_cheat_caller_address_global, stop_cheat_caller_address_global, cheat_block_timestamp, CheatSpan, stop_cheat_caller_address
     };
     use starknet::ContractAddress;
 
@@ -39,18 +40,16 @@ mod nostrfi_scoring_tests {
 
     fn deploy_erc20(
         class: ContractClass,
-        name: felt252,
-        symbol: felt252,
+        name: ByteArray,
+        symbol: ByteArray,
         initial_supply: u256,
         recipient: ContractAddress,
-        decimals: u8,
     ) -> IERC20Dispatcher {
         let mut calldata = array![];
         name.serialize(ref calldata);
         symbol.serialize(ref calldata);
         initial_supply.serialize(ref calldata);
         recipient.serialize(ref calldata);
-        decimals.serialize(ref calldata);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
         IERC20Dispatcher { contract_address }
     }
@@ -80,10 +79,12 @@ mod nostrfi_scoring_tests {
 
         let erc20_class = declare_erc20();
         println!("deploying erc20");
+        // let erc20_dispatcher = deploy_erc20(
+        //     *erc20_class, 'Test Token', 'TEST', 1_000_000_u256, sender_address, 18,
+        // );
         let erc20_dispatcher = deploy_erc20(
-            *erc20_class, 'Test Token', 'TEST', 1_000_000_u256, sender_address, 18,
+            *erc20_class, "Test Token", "TEST", 1_000_000_u256, sender_address,
         );
-
 
         println!("deploying nostrfi scoring");
         let nostrfi_scoring = deploy_nostrfi_scoring(nostrfi_scoring_class, erc20_dispatcher.contract_address, recipient_public_key);
@@ -384,22 +385,36 @@ mod nostrfi_scoring_tests {
         assert!(erc20_allowance >= vote_params.amount_token, "erc20 allowance not correct");
 
         println!("vote nostr note");
+        stop_cheat_caller_address(erc20.contract_address);
 
         start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
   
         nostrfi_scoring.vote_nostr_profile_starknet_only(vote_params);
 
-        println!("claim and distribute rewards");
         let created_at = starknet::get_block_timestamp();
+        println!("deposit rewards");
+
+        let deposit_amount_rewards = 100_u256;
+        start_cheat_caller_address(erc20.contract_address, sender_address);
+
+        erc20.approve(nostrfi_scoring.contract_address, deposit_amount_rewards*2);
+        stop_cheat_caller_address(erc20.contract_address);
+
+        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+        nostrfi_scoring.deposit_rewards(deposit_amount_rewards, DepositRewardsType::General);
 
         let current_time = created_at
         + DEFAULT_BATCH_INTERVAL_WEEK
         + 1; // Proposal duration reached
+
+        println!("cheat block timestamp");
         cheat_block_timestamp(
             nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
         );
+        println!("claim and distribute rewards");
+        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
 
-        let rewards_claimed = nostrfi_scoring.claim_and_distribute_my_rewards();
+        nostrfi_scoring.claim_and_distribute_my_rewards();
     }
 
     // #[test]

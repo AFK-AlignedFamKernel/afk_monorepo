@@ -207,7 +207,7 @@ pub fn transfer_to_bytes(transfer: Transfer) -> ByteArray {
     ba.append_word(amount_felt252, amount_count);
 
     // Encode token
-    ba.append_word(transfer.token, 1_u32);
+    // ba.append_word(transfer.token, 1_u32);
 
     // Encode token_address
     ba.append_word(transfer.token_address.into(), 1_u32);
