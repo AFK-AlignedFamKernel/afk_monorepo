@@ -123,6 +123,7 @@ pub struct TokenConfig {}
 
 #[derive(Drop, starknet::Event)]
 pub struct TokenCreated {
+    #[key]
     pub token_address: ContractAddress,
     pub owner: ContractAddress,
     pub name: ByteArray,
@@ -134,6 +135,7 @@ pub struct TokenCreated {
 
 #[derive(Drop, starknet::Event)]
 pub struct PresaleLaunched {
+    #[key]
     pub buy_token: ContractAddress,
     pub presale_rate: u256,
     pub soft_cap: u256,
@@ -147,8 +149,15 @@ pub struct PresaleLaunched {
 
 #[derive(Drop, starknet::Event)]
 pub struct TokenBought {
+    #[key]
     pub token_address: ContractAddress,
     pub amount: u256,
     pub buyer: ContractAddress,
     pub bought_at: u64,
+}
+
+#[derive(Drop, starknet::Event)]
+pub struct BuyCanceled {
+    pub token_address: ContractAddress,
+    pub amount: u256
 }
