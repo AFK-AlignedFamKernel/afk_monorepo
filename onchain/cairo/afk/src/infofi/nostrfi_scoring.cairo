@@ -377,12 +377,12 @@ pub mod NostrFiScoring {
                     .entry(vote_params.nostr_address)
                     .write(vote_params.amount_token);
 
-                    // erc20
-                    // .transfer_from(
-                    //     get_caller_address(),
-                    //     get_contract_address(),
-                    //      vote_params.amount_token,
-                    // );
+                    erc20
+                    .transfer_from(
+                        get_caller_address(),
+                        get_contract_address(),
+                         vote_params.amount_token,
+                    );
                     
                 self
                     .emit(
@@ -399,24 +399,24 @@ pub mod NostrFiScoring {
 
                 if reward_to_claim_by_user_because_not_linked > 0 {
                     println!("reward to claim by user because not linked: {:?}", reward_to_claim_by_user_because_not_linked);
-                    new_reward_to_claim_by_user_because_not_linked = 0;
+                    // new_reward_to_claim_by_user_because_not_linked = 0;
                     // erc20
                     //     .transfer_from(
                     //         get_caller_address(),
                     //         nostr_to_sn,
                     //         reward_to_claim_by_user_because_not_linked + vote_params.amount_token,
                     //     );
-                    // erc20
-                    // .transfer_from(
-                    //     get_caller_address(),
-                    //     nostr_to_sn,
-                    //      vote_params.amount_token,
-                    // );
+                    erc20
+                    .transfer_from(
+                        get_caller_address(),
+                        nostr_to_sn,
+                         vote_params.amount_token,
+                    );
 
                     // erc20.transfer(nostr_to_sn, reward_to_claim_by_user_because_not_linked);
                 } else {
-                    // erc20
-                    //     .transfer_from(get_caller_address(), nostr_to_sn, vote_params.amount_token);
+                    erc20
+                        .transfer_from(get_caller_address(), nostr_to_sn, vote_params.amount_token);
                 }
             }
 
