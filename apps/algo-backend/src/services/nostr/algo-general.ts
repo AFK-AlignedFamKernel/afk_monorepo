@@ -64,7 +64,7 @@ export const handleTrendingAndViralEvents = async (props: IHandleTrendingAndVira
             });
         }
 
-        console.log('Events with classification', eventsWithClassification);
+        // console.log('Events with classification', eventsWithClassification);
         // console.log('Events', events);
         // console.log('Events length', events.length);
         const trendingEvents = await getTrendingAndViralByEvents(events);
@@ -93,18 +93,18 @@ export const handleProfilesScoring = async (
 ): Promise<{ profileNoted: any, eventsClassification?: { note: NDKEvent, ml?: any | any[], llm?: any }[] }> => {
 
     try {
-        console.log('Getting trending events from user pay scoring');
+        console.log('handleProfilesScoring: ', pubkey);
 
-        const followersEvents = await fetchFollowers(PUBKEY_EXAMPLE);
+        const followersEvents = await fetchFollowers(pubkey);
         console.log('Followers Events', followersEvents?.length);
-        const followingsEvents = await fetchFollowings(PUBKEY_EXAMPLE);
+        const followingsEvents = await fetchFollowings(pubkey);
         console.log('Followings Events', followingsEvents?.length);
 
-        const eventProfile = await fetchEventMetadata(PUBKEY_EXAMPLE);
-        console.log('Event Profile', eventProfile);
+        const eventProfile = await fetchEventMetadata(pubkey);
+        // console.log('Event Profile', eventProfile);
 
         const sinceTimestamp = new Date().getTime() - 1000 * 60 * 60 * 24 * 7
-        console.log('Events with classification', eventsClassification);
+        // console.log('Events with classification', eventsClassification);
 
         let events = eventsProps;
 
@@ -127,11 +127,10 @@ export const handleProfilesScoring = async (
 
         // // console.log('Events', events);
         // // console.log('Events length', events.length);
-        const algoAnalyze = await analyzeProfile(PUBKEY_EXAMPLE, events, sinceTimestamp);
+        const algoAnalyze = await analyzeProfile(pubkey ?? PUBKEY_EXAMPLE, events, sinceTimestamp);
         console.log('Analyse', algoAnalyze);
         const llmClassification = await handleClassificationProfile(eventProfile?.content ?? "", events?.map(e => e?.content));
-        console.log('LLM Classificatio  n', llmClassification);
-
+        console.log('LLM Classification', llmClassification);
 
 
         const profileNoted = {
@@ -143,7 +142,8 @@ export const handleProfilesScoring = async (
             llm: llmClassification?.result
         }
 
-        console.log('profileNoted', profileNoted);
+        console.log('algoAnalyze', profileNoted?.algo);
+        console.log('llm', profileNoted?.llm);
 
         return {
             profileNoted,

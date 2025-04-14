@@ -22,7 +22,7 @@ interface FetchEventsParams {
 
 
 // Fetch a list of events
-export async function fetchEvents({ kind, limit = 100, authors, kinds = [NDKKind.Text, NDKKind.Article, NDKKind.VerticalVideo, NDKKind.HorizontalVideo], until, since }: FetchEventsParams): Promise<NDKEvent[]> {
+export async function fetchEvents({ kind, limit = 20, authors, kinds = [NDKKind.Text, NDKKind.Article, NDKKind.VerticalVideo, NDKKind.HorizontalVideo], until, since }: FetchEventsParams): Promise<NDKEvent[]> {
     const ndk = await initNDK();
     const events = await ndk.fetchEvents({ kinds, limit, authors, until, since });
     // console.log('Events', events);

@@ -1,21 +1,32 @@
 import prismaDb from "prisma-db"
 
 export const getNostrNoteScoring = async () => {
-    const profiles = await prismaDb.noteNostr.findMany({
-       
+    try {
+        const profiles = await prismaDb.noteNostr.findMany({
+           
     });
 
-    return profiles;
+        return profiles;
+    } catch (error) {
+        console.error("Error in getNostrNoteScoring", error);
+        return [];
+    }
 }
 
 export const getNostrNoteByPubkey = async (pubkey: string) => {
-    const profiles = await prismaDb.noteNostr.findMany({
-        where: {
-            pubkey: {
-                equals: pubkey   
+    try {
+        const profiles = await prismaDb.noteNostr.findMany({
+            where: {
+                pubkey: {
+                    equals: pubkey   
+                }
             }
-        }
-    });
+        });
+    
+        return profiles;  
+    } catch (error) {
+        console.error("Error in getNostrNoteByPubkey", error);
+        return [];
+    }
 
-    return profiles;
 }

@@ -1,24 +1,16 @@
 
-import { ChatOpenAI, OpenAI, OpenAIClient } from "@langchain/openai";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
 import { Pinecone } from "@pinecone-database/pinecone";
-import { LLMChain } from "langchain/chains";
 import { ChatPromptTemplate } from "@langchain/core/prompts"
 import { z } from "zod";
+import { initLLMChatOpenAI, initLocalLLM, initOpenAILangchain } from "..";
 
-export const initLLMOpenAI = async () => {
-    const llm = new ChatOpenAI({
-        model: "gpt-4o-mini",
-        temperature: 0,
-        apiKey: process.env.OPENAI_API_KEY!,
-        // reasoningEffort: "medium"
-    });
-    return llm;
-}
 
 export const handleClassification = async (content: string) => {
     try {
-        const llm = await initLLMOpenAI();
+        // const llm = await initLocalLLM();
+        // const llm = await initOpenAILangchain();
+        const llm = await initLLMChatOpenAI();
 
         if (!llm || typeof llm !== "object" || llm === undefined || typeof llm === "undefined" || !llm?.withStructuredOutput) {
             return {

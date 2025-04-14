@@ -7,30 +7,32 @@ export const handleScoringByUsersLinked = async () => {
     const PUBKEY_EXAMPLE = "c1e9ab3a56a2ab6ca4bebf44ea64b2fda40ac6311e886ba86b4652169cb56b43"
     const limit = 1;
     const limitEventsProfileScroring = 200;
+    
 
 
     // Fetch profile to analyze
+    
 
 
     
 
-    // Get recent events from user to score and analyze
-    handleTrendingAndViralEvents({
-        pubkey: PUBKEY_EXAMPLE,
-        limit: limit,
-        limitEventsProfileScroring: limitEventsProfileScroring
-    });
+    // // Get recent events from user to score and analyze
+    // handleTrendingAndViralEvents({
+    //     pubkey: PUBKEY_EXAMPLE,
+    //     limit: limit,
+    //     limitEventsProfileScroring: limitEventsProfileScroring
+    // });
 
-    // Get recent events from user to score and analyze
-    handleTrendingAndViralEvents({
-        pubkey: PUBKEY_EXAMPLE,
-        limit: limit,
-        limitEventsProfileScroring: limitEventsProfileScroring
-    });
+    // // Get recent events from user to score and analyze
+    // handleTrendingAndViralEvents({
+    //     pubkey: PUBKEY_EXAMPLE,
+    //     limit: limit,
+    //     limitEventsProfileScroring: limitEventsProfileScroring
+    // });
     // setInterval(handleTrendingAndViralEvents, 1000 * 60 * 60 * 24);
 
-    const trending = await externalTrendings();
-    console.log(trending);
+    // const trending = await externalTrendings();
+    // console.log(trending);
 
     handleProfilesScoring(PUBKEY_EXAMPLE);
     setInterval(handleProfilesScoring, 1000 * 60 * 60 * 24 * 7);

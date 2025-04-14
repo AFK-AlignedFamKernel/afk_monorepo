@@ -4,14 +4,14 @@ import { Pinecone } from "@pinecone-database/pinecone";
 import { ChatPromptTemplate } from "@langchain/core/prompts"
 
 import { z } from "zod";
-import { initLocalLLM, initOpenAILangchain } from "../index";
-
-
+import { initLLMChatOpenAI, initLocalLLM, initOpenAILangchain } from "../index";
 
 
 export const handleClassificationProfile = async (profileContent: string, contents: string[]) => {
     try {
-        const llm = await initLocalLLM();
+        // const llm = await initLocalLLM();
+        // const llm = await initOpenAILangchain();
+        const llm = await initLLMChatOpenAI();
 
         if (!llm || typeof llm !== "object" || llm === undefined || typeof llm === "undefined" || !llm?.withStructuredOutput) {
             return {
@@ -167,18 +167,19 @@ export const handleClassificationProfile = async (profileContent: string, conten
             name: "extractor",
         });
 
+        console.log("llmWihStructuredOutput",llmWihStructuredOutput);
         const prompt = await taggingPrompt.invoke({
             inputs: contents,
             profileContent: profileContent
         });
-        // console.log("prompt", prompt);
+        console.log("prompt", prompt);
 
         const res = await llmWihStructuredOutput?.invoke(prompt);
 
-        console.log("result classification", res);
+        console.log("result profile classification", res);
         return {
             status: "success",
-            message: "Classification successful",
+            message: "Profile classification successful",
             res: res,
             result: res,
             prompt: prompt,
