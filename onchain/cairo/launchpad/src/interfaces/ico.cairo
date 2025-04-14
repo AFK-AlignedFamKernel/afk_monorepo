@@ -86,7 +86,20 @@ pub enum PresaleStatus {
     Launched,
     Finalized,
     Active,
-    Finished: u256,
+    Finished,
+}
+
+impl StatusIntoU8 of Into<PresaleStatus, u8> {
+    #[inline(always)]
+    fn into(self: PresaleStatus) -> u8 {
+        match self {
+            PresaleStatus::None => 0,
+            PresaleStatus::Launched => 1,
+            PresaleStatus::Finalized => 2,
+            PresaleStatus::Active => 3,
+            PresaleStatus::Finished => 4,
+        }
+    }
 }
 
 #[starknet::storage_node]
@@ -160,4 +173,14 @@ pub struct TokenBought {
 pub struct BuyCanceled {
     pub token_address: ContractAddress,
     pub amount: u256,
+}
+
+#[derive(Drop, starknet::Event)]
+pub struct TokenClaimed {
+    #[key]
+    pub presale_token_address: ContractAddress,
+    pub claimed_token_address: ContractAddress,
+    pub recipient: ContractAddress,
+    pub amount: u256,
+    pub claimed_at: u64,
 }

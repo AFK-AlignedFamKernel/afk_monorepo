@@ -4,14 +4,15 @@ pub mod ICO {
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
-    use starknet::storage::{Map, MutableVecTrait, StoragePathEntry, Vec};
+    use starknet::storage::{Map, Mutable, MutableVecTrait, StoragePath, StoragePathEntry, Vec};
     use starknet::syscalls::deploy_syscall;
     use starknet::{
         ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
     };
     use crate::interfaces::ico::{
         IICO, IICOConfig, PresaleDetails, PresaleLaunched, PresaleStatus, Token, TokenBought,
-        TokenConfig, TokenCreated, TokenDetails, TokenInitParams, default_presale_details,
+        TokenClaimed, TokenConfig, TokenCreated, TokenDetails, TokenInitParams,
+        default_presale_details,
     };
     use crate::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
 
@@ -38,6 +39,7 @@ pub mod ICO {
         TokenCreated: TokenCreated,
         TokenBought: TokenBought,
         PresaleLauched: PresaleLaunched,
+        TokenClaimed: TokenClaimed,
         #[flat]
         UpgradeableEvent: UpgradeableComponent::Event,
         #[flat]
@@ -179,15 +181,13 @@ pub mod ICO {
         }
 
         fn launch_liquidity_providing(ref self: ContractState, token_address: ContractAddress) {
-            let token = self.tokens.entry(token_address);
+            let mut token = self.tokens.entry(token_address);
             assert(token.status.read() != Default::default(), 'INVALID LAUNCH');
-            let details = token.presale_details.read();
             let owner = token.owner_access.read();
             let mut status = token.status.read();
 
             // finalize, if applicable
-            self._update_status(details, ref status);
-            token.status.write(status);
+            update_status(ref token);
 
             assert(token.successful.read(), 'PRESALE FAILED');
             assert(owner.is_some() && status == PresaleStatus::Finalized, 'LAUNCHING FAILED');
@@ -203,12 +203,11 @@ pub mod ICO {
 
         fn buy_token(ref self: ContractState, token_address: ContractAddress, mut amount: u256) {
             let caller = get_caller_address();
-            let token = self.tokens.entry(token_address);
+            let mut token = self.tokens.entry(token_address);
             let mut status = token.status.read();
             let details = token.presale_details.read();
 
-            self._update_status(details, ref status);
-            token.status.write(status);
+            update_status(ref token);
             assert(status != PresaleStatus::Finalized, 'PRESALE HAS BEEN FINALIZED');
             assert(status == PresaleStatus::Launched, 'PRESALE STATUS ERROR');
 
@@ -280,7 +279,6 @@ pub mod ICO {
             token.funds_raised.write(funds_raised - amount);
             token.holders.entry(caller).write(0);
             token.current_supply.write(token.current_supply.read() - token_amount);
-
             // emit event
         }
 
@@ -338,15 +336,43 @@ pub mod ICO {
             self.tokens.entry(token_address).owner_access.write(Option::Some(caller));
         }
 
-        fn _update_status(
-            ref self: ContractState, details: PresaleDetails, ref status: PresaleStatus,
+        fn _claim(
+            ref self: ContractState, token_address: ContractAddress, caller: ContractAddress,
         ) {
-            if status == PresaleStatus::Launched && details.end_time > get_block_timestamp() {
-                status = PresaleStatus::Finalized;
-            }
-        }
+            let token = self.tokens.entry(token_address);
+            let status: u8 = token.status.read().into();
+            assert(status > PresaleStatus::Finalized.into(), 'PRESALE NOT FINALIZED');
 
-        fn _claim(ref self: ContractState, token_address: ContractAddress, to: ContractAddress) {}
+            // NOTE: The `funds_raised` and `current_supply` is not altered, for record purposes.
+            let mut amount = token.buyers.entry(caller).read();
+            assert(amount > 0, 'NOTHING TO CLAIM');
+
+            let mut claimed_token_address = token_address;
+            let mut claimed_amount = amount;
+            if token.successful.read() {
+                let dispatcher = IERC20Dispatcher { contract_address: token_address };
+                let token_amount = token.holders.entry(caller).read();
+                dispatcher.transfer(caller, token_amount);
+                claimed_amount = token_amount;
+            } else {
+                // refund
+                claimed_token_address = token.presale_details.read().buy_token;
+                let dispatcher = IERC20Dispatcher { contract_address: claimed_token_address };
+                dispatcher.transfer(caller, amount);
+            }
+
+            token.holders.entry(caller).write(0);
+            token.buyers.entry(caller).write(0);
+
+            let event = TokenClaimed {
+                presale_token_address: token_address,
+                claimed_token_address,
+                recipient: caller,
+                amount: claimed_amount,
+                claimed_at: get_block_timestamp(),
+            };
+            self.emit(event);
+        }
     }
 
     fn verify_balance(dispatcher: IERC20Dispatcher, caller: ContractAddress) -> u256 {
@@ -365,6 +391,18 @@ pub mod ICO {
         (current_supply - max_supply, min_supply)
     }
 
+    fn update_status(ref token: StoragePath<Mutable<Token>>) {
+        // TOOD: check without ref
+        let details = token.presale_details.read();
+        if token.status.read() == PresaleStatus::Launched
+            && details.end_time > get_block_timestamp() {
+            if token.funds_raised.read() > details.soft_cap {
+                token.successful.write(true);
+            }
+            token.status.write(PresaleStatus::Finalized);
+        }
+    }
+
     fn assert_non_zero(addresses: Array<ContractAddress>) {
         for address in addresses {
             assert(address.is_non_zero(), 'INIT PARAM ERROR');
@@ -380,3 +418,99 @@ pub mod ICO {
 
 #[cfg(test)]
 mod tests {}
+// fn _add_liquidity_ekubo(
+//     ref self: ContractState, coin_address: ContractAddress,
+//     // params: EkuboLaunchParameters
+// ) -> (u64, EkuboLP) {
+//     // TODO params of Ekubo launch
+//     // Init price and params of liquidity
+
+//     // TODO assert of threshold and MC reached
+//     let launch = self.launched_coins.read(coin_address);
+//     assert(launch.liquidity_raised >= launch.threshold_liquidity, 'no threshold raised');
+//     assert(launch.is_liquidity_launch == false, 'liquidity already launch');
+
+//     // TODO calculate price
+
+//     // let launch_price = launch.initial_pool_supply / launch.threshold_liquidity;
+//     // println!("launch_price {:?}", launch_price);
+
+//     // let price_u128:u128=launch_price.try_into().unwrap();
+//     // println!("price_u128 {:?}", price_u128);
+
+//     // let starting_price = i129 { sign: true, mag: 100_u128 };
+//     // let starting_price = i129 { sign: true, mag: 100_u128 };
+//     // let starting_price = i129 { sign: true, mag: price_u128 };
+//     let starting_price: i129 = self
+//         ._calculate_starting_price_launch(
+//             launch.initial_pool_supply, launch.threshold_liquidity,
+//         );
+//     let lp_meme_supply = launch.initial_pool_supply;
+
+//     // let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
+
+//     let params: EkuboLaunchParameters = EkuboLaunchParameters {
+//         owner: launch.owner,
+//         token_address: launch.token_address,
+//         quote_address: launch.token_quote.token_address,
+//         lp_supply: lp_meme_supply,
+//         // lp_supply: launch.liquidity_raised,
+//         pool_params: EkuboPoolParameters {
+//             fee: 0xc49ba5e353f7d00000000000000000,
+//             tick_spacing: 5982,
+//             starting_price,
+//             bound: 88719042,
+//         },
+//     };
+
+//     // Register the token in Ekubo Registry
+//     // let registry_address = self.ekubo_registry.read();
+//     // let registry = ITokenRegistryDispatcher { contract_address: registry_address };
+
+//     let ekubo_core_address = self.core.read();
+//     let ekubo_exchange_address = self.ekubo_exchange_address.read();
+//     let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
+//     //TODO token decimal, amount of 1 token?
+
+//     let pool = self.launched_coins.read(coin_address);
+//     let dex_address = self.core.read();
+//     memecoin.approve(ekubo_exchange_address, lp_meme_supply);
+//     memecoin.approve(ekubo_core_address, lp_meme_supply);
+//     assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
+//     let base_token = EKIERC20Dispatcher { contract_address: params.quote_address };
+//     //TODO token decimal, amount of 1 token?
+//     // let pool = self.launched_coins.read(coin_address);
+//     base_token.approve(ekubo_exchange_address, pool.liquidity_raised);
+//     base_token.approve(ekubo_core_address, pool.liquidity_raised);
+//     let core = ICoreDispatcher { contract_address: ekubo_core_address };
+//     // Call the core with a callback to deposit and mint the LP tokens.
+
+//     let (id, position) = call_core_with_callback::<
+//         // let span = call_core_with_callbac00k::<
+//         CallbackData, (u64, EkuboLP),
+//     >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
+//     // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
+//     //TODO emit event
+//     let id_cast: u256 = id.try_into().unwrap();
+
+//     let mut launch_to_update = self.launched_coins.read(coin_address);
+//     launch_to_update.is_liquidity_launch = true;
+//     self.launched_coins.entry(coin_address).write(launch_to_update.clone());
+
+//     self
+//         .emit(
+//             LiquidityCreated {
+//                 id: id_cast,
+//                 pool: coin_address,
+//                 asset: coin_address,
+//                 quote_token_address: base_token.contract_address,
+//                 owner: launch.owner,
+//                 exchange: SupportedExchanges::Ekubo,
+//                 is_unruggable: false,
+//             },
+//         );
+
+//     (id, position)
+// }
+
+
