@@ -159,5 +159,5 @@ pub struct TokenBought {
 #[derive(Drop, starknet::Event)]
 pub struct BuyCanceled {
     pub token_address: ContractAddress,
-    pub amount: u256
+    pub amount: u256,
 }

@@ -25,6 +25,7 @@ pub mod ICO {
         token_init: TokenInitParams,
         presale_count: u256,
         token_class_hash: ClassHash,
+        exchange_address: ContractAddress,
         #[substorage(v0)]
         upgradeable: UpgradeableComponent::Storage,
         #[substorage(v0)]
@@ -52,13 +53,16 @@ pub mod ICO {
         fee_to: ContractAddress,
         max_token_supply: u256,
         paid_in: ContractAddress,
+        exchange_address: ContractAddress,
     ) {
+        assert_non_zero(array![owner, fee_to, paid_in, exchange_address]);
         self.ownable.initializer(owner);
         self.token_class_hash.write(token_class_hash);
         self.token_init.fee_amount.write(fee_amount);
         self.token_init.fee_to.write(fee_to);
         self.token_init.max_token_supply.write(max_token_supply);
         self.token_init.paid_in.write(paid_in);
+        self.exchange_address.write(exchange_address);
     }
 
     #[abi(embed_v0)]
@@ -197,7 +201,7 @@ pub mod ICO {
             // emit LiquidityLaunched
         }
 
-        fn buy_token(ref self: ContractState, token_address: ContractAddress, amount: u256) {
+        fn buy_token(ref self: ContractState, token_address: ContractAddress, mut amount: u256) {
             let caller = get_caller_address();
             let token = self.tokens.entry(token_address);
             let mut status = token.status.read();
@@ -219,7 +223,14 @@ pub mod ICO {
             // Stops buyer from buying all available tokens, at any instance.
             let (threshold, _) = get_trade_threshold(details, token.current_supply.read());
             let current_funds = funds_raised + amount;
-            assert(current_funds <= threshold, 'AMOUNT TOO HIGH');
+            let current_funds_token = current_funds * details.presale_rate;
+            assert(current_funds_token <= threshold, 'AMOUNT TOO HIGH');
+
+            // Peg amount to match hard cap when hard cap is exceeded
+            // Test for this.
+            if current_funds > details.hard_cap {
+                amount = details.hard_cap - current_funds;
+            }
 
             dispatcher.transfer_from(caller, get_contract_address(), amount);
             token.funds_raised.write(current_funds);
@@ -234,7 +245,7 @@ pub mod ICO {
             // check cap value, and resolve presale
             if current_funds >= details.soft_cap {
                 token.successful.write(true);
-                if current_funds >= details.hard_cap {
+                if current_funds == details.hard_cap {
                     token.status.write(PresaleStatus::Finalized);
                 }
             }
@@ -269,6 +280,8 @@ pub mod ICO {
             token.funds_raised.write(funds_raised - amount);
             token.holders.entry(caller).write(0);
             token.current_supply.write(token.current_supply.read() - token_amount);
+
+            // emit event
         }
 
         fn claim(ref self: ContractState, token_address: ContractAddress) {
@@ -279,12 +292,15 @@ pub mod ICO {
             ref self: ContractState,
         ) { // investors cannot claim token until liquidity has been added
         }
+
         fn whitelist(
             ref self: ContractState, token_address: ContractAddress, target: Array<ContractAddress>,
         ) {
             assert(target.len() > 0, 'TARGET IS EMPTY');
             let token = self.tokens.entry(token_address);
-            assert!(token.presale_details.read().whitelist, "PRESALE DOES NOT ACCEPT WHITELIST");
+            assert(token.owner_access.read().is_some(), 'INVALID TOKEN ADDRESS');
+            assert(token.owner_access.read().unwrap() == get_caller_address(), 'ACCESS DENIED');
+            assert(token.presale_details.read().whitelist, 'ERROR WHITELISTING TARGET');
             for address in target {
                 token.whitelist.entry(address).write(true);
             }
@@ -349,9 +365,18 @@ pub mod ICO {
         (current_supply - max_supply, min_supply)
     }
 
+    fn assert_non_zero(addresses: Array<ContractAddress>) {
+        for address in addresses {
+            assert(address.is_non_zero(), 'INIT PARAM ERROR');
+        };
+    }
+
     #[abi(embed_v0)]
     impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
     impl InternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
     impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
 }
+
+#[cfg(test)]
+mod tests {}
