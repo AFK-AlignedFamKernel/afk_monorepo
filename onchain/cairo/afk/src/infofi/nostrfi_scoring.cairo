@@ -8,7 +8,7 @@ pub mod NostrFiScoring {
         OPERATOR_ROLE, ProfileAlgorithmScoring, ProfileVoteScoring, PushAlgoScoreEvent,
         PushAlgoScoreNostrNote, TipByUser, TokenLaunchType, TotalAlgoScoreRewards,
         TotalDepositRewards, TotalScoreRewards, Vote, VoteNostrNote, VoteParams, VoteProfile,
-        VoteUserForProfile,
+        VoteUserForProfile, EpochRewards,
     };
     // use afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
     // use crate::afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
@@ -65,6 +65,7 @@ pub mod NostrFiScoring {
     #[storage]
     struct Storage {
         // Admin setup
+
         main_token_address: ContractAddress,
         vote_token_address: ContractAddress,
         admin_nostr_pubkey: u256, // Admin Nostr pubkey
@@ -79,6 +80,12 @@ pub mod NostrFiScoring {
         admin_params: NostrFiAdminStorage,
         percentage_algo_score_distribution: u256,
         // Duration
+        epoch_index: u64,
+        current_epoch_rewards: EpochRewards,
+        epoch_rewards: Map<u64, EpochRewards>,
+        epoch_rewards_per_start_epoch: Map<u64, EpochRewards>,
+        epoch_rewards_per_end_epoch: Map<u64, EpochRewards>,
+
         epoch_duration: u64,
         batch_timestamp: u64,
         last_batch_timestamp: u64,
@@ -94,6 +101,9 @@ pub mod NostrFiScoring {
         deposit_rewards_per_start_epoch: Map<u64, TotalDepositRewards>,
         score_rewards_per_start_epoch: Map<u64, TotalScoreRewards>,
         algo_score_rewards_per_start_epoch: Map<u64, TotalAlgoScoreRewards>,
+
+        is_reward_epoch_claimed_by_nostr_user: Map<u256, bool>,
+        is_reward_epoch_claimed_by_user: Map<ContractAddress, bool>,
         // Users logic state
         total_tip_by_user: Map<u256, TipByUser>,
         last_timestamp_oracle_score_by_user: Map<u256, u64>,
@@ -113,10 +123,13 @@ pub mod NostrFiScoring {
         tip_to_claim_by_user_because_not_linked: Map<NostrPublicKey, u256>,
         // Vote setup
         nostr_account_scoring: Map<u256, NostrAccountScoring>,
+        nostr_account_scoring_per_epoch: Map<u256, NostrAccountScoring>,
         nostr_account_scoring_algo: Map<u256, ProfileAlgorithmScoring>,
         nostr_vote_profile: Map<u256, VoteProfile>,
-        old_nostr_account_scoring: Map<Map<ContractAddress, u256>, NostrAccountScoring>,
-        old_nostr_vote_profile: Map<Map<ContractAddress, u256>, VoteProfile>,
+        old_nostr_account_scoring: Map<u256, Map<u64, NostrAccountScoring>>, // score per epoch
+        old_nostr_vote_profile: Map<u256, Map<u64, VoteProfile>>, 
+        old_nostr_account_scoring_algo: Map<u256, Map<u64, ProfileAlgorithmScoring>>,
+        old_nostr_account_vote_profile: Map<u256, Map<u64, VoteProfile>>,
         events_by_user: Map<ContractAddress, Vec<u256>>,
         events_by_nostr_user: Map<u256, Vec<u256>>,
         tokens_address_accepted: Map<ContractAddress, bool>,
@@ -231,6 +244,18 @@ pub mod NostrFiScoring {
         self.end_epoch_time.write(end_epoch_time);
 
         self.percentage_algo_score_distribution.write(PERCENTAGE_ALGO_SCORE_DISTRIBUTION);
+
+        self.epoch_rewards.entry(0).write(EpochRewards {
+            index: 0,
+            epoch_duration: EPOCH_DURATION_DEFAULT,
+            start_epoch_time: now,
+            end_epoch_time: end_epoch_time,
+            is_finalized: false,
+            is_claimed: false,
+            total_score_ai: 0,
+            total_score_tips: 0,
+            total_score_algo: 0,
+        });
 
         self
             .admin_params
@@ -503,6 +528,82 @@ pub mod NostrFiScoring {
 
         }
 
+
+        fn _check_epoch_need_transition(ref self: ContractState) -> bool {
+            let now = get_block_timestamp();
+            let end_epoch_time = self.current_epoch_rewards.read().end_epoch_time;
+            now >= end_epoch_time
+        }
+
+        fn _check_epoch_transition(ref self: ContractState) {
+
+            let is_ended = self._check_epoch_is_ended(self.current_epoch_rewards.read().end_epoch_time);
+            if is_ended {
+                self._finalize_epoch();
+                self._transition_to_next_epoch(); 
+            }
+        }
+
+        // Transition to next epoch
+        // Epoch transition
+
+        fn _finalize_epoch(ref self: ContractState) {
+
+            let caller_address = get_caller_address();
+            let mut current_epoch_rewards = self.current_epoch_rewards.read();
+            let epoch_index = self.epoch_index.read();
+            current_epoch_rewards.is_finalized = true;
+            self.epoch_rewards.entry(epoch_index).write(current_epoch_rewards);
+
+            // self.epoch_rewards_per_start_epoch.entry(now).write(current_epoch_rewards);
+            // self.epoch_rewards_per_end_epoch.entry(current_epoch_rewards.end_epoch_time).write(current_epoch_rewards);
+
+        }
+
+
+        fn _transition_to_next_epoch(ref self: ContractState) {
+            let now = get_block_timestamp();
+
+            let new_epoch_index = self.epoch_index.read() + 1;
+            self.epoch_index.write(new_epoch_index);
+
+            let new_epoch_rewards = EpochRewards {
+                index: new_epoch_index,
+                epoch_duration: self.epoch_duration.read(),
+                start_epoch_time: now,
+                end_epoch_time: now + self.epoch_duration.read(),
+                is_finalized: false,
+                is_claimed: false,
+                total_score_ai: 0,
+                total_score_tips: 0,
+                total_score_algo: 0,
+            };
+            self.epoch_rewards.entry(new_epoch_index).write(new_epoch_rewards);
+            self.current_epoch_rewards.write(new_epoch_rewards);
+        }
+
+        fn _transition_overall_state(ref self: ContractState,
+            start_epoch_time: u64,
+            end_epoch_time: u64,
+        ) {
+
+        }
+
+        
+        fn _transition_user_state_to_next_epoch(ref self: ContractState,
+            start_epoch_time: u64,
+            end_epoch_time: u64,) {
+
+            let caller_address = get_caller_address();
+            let nostr_address = self.sn_to_nostr.read(caller_address);
+            let now = get_block_timestamp();
+            let mut current_epoch_rewards = self.current_epoch_rewards.read();
+            let epoch_index = self.epoch_index.read();
+            current_epoch_rewards.is_finalized = true;
+            self.epoch_rewards.entry(epoch_index).write(current_epoch_rewards);
+
+        }
+
         // Distribution of rewards for one user
         // Algorithm + User vote tips
         // TODO:
@@ -743,6 +844,10 @@ pub mod NostrFiScoring {
                 rewards_amount: 0,
                 unique_address: 0,
             };
+
+
+            self.is_reward_epoch_claimed_by_nostr_user.entry(nostr_address).write(true);
+            self.is_reward_epoch_claimed_by_user.entry(caller).write(true);
 
             // External call
 

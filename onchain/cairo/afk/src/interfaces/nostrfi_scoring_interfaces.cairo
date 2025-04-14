@@ -381,6 +381,18 @@ pub struct TotalVoteTipsRewards {
     pub is_claimed: bool,
 }
 
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
+pub struct EpochRewards {
+    pub index:u64,
+    pub epoch_duration: u64,
+    pub start_epoch_time: u64,
+    pub end_epoch_time: u64,
+    pub is_finalized: bool,
+    pub is_claimed: bool,
+    pub total_score_ai: u256,
+    pub total_score_tips:u256,
+    pub total_score_algo:u256,
+}
 
 #[derive(Copy, Debug, Drop, Serde, starknet::Store, PartialEq)]
 pub enum Vote {
