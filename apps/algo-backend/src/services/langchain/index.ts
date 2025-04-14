@@ -1,21 +1,40 @@
 
-import { LLMChain } from "langchain/chains";
-import { OpenAI } from "@langchain/openai";
+import { ChatOllama } from "@langchain/ollama";
+import { OpenAI, ChatOpenAI } from "@langchain/openai";
 import { Pinecone } from "@pinecone-database/pinecone";
 
-const initPinecone = async () => {
+export const initLocalLLM = () => {
+    const llm = new ChatOllama({
+      baseUrl: "http://localhost:11434", // Ollama local server
+      model: "mistral", // or "llama3", etc.
+      temperature: 0.3,
+    });
+    return llm;
+  };
+  
+export const initPinecone = async () => {
     const pinecone = new Pinecone();
     return pinecone.index("test");
 }
 
-const initializeLangchain = async () => {
+export const initOpenAILangchain = async () => {
     const llm = new OpenAI({
         model: "gpt-3.5-turbo",
         apiKey: process.env.OPENAI_API_KEY,
+        temperature: 0,
+        
     });
     return llm;
 }
-
+export const initLLMChatOpenAI = async () => {
+    const llm = new ChatOpenAI({
+        model: "gpt-4o-mini",
+        temperature: 0,
+        apiKey: process.env.OPENAI_API_KEY!,
+        // reasoningEffort: "medium"
+    });
+    return llm;
+}
 export const classifyPost = async (content: string) => {
 
     // Define post classification criteria
