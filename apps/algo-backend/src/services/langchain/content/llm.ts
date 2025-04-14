@@ -8,9 +8,8 @@ import { initLLMChatOpenAI, initLocalLLM, initOpenAILangchain } from "..";
 
 export const handleClassification = async (content: string) => {
     try {
-        // const llm = await initLocalLLM();
-        // const llm = await initOpenAILangchain();
-        const llm = await initLLMChatOpenAI();
+        const llm = await initLocalLLM();
+        // const llm = await initLLMChatOpenAI();
 
         if (!llm || typeof llm !== "object" || llm === undefined || typeof llm === "undefined" || !llm?.withStructuredOutput) {
             return {

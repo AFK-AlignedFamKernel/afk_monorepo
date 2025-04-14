@@ -214,6 +214,16 @@ pub impl CreateTokenProfileEncodeImpl of Encode<CreateTokenProfile> {
     }
 }
 
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
+pub struct TipUserWithVote {
+    pub nostr_address: NostrPublicKey,
+    pub nostr_event_id: NostrPublicKey,
+    pub starknet_address: ContractAddress,
+    pub amount_token:u256,
+    pub amount_vote:u256,
+    pub current_index_epoch:u64
+}
+
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct LinkedThisNostrNote {

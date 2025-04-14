@@ -3,10 +3,10 @@ import { ChatOllama } from "@langchain/ollama";
 import { OpenAI, ChatOpenAI } from "@langchain/openai";
 import { Pinecone } from "@pinecone-database/pinecone";
 
-export const initLocalLLM = () => {
+export const initLocalLLM = (model?:string) => {
     const llm = new ChatOllama({
       baseUrl: "http://localhost:11434", // Ollama local server
-      model: "mistral", // or "llama3", etc.
+      model: model || "llama3.2:1b", // or "mistral","llama3", etc.
       temperature: 0.3,
     });
     return llm;

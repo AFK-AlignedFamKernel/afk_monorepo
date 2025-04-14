@@ -8,7 +8,7 @@ pub mod NostrFiScoring {
         OPERATOR_ROLE, ProfileAlgorithmScoring, ProfileVoteScoring, PushAlgoScoreEvent,
         PushAlgoScoreNostrNote, TipByUser, TokenLaunchType, TotalAlgoScoreRewards,
         TotalDepositRewards, TotalScoreRewards, Vote, VoteNostrNote, VoteParams, VoteProfile,
-        VoteUserForProfile, EpochRewards,
+        VoteUserForProfile, EpochRewards, TipUserWithVote,
     };
     // use afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
     // use crate::afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
@@ -214,6 +214,7 @@ pub mod NostrFiScoring {
         TipToClaimByUserBecauseNotLinked: TipToClaimByUserBecauseNotLinked,
         DistributionRewardsByUserEvent: DistributionRewardsByUserEvent,
         PushAlgoScoreEvent: PushAlgoScoreEvent,
+        TipUserWithVote: TipUserWithVote,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -369,6 +370,8 @@ pub mod NostrFiScoring {
         // amount_token: u256,
 
         ) {
+            let current_index_epoch = self.epoch_index.read();
+
             let nostr_to_sn = self.nostr_to_sn.read(vote_params.nostr_address);
             let old_tip_by_user = self.total_tip_by_user.read(vote_params.nostr_address);
 
@@ -485,6 +488,15 @@ pub mod NostrFiScoring {
             };
 
             self.total_score_rewards.write(update_total_score_vote);
+
+            self.emit(TipUserWithVote {
+                nostr_address: vote_params.nostr_address,
+                nostr_event_id: vote_params.nostr_address,
+                starknet_address: nostr_to_sn,
+                amount_token: vote_params.amount_token,
+                amount_vote: vote_params.amount_token,
+                current_index_epoch: current_index_epoch,
+            });
             
         }
 
@@ -847,7 +859,7 @@ pub mod NostrFiScoring {
 
 
             self.is_reward_epoch_claimed_by_nostr_user.entry(nostr_address).write(true);
-            self.is_reward_epoch_claimed_by_user.entry(caller).write(true);
+            self.is_reward_epoch_claimed_by_user.entry(starknet_user_address).write(true);
 
             // External call
 

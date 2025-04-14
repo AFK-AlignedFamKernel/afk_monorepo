@@ -3,6 +3,14 @@ export default {
   STARTING_BLOCK: 450_000,
   STARTING_BLOCK_UNRUG: 615_556,
   STARTING_BLOCK_MAINNET: 615_556,
+  networks: {
+    mainnet: {
+      name: 'mainnet',
+    },
+    sepolia: {
+      name: 'sepolia',
+    },
+  },
   contracts: {
     mainnet: {
       FACTORY_ADDRESS:
@@ -26,6 +34,8 @@ LAUNCHPAD_ADDRESS:"0x14b92e6224ac3693ccc396e03744576d93be30daf3f29d92e5b1458b328
         '0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f',
       ESCROW_DEPOSIT_ADDRESS:
         '0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee',
+        NOSTRFI_SCORING_ADDRESS:
+        '0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc',
     },
   },
   apibara: {

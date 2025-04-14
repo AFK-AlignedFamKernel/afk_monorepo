@@ -1,17 +1,15 @@
 
-import { ChatOpenAI, OpenAI, OpenAIClient } from "@langchain/openai";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { ChatPromptTemplate } from "@langchain/core/prompts"
 
 import { z } from "zod";
-import { initLLMChatOpenAI, initLocalLLM, initOpenAILangchain } from "../index";
+import { initLLMChatOpenAI, initLocalLLM } from "../index";
 
 
 export const handleClassificationProfile = async (profileContent: string, contents: string[]) => {
     try {
-        // const llm = await initLocalLLM();
-        // const llm = await initOpenAILangchain();
-        const llm = await initLLMChatOpenAI();
+        const llm = await initLocalLLM();
+        // const llm = await initLLMChatOpenAI();
 
         if (!llm || typeof llm !== "object" || llm === undefined || typeof llm === "undefined" || !llm?.withStructuredOutput) {
             return {
