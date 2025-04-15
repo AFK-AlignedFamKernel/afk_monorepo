@@ -291,6 +291,7 @@ pub mod ICO {
             // investors cannot claim token until liquidity has been added
             let caller = get_caller_address();
             let token = self.tokens.entry(token_address);
+            update_status(token);
             let status: u8 = token.status.read().into();
             assert(status >= PresaleStatus::Active.into(), 'PRESALE NOT ACTIVE');
             let mut amount = token.buyers.entry(caller).read();
@@ -307,6 +308,7 @@ pub mod ICO {
             assert(tokens.len() > 0, 'NOTHING TO CLAIM');
             while let Option::Some(token_address) = tokens.pop() {
                 let token = self.tokens.entry(token_address);
+                update_status(token);
                 let status: u8 = token.status.read().into();
                 let amount = token.buyers.entry(caller).read();
                 if status >= PresaleStatus::Active.into() && amount > 0 {
@@ -460,4 +462,8 @@ mod tests {
     fn deploy_default_contract() -> ContractAddress {
         Zero::zero()
     }
+
+    // Test buy_token for a token twice, run claim_all, it shouldn't throw an error, but it should run perfectly.
+    // buy_token pushes the token's contract twice, so the second call to _claim should do absolutely nothing.
+    // But claim won't work until the token is deployed to Ekubo sepolia. 
 }
