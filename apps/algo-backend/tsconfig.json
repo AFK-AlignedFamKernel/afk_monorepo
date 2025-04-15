@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "lib": ["dom", "esnext"],
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "allowJs": true,
+    "useUnknownInCatchVariables": false,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "dist",
+    "rootDir": "./src",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "strictNullChecks": true
+  },
+  "exclude": ["node_modules", "dist"],
+  "include": [
+    "src/**/*.graphql",
+    "src/**/*",
+    "src/**/*.js",
+    "src/**/*.ts",
+    "/src/**/*.ts",
+    "**/*.ts",
+    "**/*.js",
+  ],
+  "paths": {
+    "indexer-prisma": ["packages/indexer-prisma/src"],
+    "common": ["packages/common/src"]
+  }
+}

@@ -7,28 +7,28 @@ pub mod UserNameClaimErrors {
 #[starknet::contract]
 pub mod UsernameStore {
     use afk::interfaces::username_store::IUsernameStore;
-    use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
+    use starknet::storage::{Map, StoragePathEntry, StoragePointerWriteAccess};
     use starknet::{ContractAddress, contract_address_const, get_caller_address};
     use super::UserNameClaimErrors;
 
     #[storage]
     struct Storage {
-        usernames: Map::<felt252, ContractAddress>,
-        user_to_username: Map::<ContractAddress, felt252>
+        usernames: Map<felt252, ContractAddress>,
+        user_to_username: Map<ContractAddress, felt252>,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         UserNameClaimed: UserNameClaimed,
-        UserNameChanged: UserNameChanged
+        UserNameChanged: UserNameChanged,
     }
 
     #[derive(Drop, starknet::Event)]
     struct UserNameClaimed {
         #[key]
         address: ContractAddress,
-        username: felt252
+        username: felt252,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -36,7 +36,7 @@ pub mod UsernameStore {
         #[key]
         address: ContractAddress,
         old_username: felt252,
-        new_username: felt252
+        new_username: felt252,
     }
 
     #[abi(embed_v0)]
@@ -46,13 +46,13 @@ pub mod UsernameStore {
 
             assert(
                 self.user_to_username.read(caller_address) == 0,
-                UserNameClaimErrors::USER_HAS_USERNAME
+                UserNameClaimErrors::USER_HAS_USERNAME,
             );
 
             let username_address = self.usernames.read(key);
             assert(
                 username_address == contract_address_const::<0>(),
-                UserNameClaimErrors::USERNAME_CLAIMED
+                UserNameClaimErrors::USERNAME_CLAIMED,
             );
 
             self.usernames.entry(key).write(caller_address);
@@ -69,7 +69,7 @@ pub mod UsernameStore {
             let new_username_address = self.usernames.read(new_username);
             assert(
                 new_username_address == contract_address_const::<0>(),
-                UserNameClaimErrors::USERNAME_CLAIMED
+                UserNameClaimErrors::USERNAME_CLAIMED,
             );
 
             self.usernames.entry(old_username).write(contract_address_const::<0>());
@@ -81,8 +81,8 @@ pub mod UsernameStore {
                     UserNameChanged {
                         old_username: old_username,
                         new_username: new_username,
-                        address: caller_address
-                    }
+                        address: caller_address,
+                    },
                 );
         }
 

@@ -4,6 +4,12 @@ const nextConfig = {
     config.externals.push('encoding');
     return config;
   },
+  experimental: {
+    externalDir: true,
+  },
+  // experimental: {
+  //   optimizePackageImports: ['@chakra-ui/react', "@chakra-ui/icons"],
+  // }, 
   async headers() {
     return [
       {

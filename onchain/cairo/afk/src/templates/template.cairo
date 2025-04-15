@@ -4,16 +4,16 @@ pub mod TemplateStoreComponent {
     use core::num::traits::Zero;
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{ContractAddress, get_caller_address};
     #[storage]
     struct Storage {
         templates_count: u32,
         // Map: template_id -> template_metadata
-        templates: Map::<u32, TemplateMetadata>,
+        templates: Map<u32, TemplateMetadata>,
         // Map: template_id -> is_completed
-        completed_templates: Map::<u32, bool>,
+        completed_templates: Map<u32, bool>,
     }
 
     #[event]
@@ -39,14 +39,14 @@ pub mod TemplateStoreComponent {
 
     #[embeddable_as(TemplateStoreImpl)]
     impl TemplateStore<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
     > of ITemplateStore<ComponentState<TContractState>> {
         fn get_templates_count(self: @ComponentState<TContractState>) -> u32 {
             self.templates_count.read()
         }
 
         fn get_template(
-            self: @ComponentState<TContractState>, template_id: u32
+            self: @ComponentState<TContractState>, template_id: u32,
         ) -> TemplateMetadata {
             self.templates.read(template_id)
         }
@@ -59,7 +59,7 @@ pub mod TemplateStoreComponent {
 
         // TODO: Return idx of the template?
         fn add_template(
-            ref self: ComponentState<TContractState>, template_metadata: TemplateMetadata
+            ref self: ComponentState<TContractState>, template_metadata: TemplateMetadata,
         ) {
             let template_id = self.templates_count.read();
             self.templates.entry(template_id).write(template_metadata);
@@ -79,12 +79,12 @@ pub mod TemplateStoreComponent {
 
     #[generate_trait]
     impl InternalImpl<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
     > of InternalTrait<TContractState> {
         fn deposit(
             ref self: ComponentState<TContractState>,
             reward_token: ContractAddress,
-            reward_amount: u256
+            reward_amount: u256,
         ) {
             let caller_address = get_caller_address();
             let contract_address = starknet::get_contract_address();

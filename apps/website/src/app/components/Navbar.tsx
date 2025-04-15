@@ -6,22 +6,25 @@ import {createPortal} from 'react-dom';
 
 import {MobileNavBar} from './MobileNavBar';
 import {NavigationLinks} from './NavigationLinks';
+import {Box, Button, Text, Image as ImageChakra, Link as LinkChakra} from '@chakra-ui/react';
+
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);
   const [toggleParamsNav, setToggleParamsNav] = useState(false);
   return (
-    <div className="desktop:py-[26px] py-3 px-6 desktop:px-[120px] bg-black flex justify-between items-center">
-      <div className="flex items-center gap-x-[10px] text">
+    <Box className="desktop:py-[26px] py-3 px-6 desktop:px-[120px] flex justify-between items-center">
+      <Box className="flex items-center gap-x-[10px] text">
         <img
           // src="/assets/pepe-logo.png"
           src="/assets/afk_logo_circle.png"
           className="desktop:h-[52px] w-9 h-9 desktop:w-[52px]"
           alt=""
         />
-        <Link href="/">
-          <h5 className="desktop:text-2xl text-lg leading-7 font-bold text-white">AFK</h5>
-        </Link>
-      </div>
+        <LinkChakra href="/" className="desktop:text-2xl text-lg leading-7 font-bold">
+          AFK
+          {/* <Text >AFK</Text> */}
+        </LinkChakra>
+      </Box>
       <NavigationLinks />
 
       {/* <button
@@ -37,26 +40,28 @@ export function Navbar() {
       {/* {toggleParamsNav &&
         createPortal(<MenuNav setToggle={setToggleParamsNav} toggle={toggleParamsNav} />, document.body)
       } */}
-      <div className="desktop:flex hidden items-center gap-x-4 font-bold text-sm leading-[16px]">
-        <button className="py-[15px] px-[48px] bg-white">
-          <a href="https://afk-community.xyz" target="_blank">
-            Go AFK
-          </a>
-        </button>
-      </div>
 
-      <button
-        className="flex desktop:hidden"
+      <Button
+        className="flex"
         onClick={() => {
-          setToggleNav(true);
-          window.scrollTo({top: 0, left: 0, behavior: 'smooth'});
+          if (toggleNav) {
+            setToggleNav(false);
+          } else {
+            setToggleNav(true);
+            window.scrollTo({top: 0, left: 0, behavior: 'smooth'});
+          }
         }}
       >
-        <img src="assets/hamburger-icon.svg" className="w-6 h-6" alt="" />
-      </button>
+        <ImageChakra
+          src="assets/hamburger-icon.svg"
+          className="w-6 h-6"
+          alt=""
+          color="currentColor"
+        />
+      </Button>
 
       {toggleNav &&
         createPortal(<MobileNavBar setToggle={setToggleNav} toggle={toggleNav} />, document.body)}
-    </div>
+    </Box>
   );
 }

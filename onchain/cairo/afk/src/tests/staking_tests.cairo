@@ -1,9 +1,9 @@
 use afk::staking::interfaces::{
-    IERC20Dispatcher, IERC20DispatcherTrait, IStakingDispatcher, IStakingDispatcherTrait
+    IERC20Dispatcher, IERC20DispatcherTrait, IStakingDispatcher, IStakingDispatcherTrait,
 };
 use snforge_std::{
-    declare, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
-    stop_cheat_caller_address, start_cheat_block_timestamp_global, stop_cheat_block_timestamp_global
+    ContractClassTrait, DeclareResultTrait, declare, start_cheat_block_timestamp_global,
+    start_cheat_caller_address, stop_cheat_block_timestamp_global, stop_cheat_caller_address,
 };
 use starknet::ContractAddress;
 
@@ -16,7 +16,7 @@ fn deploy_token(name: ByteArray) -> ContractAddress {
 }
 
 fn deploy_staking_contract(
-    name: ByteArray, staking_token: ContractAddress, reward_token: ContractAddress
+    name: ByteArray, staking_token: ContractAddress, reward_token: ContractAddress,
 ) -> ContractAddress {
     let owner: ContractAddress = starknet::contract_address_const::<0x123626789>();
 
@@ -57,7 +57,7 @@ fn test_staking_constructor() {
     let staking_token_address = deploy_token("StakingToken");
     let reward_token_address = deploy_token("RewardToken");
     let staking_contract_address = deploy_staking_contract(
-        "StakingRewards", staking_token_address, reward_token_address
+        "StakingRewards", staking_token_address, reward_token_address,
     );
 
     let staking_contract = IStakingDispatcher { contract_address: staking_contract_address };
@@ -66,7 +66,7 @@ fn test_staking_constructor() {
 
     assert!(staking_contract.owner() == owner, "wrong owner");
     assert!(
-        staking_contract.staking_token() == staking_token_address, "wrong staking token address"
+        staking_contract.staking_token() == staking_token_address, "wrong staking token address",
     );
     assert!(staking_contract.rewards_token() == reward_token_address, "wrong reward token address");
 }
@@ -77,7 +77,7 @@ fn test_set_reward_duration_should_panic() {
     let staking_token_address = deploy_token("StakingToken");
     let reward_token_address = deploy_token("RewardToken");
     let staking_contract_address = deploy_staking_contract(
-        "StakingRewards", staking_token_address, reward_token_address
+        "StakingRewards", staking_token_address, reward_token_address,
     );
 
     let staking_contract = IStakingDispatcher { contract_address: staking_contract_address };
@@ -92,7 +92,7 @@ fn test_set_rewards_duration() {
     let staking_token_address = deploy_token("StakingToken");
     let reward_token_address = deploy_token("RewardToken");
     let staking_contract_address = deploy_staking_contract(
-        "StakingRewards", staking_token_address, reward_token_address
+        "StakingRewards", staking_token_address, reward_token_address,
     );
 
     let staking_contract = IStakingDispatcher { contract_address: staking_contract_address };
@@ -118,7 +118,7 @@ fn test_notify_reward_amount() {
     let staking_token_address = deploy_token("StakingToken");
     let reward_token_address = deploy_token("RewardToken");
     let staking_contract_address = deploy_staking_contract(
-        "StakingRewards", staking_token_address, reward_token_address
+        "StakingRewards", staking_token_address, reward_token_address,
     );
 
     let staking_token = IERC20Dispatcher { contract_address: staking_token_address };
@@ -140,7 +140,7 @@ fn test_notify_reward_amount() {
     stop_cheat_caller_address(reward_token_address);
     assert!(
         reward_token.allowance(owner, staking_contract_address) == mint_amount,
-        "reward token approval failed"
+        "reward token approval failed",
     );
 
     let duration: u256 = 1800_u256;
@@ -157,7 +157,7 @@ fn test_notify_reward_amount() {
     assert!(staking_contract.duration() == duration, "duration not properly set");
     assert!(
         staking_contract.finish_at() == staking_contract.return_block_timestamp() + duration,
-        "reward notification failed"
+        "reward notification failed",
     );
 
     stop_cheat_block_timestamp_global();
@@ -168,7 +168,7 @@ fn test_stake() {
     let staking_token_address = deploy_token("StakingToken");
     let reward_token_address = deploy_token("RewardToken");
     let staking_contract_address = deploy_staking_contract(
-        "StakingRewards", staking_token_address, reward_token_address
+        "StakingRewards", staking_token_address, reward_token_address,
     );
 
     let staking_token = IERC20Dispatcher { contract_address: staking_token_address };
@@ -190,7 +190,7 @@ fn test_stake() {
     stop_cheat_caller_address(reward_token_address);
     assert!(
         reward_token.allowance(owner, staking_contract_address) == mint_amount,
-        "reward token approval failed"
+        "reward token approval failed",
     );
 
     // Approve staking contract to spend staking token.
@@ -199,7 +199,7 @@ fn test_stake() {
     stop_cheat_caller_address(staking_token_address);
     assert!(
         staking_token.allowance(owner, staking_contract_address) == mint_amount,
-        "staking token approval failed"
+        "staking token approval failed",
     );
 
     let duration: u256 = 1800_u256;
@@ -217,7 +217,7 @@ fn test_stake() {
 
     assert!(staking_contract.total_supply() == stake_amount, "stake failed");
     assert!(
-        staking_token.balance_of(staking_contract_address) == stake_amount, "stake didn't work"
+        staking_token.balance_of(staking_contract_address) == stake_amount, "stake didn't work",
     );
 
     stop_cheat_block_timestamp_global();
@@ -228,7 +228,7 @@ fn test_rewards_earned() {
     let staking_token_address = deploy_token("StakingToken");
     let reward_token_address = deploy_token("RewardToken");
     let staking_contract_address = deploy_staking_contract(
-        "StakingRewards", staking_token_address, reward_token_address
+        "StakingRewards", staking_token_address, reward_token_address,
     );
 
     let staking_token = IERC20Dispatcher { contract_address: staking_token_address };
@@ -250,7 +250,7 @@ fn test_rewards_earned() {
     stop_cheat_caller_address(reward_token_address);
     assert!(
         reward_token.allowance(owner, staking_contract_address) == mint_amount,
-        "reward token approval failed"
+        "reward token approval failed",
     );
 
     // Approve staking contract to spend staking token.
@@ -259,7 +259,7 @@ fn test_rewards_earned() {
     stop_cheat_caller_address(staking_token_address);
     assert!(
         staking_token.allowance(owner, staking_contract_address) == mint_amount,
-        "staking token approval failed"
+        "staking token approval failed",
     );
 
     let duration: u256 = 1800_u256;
@@ -284,7 +284,7 @@ fn test_rewards_earned() {
     assert!(staking_contract.total_supply() == stake_amount + stake_amount, "stake failed");
     assert!(
         staking_token.balance_of(staking_contract_address) == stake_amount + stake_amount,
-        "stake didn't work"
+        "stake didn't work",
     );
 
     // testing assert that user earnings increased
@@ -293,7 +293,7 @@ fn test_rewards_earned() {
 
     assert!(staking_contract.reward_per_token_stored() > 0, "wrong reward_per_token_stored");
     assert!(
-        staking_contract.user_reward_per_token_paid(owner) > 0, "wrong user_reward_per_token_paid"
+        staking_contract.user_reward_per_token_paid(owner) > 0, "wrong user_reward_per_token_paid",
     );
 
     stop_cheat_block_timestamp_global();
@@ -304,7 +304,7 @@ fn test_claim_reward() {
     let staking_token_address = deploy_token("StakingToken");
     let reward_token_address = deploy_token("RewardToken");
     let staking_contract_address = deploy_staking_contract(
-        "StakingRewards", staking_token_address, reward_token_address
+        "StakingRewards", staking_token_address, reward_token_address,
     );
 
     let staking_token = IERC20Dispatcher { contract_address: staking_token_address };
@@ -326,7 +326,7 @@ fn test_claim_reward() {
     stop_cheat_caller_address(reward_token_address);
     assert!(
         reward_token.allowance(owner, staking_contract_address) == mint_amount,
-        "reward token approval failed"
+        "reward token approval failed",
     );
 
     // Approve staking contract to spend staking token.
@@ -335,7 +335,7 @@ fn test_claim_reward() {
     stop_cheat_caller_address(staking_token_address);
     assert!(
         staking_token.allowance(owner, staking_contract_address) == mint_amount,
-        "staking token approval failed"
+        "staking token approval failed",
     );
 
     let duration: u256 = 1800_u256;
@@ -361,7 +361,7 @@ fn test_claim_reward() {
     assert!(staking_contract.total_supply() == stake_amount + stake_amount, "stake failed");
     assert!(
         staking_token.balance_of(staking_contract_address) == stake_amount + stake_amount,
-        "stake didn't work"
+        "stake didn't work",
     );
 
     // testing assert that user earnings increased
@@ -369,7 +369,7 @@ fn test_claim_reward() {
     assert!(staking_contract.rewards(owner) > 0, "rewards didn't increase");
     assert!(staking_contract.reward_per_token_stored() > 0, "wrong reward_per_token_stored");
     assert!(
-        staking_contract.user_reward_per_token_paid(owner) > 0, "wrong user_reward_per_token_paid"
+        staking_contract.user_reward_per_token_paid(owner) > 0, "wrong user_reward_per_token_paid",
     );
 
     // Testing user claiming rewards
@@ -386,7 +386,7 @@ fn test_withdraw() {
     let staking_token_address = deploy_token("StakingToken");
     let reward_token_address = deploy_token("RewardToken");
     let staking_contract_address = deploy_staking_contract(
-        "StakingRewards", staking_token_address, reward_token_address
+        "StakingRewards", staking_token_address, reward_token_address,
     );
 
     let staking_token = IERC20Dispatcher { contract_address: staking_token_address };
@@ -408,7 +408,7 @@ fn test_withdraw() {
     stop_cheat_caller_address(reward_token_address);
     assert!(
         reward_token.allowance(owner, staking_contract_address) == mint_amount,
-        "reward token approval failed"
+        "reward token approval failed",
     );
 
     // Approve staking contract to spend staking token.
@@ -417,7 +417,7 @@ fn test_withdraw() {
     stop_cheat_caller_address(staking_token_address);
     assert!(
         staking_token.allowance(owner, staking_contract_address) == mint_amount,
-        "staking token approval failed"
+        "staking token approval failed",
     );
 
     let duration: u256 = 1800_u256;
@@ -438,7 +438,7 @@ fn test_withdraw() {
 
     assert!(staking_contract.total_supply() == stake_amount, "stake failed");
     assert!(
-        staking_token.balance_of(staking_contract_address) == stake_amount, "stake didn't work"
+        staking_token.balance_of(staking_contract_address) == stake_amount, "stake didn't work",
     );
     assert!(balance_after_stake == mint_amount - stake_amount, "stake didn't work");
 
@@ -449,7 +449,7 @@ fn test_withdraw() {
     assert!(staking_token.balance_of(staking_contract_address) == 0, "withdraw didn't work");
     assert!(
         staking_token.balance_of(owner) == balance_after_stake + stake_amount,
-        "wrong user balance after withdraw"
+        "wrong user balance after withdraw",
     );
 
     stop_cheat_caller_address(staking_contract_address);

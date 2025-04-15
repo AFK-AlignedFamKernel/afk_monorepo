@@ -1,7 +1,6 @@
 use core::traits::Into;
-use starknet::{ContractAddress};
-use super::request::ConvertToBytes;
-use super::request::{SocialRequest, SocialRequestImpl, Encode};
+use starknet::ContractAddress;
+use super::request::{ConvertToBytes, Encode, SocialRequest, SocialRequestImpl};
 pub type DepositId = felt252;
 
 #[derive(Clone, Debug, Drop, Serde)]
@@ -31,7 +30,7 @@ fn count_digits(mut num: u256) -> (u32, felt252) {
     while num > 0 {
         num = num / BASE;
         count = count + 1;
-    };
+    }
     let res: felt252 = count.try_into().unwrap();
     (count, res)
 }
@@ -94,12 +93,11 @@ pub mod DepositEscrow {
     // use starknet::storage::Map;
     use core::num::traits::Zero;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-    use starknet::{get_block_timestamp, get_caller_address, get_contract_address, ContractAddress};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
     use super::super::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait};
-
-    use super::{Deposit, DepositId, DepositResult, IDepositEscrow, NostrPublicKey, Claim};
+    use super::{Claim, Deposit, DepositId, DepositResult, IDepositEscrow, NostrPublicKey};
 
     impl DepositDefault of Default<Deposit> {
         #[inline(always)]
@@ -357,21 +355,20 @@ pub mod DepositEscrow {
 
 #[cfg(test)]
 mod tests {
-    use afk::bip340::{Signature, SchnorrSignature};
+    use afk::bip340::{SchnorrSignature, Signature};
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::option::OptionTrait;
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
+        ContractClass, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, declare,
+        spy_events, start_cheat_block_timestamp, start_cheat_caller_address,
         start_cheat_caller_address_global, stop_cheat_caller_address_global,
-        start_cheat_block_timestamp, DeclareResultTrait, spy_events, EventSpyAssertionsTrait,
     };
-
     use starknet::{ContractAddress, get_block_timestamp};
-
-    use super::super::request::{SocialRequest};
-
-    use super::{DepositEscrow, IDepositEscrowDispatcher, IDepositEscrowDispatcherTrait};
-    use super::{DepositResult, NostrPublicKey, Claim};
+    use super::super::request::SocialRequest;
+    use super::{
+        Claim, DepositEscrow, DepositResult, IDepositEscrowDispatcher,
+        IDepositEscrowDispatcherTrait, NostrPublicKey,
+    };
 
     fn declare_escrow() -> @ContractClass {
         declare("DepositEscrow").unwrap().contract_class()

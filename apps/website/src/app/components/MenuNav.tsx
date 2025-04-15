@@ -1,10 +1,11 @@
-import {Button, Menu, MenuButton, MenuItem, MenuList} from '@chakra-ui/react';
+import {Button, Menu, MenuButton, MenuList, MenuItem} from '@chakra-ui/react';
 
 import {CustomConnectButtonWallet} from './button/CustomConnectButtonWallet';
 
 interface IMenuParent {
   children?: React.ReactNode;
 }
+
 const MenuNav: React.FC<IMenuParent> = () => {
   return (
     <Menu>
@@ -31,5 +32,25 @@ const MenuNav: React.FC<IMenuParent> = () => {
     </Menu>
   );
 };
+
+// const MenuNav: React.FC<IMenuParent> = () => {
+//   return (
+//     <Menu.Root>
+//       <Menu.Trigger asChild>
+//         <Button>
+//           Profile
+//         </Button>
+//       </Menu.Trigger>
+//       <Menu.Positioner>
+//       <Menu.Content>
+//         <Menu.Item value="connect-wallet">
+//           <CustomConnectButtonWallet></CustomConnectButtonWallet>
+//         </Menu.Item>
+//       </Menu.Content>
+//       </Menu.Positioner>
+
+//     </Menu.Root>
+//   );
+// };
 
 export default MenuNav;

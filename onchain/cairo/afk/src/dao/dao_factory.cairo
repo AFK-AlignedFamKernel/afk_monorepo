@@ -1,4 +1,4 @@
-use starknet::{ContractAddress, ClassHash};
+use starknet::{ClassHash, ContractAddress};
 
 #[starknet::interface]
 pub trait IDaoFactory<TContractState> {
@@ -6,7 +6,7 @@ pub trait IDaoFactory<TContractState> {
         ref self: TContractState,
         token_contract_address: ContractAddress,
         public_key: u256,
-        starknet_address: felt252
+        starknet_address: felt252,
     ) -> ContractAddress;
     fn get_dao_class_hash(self: @TContractState) -> ClassHash;
     fn update_dao_class_hash(ref self: TContractState, new_class_hash: ClassHash);
@@ -18,9 +18,10 @@ pub mod DaoFactory {
     use core::num::traits::Zero;
     use openzeppelin::access::ownable::OwnableComponent;
     use starknet::storage::{
-        Map, StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-    use starknet::{ContractAddress, ClassHash, get_caller_address, syscalls::deploy_syscall};
+    use starknet::syscalls::deploy_syscall;
+    use starknet::{ClassHash, ContractAddress, get_caller_address};
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
 
@@ -42,14 +43,14 @@ pub mod DaoFactory {
         #[flat]
         OwnableEvent: OwnableComponent::Event,
         ClassHashUpdated: ClassHashUpdated,
-        DaoAACreated: DaoAACreated
+        DaoAACreated: DaoAACreated,
     }
 
     #[derive(Drop, starknet::Event)]
     pub struct ClassHashUpdated {
         pub old_class_hash: ClassHash,
         #[key]
-        pub new_class_hash: ClassHash
+        pub new_class_hash: ClassHash,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -74,13 +75,13 @@ pub mod DaoFactory {
             ref self: ContractState,
             token_contract_address: ContractAddress,
             public_key: u256,
-            starknet_address: felt252
+            starknet_address: felt252,
         ) -> ContractAddress {
             let mut calldata = array![];
             let creator = get_caller_address();
             (creator, token_contract_address, public_key, starknet_address).serialize(ref calldata);
             let (contract_address, _) = deploy_syscall(
-                self.dao_class_hash.read(), 0, calldata.span(), false
+                self.dao_class_hash.read(), 0, calldata.span(), false,
             )
                 .unwrap();
             // track instances
@@ -89,8 +90,8 @@ pub mod DaoFactory {
             self
                 .emit(
                     DaoAACreated {
-                        creator, contract_address, token_contract_address, starknet_address
-                    }
+                        creator, contract_address, token_contract_address, starknet_address,
+                    },
                 );
 
             contract_address
@@ -116,10 +117,10 @@ mod tests {
     use afk::dao::dao_factory::{IDaoFactoryDispatcher, IDaoFactoryDispatcherTrait};
     use openzeppelin::access::ownable::interface::{IOwnableDispatcher, IOwnableDispatcherTrait};
     use snforge_std::{
-        declare, cheat_caller_address, ContractClassTrait, DeclareResultTrait, CheatSpan,
-        spy_events, EventSpyAssertionsTrait
+        CheatSpan, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait,
+        cheat_caller_address, declare, spy_events,
     };
-    use starknet::{ContractAddress, contract_address_const, ClassHash, get_contract_address};
+    use starknet::{ClassHash, ContractAddress, contract_address_const, get_contract_address};
 
     fn CREATOR() -> ContractAddress {
         contract_address_const::<'CREATOR'>()
@@ -162,8 +163,8 @@ mod tests {
                 creator: CREATOR(),
                 contract_address: contract,
                 token_contract_address: contract_address_const::<'TOKEN'>(),
-                starknet_address: 'STRK TOKEN'
-            }
+                starknet_address: 'STRK TOKEN',
+            },
         );
 
         spy.assert_emitted(@array![(dao_factory_contract, creation_event)]);

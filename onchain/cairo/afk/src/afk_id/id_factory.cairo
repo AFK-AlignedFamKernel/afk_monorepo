@@ -1,7 +1,8 @@
-use afk::types::identity_types::{AfkIdentityState};
+use afk::types::identity_types::AfkIdentityState;
+use starknet::storage_access::StorageBaseAddress;
 use starknet::{
-    ContractAddress, get_caller_address, storage_access::StorageBaseAddress, contract_address_const,
-    get_block_timestamp, get_contract_address, ClassHash
+    ClassHash, ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+    get_contract_address,
 };
 
 #[starknet::interface]
@@ -12,20 +13,20 @@ pub trait IFactoryAfkIdentity<T> {
 
 #[starknet::contract]
 mod FactoryAfkIdentity {
-    use afk::types::identity_types::{AfkIdentityState, AfkIdentityCreated};
+    use afk::types::identity_types::{AfkIdentityCreated, AfkIdentityState};
     use core::num::traits::Zero;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-
+    use starknet::storage_access::StorageBaseAddress;
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        contract_address_const, get_block_timestamp, get_contract_address, ClassHash
+        ClassHash, ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
     #[storage]
     struct Storage {
         id_user_exist: Map<ContractAddress, bool>,
-        user_identity: Map<ContractAddress, AfkIdentityState>
+        user_identity: Map<ContractAddress, AfkIdentityState>,
     }
 
     #[event]
@@ -46,14 +47,14 @@ mod FactoryAfkIdentity {
             let afk_identity = AfkIdentityState {
                 owner: caller,
                 token_address: token_address.clone(),
-                created_at: get_block_timestamp()
+                created_at: get_block_timestamp(),
             };
             self.user_identity.entry(caller).write(afk_identity);
             self
                 .emit(
                     AfkIdentityCreated {
-                        owner: caller, token_address, created_at: get_block_timestamp()
-                    }
+                        owner: caller, token_address, created_at: get_block_timestamp(),
+                    },
                 );
         }
 

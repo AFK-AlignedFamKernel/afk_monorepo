@@ -9,17 +9,15 @@ mod identity_tests {
     use core::traits::Into;
     use openzeppelin::account::interface::{ISRC6Dispatcher, ISRC6DispatcherTrait};
     use openzeppelin::utils::serde::SerializedAppend;
-
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, spy_events, SpyOn, EventSpy, EventFetcher,
-        Event, EventAssertions, start_cheat_caller_address, cheat_caller_address_global,
-        stop_cheat_caller_address, stop_cheat_caller_address_global, start_cheat_block_timestamp
+        ContractClass, ContractClassTrait, Event, EventAssertions, EventFetcher, EventSpy, SpyOn,
+        cheat_caller_address_global, declare, spy_events, start_cheat_block_timestamp,
+        start_cheat_caller_address, stop_cheat_caller_address, stop_cheat_caller_address_global,
     };
+    use starknet::storage_access::StorageBaseAddress;
     use starknet::syscalls::deploy_syscall;
-
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        get_block_timestamp, get_contract_address, ClassHash
+        ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
     };
 
 
@@ -31,7 +29,7 @@ mod identity_tests {
     }
 
     fn request_fixture_custom_classes(
-        erc20_class: ContractClass, factory_class: ContractClass
+        erc20_class: ContractClass, factory_class: ContractClass,
     ) -> (ContractAddress, IERC20Dispatcher, IFactoryAfkIdentityDispatcher) {
         let sender_address: ContractAddress = 123.try_into().unwrap();
         let erc20 = deploy_erc20(erc20_class, 'USDC token', 'USDC', 1_000_000, sender_address);
@@ -63,7 +61,7 @@ mod identity_tests {
         name: felt252,
         symbol: felt252,
         initial_supply: u256,
-        recipient: ContractAddress
+        recipient: ContractAddress,
     ) -> IERC20Dispatcher {
         let mut calldata = array![];
 
@@ -78,7 +76,7 @@ mod identity_tests {
         IERC20Dispatcher { contract_address }
     }
 
-    fn run_create_identity(factory: IFactoryAfkIdentityDispatcher,) {
+    fn run_create_identity(factory: IFactoryAfkIdentityDispatcher) {
         factory.create_afk_identity();
     }
 

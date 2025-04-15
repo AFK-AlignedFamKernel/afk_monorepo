@@ -2,17 +2,17 @@
 pub mod MockToken {
     use core::num::traits::Zero;
     use core::starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, Map, StoragePathEntry
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-    use crate::staking::interfaces::IERC20;
     use starknet::event::EventEmitter;
     use starknet::{ContractAddress, get_caller_address};
+    use crate::staking::interfaces::IERC20;
 
     #[storage]
     pub struct Storage {
         balances: Map<ContractAddress, u256>,
         allowances: Map<
-            (ContractAddress, ContractAddress), u256
+            (ContractAddress, ContractAddress), u256,
         >, // Mapping<(owner, spender), amount>
         token_name: ByteArray,
         symbol: ByteArray,
@@ -43,7 +43,7 @@ pub mod MockToken {
         owner: ContractAddress,
         #[key]
         spender: ContractAddress,
-        value: u256
+        value: u256,
     }
 
     #[constructor]
@@ -67,7 +67,7 @@ pub mod MockToken {
         }
 
         fn allowance(
-            self: @ContractState, owner: ContractAddress, spender: ContractAddress
+            self: @ContractState, owner: ContractAddress, spender: ContractAddress,
         ) -> u256 {
             let allowance = self.allowances.entry((owner, spender)).read();
 
@@ -86,7 +86,8 @@ pub mod MockToken {
             self.balances.entry(recipient).write(recipient_prev_balance + amount);
 
             assert(
-                self.balances.entry(recipient).read() > recipient_prev_balance, 'Transaction failed'
+                self.balances.entry(recipient).read() > recipient_prev_balance,
+                'Transaction failed',
             );
 
             self.emit(Transfer { from: sender, to: recipient, amount });
@@ -98,7 +99,7 @@ pub mod MockToken {
             ref self: ContractState,
             sender: ContractAddress,
             recipient: ContractAddress,
-            amount: u256
+            amount: u256,
         ) -> bool {
             let spender = get_caller_address();
 

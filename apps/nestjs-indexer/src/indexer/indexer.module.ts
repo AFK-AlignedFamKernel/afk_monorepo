@@ -16,6 +16,9 @@ import { TipServiceModule } from '../services/tip-service/tipServiceModule';
 import { TipServiceIndexer } from './tip-service.indexer';
 import { MetadataLaunchIndexer } from './metadata-launch.indexer';
 import { MetadataLaunchModule } from 'src/services/metadata/metadata.module';
+import { InfoFiIndexer } from './infofi/link-user.indexer';
+import { NostrInfofiModule } from 'src/services/nostr-infofi/nostr-infofi.module';
+import { NostrInfofiService } from 'src/services/nostr-infofi/nostr-infofi.service';
 
 @Module({
   imports: [
@@ -27,6 +30,7 @@ import { MetadataLaunchModule } from 'src/services/metadata/metadata.module';
     LiquidityAddedModule,
     TipServiceModule,
     MetadataLaunchModule,
+    NostrInfofiModule,
   ],
   providers: [
     TokenLaunchIndexer,
@@ -38,6 +42,7 @@ import { MetadataLaunchModule } from 'src/services/metadata/metadata.module';
     LiquidityAddedIndexer,
     TipServiceIndexer,
     MetadataLaunchIndexer,
+    InfoFiIndexer,
   ],
   exports: [
     TokenLaunchIndexer,
@@ -48,6 +53,7 @@ import { MetadataLaunchModule } from 'src/services/metadata/metadata.module';
     LiquidityAddedIndexer,
     TipServiceIndexer,
     MetadataLaunchIndexer,
+    InfoFiIndexer,
   ],
 })
 export class IndexerModule {}

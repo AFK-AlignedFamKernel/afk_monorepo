@@ -2,8 +2,8 @@
 
 ## Description
 Express typescript backend.
-Routes for Indexer.
-Telegram bot answers for AFK Mini app.
+Routes for Indexer: launchpad, dao, tips, namespace...
+<!-- Telegram bot answers for AFK Mini app. -->
 
 ## TODO
 
@@ -12,12 +12,31 @@ Telegram bot answers for AFK Mini app.
 - [] Telegram Alert for Event on AFK
 - [] Gamification
 
+
+# Setup
+
+Copy the .env.example
+
+Init all db corresponding after setup POSTGREES_DB for both: prisma-db, indexer-prisma
+
+##
+```
+ pnpm run build:all
+```
+
+## Run in dev
+```
+ pnpm run start:dev
+```
+
+
 ## Kill process issues
 ```
 sudo lsof -t -i:5050
 
 sudo kill -9 [ID_RECEIVED_BEFORE]
 ```
+
 
 ## Run Backend Postgres database
 

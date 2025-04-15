@@ -33,10 +33,10 @@ model token_deploy {
   image_url         String?
   metadata          Json?
   nostr_event_id    String?
-  website String?
-  twitter String?
-  telegram String?
-  github String?
+  github            String?
+  telegram          String?
+  twitter           String?
+  website           String?
 }
 
 model token_launch {
@@ -70,10 +70,10 @@ model token_launch {
   nostr_event_id          String?
   nostr_id                String?
   url                     String?
-  website String?
-  twitter String?
-  telegram String?
-  github String?
+  github                  String?
+  telegram                String?
+  twitter                 String?
+  website                 String?
 }
 
 model unrugmeme_deploy {
@@ -283,3 +283,19 @@ model token_metadata {
   updated_at       DateTime? @default(now()) @db.Timestamp(6)
   nostr_event_id   String?
 }
+
+model profile_data {
+  transaction_hash String    @id
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  starknet_address String?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  nostr_id         String?
+  cursor           BigInt?   @map("_cursor")
+  time_stamp       DateTime? @db.Timestamp(6)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+  nostr_event_id   String?
+}
+

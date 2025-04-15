@@ -1,0 +1,12 @@
+[workspace]
+members = [
+  "afk",
+  "launchpad",
+]
+
+[workspace.package]
+version = "0.1.0"
+
+[dependencies]
+starknet = "2.11.2"
+openzeppelin = "1.0.0"

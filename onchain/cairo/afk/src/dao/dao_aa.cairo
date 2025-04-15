@@ -1,11 +1,7 @@
-// use starknet::{ContractAddress, get_caller_address, get_contract_address,
 // contract_address_const};
-use afk::interfaces::voting::{ConfigParams, ConfigResponse};
-use afk::social::profile::NostrProfile;
-use afk::social::request::SocialRequest;
-use afk::social::transfer::Transfer;
+use afk::interfaces::voting::{ConfigParams, ConfigResponse, MetadataDAO};
+use starknet::ContractAddress;
 use starknet::account::Call;
-use starknet::{ContractAddress};
 
 #[starknet::interface]
 pub trait IDaoAA<TContractState> {
@@ -14,6 +10,7 @@ pub trait IDaoAA<TContractState> {
     fn update_config(ref self: TContractState, config_params: ConfigParams);
     fn get_config(self: @TContractState) -> ConfigResponse;
     fn set_public_key(ref self: TContractState, public_key: u256);
+    fn add_metadata(ref self: TContractState, metadata: MetadataDAO);
     // fn __execute__(self: @TContractState, calls: Array<Call>) -> Array<Span<felt252>>;
 // fn __validate__(self: @TContractState, calls: Array<Call>) -> felt252;
 // fn is_valid_signature(self: @TContractState, hash: felt252, signature: Array<felt252>) ->
@@ -32,8 +29,6 @@ pub trait ISRC6<TContractState> {
 
 #[starknet::contract(account)]
 pub mod DaoAA {
-    use afk::bip340::{Signature, SchnorrSignature};
-    use afk::bip340;
     use afk::components::voting::VotingComponent;
     // use afk::interfaces::voting::{
     //     IVoteProposal, Proposal, ProposalParams, ProposalResult, ProposalType, UserVote,
@@ -42,8 +37,6 @@ pub mod DaoAA {
     //     Calldata,
     // };
     use afk::interfaces::voting::{ConfigParams, ConfigResponse};
-    use afk::social::request::{SocialRequest, SocialRequestImpl, SocialRequestTrait, Encode};
-    use afk::social::transfer::Transfer;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
         MIN_TRANSACTION_VERSION, QUERY_OFFSET, execute_calls // is_valid_stark_signature
@@ -53,22 +46,18 @@ pub mod DaoAA {
     use core::num::traits::Zero;
     // use core::poseidon::{PoseidonTrait, poseidon_hash_span};
     use openzeppelin::access::accesscontrol::AccessControlComponent;
-    use openzeppelin::governance::timelock::TimelockControllerComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::upgrades::upgradeable::UpgradeableComponent;
-    use openzeppelin::utils::cryptography::snip12::StructHash;
     use starknet::account::Call;
-
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
-        StorageMapWriteAccess, Vec, MutableVecTrait,
+        Map, MutableVecTrait, StorageMapWriteAccess, StoragePathEntry, StoragePointerReadAccess,
+        StoragePointerWriteAccess, Vec,
     };
     use starknet::{
-        get_caller_address, get_contract_address, get_tx_info, ContractAddress,
-        contract_address_const,
+        ContractAddress, contract_address_const, get_caller_address, get_contract_address,
+        get_tx_info,
     };
-    use super::ISRC6;
-    use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
+    use super::{IDaoAADispatcher, IDaoAADispatcherTrait, ISRC6, MetadataDAO};
 
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     // component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
@@ -110,6 +99,7 @@ pub mod DaoAA {
         owner: ContractAddress,
         transfers: Map<u256, bool>,
         starknet_address: felt252,
+        metadata_dao: MetadataDAO,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -152,7 +142,7 @@ pub mod DaoAA {
         self.src5.register_interface(ISRC6_ID);
         self.starknet_address.write(starknet_address);
         self.owner.write(owner);
-        self.voting._init(token_contract_address);
+        self.voting._init(token_contract_address, owner, owner);
         // self.accesscontrol.initializer();
         // self.accesscontrol._grant_role(ADMIN_ROLE, owner);
         // self.accesscontrol._grant_role(MINTER_ROLE, admin);
@@ -181,6 +171,12 @@ pub mod DaoAA {
         fn set_public_key(ref self: ContractState, public_key: u256) {
             assert(get_caller_address() == self.owner.read(), 'UNAUTHORIZED CALLER');
             self.public_key.write(public_key);
+        }
+
+        fn add_metadata(ref self: ContractState, metadata: MetadataDAO) {
+            assert(get_caller_address() == self.owner.read(), 'UNAUTHORIZED CALLER');
+            self.metadata_dao.write(metadata.clone());
+            self.voting.add_metadata_dao(metadata);
         }
     }
 
@@ -272,22 +268,21 @@ pub mod DaoAA {
 mod tests {
     use afk::components::voting::VotingComponent;
     use afk::interfaces::voting::{
-        ProposalParams, ProposalResult, ProposalType, UserVote, ProposalCreated,
-        SET_PROPOSAL_DURATION_IN_SECONDS, ProposalVoted, IVoteProposalDispatcher,
-        IVoteProposalDispatcherTrait, ConfigParams, ConfigResponse, ProposalResolved,
+        ConfigParams, IVoteProposalDispatcher, IVoteProposalDispatcherTrait,
+        ProposalCreated, ProposalParams, ProposalResolved, ProposalResult,
+        ProposalVoted, SET_PROPOSAL_DURATION_IN_SECONDS, UserVote,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::num::traits::Zero;
     use openzeppelin::utils::serde::SerializedAppend;
+    // use snforge_std::cheatcodes::events::Event;
     use snforge_std::{
-        CheatSpan, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, EventSpyTrait,
-        EventsFilterTrait, cheat_caller_address, cheatcodes::events::Event, declare, spy_events,
-        cheat_block_timestamp,
+        CheatSpan, ContractClassTrait, DeclareResultTrait, EventsFilterTrait, EventSpyTrait,
+     cheat_block_timestamp, cheat_caller_address, declare, spy_events, EventSpyAssertionsTrait
     };
     use starknet::account::Call;
     use starknet::{ContractAddress, contract_address_const};
-    use super::{IDaoAADispatcher, IDaoAADispatcherTrait};
-    use super::{ISRC6Dispatcher, ISRC6DispatcherTrait};
+    use super::{IDaoAADispatcher, IDaoAADispatcherTrait, ISRC6Dispatcher, ISRC6DispatcherTrait};
 
 
     /// UTILITY FUNCTIONS
@@ -397,7 +392,7 @@ mod tests {
                 proposal_dispatcher.contract_address, voter, CheatSpan::TargetCalls(1),
             );
             proposal_dispatcher.cast_vote(proposal_id, votes.pop_front());
-        };
+        }
 
         let current_time = created_at
             + SET_PROPOSAL_DURATION_IN_SECONDS

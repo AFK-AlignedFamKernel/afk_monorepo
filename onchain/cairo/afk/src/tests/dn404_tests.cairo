@@ -1,17 +1,17 @@
 #[cfg(test)]
 mod dn404_tests {
     use core::num::traits::Zero;
-    use crate::tokens::dn404::dn404::{DN404, DN404Options, IDN404Dispatcher, IDN404DispatcherTrait};
-    use crate::tokens::dn404::dn404_mirror::{
-        DN404Mirror, IDN404MirrorDispatcher, IDN404MirrorDispatcherTrait
-    };
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
-        stop_cheat_caller_address, spy_events, EventSpy, EventSpyTrait, EventSpyAssertionsTrait,
-        Event
+        ContractClass, ContractClassTrait, DeclareResultTrait, Event, EventSpy,
+        EventSpyAssertionsTrait, EventSpyTrait, declare, spy_events, start_cheat_caller_address,
+        stop_cheat_caller_address,
     };
     use starknet::{ContractAddress, get_caller_address};
+    use crate::tokens::dn404::dn404::{DN404, DN404Options, IDN404Dispatcher, IDN404DispatcherTrait};
+    use crate::tokens::dn404::dn404_mirror::{
+        DN404Mirror, IDN404MirrorDispatcher, IDN404MirrorDispatcherTrait,
+    };
 
     // Constants for testing
 
@@ -88,8 +88,8 @@ mod dn404_tests {
                 1000000,
                 OWNER(),
                 mirror.contract_address,
-                options
-            )
+                options,
+            ),
         };
 
         (dn404, mirror)
@@ -170,10 +170,10 @@ mod dn404_tests {
                     (
                         mirror.contract_address,
                         DN404Mirror::Event::Transfer(
-                            DN404Mirror::TransferEvent { from: SENDER(), to: RECIPIENT(), id: 1 }
-                        )
-                    )
-                ]
+                            DN404Mirror::TransferEvent { from: SENDER(), to: RECIPIENT(), id: 1 },
+                        ),
+                    ),
+                ],
             );
     }
 
@@ -224,19 +224,19 @@ mod dn404_tests {
                         mirror.contract_address,
                         DN404Mirror::Event::Transfer(
                             DN404Mirror::TransferEvent {
-                                from: RECIPIENT(), to: Zero::zero(), id: token1_id
-                            }
-                        )
+                                from: RECIPIENT(), to: Zero::zero(), id: token1_id,
+                            },
+                        ),
                     ),
                     (
                         mirror.contract_address,
                         DN404Mirror::Event::Transfer(
                             DN404Mirror::TransferEvent {
-                                from: RECIPIENT(), to: Zero::zero(), id: token2_id
-                            }
-                        )
-                    )
-                ]
+                                from: RECIPIENT(), to: Zero::zero(), id: token2_id,
+                            },
+                        ),
+                    ),
+                ],
             );
 
         // Verify NFTs were burned
@@ -260,19 +260,19 @@ mod dn404_tests {
                         mirror.contract_address,
                         DN404Mirror::Event::Transfer(
                             DN404Mirror::TransferEvent {
-                                from: Zero::zero(), to: SENDER(), id: token1_id
-                            }
-                        )
+                                from: Zero::zero(), to: SENDER(), id: token1_id,
+                            },
+                        ),
                     ),
                     (
                         mirror.contract_address,
                         DN404Mirror::Event::Transfer(
                             DN404Mirror::TransferEvent {
-                                from: Zero::zero(), to: SENDER(), id: token2_id
-                            }
-                        )
-                    )
-                ]
+                                from: Zero::zero(), to: SENDER(), id: token2_id,
+                            },
+                        ),
+                    ),
+                ],
             );
 
         // Verify the same token IDs were reused

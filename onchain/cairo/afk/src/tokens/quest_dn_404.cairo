@@ -2,7 +2,7 @@ use starknet::ContractAddress;
 
 #[starknet::contract]
 pub mod QuestDn404 {
-    use afk::interfaces::quest::{IQuestNFT};
+    use afk::interfaces::quest::IQuestNFT;
 
     // use openzeppelin::access::accesscontrol::interface::IAccessControl;
     use openzeppelin::access::accesscontrol::{AccessControlComponent};
@@ -75,7 +75,7 @@ pub mod QuestDn404 {
 
     #[constructor]
     fn constructor(
-        ref self: ContractState, name: ByteArray, symbol: ByteArray, owner: ContractAddress
+        ref self: ContractState, name: ByteArray, symbol: ByteArray, owner: ContractAddress,
     ) {
         self.ownable.initializer(owner);
         self.accesscontrol.initializer();
@@ -104,14 +104,14 @@ pub mod QuestDn404 {
             ref self: ERC721Component::ComponentState<ContractState>,
             to: ContractAddress,
             token_id: u256,
-            auth: ContractAddress
+            auth: ContractAddress,
         ) {}
 
         fn after_update(
             ref self: ERC721Component::ComponentState<ContractState>,
             to: ContractAddress,
             token_id: u256,
-            auth: ContractAddress
+            auth: ContractAddress,
         ) {}
     }
 
@@ -133,7 +133,7 @@ pub mod QuestDn404 {
         }
 
         fn set_role(
-            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool
+            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
         ) {
             self._set_role(recipient, role, is_enable);
         }
@@ -142,7 +142,7 @@ pub mod QuestDn404 {
     #[generate_trait]
     impl PrivateImpl of PrivateTrait {
         fn _set_role(
-            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool
+            ref self: ContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             assert!(role == ADMIN_ROLE || role == MINTER_ROLE, "role not enable");

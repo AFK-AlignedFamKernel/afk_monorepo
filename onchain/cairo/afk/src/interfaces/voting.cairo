@@ -1,16 +1,16 @@
+use starknet::ContractAddress;
 use starknet::account::Call;
 use starknet::storage::{
     Map, Vec // MutableEntryStoragePathEntry, StorableEntryReadAccess, StorageAsPathReadForward,
     // MutableStorableEntryReadAccess, MutableStorableEntryWriteAccess,
 // StorageAsPathWriteForward,PathableStorageEntryImpl
 };
-use starknet::{ContractAddress};
 
 pub const SET_PROPOSAL_DURATION_IN_SECONDS: u64 = 60 * 60 * 24 * 7; // 1 week, can be adjusted.
 pub const TOKEN_DECIMALS: u64 = 1_000_000_000_000_000_000; // say 
 
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, PartialEq, Default //  PartialEq
+Drop, starknet::Store, PartialEq, Default //  PartialEq
 )]
 pub enum UserVote {
     #[default]
@@ -20,7 +20,7 @@ pub enum UserVote {
 }
 
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, PartialEq, Default)]
+Drop, starknet::Store, PartialEq, Default)]
 pub enum ProposalType {
     SavedAutomatedTransaction,
     Execution,
@@ -28,7 +28,7 @@ pub enum ProposalType {
     Proposal,
 }
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, PartialEq, Default)]
+Drop, starknet::Store, PartialEq, Default)]
 pub enum ProposalAutomatedTransaction {
     #[default]
     Transfer,
@@ -40,7 +40,7 @@ pub enum ProposalAutomatedTransaction {
     Withdraw,
 }
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, PartialEq, Default)]
+Drop, starknet::Store, PartialEq, Default)]
 pub enum ProposalStatus {
     #[default]
     Pending,
@@ -48,11 +48,11 @@ pub enum ProposalStatus {
     Passed,
     Failed,
     Executed,
-    Canceled
+    Canceled,
 }
 
 #[derive(Serde, Copy, // Clone,
- Drop, starknet::Store, PartialEq, Default //  PartialEq
+Drop, starknet::Store, PartialEq, Default //  PartialEq
 )]
 pub enum ProposalResult {
     #[default]
@@ -60,7 +60,7 @@ pub enum ProposalResult {
     Passed,
     Failed,
     Executed,
-    Canceled
+    Canceled,
 }
 
 #[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
@@ -85,13 +85,32 @@ pub struct ProposalParams {
     pub proposal_automated_transaction: ProposalAutomatedTransaction,
 }
 
+#[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
+pub struct MetadataDAO {
+    pub created_at: u64,
+    pub title: ByteArray,
+    pub description: ByteArray,
+    pub image_url: ByteArray,
+    pub owner: ContractAddress,
+    pub deployer: ContractAddress,
+    pub website_url: ByteArray,
+    pub nostr_address: u256,
+    pub nostr_group_id: u256,
+    pub twitter_handle: ByteArray,
+    pub telegram_handle: ByteArray,
+    pub discord_handle: ByteArray,
+    pub github_handle: ByteArray,
+    pub discord_server_id: u256,
+    pub discord_channel_id: u256,
+}
+
 #[derive(Drop, Copy, starknet::Event)]
 pub struct ProposalCreated {
     #[key]
     pub id: u256,
     pub owner: ContractAddress,
     pub created_at: u64,
-    pub end_at: u64
+    pub end_at: u64,
 }
 
 #[derive(Drop, Copy, starknet::Event)]
@@ -102,7 +121,7 @@ pub struct ProposalVoted {
     pub vote: UserVote,
     pub votes: u256,
     pub total_votes: u256,
-    pub voted_at: u64
+    pub voted_at: u64,
 }
 
 #[derive(Drop, Copy, starknet::Event)]
@@ -119,7 +138,7 @@ pub struct ProposalResolved {
     #[key]
     pub id: u256,
     pub owner: ContractAddress,
-    pub result: ProposalResult
+    pub result: ProposalResult,
 }
 
 #[derive(Drop, Copy, Serde)]
@@ -130,7 +149,7 @@ pub struct ConfigParams {
     pub minimal_balance_voting: Option<u256>,
     pub max_balance_per_vote: Option<u256>,
     pub minimal_balance_create_proposal: Option<u256>,
-    pub minimum_threshold_percentage: Option<u64>
+    pub minimum_threshold_percentage: Option<u64>,
 }
 
 #[derive(Drop, Copy, Serde)]
@@ -141,7 +160,7 @@ pub struct ConfigResponse {
     pub minimal_balance_voting: u256,
     pub max_balance_per_vote: u256,
     pub minimal_balance_create_proposal: u256,
-    pub minimum_threshold_percentage: u64
+    pub minimum_threshold_percentage: u64,
 }
 
 #[starknet::storage_node]
@@ -168,13 +187,13 @@ pub struct VoteState {
     pub user_has_voted: Map<ContractAddress, bool>,
     pub voters_list: Vec<ContractAddress>,
     pub yes_votes: (u64, u256), // (number of votes, power)
-    pub no_votes: (u64, u256)
+    pub no_votes: (u64, u256),
 }
 
 #[starknet::interface]
 pub trait IVoteProposal<TContractState> {
     fn create_proposal(
-        ref self: TContractState, proposal_params: ProposalParams, calldata: Array<Call>
+        ref self: TContractState, proposal_params: ProposalParams, calldata: Array<Call>,
     ) -> u256;
     fn cast_vote(ref self: TContractState, proposal_id: u256, opt_vote_type: Option<UserVote>);
     fn get_proposal(self: @TContractState, proposal_id: u256) -> Proposal;
@@ -183,6 +202,7 @@ pub trait IVoteProposal<TContractState> {
     fn process_result(ref self: TContractState, proposal_id: u256);
     // debugging
     fn is_executable(ref self: TContractState, calldata: Call) -> bool;
+    fn add_metadata_dao(ref self: TContractState, metadata: MetadataDAO);
 }
 // Possible extracted Proposal Functions
 // Mint the token with a specific ratio

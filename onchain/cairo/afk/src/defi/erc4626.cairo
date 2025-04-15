@@ -1,22 +1,21 @@
-use afk::interfaces::vault::{IERCVault};
-use afk::types::defi_types::{TokenPermitted, DepositUser};
+use afk::interfaces::vault::IERCVault;
+use afk::types::defi_types::{DepositUser, TokenPermitted};
 use starknet::ContractAddress;
 
 
 // Used the component for a vault
 #[starknet::contract]
 mod ERC4626Vault {
-    use afk::interfaces::vault::{IERCVault};
-
+    use afk::interfaces::vault::IERCVault;
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::access::accesscontrol::interface::IAccessControl;
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
     use starknet::ContractAddress;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
-    use super::{TokenPermitted, DepositUser};
+    use super::{DepositUser, TokenPermitted};
     const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
     const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
     const MAKER_ROLE: felt252 = selector!("MAKER_ROLE");
@@ -50,7 +49,7 @@ mod ERC4626Vault {
         #[substorage(v0)]
         erc20: ERC20Component::Storage,
         #[substorage(v0)]
-        ownable: OwnableComponent::Storage
+        ownable: OwnableComponent::Storage,
     }
 
     #[event]
@@ -59,7 +58,7 @@ mod ERC4626Vault {
         #[flat]
         ERC20Event: ERC20Component::Event,
         #[flat]
-        OwnableEvent: OwnableComponent::Event
+        OwnableEvent: OwnableComponent::Event,
     }
 
     #[constructor]
@@ -68,7 +67,7 @@ mod ERC4626Vault {
         name: ByteArray,
         symbol: ByteArray,
         owner: ContractAddress,
-        initial_supply: u256
+        initial_supply: u256,
     ) {
         self.ownable.initializer(owner);
         self.erc20.initializer(name, symbol);

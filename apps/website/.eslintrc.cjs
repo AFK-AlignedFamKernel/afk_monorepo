@@ -6,8 +6,6 @@ module.exports = {
     {
       files: ['*.ts', '*.tsx', '*.js', '*.jsx'],
       rules: {
-        'import/no-unused-modules': 'off',
-
         'prettier/prettier': [
           'error',
           {
