@@ -22,6 +22,7 @@ pub mod ICO {
     #[storage]
     pub struct Storage {
         tokens: Map<ContractAddress, Token>,
+        buyers: Map<ContractAddress, Vec<ContractAddress>>,
         token_list: Vec<ContractAddress>,
         token_init: TokenInitParams,
         presale_count: u256,
@@ -181,17 +182,20 @@ pub mod ICO {
         }
 
         fn launch_liquidity_providing(ref self: ContractState, token_address: ContractAddress) {
-            let mut token = self.tokens.entry(token_address);
+            let token = self.tokens.entry(token_address);
             assert(token.status.read() != Default::default(), 'INVALID LAUNCH');
             let owner = token.owner_access.read();
-            let mut status = token.status.read();
 
             // finalize, if applicable
-            update_status(ref token);
+            update_status(token);
 
             assert(token.successful.read(), 'PRESALE FAILED');
-            assert(owner.is_some() && status == PresaleStatus::Finalized, 'LAUNCHING FAILED');
+            assert(
+                owner.is_some() && token.status.read() == PresaleStatus::Finalized,
+                'LAUNCHING FAILED',
+            );
 
+            // Launch the liquidity here
             // TODO: Keep track of tokens whose liquidity providing has been launched.
             // Incomplete yet
 
@@ -203,11 +207,11 @@ pub mod ICO {
 
         fn buy_token(ref self: ContractState, token_address: ContractAddress, mut amount: u256) {
             let caller = get_caller_address();
-            let mut token = self.tokens.entry(token_address);
-            let mut status = token.status.read();
+            let token = self.tokens.entry(token_address);
             let details = token.presale_details.read();
 
-            update_status(ref token);
+            update_status(token);
+            let mut status = token.status.read();
             assert(status != PresaleStatus::Finalized, 'PRESALE HAS BEEN FINALIZED');
             assert(status == PresaleStatus::Launched, 'PRESALE STATUS ERROR');
 
@@ -240,6 +244,7 @@ pub mod ICO {
             let bought = token.buyers.entry(caller).read();
             token.buyers.entry(caller).write(bought + amount);
             token.holders.entry(caller).write(token.holders.entry(caller).read() + token_amount);
+            self.buyers.entry(caller).push(token_address);
 
             // check cap value, and resolve presale
             if current_funds >= details.soft_cap {
@@ -283,12 +288,33 @@ pub mod ICO {
         }
 
         fn claim(ref self: ContractState, token_address: ContractAddress) {
-            self._claim(token_address, get_caller_address());
+            // investors cannot claim token until liquidity has been added
+            let caller = get_caller_address();
+            let token = self.tokens.entry(token_address);
+            let status: u8 = token.status.read().into();
+            assert(status >= PresaleStatus::Active.into(), 'PRESALE NOT ACTIVE');
+            let mut amount = token.buyers.entry(caller).read();
+            assert(amount > 0, 'NOTHING TO CLAIM');
+
+            self._claim(token_address, caller, token);
         }
 
-        fn claim_all(
-            ref self: ContractState,
-        ) { // investors cannot claim token until liquidity has been added
+        fn claim_all(ref self: ContractState) {
+            // investors cannot claim token until liquidity has been added
+            let caller = get_caller_address();
+            let tokens = self.buyers.entry(caller);
+
+            assert(tokens.len() > 0, 'NOTHING TO CLAIM');
+            while let Option::Some(token_address) = tokens.pop() {
+                let token = self.tokens.entry(token_address);
+                let status: u8 = token.status.read().into();
+                let amount = token.buyers.entry(caller).read();
+                if status >= PresaleStatus::Active.into() && amount > 0 {
+                    self._claim(token_address, caller, token);
+                }
+            }
+            // debugging
+            assert(self.buyers.entry(caller).len() == 0, 'POP FAILED');
         }
 
         fn whitelist(
@@ -301,7 +327,7 @@ pub mod ICO {
             assert(token.presale_details.read().whitelist, 'ERROR WHITELISTING TARGET');
             for address in target {
                 token.whitelist.entry(address).write(true);
-            }
+            };
         }
     }
 
@@ -337,16 +363,13 @@ pub mod ICO {
         }
 
         fn _claim(
-            ref self: ContractState, token_address: ContractAddress, caller: ContractAddress,
+            ref self: ContractState,
+            token_address: ContractAddress,
+            caller: ContractAddress,
+            token: StoragePath<Mutable<Token>>,
         ) {
-            let token = self.tokens.entry(token_address);
-            let status: u8 = token.status.read().into();
-            assert(status > PresaleStatus::Finalized.into(), 'PRESALE NOT FINALIZED');
-
             // NOTE: The `funds_raised` and `current_supply` is not altered, for record purposes.
             let mut amount = token.buyers.entry(caller).read();
-            assert(amount > 0, 'NOTHING TO CLAIM');
-
             let mut claimed_token_address = token_address;
             let mut claimed_amount = amount;
             if token.successful.read() {
@@ -391,8 +414,7 @@ pub mod ICO {
         (current_supply - max_supply, min_supply)
     }
 
-    fn update_status(ref token: StoragePath<Mutable<Token>>) {
-        // TOOD: check without ref
+    fn update_status(token: StoragePath<Mutable<Token>>) {
         let details = token.presale_details.read();
         if token.status.read() == PresaleStatus::Launched
             && details.end_time > get_block_timestamp() {
@@ -417,100 +439,25 @@ pub mod ICO {
 }
 
 #[cfg(test)]
-mod tests {}
-// fn _add_liquidity_ekubo(
-//     ref self: ContractState, coin_address: ContractAddress,
-//     // params: EkuboLaunchParameters
-// ) -> (u64, EkuboLP) {
-//     // TODO params of Ekubo launch
-//     // Init price and params of liquidity
+mod tests {
+    use core::num::traits::Zero;
+    use starknet::{ClassHash, ContractAddress};
+    use crate::interfaces::ico::{IICODispatcher, IICODispatcherTrait};
+    // Remember the storage mutable issh, with update status -- doesn't take in a ref of token.
+    // TODO: Don't forget to test this state.
 
-//     // TODO assert of threshold and MC reached
-//     let launch = self.launched_coins.read(coin_address);
-//     assert(launch.liquidity_raised >= launch.threshold_liquidity, 'no threshold raised');
-//     assert(launch.is_liquidity_launch == false, 'liquidity already launch');
+    fn deploy(
+        token_class_hash: ClassHash,
+        fee_amount: u256,
+        fee_to: ContractAddress,
+        max_token_supply: u256,
+        paid_in: ContractAddress,
+        exchange_address: ContractAddress,
+    ) -> ContractAddress {
+        Zero::zero()
+    }
 
-//     // TODO calculate price
-
-//     // let launch_price = launch.initial_pool_supply / launch.threshold_liquidity;
-//     // println!("launch_price {:?}", launch_price);
-
-//     // let price_u128:u128=launch_price.try_into().unwrap();
-//     // println!("price_u128 {:?}", price_u128);
-
-//     // let starting_price = i129 { sign: true, mag: 100_u128 };
-//     // let starting_price = i129 { sign: true, mag: 100_u128 };
-//     // let starting_price = i129 { sign: true, mag: price_u128 };
-//     let starting_price: i129 = self
-//         ._calculate_starting_price_launch(
-//             launch.initial_pool_supply, launch.threshold_liquidity,
-//         );
-//     let lp_meme_supply = launch.initial_pool_supply;
-
-//     // let lp_meme_supply = launch.initial_available_supply - launch.available_supply;
-
-//     let params: EkuboLaunchParameters = EkuboLaunchParameters {
-//         owner: launch.owner,
-//         token_address: launch.token_address,
-//         quote_address: launch.token_quote.token_address,
-//         lp_supply: lp_meme_supply,
-//         // lp_supply: launch.liquidity_raised,
-//         pool_params: EkuboPoolParameters {
-//             fee: 0xc49ba5e353f7d00000000000000000,
-//             tick_spacing: 5982,
-//             starting_price,
-//             bound: 88719042,
-//         },
-//     };
-
-//     // Register the token in Ekubo Registry
-//     // let registry_address = self.ekubo_registry.read();
-//     // let registry = ITokenRegistryDispatcher { contract_address: registry_address };
-
-//     let ekubo_core_address = self.core.read();
-//     let ekubo_exchange_address = self.ekubo_exchange_address.read();
-//     let memecoin = EKIERC20Dispatcher { contract_address: params.token_address };
-//     //TODO token decimal, amount of 1 token?
-
-//     let pool = self.launched_coins.read(coin_address);
-//     let dex_address = self.core.read();
-//     memecoin.approve(ekubo_exchange_address, lp_meme_supply);
-//     memecoin.approve(ekubo_core_address, lp_meme_supply);
-//     assert!(memecoin.contract_address == params.token_address, "Token address mismatch");
-//     let base_token = EKIERC20Dispatcher { contract_address: params.quote_address };
-//     //TODO token decimal, amount of 1 token?
-//     // let pool = self.launched_coins.read(coin_address);
-//     base_token.approve(ekubo_exchange_address, pool.liquidity_raised);
-//     base_token.approve(ekubo_core_address, pool.liquidity_raised);
-//     let core = ICoreDispatcher { contract_address: ekubo_core_address };
-//     // Call the core with a callback to deposit and mint the LP tokens.
-
-//     let (id, position) = call_core_with_callback::<
-//         // let span = call_core_with_callbac00k::<
-//         CallbackData, (u64, EkuboLP),
-//     >(core, @CallbackData::LaunchCallback(LaunchCallback { params }));
-//     // let (id,position) = self._supply_liquidity_ekubo_and_mint(coin_address, params);
-//     //TODO emit event
-//     let id_cast: u256 = id.try_into().unwrap();
-
-//     let mut launch_to_update = self.launched_coins.read(coin_address);
-//     launch_to_update.is_liquidity_launch = true;
-//     self.launched_coins.entry(coin_address).write(launch_to_update.clone());
-
-//     self
-//         .emit(
-//             LiquidityCreated {
-//                 id: id_cast,
-//                 pool: coin_address,
-//                 asset: coin_address,
-//                 quote_token_address: base_token.contract_address,
-//                 owner: launch.owner,
-//                 exchange: SupportedExchanges::Ekubo,
-//                 is_unruggable: false,
-//             },
-//         );
-
-//     (id, position)
-// }
-
-
+    fn deploy_default_contract() -> ContractAddress {
+        Zero::zero()
+    }
+}
