@@ -360,6 +360,83 @@ pub mod NostrFiScoring {
             now >= next_time
         }
 
+
+
+        fn _check_epoch_need_transition(ref self: ContractState) -> bool {
+            let now = get_block_timestamp();
+            let end_epoch_time = self.current_epoch_rewards.read().end_epoch_time;
+            now >= end_epoch_time
+        }
+
+        fn _check_epoch_transition(ref self: ContractState) {
+
+            let is_ended = self._check_epoch_is_ended(self.current_epoch_rewards.read().end_epoch_time);
+            if is_ended {
+                self._finalize_epoch();
+                self._transition_to_next_epoch(); 
+            }
+        }
+
+        // Transition to next epoch
+        // Epoch transition
+
+        fn _finalize_epoch(ref self: ContractState) {
+            let mut current_epoch_rewards = self.current_epoch_rewards.read();
+            let epoch_index = self.epoch_index.read();
+            current_epoch_rewards.is_finalized = true;
+            self.epoch_rewards.entry(epoch_index).write(current_epoch_rewards);
+            // self.epoch_rewards_per_start_epoch.entry(now).write(current_epoch_rewards);
+            // self.epoch_rewards_per_end_epoch.entry(current_epoch_rewards.end_epoch_time).write(current_epoch_rewards);
+        }
+
+
+        fn _transition_to_next_epoch(ref self: ContractState) {
+            let now = get_block_timestamp();
+
+            let new_epoch_index = self.epoch_index.read() + 1;
+            self.epoch_index.write(new_epoch_index);
+
+            let new_epoch_rewards = EpochRewards {
+                index: new_epoch_index,
+                epoch_duration: self.epoch_duration.read(),
+                start_epoch_time: now,
+                end_epoch_time: now + self.epoch_duration.read(),
+                is_finalized: false,
+                is_claimed: false,
+                total_score_ai: 0,
+                total_score_tips: 0,
+                total_score_algo: 0,
+            };
+            self.epoch_rewards.entry(new_epoch_index).write(new_epoch_rewards);
+            self.current_epoch_rewards.write(new_epoch_rewards);
+        }
+
+        fn _transition_overall_state(ref self: ContractState,
+            start_epoch_time: u64,
+            end_epoch_time: u64,
+        ) {
+            let mut current_epoch_rewards = self.current_epoch_rewards.read();
+            let epoch_index = self.epoch_index.read();
+            current_epoch_rewards.is_finalized = true;
+            self.epoch_rewards.entry(epoch_index).write(current_epoch_rewards);
+        }
+
+        
+        fn _transition_user_state_to_next_epoch(ref self: ContractState,
+            start_epoch_time: u64,
+            end_epoch_time: u64,) {
+
+            let caller_address = get_caller_address();
+            let nostr_address = self.sn_to_nostr.read(caller_address);
+            let now = get_block_timestamp();
+            let mut current_epoch_rewards = self.current_epoch_rewards.read();
+            let epoch_index = self.epoch_index.read();
+            current_epoch_rewards.is_finalized = true;
+            self.epoch_rewards.entry(epoch_index).write(current_epoch_rewards);
+
+        }
+
+
         fn _generic_vote_nostr_event(
             ref self: ContractState, vote_params: VoteParams // nostr_address: NostrPublicKey,
             // vote: Vote,
@@ -540,88 +617,32 @@ pub mod NostrFiScoring {
 
         }
 
-
-        fn _check_epoch_need_transition(ref self: ContractState) -> bool {
-            let now = get_block_timestamp();
-            let end_epoch_time = self.current_epoch_rewards.read().end_epoch_time;
-            now >= end_epoch_time
-        }
-
-        fn _check_epoch_transition(ref self: ContractState) {
-
-            let is_ended = self._check_epoch_is_ended(self.current_epoch_rewards.read().end_epoch_time);
-            if is_ended {
-                self._finalize_epoch();
-                self._transition_to_next_epoch(); 
-            }
-        }
-
-        // Transition to next epoch
-        // Epoch transition
-
-        fn _finalize_epoch(ref self: ContractState) {
-
-            let caller_address = get_caller_address();
-            let mut current_epoch_rewards = self.current_epoch_rewards.read();
-            let epoch_index = self.epoch_index.read();
-            current_epoch_rewards.is_finalized = true;
-            self.epoch_rewards.entry(epoch_index).write(current_epoch_rewards);
-
-            // self.epoch_rewards_per_start_epoch.entry(now).write(current_epoch_rewards);
-            // self.epoch_rewards_per_end_epoch.entry(current_epoch_rewards.end_epoch_time).write(current_epoch_rewards);
-
-        }
-
-
-        fn _transition_to_next_epoch(ref self: ContractState) {
+        fn _old_time_check(ref self: ContractState) {
             let now = get_block_timestamp();
 
-            let new_epoch_index = self.epoch_index.read() + 1;
-            self.epoch_index.write(new_epoch_index);
+            // check profile nostr id link
+            println!("starknet_user_address: {:?}", starknet_user_address);
+            let nostr_address = self.sn_to_nostr.read(starknet_user_address);
+            println!("nostr_address: {:?}", nostr_address);
+            assert(nostr_address != 0.try_into().unwrap(), 'Profile not linked');
 
-            let new_epoch_rewards = EpochRewards {
-                index: new_epoch_index,
-                epoch_duration: self.epoch_duration.read(),
-                start_epoch_time: now,
-                end_epoch_time: now + self.epoch_duration.read(),
-                is_finalized: false,
-                is_claimed: false,
-                total_score_ai: 0,
-                total_score_tips: 0,
-                total_score_algo: 0,
-            };
-            self.epoch_rewards.entry(new_epoch_index).write(new_epoch_rewards);
-            self.current_epoch_rewards.write(new_epoch_rewards);
-        }
+            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
+            assert(now >= next_time, 'Epoch not ended');
 
-        fn _transition_overall_state(ref self: ContractState,
-            start_epoch_time: u64,
-            end_epoch_time: u64,
-        ) {
+            let last_timestamp_oracle_score_by_user = self
+                .last_timestamp_oracle_score_by_user
+                .read(nostr_address);
+
+            assert(now - last_timestamp_oracle_score_by_user > 1000, 'Not enough time has passed');
 
         }
-
-        
-        fn _transition_user_state_to_next_epoch(ref self: ContractState,
-            start_epoch_time: u64,
-            end_epoch_time: u64,) {
-
-            let caller_address = get_caller_address();
-            let nostr_address = self.sn_to_nostr.read(caller_address);
-            let now = get_block_timestamp();
-            let mut current_epoch_rewards = self.current_epoch_rewards.read();
-            let epoch_index = self.epoch_index.read();
-            current_epoch_rewards.is_finalized = true;
-            self.epoch_rewards.entry(epoch_index).write(current_epoch_rewards);
-
-        }
-
         // Distribution of rewards for one user
         // Algorithm + User vote tips
         // TODO:
         // Add end epoch check
         fn _distribute_rewards_by_user(
-            ref self: ContractState, starknet_user_address: ContractAddress,
+            ref self: ContractState, starknet_user_address: ContractAddress, 
+            // epoch_index: u64
         ) {
             let now = get_block_timestamp();
 
@@ -715,7 +736,7 @@ pub mod NostrFiScoring {
             let erc20 = IERC20Dispatcher { contract_address: erc20_token_address };
             let balance_contract = erc20.balance_of(get_contract_address());
 
-            let total_amount_to_claim_share = total_amount_deposit
+            let total_amount_to_claim_algo = total_amount_deposit
                 * percentage_distribution_algo
                 / BPS;
             let total_amount_to_claim = total_deposit_rewards.total_amount_to_claim;
@@ -738,7 +759,8 @@ pub mod NostrFiScoring {
 
             // User share by Algo score
             // V2 create weight and equations based on several parameters of the algorith scoring
-            let mut user_share_algo = my_ai_score * amount_for_algo / total_ai_score;
+            let mut user_share_algo = my_ai_score * total_amount_to_claim_algo / total_amount_to_claim_algo;
+         
             println!("user_share_algo: {}", user_share_algo);
             println!("balance_contract: {}", balance_contract);
 
@@ -746,9 +768,10 @@ pub mod NostrFiScoring {
                 user_share_algo = balance_contract;
             }
 
-            if user_share_algo > total_amount_to_claim {
-                user_share_algo = total_amount_to_claim;
+            if user_share_algo > total_amount_to_claim_algo {
+                user_share_algo = total_amount_to_claim_algo;
             }
+
 
             // Distribute Topic User vote tips
 
@@ -887,6 +910,7 @@ pub mod NostrFiScoring {
                     },
                 );
         }
+       
     }
     #[abi(embed_v0)]
     impl NostrFiScoringImpl of INostrFiScoring<ContractState> {
@@ -1174,11 +1198,14 @@ pub mod NostrFiScoring {
                     veracity_score: score_algo.veracity_score,
                 };
             }
+            // Update the algo score
+            // Current
+            // By epoch indexer
+            self.nostr_account_scoring_algo.entry(nostr_address).write(algo_nostr_account_scoring);
         
 
             // Update total algo score stats
             let total_algo_score_rewards = self.total_algo_score_rewards.read();
-            let total_score_rewards = self.total_score_rewards.read();
 
             // TODO
             // Check if decrease score to reflect
