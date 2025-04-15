@@ -9,7 +9,7 @@ tags: [afk, nostr, freedom, ownership, bitcoin, ethereum, starknet, socialfi, in
 Passionate about Tech for a few years now as a developer, I want to build something I care.
 
 
-[Docusaurus blogging features](https://docusaurus.io/docs/blog) are powered by the [blog plugin](https://docusaurus.io/docs/api/plugins/@docusaurus/plugin-content-blog).
+<!-- [Docusaurus blogging features](https://docusaurus.io/docs/blog) are powered by the [blog plugin](https://docusaurus.io/docs/api/plugins/@docusaurus/plugin-content-blog). -->
 
 Simply add Markdown files (or folders) to the `blog` directory.
 
