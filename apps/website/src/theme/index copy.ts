@@ -2,7 +2,6 @@
 // import {type ThemeConfig, extendTheme, StyleFunctionProps} from '@chakra-ui/react';
 // import {mode} from '@chakra-ui/theme-tools';
 
-
 // // 2. Extend the theme to include custom colors, fonts, etc
 // const colors = {
 //   brand: {
@@ -34,7 +33,7 @@
 //     green: 'linear-gradient(53deg, rgba(200, 237, 10, 1) 35%, rgba(253, 217, 13, 1) 100%)',
 //     primary: 'linear-gradient(53deg, #4FA89B 35%, #4f89a8 100%)',
 //   },
-  
+
 //   semantic: {
 //     text: {
 //       primary: mode('gray.800', 'whiteAlpha.900'),

@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, {useState} from 'react';
+import {createPortal} from 'react-dom';
 
-import { MobileNavBar } from './MobileNavBar';
-import { NavigationLinks } from './NavigationLinks';
-import { Box, Button, Text, Image as ImageChakra, Link as LinkChakra } from '@chakra-ui/react';
+import {MobileNavBar} from './MobileNavBar';
+import {NavigationLinks} from './NavigationLinks';
+import {Box, Button, Text, Image as ImageChakra, Link as LinkChakra} from '@chakra-ui/react';
 
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);
@@ -20,8 +20,7 @@ export function Navbar() {
           className="desktop:h-[52px] w-9 h-9 desktop:w-[52px]"
           alt=""
         />
-        <LinkChakra href="/"
-          className="desktop:text-2xl text-lg leading-7 font-bold">
+        <LinkChakra href="/" className="desktop:text-2xl text-lg leading-7 font-bold">
           AFK
           {/* <Text >AFK</Text> */}
         </LinkChakra>
@@ -49,11 +48,16 @@ export function Navbar() {
             setToggleNav(false);
           } else {
             setToggleNav(true);
-            window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+            window.scrollTo({top: 0, left: 0, behavior: 'smooth'});
           }
         }}
       >
-        <ImageChakra src="assets/hamburger-icon.svg" className="w-6 h-6" alt="" color="currentColor" />
+        <ImageChakra
+          src="assets/hamburger-icon.svg"
+          className="w-6 h-6"
+          alt=""
+          color="currentColor"
+        />
       </Button>
 
       {toggleNav &&

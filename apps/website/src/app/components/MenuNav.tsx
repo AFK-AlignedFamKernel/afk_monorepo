@@ -1,11 +1,10 @@
-import {Button, Menu, MenuButton, MenuList, MenuItem,} from '@chakra-ui/react';
+import {Button, Menu, MenuButton, MenuList, MenuItem} from '@chakra-ui/react';
 
 import {CustomConnectButtonWallet} from './button/CustomConnectButtonWallet';
 
 interface IMenuParent {
   children?: React.ReactNode;
 }
-
 
 const MenuNav: React.FC<IMenuParent> = () => {
   return (

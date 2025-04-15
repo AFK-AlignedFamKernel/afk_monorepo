@@ -16,14 +16,14 @@ import {
   useDisclosure,
   Fade,
 } from '@chakra-ui/react';
-import { FaUser, FaBullhorn, FaCoins, FaStar, FaVoteYea } from 'react-icons/fa';
-import { useEffect, useState } from 'react';
-import { IconType } from 'react-icons/lib';
+import {FaUser, FaBullhorn, FaCoins, FaStar, FaVoteYea} from 'react-icons/fa';
+import {useEffect, useState} from 'react';
+import {IconType} from 'react-icons/lib';
 
 export default function InfoFiPageComponent() {
   const bg = useColorModeValue('gray.50', 'gray.800');
-  const { isOpen, onToggle } = useDisclosure();
-  const delay = useBreakpointValue({ base: 0.2, md: 0.1 });
+  const {isOpen, onToggle} = useDisclosure();
+  const delay = useBreakpointValue({base: 0.2, md: 0.1});
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -42,24 +42,31 @@ export default function InfoFiPageComponent() {
 
         <Fade in={mounted} delay={delay}>
           <Text fontSize="xl" color="gray.600" maxW="720px">
-            AFK is building InfoFi — the fair, open marketplace for attention, trends, and content. Powered by Ethereum, Bitcoin, Starknet, and Nostr.
+            AFK is building InfoFi — the fair, open marketplace for attention, trends, and content.
+            Powered by Ethereum, Bitcoin, Starknet, and Nostr.
           </Text>
         </Fade>
 
-        <Stack direction={{ base: 'column', md: 'row' }} spacing={4} pt={4}>
+        <Stack direction={{base: 'column', md: 'row'}} spacing={4} pt={4}>
           <Button colorScheme="green" size="lg">
-            <Link href="https://afk-community.xyz/app/login" target="_blank">Create Your Profile</Link>
+            <Link href="https://afk-community.xyz/app/login" target="_blank">
+              Create Your Profile
+            </Link>
           </Button>
           <Button variant="outline" colorScheme="green" size="lg">
-            <Link href="https://docs.afk-community.xyz/docs/market/infofi" target="_blank">Learn More</Link>
+            <Link href="https://docs.afk-community.xyz/docs/market/infofi" target="_blank">
+              Learn More
+            </Link>
           </Button>
         </Stack>
       </VStack>
 
       {/* WHO BENEFITS */}
       <Box mt={24}>
-        <Heading size="lg" textAlign="center" mb={10}>Who is InfoFi For?</Heading>
-        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
+        <Heading size="lg" textAlign="center" mb={10}>
+          Who is InfoFi For?
+        </Heading>
+        <SimpleGrid columns={{base: 1, md: 3}} spacing={10}>
           <Fade in={mounted}>
             <BenefitBlock
               icon={FaUser}
@@ -86,14 +93,17 @@ export default function InfoFiPageComponent() {
 
       {/* INFOFI LOOP */}
       <Box mt={24} textAlign="center">
-        <Heading size="lg" mb={4}>🔁 How InfoFi Works</Heading>
+        <Heading size="lg" mb={4}>
+          🔁 How InfoFi Works
+        </Heading>
         <Text fontSize="md" color="gray.600" maxW="600px" mx="auto">
-          InfoFi turns attention into capital — fairly. No algorithm games, just a loop where value flows directly.
+          InfoFi turns attention into capital — fairly. No algorithm games, just a loop where value
+          flows directly.
         </Text>
         <Flex direction="column" align="center" mt={10}>
           <Box maxW="600px" bg={bg} p={6} rounded="xl" shadow="lg">
             <Stack spacing={4} textAlign="left" fontSize="md">
-              <Text >📥 1. Creators register their Nostr profile</Text>
+              <Text>📥 1. Creators register their Nostr profile</Text>
               <Text>👍 2. Users vote or tip based on merit</Text>
               <Text>🧠 3. Vaults + AI + DAO score the profiles</Text>
               <Text>💸 4. Rewards are distributed every epoch</Text>
@@ -108,7 +118,7 @@ export default function InfoFiPageComponent() {
         <Heading size="lg" mb={8} textAlign="center">
           ✨ Why InfoFi Matters
         </Heading>
-        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
+        <SimpleGrid columns={{base: 1, md: 2}} spacing={8}>
           <FeatureBlock
             icon={FaCoins}
             title="Transparent Monetization"
@@ -126,22 +136,25 @@ export default function InfoFiPageComponent() {
       <Box mt={32} textAlign="center">
         <Heading size="lg">🧬 Join the Sovereign Internet Layer</Heading>
         <Text mt={4} fontSize="md" color="gray.600">
-          Co-create a new economic layer for knowledge, ideas, and influence. One that’s fair, open, and rewards participation.
+          Co-create a new economic layer for knowledge, ideas, and influence. One that’s fair, open,
+          and rewards participation.
         </Text>
         <Stack mt={6} direction="row" spacing={4} justify="center">
           <Button colorScheme="green" size="lg">
-            <Link href="https://afk-community.xyz/app/login" target="_blank">Start Now</Link>
+            <Link href="https://afk-community.xyz/app/login" target="_blank">
+              Start Now
+            </Link>
           </Button>
           <Button variant="outline" colorScheme="green" size="lg">
-            <Link href="https://docs.afk-community.xyz" target="_blank">Read the Docs</Link>
+            <Link href="https://docs.afk-community.xyz" target="_blank">
+              Read the Docs
+            </Link>
           </Button>
         </Stack>
       </Box>
 
       {/* FOOTER */}
-      <Box mt={20} pt={10} 
-      borderBottom  ="1px solid"
-       borderColor="gray.200" textAlign="center">
+      <Box mt={20} pt={10} borderBottom="1px solid" borderColor="gray.200" textAlign="center">
         <Text fontSize="sm" color="gray.500">
           🚀 Built with Ethereum · Bitcoin · Starknet · Nostr
         </Text>

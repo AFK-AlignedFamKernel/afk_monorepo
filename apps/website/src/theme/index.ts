@@ -6,31 +6,31 @@ import {
   // createSystem,
   // defaultConfig,
   // defineConfig,
-} from "@chakra-ui/react"
+} from '@chakra-ui/react';
 import {mode, StyleFunctionProps} from '@chakra-ui/theme-tools';
 
-const colors ={
+const colors = {
   theme: {
     breakpoints: {
-      sm: "320px",
-      md: "768px",
-      lg: "960px",
-      xl: "1200px",
+      sm: '320px',
+      md: '768px',
+      lg: '960px',
+      xl: '1200px',
     },
     tokens: {
       colors: {
-        red: "#EE0F0F",
+        red: '#EE0F0F',
       },
     },
     semanticTokens: {
       colors: {
-        danger: { value: "{colors.red}" },
+        danger: {value: '{colors.red}'},
       },
     },
     keyframes: {
       spin: {
-        from: { transform: "rotate(0deg)" },
-        to: { transform: "rotate(360deg)" },
+        from: {transform: 'rotate(0deg)'},
+        to: {transform: 'rotate(360deg)'},
       },
     },
   },
@@ -63,7 +63,7 @@ const colors ={
     green: 'linear-gradient(53deg, rgba(200, 237, 10, 1) 35%, rgba(253, 217, 13, 1) 100%)',
     primary: 'linear-gradient(53deg, #4FA89B 35%, #4f89a8 100%)',
   },
-  
+
   semantic: {
     text: {
       primary: mode('gray.800', 'whiteAlpha.900'),
@@ -108,9 +108,9 @@ const colors ={
       fontFamily: 'monospace',
       bg: '#153e75',
       // useColorMode("#153e75", "#153e75")
-    }
+    },
   },
-}
+};
 
 // 2. Add your color mode config
 const config: ThemeConfig = {

@@ -1,12 +1,10 @@
 // 'use client';
-import { List, ListItem, Box, Button, Text } from '@chakra-ui/react';
+import {List, ListItem, Box, Button, Text} from '@chakra-ui/react';
 import Link from 'next/link';
 
 export function NavigationLinks() {
   return (
-        <List
-    className="items-center gap-x-[32px] font-normal text-lg leading-[21px] hidden desktop:flex"
-    >
+    <List className="items-center gap-x-[32px] font-normal text-lg leading-[21px] hidden desktop:flex">
       {/* <ListItem>
         <Link href="/features">
           <Text>Features</Text>
@@ -30,7 +28,6 @@ export function NavigationLinks() {
             </a>
           </Button>
         </Box>
-
       </ListItem>
       {/* <li>
         <Link href="/pixel">Pixel </Link>

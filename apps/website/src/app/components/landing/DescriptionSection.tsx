@@ -1,6 +1,6 @@
 'use client';
 
-import { Text, Box } from '@chakra-ui/react';
+import {Text, Box} from '@chakra-ui/react';
 import {motion} from 'framer-motion';
 
 import {Feature} from './Feature';

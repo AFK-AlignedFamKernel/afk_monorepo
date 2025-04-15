@@ -14,9 +14,7 @@ import Providers from './providers';
 // };
 const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS; // Replace with your actual tracking ID
 
-
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({children}: {children: React.ReactNode}) {
   // // Track page views
   // const router = useRouter();
   // useEffect(() => {

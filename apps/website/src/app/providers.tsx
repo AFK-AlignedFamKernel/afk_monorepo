@@ -2,9 +2,9 @@
 // const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS; // Replace with your actual tracking ID
 
 // import '@rainbow-me/rainbowkit/styles.css';
-import { ChakraProvider } from '@chakra-ui/react';
+import {ChakraProvider} from '@chakra-ui/react';
 // import { getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 // import { Chain } from 'viem';
 // import { createConfig, http } from 'wagmi';
 // import { WagmiProvider } from 'wagmi';
@@ -59,10 +59,8 @@ import theme from '../theme'; // Import your custom theme
 
 const queryClient = new QueryClient();
 
-
 // const system = createSystem(defaultConfig, configChakra)
-export default function Providers({ children }: { children: React.ReactNode }) {
-
+export default function Providers({children}: {children: React.ReactNode}) {
   // const router = useRouter();
   // useEffect(() => {
   //   const handleRouteChange = (url: string) => {
@@ -77,7 +75,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   //     router?.events?.off('routeChangeComplete', handleRouteChange);
   //   };
   // }, [router]);
-  
+
   return (
     <ChakraProvider theme={theme}>
       <StarknetProvider>

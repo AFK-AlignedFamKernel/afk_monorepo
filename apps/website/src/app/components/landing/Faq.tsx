@@ -1,14 +1,12 @@
 'use client';
 
-import { Box, Text } from '@chakra-ui/react';
+import {Box, Text} from '@chakra-ui/react';
 import {FaqBar} from '../FaqBar';
 
 export function Faq() {
   return (
-    <Box
-    className="desktop:pt-[84px] pt-[40px] pb-[44px] px-[24px] desktop:px-[320px] text-center bg-gradientBg">
-      <Text className="mb-[49px] text-xl desktop:text-[32px] leading-[38px]"
-      >
+    <Box className="desktop:pt-[84px] pt-[40px] pb-[44px] px-[24px] desktop:px-[320px] text-center bg-gradientBg">
+      <Text className="mb-[49px] text-xl desktop:text-[32px] leading-[38px]">
         Frequently asked Questions
       </Text>
       <Box className="flex flex-col gap-y-[24px] items-center w-full">
@@ -24,7 +22,7 @@ export function Faq() {
           question="How can I join the Aligned Fam Kernel community?"
           answer="It's a Freedom place. Everyone can join and use our Social network, and be a part of the community and contributors!"
         />
-  
+
         {/* <FaqBar
           question="What's the benefit of using Aligned Fam Kernel?"
           answer="It'  a Freedom place. Everyone can join and use our Social network, and be a part of the community and contributors!"

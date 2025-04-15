@@ -1,11 +1,10 @@
 'use client';
 
-import { Box, Button, Text } from '@chakra-ui/react';
-import { useState } from 'react';
-type Props = { answer: string; question: string };
+import {Box, Button, Text} from '@chakra-ui/react';
+import {useState} from 'react';
+type Props = {answer: string; question: string};
 
-
-export function FaqBar({ question, answer }: Props) {
+export function FaqBar({question, answer}: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const handleClick = () => {
     setIsOpen(!isOpen);
@@ -18,14 +17,14 @@ export function FaqBar({ question, answer }: Props) {
       >
         <Box className="flex justify-between items-center w-full">
           <h2 className="desktop:text-[20px] text-xs leading-[28px]">{question}</h2>
-          <img 
-            src="/assets/down-cheveron.svg" 
+          <img
+            src="/assets/down-cheveron.svg"
             alt="Toggle answer"
             className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
           />
         </Box>
       </Button>
-      
+
       <Box
         className={`overflow-hidden transition-all duration-300 ${
           isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'

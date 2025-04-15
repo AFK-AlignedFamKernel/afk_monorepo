@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import { Box, List, ListItem, Text, Button } from "@chakra-ui/react";
-import Link from "next/link";
+import {Box, List, ListItem, Text, Button} from '@chakra-ui/react';
+import Link from 'next/link';
 
 export function Footer() {
   return (
@@ -17,7 +17,7 @@ export function Footer() {
             Free, open-source decentralized social media platform.
           </Text>
           <Box className="flex items-center gap-x-5">
-            <Box  >
+            <Box>
               <img src="/assets/appStoreBtn.svg" className="w-[100px] tab:w-auto" alt="" />
             </Box>
             <Box>
@@ -26,7 +26,6 @@ export function Footer() {
           </Box>
         </Box>
         <Box className="flex gap-x-[40px] tab:gap-x-[122px] text-[14px] leading-[21px] font-normal pt-[46px]">
-
           <List className="flex flex-col gap-y-10">
             <ListItem className="font-bold text-base leading-6">Product</ListItem>
             <ListItem>
@@ -38,19 +37,17 @@ export function Footer() {
             <ListItem>
               <Link href="/infofi">Info Fi</Link>
             </ListItem>
-
           </List>
           <List className="flex flex-col gap-y-10">
             <ListItem className="font-bold text-base leading-6">Company</ListItem>
             <ListItem>
-              <Text fontFamily="monospace"
-                fontStyle={"italic"}
-                fontSize="14px" lineHeight="21px">DAO and Community owned</Text>
+              <Text fontFamily="monospace" fontStyle={'italic'} fontSize="14px" lineHeight="21px">
+                DAO and Community owned
+              </Text>
             </ListItem>
             <ListItem>
               <Link href="/solutions">Solutions</Link>
             </ListItem>
-
           </List>
         </Box>
         <Box className="flex items-center gap-x-[14px] mt-5 tab:mt-0 self-center tab:self-end">

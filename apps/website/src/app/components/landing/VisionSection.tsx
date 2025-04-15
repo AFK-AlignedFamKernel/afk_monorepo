@@ -18,13 +18,13 @@ export function VisionSection() {
             All-in-one platform for Freedom & Ownership
           </h1>
           <p className="text-sm tab:text-base leading-[30px] mt-4 text-[#9D9797]">
-            A decentralized and open social network. 
+            A decentralized and open social network.
           </p>
           <p className="text-sm tab:text-base leading-[30px] mt-4 text-[#9D9797]">
             Make money from content creation, own your data, and control your identity.
           </p>
           <p className="text-sm tab:text-base leading-[30px] mt-4 text-[#9D9797]">
-           Payment system with Bitcoin & Ethereum, ownership & privacy focus.
+            Payment system with Bitcoin & Ethereum, ownership & privacy focus.
           </p>
         </motion.div>
         <motion.div
