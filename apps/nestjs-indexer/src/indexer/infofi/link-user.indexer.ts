@@ -8,8 +8,8 @@ import { ContractAddress } from 'src/common/types';
 import { NostrInfofiService } from 'src/services/nostr-infofi/nostr-infofi.service';
 
 @Injectable()
-export class ClaimUserShareIndexer {
-  private readonly logger = new Logger(ClaimUserShareIndexer.name);
+export class InfoFiIndexer {
+  private readonly logger = new Logger(InfoFiIndexer.name);
   private readonly eventKeys: string[];
 
   constructor(
@@ -103,7 +103,7 @@ export class ClaimUserShareIndexer {
       contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
     };
 
-    await this.nostrInfofiService.createOrUpdate(data);
+    await this.nostrInfofiService.createOrUpdateLinkedDefaultStarknetAddress(data);
   }
 
     // TODO

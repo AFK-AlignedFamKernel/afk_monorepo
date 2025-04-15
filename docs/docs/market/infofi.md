@@ -69,11 +69,13 @@ Everyone contributes to trends. Now everyone can earn from them.
 
 ---
 
-## 🧬 How InfoFi Works
+## 🧬 How InfoFi Works (WIP)
 
 We have few ideas and some basics design of the protocol in WIP.
 Final design for the MVP coming soon to do it asap and improve step by step.
 
+
+### Ideas of Design and architecture
 
 1. Ideas
 
