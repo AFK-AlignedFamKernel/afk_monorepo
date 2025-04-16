@@ -343,7 +343,9 @@ pub mod ICO {
 
     #[abi(embed_v0)]
     pub impl ICOConfigImpl of IICOConfig<ContractState> {
-        fn set_token_config(ref self: ContractState, config: TokenConfig) {}
+        fn set_token_config(ref self: ContractState, config: TokenConfig) {
+            self.ownable.assert_only_owner();
+        }
     }
 
     #[generate_trait]
@@ -438,32 +440,4 @@ pub mod ICO {
     impl InternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
     impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
-}
-
-#[cfg(test)]
-mod tests {
-    use core::num::traits::Zero;
-    use starknet::{ClassHash, ContractAddress};
-    use crate::interfaces::ico::{IICODispatcher, IICODispatcherTrait};
-    // Remember the storage mutable issh, with update status -- doesn't take in a ref of token.
-    // TODO: Don't forget to test this state.
-
-    fn deploy(
-        token_class_hash: ClassHash,
-        fee_amount: u256,
-        fee_to: ContractAddress,
-        max_token_supply: u256,
-        paid_in: ContractAddress,
-        exchange_address: ContractAddress,
-    ) -> ContractAddress {
-        Zero::zero()
-    }
-
-    fn deploy_default_contract() -> ContractAddress {
-        Zero::zero()
-    }
-
-    // Test buy_token for a token twice, run claim_all, it shouldn't throw an error, but it should run perfectly.
-    // buy_token pushes the token's contract twice, so the second call to _claim should do absolutely nothing.
-    // But claim won't work until the token is deployed to Ekubo sepolia. 
 }
