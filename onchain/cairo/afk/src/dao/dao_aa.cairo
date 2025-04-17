@@ -268,17 +268,17 @@ pub mod DaoAA {
 mod tests {
     use afk::components::voting::VotingComponent;
     use afk::interfaces::voting::{
-        ConfigParams, IVoteProposalDispatcher, IVoteProposalDispatcherTrait,
-        ProposalCreated, ProposalParams, ProposalResolved, ProposalResult,
-        ProposalVoted, SET_PROPOSAL_DURATION_IN_SECONDS, UserVote,
+        ConfigParams, IVoteProposalDispatcher, IVoteProposalDispatcherTrait, ProposalCreated,
+        ProposalParams, ProposalResolved, ProposalResult, ProposalVoted,
+        SET_PROPOSAL_DURATION_IN_SECONDS, UserVote,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use core::num::traits::Zero;
     use openzeppelin::utils::serde::SerializedAppend;
     // use snforge_std::cheatcodes::events::Event;
     use snforge_std::{
-        CheatSpan, ContractClassTrait, DeclareResultTrait, EventsFilterTrait, EventSpyTrait,
-     cheat_block_timestamp, cheat_caller_address, declare, spy_events, EventSpyAssertionsTrait
+        CheatSpan, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, EventSpyTrait,
+        EventsFilterTrait, cheat_block_timestamp, cheat_caller_address, declare, spy_events,
     };
     use starknet::account::Call;
     use starknet::{ContractAddress, contract_address_const};

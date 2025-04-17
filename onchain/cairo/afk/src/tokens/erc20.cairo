@@ -25,11 +25,11 @@ pub trait IERC20<TContractState> {
 #[starknet::contract]
 pub mod ERC20 {
     use core::num::traits::Zero;
+    use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{ContractAddress, contract_address_const, get_caller_address};
-    use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
 
     component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
@@ -40,16 +40,15 @@ pub mod ERC20 {
 
     #[storage]
     struct Storage {
-  
         #[substorage(v0)]
-        erc20: ERC20Component::Storage
+        erc20: ERC20Component::Storage,
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
         #[flat]
-        ERC20Event: ERC20Component::Event
+        ERC20Event: ERC20Component::Event,
     }
 
     #[constructor]
@@ -58,37 +57,36 @@ pub mod ERC20 {
         name: ByteArray,
         symbol: ByteArray,
         initial_supply: u256,
-        recipient: ContractAddress
+        recipient: ContractAddress,
     ) {
-
         self.erc20.initializer(name, symbol);
         self.erc20.mint(recipient, initial_supply);
     }
-
     // #[constructor]
-    // fn constructor(
-    //     ref self: ContractState,
-    //     name: felt252,
-    //     symbol: felt252,
-    //     initial_supply: u256,
-    //     recipient: ContractAddress,
-    //     decimals: u8,
-    // ) {
-    //     self.name.write(name);
-    //     self.symbol.write(symbol);
-    //     self.decimals.write(decimals);
-    //     assert(!recipient.is_zero(), 'ERC20: mint to the 0 address');
-    //     self.total_supply.write(initial_supply);
-    //     self.balances.entry(recipient).write(initial_supply);
-    //     self
-    //         .emit(
-    //             Event::Transfer(
-    //                 Transfer {
-    //                     from: contract_address_const::<0>(), to: recipient, value: initial_supply,
-    //                 },
-    //             ),
-    //         );
-    // }
+// fn constructor(
+//     ref self: ContractState,
+//     name: felt252,
+//     symbol: felt252,
+//     initial_supply: u256,
+//     recipient: ContractAddress,
+//     decimals: u8,
+// ) {
+//     self.name.write(name);
+//     self.symbol.write(symbol);
+//     self.decimals.write(decimals);
+//     assert(!recipient.is_zero(), 'ERC20: mint to the 0 address');
+//     self.total_supply.write(initial_supply);
+//     self.balances.entry(recipient).write(initial_supply);
+//     self
+//         .emit(
+//             Event::Transfer(
+//                 Transfer {
+//                     from: contract_address_const::<0>(), to: recipient, value:
+//                     initial_supply,
+//                 },
+//             ),
+//         );
+// }
 
 }
 
