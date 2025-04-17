@@ -327,7 +327,7 @@ pub mod NostrFiScoring {
                     algo_total_amount_deposit: 0,
                     rewards_amount: 0,
                     is_claimed: false,
-                    total_amount_deposit: 0,
+            total_amount_deposit: 0,
             total_amount_to_claim: 0,
         };
 
@@ -388,7 +388,7 @@ pub mod NostrFiScoring {
                 println!("updated_epoch: {:?}", updated_epoch.is_finalized);
                 if epoch_index == self.epoch_index.read() {
                     println!("transition to next epoch");
-                    self._transition_to_next_epoch_current_epoch(); 
+                    self._transition_to_next_epoch_current_epoch(epoch_index); 
                     println!("finalize epoch state");
 
                     self._finalize_epoch_state(epoch_index);
@@ -406,16 +406,8 @@ pub mod NostrFiScoring {
             let is_ended = self._check_epoch_is_ended(selected_epoch.end_epoch_time);
             println!("is_ended: {:?}", is_ended);
             if is_ended {
-                let updated_epoch = self._finalize_epoch(selected_epoch);
-                println!("updated_epoch: {:?}", updated_epoch.is_finalized);
                 if epoch_index == self.epoch_index.read() {
-                    println!("transition to next epoch");
-                    self._transition_to_next_epoch_current_epoch(); 
-                    println!("finalize epoch state");
-
-                    self._finalize_epoch_state(epoch_index);
-                } else {
-                }
+                } 
 
             } 
             (selected_epoch, is_ended)
@@ -447,6 +439,71 @@ pub mod NostrFiScoring {
 
         fn _finalize_epoch_state(ref self: ContractState, epoch_index: u64) {
            
+            let mut total_score_rewards = self.total_score_rewards.read();
+            total_score_rewards.is_claimed = true;
+            let mut total_algo_score_rewards = self.total_algo_score_rewards.read();
+            total_algo_score_rewards.is_claimed = true;
+            let mut total_deposit_rewards = self.total_deposit_rewards.read();
+            total_deposit_rewards.is_claimed = true;
+
+
+            println!("total_score_rewards is claimed: {:?}", total_score_rewards.is_claimed);
+            println!("total_algo_score_rewards is claimed: {:?}", total_algo_score_rewards.is_claimed);
+            println!("total_deposit_rewards is claimed: {:?}", total_deposit_rewards.is_claimed);
+            self.score_rewards_per_epoch_index.entry(epoch_index).write(total_score_rewards);
+            self.algo_score_rewards_per_epoch_index.entry(epoch_index).write(total_algo_score_rewards);
+            self.deposit_rewards_per_epoch_index.entry(epoch_index).write(total_deposit_rewards);
+
+
+            let mut epoch_rewards=self.epoch_rewards.read(epoch_index);
+            
+            let end_epoch_time = epoch_rewards.end_epoch_time;
+            let epoch_duration = epoch_rewards.epoch_duration;
+            let start_epoch_time = epoch_rewards.start_epoch_time;
+            epoch_rewards.is_finalized = true;
+            self.epoch_rewards.entry(epoch_index).write(epoch_rewards);
+
+
+
+
+            println!("start_epoch_time: {:?}", start_epoch_time);
+            println!("end_epoch_time: {:?}", end_epoch_time);
+            println!("epoch_duration: {:?}", epoch_duration);
+            let mut new_total_score_rewards = TotalScoreRewardsDefault::default();
+            println!("new_total_score_rewards is claimed: {:?}", new_total_score_rewards.is_claimed);
+
+            new_total_score_rewards.start_epoch_time = start_epoch_time;
+            new_total_score_rewards.end_epoch_time = end_epoch_time;
+            new_total_score_rewards.epoch_duration = epoch_duration;
+            new_total_score_rewards.is_claimed = false;
+            self.total_score_rewards.write(new_total_score_rewards);
+
+            let mut new_total_algo_score_rewards = TotalAlgoScoreRewardsDefault::default();
+            println!("new_total_algo_score_rewards is claimed: {:?}", new_total_algo_score_rewards.is_claimed);
+            
+            new_total_algo_score_rewards.start_epoch_time = start_epoch_time;
+            new_total_algo_score_rewards.end_epoch_time = end_epoch_time;
+            new_total_algo_score_rewards.epoch_duration = epoch_duration;
+            new_total_algo_score_rewards.is_claimed = false;
+
+            self.total_algo_score_rewards.write(new_total_algo_score_rewards);
+
+            let mut new_total_deposit_rewards = TotalDepositRewardsDefault::default();
+            println!("new_total_deposit_rewards is claimed: {:?}", new_total_deposit_rewards.is_claimed);
+            new_total_deposit_rewards.start_epoch_time = start_epoch_time;
+            new_total_deposit_rewards.end_epoch_time = end_epoch_time;
+            new_total_deposit_rewards.epoch_duration = epoch_duration;
+            new_total_deposit_rewards.is_claimed = false;
+            self.total_deposit_rewards.write(new_total_deposit_rewards);
+
+            // self.
+         
+         
+            // self.epoch_rewards_per_start_epoch.entry(now).write(current_epoch_rewards);
+            // self.epoch_rewards_per_end_epoch.entry(current_epoch_rewards.end_epoch_time).write(current_epoch_rewards);
+        }
+
+        fn _finalize_epoch_state_and_reinitialize(ref self: ContractState, epoch_index: u64) {
             let mut total_score_rewards = self.total_score_rewards.read();
             total_score_rewards.is_claimed = true;
             let mut total_algo_score_rewards = self.total_algo_score_rewards.read();
@@ -550,9 +607,17 @@ pub mod NostrFiScoring {
         }
 
 
-        fn _transition_to_next_epoch_current_epoch(ref self: ContractState) {
-            let now = get_block_timestamp();
+        fn _transition_to_next_epoch_current_epoch(ref self: ContractState, epoch_index: u64) {
 
+
+            // change old state
+            let mut epoch_rewards=self.epoch_rewards.read(epoch_index);
+            epoch_rewards.is_finalized = true;
+            self.epoch_rewards.entry(epoch_index).write(epoch_rewards);
+
+            let now = get_block_timestamp();
+            
+            // init new epoch
             let new_epoch_index = self.epoch_index.read() + 1;
             self.epoch_index.write(new_epoch_index);
             let end_epoch_time = now + self.epoch_duration.read();
@@ -1072,17 +1137,19 @@ pub mod NostrFiScoring {
             self.nostr_account_scoring.entry(request.public_key).write(nostr_account_scoring);
 
             let now = get_block_timestamp();
+
+            let old_tip_by_user = self.total_tip_by_user.read(request.public_key); 
             let tip_by_user = TipByUser {
                 nostr_address: request.public_key,
-                total_amount_deposit: 0,
-                total_amount_deposit_by_algo: 0,
-                rewards_amount: 0,
-                is_claimed: false,
-                end_epoch_time: self.end_epoch_time.read(),
-                start_epoch_time: now,
-                epoch_duration: self.epoch_duration.read(),
-                is_claimed_tip_by_user_because_not_linked: false,
-                reward_to_claim_by_user_because_not_linked: 0,
+                total_amount_deposit: old_tip_by_user.total_amount_deposit,
+                total_amount_deposit_by_algo: old_tip_by_user.total_amount_deposit_by_algo,
+                rewards_amount: old_tip_by_user.rewards_amount,
+                is_claimed: old_tip_by_user.is_claimed,
+                end_epoch_time: old_tip_by_user.end_epoch_time,
+                start_epoch_time: old_tip_by_user.start_epoch_time,
+                epoch_duration: old_tip_by_user.epoch_duration,
+                is_claimed_tip_by_user_because_not_linked: old_tip_by_user.is_claimed_tip_by_user_because_not_linked,
+                reward_to_claim_by_user_because_not_linked: old_tip_by_user.reward_to_claim_by_user_because_not_linked,
             };
 
             self.total_tip_by_user.entry(request.public_key).write(tip_by_user);
@@ -1141,6 +1208,9 @@ pub mod NostrFiScoring {
                 self.last_batch_timestamp.write(now);
             }
 
+
+            let total_deposit_per_epoch=self.total_deposit_rewards_per_epoch_index.read(current_index_epoch);
+
             // MVP with only general deposit rewards
             // V2: users can select the type of rewards distribution when they deposit
             let total_deposit_rewards = match deposit_rewards_type {
@@ -1152,7 +1222,7 @@ pub mod NostrFiScoring {
                         // epoch_duration: self.epoch_duration.read(),
                         // end_epoch_time: self.last_batch_timestamp.read()
                         //     + self.epoch_duration.read(),
-                        total_amount_deposit: amount,
+                        total_amount_deposit: old_total_deposit_rewards.total_amount_deposit + amount,
                         algo_total_amount_deposit: old_total_deposit_rewards
                             .algo_total_amount_deposit,
                         user_total_amount_deposit: old_total_deposit_rewards
