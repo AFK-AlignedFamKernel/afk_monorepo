@@ -7,8 +7,11 @@ pub mod NostrFiScoring {
         LinkedWalletProfileDefault, NostrAccountScoring, NostrFiAdminStorage, NostrPublicKey,
         OPERATOR_ROLE, ProfileAlgorithmScoring, ProfileVoteScoring, PushAlgoScoreEvent,
         PushAlgoScoreNostrNote, TipByUser, TokenLaunchType, TotalAlgoScoreRewards,
-        TotalDepositRewards, TotalScoreRewards, Vote, VoteNostrNote, VoteParams, VoteProfile,
-        VoteUserForProfile, EpochRewards, TipUserWithVote,
+        TotalDepositRewards, TotalScoreRewards, TotalScoreRewardsDefault,
+        TotalAlgoScoreRewardsDefault, TotalVoteTipsRewardsDefault, EpochRewards, TotalDepositRewardsDefault,
+        Vote, VoteNostrNote, VoteParams, VoteProfile,
+         TipUserWithVote, NostrAccountScoringDefault,
+        ProfileVoteScoringDefault, 
     };
     // use afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
     // use crate::afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
@@ -24,6 +27,7 @@ pub mod NostrFiScoring {
         Map, StorageMapReadAccess, StorageMapWriteAccess, // Stor
         StoragePointerReadAccess,
         StoragePointerWriteAccess, StoragePathEntry, Vec, VecTrait,
+
         // MutableEntryStoragePathEntry, StorableEntryReadAccess, StorageAsPathReadForward,
     // MutableStorableEntryReadAccess, MutableStorableEntryWriteAccess,
     // StorageAsPathWriteForward,PathableStorageEntryImpl
@@ -44,15 +48,6 @@ pub mod NostrFiScoring {
     // SRC5
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
-
-    impl LinkedWalletDefault of Default<LinkedWalletProfileDefault> {
-        #[inline(always)]
-        fn default() -> LinkedWalletProfileDefault {
-            LinkedWalletProfileDefault {
-                starknet_address: 0.try_into().unwrap(), nostr_address: 0.try_into().unwrap(),
-            }
-        }
-    }
 
     const EPOCH_DURATION_7d: u64 = 604800; // 7 days
     const EPOCH_DURATION_DEFAULT: u64 = EPOCH_DURATION_7d; // 7 days
@@ -99,13 +94,16 @@ pub mod NostrFiScoring {
         total_algo_score_rewards: TotalAlgoScoreRewards,
         // Epoch rewards
         deposit_rewards_per_start_epoch: Map<u64, TotalDepositRewards>,
-        score_rewards_per_start_epoch: Map<u64, TotalScoreRewards>,
-        algo_score_rewards_per_start_epoch: Map<u64, TotalAlgoScoreRewards>,
+        deposit_rewards_per_epoch_index: Map<u64, TotalDepositRewards>,
+        score_rewards_per_epoch_index: Map<u64, TotalScoreRewards>,
+        algo_score_rewards_per_epoch_index: Map<u64, TotalAlgoScoreRewards>,
 
         is_reward_epoch_claimed_by_nostr_user: Map<u256, bool>,
         is_reward_epoch_claimed_by_user: Map<ContractAddress, bool>,
+        is_reward_epoch_claimed_by_user_per_epoch: Map<ContractAddress, Map<u64, bool>>,
         // Users logic state
         total_tip_by_user: Map<u256, TipByUser>,
+        total_tip_by_user_per_epoch: Map<u256, Map<u64, TipByUser>>,
         last_timestamp_oracle_score_by_user: Map<u256, u64>,
         // total_tip_by_user_list: Map<u256, TipByUser>,
         old_total_deposit_rewards_for_user: u256,
@@ -123,13 +121,20 @@ pub mod NostrFiScoring {
         tip_to_claim_by_user_because_not_linked: Map<NostrPublicKey, u256>,
         // Vote setup
         nostr_account_scoring: Map<u256, NostrAccountScoring>,
-        nostr_account_scoring_per_epoch: Map<u256, NostrAccountScoring>,
+        nostr_account_scoring_per_epoch: Map<u256, Map<u64, NostrAccountScoring>>,
         nostr_account_scoring_algo: Map<u256, ProfileAlgorithmScoring>,
+        nostr_account_scoring_algo_per_epoch: Map<u256, Map<u64, ProfileAlgorithmScoring>>,
         nostr_vote_profile: Map<u256, VoteProfile>,
+        nostr_vote_profile_per_epoch: Map<u256, Map<u64, VoteProfile>>,
         old_nostr_account_scoring: Map<u256, Map<u64, NostrAccountScoring>>, // score per epoch
         old_nostr_vote_profile: Map<u256, Map<u64, VoteProfile>>, 
         old_nostr_account_scoring_algo: Map<u256, Map<u64, ProfileAlgorithmScoring>>,
         old_nostr_account_vote_profile: Map<u256, Map<u64, VoteProfile>>,
+
+        total_score_rewards_per_epoch_index: Map<u64, TotalScoreRewards>,
+        total_algo_score_rewards_per_epoch_index: Map<u64, TotalAlgoScoreRewards>,
+        total_deposit_rewards_per_epoch_index: Map<u64, TotalDepositRewards>,
+
         events_by_user: Map<ContractAddress, Vec<u256>>,
         events_by_nostr_user: Map<u256, Vec<u256>>,
         tokens_address_accepted: Map<ContractAddress, bool>,
@@ -275,8 +280,7 @@ pub mod NostrFiScoring {
                 },
             );
 
-
-        self.total_score_rewards.write(TotalScoreRewards {
+        let total_score_rewards = TotalScoreRewards {
             start_epoch_time: now,
             total_score_ai: 0,
             total_score_vote: 0,
@@ -287,9 +291,13 @@ pub mod NostrFiScoring {
             is_claimed: false,
             epoch_duration: EPOCH_DURATION_DEFAULT,
             end_epoch_time: end_epoch_time,
-        });
+        };
+        self.total_score_rewards.write(total_score_rewards);
 
-        self.total_algo_score_rewards.write(TotalAlgoScoreRewards {
+        self.total_score_rewards_per_epoch_index.entry(0).write(total_score_rewards);
+
+        let total_algo_score_rewards = TotalAlgoScoreRewards {
+            start_epoch_time: now,
             total_score_ai: 0,
             total_score_overview: 0,
             total_score_skills: 0,
@@ -305,25 +313,28 @@ pub mod NostrFiScoring {
             veracity_score: 0,
             epoch_duration: EPOCH_DURATION_DEFAULT,
             end_epoch_time: end_epoch_time,
-            start_epoch_time: now,
-        });
+        };
+        self.total_algo_score_rewards.write(total_algo_score_rewards);
 
-        self
-            .total_deposit_rewards
-            .write(
-                TotalDepositRewards {
-                    epoch_duration: EPOCH_DURATION_DEFAULT,
-                    end_epoch_time: end_epoch_time,
-                    start_epoch_time: now,
-                    general_total_amount_deposit: 0,
+        self.total_algo_score_rewards_per_epoch_index.entry(0).write(total_algo_score_rewards);
+
+        let total_deposit_rewards = TotalDepositRewards {
+            epoch_duration: EPOCH_DURATION_DEFAULT,
+            end_epoch_time: end_epoch_time,
+            start_epoch_time: now,
+            general_total_amount_deposit: 0,
                     user_total_amount_deposit: 0,
                     algo_total_amount_deposit: 0,
                     rewards_amount: 0,
                     is_claimed: false,
                     total_amount_deposit: 0,
-                    total_amount_to_claim: 0,
-                },
-            );
+            total_amount_to_claim: 0,
+        };
+
+        self.total_deposit_rewards.write(total_deposit_rewards);
+
+        self.total_deposit_rewards_per_epoch_index.entry(0).write(total_deposit_rewards);
+
     }
 
     // #[abi(embed_v0)]
@@ -351,36 +362,71 @@ pub mod NostrFiScoring {
 
         fn _check_epoch_is_ended(ref self: ContractState, end_epoch_time: u64) -> bool {
             let now = get_block_timestamp();
+          println!("now: {:?}", now);
+          println!("end_epoch_time: {:?}", end_epoch_time);
+
             now >= end_epoch_time
         }
 
-        fn _check_epoch_next_time_started(ref self: ContractState) -> bool {
-            let now = get_block_timestamp();
-            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
-            now >= next_time
-        }
+        // fn _check_epoch_transition_current_epoch(ref self: ContractState) {
 
+        //     let is_ended = self._check_epoch_is_ended(self.current_epoch_rewards.read().end_epoch_time);
+        //     if is_ended {
+        //         self._finalize_epoch_current_epoch();
+        //         self._transition_to_next_epoch_current_epoch(); 
+        //     }
+        // }
 
+        fn _check_epoch_transition(ref self: ContractState, epoch_index: u64) -> (EpochRewards, bool) {
 
-        fn _check_epoch_need_transition(ref self: ContractState) -> bool {
-            let now = get_block_timestamp();
-            let end_epoch_time = self.current_epoch_rewards.read().end_epoch_time;
-            now >= end_epoch_time
-        }
+            let mut selected_epoch = self.epoch_rewards.read(epoch_index);
 
-        fn _check_epoch_transition(ref self: ContractState) {
-
-            let is_ended = self._check_epoch_is_ended(self.current_epoch_rewards.read().end_epoch_time);
+            let is_ended = self._check_epoch_is_ended(selected_epoch.end_epoch_time);
+            println!("is_ended: {:?}", is_ended);
             if is_ended {
-                self._finalize_epoch();
-                self._transition_to_next_epoch(); 
-            }
+                let updated_epoch = self._finalize_epoch(selected_epoch);
+                println!("updated_epoch: {:?}", updated_epoch.is_finalized);
+                if epoch_index == self.epoch_index.read() {
+                    println!("transition to next epoch");
+                    self._transition_to_next_epoch_current_epoch(); 
+                    println!("finalize epoch state");
+
+                    self._finalize_epoch_state(epoch_index);
+                } else {
+                }
+
+            } 
+            (selected_epoch, is_ended)
         }
+
+        fn _update_user_epoch_state(ref self: ContractState, nostr_address: NostrPublicKey, epoch_index: u64) -> (EpochRewards, bool) {
+
+            let mut selected_epoch = self.epoch_rewards.read(epoch_index);
+
+            let is_ended = self._check_epoch_is_ended(selected_epoch.end_epoch_time);
+            println!("is_ended: {:?}", is_ended);
+            if is_ended {
+                let updated_epoch = self._finalize_epoch(selected_epoch);
+                println!("updated_epoch: {:?}", updated_epoch.is_finalized);
+                if epoch_index == self.epoch_index.read() {
+                    println!("transition to next epoch");
+                    self._transition_to_next_epoch_current_epoch(); 
+                    println!("finalize epoch state");
+
+                    self._finalize_epoch_state(epoch_index);
+                } else {
+                }
+
+            } 
+            (selected_epoch, is_ended)
+        }
+
+
 
         // Transition to next epoch
         // Epoch transition
 
-        fn _finalize_epoch(ref self: ContractState) {
+        fn _finalize_epoch_current_epoch(ref self: ContractState) {
             let mut current_epoch_rewards = self.current_epoch_rewards.read();
             let epoch_index = self.epoch_index.read();
             current_epoch_rewards.is_finalized = true;
@@ -389,8 +435,90 @@ pub mod NostrFiScoring {
             // self.epoch_rewards_per_end_epoch.entry(current_epoch_rewards.end_epoch_time).write(current_epoch_rewards);
         }
 
+        fn _finalize_epoch(ref self: ContractState, mut epoch:EpochRewards) -> EpochRewards {
+            epoch.is_finalized=true;
+            let mut current_epoch_rewards = epoch;
+            current_epoch_rewards.is_finalized = true;
+            self.epoch_rewards.entry(epoch.index).write(current_epoch_rewards);
+            epoch
+            // self.epoch_rewards_per_start_epoch.entry(now).write(current_epoch_rewards);
+            // self.epoch_rewards_per_end_epoch.entry(current_epoch_rewards.end_epoch_time).write(current_epoch_rewards);
+        }
 
-        fn _transition_to_next_epoch(ref self: ContractState) {
+        fn _finalize_epoch_state(ref self: ContractState, epoch_index: u64) {
+           
+            let mut total_score_rewards = self.total_score_rewards.read();
+            total_score_rewards.is_claimed = true;
+            let mut total_algo_score_rewards = self.total_algo_score_rewards.read();
+            total_algo_score_rewards.is_claimed = true;
+            let mut total_deposit_rewards = self.total_deposit_rewards.read();
+            total_deposit_rewards.is_claimed = true;
+
+
+            println!("total_score_rewards is claimed: {:?}", total_score_rewards.is_claimed);
+            println!("total_algo_score_rewards is claimed: {:?}", total_algo_score_rewards.is_claimed);
+            println!("total_deposit_rewards is claimed: {:?}", total_deposit_rewards.is_claimed);
+            self.score_rewards_per_epoch_index.entry(epoch_index).write(total_score_rewards);
+            self.algo_score_rewards_per_epoch_index.entry(epoch_index).write(total_algo_score_rewards);
+            self.deposit_rewards_per_epoch_index.entry(epoch_index).write(total_deposit_rewards);
+
+
+            let epoch_rewards=self.epoch_rewards.read(epoch_index);
+            
+            let end_epoch_time = epoch_rewards.end_epoch_time;
+            let epoch_duration = epoch_rewards.epoch_duration;
+            let start_epoch_time = epoch_rewards.start_epoch_time;
+
+            println!("start_epoch_time: {:?}", start_epoch_time);
+            println!("end_epoch_time: {:?}", end_epoch_time);
+            println!("epoch_duration: {:?}", epoch_duration);
+            let mut new_total_score_rewards = TotalScoreRewardsDefault::default();
+            println!("new_total_score_rewards is claimed: {:?}", new_total_score_rewards.is_claimed);
+
+            new_total_score_rewards.start_epoch_time = start_epoch_time;
+            new_total_score_rewards.end_epoch_time = end_epoch_time;
+            new_total_score_rewards.epoch_duration = epoch_duration;
+            new_total_score_rewards.is_claimed = false;
+            self.total_score_rewards.write(new_total_score_rewards);
+
+            let mut new_total_algo_score_rewards = TotalAlgoScoreRewardsDefault::default();
+            println!("new_total_algo_score_rewards is claimed: {:?}", new_total_algo_score_rewards.is_claimed);
+            
+            new_total_algo_score_rewards.start_epoch_time = start_epoch_time;
+            new_total_algo_score_rewards.end_epoch_time = end_epoch_time;
+            new_total_algo_score_rewards.epoch_duration = epoch_duration;
+            new_total_algo_score_rewards.is_claimed = false;
+
+            self.total_algo_score_rewards.write(new_total_algo_score_rewards);
+
+            let mut new_total_deposit_rewards = TotalDepositRewardsDefault::default();
+            println!("new_total_deposit_rewards is claimed: {:?}", new_total_deposit_rewards.is_claimed);
+            new_total_deposit_rewards.start_epoch_time = start_epoch_time;
+            new_total_deposit_rewards.end_epoch_time = end_epoch_time;
+            new_total_deposit_rewards.epoch_duration = epoch_duration;
+            new_total_deposit_rewards.is_claimed = false;
+            self.total_deposit_rewards.write(new_total_deposit_rewards);
+
+            // self.
+         
+         
+            // self.epoch_rewards_per_start_epoch.entry(now).write(current_epoch_rewards);
+            // self.epoch_rewards_per_end_epoch.entry(current_epoch_rewards.end_epoch_time).write(current_epoch_rewards);
+        }
+
+         fn _finalize_user_epoch_state(ref self: ContractState, nostr_address: NostrPublicKey, epoch_index: u64) {
+           
+         
+            let epoch_rewards=self.epoch_rewards.read(epoch_index);
+            let end_epoch_time = epoch_rewards.end_epoch_time;
+            let last_batch_timestamp = epoch_rewards.start_epoch_time;
+            let epoch_duration = epoch_rewards.epoch_duration;
+            let start_epoch_time = epoch_rewards.start_epoch_time;
+           
+        }
+
+
+        fn _transition_to_next_epoch(ref self: ContractState,) {
             let now = get_block_timestamp();
 
             let new_epoch_index = self.epoch_index.read() + 1;
@@ -420,6 +548,33 @@ pub mod NostrFiScoring {
             current_epoch_rewards.is_finalized = true;
             self.epoch_rewards.entry(epoch_index).write(current_epoch_rewards);
         }
+
+
+        fn _transition_to_next_epoch_current_epoch(ref self: ContractState) {
+            let now = get_block_timestamp();
+
+            let new_epoch_index = self.epoch_index.read() + 1;
+            self.epoch_index.write(new_epoch_index);
+            let end_epoch_time = now + self.epoch_duration.read();
+
+            let new_epoch_rewards = EpochRewards {
+                index: new_epoch_index,
+                epoch_duration: self.epoch_duration.read(),
+                start_epoch_time: now,
+                end_epoch_time: end_epoch_time,
+                is_finalized: false,
+                is_claimed: false,
+                total_score_ai: 0,
+                total_score_tips: 0,
+                total_score_algo: 0,
+            };
+            self.last_batch_timestamp.write(end_epoch_time);
+            self.end_epoch_time.write(end_epoch_time);
+            self.epoch_rewards.entry(new_epoch_index).write(new_epoch_rewards);
+            self.current_epoch_rewards.write(new_epoch_rewards);
+        }
+        
+
 
         
         fn _transition_user_state_to_next_epoch(ref self: ContractState,
@@ -451,6 +606,7 @@ pub mod NostrFiScoring {
 
             let nostr_to_sn = self.nostr_to_sn.read(vote_params.nostr_address);
             let old_tip_by_user = self.total_tip_by_user.read(vote_params.nostr_address);
+            // let old_tip_by_user_per_epoch = self.total_tip_by_user_per_epoch.entry(vote_params.nostr_address).entry(current_index_epoch);
 
             let mut reward_to_claim_by_user_because_not_linked = old_tip_by_user
                 .reward_to_claim_by_user_because_not_linked;
@@ -528,6 +684,8 @@ pub mod NostrFiScoring {
             // V2
             // Add weight based on profile score
 
+
+
             let tip_by_user = TipByUser {
                 nostr_address: vote_params.nostr_address,
                 total_amount_deposit: old_tip_by_user.total_amount_deposit
@@ -545,7 +703,7 @@ pub mod NostrFiScoring {
             };
 
             self.total_tip_by_user.entry(vote_params.nostr_address).write(tip_by_user);
-
+            self.total_tip_by_user_per_epoch.entry(vote_params.nostr_address).entry(current_index_epoch).write(tip_by_user);
 
             let old_total_score_rewards = self.total_score_rewards.read();
             println!("total_score_vote: {:?}", old_total_score_rewards.total_score_vote);
@@ -565,6 +723,7 @@ pub mod NostrFiScoring {
             };
 
             self.total_score_rewards.write(update_total_score_vote);
+            self.total_score_rewards_per_epoch_index.entry(current_index_epoch).write(update_total_score_vote);
 
             self.emit(TipUserWithVote {
                 nostr_address: vote_params.nostr_address,
@@ -617,13 +776,11 @@ pub mod NostrFiScoring {
 
         }
 
-        fn _old_time_check(ref self: ContractState) {
+        fn _old_time_check(ref self: ContractState, starknet_user_address: ContractAddress) {
             let now = get_block_timestamp();
 
             // check profile nostr id link
-            println!("starknet_user_address: {:?}", starknet_user_address);
             let nostr_address = self.sn_to_nostr.read(starknet_user_address);
-            println!("nostr_address: {:?}", nostr_address);
             assert(nostr_address != 0.try_into().unwrap(), 'Profile not linked');
 
             let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
@@ -642,93 +799,87 @@ pub mod NostrFiScoring {
         // Add end epoch check
         fn _distribute_rewards_by_user(
             ref self: ContractState, starknet_user_address: ContractAddress, 
-            // epoch_index: u64
+            epoch_index: u64
         ) {
             let now = get_block_timestamp();
 
             // check profile nostr id link
+            
             println!("starknet_user_address: {:?}", starknet_user_address);
             let nostr_address = self.sn_to_nostr.read(starknet_user_address);
-            println!("nostr_address: {:?}", nostr_address);
-            assert(nostr_address != 0.try_into().unwrap(), 'Profile not linked');
-
-            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
-            assert(now >= next_time, 'Epoch not ended');
-
-            let last_timestamp_oracle_score_by_user = self
-                .last_timestamp_oracle_score_by_user
-                .read(nostr_address);
-
-            assert(now - last_timestamp_oracle_score_by_user > 1000, 'Not enough time has passed');
-
-            // Distribute tips rewards
-            // let tip_by_user = self.total_tip_by_user.read(nostr_address);
-
-            // if !tip_by_user.is_claimed {
-            //     // Distribute Topic tips
-            //     let tip_by_user = self.total_tip_by_user.read(nostr_address);
-            //     let tip_by_user_amount = tip_by_user.total_amount_deposit;
-            //     let tip_by_user_amount_by_algo = tip_by_user.total_amount_deposit_by_algo;
-            //     let tip_by_user_amount_rewards = tip_by_user.rewards_amount;
-
-            //     // Distribute rewards by Algorithm scoring
-
-            //     let update_tip_by_user = TipByUser {
-            //         nostr_address,
-            //         total_amount_deposit: tip_by_user_amount,
-            //         total_amount_deposit_by_algo: tip_by_user_amount_by_algo,
-            //         rewards_amount: tip_by_user_amount_rewards,
-            //         is_claimed: true,
-            //         end_epoch_time: tip_by_user.end_epoch_time,
-            //         start_epoch_time: tip_by_user.start_epoch_time,
-            //         epoch_duration: tip_by_user.epoch_duration,
-            //         reward_to_claim_by_user_because_not_linked: tip_by_user
-            //             .reward_to_claim_by_user_because_not_linked,
-            //         is_claimed_tip_by_user_because_not_linked: tip_by_user
-            //             .is_claimed_tip_by_user_because_not_linked,
-            //     };
-            //     self.total_tip_by_user.entry(nostr_address).write(update_tip_by_user);
-            // }
-
+            println!("nostr_address: {:?}", nostr_address); 
+            assert(nostr_address != 0.try_into().unwrap(), errors::PROFILE_NOT_LINKED);
             // Verify the epoch params
 
-            let old_total_deposit_rewards = self.total_deposit_rewards.read();
-            println!("old_total_deposit_rewards: {:?}", old_total_deposit_rewards.total_amount_deposit);
-            let end_epoch_time = old_total_deposit_rewards.end_epoch_time;
+            let mut current_epoch_rewards = self.epoch_rewards.read(epoch_index);
 
-            let mut new_epoch_duration = old_total_deposit_rewards.epoch_duration;
-            let mut new_start_epoch_time = old_total_deposit_rewards.start_epoch_time;
-            // let mut new_end_epoch_time = old_total_deposit_rewards.end_epoch_time;
-            // if now >= end_epoch_time { // TODO: add event to the contract
-            // } else {
-            //     new_start_epoch_time = now;
-            //     self.last_batch_timestamp.write(now);
-            //     self.end_epoch_time.write(now + new_epoch_duration);
-            //     self.last_batch_timestamp.write(now);
-            // }
+            let (epoch_rewards, is_ended) = self._check_epoch_transition(epoch_index);
+            
+            println!("is_ended: {:?}", is_ended);
+            assert(is_ended, errors::EPOCH_NOT_FINALIZED);
+
+            // // let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
+            // // assert(now >= next_time, errors::EPOCH_NOT_ENDED);
+
+            // let last_timestamp_oracle_score_by_user = self
+            //     .last_timestamp_oracle_score_by_user
+            //     .read(nostr_address);
+
+            // assert(now - last_timestamp_oracle_score_by_user > 1000, 'Not enough time has passed');
+
+
 
             // TODO:
 
             // General rewards distribution
+
+
+            // Check users distribution is claimed per epoch
+            println!("nostr_address: {:?}", nostr_address);
+
+            println!(" check user data for epoch: {:?}", epoch_index);
+            let profile_scoring_by_algo = self.nostr_account_scoring_algo.read(nostr_address);
+
+            println!("profile_scoring_by_algo: {:?}", profile_scoring_by_algo.ai_score);
+            let profile_scoring_algo_by_user_epoch = self.nostr_account_scoring_per_epoch.entry(nostr_address).entry(epoch_index).read();
+            println!("profile_scoring_algo_by_user_epoch: {:?}", profile_scoring_algo_by_user_epoch.ai_score);
+            // println!("profile_scoring_by_user: {:?}", profile_scoring_by_user.ai_score);
+            let tip_by_user_total = self.total_tip_by_user.read(nostr_address);
+            println!("tip_by_user_total total_amount_deposit: {:?}", tip_by_user_total.total_amount_deposit);
+
+            let tip_by_user = self.total_tip_by_user_per_epoch.entry(nostr_address).entry(epoch_index).read();
+
+            println!("tip_by_user: {:?}", tip_by_user.total_amount_deposit);
+            println!("tip_by_user is claimed: {:?}", tip_by_user.is_claimed);
+
+            let total_deposit_rewards = self.total_deposit_rewards_per_epoch_index.read(epoch_index);
+            println!("total_deposit_rewards: {:?}", total_deposit_rewards.total_amount_deposit);
+
+            let mut data_algo_score = self.nostr_account_scoring_algo_per_epoch.entry(nostr_address).entry(epoch_index).read();
+            let my_ai_score = data_algo_score.ai_score;
+
+            println!("data algo score is claimed: {:?}", data_algo_score.is_claimed);
+            assert(!tip_by_user.is_claimed && !data_algo_score.is_claimed, errors::USER_EPOCH_DISTRIBUTION_CLAIMED);
+
             // Admins params percentage between user and algo
 
-            let total_algo_score_rewards = self.total_algo_score_rewards.read();
-            let profile_scoring_by_algo = self.nostr_account_scoring_algo.read(nostr_address);
-            println!("total_algo_score_rewards: {:?}", total_algo_score_rewards.total_score_ai);
-
             // Start distribution by algo
-            let total_score_rewards = self.total_score_rewards.read();
+
+
+            // Get total state for all users subscribed to the epoch
+            let total_score_rewards = self.total_score_rewards_per_epoch_index.read(epoch_index);
             println!("total_score_rewards: {:?}", total_score_rewards.total_score_ai);
             let total_score_vote = total_score_rewards.total_score_vote;
             println!("total_score_vote: {:?}", total_score_vote);
-            let total_algo_score_rewards = self.total_algo_score_rewards.read();
+            // let total_algo_score_rewards = self.total_algo_score_rewards.read();
+            let total_algo_score_rewards= self.algo_score_rewards_per_epoch_index.read(epoch_index);
+            println!("total_algo_score_rewards: {:?}", total_algo_score_rewards.total_score_ai);
 
             let percentage_distribution_algo = self
                 .admin_params
                 .read()
                 .percentage_algo_score_distribution;
 
-            let total_deposit_rewards = self.total_deposit_rewards.read();
 
             let total_amount_deposit = total_deposit_rewards.total_amount_deposit;
             // let erc20_token_address = self.admin_params.read().quote_token_address;
@@ -748,10 +899,9 @@ pub mod NostrFiScoring {
 
             println!("total_ai_score: {}", total_ai_score);
 
-            let data_algo_score = self.nostr_account_scoring_algo.read(nostr_address);
-            let my_ai_score = data_algo_score.ai_score;
             println!("my_ai_score: {}", my_ai_score);
 
+         
             // V2 weight
             let my_overview_score = data_algo_score.overview_score;
             let my_skills_score = data_algo_score.skills_score;
@@ -759,7 +909,13 @@ pub mod NostrFiScoring {
 
             // User share by Algo score
             // V2 create weight and equations based on several parameters of the algorith scoring
-            let mut user_share_algo = my_ai_score * total_amount_to_claim_algo / total_amount_to_claim_algo;
+
+            let mut user_share_algo = 0;
+            if total_amount_to_claim_algo == 0 {
+                user_share_algo = 0;
+            } else {
+                user_share_algo = my_ai_score * total_amount_to_claim_algo / total_amount_to_claim_algo;
+            }
          
             println!("user_share_algo: {}", user_share_algo);
             println!("balance_contract: {}", balance_contract);
@@ -771,7 +927,6 @@ pub mod NostrFiScoring {
             if user_share_algo > total_amount_to_claim_algo {
                 user_share_algo = total_amount_to_claim_algo;
             }
-
 
             // Distribute Topic User vote tips
 
@@ -786,13 +941,11 @@ pub mod NostrFiScoring {
             // Distribute rewards by User vote tips
             // V2: add weight for user vote tips
             // Whitelisted OG for topics and moderators
-            // DAO whitelisted
+            // DAO whitelisted  
             // Algo whitelist based on Algo score
             let remaining_percentage_distribution_user = BPS - percentage_distribution_algo;
             println!("remaining_percentage_distribution_user: {}", remaining_percentage_distribution_user);
-            let profile_scoring_by_user = self.nostr_account_scoring.read(nostr_address);
-            println!("profile_scoring_by_user: {:?}", profile_scoring_by_user.ai_score);
-            let tip_by_user = self.total_tip_by_user.read(nostr_address);
+         
 
             let tip_user_total_amount_deposit = tip_by_user.total_amount_deposit;
             println!("tip_user.total_amount_deposit: {}", tip_user_total_amount_deposit);
@@ -833,57 +986,31 @@ pub mod NostrFiScoring {
             println!("total_amount_to_claim: {}", total_amount_to_claim);
             println!("user_share_algo: {}", user_share_algo);
             println!("user_share_vote: {}", user_share_vote);
-            // Update all state
-            let update_total_deposit_rewards = TotalDepositRewards {
-                epoch_duration: total_deposit_rewards.epoch_duration,
-                start_epoch_time: total_deposit_rewards.start_epoch_time,
-                end_epoch_time: total_deposit_rewards.end_epoch_time,
-                general_total_amount_deposit: total_deposit_rewards.general_total_amount_deposit,
-                total_amount_deposit: total_deposit_rewards.total_amount_deposit,
-                user_total_amount_deposit: total_deposit_rewards.user_total_amount_deposit,
-                algo_total_amount_deposit: total_deposit_rewards.algo_total_amount_deposit,
-                rewards_amount: total_deposit_rewards.rewards_amount,
-                is_claimed: total_deposit_rewards.is_claimed,
-                total_amount_to_claim: total_deposit_rewards.total_amount_deposit - user_share_algo - user_share_vote,
-            };
+            // // Update all state
+            // let update_total_deposit_rewards = TotalDepositRewards {
+            //     epoch_duration: total_deposit_rewards.epoch_duration,
+            //     start_epoch_time: total_deposit_rewards.start_epoch_time,
+            //     end_epoch_time: total_deposit_rewards.end_epoch_time,
+            //     general_total_amount_deposit: total_deposit_rewards.general_total_amount_deposit,
+            //     total_amount_deposit: total_deposit_rewards.total_amount_deposit,
+            //     user_total_amount_deposit: total_deposit_rewards.user_total_amount_deposit,
+            //     algo_total_amount_deposit: total_deposit_rewards.algo_total_amount_deposit,
+            //     rewards_amount: total_deposit_rewards.rewards_amount,
+            //     is_claimed: total_deposit_rewards.is_claimed,
+            //     total_amount_to_claim: total_deposit_rewards.total_amount_deposit - user_share_algo - user_share_vote,
+            // };
 
-            self.total_deposit_rewards.write(update_total_deposit_rewards);
+            // self.total_deposit_rewards.write(update_total_deposit_rewards);
 
-            // let old_nostr_account_scoring = self.nostr_account_scoring.read(nostr_address);
-            // let old_nostr_vote_profile = self.nostr_vote_profile.read(nostr_address);
 
-            // self.old_nostr_account_scoring.entry(nostr_address).write(old_nostr_account_scoring);
-            // self.old_nostr_vote_profile.entry(nostr_address).write(old_nostr_vote_profile);
+            // Change user state
 
-            let updated_profile_algorithm_scoring = ProfileAlgorithmScoring {
-                nostr_address: 0.try_into().unwrap(),
-                starknet_address: 0.try_into().unwrap(),
-                ai_score: profile_scoring_by_user.ai_score,
-                overview_score: profile_scoring_by_algo.overview_score,
-                skills_score: profile_scoring_by_algo.skills_score,
-                value_shared_score: profile_scoring_by_algo.value_shared_score,
-                is_claimed: false,
-                ai_score_to_claimed: 0,
-                overview_score_to_claimed: 0,
-                skills_score_to_claimed: 0,
-                value_shared_score_to_claimed: 0,
-                total_score: 0,
-                veracity_score: 0,
-            };
-            // Reinit vote per batch
-            let profile_vote_scoring = ProfileVoteScoring {
-                nostr_address: 0.try_into().unwrap(),
-                starknet_address: 0.try_into().unwrap(),
-                upvote_amount: 0,
-                downvote_amount: 0,
-                rewards_amount: 0,
-                unique_address: 0,
-            };
-
+            data_algo_score.is_claimed = true;
+            self.nostr_account_scoring_algo_per_epoch.entry(nostr_address).entry(epoch_index).write(data_algo_score);
 
             self.is_reward_epoch_claimed_by_nostr_user.entry(nostr_address).write(true);
             self.is_reward_epoch_claimed_by_user.entry(starknet_user_address).write(true);
-
+            self.is_reward_epoch_claimed_by_user_per_epoch.entry(starknet_user_address).entry(epoch_index).write(true);
             // External call
 
             // Transfer token user share by algo and user vote
@@ -940,7 +1067,7 @@ pub mod NostrFiScoring {
                 nostr_address: request.public_key,
                 starknet_address,
                 ai_score: 0,
-                token_launch_type: TokenLaunchType::Fairlaunch,
+                // token_launch_type: TokenLaunchType::Fairlaunch,
             };
             self.nostr_account_scoring.entry(request.public_key).write(nostr_account_scoring);
 
@@ -959,6 +1086,7 @@ pub mod NostrFiScoring {
             };
 
             self.total_tip_by_user.entry(request.public_key).write(tip_by_user);
+            self.total_tip_by_user_per_epoch.entry(request.public_key).entry(self.epoch_index.read()).write(tip_by_user);
             self
                 .emit(
                     LinkedDefaultStarknetAddressEvent {
@@ -993,6 +1121,8 @@ pub mod NostrFiScoring {
             let now = get_block_timestamp();
             let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
             let next_time_if_ended = now + self.epoch_duration.read();
+
+            let current_index_epoch = self.epoch_index.read();
 
             let old_total_deposit_rewards = self.total_deposit_rewards.read();
 
@@ -1084,11 +1214,13 @@ pub mod NostrFiScoring {
             let contract_address=get_contract_address();
             let allowed_amount = erc20.allowance(caller, contract_address);
           
+            self.total_deposit_rewards.write(total_deposit_rewards);
+            self.total_deposit_rewards_per_epoch_index.entry(current_index_epoch).write(total_deposit_rewards);
+
             println!("allowed_amount: {}", allowed_amount);
             erc20.transfer_from(caller, contract_address, amount);
 
 
-            self.total_deposit_rewards.write(total_deposit_rewards);
 
 
          
@@ -1101,15 +1233,15 @@ pub mod NostrFiScoring {
         // TODO:
         // Add end epoch check
         fn distribute_rewards_by_user(
-            ref self: ContractState, starknet_user_address: ContractAddress,
+            ref self: ContractState, starknet_user_address: ContractAddress, epoch_index: u64
         ) {
-            self._distribute_rewards_by_user(starknet_user_address);
+            self._distribute_rewards_by_user(starknet_user_address, epoch_index);
         }
 
 
-        fn claim_and_distribute_my_rewards(ref self: ContractState) {
+        fn claim_and_distribute_my_rewards(ref self: ContractState, epoch_index: u64) {
             let caller = get_caller_address();
-            self._distribute_rewards_by_user(caller);
+            self._distribute_rewards_by_user(caller, epoch_index);
         }
 
         // ADMINS Access control
@@ -1177,6 +1309,7 @@ pub mod NostrFiScoring {
                     .value_shared_score_to_claimed;
                 algo_nostr_account_scoring.total_score = score_algo.ai_score + score_algo.overview_score + score_algo.skills_score + score_algo.value_shared_score;
                 self.nostr_account_scoring_algo.entry(nostr_address).write(algo_nostr_account_scoring);
+                self.nostr_account_scoring_algo_per_epoch.entry(nostr_address).entry(self.epoch_index.read()).write(algo_nostr_account_scoring);
     
                 self.last_timestamp_oracle_score_by_user.entry(nostr_address).write(now);
             } else {
@@ -1197,11 +1330,15 @@ pub mod NostrFiScoring {
                     total_score: score_algo.ai_score + score_algo.overview_score + score_algo.skills_score + score_algo.value_shared_score,
                     veracity_score: score_algo.veracity_score,
                 };
+                self.nostr_account_scoring_algo.entry(nostr_address).write(algo_nostr_account_scoring);
+                self.nostr_account_scoring_algo_per_epoch.entry(nostr_address).entry(self.epoch_index.read()).write(algo_nostr_account_scoring);
+    
             }
             // Update the algo score
             // Current
             // By epoch indexer
             self.nostr_account_scoring_algo.entry(nostr_address).write(algo_nostr_account_scoring);
+            self.nostr_account_scoring_algo_per_epoch.entry(nostr_address).entry(self.epoch_index.read()).write(algo_nostr_account_scoring);
         
 
             // Update total algo score stats
@@ -1266,20 +1403,19 @@ pub mod NostrFiScoring {
 
         fn set_admin_params(ref self: ContractState, admin_params: NostrFiAdminStorage) {
             assert(self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()), errors::ADMIN_ROLE_REQUIRED);
-            let mut old_admin_params = self.admin_params.read();
 
             let new_admin_params = NostrFiAdminStorage {
-                quote_token_address: old_admin_params.quote_token_address,
-                is_paid_storage_pubkey_profile: old_admin_params.is_paid_storage_pubkey_profile,
-                is_paid_storage_event_id: old_admin_params.is_paid_storage_event_id,
-                amount_paid_storage_pubkey_profile: old_admin_params
+                quote_token_address: admin_params.quote_token_address,
+                is_paid_storage_pubkey_profile: admin_params.is_paid_storage_pubkey_profile,
+                is_paid_storage_event_id: admin_params.is_paid_storage_event_id,
+                amount_paid_storage_pubkey_profile: admin_params
                     .amount_paid_storage_pubkey_profile,
-                amount_paid_storage_event_id: old_admin_params.amount_paid_storage_event_id,
-                is_multi_token_vote: old_admin_params.is_multi_token_vote,
-                amount_paid_for_subscription: old_admin_params.amount_paid_for_subscription,
+                amount_paid_storage_event_id: admin_params.amount_paid_storage_event_id,
+                is_multi_token_vote: admin_params.is_multi_token_vote,
+                amount_paid_for_subscription: admin_params.amount_paid_for_subscription,
                 percentage_algo_score_distribution: admin_params.percentage_algo_score_distribution,
-                vote_token_address: old_admin_params.vote_token_address,
-                subscription_time: old_admin_params.subscription_time,
+                vote_token_address: admin_params.vote_token_address,
+                subscription_time: admin_params.subscription_time,
             };
 
             self.admin_params.write(new_admin_params);
@@ -1361,7 +1497,7 @@ pub mod NostrFiScoring {
                 nostr_address: request.public_key,
                 starknet_address,
                 ai_score: 0,
-                token_launch_type: token_type.clone(),
+                // token_launch_type: token_type.clone(),
             };
 
             match token_type {
@@ -1444,7 +1580,7 @@ pub mod NostrFiScoring {
                 nostr_address: request.public_key,
                 starknet_address,
                 ai_score: 0,
-                token_launch_type: TokenLaunchType::Fairlaunch,
+                // token_launch_type: TokenLaunchType::Fairlaunch,
             };
             self.nostr_account_scoring.entry(request.public_key).write(nostr_account_scoring);
             self
@@ -1474,7 +1610,7 @@ pub mod NostrFiScoring {
                 nostr_address: nostr_event_id,
                 starknet_address: 0.try_into().unwrap(),
                 ai_score: 0,
-                token_launch_type: TokenLaunchType::Fairlaunch,
+                // token_launch_type: TokenLaunchType::Fairlaunch,
             };
             self.nostr_account_scoring.entry(nostr_event_id).write(nostr_account_scoring);
             self

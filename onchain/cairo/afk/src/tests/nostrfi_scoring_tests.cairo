@@ -411,11 +411,23 @@ mod nostrfi_scoring_tests {
         cheat_block_timestamp(
             nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
         );
-        println!("claim and distribute rewards");
         start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
 
-        nostrfi_scoring.claim_and_distribute_my_rewards();
+
+        let contract_balance = erc20.balance_of(nostrfi_scoring.contract_address);
+        println!("contract balance: {:?}", contract_balance);
+        println!("claim and distribute rewards");
+
+        nostrfi_scoring.claim_and_distribute_my_rewards(0);
+
+        
+
+        let contract_balance_after = erc20.balance_of(nostrfi_scoring.contract_address);
+        println!("contract balance after: {:?}", contract_balance_after);
+
+        assert!(contract_balance > contract_balance_after, "contract balance not correct");
     }
+
 
     // #[test]
     // fn linked_wallet_to() {
