@@ -1,5 +1,5 @@
 use starknet::storage::Map;
-use starknet::{ContractAddress, get_block_timestamp};
+use starknet::{ClassHash, ContractAddress, get_block_timestamp};
 
 #[starknet::interface]
 pub trait IICO<TContractState> {
@@ -35,7 +35,7 @@ pub trait IICO<TContractState> {
 
 #[starknet::interface]
 pub trait IICOConfig<TContractState> {
-    fn set_token_config(ref self: TContractState, config: TokenConfig);
+    fn set_config(ref self: TContractState, config: ContractConfig);
 }
 
 /// CREATE A TOKEN AND LAUNCH, OR INPUT THE TOKEN ADDRESS FOR PRESALE
@@ -44,8 +44,8 @@ pub trait IICOConfig<TContractState> {
 /// Check this details if they are sufficient
 #[derive(Clone, Drop, Serde, PartialEq)]
 pub struct TokenDetails {
-    pub name: ByteArray,
-    pub symbol: ByteArray,
+    pub name: felt252,
+    pub symbol: felt252,
     pub initial_supply: u256,
     pub decimals: u8,
     pub salt: felt252,
@@ -108,6 +108,7 @@ pub struct TokenInitParams {
     pub fee_amount: u256,
     pub fee_to: ContractAddress,
     pub paid_in: ContractAddress,
+    pub accepted_buy_tokens: Map<ContractAddress, bool>,
 }
 
 // TODO:
@@ -131,16 +132,23 @@ const ETH: ContractAddress = 0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1
     .try_into()
     .unwrap();
 
-#[derive(Drop, Copy, Serde)]
-pub struct TokenConfig {}
+#[derive(Drop, Clone, Serde)]
+pub struct ContractConfig {
+    pub exchange_address: Option<ContractAddress>,
+    pub accepted_buy_tokens: Array<ContractAddress>,
+    pub fee: Option<(u256, ContractAddress)>, // amount, to
+    pub max_token_supply: Option<u256>,
+    pub paid_in: Option<ContractAddress>,
+    pub token_class_hash: Option<ClassHash>,
+}
 
 #[derive(Drop, starknet::Event)]
 pub struct TokenCreated {
     #[key]
     pub token_address: ContractAddress,
     pub owner: ContractAddress,
-    pub name: ByteArray,
-    pub symbol: ByteArray,
+    pub name: felt252,
+    pub symbol: felt252,
     pub decimals: u8,
     pub initial_supply: u256,
     pub created_at: u64,

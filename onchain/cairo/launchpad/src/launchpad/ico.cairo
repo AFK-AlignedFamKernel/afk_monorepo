@@ -10,8 +10,8 @@ pub mod ICO {
         ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
     };
     use crate::interfaces::ico::{
-        IICO, IICOConfig, PresaleDetails, PresaleLaunched, PresaleStatus, Token, TokenBought,
-        TokenClaimed, TokenConfig, TokenCreated, TokenDetails, TokenInitParams,
+        ContractConfig, IICO, IICOConfig, PresaleDetails, PresaleLaunched, PresaleStatus, Token,
+        TokenBought, TokenClaimed, TokenCreated, TokenDetails, TokenInitParams,
         default_presale_details,
     };
     use crate::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
@@ -75,8 +75,7 @@ pub mod ICO {
             assert(caller.is_non_zero(), 'ZERO CALLER');
 
             let TokenDetails { name, symbol, initial_supply, decimals, salt } = token_details;
-            assert(name.len() > 0, 'INVALID TOKEN NAME');
-            assert(symbol.len() > 0, 'INVALID TOKEN SYMBOL');
+
             assert(initial_supply > 0, 'INITIAL SUPPLY IS ZERO');
             assert(decimals > 0 && decimals <= 18, 'INVALID DECIMALS');
 
@@ -84,7 +83,7 @@ pub mod ICO {
             let max_token_supply = self.token_init.max_token_supply.read();
             assert(
                 max_token_supply == 0
-                    || (max_token_supply > 0 && max_token_supply > initial_supply),
+                    || (max_token_supply > 0 && max_token_supply >= initial_supply),
                 'INVALID INITIAL SUPPLY',
             );
 
@@ -98,9 +97,8 @@ pub mod ICO {
             }
 
             // NOTE: The caller is the recipient
-            let mut calldata: Array<felt252> = array![];
-            (name.clone(), symbol.clone(), initial_supply, decimals, caller, caller)
-                .serialize(ref calldata);
+            let mut calldata = array![];
+            (name, symbol, initial_supply, caller, decimals).serialize(ref calldata);
             let (token_address, _) = deploy_syscall(
                 self.token_class_hash.read(), salt, calldata.span(), false,
             )
@@ -114,7 +112,7 @@ pub mod ICO {
                 symbol,
                 decimals,
                 initial_supply,
-                created_at: starknet::get_block_timestamp(),
+                created_at: get_block_timestamp(),
             };
             self.emit(event);
 
@@ -133,6 +131,11 @@ pub mod ICO {
                 _ => default_presale_details(),
             };
 
+            assert(details.buy_token.is_non_zero(), 'BUY TOKEN IS ZERO');
+            assert(
+                self.token_init.accepted_buy_tokens.entry(details.buy_token).read(),
+                'BUY TOKEN NOT SUPPORTED',
+            );
             let soft_cap_threshold: u256 = (25 * details.hard_cap) / 100;
             assert!(
                 details.soft_cap >= soft_cap_threshold,
@@ -142,7 +145,7 @@ pub mod ICO {
 
             assert(details.start_time < details.end_time, 'INVALID START AND END TIME');
             assert(
-                details.liquidity_percentage > 51 && details.liquidity_percentage <= 100,
+                details.liquidity_percentage >= 51 && details.liquidity_percentage <= 100,
                 'INVALID LIQUIDITY RANGE',
             );
             let token = self.tokens.entry(token_address);
@@ -194,6 +197,9 @@ pub mod ICO {
                 owner.is_some() && token.status.read() == PresaleStatus::Finalized,
                 'LAUNCHING FAILED',
             );
+
+            let exchange_address = self.exchange_address.read();
+            assert(exchange_address.is_non_zero(), 'EXCHANGE ADDRESS IS ZERO');
 
             // Launch the liquidity here
             // TODO: Keep track of tokens whose liquidity providing has been launched.
@@ -343,8 +349,30 @@ pub mod ICO {
 
     #[abi(embed_v0)]
     pub impl ICOConfigImpl of IICOConfig<ContractState> {
-        fn set_token_config(ref self: ContractState, config: TokenConfig) {
+        fn set_config(ref self: ContractState, config: ContractConfig) {
             self.ownable.assert_only_owner();
+
+            if let Option::Some(val) = config.exchange_address {
+                assert(val.is_non_zero(), 'EXCHANGE ADDRESS IS ZERO');
+                self.exchange_address.write(val);
+            }
+            if let Option::Some((fee_amount, fee_to)) = config.fee {
+                assert(fee_amount != 0 && fee_to.is_non_zero(), 'INVALID FEE PARAMS');
+                self.token_init.fee_to.write(fee_to);
+                self.token_init.fee_amount.write(fee_amount);
+            }
+            if let Option::Some(val) = config.max_token_supply {
+                self.token_init.max_token_supply.write(val);
+            }
+            if let Option::Some(val) = config.paid_in {
+                self.token_init.paid_in.write(val);
+            }
+            if let Option::Some(val) = config.token_class_hash {
+                self.token_class_hash.write(val);
+            }
+            for token in config.accepted_buy_tokens {
+                self.token_init.accepted_buy_tokens.entry(token).write(true);
+            }
         }
     }
 
@@ -405,7 +433,7 @@ pub mod ICO {
     fn verify_balance(dispatcher: IERC20Dispatcher, caller: ContractAddress) -> u256 {
         let total_supply = dispatcher.total_supply();
         let balance = dispatcher.balance_of(caller);
-        let threshold: u256 = 80 * total_supply / 100;
+        let threshold: u256 = 90 * total_supply / 100;
         assert(balance >= threshold, 'VERIFICATION FAILED');
         balance
     }
