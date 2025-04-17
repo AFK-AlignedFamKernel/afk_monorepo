@@ -11,7 +11,7 @@ pub mod NostrFiScoring {
         TotalAlgoScoreRewardsDefault, TotalVoteTipsRewardsDefault, EpochRewards, TotalDepositRewardsDefault,
         Vote, VoteNostrNote, VoteParams, VoteProfile,
          TipUserWithVote, NostrAccountScoringDefault,
-        ProfileVoteScoringDefault, 
+        ProfileVoteScoringDefault,  TipByUserDefault
     };
     // use afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
     // use crate::afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
@@ -102,6 +102,7 @@ pub mod NostrFiScoring {
         is_reward_epoch_claimed_by_user: Map<ContractAddress, bool>,
         is_reward_epoch_claimed_by_user_per_epoch: Map<ContractAddress, Map<u64, bool>>,
         // Users logic state
+        total_tip_per_epoch: Map<u64, TipByUser>,
         total_tip_by_user: Map<u256, TipByUser>,
         total_tip_by_user_per_epoch: Map<u256, Map<u64, TipByUser>>,
         last_timestamp_oracle_score_by_user: Map<u256, u64>,
@@ -670,8 +671,10 @@ pub mod NostrFiScoring {
             let current_index_epoch = self.epoch_index.read();
 
             let nostr_to_sn = self.nostr_to_sn.read(vote_params.nostr_address);
-            let old_tip_by_user = self.total_tip_by_user.read(vote_params.nostr_address);
-            // let old_tip_by_user_per_epoch = self.total_tip_by_user_per_epoch.entry(vote_params.nostr_address).entry(current_index_epoch);
+
+            let old_tip_by_user = self.total_tip_by_user_per_epoch.entry(vote_params.nostr_address).entry(current_index_epoch).read();
+            // let old_tip_by_user = self.total_tip_by_user.read(vote_params.nostr_address);
+            // let old_tip_by_user_per_epoch = self.total_tip_by_user_per_epoch.entry(vote_params.nostr_address).entry(current_index_epoch).read();
 
             let mut reward_to_claim_by_user_because_not_linked = old_tip_by_user
                 .reward_to_claim_by_user_because_not_linked;
@@ -757,7 +760,8 @@ pub mod NostrFiScoring {
                     + vote_params.upvote_amount,
                 total_amount_deposit_by_algo: old_tip_by_user.total_amount_deposit_by_algo
                     + vote_params.downvote_amount,
-                rewards_amount: old_tip_by_user.rewards_amount,
+                rewards_amount: old_tip_by_user.rewards_amount
+                    + vote_params.amount_token,
                 is_claimed: old_tip_by_user.is_claimed,
                 end_epoch_time: old_tip_by_user.end_epoch_time,
                 start_epoch_time: old_tip_by_user.start_epoch_time,
@@ -766,6 +770,22 @@ pub mod NostrFiScoring {
                 is_claimed_tip_by_user_because_not_linked: old_tip_by_user
                     .is_claimed_tip_by_user_because_not_linked,
             };
+
+            let mut total_tip_per_epoch = self.total_tip_per_epoch.entry(current_index_epoch).read();
+
+            if total_tip_per_epoch.total_amount_deposit == 0 {
+                total_tip_per_epoch= TipByUserDefault::default();
+                total_tip_per_epoch.total_amount_deposit = vote_params.amount_token;
+                total_tip_per_epoch.total_amount_deposit_by_algo = vote_params.downvote_amount;
+                total_tip_per_epoch.rewards_amount = vote_params.amount_token;
+                self.total_tip_per_epoch.entry(current_index_epoch).write(tip_by_user);
+            } else {
+
+                total_tip_per_epoch.total_amount_deposit += vote_params.amount_token;
+                total_tip_per_epoch.total_amount_deposit_by_algo += vote_params.amount_token;
+                total_tip_per_epoch.rewards_amount += vote_params.amount_token;
+                self.total_tip_per_epoch.entry(current_index_epoch).write(tip_by_user);
+            }
 
             self.total_tip_by_user.entry(vote_params.nostr_address).write(tip_by_user);
             self.total_tip_by_user_per_epoch.entry(vote_params.nostr_address).entry(current_index_epoch).write(tip_by_user);
@@ -858,10 +878,26 @@ pub mod NostrFiScoring {
             assert(now - last_timestamp_oracle_score_by_user > 1000, 'Not enough time has passed');
 
         }
+
+
+        fn _distribute_rewards_by_user_algo(
+            ref self: ContractState, starknet_user_address: ContractAddress, 
+            epoch_index: u64
+        ) {
+
+        }
+
         // Distribution of rewards for one user
         // Algorithm + User vote tips
         // TODO:
         // Add end epoch check
+        // Calculate rewards by user
+        // Depends on User tips + Weight + Vote
+        // Distribute rewards by User vote tips
+        // V2: add weight for user vote tips
+        // Whitelisted OG for topics and moderators
+        // DAO whitelisted  
+        // Algo whitelist based on Algo score
         fn _distribute_rewards_by_user(
             ref self: ContractState, starknet_user_address: ContractAddress, 
             epoch_index: u64
@@ -905,26 +941,30 @@ pub mod NostrFiScoring {
             println!(" check user data for epoch: {:?}", epoch_index);
             let profile_scoring_by_algo = self.nostr_account_scoring_algo.read(nostr_address);
 
-            println!("profile_scoring_by_algo: {:?}", profile_scoring_by_algo.ai_score);
             let profile_scoring_algo_by_user_epoch = self.nostr_account_scoring_per_epoch.entry(nostr_address).entry(epoch_index).read();
-            println!("profile_scoring_algo_by_user_epoch: {:?}", profile_scoring_algo_by_user_epoch.ai_score);
+            // println!("profile_scoring_algo_by_user_epoch: {:?}", profile_scoring_algo_by_user_epoch.ai_score);
             // println!("profile_scoring_by_user: {:?}", profile_scoring_by_user.ai_score);
-            let tip_by_user_total = self.total_tip_by_user.read(nostr_address);
-            println!("tip_by_user_total total_amount_deposit: {:?}", tip_by_user_total.total_amount_deposit);
+            let tip_by_user_total_overall = self.total_tip_by_user.read(nostr_address);
+            let tip_by_user_total = self.total_tip_by_user_per_epoch.entry(nostr_address).entry(epoch_index).read();
+            // let tip_by_user_total = self.total_tip_by_user.read(nostr_address);
+            // println!("tip_by_user_total total_amount_deposit: {:?}", tip_by_user_total.total_amount_deposit);
 
             let tip_by_user = self.total_tip_by_user_per_epoch.entry(nostr_address).entry(epoch_index).read();
 
-            println!("tip_by_user: {:?}", tip_by_user.total_amount_deposit);
-            println!("tip_by_user is claimed: {:?}", tip_by_user.is_claimed);
+            // println!("tip_by_user: {:?}", tip_by_user.total_amount_deposit);
+            // println!("tip_by_user is claimed: {:?}", tip_by_user.is_claimed);
 
             let total_deposit_rewards = self.total_deposit_rewards_per_epoch_index.read(epoch_index);
-            println!("total_deposit_rewards: {:?}", total_deposit_rewards.total_amount_deposit);
+            // println!("total_deposit_rewards: {:?}", total_deposit_rewards.total_amount_deposit);
 
             let mut data_algo_score = self.nostr_account_scoring_algo_per_epoch.entry(nostr_address).entry(epoch_index).read();
             let my_ai_score = data_algo_score.ai_score;
 
-            println!("data algo score is claimed: {:?}", data_algo_score.is_claimed);
+           let is_claimed_user_epoch= self.is_reward_epoch_claimed_by_user_per_epoch.entry(starknet_user_address).entry(epoch_index).read();
+
+            // println!("data algo score is claimed: {:?}", data_algo_score.is_claimed);
             assert(!tip_by_user.is_claimed && !data_algo_score.is_claimed, errors::USER_EPOCH_DISTRIBUTION_CLAIMED);
+            assert(!is_claimed_user_epoch, errors::USER_EPOCH_DISTRIBUTION_CLAIMED);
 
             // Admins params percentage between user and algo
 
@@ -933,17 +973,18 @@ pub mod NostrFiScoring {
 
             // Get total state for all users subscribed to the epoch
             let total_score_rewards = self.total_score_rewards_per_epoch_index.read(epoch_index);
-            println!("total_score_rewards: {:?}", total_score_rewards.total_score_ai);
+            // println!("total_score_rewards: {:?}", total_score_rewards.total_score_ai);
             let total_score_vote = total_score_rewards.total_score_vote;
-            println!("total_score_vote: {:?}", total_score_vote);
+            // println!("total_score_vote: {:?}", total_score_vote);
             // let total_algo_score_rewards = self.total_algo_score_rewards.read();
             let total_algo_score_rewards= self.algo_score_rewards_per_epoch_index.read(epoch_index);
-            println!("total_algo_score_rewards: {:?}", total_algo_score_rewards.total_score_ai);
+            // println!("total_algo_score_rewards: {:?}", total_algo_score_rewards.total_score_ai);
 
             let percentage_distribution_algo = self
                 .admin_params
                 .read()
                 .percentage_algo_score_distribution;
+            println!("percentage_distribution_algo: {:?}", percentage_distribution_algo);
 
 
             let total_amount_deposit = total_deposit_rewards.total_amount_deposit;
@@ -955,14 +996,18 @@ pub mod NostrFiScoring {
             let total_amount_to_claim_algo = total_amount_deposit
                 * percentage_distribution_algo
                 / BPS;
+            println!("total_amount_to_claim_algo: {}", total_amount_to_claim_algo);
+
             let total_amount_to_claim = total_deposit_rewards.total_amount_to_claim;
+            println!("total_amount_to_claim: {}", total_amount_to_claim);
 
             let amount_for_algo = total_amount_deposit * percentage_distribution_algo / BPS;
-            println!("amount_for_algo: {}", amount_for_algo);
 
             let total_ai_score = total_algo_score_rewards.total_score_ai;
-
             println!("total_ai_score: {}", total_ai_score);
+            println!("amount_for_algo: {}", amount_for_algo);
+
+            // println!("total_ai_score: {}", total_ai_score);
 
             println!("my_ai_score: {}", my_ai_score);
 
@@ -979,8 +1024,14 @@ pub mod NostrFiScoring {
             if total_amount_to_claim_algo == 0 {
                 user_share_algo = 0;
             } else {
-                user_share_algo = my_ai_score * total_amount_to_claim_algo / total_amount_to_claim_algo;
+                // user_share_algo = my_ai_score * total_amount_to_claim_algo / total_amount_to_claim_algo;
+                user_share_algo = my_ai_score * amount_for_algo / total_ai_score;
             }
+            // if total_amount_to_claim_algo == 0 {
+            //     user_share_algo = 0;
+            // } else {
+            //     user_share_algo = my_ai_score * total_amount_to_claim_algo / total_amount_to_claim_algo;
+            // }
          
             println!("user_share_algo: {}", user_share_algo);
             println!("balance_contract: {}", balance_contract);
@@ -996,59 +1047,54 @@ pub mod NostrFiScoring {
             // Distribute Topic User vote tips
 
             // Distribute general rewards send to vault
-            let total_deposit_rewards = self.total_deposit_rewards.read();
-            println!("total_deposit_rewards: {:?}", total_deposit_rewards.total_amount_deposit);
+            // let total_deposit_rewards = self.total_deposit_rewards.read();
+            // println!("total_deposit_rewards: {:?}", total_deposit_rewards.total_amount_deposit);
             // let profile_vote_scoring_by_user = self.nostr_vote_profile.read(nostr_address);
 
-            println!("percentage_distribution_algo: {:?}", percentage_distribution_algo);
-            // Calculate rewards by user
-            // Depends on User tips + Weight + Vote
-            // Distribute rewards by User vote tips
-            // V2: add weight for user vote tips
-            // Whitelisted OG for topics and moderators
-            // DAO whitelisted  
-            // Algo whitelist based on Algo score
+ 
             let remaining_percentage_distribution_user = BPS - percentage_distribution_algo;
             println!("remaining_percentage_distribution_user: {}", remaining_percentage_distribution_user);
          
-
-            let tip_user_total_amount_deposit = tip_by_user.total_amount_deposit;
-            println!("tip_user.total_amount_deposit: {}", tip_user_total_amount_deposit);
-            let mut total_amount_to_claim_user_vote = total_amount_deposit
-                * remaining_percentage_distribution_user
-                / BPS;
-            println!("total_amount_to_claim_user_vote: {}", total_amount_to_claim_user_vote);
-
-            let my_vote_score = total_score_vote * percentage_distribution_algo / BPS;
-            println!("my_vote_score: {}", my_vote_score);
-            let mut user_share_vote = 0;
+            // println!("tip_user.total_amount_deposit: {}", tip_user_total_amount_deposit);
+   
             println!("total_score_vote: {:?}", total_score_vote);
+            let amount_for_vote = total_amount_deposit * remaining_percentage_distribution_user / BPS;
 
-            if total_amount_to_claim_user_vote == 0 {
+            let mut user_share_vote = 0;
+
+            let total_tip_user_per_epoch = self.total_tip_by_user_per_epoch.entry(nostr_address).entry(epoch_index).read();
+            let total_tip_epoch = self.total_tip_per_epoch.entry(epoch_index).read();
+
+            let total_vote_amount=total_tip_epoch.total_amount_deposit;
+            // let my_vote_score = total_score_vote * percentage_distribution_algo / BPS;
+
+            let my_vote_score = total_tip_user_per_epoch.total_amount_deposit;
+            println!("my_vote_score: {}", my_vote_score);
+
+            println!("total_vote_amount per epoch: {}", total_vote_amount);
+            println!("total_tip_epoch: {}", total_tip_epoch.total_amount_deposit);
+            println!("total_vote_amount: {}", total_vote_amount);
+
+            if amount_for_vote == 0 {
                 user_share_vote = 0;
             } else {
-                user_share_vote = my_vote_score * total_amount_to_claim_user_vote / total_amount_to_claim_user_vote;
+                // user_share_vote = my_vote_score * total_amount_to_claim_user_vote / total_amount_to_claim_user_vote;
+                user_share_vote = my_vote_score * amount_for_vote / total_vote_amount;
             }
             println!("user_share_vote: {}", user_share_vote);
             println!("balance_contract: {}", balance_contract);
-            let mut veracity_score = 0;
 
-            // let tip_by_user_amount = tip_by_user.total_amount_deposit;
-            // let tip_by_user_amount_rewards = tip_by_user.rewards_amount;
 
             if user_share_vote > balance_contract {
                 user_share_vote = balance_contract;
             }
-
-            if user_share_vote > total_amount_to_claim_user_vote {
-                user_share_vote = total_amount_to_claim_user_vote;
-            }
-
-            println!("user_share_algo: {}", user_share_algo);
             println!("user_share_vote: {}", user_share_vote);
 
+            if user_share_vote > amount_for_vote {
+                user_share_vote = amount_for_vote;
+            }
+
             println!("update state");
-            println!("total_amount_to_claim: {}", total_amount_to_claim);
             println!("user_share_algo: {}", user_share_algo);
             println!("user_share_vote: {}", user_share_vote);
             // // Update all state
@@ -1069,6 +1115,8 @@ pub mod NostrFiScoring {
 
 
             // Change user state
+
+
 
             data_algo_score.is_claimed = true;
             self.nostr_account_scoring_algo_per_epoch.entry(nostr_address).entry(epoch_index).write(data_algo_score);
