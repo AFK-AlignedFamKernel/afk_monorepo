@@ -406,7 +406,11 @@ pub mod NostrFiScoring {
         fn _generic_vote_nostr_event(ref self: ContractState, vote_params: VoteParams) {
             let current_index_epoch = self.epoch_index.read();
 
-            let nostr_to_sn = self.nostr_to_sn.read(vote_params.nostr_address);
+            // TODO add namespace contract call
+            // let nostr_to_sn = self.nostr_to_sn.read(vote_params.nostr_address);
+            let namespace_address = self.namespace_address.read(); 
+            let namespace = INostrNamespaceDispatcher{contract_address: namespace_address}; 
+            let nostr_to_sn = namespace.get_nostr_by_sn_default(vote_params.nostr_address);
 
             let old_tip_by_user = self
                 .total_tip_by_user_per_epoch
@@ -601,7 +605,11 @@ pub mod NostrFiScoring {
             // check profile nostr id link
 
             // println!("starknet_user_address: {:?}", starknet_user_address);
-            let nostr_address = self.sn_to_nostr.read(starknet_user_address);
+            // TODO add namespace contract call
+            // let nostr_address = self.sn_to_nostr.read(starknet_user_address);
+            let namespace_address = self.namespace_address.read(); 
+            let namespace = INostrNamespaceDispatcher{contract_address: namespace_address}; 
+            let nostr_address = namespace.get_sn_by_nostr_default(starknet_user_address);
             // println!("nostr_address: {:?}", nostr_address);
             assert(nostr_address != 0.try_into().unwrap(), errors::PROFILE_NOT_LINKED);
             // Verify the epoch params
@@ -857,6 +865,11 @@ pub mod NostrFiScoring {
             ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>,
         ) {
             // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
+
+            let namespace_address = self.namespace_address.read(); 
+            // let namespace = INostrNamespaceDispatcher{contract_address: namespace_address}; 
+            // TODO add contract call for general linked nostr profile
+            // namespace.linked_nostr_profile(request);
             let profile_default = request.content.clone();
             let starknet_address: ContractAddress = profile_default.starknet_address;
 
@@ -1035,7 +1048,14 @@ pub mod NostrFiScoring {
             // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
             let profile_default = request.content.clone();
             let nostr_address: NostrPublicKey = profile_default.nostr_address.try_into().unwrap();
-            let sn_address_linked = self.nostr_to_sn.read(nostr_address);
+
+
+           let namespace_address = self.namespace_address.read();
+           let namespace = INostrNamespaceDispatcher{contract_address: namespace_address};
+           
+           // TODO add namespace contract call
+           let sn_address_linked = namespace.get_nostr_by_sn_default(nostr_address);
+            // let sn_address_linked = self.nostr_to_sn.read(nostr_address);
 
             // println!("verify signature");
             // Verify signature Nostr oracle admin

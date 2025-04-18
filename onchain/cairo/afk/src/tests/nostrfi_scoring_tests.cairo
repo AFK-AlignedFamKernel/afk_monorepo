@@ -18,6 +18,7 @@ mod nostrfi_scoring_tests {
     };
     use starknet::ContractAddress;
 
+    use afk::social::namespace::{INostrNamespaceDispatcher, INostrNamespaceDispatcherTrait};
     fn declare_nostrfi_scoring() -> ContractClass {
         // declare("nostrfi_scoring").unwrap().contract_class()
         *declare("NostrFiScoring").unwrap().contract_class()
@@ -38,6 +39,23 @@ mod nostrfi_scoring_tests {
 
         INostrFiScoringDispatcher { contract_address }
     }
+
+    fn declare_namespace() -> ContractClass {
+        // declare("Namespace").unwrap().contract_class()
+        *declare("Namespace").unwrap().contract_class()
+    }
+
+    fn deploy_namespace(class: ContractClass) -> INostrNamespaceDispatcher {
+        let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
+        let admin_nostr_pubkey = 0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
+        let mut calldata = array![];
+        ADMIN_ADDRESS.serialize(ref calldata);
+        admin_nostr_pubkey.serialize(ref calldata);
+        let (contract_address, _) = class.deploy(@calldata).unwrap();
+
+        INostrNamespaceDispatcher { contract_address }
+    }
+
 
     fn declare_erc20() -> @ContractClass {
         declare("ERC20").unwrap().contract_class()
@@ -71,6 +89,7 @@ mod nostrfi_scoring_tests {
         SocialRequest<VoteNostrNote>,
         IERC20Dispatcher,
         SocialRequest<LinkedStarknetAddress>,
+        INostrNamespaceDispatcher,
     ) {
         // recipient private key: 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35
         // just for testing, do not use for anything else
@@ -87,6 +106,8 @@ mod nostrfi_scoring_tests {
 
         let second_sender_address: ContractAddress = 456.try_into().unwrap();
 
+        let declare_namespace_class = declare_namespace();
+        let namespace_dispatcher = deploy_namespace(declare_namespace_class);
         let erc20_class = declare_erc20();
         println!("deploying erc20");
         // let erc20_dispatcher = deploy_erc20(
@@ -250,6 +271,7 @@ mod nostrfi_scoring_tests {
             request_vote_tips_nostr_profile,
             erc20_dispatcher,
             request_linked_wallet_to_second_recipient,
+            namespace_dispatcher,
         )
     }
 
@@ -263,6 +285,7 @@ mod nostrfi_scoring_tests {
         SocialRequest<VoteNostrNote>,
         IERC20Dispatcher,
         SocialRequest<LinkedStarknetAddress>,
+        INostrNamespaceDispatcher,
     ) {
         let nostrfi_scoring_class = declare_nostrfi_scoring();
         request_fixture_custom_classes(nostrfi_scoring_class)
@@ -565,6 +588,7 @@ mod nostrfi_scoring_tests {
             request_vote_tips_nostr_profile,
             erc20,
             request_linked_wallet_to_second_recipient,
+            namespace_dispatcher,
         ) =
             request_fixture();
 

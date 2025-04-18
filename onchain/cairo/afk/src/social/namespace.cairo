@@ -24,6 +24,11 @@ pub struct NostrAccountScoring {
 #[starknet::interface]
 pub trait INostrNamespace<TContractState> {
     // Getters
+    fn get_nostr_address_by_sn_default(
+        self: @TContractState, starknet_address: ContractAddress,
+    ) -> NostrPublicKey;
+
+
     fn get_nostr_by_sn_default(
         self: @TContractState, nostr_public_key: NostrPublicKey,
     ) -> ContractAddress;
@@ -258,6 +263,11 @@ pub mod Namespace {
             // self.nostr_namespace.sn_to_nostr.read(starknet_address)
         }
 
+        fn get_nostr_address_by_sn_default(
+            self: @ContractState, starknet_address: ContractAddress,
+        ) -> NostrPublicKey {
+            self.sn_to_nostr.read(starknet_address)
+        }
 
         fn get_nostr_scoring_by_nostr_address(
             self: @ContractState, nostr_address: NostrPublicKey,
@@ -581,8 +591,10 @@ mod tests {
 
     fn deploy_namespace(class: ContractClass) -> INostrNamespaceDispatcher {
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
+        let admin_nostr_pubkey = 0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
         let mut calldata = array![];
         ADMIN_ADDRESS.serialize(ref calldata);
+        admin_nostr_pubkey.serialize(ref calldata);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
 
         INostrNamespaceDispatcher { contract_address }
