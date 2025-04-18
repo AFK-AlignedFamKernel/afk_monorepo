@@ -9,90 +9,7 @@ pub type NostrPublicKey = u256;
 pub type AddressId = felt252;
 pub const DEFAULT_BATCH_INTERVAL_WEEK: u64 = 60 * 60 * 24 * 7; // 1 week, can be adjusted.
 
-#[starknet::interface]
-pub trait INostrFiScoring<TContractState> {
-    // Getters
-    fn get_nostr_by_sn_default(
-        self: @TContractState, nostr_public_key: NostrPublicKey,
-    ) -> ContractAddress;
 
-    fn get_sn_by_nostr_default(
-        self: @TContractState, starknet_address: ContractAddress,
-    ) -> NostrPublicKey;
-    // Admin
-    fn set_control_role(
-        ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
-    );
-    // fn init_nostr_profile(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
-    fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
-    fn push_profile_score_algo(
-        ref self: TContractState,
-        request: SocialRequest<PushAlgoScoreNostrNote>,
-        score_algo: ProfileAlgorithmScoring,
-    );
-
-    fn set_change_batch_interval(ref self: TContractState, epoch_duration: u64);
-    fn set_admin_nostr_pubkey(
-        ref self: TContractState, admin_nostr_pubkey: NostrPublicKey, is_enable: bool,
-    );
-    fn set_admin_params(ref self: TContractState, admin_params: NostrFiAdminStorage);
-    fn create_dao(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
-
-    // Users functions
-    fn linked_nostr_profile(
-        ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>,
-    );
-
-    // fn create_token_topic_reward_and_vote(
-    //     ref self: TContractState,
-    //     request: SocialRequest<LinkedStarknetAddress>,
-    //     token_type: TokenLaunchType,
-    //     is_create_staking_vault: bool,
-    //     is_create_dao: bool,
-    // );
-
-    // Deposit, Voting and tips
-    fn deposit_rewards(
-        ref self: TContractState, amount: u256, deposit_rewards_type: DepositRewardsType,
-    );
-    fn vote_token_profile(ref self: TContractState, request: SocialRequest<VoteNostrNote>);
-    fn vote_nostr_profile_starknet_only(ref self: TContractState, vote_params: VoteParams);
-
-    // Distribution of rewards
-    fn distribute_rewards_by_user(
-        ref self: TContractState, starknet_user_address: ContractAddress, epoch_index: u64,
-    );
-    fn claim_and_distribute_my_rewards(ref self: TContractState, epoch_index: u64);
-
-    // Getters
-    fn get_admin_params(self: @TContractState) -> NostrFiAdminStorage;
-    fn get_is_pay_subscription(self: @TContractState) -> bool;
-    fn get_amount_paid_for_subscription(self: @TContractState) -> u256;
-    fn get_token_to_pay_subscription(self: @TContractState) -> ContractAddress;
-}
-
-
-#[starknet::interface]
-pub trait INostrFiScoringAdmin<TContractState> {
-    // Admin
-    fn set_control_role(
-        ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
-    );
-    // fn init_nostr_profile(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
-    fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
-    fn push_profile_score_algo(
-        ref self: TContractState,
-        request: SocialRequest<PushAlgoScoreNostrNote>,
-        score_algo: ProfileAlgorithmScoring,
-    );
-
-    fn set_change_batch_interval(ref self: TContractState, next_epoch: u64);
-    fn set_admin_nostr_pubkey(
-        ref self: TContractState, admin_nostr_pubkey: NostrPublicKey, is_enable: bool,
-    );
-    fn set_admin_params(ref self: TContractState, admin_params: NostrFiAdminStorage);
-    fn create_dao(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
-}
 // Enums
 
 #[derive(Copy, Debug, Drop, Serde)]
@@ -300,12 +217,6 @@ pub struct PushAlgoScoreEvent {
     pub is_claimed: bool,
     pub veracity_score: u256,
     // Add NIP-05 and stats profil after. Gonna write a proposal for it
-}
-
-#[derive(Drop, starknet::Event)]
-pub struct AdminAddNostrProfile {
-    #[key]
-    pub nostr_address: NostrPublicKey,
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]

@@ -248,3 +248,17 @@ export const RPC_URLS_NUMBER: { [key: number]: string } = {
 
   // [constants.StarknetChainId.SN_SEPOLIA]:process.env.PROVIDER_URL
 };
+
+
+export const NOSTR_FI_SCORING_ADDRESS = {
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0x78a022e6906c83e049a30f7464b939b831ecbe47029480d7e89684f20c8d263",
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee",
+};
+
+
+export const CLASS_HASH_NOSTR_FI_SCORING = {
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0x78a022e6906c83e049a30f7464b939b831ecbe47029480d7e89684f20c8d263",
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee",
+};

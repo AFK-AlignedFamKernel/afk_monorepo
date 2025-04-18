@@ -36,7 +36,6 @@ pub mod DaoAA {
     //     ProposalVoted, ProposalResolved, ConfigParams, ConfigResponse, ProposalCanceled,
     //     Calldata,
     // };
-    
 
     pub const OPERATOR_ROLE: felt252 = selector!("OPERATOR_ROLE");
     pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
