@@ -10,6 +10,7 @@ pub mod NostrFiScoring {
         TokenLaunchType, TotalAlgoScoreRewards, TotalAlgoScoreRewardsDefault, TotalDepositRewards,
         TotalDepositRewardsDefault, TotalScoreRewards, TotalScoreRewardsDefault,
         TotalVoteTipsRewardsDefault, Vote, VoteNostrNote, VoteParams, VoteProfile,
+        INostrFiScoringAdmin
     };
     // use afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
     // use crate::afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
@@ -365,16 +366,6 @@ pub mod NostrFiScoring {
             now >= end_epoch_time
         }
 
-        // fn _check_epoch_transition_current_epoch(ref self: ContractState) {
-
-        //     let is_ended =
-        //     self._check_epoch_is_ended(self.current_epoch_rewards.read().end_epoch_time);
-        //     if is_ended {
-        //         self._finalize_epoch_current_epoch();
-        //         self._transition_to_next_epoch_current_epoch();
-        //     }
-        // }
-
         fn _check_epoch_transition(
             ref self: ContractState, epoch_index: u64,
         ) -> (EpochRewards, bool) {
@@ -396,31 +387,9 @@ pub mod NostrFiScoring {
             (selected_epoch, is_ended)
         }
 
-        fn _update_user_epoch_state(
-            ref self: ContractState, nostr_address: NostrPublicKey, epoch_index: u64,
-        ) -> (EpochRewards, bool) {
-            let mut selected_epoch = self.epoch_rewards.read(epoch_index);
-
-            let is_ended = self._check_epoch_is_ended(selected_epoch.end_epoch_time);
-            println!("is_ended: {:?}", is_ended);
-            if is_ended {
-                if epoch_index == self.epoch_index.read() {}
-            }
-            (selected_epoch, is_ended)
-        }
-
 
         // Transition to next epoch
         // Epoch transition
-
-        fn _finalize_epoch_current_epoch(ref self: ContractState) {
-            let mut current_epoch_rewards = self.current_epoch_rewards.read();
-            let epoch_index = self.epoch_index.read();
-            current_epoch_rewards.is_finalized = true;
-            self.epoch_rewards.entry(epoch_index).write(current_epoch_rewards);
-            // self.epoch_rewards_per_start_epoch.entry(now).write(current_epoch_rewards);
-        // self.epoch_rewards_per_end_epoch.entry(current_epoch_rewards.end_epoch_time).write(current_epoch_rewards);
-        }
 
         fn _finalize_epoch(ref self: ContractState, mut epoch: EpochRewards) -> EpochRewards {
             epoch.is_finalized = true;
@@ -570,16 +539,6 @@ pub mod NostrFiScoring {
         // self.epoch_rewards_per_end_epoch.entry(current_epoch_rewards.end_epoch_time).write(current_epoch_rewards);
         }
 
-        fn _finalize_user_epoch_state(
-            ref self: ContractState, nostr_address: NostrPublicKey, epoch_index: u64,
-        ) {
-            let epoch_rewards = self.epoch_rewards.read(epoch_index);
-            let end_epoch_time = epoch_rewards.end_epoch_time;
-            let last_batch_timestamp = epoch_rewards.start_epoch_time;
-            let epoch_duration = epoch_rewards.epoch_duration;
-            let start_epoch_time = epoch_rewards.start_epoch_time;
-        }
-
 
         fn _transition_to_next_epoch(ref self: ContractState) {
             let now = get_block_timestamp();
@@ -601,16 +560,6 @@ pub mod NostrFiScoring {
             self.epoch_rewards.entry(new_epoch_index).write(new_epoch_rewards);
             self.current_epoch_rewards.write(new_epoch_rewards);
         }
-
-        fn _transition_overall_state(
-            ref self: ContractState, start_epoch_time: u64, end_epoch_time: u64,
-        ) {
-            let mut current_epoch_rewards = self.current_epoch_rewards.read();
-            let epoch_index = self.epoch_index.read();
-            current_epoch_rewards.is_finalized = true;
-            self.epoch_rewards.entry(epoch_index).write(current_epoch_rewards);
-        }
-
 
         fn _transition_to_next_epoch_current_epoch(ref self: ContractState, epoch_index: u64) {
             // change old state
@@ -643,29 +592,7 @@ pub mod NostrFiScoring {
         }
 
 
-        fn _transition_user_state_to_next_epoch(
-            ref self: ContractState, start_epoch_time: u64, end_epoch_time: u64,
-        ) {
-            let caller_address = get_caller_address();
-            let nostr_address = self.sn_to_nostr.read(caller_address);
-            let now = get_block_timestamp();
-            let mut current_epoch_rewards = self.current_epoch_rewards.read();
-            let epoch_index = self.epoch_index.read();
-            current_epoch_rewards.is_finalized = true;
-            self.epoch_rewards.entry(epoch_index).write(current_epoch_rewards);
-        }
-
-
-        fn _generic_vote_nostr_event(
-            ref self: ContractState, vote_params: VoteParams // nostr_address: NostrPublicKey,
-            // vote: Vote,
-        // is_upvote: bool,
-        // upvote_amount: u256,
-        // downvote_amount: u256,
-        // amount: u256,
-        // amount_token: u256,
-
-        ) {
+        fn _generic_vote_nostr_event(ref self: ContractState, vote_params: VoteParams) {
             let current_index_epoch = self.epoch_index.read();
 
             let nostr_to_sn = self.nostr_to_sn.read(vote_params.nostr_address);
@@ -675,9 +602,6 @@ pub mod NostrFiScoring {
                 .entry(vote_params.nostr_address)
                 .entry(current_index_epoch)
                 .read();
-            // let old_tip_by_user = self.total_tip_by_user.read(vote_params.nostr_address);
-            // let old_tip_by_user_per_epoch =
-            // self.total_tip_by_user_per_epoch.entry(vote_params.nostr_address).entry(current_index_epoch).read();
 
             let mut reward_to_claim_by_user_because_not_linked = old_tip_by_user
                 .reward_to_claim_by_user_because_not_linked;
@@ -868,24 +792,6 @@ pub mod NostrFiScoring {
         // self.tokens_address_accepted.entry(token_address).write(true);
 
         }
-
-        fn _old_time_check(ref self: ContractState, starknet_user_address: ContractAddress) {
-            let now = get_block_timestamp();
-
-            // check profile nostr id link
-            let nostr_address = self.sn_to_nostr.read(starknet_user_address);
-            assert(nostr_address != 0.try_into().unwrap(), 'Profile not linked');
-
-            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
-            assert(now >= next_time, 'Epoch not ended');
-
-            let last_timestamp_oracle_score_by_user = self
-                .last_timestamp_oracle_score_by_user
-                .read(nostr_address);
-
-            assert(now - last_timestamp_oracle_score_by_user > 1000, 'Not enough time has passed');
-        }
-
 
         fn _distribute_rewards_by_user_algo(
             ref self: ContractState, starknet_user_address: ContractAddress, epoch_index: u64,
@@ -1243,12 +1149,13 @@ pub mod NostrFiScoring {
         ) {
             // self.accesscontrol.assert_only_role(OPERATOR_ROLE);
             let now = get_block_timestamp();
-            let next_time = self.last_batch_timestamp.read() + self.epoch_duration.read();
-            let next_time_if_ended = now + self.epoch_duration.read();
 
             let current_index_epoch = self.epoch_index.read();
 
-            let old_total_deposit_rewards = self.total_deposit_rewards.read();
+            // let old_total_deposit_rewards = self.total_deposit_rewards.read();
+            let old_total_deposit_rewards = self
+                .total_deposit_rewards_per_epoch_index
+                .read(current_index_epoch);
 
             let end_epoch_time = old_total_deposit_rewards.end_epoch_time;
 
@@ -1256,7 +1163,6 @@ pub mod NostrFiScoring {
 
             let mut new_epoch_duration = old_total_deposit_rewards.epoch_duration;
             let mut new_start_epoch_time = old_total_deposit_rewards.start_epoch_time;
-            let mut new_end_epoch_time = old_total_deposit_rewards.end_epoch_time;
             if now >= end_epoch_time { // TODO: add event to the contract
             } else {
                 new_start_epoch_time = now;
@@ -1264,10 +1170,6 @@ pub mod NostrFiScoring {
                 self.end_epoch_time.write(now + new_epoch_duration);
                 self.last_batch_timestamp.write(now);
             }
-
-            let total_deposit_per_epoch = self
-                .total_deposit_rewards_per_epoch_index
-                .read(current_index_epoch);
 
             // MVP with only general deposit rewards
             // V2: users can select the type of rewards distribution when they deposit
@@ -1293,48 +1195,6 @@ pub mod NostrFiScoring {
                         total_amount_to_claim: old_total_deposit_rewards.total_amount_to_claim,
                     }
                 },
-                // DepositRewardsType::User => {
-            //     // TODO: add user deposit rewards
-            //     TotalDepositRewards {
-            //         epoch_duration:old_total_deposit_rewards.epoch_duration,
-            //         start_epoch_time:old_total_deposit_rewards.start_epoch_time,
-            //         end_epoch_time:old_total_deposit_rewards.end_epoch_time,
-            //         general_total_amount_deposit:
-            //         old_total_deposit_rewards.general_total_amount_deposit, //
-            //         epoch_duration: self.epoch_duration.read(), // end_epoch_time:
-            //         self.last_batch_timestamp.read()
-            //         //     + self.epoch_duration.read(),
-            //         total_amount_deposit: old_total_deposit_rewards.total_amount_deposit,
-            //         user_total_amount_deposit: old_total_deposit_rewards
-            //             .user_total_amount_deposit
-            //             + amount,
-            //         algo_total_amount_deposit: old_total_deposit_rewards
-            //             .algo_total_amount_deposit,
-            //         rewards_amount: old_total_deposit_rewards.rewards_amount,
-            //         is_claimed: old_total_deposit_rewards.is_claimed,
-            //     }
-            // },
-            // DepositRewardsType::Algo => {
-            //     // TODO: add algo deposit rewards
-            //     TotalDepositRewards {
-            //         epoch_duration:old_total_deposit_rewards.epoch_duration,
-            //         start_epoch_time:old_total_deposit_rewards.start_epoch_time,
-            //         end_epoch_time:old_total_deposit_rewards.end_epoch_time,
-            //         general_total_amount_deposit:
-            //         old_total_deposit_rewards.general_total_amount_deposit, //
-            //         epoch_duration: self.epoch_duration.read(), // end_epoch_time:
-            //         self.last_batch_timestamp.read()
-            //         //     + self.epoch_duration.read(),
-            //         total_amount_deposit: old_total_deposit_rewards.total_amount_deposit,
-            //         user_total_amount_deposit: old_total_deposit_rewards
-            //             .user_total_amount_deposit,
-            //         algo_total_amount_deposit: old_total_deposit_rewards
-            //             .algo_total_amount_deposit
-            //             + amount,
-            // rewards_amount: old_total_deposit_rewards.rewards_amount,
-            // is_claimed: old_total_deposit_rewards.is_claimed,
-            // }
-            // },
             };
             let erc20_contract_address = self.main_token_address.read();
             let erc20 = IERC20Dispatcher { contract_address: erc20_contract_address };
@@ -1719,6 +1579,21 @@ pub mod NostrFiScoring {
         // TODO:
         // Implement logic to create a new DAO for this topic with the main token address
         fn create_dao(ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>) {
+            assert(
+                self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()),
+                errors::ADMIN_ROLE_REQUIRED,
+            );
+            let profile_default = request.content.clone();
+            let starknet_address: ContractAddress = profile_default.starknet_address;
+
+            assert!(starknet_address == get_caller_address(), "invalid caller");
+            request.verify().expect('can\'t verify signature');
+        }
+
+          // Create a new DAO for this topic with the main token address
+        // TODO:
+        // Implement logic to create a new DAO for this topic with the main token address
+        fn create_dao_with_nostr_note(ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>) {
             assert(
                 self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()),
                 errors::ADMIN_ROLE_REQUIRED,

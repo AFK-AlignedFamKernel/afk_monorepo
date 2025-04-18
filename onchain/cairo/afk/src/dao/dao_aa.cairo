@@ -36,6 +36,11 @@ pub mod DaoAA {
     //     ProposalVoted, ProposalResolved, ConfigParams, ConfigResponse, ProposalCanceled,
     //     Calldata,
     // };
+    
+
+    pub const OPERATOR_ROLE: felt252 = selector!("OPERATOR_ROLE");
+    pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
+    pub const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
     use afk::interfaces::voting::{ConfigParams, ConfigResponse};
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::{
@@ -143,9 +148,9 @@ pub mod DaoAA {
         self.starknet_address.write(starknet_address);
         self.owner.write(owner);
         self.voting._init(token_contract_address, owner, owner);
-        // self.accesscontrol.initializer();
-        // self.accesscontrol._grant_role(ADMIN_ROLE, owner);
-        // self.accesscontrol._grant_role(MINTER_ROLE, admin);
+        self.accesscontrol.initializer();
+        self.accesscontrol._grant_role(ADMIN_ROLE, owner);
+        self.accesscontrol._grant_role(OPERATOR_ROLE, owner);
         self.emit(AccountCreated { public_key: public_key });
     }
 

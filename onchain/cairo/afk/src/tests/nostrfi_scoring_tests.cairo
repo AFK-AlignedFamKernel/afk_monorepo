@@ -628,6 +628,76 @@ mod nostrfi_scoring_tests {
         );
     }
     // #[test]
+// #[should_panic()]
+// fn should_panic_multi_distribute_rewards() {
+//     let (
+//         request,
+//         recipient_nostr_key,
+//         sender_address,
+//         nostrfi_scoring,
+//         request_profile_score,
+//         request_score_admin_nostr_profile,
+//         request_vote_tips_nostr_profile,
+//         erc20,
+//         request_linked_wallet_to_second_recipient,
+//     ) =
+//         request_fixture();
+
+    //     let mut created_at = starknet::get_block_timestamp();
+//     println!("created at: {:?}", created_at);
+//     println!("start end to end basic flow");
+//     let mut current_time = created_at
+//         + DEFAULT_BATCH_INTERVAL_WEEK
+//         + 1; // Proposal duration reached
+//     println!("current time: {:?}", current_time);
+
+    //     let mut amount_token_deposit_rewards = 150_u256;
+
+    //     end_to_end_basic_flow(
+//         nostrfi_scoring.contract_address,
+//         sender_address,
+//         recipient_nostr_key,
+//         request.clone(),
+//         request_score_admin_nostr_profile.clone(),
+//         request_vote_tips_nostr_profile.clone(),
+//         erc20.clone(),
+//         0,
+//         current_time,
+//         amount_token_deposit_rewards,
+//     );
+
+    //     cheat_block_timestamp(
+//         nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
+//     );
+//     let mut new_created_at = starknet::get_block_timestamp();
+//     println!("new_created_at: {:?}", new_created_at);
+
+    //     println!("cheat block timestamp");
+//     cheat_block_timestamp(
+//         nostrfi_scoring.contract_address, new_created_at, CheatSpan::TargetCalls(1),
+//     );
+
+    //     current_time = (new_created_at + DEFAULT_BATCH_INTERVAL_WEEK + 1)
+//         * 2; // Proposal duration reached
+//     println!("start end to end basic flow");
+//     println!("current time second epoch: {:?}", current_time);
+
+    //     amount_token_deposit_rewards = 200_u256;
+
+    //     end_to_end_basic_flow(
+//         nostrfi_scoring.contract_address,
+//         sender_address,
+//         recipient_nostr_key,
+//         request.clone(),
+//         request_score_admin_nostr_profile.clone(),
+//         request_vote_tips_nostr_profile.clone(),
+//         erc20.clone(),
+//         0,
+//         current_time,
+//         amount_token_deposit_rewards,
+//     );
+// }
+// #[test]
 // fn end_to_end_flow_strk() {
 //         let (
 //         request,

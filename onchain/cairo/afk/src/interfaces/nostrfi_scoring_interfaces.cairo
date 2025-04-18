@@ -45,6 +45,7 @@ pub trait INostrFiScoring<TContractState> {
     );
     fn set_admin_params(ref self: TContractState, admin_params: NostrFiAdminStorage);
     fn create_dao(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
+    fn create_dao_with_nostr_note(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
 
     // Users functions
     fn linked_nostr_profile(
@@ -83,6 +84,31 @@ pub trait INostrFiScoring<TContractState> {
 // fn deposit_rewards_topic_to_vault_for_algo(ref self: TContractState, amount: u256);
 }
 
+
+#[starknet::interface]
+pub trait INostrFiScoringAdmin<TContractState> {
+
+    // Admin
+    fn set_control_role(
+        ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
+    );
+    fn init_nostr_profile(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
+    fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
+    fn push_profile_score_algo(
+        ref self: TContractState,
+        request: SocialRequest<PushAlgoScoreNostrNote>,
+        score_algo: ProfileAlgorithmScoring,
+    );
+
+    fn set_change_batch_interval(ref self: TContractState, next_epoch: u64);
+    fn set_admin_nostr_pubkey(
+        ref self: TContractState, admin_nostr_pubkey: NostrPublicKey, is_enable: bool,
+    );
+    fn set_admin_params(ref self: TContractState, admin_params: NostrFiAdminStorage);
+    fn create_dao(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
+
+ 
+}
 // Enums
 
 #[derive(Copy, Debug, Drop, Serde)]
