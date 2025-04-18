@@ -10,6 +10,8 @@ pub mod utils;
 
 
 pub mod interfaces {
+    pub mod common_interfaces;
+
     pub mod erc20;
     pub mod erc20_mintable;
     pub mod nameservice;

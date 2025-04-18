@@ -89,12 +89,12 @@ pub trait INostrNamespaceComponent<TContractState> {
     );
 
     // fn init_nostr_profile(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
-    fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
-    fn push_profile_score_algo(
-        ref self: TContractState,
-        request: SocialRequest<PushAlgoScoreNostrNote>,
-        score_algo: ProfileAlgorithmScoring,
-    );
+    // fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
+    // fn push_profile_score_algo(
+    //     ref self: TContractState,
+    //     request: SocialRequest<PushAlgoScoreNostrNote>,
+    //     score_algo: ProfileAlgorithmScoring,
+    // );
     // // External call protocol
 // fn protocol_linked_nostr_default_account(
 //     ref self: TContractState,
@@ -258,6 +258,18 @@ pub mod NostrNamespaceComponent {
         //     // }
         // }
 
+        fn get_nostr_address_by_sn_default(
+            self: @ComponentState<TContractState>, starknet_address: ContractAddress,
+        ) -> NostrPublicKey {
+            self.sn_to_nostr.read(starknet_address)
+        }
+
+
+        fn get_nostr_scoring_by_nostr_address(
+            self: @ComponentState<TContractState>, nostr_address: NostrPublicKey,
+        ) -> NostrAccountScoring {
+            self.nostr_account_scoring.read(nostr_address)
+        }
         // Getters
         fn get_nostr_by_sn_default(
             self: @ComponentState<TContractState>, nostr_public_key: NostrPublicKey,
@@ -323,169 +335,199 @@ pub mod NostrNamespaceComponent {
             //     //     );
             // }
     
-            // fn push_profile_score_algo(
-            //     ref self: ContractState,
-            //     request: SocialRequest<PushAlgoScoreNostrNote>,
-            //     score_algo: ProfileAlgorithmScoring,
-            // ) {
-            //     // println!("push_profile_score_algo");
-            //     assert(
-            //         self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()),
-            //         errors::ROLE_REQUIRED,
-            //     );
-            //     let admin_nostr_pubkey = self.admin_nostr_pubkey.read();
+
+        // Init nostr profile
+        // fn add_nostr_profile_admin(ref self: ComponentState<TContractState>, nostr_event_id: u256) {
+        //     // TODO assert if address is owner
+        //     self.accesscontrol.assert_only_role(ADMIN_ROLE);
+        //     let caller = get_caller_address();
+
+        //     assert(
+        //         self.accesscontrol.has_role(ADMIN_ROLE, caller)
+        //             || self.accesscontrol.has_role(OPERATOR_ROLE, caller),
+        //         errors::ROLE_REQUIRED,
+        //     );
+
+        //     self.nostr_pubkeys.entry(self.total_pubkeys.read()).write(nostr_event_id);
+        //     self.total_pubkeys.write(self.total_pubkeys.read() + 1);
+
+        //     let nostr_account_scoring = NostrAccountScoring {
+        //         nostr_address: nostr_event_id, starknet_address: 0.try_into().unwrap(), ai_score: 0,
+        //         // token_launch_type: TokenLaunchType::Fairlaunch,
+        //     };
+        //     self.nostr_account_scoring.entry(nostr_event_id).write(nostr_account_scoring);
+        //     // self
+        //     //     .emit(
+        //     //         AdminAddNostrProfile {
+        //     //             nostr_address: nostr_event_id // starknet_address: 0.try_into().unwrap(),
+        //     //         },
+        //     //     );
+        // }
+
+
+        //     fn push_profile_score_algo(
+        //         ref self: ComponentState<TContractState>,
+        //         request: SocialRequest<PushAlgoScoreNostrNote>,
+        //         score_algo: ProfileAlgorithmScoring,
+        //     ) {
+        //         // println!("push_profile_score_algo");
+        //         assert(
+        //             self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()),
+        //             errors::ROLE_REQUIRED,
+        //         );
+        //         let admin_nostr_pubkey = self.admin_nostr_pubkey.read();
     
-            //     // println!("admin_nostr_pubkey: {}", admin_nostr_pubkey);
+        //         // println!("admin_nostr_pubkey: {}", admin_nostr_pubkey);
     
-            //     let is_admin_nostr_pubkey_added = self
-            //         .is_admin_nostr_pubkey_added
-            //         .read(admin_nostr_pubkey);
-            //     assert(
-            //         is_admin_nostr_pubkey_added || request.public_key == admin_nostr_pubkey,
-            //         errors::INVALID_PUBKEY,
-            //     );
+        //         let is_admin_nostr_pubkey_added = self
+        //             .is_admin_nostr_pubkey_added
+        //             .read(admin_nostr_pubkey);
+        //         assert(
+        //             is_admin_nostr_pubkey_added || request.public_key == admin_nostr_pubkey,
+        //             errors::INVALID_PUBKEY,
+        //         );
     
-            //     // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
-            //     let profile_default = request.content.clone();
-            //     let nostr_address: NostrPublicKey = profile_default.nostr_address.try_into().unwrap();
-            //     let sn_address_linked = self.nostr_to_sn.read(nostr_address);
+        //         // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
+        //         let profile_default = request.content.clone();
+        //         let nostr_address: NostrPublicKey = profile_default.nostr_address.try_into().unwrap();
+        //         let sn_address_linked = self.nostr_to_sn.read(nostr_address);
     
-            //     // println!("verify signature");
-            //     // Verify signature Nostr oracle admin
-            //     request.verify().expect('can\'t verify signature');
-            //     let now = get_block_timestamp();
-            //     // Update nostr account scoring by algo
-            //     let mut algo_nostr_account_scoring = self
-            //         .nostr_account_scoring_algo
-            //         .read(nostr_address);
+        //         // println!("verify signature");
+        //         // Verify signature Nostr oracle admin
+        //         request.verify().expect('can\'t verify signature');
+        //         let now = get_block_timestamp();
+        //         // Update nostr account scoring by algo
+        //         let mut algo_nostr_account_scoring = self
+        //             .nostr_account_scoring_algo
+        //             .read(nostr_address);
     
-            //     if algo_nostr_account_scoring.nostr_address != 0.try_into().unwrap() {
-            //         // println!("algo_nostr_account_scoring.nostr_address != 0.try_into().unwrap()");
-            //         algo_nostr_account_scoring.nostr_address = nostr_address;
-            //         algo_nostr_account_scoring.starknet_address = sn_address_linked;
-            //         algo_nostr_account_scoring.ai_score = score_algo.ai_score;
-            //         algo_nostr_account_scoring.overview_score = score_algo.overview_score;
-            //         algo_nostr_account_scoring.skills_score = score_algo.skills_score;
-            //         algo_nostr_account_scoring.value_shared_score = score_algo.value_shared_score;
-            //         algo_nostr_account_scoring.ai_score_to_claimed = score_algo.ai_score_to_claimed;
-            //         algo_nostr_account_scoring
-            //             .overview_score_to_claimed = score_algo
-            //             .overview_score_to_claimed;
-            //         algo_nostr_account_scoring
-            //             .skills_score_to_claimed = score_algo
-            //             .skills_score_to_claimed;
-            //         algo_nostr_account_scoring
-            //             .value_shared_score_to_claimed = score_algo
-            //             .value_shared_score_to_claimed;
-            //         algo_nostr_account_scoring.total_score = score_algo.ai_score
-            //             + score_algo.overview_score
-            //             + score_algo.skills_score
-            //             + score_algo.value_shared_score;
-            //         self
-            //             .nostr_account_scoring_algo
-            //             .entry(nostr_address)
-            //             .write(algo_nostr_account_scoring);
+        //         if algo_nostr_account_scoring.nostr_address != 0.try_into().unwrap() {
+        //             // println!("algo_nostr_account_scoring.nostr_address != 0.try_into().unwrap()");
+        //             algo_nostr_account_scoring.nostr_address = nostr_address;
+        //             algo_nostr_account_scoring.starknet_address = sn_address_linked;
+        //             algo_nostr_account_scoring.ai_score = score_algo.ai_score;
+        //             algo_nostr_account_scoring.overview_score = score_algo.overview_score;
+        //             algo_nostr_account_scoring.skills_score = score_algo.skills_score;
+        //             algo_nostr_account_scoring.value_shared_score = score_algo.value_shared_score;
+        //             algo_nostr_account_scoring.ai_score_to_claimed = score_algo.ai_score_to_claimed;
+        //             algo_nostr_account_scoring
+        //                 .overview_score_to_claimed = score_algo
+        //                 .overview_score_to_claimed;
+        //             algo_nostr_account_scoring
+        //                 .skills_score_to_claimed = score_algo
+        //                 .skills_score_to_claimed;
+        //             algo_nostr_account_scoring
+        //                 .value_shared_score_to_claimed = score_algo
+        //                 .value_shared_score_to_claimed;
+        //             algo_nostr_account_scoring.total_score = score_algo.ai_score
+        //                 + score_algo.overview_score
+        //                 + score_algo.skills_score
+        //                 + score_algo.value_shared_score;
+        //             self
+        //                 .nostr_account_scoring_algo
+        //                 .entry(nostr_address)
+        //                 .write(algo_nostr_account_scoring);
               
-            //     } else {
-            //         // println!("algo_nostr_account_scoring.nostr_address == 0.try_into().unwrap()");
-            //         // println!("init algo_nostr_account_scoring: {}", nostr_address);
-            //         algo_nostr_account_scoring =
-            //             ProfileAlgorithmScoring {
-            //                 nostr_address: nostr_address.try_into().unwrap(),
-            //                 starknet_address: sn_address_linked,
-            //                 ai_score: score_algo.ai_score,
-            //                 overview_score: score_algo.overview_score,
-            //                 skills_score: score_algo.skills_score,
-            //                 value_shared_score: score_algo.value_shared_score,
-            //                 is_claimed: false,
-            //                 ai_score_to_claimed: score_algo.ai_score,
-            //                 overview_score_to_claimed: score_algo.overview_score,
-            //                 skills_score_to_claimed: score_algo.skills_score,
-            //                 value_shared_score_to_claimed: score_algo.value_shared_score,
-            //                 total_score: score_algo.ai_score
-            //                     + score_algo.overview_score
-            //                     + score_algo.skills_score
-            //                     + score_algo.value_shared_score,
-            //                 veracity_score: score_algo.veracity_score,
-            //             };
-            //         self
-            //             .nostr_account_scoring_algo
-            //             .entry(nostr_address)
-            //             .write(algo_nostr_account_scoring);
+        //         } else {
+        //             // println!("algo_nostr_account_scoring.nostr_address == 0.try_into().unwrap()");
+        //             // println!("init algo_nostr_account_scoring: {}", nostr_address);
+        //             algo_nostr_account_scoring =
+        //                 ProfileAlgorithmScoring {
+        //                     nostr_address: nostr_address.try_into().unwrap(),
+        //                     starknet_address: sn_address_linked,
+        //                     ai_score: score_algo.ai_score,
+        //                     overview_score: score_algo.overview_score,
+        //                     skills_score: score_algo.skills_score,
+        //                     value_shared_score: score_algo.value_shared_score,
+        //                     is_claimed: false,
+        //                     ai_score_to_claimed: score_algo.ai_score,
+        //                     overview_score_to_claimed: score_algo.overview_score,
+        //                     skills_score_to_claimed: score_algo.skills_score,
+        //                     value_shared_score_to_claimed: score_algo.value_shared_score,
+        //                     total_score: score_algo.ai_score
+        //                         + score_algo.overview_score
+        //                         + score_algo.skills_score
+        //                         + score_algo.value_shared_score,
+        //                     veracity_score: score_algo.veracity_score,
+        //                 };
+        //             self
+        //                 .nostr_account_scoring_algo
+        //                 .entry(nostr_address)
+        //                 .write(algo_nostr_account_scoring);
               
-            //     }
-            //     // Update the algo score
-            //     // Current
-            //     // By epoch indexer
-            //     self.nostr_account_scoring_algo.entry(nostr_address).write(algo_nostr_account_scoring);
+        //         }
+        //         // Update the algo score
+        //         // Current
+        //         // By epoch indexer
+        //         self.nostr_account_scoring_algo.entry(nostr_address).write(algo_nostr_account_scoring);
          
-            //     // Update total algo score stats
-            //     let total_algo_score_rewards = self.total_algo_score_rewards.read();
+        //         // Update total algo score stats
+        //         let total_algo_score_rewards = self.total_algo_score_rewards.read();
     
-            //     // TODO
-            //     // Check if decrease score to reflect
-            //     let mut new_total_algo_score_rewards = total_algo_score_rewards.clone();
-            //     new_total_algo_score_rewards.total_score_ai = total_algo_score_rewards.total_score_ai
-            //         + score_algo.ai_score;
-            //     new_total_algo_score_rewards
-            //         .total_score_overview = total_algo_score_rewards
-            //         .total_score_overview
-            //         + score_algo.overview_score;
-            //     new_total_algo_score_rewards
-            //         .total_score_skills = total_algo_score_rewards
-            //         .total_score_skills
-            //         + score_algo.skills_score;
-            //     new_total_algo_score_rewards
-            //         .total_score_value_shared = total_algo_score_rewards
-            //         .total_score_value_shared
-            //         + score_algo.value_shared_score;
-            //     // let old_total_algo_score_rewards = TotalAlgoScoreRewards {
-            //     //     epoch_duration: total_algo_score_rewards.epoch_duration,
-            //     //     end_epoch_time: total_algo_score_rewards.end_epoch_time,
-            //     //     total_score_ai: total_algo_score_rewards.total_score_ai + score_algo.ai_score,
-            //     //     total_score_overview: total_algo_score_rewards.total_score_overview
-            //     //         + score_algo.overview_score,
-            //     //     total_score_skills: total_algo_score_rewards.total_score_skills
-            //     //         + score_algo.skills_score,
-            //     //     total_score_value_shared: total_algo_score_rewards.total_score_value_shared
-            //     //         + score_algo.value_shared_score,
-            //     //     total_nostr_address: total_algo_score_rewards.total_nostr_address,
-            //     //     to_claimed_ai_score: total_algo_score_rewards.to_claimed_ai_score,
-            //     //     to_claimed_overview_score: total_algo_score_rewards.to_claimed_overview_score,
-            //     //     to_claimed_skills_score: total_algo_score_rewards.to_claimed_skills_score,
-            //     //     to_claimed_value_shared_score: total_algo_score_rewards
-            //     //         .to_claimed_value_shared_score,
-            //     //     rewards_amount: total_algo_score_rewards.rewards_amount,
-            //     //     total_points_weight: total_algo_score_rewards.total_points_weight,
-            //     //     is_claimed: total_algo_score_rewards.is_claimed,
-            //     //     veracity_score: total_algo_score_rewards.veracity_score,
-            //     //     start_epoch_time: total_algo_score_rewards.start_epoch_time,
-            //     // };
+        //         // TODO
+        //         // Check if decrease score to reflect
+        //         let mut new_total_algo_score_rewards = total_algo_score_rewards.clone();
+        //         new_total_algo_score_rewards.total_score_ai = total_algo_score_rewards.total_score_ai
+        //             + score_algo.ai_score;
+        //         new_total_algo_score_rewards
+        //             .total_score_overview = total_algo_score_rewards
+        //             .total_score_overview
+        //             + score_algo.overview_score;
+        //         new_total_algo_score_rewards
+        //             .total_score_skills = total_algo_score_rewards
+        //             .total_score_skills
+        //             + score_algo.skills_score;
+        //         new_total_algo_score_rewards
+        //             .total_score_value_shared = total_algo_score_rewards
+        //             .total_score_value_shared
+        //             + score_algo.value_shared_score;
+        //         // let old_total_algo_score_rewards = TotalAlgoScoreRewards {
+        //         //     epoch_duration: total_algo_score_rewards.epoch_duration,
+        //         //     end_epoch_time: total_algo_score_rewards.end_epoch_time,
+        //         //     total_score_ai: total_algo_score_rewards.total_score_ai + score_algo.ai_score,
+        //         //     total_score_overview: total_algo_score_rewards.total_score_overview
+        //         //         + score_algo.overview_score,
+        //         //     total_score_skills: total_algo_score_rewards.total_score_skills
+        //         //         + score_algo.skills_score,
+        //         //     total_score_value_shared: total_algo_score_rewards.total_score_value_shared
+        //         //         + score_algo.value_shared_score,
+        //         //     total_nostr_address: total_algo_score_rewards.total_nostr_address,
+        //         //     to_claimed_ai_score: total_algo_score_rewards.to_claimed_ai_score,
+        //         //     to_claimed_overview_score: total_algo_score_rewards.to_claimed_overview_score,
+        //         //     to_claimed_skills_score: total_algo_score_rewards.to_claimed_skills_score,
+        //         //     to_claimed_value_shared_score: total_algo_score_rewards
+        //         //         .to_claimed_value_shared_score,
+        //         //     rewards_amount: total_algo_score_rewards.rewards_amount,
+        //         //     total_points_weight: total_algo_score_rewards.total_points_weight,
+        //         //     is_claimed: total_algo_score_rewards.is_claimed,
+        //         //     veracity_score: total_algo_score_rewards.veracity_score,
+        //         //     start_epoch_time: total_algo_score_rewards.start_epoch_time,
+        //         // };
     
-            //     self.total_algo_score_rewards.write(new_total_algo_score_rewards);
+        //         self.total_algo_score_rewards.write(new_total_algo_score_rewards);
     
-            //     self
-            //         .emit(
-            //             PushAlgoScoreEvent {
-            //                 nostr_address,
-            //                 starknet_address: sn_address_linked,
-            //                 total_score_ai: total_algo_score_rewards.total_score_ai
-            //                     + score_algo.ai_score,
-            //                 total_score_overview: total_algo_score_rewards.total_score_overview
-            //                     + score_algo.overview_score,
-            //                 total_score_skills: total_algo_score_rewards.total_score_skills
-            //                     + score_algo.skills_score,
-            //                 total_score_value_shared: total_algo_score_rewards.total_score_value_shared
-            //                     + score_algo.value_shared_score,
-            //                 total_nostr_address: total_algo_score_rewards.total_nostr_address,
-            //                 rewards_amount: total_algo_score_rewards.rewards_amount,
-            //                 total_points_weight: total_algo_score_rewards.total_points_weight,
-            //                 is_claimed: total_algo_score_rewards.is_claimed,
-            //                 claimed_at: now,
-            //                 veracity_score: 0,
-            //             },
-            //         );
-            // }
+        //         self
+        //             .emit(
+        //                 PushAlgoScoreEvent {
+        //                     nostr_address,
+        //                     starknet_address: sn_address_linked,
+        //                     total_score_ai: total_algo_score_rewards.total_score_ai
+        //                         + score_algo.ai_score,
+        //                     total_score_overview: total_algo_score_rewards.total_score_overview
+        //                         + score_algo.overview_score,
+        //                     total_score_skills: total_algo_score_rewards.total_score_skills
+        //                         + score_algo.skills_score,
+        //                     total_score_value_shared: total_algo_score_rewards.total_score_value_shared
+        //                         + score_algo.value_shared_score,
+        //                     total_nostr_address: total_algo_score_rewards.total_nostr_address,
+        //                     rewards_amount: total_algo_score_rewards.rewards_amount,
+        //                     total_points_weight: total_algo_score_rewards.total_points_weight,
+        //                     is_claimed: total_algo_score_rewards.is_claimed,
+        //                     claimed_at: now,
+        //                     veracity_score: 0,
+        //                 },
+        //             );
+        //     }
         // Protocol request with OPERATOR_ROLE
     // Call by Deposit Escrow at this stage in claim or deposit functions
     // fn protocol_linked_nostr_default_account(

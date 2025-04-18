@@ -1,4 +1,5 @@
-use afk::components::nostr_namespace::LinkedStarknetAddress;
+use afk::interfaces::common_interfaces::{LinkedStarknetAddress, LinkedStarknetAddressImpl};
+
 // Add this ROLE on a constants file
 use afk::interfaces::nostrfi_scoring_interfaces::{
     INostrFiScoring, ProfileAlgorithmScoring, PushAlgoScoreNostrNote,
@@ -74,7 +75,9 @@ pub trait INostrNamespace<TContractState> {
 
 #[starknet::contract]
 pub mod Namespace {
-    use afk::components::nostr_namespace::LinkedStarknetAddress;
+    // use afk::components::nostr_namespace::LinkedStarknetAddress;
+    use afk::interfaces::common_interfaces::{LinkedStarknetAddress};
+
     use afk::interfaces::nostrfi_scoring_interfaces::{
         INostrFiScoring, ProfileAlgorithmScoring, PushAlgoScoreNostrNote,
         TotalAlgoScoreRewards, TotalScoreRewards,
@@ -563,9 +566,11 @@ mod tests {
     use afk::bip340::SchnorrSignature;
     use afk::components::nostr_namespace::NostrNamespaceComponent::Event as NostrNamespaceEvent;
     use afk::components::nostr_namespace::{
-        INostrNamespaceComponent, LinkedResult, LinkedStarknetAddress, LinkedWalletProfileDefault,
+        INostrNamespaceComponent, LinkedResult, LinkedWalletProfileDefault,
         NostrNamespaceComponent,
     };
+    use afk::interfaces::common_interfaces::{LinkedStarknetAddress, LinkedStarknetAddressImpl};
+
     use core::array::SpanTrait;
     use core::traits::Into;
     use snforge_std::{

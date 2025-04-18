@@ -1,16 +1,17 @@
 #[starknet::contract]
 pub mod NostrFiScoring {
     use afk::infofi::errors;
+    use afk::interfaces::common_interfaces::{LinkedStarknetAddress, LinkedStarknetAddressImpl};
     use afk::interfaces::nostrfi_scoring_interfaces::{
         ADMIN_ROLE, DepositRewardsType, DistributionRewardsByUserEvent, EpochRewards,
-        INostrFiScoring, LinkedStarknetAddress, LinkedStarknetAddressEncodeImpl,
+        INostrFiScoring,
         NostrAccountScoring, NostrAccountScoringDefault, NostrFiAdminStorage, NostrPublicKey,
         OPERATOR_ROLE, ProfileAlgorithmScoring, PushAlgoScoreEvent, PushAlgoScoreNostrNote,
         TipByUser, TipByUserDefault, TipUserWithVote, TotalAlgoScoreRewards,
         TotalAlgoScoreRewardsDefault, TotalDepositRewards, TotalDepositRewardsDefault,
         TotalScoreRewards, TotalScoreRewardsDefault, TotalVoteTipsRewardsDefault, VoteNostrNote,
         VoteParams, VoteProfile,
-        AdminAddNostrProfile
+        AdminAddNostrProfile, EpochRewardsDefault
     };
     use afk::social::namespace::{
         INostrNamespace, INostrNamespaceDispatcher, INostrNamespaceDispatcherTrait,
@@ -179,6 +180,7 @@ pub mod NostrFiScoring {
         deployer: ContractAddress,
         main_token_address: ContractAddress,
         admin_nostr_pubkey: NostrPublicKey,
+        namespace_address: ContractAddress,
     ) {
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
@@ -198,27 +200,35 @@ pub mod NostrFiScoring {
         self.is_admin_nostr_pubkey_added.entry(admin_nostr_pubkey).write(true);
         self.total_admin_nostr_pubkeys.write(1);
 
+        self.namespace_address.write(namespace_address);
+
         let end_epoch_time = now + EPOCH_DURATION_DEFAULT;
         self.end_epoch_time.write(end_epoch_time);
 
         self.percentage_algo_score_distribution.write(PERCENTAGE_ALGO_SCORE_DISTRIBUTION);
 
-        self
-            .epoch_rewards
-            .entry(0)
-            .write(
-                EpochRewards {
-                    index: 0,
-                    epoch_duration: EPOCH_DURATION_DEFAULT,
-                    start_epoch_time: now,
-                    end_epoch_time: end_epoch_time,
-                    is_finalized: false,
-                    is_claimed: false,
-                    total_score_ai: 0,
-                    total_score_tips: 0,
-                    total_score_algo: 0,
-                },
-            );
+        let mut epoch_rewards = EpochRewardsDefault::default();
+        epoch_rewards.index = 0;
+        epoch_rewards.epoch_duration = EPOCH_DURATION_DEFAULT;
+        epoch_rewards.start_epoch_time = now;
+        epoch_rewards.end_epoch_time = end_epoch_time;
+        self.epoch_rewards.entry(0).write(epoch_rewards);
+        // self
+        //     .epoch_rewards
+        //     .entry(0)
+        //     .write(
+        //         EpochRewards {
+        //             index: 0,
+        //             epoch_duration: EPOCH_DURATION_DEFAULT,
+        //             start_epoch_time: now,
+        //             end_epoch_time: end_epoch_time,
+        //             is_finalized: false,
+        //             is_claimed: false,
+        //             total_score_ai: 0,
+        //             total_score_tips: 0,
+        //             total_score_algo: 0,
+        //         },
+        //     );
 
         self
             .admin_params
@@ -409,8 +419,8 @@ pub mod NostrFiScoring {
             // TODO add namespace contract call
             // let nostr_to_sn = self.nostr_to_sn.read(vote_params.nostr_address);
             let namespace_address = self.namespace_address.read(); 
-            let namespace = INostrNamespaceDispatcher{contract_address: namespace_address}; 
-            let nostr_to_sn = namespace.get_nostr_by_sn_default(vote_params.nostr_address);
+            let namespace_dispatcher = INostrNamespaceDispatcher{contract_address: namespace_address}; 
+            let nostr_to_sn = namespace_dispatcher.get_nostr_by_sn_default(vote_params.nostr_address);
 
             let old_tip_by_user = self
                 .total_tip_by_user_per_epoch
@@ -426,7 +436,7 @@ pub mod NostrFiScoring {
             let mut is_amount_to_send = false;
 
             let erc20_token_address = self.main_token_address.read();
-            assert(erc20_token_address != 0.try_into().unwrap(), 'Main token address not set');
+            assert(erc20_token_address != 0.try_into().unwrap(), errors::MAIN_TOKEN_ADDRESS_NOT_SET);
 
             let erc20 = IERC20Dispatcher { contract_address: erc20_token_address };
             if nostr_to_sn == 0.try_into().unwrap() {
@@ -608,8 +618,8 @@ pub mod NostrFiScoring {
             // TODO add namespace contract call
             // let nostr_address = self.sn_to_nostr.read(starknet_user_address);
             let namespace_address = self.namespace_address.read(); 
-            let namespace = INostrNamespaceDispatcher{contract_address: namespace_address}; 
-            let nostr_address = namespace.get_sn_by_nostr_default(starknet_user_address);
+            let namespace_dispatcher = INostrNamespaceDispatcher{contract_address: namespace_address}; 
+            let nostr_address = namespace_dispatcher.get_sn_by_nostr_default(starknet_user_address);
             // println!("nostr_address: {:?}", nostr_address);
             assert(nostr_address != 0.try_into().unwrap(), errors::PROFILE_NOT_LINKED);
             // Verify the epoch params
@@ -870,6 +880,8 @@ pub mod NostrFiScoring {
             // let namespace = INostrNamespaceDispatcher{contract_address: namespace_address}; 
             // TODO add contract call for general linked nostr profile
             // namespace.linked_nostr_profile(request);
+            let namespace_dispatcher = INostrNamespaceDispatcher{contract_address: namespace_address}; 
+            namespace_dispatcher.linked_nostr_profile(request.clone());
             let profile_default = request.content.clone();
             let starknet_address: ContractAddress = profile_default.starknet_address;
 
@@ -1046,6 +1058,10 @@ pub mod NostrFiScoring {
             );
 
             // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
+// TODO add namespace contract call 
+            let namespace_address = self.namespace_address.read();
+            let namespace_dispatcher = INostrNamespaceDispatcher{contract_address: namespace_address}; 
+
             let profile_default = request.content.clone();
             let nostr_address: NostrPublicKey = profile_default.nostr_address.try_into().unwrap();
 
@@ -1161,31 +1177,11 @@ pub mod NostrFiScoring {
                 .total_score_value_shared = total_algo_score_rewards
                 .total_score_value_shared
                 + score_algo.value_shared_score;
-            // let old_total_algo_score_rewards = TotalAlgoScoreRewards {
-            //     epoch_duration: total_algo_score_rewards.epoch_duration,
-            //     end_epoch_time: total_algo_score_rewards.end_epoch_time,
-            //     total_score_ai: total_algo_score_rewards.total_score_ai + score_algo.ai_score,
-            //     total_score_overview: total_algo_score_rewards.total_score_overview
-            //         + score_algo.overview_score,
-            //     total_score_skills: total_algo_score_rewards.total_score_skills
-            //         + score_algo.skills_score,
-            //     total_score_value_shared: total_algo_score_rewards.total_score_value_shared
-            //         + score_algo.value_shared_score,
-            //     total_nostr_address: total_algo_score_rewards.total_nostr_address,
-            //     to_claimed_ai_score: total_algo_score_rewards.to_claimed_ai_score,
-            //     to_claimed_overview_score: total_algo_score_rewards.to_claimed_overview_score,
-            //     to_claimed_skills_score: total_algo_score_rewards.to_claimed_skills_score,
-            //     to_claimed_value_shared_score: total_algo_score_rewards
-            //         .to_claimed_value_shared_score,
-            //     rewards_amount: total_algo_score_rewards.rewards_amount,
-            //     total_points_weight: total_algo_score_rewards.total_points_weight,
-            //     is_claimed: total_algo_score_rewards.is_claimed,
-            //     veracity_score: total_algo_score_rewards.veracity_score,
-            //     start_epoch_time: total_algo_score_rewards.start_epoch_time,
-            // };
-
+       
             self.total_algo_score_rewards.write(new_total_algo_score_rewards);
 
+            // Push record also general namespace
+            // namespace_dispatcher.push_profile_score_algo(request.clone());
             self
                 .emit(
                     PushAlgoScoreEvent {

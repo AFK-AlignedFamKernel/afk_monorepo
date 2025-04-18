@@ -3,9 +3,10 @@ mod nostrfi_scoring_tests {
     use afk::bip340::SchnorrSignature;
     use afk::interfaces::nostrfi_scoring_interfaces::{
         DEFAULT_BATCH_INTERVAL_WEEK, DepositRewardsType, INostrFiScoring, INostrFiScoringDispatcher,
-        INostrFiScoringDispatcherTrait, LinkedResult, LinkedStarknetAddress, NostrPublicKey,
+        INostrFiScoringDispatcherTrait, LinkedResult, NostrPublicKey,
         ProfileAlgorithmScoring, PushAlgoScoreNostrNote, Vote, VoteNostrNote, VoteParams,
     };
+    use afk::interfaces::common_interfaces::{LinkedStarknetAddress};
     use afk::social::request::SocialRequest;
     use afk::tokens::erc20_intern::{IERC20Dispatcher, IERC20DispatcherTrait};
     // use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
@@ -28,6 +29,7 @@ mod nostrfi_scoring_tests {
         class: ContractClass,
         main_token_address: ContractAddress,
         admin_nostr_pubkey: NostrPublicKey,
+        namespace_address: ContractAddress,
     ) -> INostrFiScoringDispatcher {
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
         let mut calldata = array![];
@@ -35,6 +37,7 @@ mod nostrfi_scoring_tests {
         ADMIN_ADDRESS.serialize(ref calldata);
         main_token_address.serialize(ref calldata);
         admin_nostr_pubkey.serialize(ref calldata);
+        namespace_address.serialize(ref calldata);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
 
         INostrFiScoringDispatcher { contract_address }
@@ -119,7 +122,7 @@ mod nostrfi_scoring_tests {
 
         println!("deploying nostrfi scoring");
         let nostrfi_scoring = deploy_nostrfi_scoring(
-            nostrfi_scoring_class, erc20_dispatcher.contract_address, recipient_public_key,
+            nostrfi_scoring_class, erc20_dispatcher.contract_address, recipient_public_key, namespace_dispatcher.contract_address,
         );
 
         let recipient_address_user: ContractAddress = 678.try_into().unwrap();

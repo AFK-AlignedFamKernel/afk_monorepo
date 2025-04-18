@@ -21,3 +21,4 @@ pub const EPOCH_NOT_FINALIZED: felt252 = 'epoch not finalized';
 pub const EPOCH_ALREADY_FINALIZED: felt252 = 'epoch already finalized';
 pub const PROFILE_NOT_LINKED: felt252 = 'profile not linked';
 pub const USER_EPOCH_DISTRIBUTION_CLAIMED: felt252 = 'user epoch distribution claimed';
+pub const NAMESPACE_ADDRESS_NOT_SET: felt252 = 'namespace address not set';

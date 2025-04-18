@@ -8,7 +8,7 @@ pub const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 pub type NostrPublicKey = u256;
 pub type AddressId = felt252;
 pub const DEFAULT_BATCH_INTERVAL_WEEK: u64 = 60 * 60 * 24 * 7; // 1 week, can be adjusted.
-
+use afk::interfaces::common_interfaces::{LinkedStarknetAddress, LinkedStarknetAddressImpl};
 #[starknet::interface]
 pub trait INostrFiScoring<TContractState> {
     // Getters
@@ -137,10 +137,7 @@ pub enum DepositRewardsType {
 
 // Structs
 
-#[derive(Clone, Debug, Drop, Serde)]
-pub struct LinkedStarknetAddress {
-    pub starknet_address: ContractAddress,
-}
+
 
 #[derive(Clone, Debug, Drop, Serde)]
 pub struct PushAlgoScoreNostrNote {
@@ -354,19 +351,6 @@ impl LinkedWalletDefault of Default<LinkedWalletProfileDefault> {
     }
 }
 
-
-// TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
-pub impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
-    fn encode(self: @LinkedStarknetAddress) -> @ByteArray {
-        let recipient_address_user_felt: felt252 = self
-            .starknet_address
-            .clone()
-            .try_into()
-            .unwrap();
-
-        @format!("link to {:?}", recipient_address_user_felt)
-    }
-}
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct LinkedThisNostrNote {
@@ -867,11 +851,21 @@ pub impl NostrAccountParamsDefault of Default<NostrAccountParams> {
 //     }
 // }
 
-pub impl LinkedStarknetAddressImpl of ConvertToBytes<LinkedStarknetAddress> {
-    fn convert_to_bytes(self: @LinkedStarknetAddress) -> ByteArray {
-        let mut ba: ByteArray = "";
-        let starknet_address_felt: felt252 = (*self.starknet_address).into();
-        ba.append_word(starknet_address_felt, 1_u32);
-        ba
-    }
-}
+
+
+// #[derive(Clone, Debug, Drop, Serde)]
+// pub struct LinkedStarknetAddress {
+//     pub starknet_address: ContractAddress,
+// }
+// // TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
+// pub impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
+//     fn encode(self: @LinkedStarknetAddress) -> @ByteArray {
+//         let recipient_address_user_felt: felt252 = self
+//             .starknet_address
+//             .clone()
+//             .try_into()
+//             .unwrap();
+
+//         @format!("link to {:?}", recipient_address_user_felt)
+//     }
+// }
