@@ -9,8 +9,8 @@ pub mod NostrVaultEscrow {
         ProfileAlgorithmScoring, PushAlgoScoreEvent, PushAlgoScoreNostrNote, TipByUser,
         TipByUserDefault, TipUserWithVote, TotalAlgoScoreRewards, TotalAlgoScoreRewardsDefault,
         TotalDepositRewards, TotalDepositRewardsDefault, TotalScoreRewards,
-        TotalScoreRewardsDefault, TotalVoteTipsRewardsDefault, VoteNostrNote, VoteParams,
-        VoteProfile,
+        TotalScoreRewardsDefault, VoteNostrNote, VoteParams,
+        // VoteProfile,
     };
     use afk::social::namespace::{
         INostrNamespace, INostrNamespaceDispatcher, INostrNamespaceDispatcherTrait,
@@ -112,8 +112,8 @@ pub mod NostrVaultEscrow {
         nostr_account_scoring: Map<u256, NostrAccountScoring>,
         nostr_account_scoring_algo: Map<u256, ProfileAlgorithmScoring>,
         nostr_account_scoring_algo_per_epoch: Map<u256, Map<u64, ProfileAlgorithmScoring>>,
-        nostr_vote_profile: Map<u256, VoteProfile>,
-        nostr_vote_profile_per_epoch: Map<u256, Map<u64, VoteProfile>>,
+        // nostr_vote_profile: Map<u256, VoteProfile>,
+        // nostr_vote_profile_per_epoch: Map<u256, Map<u64, VoteProfile>>,
         total_score_rewards_per_epoch_index: Map<u64, TotalScoreRewards>,
         total_algo_score_rewards_per_epoch_index: Map<u64, TotalAlgoScoreRewards>,
         total_deposit_rewards_per_epoch_index: Map<u64, TotalDepositRewards>,

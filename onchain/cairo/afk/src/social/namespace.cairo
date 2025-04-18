@@ -354,7 +354,7 @@ pub mod Namespace {
         // Init nostr profile
         fn add_nostr_profile_admin(ref self: ContractState, nostr_event_id: u256) {
             // TODO assert if address is owner
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            // self.accesscontrol.assert_only_role(ADMIN_ROLE);
             let caller = get_caller_address();
 
             assert(
@@ -371,12 +371,12 @@ pub mod Namespace {
                 // token_launch_type: TokenLaunchType::Fairlaunch,
             };
             self.nostr_account_scoring.entry(nostr_event_id).write(nostr_account_scoring);
-            // self
-        //     .emit(
-        //         AdminAddNostrProfile {
-        //             nostr_address: nostr_event_id // starknet_address: 0.try_into().unwrap(),
-        //         },
-        //     );
+            self
+            .emit(
+                AdminAddNostrProfile {
+                    nostr_address: nostr_event_id // starknet_address: 0.try_into().unwrap(),
+                },
+            );
         }
 
         fn push_profile_score_algo(

@@ -25,7 +25,7 @@ pub trait INostrFiScoring<TContractState> {
     );
     // fn init_nostr_profile(ref self: TContractState, request:
     // SocialRequest<LinkedStarknetAddress>);
-    fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
+    // fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
     fn push_profile_score_algo(
         ref self: TContractState,
         request: SocialRequest<PushAlgoScoreNostrNote>,
@@ -37,7 +37,7 @@ pub trait INostrFiScoring<TContractState> {
         ref self: TContractState, admin_nostr_pubkey: NostrPublicKey, is_enable: bool,
     );
     fn set_admin_params(ref self: TContractState, admin_params: NostrFiAdminStorage);
-    fn create_dao(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
+    // fn create_dao(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
 
     // Users functions
     fn linked_nostr_profile(
@@ -105,29 +105,6 @@ pub trait INostrVaultEscrow<TContractState> {
     fn claim_and_distribute_my_rewards(ref self: TContractState, epoch_index: u64);
 }
 
-
-#[starknet::interface]
-pub trait INostrFiScoringAdmin<TContractState> {
-    // Admin
-    fn set_control_role(
-        ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
-    );
-    // fn init_nostr_profile(ref self: TContractState, request:
-    // SocialRequest<LinkedStarknetAddress>);
-    fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
-    fn push_profile_score_algo(
-        ref self: TContractState,
-        request: SocialRequest<PushAlgoScoreNostrNote>,
-        score_algo: ProfileAlgorithmScoring,
-    );
-
-    fn set_change_batch_interval(ref self: TContractState, next_epoch: u64);
-    fn set_admin_nostr_pubkey(
-        ref self: TContractState, admin_nostr_pubkey: NostrPublicKey, is_enable: bool,
-    );
-    fn set_admin_params(ref self: TContractState, admin_params: NostrFiAdminStorage);
-    fn create_dao(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
-}
 // Enums
 
 #[derive(Copy, Debug, Drop, Serde)]
@@ -188,7 +165,7 @@ pub impl PushAlgoScoreNostrNoteEncodeImpl of Encode<PushAlgoScoreNostrNote> {
         //     .clone()
         //     .try_into()
         //     .unwrap();
-        println!("try get nostr_address_felt");
+        // println!("try get nostr_address_felt");
         // let nostr_address_felt: felt252 = self.nostr_address.clone().try_into().unwrap();
 
         // println!("nostr_address_felt {:?}", nostr_address_felt);
@@ -701,18 +678,18 @@ pub struct TotalVoteTipsRewards {
 }
 
 
-pub impl TotalVoteTipsRewardsDefault of Default<TotalVoteTipsRewards> {
-    #[inline(always)]
-    fn default() -> TotalVoteTipsRewards {
-        TotalVoteTipsRewards {
-            epoch_duration: 0,
-            total_amount_deposit: 0,
-            rewards_amount: 0,
-            total_points_weight: 0,
-            is_claimed: false,
-        }
-    }
-}
+// pub impl TotalVoteTipsRewardsDefault of Default<TotalVoteTipsRewards> {
+//     #[inline(always)]
+//     fn default() -> TotalVoteTipsRewards {
+//         TotalVoteTipsRewards {
+//             epoch_duration: 0,
+//             total_amount_deposit: 0,
+//             rewards_amount: 0,
+//             total_points_weight: 0,
+//             is_claimed: false,
+//         }
+//     }
+// }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct EpochRewards {
@@ -742,13 +719,6 @@ pub impl EpochRewardsDefault of Default<EpochRewards> {
             total_score_algo: 0,
         }
     }
-}
-
-
-#[derive(Copy, Debug, Drop, starknet::Store, Serde)]
-pub struct NostrAccountBasic {
-    pub nostr_address: u256,
-    pub starknet_address: ContractAddress,
 }
 
 #[derive(Copy, Debug, Drop, starknet::Store, Serde)]
@@ -789,86 +759,86 @@ pub struct ProfileAlgorithmScoring {
     pub veracity_score: u256,
 }
 
-pub impl ProfileAlgorithmScoringDefault of Default<ProfileAlgorithmScoring> {
-    #[inline(always)]
-    fn default() -> ProfileAlgorithmScoring {
-        ProfileAlgorithmScoring {
-            nostr_address: 0.try_into().unwrap(),
-            starknet_address: 0.try_into().unwrap(),
-            ai_score: 0,
-            ai_score_to_claimed: 0,
-            overview_score: 0,
-            overview_score_to_claimed: 0,
-            skills_score: 0,
-            skills_score_to_claimed: 0,
-            value_shared_score: 0,
-            value_shared_score_to_claimed: 0,
-            is_claimed: false,
-            total_score: 0,
-            veracity_score: 0,
-        }
-    }
-}
+// pub impl ProfileAlgorithmScoringDefault of Default<ProfileAlgorithmScoring> {
+//     #[inline(always)]
+//     fn default() -> ProfileAlgorithmScoring {
+//         ProfileAlgorithmScoring {
+//             nostr_address: 0.try_into().unwrap(),
+//             starknet_address: 0.try_into().unwrap(),
+//             ai_score: 0,
+//             ai_score_to_claimed: 0,
+//             overview_score: 0,
+//             overview_score_to_claimed: 0,
+//             skills_score: 0,
+//             skills_score_to_claimed: 0,
+//             value_shared_score: 0,
+//             value_shared_score_to_claimed: 0,
+//             is_claimed: false,
+//             total_score: 0,
+//             veracity_score: 0,
+//         }
+//     }
+// }
 
-#[derive(Copy, Debug, Drop, starknet::Store, Serde)]
-pub struct VoteProfile {
-    pub nostr_address: u256,
-    pub starknet_address: ContractAddress,
-    pub good_score: u256,
-    pub bad_score: u256,
-    pub unique_address: u256,
-    pub vote: Vote,
-    pub ai_score: u256,
-    pub points: u256,
-    pub invested_points: u256,
-    pub staked_token_amount: u256,
-}
+// #[derive(Copy, Debug, Drop, starknet::Store, Serde)]
+// pub struct VoteProfile {
+//     pub nostr_address: u256,
+//     pub starknet_address: ContractAddress,
+//     pub good_score: u256,
+//     pub bad_score: u256,
+//     pub unique_address: u256,
+//     pub vote: Vote,
+//     pub ai_score: u256,
+//     pub points: u256,
+//     pub invested_points: u256,
+//     pub staked_token_amount: u256,
+// }
 
-pub impl VoteProfileDefault of Default<VoteProfile> {
-    #[inline(always)]
-    fn default() -> VoteProfile {
-        VoteProfile {
-            nostr_address: 0.try_into().unwrap(),
-            starknet_address: 0.try_into().unwrap(),
-            good_score: 0,
-            bad_score: 0,
-            unique_address: 0.try_into().unwrap(),
-            vote: Vote::Good,
-            ai_score: 0,
-            points: 0,
-            invested_points: 0,
-            staked_token_amount: 0,
-        }
-    }
-}
+// pub impl VoteProfileDefault of Default<VoteProfile> {
+//     #[inline(always)]
+//     fn default() -> VoteProfile {
+//         VoteProfile {
+//             nostr_address: 0.try_into().unwrap(),
+//             starknet_address: 0.try_into().unwrap(),
+//             good_score: 0,
+//             bad_score: 0,
+//             unique_address: 0.try_into().unwrap(),
+//             vote: Vote::Good,
+//             ai_score: 0,
+//             points: 0,
+//             invested_points: 0,
+//             staked_token_amount: 0,
+//         }
+//     }
+// }
 
-#[derive(Copy, Debug, Drop, starknet::Store, Serde)]
-pub struct NostrAccountParams {
-    pub starknet_address: ContractAddress,
-    pub token_address: ContractAddress,
-    pub vault_address: ContractAddress,
-    pub tip_address: ContractAddress,
-    pub dao_address: ContractAddress,
-    pub token_launch_type: TokenLaunchType,
-    pub is_create_staking_vault: bool,
-    pub is_create_dao: bool,
-}
+// #[derive(Copy, Debug, Drop, starknet::Store, Serde)]
+// pub struct NostrAccountParams {
+//     pub starknet_address: ContractAddress,
+//     pub token_address: ContractAddress,
+//     pub vault_address: ContractAddress,
+//     pub tip_address: ContractAddress,
+//     pub dao_address: ContractAddress,
+//     pub token_launch_type: TokenLaunchType,
+//     pub is_create_staking_vault: bool,
+//     pub is_create_dao: bool,
+// }
 
-pub impl NostrAccountParamsDefault of Default<NostrAccountParams> {
-    #[inline(always)]
-    fn default() -> NostrAccountParams {
-        NostrAccountParams {
-            starknet_address: 0.try_into().unwrap(),
-            token_address: 0.try_into().unwrap(),
-            vault_address: 0.try_into().unwrap(),
-            tip_address: 0.try_into().unwrap(),
-            dao_address: 0.try_into().unwrap(),
-            token_launch_type: TokenLaunchType::Later,
-            is_create_staking_vault: false,
-            is_create_dao: false,
-        }
-    }
-}
+// pub impl NostrAccountParamsDefault of Default<NostrAccountParams> {
+//     #[inline(always)]
+//     fn default() -> NostrAccountParams {
+//         NostrAccountParams {
+//             starknet_address: 0.try_into().unwrap(),
+//             token_address: 0.try_into().unwrap(),
+//             vault_address: 0.try_into().unwrap(),
+//             tip_address: 0.try_into().unwrap(),
+//             dao_address: 0.try_into().unwrap(),
+//             token_launch_type: TokenLaunchType::Later,
+//             is_create_staking_vault: false,
+//             is_create_dao: false,
+//         }
+//     }
+// }
 // TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
 // impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
 //     fn encode(self: @LinkedStarknetAddress) -> @ByteArray {

@@ -22,3 +22,5 @@ pub const EPOCH_ALREADY_FINALIZED: felt252 = 'epoch already finalized';
 pub const PROFILE_NOT_LINKED: felt252 = 'profile not linked';
 pub const USER_EPOCH_DISTRIBUTION_CLAIMED: felt252 = 'user epoch distribution claimed';
 pub const NAMESPACE_ADDRESS_NOT_SET: felt252 = 'namespace address not set';
+pub const ADMIN_ALREADY_ADDED: felt252 = 'admin already added';
+pub const ADMIN_ALREADY_DISABLED: felt252 = 'admin already disabled';

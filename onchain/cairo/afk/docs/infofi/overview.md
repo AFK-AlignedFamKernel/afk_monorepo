@@ -47,3 +47,20 @@ Optionnal:
 - Send rewards for this Topics/Narrative/Project/Interest
 - Distribute rewards from score Algorithm and Users tips
 
+# Architecture
+
+Namespace contract:
+- Link Starknet address to Nostr
+- Admin add nostr address
+
+Sub NostrScoring
+
+- Epoch state
+- Tips Vote score per nostr profile
+- Algo score per user  
+- Deposit rewards
+- Distribute rewards
+
+Factory Sub
+
+Create sub
