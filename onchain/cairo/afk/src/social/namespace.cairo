@@ -125,6 +125,7 @@ pub mod Namespace {
     #[storage]
     struct Storage {
         // Profile link between nostr and starknet
+
         admin_nostr_pubkey: NostrPublicKey,
         total_admin_nostr_pubkeys: u64,
         all_admin_nostr_pubkeys: Map<u64, NostrPublicKey>,
@@ -143,6 +144,10 @@ pub mod Namespace {
         // total stats
         total_score_rewards: TotalScoreRewards,
         total_algo_score_rewards: TotalAlgoScoreRewards,
+        // External state management by ACCESS CONTROL
+
+        is_scoring_enabled: bool,
+        is_scoring_address_enabled: Map<ContractAddress, bool>,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]

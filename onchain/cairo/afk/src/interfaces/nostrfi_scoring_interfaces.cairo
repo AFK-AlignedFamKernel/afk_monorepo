@@ -72,6 +72,39 @@ pub trait INostrFiScoring<TContractState> {
     fn get_token_to_pay_subscription(self: @TContractState) -> ContractAddress;
 }
 
+#[starknet::interface]
+pub trait INostrVaultEscrow<TContractState> {
+    // Getters
+    fn get_nostr_by_sn_default(
+        self: @TContractState, nostr_public_key: NostrPublicKey,
+    ) -> ContractAddress;
+
+    fn get_sn_by_nostr_default(
+        self: @TContractState, starknet_address: ContractAddress,
+    ) -> NostrPublicKey;
+    // Admin
+    fn set_control_role(
+        ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
+    );
+
+    fn set_admin_nostr_pubkey(
+        ref self: TContractState, admin_nostr_pubkey: NostrPublicKey, is_enable: bool,
+    );
+
+    // Deposit, Voting and tips
+    fn deposit_rewards(
+        ref self: TContractState, amount: u256, deposit_rewards_type: DepositRewardsType,
+    );
+    fn vote_token_profile(ref self: TContractState, request: SocialRequest<VoteNostrNote>);
+    fn vote_nostr_profile_starknet_only(ref self: TContractState, vote_params: VoteParams);
+
+    // Distribution of rewards
+    fn distribute_rewards_by_user(
+        ref self: TContractState, starknet_user_address: ContractAddress, epoch_index: u64,
+    );
+    fn claim_and_distribute_my_rewards(ref self: TContractState, epoch_index: u64);
+}
+
 
 #[starknet::interface]
 pub trait INostrFiScoringAdmin<TContractState> {
@@ -865,4 +898,5 @@ pub impl NostrAccountParamsDefault of Default<NostrAccountParams> {
 //         @format!("link to {:?}", recipient_address_user_felt)
 //     }
 // }
+
 
