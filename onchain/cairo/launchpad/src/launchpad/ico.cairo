@@ -39,7 +39,7 @@ pub mod ICO {
     pub enum Event {
         TokenCreated: TokenCreated,
         TokenBought: TokenBought,
-        PresaleLauched: PresaleLaunched,
+        PresaleLaunched: PresaleLaunched,
         TokenClaimed: TokenClaimed,
         #[flat]
         UpgradeableEvent: UpgradeableComponent::Event,
@@ -443,6 +443,7 @@ pub mod ICO {
         let min_supply = 20 * details.presale_rate * details.hard_cap / 100;
         let max_supply = 80 * details.presale_rate * details.hard_cap / 100;
 
+        assert(current_supply > max_supply, 'MAX SUPPLY < CURRENT SUPPLY');
         (current_supply - max_supply, min_supply)
     }
 
