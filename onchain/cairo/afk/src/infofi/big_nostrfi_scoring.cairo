@@ -2,15 +2,14 @@
 pub mod NostrFiScoring {
     use afk::infofi::errors;
     use afk::interfaces::nostrfi_scoring_interfaces::{
-        ADMIN_ROLE, DepositRewardsType, DistributionRewardsByUserEvent, EpochRewards,
-        INostrFiScoring, LinkedStarknetAddress, LinkedStarknetAddressEncodeImpl,
+        ADMIN_ROLE, AdminAddNostrProfile, DepositRewardsType, DistributionRewardsByUserEvent,
+        EpochRewards, INostrFiScoring, LinkedStarknetAddress, LinkedStarknetAddressEncodeImpl,
         NostrAccountScoring, NostrAccountScoringDefault, NostrFiAdminStorage, NostrPublicKey,
         OPERATOR_ROLE, ProfileAlgorithmScoring, PushAlgoScoreEvent, PushAlgoScoreNostrNote,
         TipByUser, TipByUserDefault, TipUserWithVote, TotalAlgoScoreRewards,
         TotalAlgoScoreRewardsDefault, TotalDepositRewards, TotalDepositRewardsDefault,
         TotalScoreRewards, TotalScoreRewardsDefault, TotalVoteTipsRewardsDefault, VoteNostrNote,
         VoteParams, VoteProfile,
-        AdminAddNostrProfile
     };
     use afk::social::namespace::{
         INostrNamespace, INostrNamespaceDispatcher, INostrNamespaceDispatcherTrait,
@@ -146,7 +145,6 @@ pub mod NostrFiScoring {
         #[key]
         starknet_address: ContractAddress,
     }
-
 
 
     #[derive(Drop, starknet::Event)]
@@ -408,8 +406,8 @@ pub mod NostrFiScoring {
 
             // TODO add namespace contract call
             // let nostr_to_sn = self.nostr_to_sn.read(vote_params.nostr_address);
-            let namespace_address = self.namespace_address.read(); 
-            let namespace = INostrNamespaceDispatcher{contract_address: namespace_address}; 
+            let namespace_address = self.namespace_address.read();
+            let namespace = INostrNamespaceDispatcher { contract_address: namespace_address };
             let nostr_to_sn = namespace.get_nostr_by_sn_default(vote_params.nostr_address);
 
             let old_tip_by_user = self
@@ -607,8 +605,8 @@ pub mod NostrFiScoring {
             // println!("starknet_user_address: {:?}", starknet_user_address);
             // TODO add namespace contract call
             // let nostr_address = self.sn_to_nostr.read(starknet_user_address);
-            let namespace_address = self.namespace_address.read(); 
-            let namespace = INostrNamespaceDispatcher{contract_address: namespace_address}; 
+            let namespace_address = self.namespace_address.read();
+            let namespace = INostrNamespaceDispatcher { contract_address: namespace_address };
             let nostr_address = namespace.get_sn_by_nostr_default(starknet_user_address);
             // println!("nostr_address: {:?}", nostr_address);
             assert(nostr_address != 0.try_into().unwrap(), errors::PROFILE_NOT_LINKED);
@@ -866,8 +864,8 @@ pub mod NostrFiScoring {
         ) {
             // self.nostr_nostrfi_scoring.linked_nostr_profile(request);
 
-            let namespace_address = self.namespace_address.read(); 
-            // let namespace = INostrNamespaceDispatcher{contract_address: namespace_address}; 
+            let namespace_address = self.namespace_address.read();
+            // let namespace = INostrNamespaceDispatcher{contract_address: namespace_address};
             // TODO add contract call for general linked nostr profile
             // namespace.linked_nostr_profile(request);
             let profile_default = request.content.clone();
@@ -1049,12 +1047,11 @@ pub mod NostrFiScoring {
             let profile_default = request.content.clone();
             let nostr_address: NostrPublicKey = profile_default.nostr_address.try_into().unwrap();
 
+            let namespace_address = self.namespace_address.read();
+            let namespace = INostrNamespaceDispatcher { contract_address: namespace_address };
 
-           let namespace_address = self.namespace_address.read();
-           let namespace = INostrNamespaceDispatcher{contract_address: namespace_address};
-           
-           // TODO add namespace contract call
-           let sn_address_linked = namespace.get_nostr_by_sn_default(nostr_address);
+            // TODO add namespace contract call
+            let sn_address_linked = namespace.get_nostr_by_sn_default(nostr_address);
             // let sn_address_linked = self.nostr_to_sn.read(nostr_address);
 
             // println!("verify signature");

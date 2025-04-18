@@ -1,12 +1,13 @@
 #[cfg(test)]
 mod nostrfi_scoring_tests {
     use afk::bip340::SchnorrSignature;
+    use afk::interfaces::common_interfaces::LinkedStarknetAddress;
     use afk::interfaces::nostrfi_scoring_interfaces::{
         DEFAULT_BATCH_INTERVAL_WEEK, DepositRewardsType, INostrFiScoring, INostrFiScoringDispatcher,
-        INostrFiScoringDispatcherTrait, LinkedResult, NostrPublicKey,
-        ProfileAlgorithmScoring, PushAlgoScoreNostrNote, Vote, VoteNostrNote, VoteParams,
+        INostrFiScoringDispatcherTrait, LinkedResult, NostrPublicKey, ProfileAlgorithmScoring,
+        PushAlgoScoreNostrNote, Vote, VoteNostrNote, VoteParams,
     };
-    use afk::interfaces::common_interfaces::{LinkedStarknetAddress};
+    use afk::social::namespace::{INostrNamespaceDispatcher, INostrNamespaceDispatcherTrait};
     use afk::social::request::SocialRequest;
     use afk::tokens::erc20_intern::{IERC20Dispatcher, IERC20DispatcherTrait};
     // use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
@@ -18,8 +19,6 @@ mod nostrfi_scoring_tests {
         stop_cheat_caller_address, stop_cheat_caller_address_global,
     };
     use starknet::ContractAddress;
-
-    use afk::social::namespace::{INostrNamespaceDispatcher, INostrNamespaceDispatcherTrait};
     fn declare_nostrfi_scoring() -> ContractClass {
         // declare("nostrfi_scoring").unwrap().contract_class()
         *declare("NostrFiScoring").unwrap().contract_class()
@@ -50,7 +49,8 @@ mod nostrfi_scoring_tests {
 
     fn deploy_namespace(class: ContractClass) -> INostrNamespaceDispatcher {
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
-        let admin_nostr_pubkey = 0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
+        let admin_nostr_pubkey =
+            0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
         let mut calldata = array![];
         ADMIN_ADDRESS.serialize(ref calldata);
         admin_nostr_pubkey.serialize(ref calldata);
@@ -122,7 +122,10 @@ mod nostrfi_scoring_tests {
 
         println!("deploying nostrfi scoring");
         let nostrfi_scoring = deploy_nostrfi_scoring(
-            nostrfi_scoring_class, erc20_dispatcher.contract_address, recipient_public_key, namespace_dispatcher.contract_address,
+            nostrfi_scoring_class,
+            erc20_dispatcher.contract_address,
+            recipient_public_key,
+            namespace_dispatcher.contract_address,
         );
 
         let recipient_address_user: ContractAddress = 678.try_into().unwrap();

@@ -58,7 +58,8 @@ pub trait INostrNamespace<TContractState> {
     fn set_control_role(
         ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
     );
-    // fn init_nostr_profile(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
+    // fn init_nostr_profile(ref self: TContractState, request:
+    // SocialRequest<LinkedStarknetAddress>);
     fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
     fn push_profile_score_algo(
         ref self: TContractState,
@@ -76,13 +77,11 @@ pub trait INostrNamespace<TContractState> {
 #[starknet::contract]
 pub mod Namespace {
     // use afk::components::nostr_namespace::LinkedStarknetAddress;
-    use afk::interfaces::common_interfaces::{LinkedStarknetAddress};
+    use afk::interfaces::common_interfaces::LinkedStarknetAddress;
 
     use afk::interfaces::nostrfi_scoring_interfaces::{
-        INostrFiScoring, ProfileAlgorithmScoring, PushAlgoScoreNostrNote,
-        TotalAlgoScoreRewards, TotalScoreRewards,
-        PushAlgoScoreEvent,
-        AdminAddNostrProfile,
+        AdminAddNostrProfile, INostrFiScoring, ProfileAlgorithmScoring, PushAlgoScoreEvent,
+        PushAlgoScoreNostrNote, TotalAlgoScoreRewards, TotalScoreRewards,
         // LinkedStarknetAddress,
     };
     use afk::social::errors;
@@ -99,7 +98,7 @@ pub mod Namespace {
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess, Vec, VecTrait,
         StorageMapReadAccess, StorageMapWriteAccess // Stor
     };
-    use starknet::{ContractAddress, get_caller_address, get_block_timestamp, get_contract_address};
+    use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
     use super::super::request::{Encode, SocialRequest, SocialRequestImpl, SocialRequestTrait};
     use super::{ADMIN_ROLE, INostrNamespace, NostrAccountScoring, NostrPublicKey, OPERATOR_ROLE};
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
@@ -141,12 +140,9 @@ pub mod Namespace {
         events_by_user: Map<ContractAddress, Vec<u256>>,
         events_by_nostr_user: Map<u256, Vec<u256>>,
         nostr_account_scoring_algo: Map<u256, ProfileAlgorithmScoring>,
-
         // total stats
         total_score_rewards: TotalScoreRewards,
         total_algo_score_rewards: TotalAlgoScoreRewards,
-
-  
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -179,7 +175,6 @@ pub mod Namespace {
         LinkedDefaultStarknetAddressEvent: LinkedDefaultStarknetAddressEvent,
         AddStarknetAddressEvent: AddStarknetAddressEvent,
         PushAlgoScoreEvent: PushAlgoScoreEvent,
-
         AdminAddNostrProfile: AdminAddNostrProfile,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
@@ -339,7 +334,8 @@ pub mod Namespace {
         //         self
         //         .emit(
         //             AdminAddNostrProfile {
-        //                 nostr_address: request.public_key, // starknet_address: 0.try_into().unwrap(),
+        //                 nostr_address: request.public_key, // starknet_address:
+        //                 0.try_into().unwrap(),
         //             },
         //         );
         //     self
@@ -371,11 +367,11 @@ pub mod Namespace {
             };
             self.nostr_account_scoring.entry(nostr_event_id).write(nostr_account_scoring);
             // self
-            //     .emit(
-            //         AdminAddNostrProfile {
-            //             nostr_address: nostr_event_id // starknet_address: 0.try_into().unwrap(),
-            //         },
-            //     );
+        //     .emit(
+        //         AdminAddNostrProfile {
+        //             nostr_address: nostr_event_id // starknet_address: 0.try_into().unwrap(),
+        //         },
+        //     );
         }
 
         fn push_profile_score_algo(
@@ -440,7 +436,6 @@ pub mod Namespace {
                     .nostr_account_scoring_algo
                     .entry(nostr_address)
                     .write(algo_nostr_account_scoring);
-          
             } else {
                 // println!("algo_nostr_account_scoring.nostr_address == 0.try_into().unwrap()");
                 // println!("init algo_nostr_account_scoring: {}", nostr_address);
@@ -467,13 +462,12 @@ pub mod Namespace {
                     .nostr_account_scoring_algo
                     .entry(nostr_address)
                     .write(algo_nostr_account_scoring);
-          
             }
             // Update the algo score
             // Current
             // By epoch indexer
             self.nostr_account_scoring_algo.entry(nostr_address).write(algo_nostr_account_scoring);
-     
+
             // Update total algo score stats
             let total_algo_score_rewards = self.total_algo_score_rewards.read();
 
@@ -566,11 +560,9 @@ mod tests {
     use afk::bip340::SchnorrSignature;
     use afk::components::nostr_namespace::NostrNamespaceComponent::Event as NostrNamespaceEvent;
     use afk::components::nostr_namespace::{
-        INostrNamespaceComponent, LinkedResult, LinkedWalletProfileDefault,
-        NostrNamespaceComponent,
+        INostrNamespaceComponent, LinkedResult, LinkedWalletProfileDefault, NostrNamespaceComponent,
     };
     use afk::interfaces::common_interfaces::{LinkedStarknetAddress, LinkedStarknetAddressImpl};
-
     use core::array::SpanTrait;
     use core::traits::Into;
     use snforge_std::{
@@ -596,7 +588,8 @@ mod tests {
 
     fn deploy_namespace(class: ContractClass) -> INostrNamespaceDispatcher {
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
-        let admin_nostr_pubkey = 0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
+        let admin_nostr_pubkey =
+            0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
         let mut calldata = array![];
         ADMIN_ADDRESS.serialize(ref calldata);
         admin_nostr_pubkey.serialize(ref calldata);

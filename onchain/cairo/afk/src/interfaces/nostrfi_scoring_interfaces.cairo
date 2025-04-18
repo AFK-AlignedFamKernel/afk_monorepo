@@ -23,7 +23,8 @@ pub trait INostrFiScoring<TContractState> {
     fn set_control_role(
         ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
     );
-    // fn init_nostr_profile(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
+    // fn init_nostr_profile(ref self: TContractState, request:
+    // SocialRequest<LinkedStarknetAddress>);
     fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
     fn push_profile_score_algo(
         ref self: TContractState,
@@ -78,7 +79,8 @@ pub trait INostrFiScoringAdmin<TContractState> {
     fn set_control_role(
         ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
     );
-    // fn init_nostr_profile(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
+    // fn init_nostr_profile(ref self: TContractState, request:
+    // SocialRequest<LinkedStarknetAddress>);
     fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
     fn push_profile_score_algo(
         ref self: TContractState,
@@ -136,8 +138,6 @@ pub enum DepositRewardsType {
 
 
 // Structs
-
-
 
 #[derive(Clone, Debug, Drop, Serde)]
 pub struct PushAlgoScoreNostrNote {
@@ -836,8 +836,6 @@ pub impl NostrAccountParamsDefault of Default<NostrAccountParams> {
         }
     }
 }
-
-
 // TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
 // impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
 //     fn encode(self: @LinkedStarknetAddress) -> @ByteArray {
@@ -851,14 +849,12 @@ pub impl NostrAccountParamsDefault of Default<NostrAccountParams> {
 //     }
 // }
 
-
-
 // #[derive(Clone, Debug, Drop, Serde)]
 // pub struct LinkedStarknetAddress {
 //     pub starknet_address: ContractAddress,
 // }
-// // TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
-// pub impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
+// // TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr
+// content pub impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
 //     fn encode(self: @LinkedStarknetAddress) -> @ByteArray {
 //         let recipient_address_user_felt: felt252 = self
 //             .starknet_address
@@ -869,3 +865,4 @@ pub impl NostrAccountParamsDefault of Default<NostrAccountParams> {
 //         @format!("link to {:?}", recipient_address_user_felt)
 //     }
 // }
+
