@@ -5,7 +5,7 @@ pub mod NostrFiScoring {
         ADMIN_ROLE, DepositRewardsType, DistributionRewardsByUserEvent, EpochRewards,
         INostrFiScoring, LinkedStarknetAddress, LinkedStarknetAddressEncodeImpl,
         NostrAccountScoring, NostrAccountScoringDefault, NostrFiAdminStorage, NostrPublicKey,
-        OPERATOR_ROLE, ProfileAlgorithmScoring, ProfileVoteScoring, ProfileVoteScoringDefault,
+        OPERATOR_ROLE, ProfileAlgorithmScoring,
         PushAlgoScoreEvent, PushAlgoScoreNostrNote, TipByUser, TipByUserDefault, TipUserWithVote,
         TokenLaunchType, TotalAlgoScoreRewards, TotalAlgoScoreRewardsDefault, TotalDepositRewards,
         TotalDepositRewardsDefault, TotalScoreRewards, TotalScoreRewardsDefault,

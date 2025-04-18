@@ -12,7 +12,7 @@ use starknet::storage::{
 // Add this ROLE on a constants file
 pub const OPERATOR_ROLE: felt252 = selector!("OPERATOR_ROLE");
 pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
-
+pub const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 pub type NostrPublicKey = u256;
 pub type AddressId = felt252;
 pub const DEFAULT_BATCH_INTERVAL_WEEK: u64 = 60 * 60 * 24 * 7; // 1 week, can be adjusted.
@@ -410,9 +410,41 @@ pub struct NostrMetadataTopics {
     pub lud06: ByteArray,
     pub lud16: ByteArray,
     pub main_tag: ByteArray,
+    pub main_keyword:ByteArray,
     // pub topics: Vec<ByteArray>,
 }
 
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]
+pub struct NostrMetadataEvent {
+    #[key]
+    pub starknet_address: ContractAddress,
+    #[key]
+    pub nostr_address: NostrPublicKey,
+    pub name: ByteArray,
+    pub main_topic:ByteArray,
+}
+
+
+#[starknet::storage_node]
+pub struct TopicsMetadata {
+    pub topics_per_order: Map<u64, ByteArray>, // Map Voter => (UserVote, power)
+    pub main_topic:ByteArray,
+    pub topics_list:Vec<ByteArray>,
+    pub keywords:Vec<ByteArray>,
+}
+
+// #[derive(  starknet::Event, Serde)]
+// pub struct TopicsMetadataEvent {
+//     #[key]
+//     pub starknet_address: ContractAddress,
+//     #[key]
+//     pub nostr_address: NostrPublicKey,
+//     pub topics_per_order: Map<u64, ByteArray>, // Map Voter => (UserVote, power)
+//     pub main_topic:ByteArray,
+//     pub topics_list:Vec<ByteArray>,
+//     pub keywords:Vec<ByteArray>,
+// }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct NostrFiAdminStorage {
@@ -471,7 +503,6 @@ pub impl TotalTipByUserVoteDefault of Default<TotalTipByUserVote> {
     }
 }
 
-
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct TipByUser {
     pub nostr_address: u256,
@@ -518,7 +549,6 @@ pub struct OverviewTotalContractState {
     pub total_amount_to_claim: u256,
     pub total_amount_claimed: u256,
 }
-
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct TotalDepositRewards {
@@ -709,31 +739,6 @@ pub impl NostrAccountScoringDefault of Default<NostrAccountScoring> {
             starknet_address: 0.try_into().unwrap(),
             ai_score: 0,
             // token_launch_type: TokenLaunchType::Later,
-        }
-    }
-}
-
-
-#[derive(Copy, Debug, Drop, starknet::Store, Serde)]
-pub struct ProfileVoteScoring {
-    pub nostr_address: u256,
-    pub starknet_address: ContractAddress,
-    pub upvote_amount: u256,
-    pub downvote_amount: u256,
-    pub rewards_amount: u256,
-    pub unique_address: u256,
-}
-
-pub impl ProfileVoteScoringDefault of Default<ProfileVoteScoring> {
-    #[inline(always)]
-    fn default() -> ProfileVoteScoring {
-        ProfileVoteScoring {
-            nostr_address: 0.try_into().unwrap(),
-            starknet_address: 0.try_into().unwrap(),
-            upvote_amount: 0,
-            downvote_amount: 0,
-            rewards_amount: 0,
-            unique_address: 0.try_into().unwrap(),
         }
     }
 }
