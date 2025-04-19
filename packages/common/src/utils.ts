@@ -1,8 +1,13 @@
 import { cairo, Uint256, uint256, shortString} from "starknet";
 
 export const feltToAddress = (felt: bigint) => {
-  const newStrB = Buffer.from(felt.toString(16), "ascii");
-  return `0x${newStrB.toString()}`;
+  try {
+    const newStrB = Buffer.from(felt.toString(16), "ascii");
+    return `0x${newStrB.toString()}`;
+  } catch (error) {
+    console.error("Error converting felt to address", error);
+    return felt.toString();
+  }
 };
 
 export const formatFloatToUint256 = (

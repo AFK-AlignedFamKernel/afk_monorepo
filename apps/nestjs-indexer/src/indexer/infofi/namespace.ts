@@ -6,6 +6,7 @@ import { hash, uint256, validateAndParseAddress } from 'starknet';
 import { IndexerService } from '../indexer.service';
 import { ContractAddress } from 'src/common/types';
 import { NamespaceService } from 'src/services/nostr-infofi/namespace.service';
+import { uint256ToHex } from '../utils';
 @Injectable()
 export class NamespaceIndexer {
   private readonly logger = new Logger(NamespaceIndexer.name);
@@ -53,7 +54,7 @@ export class NamespaceIndexer {
     }
   }
 
-    // TODO
+  // TODO
   // finish handle claim event
   private async handleAdminAddNostrProfileEvent(
     header: starknet.IBlockHeader,
@@ -85,6 +86,20 @@ export class NamespaceIndexer {
       high: FieldElement.toBigInt(nostrPubkeyHigh),
     });
 
+
+    let nostrAddress = uint256ToHex(nostrPubkeyLow, nostrPubkeyHigh);
+
+
+    console.log("nostrAddress", nostrAddress);
+    if (nostrAddress.startsWith('0x')) {
+      nostrAddress = nostrAddress.slice(2, nostrAddress.length);
+    }
+    // if(nostrAddress?.length > 64){
+    //   nostrAddress = nostrAddress.startsWith('0x') ? nostrAddress.slice(2, 64) : nostrAddress.slice(0, 64);
+    // }
+    const nostrRecipient = uint256ToHex(nostrPubkeyLow, nostrPubkeyHigh);
+
+    console.log("nostrAddress", nostrAddress);
     const data = {
       transferId,
       network: 'starknet-sepolia',
@@ -92,7 +107,10 @@ export class NamespaceIndexer {
       blockNumber: Number(blockNumber),
       blockHash,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
-      nostr_address: nostrPubkeyRaw.toString(),
+      // nostr_address: nostrPubkeyRaw.toString(),
+      // nostr_address_hex: nostrAddress,
+      nostr_address: nostrAddress,
+      nostr_id: nostrRecipient,
       starknet_address: "0",
       contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
     };
@@ -133,12 +151,15 @@ export class NamespaceIndexer {
       high: FieldElement.toBigInt(nostrPubkeyHigh),
     });
 
+    console.log("nostrPubkeyRaw", nostrPubkeyRaw);
     const starknetAddress = validateAndParseAddress(
       `0x${FieldElement.toBigInt(starknetAddressFelt).toString(16)}`,
     ) as ContractAddress;
 
+    let nostrAddress = formatUnits(nostrPubkeyRaw, constants.DECIMALS);
+    console.log("nostrAddress", nostrAddress);
 
-
+    nostrAddress = String(Math.abs(Number(nostrAddress)));
     const data = {
       transferId,
       network: 'starknet-sepolia',
@@ -147,6 +168,7 @@ export class NamespaceIndexer {
       blockHash,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
       nostr_address: nostrPubkeyRaw.toString(),
+      // nostr_address: nostrAddress,
       starknet_address: starknetAddress,
       contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
     };
@@ -154,7 +176,7 @@ export class NamespaceIndexer {
     await this.nostrInfofiService.createOrUpdateLinkedDefaultStarknetAddress(data);
   }
 
-    // TODO
+  // TODO
   // finish handle claim event
   private async handleTipUserWithVoteEvent(
     header: starknet.IBlockHeader,

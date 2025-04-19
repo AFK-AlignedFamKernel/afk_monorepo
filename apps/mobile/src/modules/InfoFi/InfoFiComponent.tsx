@@ -20,8 +20,10 @@ import { AddPostIcon } from 'src/assets/icons';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from 'src/types';
 import { useNamespace } from '../../hooks/infofi/useNamespace';
-import { NAMESPACE_ADDRESS, NOSTR_FI_SCORING_ADDRESS } from 'common';
+import { feltToAddress, NAMESPACE_ADDRESS, NOSTR_FI_SCORING_ADDRESS } from 'common';
 import { constants } from 'starknet';
+import { useDataInfoMain } from 'src/hooks/infofi/useDataInfoMain';
+import { UserCard } from './UserCard';
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
 }
@@ -29,123 +31,26 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
   isButtonInstantiateEnable,
 }) => {
   const styles = useStyles(stylesheet);
-  const {account} = useAccount();
-  const { launches: launchesData, isLoading, isFetching, tokens: tokensData, setTokens: setTokensData, setLaunches: setLaunchesData } = useCombinedTokenData();
+  const { account } = useAccount();
+  const { launches: launchesData, isLoading, isFetching, tokens: tokensData, setTokens: setTokensData, setLaunches: setLaunchesData } = useDataInfoMain();
   const { width } = useWindowDimensions();
   const walletModal = useWalletModal();
   const isDesktop = width >= 1024 ? true : false;
-  const { tokens: tokensStore, setTokens, setLaunches, launches: launchesStore } = useLaunchpadStore();
   const [showFilters, setShowFilters] = useState(true);
   const [sortBy, setSortBy] = useState<'recent' | 'oldest' | 'liquidity' | 'graduated'>('recent');
   const [tokenOrLaunch, setTokenOrLaunch] = useState<
     'TOKEN' | 'LAUNCH' | 'MY_DASHBOARD' | 'MY_LAUNCH_TOKEN'
   >('LAUNCH');
 
-  const {theme} = useTheme();
+  const { theme } = useTheme();
   const navigation = useNavigation<MainStackNavigationProps>();
   const [sortedTokens, setSortedTokens] = useState<TokenDeployInterface[]>([]);
   const [sortedLaunches, setSortedLaunches] = useState<TokenLaunchInterface[]>([]);
   // console.log("launchesStore", launchesStore);
   // console.log("launchesData", launchesData);
 
-  useEffect(() => {
-    if (!launchesData) return;
-    const sortedLaunches = [...launchesData];
-    switch (sortBy) {
-      case 'recent':
-        sortedLaunches.sort((a, b) => {
-          const dateA = new Date(a?.block_timestamp || 0);
-          const dateB = new Date(b?.block_timestamp || 0);
-          return dateB.getTime() - dateA.getTime();
-        });
-        break;
-      case 'oldest':
-        sortedLaunches.sort((a, b) => {
-          const dateA = new Date(a?.block_timestamp || 0);
-          const dateB = new Date(b?.block_timestamp || 0);
-          return dateA.getTime() - dateB.getTime();
-        });
-        break;
-      case 'liquidity':
-        sortedLaunches.sort((a, b) => {
-          const liquidityA = Number(a?.liquidity_raised || 0);
-          const liquidityB = Number(b?.liquidity_raised || 0);
-          return liquidityB - liquidityA;
-        });
-        break;
-      case 'graduated':
-        sortedLaunches.filter((item) => {
-          if (item?.is_liquidity_added && item?.is_liquidity_added === true) {
-            return item;
-          }
-          return null;
-        });
-        break;
-    }
-    console.log("sortedLaunches", sortedLaunches);
-    // setTokens(sortedTokens);
-    setLaunches(sortedLaunches);
-    setSortedLaunches(sortedLaunches);
-    // setLaunchesData(sortedLaunches);
-  }, [sortBy, launchesData]);
 
-
-  // useEffect(() => {
-
-
-  //   console.log("sort tokens by filter")
-  //   console.log('tokens data call', tokens);
-  //   console.log('tokensData', tokensData);
-  //   console.log('tokensStore', tokensStore);
-
-  //   //  if (!tokensStore) return;
-  //   // const sortedTokens = [...tokensStore];
-  //   if (!tokensData && !tokens?.data) return;
-  //   const sortedTokens = tokensData ? [...tokensData] : [...tokens?.data];
-  //   switch (sortBy) {
-  //     case 'recent':
-  //       sortedTokens.sort((a, b) => {
-  //         const dateA = new Date(a?.block_timestamp || 0);
-  //         const dateB = new Date(b?.block_timestamp || 0);
-  //         return dateB.getTime() - dateA.getTime();
-  //       });
-  //       break;
-  //     case 'oldest':
-  //       sortedTokens.sort((a, b) => {
-  //         const dateA = new Date(a?.block_timestamp || 0);
-  //         const dateB = new Date(b?.block_timestamp || 0);
-  //         return dateA.getTime() - dateB.getTime();
-  //       });
-  //       break;
-  //     // case 'liquidity':
-  //     //   sortedTokens.sort((a, b) => {
-  //     //     const liquidityA = Number(a.liquidity_raised || 0);
-  //     //     const liquidityB = Number(b.liquidity_raised || 0);
-  //     //     return liquidityB - liquidityA;
-  //     //   });
-  //     //   break;
-  //   }
-  //   console.log("sortedTokens", sortedTokens);
-  //   setTokens(sortedTokens);
-  //   setTokensData(sortedTokens);
-  //   setSortedTokens(sortedTokens);
-  //   // setLaunches(sortedTokens);
-  // }, [sortBy, tokens, setTokens, tokensData]);
-
-  // useEffect(() => {
-  //   if (tokens?.length != tokensStore?.length) {
-  //     setTokens(tokens?.data);
-  //     setLaunches(launchesData);
-  //     setTokensData(tokens?.data);
-  //   }
-  //   console.log('tokens', tokens);
-  //   console.log('tokensStore', tokensStore);
-  // }, [tokens, launchesData, tokensStore, account.address, setTokens, setLaunches]);
-
-
-  // const [isLaunchedView, setIsLaunchedView] = useState(false);
-
-  const {handleLinkNamespaceFromNostrScore, handleLinkNamespace} = useNamespace();
+  const { handleLinkNamespaceFromNostrScore, handleLinkNamespace } = useNamespace();
   const isLaunchedView = tokenOrLaunch === "LAUNCH" || tokenOrLaunch === "MY_LAUNCH_TOKEN";
 
   // const isLauc
@@ -177,7 +82,7 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
 
 
 
-  const handleSubscription = async() => {
+  const handleSubscription = async () => {
     // handleLinkNamespaceFromNostrScore(account);
     const resNamespace = await handleLinkNamespace();
     console.log('resNamespace', resNamespace);
@@ -206,7 +111,7 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
 
 
 
-         {isButtonInstantiateEnable && (
+      {isButtonInstantiateEnable && (
         <Button
           onPress={handleSubscription}
           variant="primary"
@@ -216,7 +121,7 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
           <Text>Subscribe to InfoFi</Text>
         </Button>
       )}
-
+      {/* 
       <ScrollView
         style={styles.actionToggle}
         horizontal showsHorizontalScrollIndicator={false}
@@ -266,7 +171,7 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
         >
           My Launched Tokens
         </Button>
-      </ScrollView>
+      </ScrollView> */}
 
 
       <View
@@ -289,7 +194,7 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
           <Text>{showFilters ? '▼' : '▶'}</Text>
         </Button>
 
-
+{/* 
         <View style={[isDesktop ? styles.desktopFilterContent : styles.mobileFilterContent]}>
           {showFilters && (
             <View style={styles.filterOptions}>
@@ -346,7 +251,7 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
 
             </View>
           )}
-        </View>
+        </View> */}
 
       </View>
 
@@ -447,6 +352,16 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
             showsVerticalScrollIndicator={false}
             style={{ flex: 1, padding: 5 }}
           >
+
+
+            <FlatList
+              data={launchesData}
+              renderItem={({ item }) => {
+                return (
+                  <UserCard userInfo={item} />
+                );
+              }}
+            />
 
 
             {tokenOrLaunch === 'MY_DASHBOARD' && (

@@ -12,8 +12,10 @@ export class NamespaceService {
   async createOrUpdateNostrAddressByAdmin(data: LinkedDefaultStarknetAddressEventInterface) {
     try {
       console.log("createOrUpdateNostrAddressByAdmin", data);
-      const nostrAddressString = feltToAddress(BigInt(data.nostr_address));
 
+      let nostrAddressString = data.nostr_address;
+      // const nostrAddressString = feltToAddress(BigInt(data.nostr_address)) ?? data?.nostr_address;
+      // console.log("nostrAddressString", nostrAddressString);
       const userData = await this.prismaService.profile_data.findFirst({
         where: {
           nostr_id: nostrAddressString,
@@ -34,6 +36,7 @@ export class NamespaceService {
             // starknet_address: data.starknet_address,
           },
         });
+        console.log("created new record");
         return;
       }
 
@@ -43,7 +46,7 @@ export class NamespaceService {
         },
         data: {
           starknet_address: data.starknet_address,
-          nostr_event_id: data.nostr_event_id,
+          nostr_event_id: nostrAddressString,
           nostr_id: nostrAddressString,
           is_add_by_admin: true,
 
@@ -63,21 +66,25 @@ export class NamespaceService {
     try {
       console.log("createOrUpdateLinkedDefaultStarknetAddress", data);
 
+      let nostrAddressString = data.nostr_address;
+
+      console.log("nostrAddressString", nostrAddressString);
       const userData = await this.prismaService.profile_data.findFirst({
         where: {
-          nostr_id: data.nostr_address,
+          nostr_id: nostrAddressString,
         },
       });
 
       if (!userData) {
-        this.logger.error(
-          `User data not found for nostr address: ${data.nostr_address}`,
-        );
+        // this.logger.error(
+        //   `User data not found for nostr address: ${nostrAddressString}`,
+        // );
 
         await this.prismaService.profile_data.create({
           data: {
-            nostr_id: data.nostr_address,
+            nostr_id: nostrAddressString,
             starknet_address: data.starknet_address,
+            nostr_event_id: nostrAddressString,
           },
         });
         return;
@@ -85,12 +92,12 @@ export class NamespaceService {
 
       await this.prismaService.profile_data.update({
         where: {
-          nostr_id: data.nostr_address,
+          nostr_id: nostrAddressString,
         },
         data: {
           starknet_address: data.starknet_address,
-          nostr_event_id: data.nostr_event_id,
-          nostr_id: data.nostr_address,
+          nostr_event_id:nostrAddressString,
+          nostr_id: nostrAddressString,
         },
       });
 

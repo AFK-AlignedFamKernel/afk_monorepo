@@ -71,6 +71,7 @@ import { ThemedStyleSheet } from '../styles';
 import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParams } from '../types';
 import { initGoogleAnalytics, logPageView } from '../utils/analytics';
 import RightSidebar from 'src/modules/Layout/RightSideBar';
+import { InfoFiScreen } from 'src/modules/InfoFi';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -346,6 +347,7 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="DAO" component={DAOScreen} />
       <MainStack.Screen name="DAOPage" component={DaoPage} />
       <MainStack.Screen name="Pixel" component={PixelScreen} />
+      <MainStack.Screen name="InfoFi" component={InfoFiScreen} />
     </MainStack.Navigator>
   );
 };
@@ -500,6 +502,7 @@ const linking = {
             },
           },
           Pixel: 'app/pixel',
+          InfoFi: 'app/infofi',
         },
       },
     },

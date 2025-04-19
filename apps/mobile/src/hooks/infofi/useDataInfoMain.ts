@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 
-import {LaunchDataMerged} from '../../types/keys';
+import {NostrProfileInfoFiInterface} from '../../types/infofi';
 import {useGetTokenLaunch} from '../api/indexer/useLaunchTokens';
 
 import {useQuery} from '@tanstack/react-query';
@@ -38,47 +38,50 @@ export const useGetEpochState = () => {
   });
 };
 
-export const useDataInfoMain = (token?: string, launch?: string) => {
+export const useDataInfoMain = () => {
   const {
-    data: deployData,
+    data: userData,
     isLoading: isLoadingDeploy,
     isError: isErrorDeploy,
     isFetching: tokenIsFetching,
   } = useGetAllUsers();
-  const {
-    data: launchData,
-    isLoading: isLoadingLaunch,
-    isError: isErrorLaunch,
-    isFetching: launchIsFetching,
-  } = useGetTokenLaunch(launch);
 
-  const [tokens, setTokens] = useState<LaunchDataMerged[]>([]);
-  const [launches, setLaunches] = useState<LaunchDataMerged[]>([]);
+  console.log("users data", userData);
+  // const {
+  //   data: launchData,
+  //   isLoading: isLoadingLaunch,
+  //   isError: isErrorLaunch,
+  //   isFetching: launchIsFetching,
+  // } = useGetTokenLaunch(launch);
+
+  const [tokens, setTokens] = useState<NostrProfileInfoFiInterface[]>([]);
+  const [launches, setLaunches] = useState<NostrProfileInfoFiInterface[]>([]);
 
   useEffect(() => {
-    if (deployData) {
-      setTokens(deployData.data || []);
+    if (userData) {
+      setTokens(userData.data || []);
+      setLaunches(userData.data || []);
     }
 
-    if (deployData && launchData) {
-      setLaunches(
-        launchData.data.map((launchToken: any) => ({
-          ...(deployData.data.find(
-            (deployedToken: LaunchDataMerged) =>
-              deployedToken.memecoin_address === launchToken.memecoin_address,
-          ) || {}),
-          ...launchToken,
-        })),
-      );
-    }
-  }, [deployData, launchData]);
+    // if (deployData && launchData) {
+    //   setLaunches(
+    //     launchData.data.map((launchToken: any) => ({
+    //       ...(deployData.data.find(
+    //         (deployedToken: LaunchDataMerged) =>
+    //           deployedToken.memecoin_address === launchToken.memecoin_address,
+    //       ) || {}),
+    //       ...launchToken,
+    //     })),
+    //   );
+    // }
+  }, [userData]);
 
   return {
     tokens,
     launches,
-    isLoading: isLoadingDeploy || isLoadingLaunch,
-    isError: isErrorDeploy || isErrorLaunch,
-    isFetching: launchIsFetching || tokenIsFetching,
+    isLoading: isLoadingDeploy,
+    isError: isErrorDeploy,
+    isFetching: tokenIsFetching,
     setTokens,
     setLaunches,
   };
