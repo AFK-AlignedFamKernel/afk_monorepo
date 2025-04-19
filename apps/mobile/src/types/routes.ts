@@ -99,6 +99,7 @@ export type MainStackParams = {
   DAO: undefined;
   DAOPage: { daoAddress: string };
   Pixel: undefined;
+  InfoFi: undefined;
 };
 
 export type HomeBottomStackParams = {
@@ -139,6 +140,7 @@ export type HomeBottomStackParams = {
   DAO: undefined;
   DAOPage: { daoAddress: string };
   Pixel:undefined;
+  InfoFi: undefined;
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
@@ -455,6 +457,11 @@ export type DAOPageProps = CompositeScreenProps<
 
 export type DrawerStackNavigationProps = DrawerNavigationProp<MainStackParams>;
 
+
+export type InfoFiScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'InfoFi'>,
+  NativeStackScreenProps<RootStackParams>
+>;
 /** TODO delete */
 export type DegensAppStackParams = {
   // Home: NavigatorScreenParams<HomeBottomStackParams>;

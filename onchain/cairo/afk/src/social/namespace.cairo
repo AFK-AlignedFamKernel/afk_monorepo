@@ -634,7 +634,7 @@ mod tests {
         // TODO change with the correct signature with the content LinkedWalletProfileDefault id and
         // strk recipient TODO Uint256 to felt on Starknet js
         // for test data see claim to:
-        // https://replit.com/@msghais135/WanIndolentKilobyte-claimto#linked_to.js
+        // https://replit.com/@msghais135/afk-scripts#linked_to.js
 
         let linked_wallet = LinkedStarknetAddress {
             starknet_address: sender_address.try_into().unwrap(),

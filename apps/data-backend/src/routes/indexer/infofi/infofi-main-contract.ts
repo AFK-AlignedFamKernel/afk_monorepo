@@ -19,7 +19,7 @@ interface StateUserPerEpochParams {
 async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) {
 
   fastify.get<{
-  }>('/all-users', async (request, reply) => {
+  }>('/main-sub/all-users', async (request, reply) => {
     try {
     
       const allUsers = await prisma.profile_data.findMany({
@@ -45,7 +45,7 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
 
   fastify.get<{
     Params: EpochStateParams;
-  }>('/epoch-state/:epoch_index', async (request, reply) => {
+  }>('/main-sub/epoch-state/:epoch_index', async (request, reply) => {
     try {
       const { epoch_index } = request.params;
       if (!isValidStarknetAddress(epoch_index)) {
@@ -80,7 +80,7 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
 
   fastify.get<{
     Params: TipUserParams;
-  }>('/tip-user/:nostr_address', async (request, reply) => {
+  }>('/main-sub/tip-user/:nostr_address', async (request, reply) => {
     try {
       const { nostr_address } = request.params;
       if (!isValidStarknetAddress(nostr_address)) {
@@ -115,7 +115,7 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
 
   fastify.get<{
     Params: TipUserParams;
-  }>('/profile-data/:nostr_address', async (request, reply) => {
+  }>('/main-sub/profile-data/:nostr_address', async (request, reply) => {
     try {
       const { nostr_address } = request.params;
       if (!isValidStarknetAddress(nostr_address)) {
@@ -165,7 +165,7 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
 
   fastify.get<{
     Params: StateUserPerEpochParams;
-  }>('/state-user-per-epoch/:nostr_address/:epoch_index', async (request, reply) => {
+  }>('/main-sub/state-user-per-epoch/:nostr_address/:epoch_index', async (request, reply) => {
     try {
       const { nostr_address, epoch_index } = request.params;
       if (!isValidStarknetAddress(nostr_address)) {
@@ -223,33 +223,69 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
 
 
 
-  fastify.get('/epoch-state', async (request, reply) => {
+  fastify.get('/main-sub/epoch-state', async (request, reply) => {
     try {
-      const launches = await prisma.token_launch.findMany({
+      const epochState = await prisma.epoch_data.findMany({
         select: {
-          memecoin_address: true,
-          quote_token: true,
-          price: true,
-          total_supply: true,
-          liquidity_raised: true,
-          network: true,
-          created_at: true,
-          threshold_liquidity:true,
-          bonding_type:true,
-          total_token_holded:true,
-          block_timestamp:true,
-          is_liquidity_added:true,
+          epoch_index: true,
+          start_duration: true,
+          end_duration: true,
+          epoch_duration: true,
+          amount_claimed:true,
+          amount_vote:true, 
+          total_ai_score:true,
+          total_vote_score:true,
+          total_amount_deposit:true,
         },
       });
 
       reply.status(HTTPStatus.OK).send({
-        data: launches,
+        data: epochState,
       });
     } catch (error) {
       console.error('Error InfoFi get epoch state:', error);
       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
+
+  fastify.get<{
+    Params: EpochStateParams;
+  }>('/main-sub/epoch-state/:epoch_index', async (request, reply) => {
+    try {
+      const { epoch_index } = request.params;
+      if (!isValidStarknetAddress(epoch_index)) {
+        reply.status(HTTPStatus.BadRequest).send({
+          code: HTTPStatus.BadRequest,
+          message: 'Invalid token address',
+        });
+        return;
+      }
+      const epochState = await prisma.epoch_data.findFirst({
+        where: {
+          epoch_index: epoch_index,
+        },
+        select: {
+          epoch_index: true,
+          start_duration: true,
+          end_duration: true,
+          epoch_duration: true,
+          amount_claimed:true,
+          amount_vote:true, 
+          total_ai_score:true,
+          total_vote_score:true,
+          total_amount_deposit:true,
+        },
+      });
+
+      reply.status(HTTPStatus.OK).send({
+        data: epochState,
+      });
+    } catch (error) {
+      console.error('Error InfoFi get epoch state:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
+    }
+  });
+
 
 
   // // @TODO fix
