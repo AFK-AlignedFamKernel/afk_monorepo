@@ -35,8 +35,12 @@ export interface NostrInfofiInterface extends BaseEventInterface {
 
 export interface DepositRewardsByUserEventInterface extends BaseEventInterface {
   starknet_address: string;
+  nostr_address: string;
   epoch_index: number;
   amount_token: string;
+  amount_algo: string;
+  amount_vote: string;
+  amount_total: string;
 }
 
 export interface DistributionRewardsByUserEventInterface extends BaseEventInterface {

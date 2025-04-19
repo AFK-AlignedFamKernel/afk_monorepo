@@ -284,30 +284,38 @@ model token_metadata {
   nostr_event_id   String?
 }
 
-model profile_data {
-  nostr_id         String @id
 
-  transaction_hash String?  
-  network          String?
-  block_hash       String?
-  block_number     BigInt?
-  starknet_address String?
-  block_timestamp  DateTime? @db.Timestamp(6)
-  cursor           BigInt?   @map("_cursor")
-  time_stamp       DateTime? @db.Timestamp(6)
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  updated_at       DateTime? @default(now()) @db.Timestamp(6)
-  nostr_event_id   String?
+model overall_vote_data {
+    transaction_hash String    @id
+    network          String?
+    epoch_index String?
+    total_ai_score Int?
+    total_vote_score Int? 
+    total_amount_deposit Int?
+    block_hash       String?
+    block_number     BigInt?
+    starknet_address String?
+    block_timestamp  DateTime? @db.Timestamp(6)
+    cursor           BigInt?   @map("_cursor")
+    time_stamp       DateTime? @db.Timestamp(6)
+    created_at       DateTime? @default(now()) @db.Timestamp(6)
+    updated_at       DateTime? @default(now()) @db.Timestamp(6)
+    last_deposit_at DateTime? @default(now()) @db.Timestamp(6)
 
-  total_tip Int?
-  total_ai_score Int?
-  total_vote_score Int?
+    amount_claimed Int?
+    amount_vote Int?
+    amount_algo Int?
 
-  amount_claimed Int?
+    percentage_algo_distribution Int?
 
+    quote_address String?
+    main_token_address String?
+
+    end_duration DateTime?
+    start_duration DateTime?
+    epoch_duration Int?
 
 }
-
 
 model epoch_data {
     transaction_hash String    @id
@@ -339,5 +347,59 @@ model epoch_data {
     start_duration DateTime?
     epoch_duration Int?
 
+}
+
+
+
+model profile_data {
+  nostr_id         String @id
+
+  transaction_hash String?  
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  starknet_address String?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
+  time_stamp       DateTime? @db.Timestamp(6)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+  nostr_event_id   String?
+
+  total_tip Int?
+  total_ai_score Int?
+  total_vote_score Int?
+
+  amount_claimed Int?
+
+
+  state_per_epoch profile_data_per_epoch[]
+
+}
+
+model profile_data_per_epoch {
+  id    Int    @id @default(autoincrement())
+  nostr_id         String
+  epoch_index Int
+  transaction_hash String?  
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  starknet_address String?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  cursor           BigInt?   @map("_cursor")
+  time_stamp       DateTime? @db.Timestamp(6)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+  nostr_event_id   String?
+
+  total_tip Int?
+  total_ai_score Int?
+  total_vote_score Int?
+
+  amount_claimed Int?
+
+
+  profile  profile_data @relation(fields:[nostr_id] , references:[nostr_id])
 
 }

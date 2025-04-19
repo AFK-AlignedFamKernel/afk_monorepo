@@ -236,6 +236,12 @@ export class NostrInfofiService {
         },
         data: {
           amount_claimed: Number(data.amount_total),
+          state_per_epoch: {
+            create: {
+              epoch_index: data.current_index_epoch,
+              amount_claimed: Number(data.amount_total),
+            },  
+          },
         },
       });
     } catch (error) {

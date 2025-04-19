@@ -110,15 +110,6 @@ export class InfoFiIndexer {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, oldEpochIndexFelt, currentEpochIndexFelt,] = event.keys;
 
-    const nostrAddressRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(nostrAddressLow),
-      high: FieldElement.toBigInt(nostrAddressHigh),
-    });
-    const nostrAddress = validateAndParseAddress(
-      `0x${nostrAddressRaw.toString(16)}`,
-    ) as ContractAddress;
-
-
     const [
       startDurationFelt, endDurationFelt, epochDurationFelt
     ] = event.data;
@@ -220,6 +211,7 @@ export class InfoFiIndexer {
       amount_vote: amountVote,
       amount_total: amountTotal,
       amount_token: amountTotal,
+      nostr_address: nostrAddress,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
       starknet_address: starknetAddress,
       contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
