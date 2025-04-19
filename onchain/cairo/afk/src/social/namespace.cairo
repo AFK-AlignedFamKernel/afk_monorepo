@@ -420,23 +420,23 @@ pub mod Namespace {
                 algo_nostr_account_scoring.nostr_address = nostr_address;
                 algo_nostr_account_scoring.starknet_address = sn_address_linked;
                 algo_nostr_account_scoring.ai_score = score_algo.ai_score;
-                algo_nostr_account_scoring.overview_score = score_algo.overview_score;
-                algo_nostr_account_scoring.skills_score = score_algo.skills_score;
-                algo_nostr_account_scoring.value_shared_score = score_algo.value_shared_score;
-                algo_nostr_account_scoring.ai_score_to_claimed = score_algo.ai_score_to_claimed;
-                algo_nostr_account_scoring
-                    .overview_score_to_claimed = score_algo
-                    .overview_score_to_claimed;
-                algo_nostr_account_scoring
-                    .skills_score_to_claimed = score_algo
-                    .skills_score_to_claimed;
-                algo_nostr_account_scoring
-                    .value_shared_score_to_claimed = score_algo
-                    .value_shared_score_to_claimed;
-                algo_nostr_account_scoring.total_score = score_algo.ai_score
-                    + score_algo.overview_score
-                    + score_algo.skills_score
-                    + score_algo.value_shared_score;
+                // algo_nostr_account_scoring.overview_score = score_algo.overview_score;
+                // algo_nostr_account_scoring.skills_score = score_algo.skills_score;
+                // algo_nostr_account_scoring.value_shared_score = score_algo.value_shared_score;
+                // algo_nostr_account_scoring.ai_score_to_claimed = score_algo.ai_score_to_claimed;
+                // algo_nostr_account_scoring
+                //     .overview_score_to_claimed = score_algo
+                //     .overview_score_to_claimed;
+                // algo_nostr_account_scoring
+                //     .skills_score_to_claimed = score_algo
+                //     .skills_score_to_claimed;
+                // algo_nostr_account_scoring
+                //     .value_shared_score_to_claimed = score_algo
+                //     .value_shared_score_to_claimed;
+                // algo_nostr_account_scoring.total_score = score_algo.ai_score
+                //     + score_algo.overview_score
+                //     + score_algo.skills_score
+                //     + score_algo.value_shared_score;
                 self
                     .nostr_account_scoring_algo
                     .entry(nostr_address)
@@ -449,19 +449,20 @@ pub mod Namespace {
                         nostr_address: nostr_address.try_into().unwrap(),
                         starknet_address: sn_address_linked,
                         ai_score: score_algo.ai_score,
-                        overview_score: score_algo.overview_score,
-                        skills_score: score_algo.skills_score,
-                        value_shared_score: score_algo.value_shared_score,
-                        is_claimed: false,
-                        ai_score_to_claimed: score_algo.ai_score,
-                        overview_score_to_claimed: score_algo.overview_score,
-                        skills_score_to_claimed: score_algo.skills_score,
-                        value_shared_score_to_claimed: score_algo.value_shared_score,
-                        total_score: score_algo.ai_score
-                            + score_algo.overview_score
-                            + score_algo.skills_score
-                            + score_algo.value_shared_score,
                         veracity_score: score_algo.veracity_score,
+                        is_claimed: false,
+                        total_score: score_algo.ai_score,
+                        // overview_score: score_algo.overview_score,
+                        // skills_score: score_algo.skills_score,
+                        // value_shared_score: score_algo.value_shared_score,
+                        // ai_score_to_claimed: score_algo.ai_score,
+                        // overview_score_to_claimed: score_algo.overview_score,
+                        // skills_score_to_claimed: score_algo.skills_score,
+                        // value_shared_score_to_claimed: score_algo.value_shared_score,
+                        // total_score: score_algo.ai_score
+                        //     + score_algo.overview_score
+                        //     + score_algo.skills_score
+                        //     + score_algo.value_shared_score,
                     };
                 self
                     .nostr_account_scoring_algo
@@ -481,18 +482,18 @@ pub mod Namespace {
             let mut new_total_algo_score_rewards = total_algo_score_rewards.clone();
             new_total_algo_score_rewards.total_score_ai = total_algo_score_rewards.total_score_ai
                 + score_algo.ai_score;
-            new_total_algo_score_rewards
-                .total_score_overview = total_algo_score_rewards
-                .total_score_overview
-                + score_algo.overview_score;
-            new_total_algo_score_rewards
-                .total_score_skills = total_algo_score_rewards
-                .total_score_skills
-                + score_algo.skills_score;
-            new_total_algo_score_rewards
-                .total_score_value_shared = total_algo_score_rewards
-                .total_score_value_shared
-                + score_algo.value_shared_score;
+            // new_total_algo_score_rewards
+            //     .total_score_overview = total_algo_score_rewards
+            //     .total_score_overview
+            //     + score_algo.overview_score;
+            // new_total_algo_score_rewards
+            //     .total_score_skills = total_algo_score_rewards
+            //     .total_score_skills
+            //     + score_algo.skills_score;
+            // new_total_algo_score_rewards
+            //     .total_score_value_shared = total_algo_score_rewards
+            //     .total_score_value_shared
+            //     + score_algo.value_shared_score;
             // let old_total_algo_score_rewards = TotalAlgoScoreRewards {
             //     epoch_duration: total_algo_score_rewards.epoch_duration,
             //     end_epoch_time: total_algo_score_rewards.end_epoch_time,
@@ -525,18 +526,19 @@ pub mod Namespace {
                         starknet_address: sn_address_linked,
                         total_score_ai: total_algo_score_rewards.total_score_ai
                             + score_algo.ai_score,
-                        total_score_overview: total_algo_score_rewards.total_score_overview
-                            + score_algo.overview_score,
-                        total_score_skills: total_algo_score_rewards.total_score_skills
-                            + score_algo.skills_score,
-                        total_score_value_shared: total_algo_score_rewards.total_score_value_shared
-                            + score_algo.value_shared_score,
-                        total_nostr_address: total_algo_score_rewards.total_nostr_address,
-                        rewards_amount: total_algo_score_rewards.rewards_amount,
                         total_points_weight: total_algo_score_rewards.total_points_weight,
                         is_claimed: total_algo_score_rewards.is_claimed,
                         claimed_at: now,
-                        veracity_score: 0,
+                        total_nostr_address: total_algo_score_rewards.total_nostr_address,
+                        // veracity_score: 0,
+                        //   total_score_overview: total_algo_score_rewards.total_score_overview
+                        //     + score_algo.overview_score,
+                        // total_score_skills: total_algo_score_rewards.total_score_skills
+                        //     + score_algo.skills_score,
+                        // total_score_value_shared: total_algo_score_rewards.total_score_value_shared
+                        //     + score_algo.value_shared_score,
+                        // total_nostr_address: total_algo_score_rewards.total_nostr_address,
+                        // rewards_amount: total_algo_score_rewards.rewards_amount,
                     },
                 );
         }

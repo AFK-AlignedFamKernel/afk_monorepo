@@ -489,9 +489,9 @@ pub mod NostrVaultEscrow {
                 nostr_address: vote_params.nostr_address,
                 total_amount_deposit: old_tip_by_user.total_amount_deposit
                     + vote_params.upvote_amount,
-                total_amount_deposit_by_algo: old_tip_by_user.total_amount_deposit_by_algo
-                    + vote_params.downvote_amount,
-                rewards_amount: old_tip_by_user.rewards_amount + vote_params.amount_token,
+                // total_amount_deposit_by_algo: old_tip_by_user.total_amount_deposit_by_algo
+                //     + vote_params.downvote_amount,
+                // rewards_amount: old_tip_by_user.rewards_amount + vote_params.amount_token,
                 is_claimed: old_tip_by_user.is_claimed,
                 end_epoch_time: old_tip_by_user.end_epoch_time,
                 start_epoch_time: old_tip_by_user.start_epoch_time,
@@ -509,13 +509,13 @@ pub mod NostrVaultEscrow {
             if total_tip_per_epoch.total_amount_deposit == 0 {
                 total_tip_per_epoch = TipByUserDefault::default();
                 total_tip_per_epoch.total_amount_deposit = vote_params.amount_token;
-                total_tip_per_epoch.total_amount_deposit_by_algo = vote_params.downvote_amount;
-                total_tip_per_epoch.rewards_amount = vote_params.amount_token;
+                // total_tip_per_epoch.total_amount_deposit_by_algo = vote_params.downvote_amount;
+                // total_tip_per_epoch.rewards_amount = vote_params.amount_token;
                 self.total_tip_per_epoch.entry(current_index_epoch).write(tip_by_user);
             } else {
                 total_tip_per_epoch.total_amount_deposit += vote_params.amount_token;
-                total_tip_per_epoch.total_amount_deposit_by_algo += vote_params.amount_token;
-                total_tip_per_epoch.rewards_amount += vote_params.amount_token;
+                // total_tip_per_epoch.total_amount_deposit_by_algo += vote_params.amount_token;
+                // total_tip_per_epoch.rewards_amount += vote_params.amount_token;
                 self.total_tip_per_epoch.entry(current_index_epoch).write(tip_by_user);
             }
 
@@ -852,7 +852,7 @@ pub mod NostrVaultEscrow {
                         amount_algo: user_share_algo,
                         amount_vote: user_share_vote,
                         amount_total: user_share_algo + user_share_vote,
-                        veracity_score: 0,
+                        // veracity_score: 0,
                     },
                 );
         }
@@ -915,11 +915,11 @@ pub mod NostrVaultEscrow {
                         //     + self.epoch_duration.read(),
                         total_amount_deposit: old_total_deposit_rewards.total_amount_deposit
                             + amount,
-                        algo_total_amount_deposit: old_total_deposit_rewards
-                            .algo_total_amount_deposit,
-                        user_total_amount_deposit: old_total_deposit_rewards
-                            .user_total_amount_deposit,
-                        rewards_amount: old_total_deposit_rewards.rewards_amount,
+                        // algo_total_amount_deposit: old_total_deposit_rewards
+                        //     .algo_total_amount_deposit,
+                        // user_total_amount_deposit: old_total_deposit_rewards
+                        //     .user_total_amount_deposit,
+                        // rewards_amount: old_total_deposit_rewards.rewards_amount,
                         is_claimed: old_total_deposit_rewards.is_claimed,
                         general_total_amount_deposit: old_total_deposit_rewards
                             .general_total_amount_deposit,

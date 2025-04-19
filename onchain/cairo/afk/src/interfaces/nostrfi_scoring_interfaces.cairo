@@ -11,18 +11,12 @@ pub const DEFAULT_BATCH_INTERVAL_WEEK: u64 = 60 * 60 * 24 * 7; // 1 week, can be
 use afk::interfaces::common_interfaces::{LinkedStarknetAddress, LinkedStarknetAddressImpl};
 #[starknet::interface]
 pub trait INostrFiScoring<TContractState> {
-    // Getters
-    fn get_nostr_by_sn_default(
-        self: @TContractState, nostr_public_key: NostrPublicKey,
-    ) -> ContractAddress;
-
-    fn get_sn_by_nostr_default(
-        self: @TContractState, starknet_address: ContractAddress,
-    ) -> NostrPublicKey;
+  
     // Admin
     fn set_control_role(
         ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
     );
+
     // fn init_nostr_profile(ref self: TContractState, request:
     // SocialRequest<LinkedStarknetAddress>);
     // fn add_nostr_profile_admin(ref self: TContractState, nostr_event_id: u256);
@@ -65,11 +59,30 @@ pub trait INostrFiScoring<TContractState> {
     );
     fn claim_and_distribute_my_rewards(ref self: TContractState, epoch_index: u64);
 
-    // Getters
+      // Getters
     fn get_admin_params(self: @TContractState) -> NostrFiAdminStorage;
-    fn get_is_pay_subscription(self: @TContractState) -> bool;
-    fn get_amount_paid_for_subscription(self: @TContractState) -> u256;
-    fn get_token_to_pay_subscription(self: @TContractState) -> ContractAddress;
+
+    fn get_nostr_by_sn_default(
+        self: @TContractState, nostr_public_key: NostrPublicKey,
+    ) -> ContractAddress;
+
+    fn get_sn_by_nostr_default(
+        self: @TContractState, starknet_address: ContractAddress,
+    ) -> NostrPublicKey;
+
+
+    fn add_metadata(ref self: TContractState, metadata: NostrMetadata);
+    fn add_topics_metadata(ref self: TContractState, 
+    keywords:ByteArray,
+    main_topic:ByteArray,
+    // topics_per_order:Map<u64,ByteArray>,
+    );  
+        
+    // fn get_metadata(ref self: TContractState) -> NostrMetadata;
+    // fn get_topics_metadata(ref self: TContractState) -> TopicsMetadata;
+    // fn get_is_pay_subscription(self: @TContractState) -> bool;
+    // fn get_amount_paid_for_subscription(self: @TContractState) -> u256;
+    // fn get_token_to_pay_subscription(self: @TContractState) -> ContractAddress;
 }
 
 #[starknet::interface]
@@ -287,7 +300,7 @@ pub struct DistributionRewardsByUserEvent {
     pub amount_algo: u256,
     pub amount_vote: u256,
     pub amount_total: u256,
-    pub veracity_score: u256,
+    // pub veracity_score: u256,
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]
@@ -298,14 +311,18 @@ pub struct PushAlgoScoreEvent {
     pub nostr_address: NostrPublicKey,
     pub claimed_at: u64,
     pub total_score_ai: u256,
-    pub total_score_overview: u256,
-    pub total_score_skills: u256,
-    pub total_score_value_shared: u256,
     pub total_nostr_address: u256,
-    pub rewards_amount: u256,
     pub total_points_weight: u256,
     pub is_claimed: bool,
-    pub veracity_score: u256,
+
+    // Optional
+    // pub veracity_score: u256,
+
+    // pub total_score_overview: u256,
+    // pub total_score_skills: u256,
+    // pub total_score_value_shared: u256,
+    // pub rewards_amount: u256,
+
     // Add NIP-05 and stats profil after. Gonna write a proposal for it
 }
 
@@ -314,6 +331,9 @@ pub struct AdminAddNostrProfile {
     #[key]
     pub nostr_address: NostrPublicKey,
 }
+
+
+
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]
 pub struct TipUserWithVote {
@@ -383,6 +403,21 @@ pub struct NostrMetadata {
     // pub topics: Vec<ByteArray>,
 }
 
+#[derive(Clone, Debug, Drop, PartialEq, starknet::Event, Serde)]
+pub struct NostrMetadataEvent {
+    #[key]
+    pub nostr_address: NostrPublicKey,
+    pub main_tag: ByteArray,
+}
+
+#[derive(Clone, Debug, Drop, PartialEq, starknet::Event, Serde)]
+pub struct AddTopicsMetadataEvent {
+    #[key]
+    pub current_index_keywords: u64,
+    pub keywords: ByteArray,
+    pub main_topic: ByteArray,
+}
+
 
 #[derive(Clone, Debug, Drop, PartialEq, starknet::Store, Serde)]
 pub struct NostrMetadataTopics {
@@ -398,17 +433,13 @@ pub struct NostrMetadataTopics {
     // pub topics: Vec<ByteArray>,
 }
 
-
 #[derive(Clone, Debug, Drop, PartialEq, starknet::Event, Serde)]
-pub struct NostrMetadataEvent {
-    #[key]
-    pub starknet_address: ContractAddress,
-    #[key]
-    pub nostr_address: NostrPublicKey,
-    pub name: ByteArray,
+pub struct TopicsMetadataParams {
+    pub topics_per_order: Span<ByteArray>, // Map Voter => (UserVote, power)
     pub main_topic: ByteArray,
+    pub topics_list: Span<ByteArray>,
+    pub keywords: Span<ByteArray>,
 }
-
 
 #[starknet::storage_node]
 pub struct TopicsMetadata {
@@ -491,8 +522,8 @@ pub impl TotalTipByUserVoteDefault of Default<TotalTipByUserVote> {
 pub struct TipByUser {
     pub nostr_address: u256,
     pub total_amount_deposit: u256,
-    pub total_amount_deposit_by_algo: u256,
-    pub rewards_amount: u256,
+    // pub total_amount_deposit_by_algo: u256,
+    // pub rewards_amount: u256,
     pub is_claimed: bool,
     pub end_epoch_time: u64,
     pub start_epoch_time: u64,
@@ -507,8 +538,8 @@ pub impl TipByUserDefault of Default<TipByUser> {
         TipByUser {
             nostr_address: 0.try_into().unwrap(),
             total_amount_deposit: 0,
-            total_amount_deposit_by_algo: 0,
-            rewards_amount: 0,
+            // total_amount_deposit_by_algo: 0,
+            // rewards_amount: 0,
             is_claimed: false,
             end_epoch_time: 0,
             start_epoch_time: 0,
@@ -541,9 +572,9 @@ pub struct TotalDepositRewards {
     pub end_epoch_time: u64,
     pub general_total_amount_deposit: u256, // V2
     pub total_amount_deposit: u256,
-    pub user_total_amount_deposit: u256,
-    pub algo_total_amount_deposit: u256,
-    pub rewards_amount: u256,
+    // pub user_total_amount_deposit: u256,
+    // pub algo_total_amount_deposit: u256,
+    // pub rewards_amount: u256,
     pub is_claimed: bool,
     pub total_amount_to_claim: u256,
 }
@@ -558,11 +589,11 @@ pub impl TotalDepositRewardsDefault of Default<TotalDepositRewards> {
             end_epoch_time: 0,
             general_total_amount_deposit: 0,
             total_amount_deposit: 0,
-            user_total_amount_deposit: 0,
-            algo_total_amount_deposit: 0,
-            rewards_amount: 0,
             is_claimed: false,
             total_amount_to_claim: 0,
+            // user_total_amount_deposit: 0,
+            // algo_total_amount_deposit: 0,
+            // rewards_amount: 0,
         }
     }
 }
@@ -629,18 +660,18 @@ pub struct TotalAlgoScoreRewards {
     pub epoch_duration: u64,
     pub end_epoch_time: u64,
     pub total_score_ai: u256,
-    pub total_score_overview: u256,
-    pub total_score_skills: u256,
-    pub total_score_value_shared: u256,
+    // pub total_score_overview: u256,
+    // pub total_score_skills: u256,
+    // pub total_score_value_shared: u256,
     pub total_nostr_address: u256,
-    pub to_claimed_ai_score: u256,
-    pub to_claimed_overview_score: u256,
-    pub to_claimed_skills_score: u256,
-    pub to_claimed_value_shared_score: u256,
+    // pub to_claimed_ai_score: u256,
+    // pub to_claimed_overview_score: u256,
+    // pub to_claimed_skills_score: u256,
+    // pub to_claimed_value_shared_score: u256,
     pub rewards_amount: u256,
     pub total_points_weight: u256,
     pub is_claimed: bool,
-    pub veracity_score: u256,
+    // pub veracity_score: u256,
 }
 
 pub impl TotalAlgoScoreRewardsDefault of Default<TotalAlgoScoreRewards> {
@@ -651,18 +682,20 @@ pub impl TotalAlgoScoreRewardsDefault of Default<TotalAlgoScoreRewards> {
             epoch_duration: 0,
             end_epoch_time: 0,
             total_score_ai: 0,
-            total_score_overview: 0,
-            total_score_skills: 0,
-            total_score_value_shared: 0,
+         
             total_nostr_address: 0,
-            to_claimed_ai_score: 0,
-            to_claimed_overview_score: 0,
-            to_claimed_skills_score: 0,
-            to_claimed_value_shared_score: 0,
+        
             rewards_amount: 0,
             total_points_weight: 0,
             is_claimed: false,
-            veracity_score: 0,
+            // to_claimed_ai_score: 0,
+                // to_claimed_overview_score: 0,
+            // to_claimed_skills_score: 0,
+            //  to_claimed_value_shared_score: 0,
+               // total_score_overview: 0,
+            // total_score_skills: 0,
+            // total_score_value_shared: 0,
+            // veracity_score: 0,
         }
     }
 }
@@ -747,13 +780,13 @@ pub struct ProfileAlgorithmScoring {
     pub nostr_address: u256,
     pub starknet_address: ContractAddress,
     pub ai_score: u256,
-    pub ai_score_to_claimed: u256,
-    pub overview_score: u256,
-    pub overview_score_to_claimed: u256,
-    pub skills_score: u256,
-    pub skills_score_to_claimed: u256,
-    pub value_shared_score: u256,
-    pub value_shared_score_to_claimed: u256,
+    // pub ai_score_to_claimed: u256,
+    // pub overview_score: u256,
+    // pub overview_score_to_claimed: u256,
+    // pub skills_score: u256,
+    // pub skills_score_to_claimed: u256,
+    // pub value_shared_score: u256,
+    // pub value_shared_score_to_claimed: u256,
     pub is_claimed: bool,
     pub total_score: u256,
     pub veracity_score: u256,
