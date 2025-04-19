@@ -11,7 +11,6 @@ pub const DEFAULT_BATCH_INTERVAL_WEEK: u64 = 60 * 60 * 24 * 7; // 1 week, can be
 use afk::interfaces::common_interfaces::{LinkedStarknetAddress, LinkedStarknetAddressImpl};
 #[starknet::interface]
 pub trait INostrFiScoring<TContractState> {
-  
     // Admin
     fn set_control_role(
         ref self: TContractState, recipient: ContractAddress, role: felt252, is_enable: bool,
@@ -59,7 +58,7 @@ pub trait INostrFiScoring<TContractState> {
     );
     fn claim_and_distribute_my_rewards(ref self: TContractState, epoch_index: u64);
 
-      // Getters
+    // Getters
     fn get_admin_params(self: @TContractState) -> NostrFiAdminStorage;
 
     fn get_nostr_by_sn_default(
@@ -72,17 +71,13 @@ pub trait INostrFiScoring<TContractState> {
 
 
     fn add_metadata(ref self: TContractState, metadata: NostrMetadata);
-    fn add_topics_metadata(ref self: TContractState, 
-    keywords:ByteArray,
-    main_topic:ByteArray,
-    // topics_per_order:Map<u64,ByteArray>,
-    );  
-        
+    fn add_topics_metadata(ref self: TContractState, keywords: ByteArray, main_topic: ByteArray// topics_per_order:Map<u64,ByteArray>,
+    );
     // fn get_metadata(ref self: TContractState) -> NostrMetadata;
-    // fn get_topics_metadata(ref self: TContractState) -> TopicsMetadata;
-    // fn get_is_pay_subscription(self: @TContractState) -> bool;
-    // fn get_amount_paid_for_subscription(self: @TContractState) -> u256;
-    // fn get_token_to_pay_subscription(self: @TContractState) -> ContractAddress;
+// fn get_topics_metadata(ref self: TContractState) -> TopicsMetadata;
+// fn get_is_pay_subscription(self: @TContractState) -> bool;
+// fn get_amount_paid_for_subscription(self: @TContractState) -> u256;
+// fn get_token_to_pay_subscription(self: @TContractState) -> ContractAddress;
 }
 
 #[starknet::interface]
@@ -314,14 +309,13 @@ pub struct PushAlgoScoreEvent {
     pub total_nostr_address: u256,
     pub total_points_weight: u256,
     pub is_claimed: bool,
-
     // Optional
-    // pub veracity_score: u256,
+// pub veracity_score: u256,
 
     // pub total_score_overview: u256,
-    // pub total_score_skills: u256,
-    // pub total_score_value_shared: u256,
-    // pub rewards_amount: u256,
+// pub total_score_skills: u256,
+// pub total_score_value_shared: u256,
+// pub rewards_amount: u256,
 
     // Add NIP-05 and stats profil after. Gonna write a proposal for it
 }
@@ -331,8 +325,6 @@ pub struct AdminAddNostrProfile {
     #[key]
     pub nostr_address: NostrPublicKey,
 }
-
-
 
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]
@@ -592,8 +584,8 @@ pub impl TotalDepositRewardsDefault of Default<TotalDepositRewards> {
             is_claimed: false,
             total_amount_to_claim: 0,
             // user_total_amount_deposit: 0,
-            // algo_total_amount_deposit: 0,
-            // rewards_amount: 0,
+        // algo_total_amount_deposit: 0,
+        // rewards_amount: 0,
         }
     }
 }
@@ -682,20 +674,18 @@ pub impl TotalAlgoScoreRewardsDefault of Default<TotalAlgoScoreRewards> {
             epoch_duration: 0,
             end_epoch_time: 0,
             total_score_ai: 0,
-         
             total_nostr_address: 0,
-        
             rewards_amount: 0,
             total_points_weight: 0,
             is_claimed: false,
             // to_claimed_ai_score: 0,
-                // to_claimed_overview_score: 0,
-            // to_claimed_skills_score: 0,
-            //  to_claimed_value_shared_score: 0,
-               // total_score_overview: 0,
-            // total_score_skills: 0,
-            // total_score_value_shared: 0,
-            // veracity_score: 0,
+        // to_claimed_overview_score: 0,
+        // to_claimed_skills_score: 0,
+        //  to_claimed_value_shared_score: 0,
+        // total_score_overview: 0,
+        // total_score_skills: 0,
+        // total_score_value_shared: 0,
+        // veracity_score: 0,
         }
     }
 }
@@ -791,7 +781,6 @@ pub struct ProfileAlgorithmScoring {
     pub total_score: u256,
     pub veracity_score: u256,
 }
-
 // pub impl ProfileAlgorithmScoringDefault of Default<ProfileAlgorithmScoring> {
 //     #[inline(always)]
 //     fn default() -> ProfileAlgorithmScoring {
