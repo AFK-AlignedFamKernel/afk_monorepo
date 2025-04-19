@@ -10,8 +10,8 @@ mod ico_tests {
     use crate::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use crate::interfaces::ico::{
         ContractConfig, IICOConfigDispatcher, IICOConfigDispatcherTrait, IICODispatcher,
-        IICODispatcherTrait, PresaleDetails, PresaleLaunched, TokenStatus, TokenCreated,
-        TokenDetails,
+        IICODispatcherTrait, PresaleDetails, PresaleLaunched, TokenCreated, TokenDetails,
+        TokenStatus,
     };
     use crate::launchpad::ico::ICO;
 

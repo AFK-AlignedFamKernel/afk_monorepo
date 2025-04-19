@@ -1,6 +1,6 @@
 use starknet::storage::Map;
 use starknet::{ClassHash, ContractAddress, get_block_timestamp};
-use crate::types::launchpad_types::{BondingType, TokenQuoteBuyCoin, LiquidityType};
+use crate::types::launchpad_types::{BondingType, LiquidityType, TokenQuoteBuyCoin};
 
 #[starknet::interface]
 pub trait IICO<TContractState> {

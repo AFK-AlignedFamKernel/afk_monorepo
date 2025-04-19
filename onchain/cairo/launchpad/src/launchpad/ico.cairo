@@ -1,6 +1,6 @@
 #[starknet::contract]
 pub mod ICO {
-use core::num::traits::Zero;
+    use core::num::traits::Zero;
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
@@ -10,13 +10,14 @@ use core::num::traits::Zero;
         ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
     };
     use crate::interfaces::ico::{
-        ContractConfig, IICO, IICOConfig, PresaleDetails, PresaleLaunched, TokenStatus,
-        Token, TokenBought, TokenClaimed, TokenCreated, TokenDetails, TokenInitParams,
-        default_presale_details, LaunchConfig, Launch, LaunchParams
+        ContractConfig, IICO, IICOConfig, Launch, LaunchConfig, LaunchParams, PresaleDetails,
+        PresaleLaunched, Token, TokenBought, TokenClaimed, TokenCreated, TokenDetails,
+        TokenInitParams, TokenStatus, default_presale_details,
     };
     use crate::interfaces::unrug::IUnrugLiquidityDispatcher;
+    use crate::launchpad::utils::{calculate_sqrt_ratio, sort_tokens};
     use crate::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use crate::types::launchpad_types::{BondingType, EkuboLP, TokenQuoteBuyCoin};
+    use crate::types::launchpad_types::{BondingType, EkuboLP, TokenQuoteBuyCoin, EkuboUnrugLaunchParameters};
 
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -390,7 +391,10 @@ use core::num::traits::Zero;
                 self.launch.unrug_address.write(val);
             }
             if let Option::Some((fee_amount, fee_to, paid_in)) = config.fee {
-                assert(fee_amount > 0 && fee_to.is_non_zero() && paid_in.is_non_zero(), 'INCORRECT LAUNCH -- FEE');
+                assert(
+                    fee_amount > 0 && fee_to.is_non_zero() && paid_in.is_non_zero(),
+                    'INCORRECT LAUNCH -- FEE',
+                );
                 self.launch.fee_amount.write(fee_amount);
                 self.launch.fee_to.write(fee_to);
                 self.launch.paid_in.write(paid_in);
@@ -455,7 +459,9 @@ use core::num::traits::Zero;
             self.emit(event);
         }
 
-        fn _launch_liquidity(ref self: ContractState, token_address: ContractAddress, bonding_type: BondingType) -> u64 {
+        fn _launch_liquidity(
+            ref self: ContractState, token_address: ContractAddress, bonding_type: BondingType,
+        ) -> u64 {
             let caller = get_caller_address();
             let token = self.tokens.entry(token_address);
             let details = token.presale_details.read();
@@ -470,9 +476,7 @@ use core::num::traits::Zero;
 
             // Check
             let token_quote = TokenQuoteBuyCoin {
-                token_address: details.buy_token,
-                price: details.presale_rate,
-                is_enable: true
+                token_address: details.buy_token, price: details.presale_rate, is_enable: true,
             };
 
             let mut launch_params = LaunchParams {
@@ -483,7 +487,7 @@ use core::num::traits::Zero;
                 launched_at: 0,
             };
 
-            let (id, _) = self._add_liquidity_ekubo(token_address, launch_params);
+            let (id, _) = self._add_liquidity_ekubo(token_address, launch_params, details);
             launch_params.launched_at = get_block_timestamp();
             self.launch.launched_tokens.entry(token_address).write(launch_params);
             self.launch.total_launched.write(self.launch.total_launched.read() + 1);
@@ -491,26 +495,11 @@ use core::num::traits::Zero;
         }
 
         fn _add_liquidity_ekubo(
-            ref self: ContractState, coin_address: ContractAddress, launch: LaunchParams
+            ref self: ContractState, coin_address: ContractAddress, launch: LaunchParams, details: PresaleDetails
         ) -> (u64, EkuboLP) {
-
-              // pub struct Launch {
-            //     pub unrug_address: ContractAddress,
-            //     pub fee_amount: u256,
-            //     pub fee_to: ContractAddress,
-            //     pub paid_in: ContractAddress,
-            //     pub quote_token: ContractAddress,
-            //     pub launched: Map<ContractAddress, TokenLaunch>,
-            //     pub total_launched: u256
-            // }
-
             // Get unrug liquidity contract
             let unrug_address = self.launch.unrug_address.read();
-            let unrug_dispatcher = IUnrugLiquidityDispatcher {
-                contract_address: unrug_address,
-            };
-
-           
+            let unrug_dispatcher = IUnrugLiquidityDispatcher { contract_address: unrug_address };
 
             // Calculate thresholds
             // let threshold_liquidity = launch.threshold_liquidity.clone();
@@ -531,6 +520,8 @@ use core::num::traits::Zero;
 
             // The calculation works with assumption that initial_pool_supply is always higher than
             // threshold_liquidity which should be true Calculate the sqrt ratio
+
+            // CHECK
             let mut sqrt_ratio = calculate_sqrt_ratio(
                 launch.liquidity_raised, launch.initial_pool_supply,
             );
@@ -557,7 +548,7 @@ use core::num::traits::Zero;
 
             // To always handle the same price as if default token is token1
             // The quote token is our default token, leads that we want to price
-            // The memcoin in the value of the quote token, the price ratio is <0,1)
+            // The memcoin in the value of the quote token, the price ratio is <0,1
             // Also this is not ideal way but will works as memecoin supply > default token supply
             // Therefore we know that memecoin is less valued than default token
             if (is_token1_quote) {
@@ -677,8 +668,7 @@ use core::num::traits::Zero;
 
     fn update_status(token: StoragePath<Mutable<Token>>) {
         let details = token.presale_details.read();
-        if token.status.read() == TokenStatus::Presale
-            && details.end_time > get_block_timestamp() {
+        if token.status.read() == TokenStatus::Presale && details.end_time > get_block_timestamp() {
             if token.funds_raised.read() > details.soft_cap {
                 token.successful.write(true);
             }
