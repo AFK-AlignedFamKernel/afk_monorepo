@@ -16,9 +16,10 @@ export const deployNamespace = async () => {
   let namespace;
   let namespaceContract;
 
+  console.log("NOSTR_PUBKEY_ADMIN", process.env.NOSTR_PUBKEY_ADMIN);
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
     console.log("try deploy key marketplace");
-    let namespaceContract = await createNamespace();
+    let namespaceContract = await createNamespace(accountAddress0, process.env.NOSTR_PUBKEY_ADMIN as string);
     console.log(
       "namespace contract address",
       namespaceContract?.contract_address

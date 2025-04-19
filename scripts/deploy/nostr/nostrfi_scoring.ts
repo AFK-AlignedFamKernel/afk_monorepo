@@ -4,14 +4,14 @@ import { NOSTR_FI_SCORING_ADDRESS, CLASS_HASH_NOSTR_FI_SCORING } from "../../con
 import dotenv from "dotenv";
 import { createNostrFiScoring } from "../../utils/nostr/nostrfi_scoring";
 import { prepareAndConnectContract } from "../../utils/contract";
-import { TOKENS_ADDRESS } from "common/src/contracts";
+import { TOKENS_ADDRESS, NAMESPACE_ADDRESS } from "common/src/contracts";
 dotenv.config();
 
 export const deployNostrFiScoring = async () => {
       let nostrFiScoring_address: string | undefined = NOSTR_FI_SCORING_ADDRESS[
     constants.StarknetChainId.SN_SEPOLIA
   ] as any; // change default address
-  console.log("deploy keys");
+  console.log("deploy nostrfi scoring");
   const privateKey0 = process.env.DEV_PK as string;
   const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
   const account = new Account(provider, accountAddress0, privateKey0, "1");
@@ -20,15 +20,17 @@ export const deployNostrFiScoring = async () => {
   const admin_nostr_pubkey = process.env.NOSTR_PUBKEY_ADMIN as string;
 
 
+  const namespace_address = NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as string;
   let nostrFiScoring;
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
     let nostrFiScoringContract = await createNostrFiScoring(
       accountAddress0,
       accountAddress0,
       main_token_address,
-      admin_nostr_pubkey
+      admin_nostr_pubkey,
+      namespace_address
     );
-    console.log("escrow address", nostrFiScoringContract?.contract_address);
+    console.log("nostrFiSc address", nostrFiScoringContract?.contract_address);
     if (nostrFiScoringContract?.contract_address) {
       nostrFiScoring_address = nostrFiScoringContract?.contract_address;
       nostrFiScoring = await prepareAndConnectContract(

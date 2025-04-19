@@ -1,4 +1,4 @@
-import { Account, json } from "starknet";
+import { Account, json, uint256 } from "starknet";
 import fs from "fs";
 import dotenv from "dotenv";
 import { provider } from "./starknet";
@@ -8,15 +8,15 @@ import { finalizeEvent } from "nostr-tools";
 dotenv.config();
 const PATH_NAMESPACE = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_Namespace.contract_class.json"
+  "../../onchain/cairo/afk/target/dev/afk_Namespace.contract_class.json"
 );
 const PATH_NAMESPACE_COMPILED = path.resolve(
   __dirname,
-  "../../onchain/cairo/target/dev/afk_Namespace.compiled_contract_class.json"
+  "../../onchain/cairo/afk/target/dev/afk_Namespace.compiled_contract_class.json"
 );
 
 /** @TODO spec need to be discuss. This function serve as an example */
-export const createNamespace = async () => {
+export const createNamespace = async (adminStarknetAddress: string, adminNostrKey: string) => {
   try {
     console.log("Deploy Namespace");
     // initialize existing predeployed account 0 of Devnet
@@ -26,7 +26,7 @@ export const createNamespace = async () => {
     // Devnet or Sepolia account
     const account0 = new Account(provider, accountAddress0, privateKey0, "1");
     console.log("account0 address", account0?.address);
-    let NamespaceClassHash = process.env.ESCROW_CLASS_HASH as string;
+    let NamespaceClassHash = process.env.NAMESPACE_CLASS_HASH as string;
 
     const compiledSierraNamespace = json.parse(
       fs.readFileSync(PATH_NAMESPACE).toString("ascii")
@@ -70,7 +70,7 @@ export const createNamespace = async () => {
       // });
       // console.log("declareFee", declareFee);
 
-      const declareResponse = await account0.declare({
+      const declareResponse = await account0.declareIfNot({
         contract: compiledSierraNamespace,
         casm: compiledNamespaceCasm,
       });
@@ -78,19 +78,29 @@ export const createNamespace = async () => {
         "Declare deploy Namespace",
         declareResponse?.transaction_hash
       );
-      await provider.waitForTransaction(declareResponse?.transaction_hash);
-      const contractClassHash = declareResponse.class_hash;
-      console.log("Namespace contractClassHash", contractClassHash);
-      NamespaceClassHash = contractClassHash;
 
-      const nonce = await account0?.getNonce();
-      console.log("nonce", nonce);
+      if(declareResponse?.transaction_hash){
+        await provider.waitForTransaction(declareResponse?.transaction_hash);
+        const contractClassHash = declareResponse.class_hash;
+        console.log("Namespace contractClassHash", contractClassHash);
+        NamespaceClassHash = contractClassHash;
+      }
+      // const nonce = await account0?.getNonce();
+      // console.log("nonce", nonce);
     }
+    console.log("deploy namespace");
+    console.log("adminStarknetAddress", adminStarknetAddress);
+    console.log("adminNostrKey", adminNostrKey);
+    const public_key = uint256.bnToUint256(BigInt("0x" + adminNostrKey));
+    console.log("public_key", public_key);
 
     const { transaction_hash, contract_address } =
       await account0.deployContract({
         classHash: NamespaceClassHash,
-        constructorCalldata: [accountAddress0],
+        constructorCalldata: [
+          adminStarknetAddress, 
+          public_key
+        ],
       });
 
     console.log("transaction_hash", transaction_hash);

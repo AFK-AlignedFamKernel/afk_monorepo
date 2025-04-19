@@ -22,6 +22,7 @@ export const createNostrFiScoring = async (
   deployer: string,
   main_token_address: string,
   admin_nostr_pubkey: string,
+  namespace_address: string
 ) => {
   try {
     // initialize existing predeployed account 0 of Devnet
@@ -65,14 +66,16 @@ export const createNostrFiScoring = async (
 
     if (process.env.REDECLARE_CONTRACT == "true") {
       console.log("try declare account");
-      const declareResponse = await account0.declare({
+      const declareResponse = await account0.declareIfNot({
         contract: compiledSierraAAaccount,
         casm: compiledAACasm,
       });
-      console.log("Declare deploy", declareResponse?.transaction_hash);
-      await provider.waitForTransaction(declareResponse?.transaction_hash);
-      const contractClassHash = declareResponse.class_hash;
-      NostrFiScoringClassHash = contractClassHash;
+      console.log("Declare deploy", declareResponse);
+      if(declareResponse?.transaction_hash){
+        await provider.waitForTransaction(declareResponse?.transaction_hash);
+        const contractClassHash = declareResponse.class_hash;
+          NostrFiScoringClassHash = contractClassHash;
+      }
 
       const nonce = await account0?.getNonce();
       console.log("nonce", nonce);
@@ -89,6 +92,7 @@ export const createNostrFiScoring = async (
           deployer,
           main_token_address,
           public_key,
+          namespace_address
         ],
       });
 
