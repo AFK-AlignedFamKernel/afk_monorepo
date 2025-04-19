@@ -372,6 +372,8 @@ model profile_data {
 
   amount_claimed Int?
 
+  is_add_by_admin Boolean?
+
 
   state_per_epoch profile_data_per_epoch[]
 

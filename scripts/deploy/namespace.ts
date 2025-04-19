@@ -1,10 +1,11 @@
 import { provider } from "../utils/starknet";
 
-import { Account, constants } from "starknet";
+import { Account, byteArray, cairo, CallData, constants, uint256 } from "starknet";
 import { NAMESPACE_ADDRESS } from "../constants";
 import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
-import { createNamespace } from "../utils/namespace";
+import { createNamespace, linkedNostrProfile } from "../utils/namespace";
+import { finalizeEvent, serializeEvent, verifyEvent } from "nostr-tools";
 dotenv.config();
 export const deployNamespace = async () => {
   console.log("deploy namespace");
@@ -46,4 +47,8 @@ export const deployNamespace = async () => {
   };
 };
 
-deployNamespace();
+
+
+// deployNamespace();
+
+linkedNostrProfile();

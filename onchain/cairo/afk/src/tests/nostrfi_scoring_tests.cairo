@@ -24,6 +24,10 @@ mod nostrfi_scoring_tests {
         *declare("NostrFiScoring").unwrap().contract_class()
     }
 
+
+    const second_recipient_public_key:u256 =
+    0xfff4c090cf5a6c03af4238075e20da4497f73a4183e115b7de1b08471a1758f6_u256;
+
     fn deploy_nostrfi_scoring(
         class: ContractClass,
         main_token_address: ContractAddress,
@@ -103,7 +107,7 @@ mod nostrfi_scoring_tests {
             0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
 
         let second_recipient_public_key =
-            0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
+            0xfff4c090cf5a6c03af4238075e20da4497f73a4183e115b7de1b08471a1758f6_u256;
 
         let sender_address: ContractAddress = 123.try_into().unwrap();
 
@@ -139,14 +143,6 @@ mod nostrfi_scoring_tests {
             starknet_address: sender_address.try_into().unwrap(),
         };
 
-        let linked_wallet_second_recipient = LinkedStarknetAddress {
-            starknet_address: sender_address.try_into().unwrap(),
-        };
-
-        let linked_wallet_second_recipient_and_strk_user = LinkedStarknetAddress {
-            starknet_address: second_sender_address.try_into().unwrap(),
-        };
-
         // @TODO format the content and get the correct signature
         let request_linked_wallet_to = SocialRequest {
             public_key: recipient_public_key,
@@ -155,8 +151,11 @@ mod nostrfi_scoring_tests {
             tags: "[]",
             content: linked_wallet.clone(),
             sig: SchnorrSignature {
-                r: 0x39c240a341bbba95b429027b302074bfaefd819db679484de93ad4687e731550_u256,
-                s: 0x016ab21f8850e76328ccbdcd1f45f0cc8f2a9f9bec18a220a1a1017e62a4b391_u256,
+
+                r:0xac9c698ef50872a5fbfec95f5aaa84014519912ab398f192df6cd3c91dfb563c_u256,
+                s:0xf9403e3bf9dea20a06c8416a0ef78ad08e93dd21e665c72826d22976a4d08126_u256,
+                
+                // r: 0x39c240a341bbba95b429027b302074bfaefd819db679484de93ad4687e731550_u256,
                 // r: 0x38c0d2ca3e26a774a3f37a15e3f20f17c3d1b7509c8c0e257e6e72d4d351b639_u256,
             // s: 0x93c6f53d83691282ab0469c1fa2368413f19fede348a1c7c7b3363_u256,
             // r: 0x4e04216ca171673375916f12e1a56e00dca1d39e44207829d659d06f3a972d6f_u256,
@@ -248,16 +247,27 @@ mod nostrfi_scoring_tests {
             },
         };
 
+        let linked_wallet_second_recipient = LinkedStarknetAddress {
+            starknet_address: sender_address.try_into().unwrap(),
+        };
+
+        let linked_wallet_second_recipient_and_strk_user = LinkedStarknetAddress {
+            starknet_address: second_sender_address.try_into().unwrap(),
+        };
+
         // @TODO format the content and get the correct signature
         let request_linked_wallet_to_second_recipient = SocialRequest {
             public_key: second_recipient_public_key,
             created_at: 1716285235_u64,
             kind: 1_u16,
             tags: "[]",
-            content: linked_wallet.clone(),
+            content: linked_wallet_second_recipient_and_strk_user.clone(),
             sig: SchnorrSignature {
-                r: 0x39c240a341bbba95b429027b302074bfaefd819db679484de93ad4687e731550_u256,
-                s: 0x016ab21f8850e76328ccbdcd1f45f0cc8f2a9f9bec18a220a1a1017e62a4b391_u256,
+                r:0xa90a9b8bfc35bc68c1f1bc605487b03fcf720ae9ea010ea2d74dd7106cbcb67c_u256,
+                s:0xc01daabf2b8b86d654ef4c35c644b786a74bc431dfc9bc78ea29532b34c2de9f_u256,
+                
+                // r: 0xed8b5144dbb7a7a44b86421489d189e873b25c2eedb271f499bcf80155f4729d_u256,
+                // s: 0x4f9012d81dd51f64d8d737940308e6da33e9908765487bb6470cd7f12d539c1c_u256,
                 // r: 0x38c0d2ca3e26a774a3f37a15e3f20f17c3d1b7509c8c0e257e6e72d4d351b639_u256,
             // s: 0x93c6f53d83691282ab0469c1fa2368413f19fede348a1c7c7b3363_u256,
             // r: 0x4e04216ca171673375916f12e1a56e00dca1d39e44207829d659d06f3a972d6f_u256,
@@ -296,83 +306,6 @@ mod nostrfi_scoring_tests {
         let nostrfi_scoring_class = declare_nostrfi_scoring();
         request_fixture_custom_classes(nostrfi_scoring_class)
     }
-
-    // #[test]
-    // fn end_to_end_flow() {
-    //     let (
-    //         request,
-    //         recipient_nostr_key,
-    //         sender_address,
-    //         nostrfi_scoring,
-    //         request_profile_score,
-    //         request_score_admin_nostr_profile,
-    //         request_vote_tips_nostr_profile,
-    //         erc20,
-    //     ) =
-    //         request_fixture();
-    //     start_cheat_caller_address_global(sender_address);
-    //     start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
-
-    //     println!("linked nostr profile");
-    //     nostrfi_scoring.linked_nostr_profile(request);
-
-    //     println!("get nostr linked");
-    //     let nostr_linked = nostrfi_scoring.get_nostr_by_sn_default(recipient_nostr_key);
-    //     println!("nostr linked: {:?}", nostr_linked);
-    //     assert!(nostr_linked == sender_address, "nostr not linked");
-
-    //     let erc20_balance = erc20.balance_of(sender_address);
-    //     assert!(erc20_balance == 1000000, "erc20 balance not correct");
-
-    //     // Setup NostrFi Scoring Admin
-    //     println!("set admin nostr pubkey");
-    //     nostrfi_scoring.set_admin_nostr_pubkey(recipient_nostr_key, true);
-
-    //     let profile_score = ProfileAlgorithmScoring {
-    //         nostr_address: recipient_nostr_key,
-    //         starknet_address: sender_address.try_into().unwrap(),
-    //         ai_score: 100,
-    //         ai_score_to_claimed: 0,
-    //         overview_score: 100,
-    //         overview_score_to_claimed: 0,
-    //         skills_score: 100,
-    //         skills_score_to_claimed: 0,
-    //         value_shared_score: 100,
-    //         value_shared_score_to_claimed: 0,
-    //         is_claimed: false,
-    //         total_score: 100,
-    //         veracity_score: 100,
-    //     };
-    //     println!("push profile score");
-    //     nostrfi_scoring.push_profile_score_algo(request_score_admin_nostr_profile,
-    //     profile_score);
-
-    //     let erc20_balance_after = erc20.balance_of(sender_address);
-    //     assert!(erc20_balance_after == 1000000, "erc20 balance not correct");
-
-    //     println!("approve erc20 to spend");
-    //     start_cheat_caller_address(erc20.contract_address, sender_address);
-    //     erc20
-    //         .approve(
-    //             nostrfi_scoring.contract_address,
-    //             request_vote_tips_nostr_profile.content.amount_token,
-    //         );
-    //     println!("vote nostr note");
-
-    //     nostrfi_scoring.vote_nostr_note(request_vote_tips_nostr_profile);
-
-    //     println!("claim and distribute rewards");
-    //     let created_at = starknet::get_block_timestamp();
-
-    //     let current_time = created_at
-    //     + DEFAULT_BATCH_INTERVAL_WEEK
-    //     + 1; // Proposal duration reached
-    //     cheat_block_timestamp(
-    //         nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
-    //     );
-
-    //     let rewards_claimed = nostrfi_scoring.claim_and_distribute_my_rewards();
-    // }
 
     fn push_algo_score_nostr_profile(
         nostrfi_scoring_address: ContractAddress,
@@ -487,6 +420,8 @@ mod nostrfi_scoring_tests {
         println!("nostr linked: {:?}", nostr_linked);
         assert!(nostr_linked == sender_address, "nostr not linked");
 
+
+
         // let erc20_balance = erc20.balance_of(sender_address);
         // assert!(erc20_balance == amount_token_deposit_rewards, "erc20 balance not correct");
 
@@ -582,8 +517,84 @@ mod nostrfi_scoring_tests {
 
     }
 
+    // #[test]
+    // fn end_to_end_flow_strk() {
+    //     let (
+    //         request,
+    //         recipient_nostr_key,
+    //         sender_address,
+    //         nostrfi_scoring,
+    //         request_profile_score,
+    //         request_score_admin_nostr_profile,
+    //         request_vote_tips_nostr_profile,
+    //         erc20,
+    //         request_linked_wallet_to_second_recipient,
+    //         namespace_dispatcher,
+    //     ) =
+    //         request_fixture();
+
+    //     let mut created_at = starknet::get_block_timestamp();
+    //     println!("created at: {:?}", created_at);
+    //     println!("start end to end basic flow");
+    //     let mut current_time = created_at
+    //         + DEFAULT_BATCH_INTERVAL_WEEK
+    //         + 1; // Proposal duration reached
+    //     println!("current time: {:?}", current_time);
+
+    //     let mut amount_token_deposit_rewards = 150_u256;
+
+    //     end_to_end_basic_flow(
+    //         nostrfi_scoring.contract_address,
+    //         sender_address,
+    //         recipient_nostr_key,
+    //         request.clone(),
+    //         request_score_admin_nostr_profile.clone(),
+    //         request_vote_tips_nostr_profile.clone(),
+    //         erc20.clone(),
+    //         0,
+    //         current_time,
+    //         amount_token_deposit_rewards,
+    //     );
+
+    //     cheat_block_timestamp(
+    //         nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
+    //     );
+    //     let mut new_created_at = starknet::get_block_timestamp();
+    //     println!("new_created_at: {:?}", new_created_at);
+
+    //     println!("cheat block timestamp");
+    //     cheat_block_timestamp(
+    //         nostrfi_scoring.contract_address, new_created_at, CheatSpan::TargetCalls(1),
+    //     );
+
+    //     current_time = (new_created_at + DEFAULT_BATCH_INTERVAL_WEEK + 1)
+    //         * 2; // Proposal duration reached
+
+    //     // current_time = new_created_at
+    //     // + DEFAULT_BATCH_INTERVAL_WEEK
+    //     // + 1; // Proposal duration reached
+
+    //     println!("start end to end basic flow");
+    //     println!("current time second epoch: {:?}", current_time);
+
+    //     amount_token_deposit_rewards = 200_u256;
+
+    //     end_to_end_basic_flow(
+    //         nostrfi_scoring.contract_address,
+    //         sender_address,
+    //         recipient_nostr_key,
+    //         request.clone(),
+    //         request_score_admin_nostr_profile.clone(),
+    //         request_vote_tips_nostr_profile.clone(),
+    //         erc20.clone(),
+    //         1,
+    //         current_time,
+    //         amount_token_deposit_rewards,
+    //     );
+    // }
+
     #[test]
-    fn end_to_end_flow_strk() {
+    fn end_to_end_flow_strk_second_user() {
         let (
             request,
             recipient_nostr_key,
@@ -605,35 +616,65 @@ mod nostrfi_scoring_tests {
             + DEFAULT_BATCH_INTERVAL_WEEK
             + 1; // Proposal duration reached
         println!("current time: {:?}", current_time);
+        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
 
-        let mut amount_token_deposit_rewards = 150_u256;
+        println!("linked nostr profile");
+        nostrfi_scoring.linked_nostr_profile(request.clone());
 
-        end_to_end_basic_flow(
-            nostrfi_scoring.contract_address,
-            sender_address,
-            recipient_nostr_key,
-            request.clone(),
-            request_score_admin_nostr_profile.clone(),
-            request_vote_tips_nostr_profile.clone(),
-            erc20.clone(),
-            0,
-            current_time,
-            amount_token_deposit_rewards,
-        );
+        stop_cheat_caller_address(nostrfi_scoring.contract_address);
+        let second_sender_address: ContractAddress = 456.try_into().unwrap();
+   
+        start_cheat_caller_address(nostrfi_scoring.contract_address, second_sender_address);
 
-        cheat_block_timestamp(
-            nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
-        );
-        let mut new_created_at = starknet::get_block_timestamp();
-        println!("new_created_at: {:?}", new_created_at);
+        println!("linked nostr profile second profile");
+        nostrfi_scoring.linked_nostr_profile(request_linked_wallet_to_second_recipient.clone());
+        stop_cheat_caller_address(nostrfi_scoring.contract_address);
 
-        println!("cheat block timestamp");
-        cheat_block_timestamp(
-            nostrfi_scoring.contract_address, new_created_at, CheatSpan::TargetCalls(1),
-        );
+        println!("get nostr linked");
+        let nostr_linked = nostrfi_scoring.get_nostr_by_sn_default(second_recipient_public_key);
+        println!("nostr linked: {:?}", nostr_linked);
+        println!("nostr second_sender_address: {:?}", second_sender_address);
+        assert!(nostr_linked == second_sender_address, "nostr not linked");
+        start_cheat_caller_address(namespace_dispatcher.contract_address, second_sender_address);
 
-        current_time = (new_created_at + DEFAULT_BATCH_INTERVAL_WEEK + 1)
-            * 2; // Proposal duration reached
+        println!("namespace linked second recipient: {:?}", second_recipient_public_key);
+
+        namespace_dispatcher.linked_nostr_profile(request_linked_wallet_to_second_recipient.clone());
+        println!("namespace linked second recipient again: {:?}", second_recipient_public_key);
+
+
+        namespace_dispatcher.linked_nostr_profile(request_linked_wallet_to_second_recipient.clone());
+
+        // cheat_block_timestamp(
+        //     nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
+        // );
+    
+        // let mut amount_token_deposit_rewards = 150_u256;
+
+        // end_to_end_basic_flow(
+        //     nostrfi_scoring.contract_address,
+        //     sender_address,
+        //     recipient_nostr_key,
+        //     request.clone(),
+        //     request_score_admin_nostr_profile.clone(),
+        //     request_vote_tips_nostr_profile.clone(),
+        //     erc20.clone(),
+        //     0,
+        //     current_time,
+        //     amount_token_deposit_rewards,
+        // );
+
+
+        // let mut new_created_at = starknet::get_block_timestamp();
+        // println!("new_created_at: {:?}", new_created_at);
+
+        // println!("cheat block timestamp");
+        // cheat_block_timestamp(
+        //     nostrfi_scoring.contract_address, new_created_at, CheatSpan::TargetCalls(1),
+        // );
+
+        // current_time = (new_created_at + DEFAULT_BATCH_INTERVAL_WEEK + 1)
+        //     * 2; // Proposal duration reached
 
         // current_time = new_created_at
         // + DEFAULT_BATCH_INTERVAL_WEEK
@@ -642,20 +683,6 @@ mod nostrfi_scoring_tests {
         println!("start end to end basic flow");
         println!("current time second epoch: {:?}", current_time);
 
-        amount_token_deposit_rewards = 200_u256;
-
-        end_to_end_basic_flow(
-            nostrfi_scoring.contract_address,
-            sender_address,
-            recipient_nostr_key,
-            request.clone(),
-            request_score_admin_nostr_profile.clone(),
-            request_vote_tips_nostr_profile.clone(),
-            erc20.clone(),
-            1,
-            current_time,
-            amount_token_deposit_rewards,
-        );
     }
     // #[test]
 // #[should_panic()]

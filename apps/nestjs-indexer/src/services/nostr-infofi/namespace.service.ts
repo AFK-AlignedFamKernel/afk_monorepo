@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { NostrInfofiInterface, LinkedDefaultStarknetAddressEventInterface, DepositRewardsByUserEventInterface, DistributionRewardsByUserEventInterface, NewEpochEventInterface } from './interfaces';
+import { FieldElement } from '@apibara/starknet';
 import { feltToAddress } from '../helpers';
-
 @Injectable()
-export class NostrInfofiService {
-  private readonly logger = new Logger(NostrInfofiService.name);
+export class NamespaceService {
+  private readonly logger = new Logger(NamespaceService.name);
   constructor(private readonly prismaService: PrismaService) { }
 
 
@@ -13,12 +13,13 @@ export class NostrInfofiService {
     try {
       console.log("createOrUpdateNostrAddressByAdmin", data);
       const nostrAddressString = feltToAddress(BigInt(data.nostr_address));
-        
+
       const userData = await this.prismaService.profile_data.findFirst({
         where: {
           nostr_id: nostrAddressString,
         },
       });
+
 
       if (!userData) {
         this.logger.error(
@@ -61,22 +62,21 @@ export class NostrInfofiService {
   async createOrUpdateLinkedDefaultStarknetAddress(data: LinkedDefaultStarknetAddressEventInterface) {
     try {
       console.log("createOrUpdateLinkedDefaultStarknetAddress", data);
-      const nostrAddressString = feltToAddress(BigInt(data.nostr_address));
 
       const userData = await this.prismaService.profile_data.findFirst({
         where: {
-          nostr_id: nostrAddressString,
+          nostr_id: data.nostr_address,
         },
       });
 
       if (!userData) {
         this.logger.error(
-          `User data not found for nostr address: ${nostrAddressString}`,
+          `User data not found for nostr address: ${data.nostr_address}`,
         );
 
         await this.prismaService.profile_data.create({
           data: {
-            nostr_id: nostrAddressString,
+            nostr_id: data.nostr_address,
             starknet_address: data.starknet_address,
           },
         });
@@ -85,12 +85,12 @@ export class NostrInfofiService {
 
       await this.prismaService.profile_data.update({
         where: {
-          nostr_id: nostrAddressString,
+          nostr_id: data.nostr_address,
         },
         data: {
           starknet_address: data.starknet_address,
           nostr_event_id: data.nostr_event_id,
-          nostr_id: nostrAddressString,
+          nostr_id: data.nostr_address,
         },
       });
 
@@ -186,7 +186,6 @@ export class NostrInfofiService {
   async createOrUpdateDepositRewardsByUser(data: DepositRewardsByUserEventInterface) {
     try {
       console.log("createOrUpdateDepositRewardsByUser", data);
-      const nostrAddressString = feltToAddress(BigInt(data.nostr_address));
 
       const epochData = await this.prismaService.epoch_data.findUnique({
         where: {
@@ -240,7 +239,6 @@ export class NostrInfofiService {
           epoch_index: data.current_index_epoch.toString(),
         },
       });
-      const nostrAddressString = feltToAddress(BigInt(data.nostr_address));
 
       if (!epochData) {
 
@@ -273,20 +271,20 @@ export class NostrInfofiService {
 
       const userData = await this.prismaService.profile_data.findFirst({
         where: {
-          nostr_id: nostrAddressString,
+          nostr_id: data.nostr_address,
         },
       });
 
       if (!userData) {
         this.logger.error(
-          `User data not found for nostr address: ${nostrAddressString}`,
+          `User data not found for nostr address: ${data.nostr_address}`,
         );
         return;
       }
 
       await this.prismaService.profile_data.update({
         where: {
-          nostr_id: nostrAddressString,
+          nostr_id: data.nostr_address,
         },
         data: {
           amount_claimed: Number(data.amount_total),

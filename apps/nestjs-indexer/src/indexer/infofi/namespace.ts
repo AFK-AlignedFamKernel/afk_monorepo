@@ -5,16 +5,15 @@ import constants from 'src/common/constants';
 import { hash, uint256, validateAndParseAddress } from 'starknet';
 import { IndexerService } from '../indexer.service';
 import { ContractAddress } from 'src/common/types';
-import { NostrInfofiService } from 'src/services/nostr-infofi/nostr-infofi.service';
-
+import { NamespaceService } from 'src/services/nostr-infofi/namespace.service';
 @Injectable()
 export class NamespaceIndexer {
   private readonly logger = new Logger(NamespaceIndexer.name);
   private readonly eventKeys: string[];
 
   constructor(
-    @Inject(NostrInfofiService)
-    private readonly nostrInfofiService: NostrInfofiService,
+    @Inject(NamespaceService)
+    private readonly nostrInfofiService: NamespaceService,
     @Inject(IndexerService)
     private readonly indexerService: IndexerService,
   ) {
@@ -48,10 +47,7 @@ export class NamespaceIndexer {
         this.logger.log('Event name: AdminAddNostrProfile');
         await this.handleAdminAddNostrProfileEvent(header, event, transaction);
         break;
-      case validateAndParseAddress(hash.getSelectorFromName('TipUserWithVote')):
-        this.logger.log('Event name: TipUserWithVote');
-        await this.handleTipUserWithVoteEvent(header, event, transaction);
-        break;
+
       default:
         this.logger.warn(`Unknown event type: ${eventKey}`);
     }
@@ -82,19 +78,12 @@ export class NamespaceIndexer {
     const transferId = `${transactionHash}_${event.index}`;
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, nostrPubkeyLow, nostrPubkeyHigh, starknetAddressFelt] = event.keys;
-
+    const [_, nostrPubkeyLow, nostrPubkeyHigh] = event.keys;
 
     const nostrPubkeyRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(nostrPubkeyLow),
       high: FieldElement.toBigInt(nostrPubkeyHigh),
     });
-
-    const starknetAddress = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(starknetAddressFelt).toString(16)}`,
-    ) as ContractAddress;
-
-
 
     const data = {
       transferId,
@@ -104,7 +93,7 @@ export class NamespaceIndexer {
       blockHash,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
       nostr_address: nostrPubkeyRaw.toString(),
-      starknet_address: starknetAddress,
+      starknet_address: "0",
       contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
     };
 

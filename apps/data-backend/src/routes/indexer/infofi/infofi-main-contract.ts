@@ -43,40 +43,6 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
 
 
 
-  fastify.get<{
-    Params: EpochStateParams;
-  }>('/main-sub/epoch-state/:epoch_index', async (request, reply) => {
-    try {
-      const { epoch_index } = request.params;
-      if (!isValidStarknetAddress(epoch_index)) {
-        reply.status(HTTPStatus.BadRequest).send({
-          code: HTTPStatus.BadRequest,
-          message: 'Invalid token address',
-        });
-        return;
-      }
-
-      const epochState = await prisma.epoch_data.findFirst({
-        where: {
-          epoch_index: epoch_index,
-        },
-        select: {
-          epoch_index: true,
-          start_duration: true,
-          end_duration: true,
-          epoch_duration: true,
-
-        },
-      });
-
-      reply.status(HTTPStatus.OK).send({
-        data: epochState,
-      });
-    } catch (error) {
-      console.error('Error deploying launch:', error);
-      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
-    }
-  });
 
   fastify.get<{
     Params: TipUserParams;
@@ -221,8 +187,6 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
     }
   });
 
-
-
   fastify.get('/main-sub/epoch-state', async (request, reply) => {
     try {
       const epochState = await prisma.epoch_data.findMany({
@@ -260,6 +224,7 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
         });
         return;
       }
+
       const epochState = await prisma.epoch_data.findFirst({
         where: {
           epoch_index: epoch_index,
@@ -281,10 +246,15 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
         data: epochState,
       });
     } catch (error) {
-      console.error('Error InfoFi get epoch state:', error);
+      console.error('Error deploying launch:', error);
       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
+
+
+
+
+
 
 
 

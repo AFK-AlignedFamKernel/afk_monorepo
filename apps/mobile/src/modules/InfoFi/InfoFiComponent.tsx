@@ -20,6 +20,8 @@ import { AddPostIcon } from 'src/assets/icons';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from 'src/types';
 import { useNamespace } from '../../hooks/infofi/useNamespace';
+import { NAMESPACE_ADDRESS, NOSTR_FI_SCORING_ADDRESS } from 'common';
+import { constants } from 'starknet';
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
 }
@@ -27,7 +29,7 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
   isButtonInstantiateEnable,
 }) => {
   const styles = useStyles(stylesheet);
-  const account = useAccount();
+  const {account} = useAccount();
   const { launches: launchesData, isLoading, isFetching, tokens: tokensData, setTokens: setTokensData, setLaunches: setLaunchesData } = useCombinedTokenData();
   const { width } = useWindowDimensions();
   const walletModal = useWalletModal();
@@ -143,7 +145,7 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
 
   // const [isLaunchedView, setIsLaunchedView] = useState(false);
 
-  const {handleLinkNamespaceFromNostrScore} = useNamespace();
+  const {handleLinkNamespaceFromNostrScore, handleLinkNamespace} = useNamespace();
   const isLaunchedView = tokenOrLaunch === "LAUNCH" || tokenOrLaunch === "MY_LAUNCH_TOKEN";
 
   // const isLauc
@@ -174,6 +176,19 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
   console.log("isLaunchedView", isLaunchedView);
 
 
+
+  const handleSubscription = async() => {
+    // handleLinkNamespaceFromNostrScore(account);
+    const resNamespace = await handleLinkNamespace();
+    console.log('resNamespace', resNamespace);
+    // const resNamespace = await handleLinkNamespace(account, NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]);
+    // console.log('resNamespace', resNamespace);
+
+    // const resNostrScore = await handleLinkNamespace(account, NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] ?? '');
+    // const resNostrScore = await handleLinkNamespaceFromNostrScore(account, NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] ?? '');
+    // console.log('resNostrScore', resNostrScore);
+  }
+
   return (
     <View style={styles.container}>
       {/* {isButtonInstantiateEnable && (
@@ -193,14 +208,12 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
 
          {isButtonInstantiateEnable && (
         <Button
-          onPress={() => {
-            
-          }}
+          onPress={handleSubscription}
           variant="primary"
           style={styles.createTokenButton}
           textStyle={styles.createTokenButtonText}
         >
-          <Text>Create your token</Text>
+          <Text>Subscribe to InfoFi</Text>
         </Button>
       )}
 

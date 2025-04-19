@@ -265,17 +265,18 @@ impl LinkedWalletDefault of Default<LinkedWalletProfileDefault> {
     }
 }
 
-
 // TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
 pub impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
     fn encode(self: @LinkedStarknetAddress) -> @ByteArray {
-        let recipient_address_user_felt: felt252 = self
-            .starknet_address
-            .clone()
-            .try_into()
-            .unwrap();
+        // let recipient_address_user_felt: felt252 = self
+        //     .starknet_address
+        //     .clone()
+        //     .try_into()
+        //     .unwrap();
+        let recipient_address: felt252 = (*self.starknet_address).into();
 
-        @format!("link to {:?}", recipient_address_user_felt)
+        // @format!("link to {:?}", recipient_address_user_felt)
+        @format!("link {}", recipient_address)
     }
 }
 
@@ -764,19 +765,6 @@ pub impl NostrAccountParamsDefault of Default<NostrAccountParams> {
     }
 }
 
-
-// TODO fix the Content format for NostruPublicKey as felt252 to send the same as the Nostr content
-// impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
-//     fn encode(self: @LinkedStarknetAddress) -> @ByteArray {
-//         let recipient_address_user_felt: felt252 = self
-//             .starknet_address
-//             .clone()
-//             .try_into()
-//             .unwrap();
-
-//         @format!("link to {:?}", recipient_address_user_felt)
-//     }
-// }
 
 pub impl LinkedStarknetAddressImpl of ConvertToBytes<LinkedStarknetAddress> {
     fn convert_to_bytes(self: @LinkedStarknetAddress) -> ByteArray {

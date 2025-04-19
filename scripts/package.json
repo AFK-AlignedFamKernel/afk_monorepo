@@ -41,7 +41,8 @@
     "nostr-tools": "^2.5.2",
     "path": "^0.12.7",
     "starknet": "^6.11.0",
-    "ws": "^8.17.0"
+    "ws": "^8.17.0",
+    "@noble/hashes": "^1.2.1"
   },
   "devDependencies": {
     "@types/chai": "^4.3.16",

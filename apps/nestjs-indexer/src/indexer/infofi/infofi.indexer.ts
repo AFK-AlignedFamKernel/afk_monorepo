@@ -270,6 +270,10 @@ export class InfoFiIndexer {
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
       starknet_address: starknetAddress,
       contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
+      amount_algo: amountToken,
+      amount_vote: amountToken,
+      amount_total: amountToken,
+      nostr_address: "0",
     };
 
     await this.nostrInfofiService.createOrUpdateDepositRewardsByUser(data);

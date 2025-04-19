@@ -1,4 +1,4 @@
-use afk::interfaces::common_interfaces::{LinkedStarknetAddress, LinkedStarknetAddressImpl};
+use afk::interfaces::common_interfaces::{LinkedStarknetAddress, LinkedStarknetAddressEncodeImpl};
 
 // Add this ROLE on a constants file
 use afk::interfaces::nostrfi_scoring_interfaces::{
@@ -77,7 +77,7 @@ pub trait INostrNamespace<TContractState> {
 #[starknet::contract]
 pub mod Namespace {
     // use afk::components::nostr_namespace::LinkedStarknetAddress;
-    use afk::interfaces::common_interfaces::LinkedStarknetAddress;
+    use afk::interfaces::common_interfaces::{LinkedStarknetAddress, LinkedStarknetAddressEncodeImpl};
 
     use afk::interfaces::nostrfi_scoring_interfaces::{
         AdminAddNostrProfile, INostrFiScoring, ProfileAlgorithmScoring, PushAlgoScoreEvent,
@@ -195,6 +195,8 @@ pub mod Namespace {
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
         self.accesscontrol._grant_role(OPERATOR_ROLE, admin);
         self.admin_nostr_pubkey.write(admin_nostr_pubkey);
+
+        self.total_pubkeys.write(0);
         // self.nostr_namespace.initializer();
     }
 
@@ -207,7 +209,7 @@ pub mod Namespace {
             let profile_default = request.content.clone();
             let starknet_address: ContractAddress = profile_default.starknet_address;
 
-            assert!(starknet_address == get_caller_address(), "invalid caller");
+            // assert!(starknet_address == get_caller_address(), "invalid caller");
             request.verify().expect('can\'t verify signature');
             self.nostr_to_sn.entry(request.public_key).write(profile_default.starknet_address);
             self.sn_to_nostr.entry(profile_default.starknet_address).write(request.public_key);

@@ -81,6 +81,12 @@ export class IndexerService {
       validateAndParseAddress(
         constants.contracts.sepolia.ESCROW_DEPOSIT_ADDRESS,
       ),
+      validateAndParseAddress(
+        constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
+      ),
+      validateAndParseAddress(
+        constants.contracts.sepolia.NAMESPACE_ADDRESS,
+      ),
     ].map((address) => FieldElement.fromBigInt(BigInt(address)));
 
     contractAddressFieldElements.forEach((contractAddressFieldElement) => {
