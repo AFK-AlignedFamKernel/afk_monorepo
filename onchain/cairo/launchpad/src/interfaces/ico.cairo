@@ -1,13 +1,9 @@
 use starknet::storage::Map;
 use starknet::{ClassHash, ContractAddress, get_block_timestamp};
-use crate::types::launchpad_types::BondingType;
+use crate::types::launchpad_types::{BondingType, TokenQuoteBuyCoin, LiquidityType};
 
 #[starknet::interface]
 pub trait IICO<TContractState> {
-    /// This function never stores the created token, because the `launch_presale` takes in a token
-    /// address that might also not be stored. Whether the token_address exists or not is up to the
-    /// caller.
-    /// Here, anybody can create a token.
     fn create_token(ref self: TContractState, token_details: TokenDetails) -> ContractAddress;
     fn launch_presale(
         ref self: TContractState,
@@ -15,9 +11,6 @@ pub trait IICO<TContractState> {
         presale_details: Option<PresaleDetails>,
     );
     // fn launch_dutch_auction(ref self: TContractState);
-
-    /// This function first checks if the token liquidity providing phase has reached, and makes
-    /// necessary changes
     fn launch_liquidity(
         ref self: TContractState, token_address: ContractAddress, bonding_type: Option<BondingType>,
     ) -> u64;
@@ -41,7 +34,6 @@ pub trait IICOConfig<TContractState> {
     fn set_config(ref self: TContractState, config: ContractConfig);
     fn set_liquidity_config(ref self: TContractState, config: LaunchConfig);
 }
-
 
 // TODO:
 // To be edited
@@ -120,12 +112,16 @@ pub struct Launch {
     pub fee_amount: u256,
     pub fee_to: ContractAddress,
     pub paid_in: ContractAddress,
+    pub quote_token: ContractAddress,
+    pub launched_tokens: Map<ContractAddress, LaunchParams>,
+    pub total_launched: u256,
 }
 
 #[derive(Drop, Copy, Serde)]
 pub struct LaunchConfig {
     pub unrug_address: Option<ContractAddress>,
-    pub fee: Option<(u256, ContractAddress, ContractAddress)>, // amount => to
+    pub fee: Option<(u256, ContractAddress, ContractAddress)>, // amount, to, in
+    pub quote_token: Option<ContractAddress>,
 }
 
 #[derive(Drop, Copy, Default, Serde, PartialEq, starknet::Store)]
@@ -211,4 +207,35 @@ pub struct TokenClaimed {
     pub recipient: ContractAddress,
     pub amount: u256,
     pub claimed_at: u64,
+}
+
+#[derive(Drop, Copy, starknet::Store)]
+pub struct LaunchParams {
+    pub bonding_type: BondingType,
+    pub token_quote: TokenQuoteBuyCoin,
+    pub liquidity_type: Option<LiquidityType>,
+    pub starting_price: u256,
+    pub launched_at: u64,
+}
+
+pub struct TokenLaunch {
+    pub owner: ContractAddress, // Can be the launchpad at one time and reset to the creator after launch on DEX
+    pub creator: ContractAddress,
+    pub token_address: ContractAddress,
+    pub price: u256, // Last price of the token. In TODO
+    pub available_supply: u256, // Available to buy
+    pub initial_pool_supply: u256, // Liquidity token to add in the DEX
+    pub initial_available_supply: u256, // Init available to buy
+    pub total_supply: u256, // Total supply to buy
+    pub bonding_curve_type: BondingType,
+    pub created_at: u64,
+    pub token_quote: TokenQuoteBuyCoin, // Token launched
+    pub liquidity_raised: u256, // Amount of quote raised. Need to be below threshold
+    pub total_token_holded: u256, // Number of token holded and buy
+    pub is_liquidity_launch: bool, // Liquidity launch through Ekubo or Unrug
+    pub slope: u256,
+    pub threshold_liquidity: u256, // Amount of maximal quote token to paid the coin launched
+    pub liquidity_type: Option<LiquidityType>,
+    pub starting_price: u256,
+    pub protocol_fee_percent: u256,
 }

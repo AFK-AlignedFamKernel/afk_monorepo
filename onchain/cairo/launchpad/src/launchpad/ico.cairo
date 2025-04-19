@@ -1,6 +1,6 @@
 #[starknet::contract]
 pub mod ICO {
-    use core::num::traits::Zero;
+use core::num::traits::Zero;
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
@@ -12,11 +12,11 @@ pub mod ICO {
     use crate::interfaces::ico::{
         ContractConfig, IICO, IICOConfig, PresaleDetails, PresaleLaunched, TokenStatus,
         Token, TokenBought, TokenClaimed, TokenCreated, TokenDetails, TokenInitParams,
-        default_presale_details, LaunchConfig, Launch
+        default_presale_details, LaunchConfig, Launch, LaunchParams
     };
     use crate::interfaces::unrug::IUnrugLiquidityDispatcher;
     use crate::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use crate::types::launchpad_types::{BondingType, EkuboLP, TokenLaunch};
+    use crate::types::launchpad_types::{BondingType, EkuboLP, TokenQuoteBuyCoin};
 
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -28,7 +28,6 @@ pub mod ICO {
         token_list: Vec<ContractAddress>,
         launch: Launch,
         token_init: TokenInitParams,
-        launched: Map<ContractAddress, TokenLaunch>,
         presale_count: u256,
         token_class_hash: ClassHash,
         exchange_address: ContractAddress,
@@ -208,18 +207,14 @@ pub mod ICO {
 
             let exchange_address = self.exchange_address.read();
             assert(exchange_address.is_non_zero(), 'EXCHANGE ADDRESS IS ZERO');
-            // Launch the liquidity here
-            // Incomplete yet
-
-            // TODO
-            // Then change to active.
             let b = match bonding_type {
                 Option::Some(val) => val,
                 _ => BondingType::Exponential,
-            }
+            };
             let id = self._launch_liquidity(token_address, b);
             token.status.write(TokenStatus::Active);
-            // emit LiquidityLaunched
+
+            // TODO: emit LiquidityLaunched
             id
         }
 
@@ -394,6 +389,16 @@ pub mod ICO {
                 assert(val.is_non_zero(), 'ZERO UNRUG ADDRESS');
                 self.launch.unrug_address.write(val);
             }
+            if let Option::Some((fee_amount, fee_to, paid_in)) = config.fee {
+                assert(fee_amount > 0 && fee_to.is_non_zero() && paid_in.is_non_zero(), 'INCORRECT LAUNCH -- FEE');
+                self.launch.fee_amount.write(fee_amount);
+                self.launch.fee_to.write(fee_to);
+                self.launch.paid_in.write(paid_in);
+            }
+            if let Option::Some(val) = config.quote_token {
+                assert(val.is_non_zero(), 'QUOTE TOKEN IS ZERO');
+                self.launch.quote_token.write(val);
+            }
         }
     }
 
@@ -450,23 +455,51 @@ pub mod ICO {
             self.emit(event);
         }
 
-        fn _launch_liquidity(ref self: ContractState, token_address: ContractAddress, bonding_type: BondingType) {
-            // launch token, and then add liquidity to ekubo
+        fn _launch_liquidity(ref self: ContractState, token_address: ContractAddress, bonding_type: BondingType) -> u64 {
+            let caller = get_caller_address();
+            let token = self.tokens.entry(token_address);
+            let details = token.presale_details.read();
 
+            // Resolve payment if payment is required for launch
+            let fee = self.launch.fee_amount.read();
+            if fee > 0 {
+                let address = self.launch.paid_in.read();
+                let dispatcher = IERC20Dispatcher { contract_address: address };
+                dispatcher.transfer_from(caller, self.launch.fee_to.read(), fee);
+            }
+
+            // Check
+            let token_quote = TokenQuoteBuyCoin {
+                token_address: details.buy_token,
+                price: details.presale_rate,
+                is_enable: true
+            };
+
+            let mut launch_params = LaunchParams {
+                bonding_type,
+                token_quote,
+                liquidity_type: Option::None,
+                starting_price: details.listing_rate,
+                launched_at: 0,
+            };
+
+            let (id, _) = self._add_liquidity_ekubo(token_address, launch_params);
+            launch_params.launched_at = get_block_timestamp();
+            self.launch.launched_tokens.entry(token_address).write(launch_params);
+            self.launch.total_launched.write(self.launch.total_launched.read() + 1);
+            id
         }
 
         fn _add_liquidity_ekubo(
-            ref self: ContractState, coin_address: ContractAddress,
+            ref self: ContractState, coin_address: ContractAddress, launch: LaunchParams
         ) -> (u64, EkuboLP) {
             // Get unrug liquidity contract
-            let unrug_liquidity_address = self.liquidity.unrug.read();
-            let unrug_liquidity = IUnrugLiquidityDispatcher {
+            let unrug_address = self.launch.
+            let unrug_dispatcher = IUnrugLiquidityDispatcher {
                 contract_address: unrug_liquidity_address,
             };
 
-            // Get launch info and validate
-            let launch = self.launched_coins.read(coin_address);
-            assert(launch.is_liquidity_launch, errors::LIQUIDITY_ALREADY_LAUNCHED);
+           
 
             // Calculate thresholds
             // let threshold_liquidity = launch.threshold_liquidity.clone();
@@ -633,7 +666,7 @@ pub mod ICO {
 
     fn update_status(token: StoragePath<Mutable<Token>>) {
         let details = token.presale_details.read();
-        if token.status.read() == TokenStatus::Launched
+        if token.status.read() == TokenStatus::Presale
             && details.end_time > get_block_timestamp() {
             if token.funds_raised.read() > details.soft_cap {
                 token.successful.write(true);
