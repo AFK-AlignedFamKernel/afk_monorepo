@@ -1,5 +1,6 @@
 use starknet::storage::Map;
 use starknet::{ClassHash, ContractAddress, get_block_timestamp};
+use crate::types::launchpad_types::BondingType;
 
 #[starknet::interface]
 pub trait IICO<TContractState> {
@@ -17,7 +18,9 @@ pub trait IICO<TContractState> {
 
     /// This function first checks if the token liquidity providing phase has reached, and makes
     /// necessary changes
-    fn launch_liquidity_providing(ref self: TContractState, token_address: ContractAddress);
+    fn launch_liquidity(
+        ref self: TContractState, token_address: ContractAddress, bonding_type: Option<BondingType>,
+    ) -> u64;
 
     /// Buys a certain amount of token with `token_address` worth of `amount`
     ///
@@ -36,7 +39,30 @@ pub trait IICO<TContractState> {
 #[starknet::interface]
 pub trait IICOConfig<TContractState> {
     fn set_config(ref self: TContractState, config: ContractConfig);
+    fn set_liquidity_config(ref self: TContractState, config: LaunchConfig);
 }
+
+
+// TODO:
+// To be edited
+pub fn default_presale_details() -> PresaleDetails {
+    PresaleDetails {
+        buy_token: ETH,
+        presale_rate: 0,
+        whitelist: false,
+        soft_cap: 0,
+        hard_cap: 0,
+        liquidity_percentage: 0,
+        listing_rate: 0,
+        start_time: get_block_timestamp(),
+        end_time: get_block_timestamp() + 100000,
+        liquidity_lockup: get_block_timestamp() + (60 * 24 * 30 * 30) // in seconds
+    }
+}
+
+const ETH: ContractAddress = 0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
+    .try_into()
+    .unwrap();
 
 /// CREATE A TOKEN AND LAUNCH, OR INPUT THE TOKEN ADDRESS FOR PRESALE
 ///
@@ -70,36 +96,13 @@ pub struct PresaleDetails {
 pub struct Token {
     pub owner_access: Option<ContractAddress>,
     pub presale_details: PresaleDetails,
-    pub status: PresaleStatus,
+    pub status: TokenStatus,
     pub current_supply: u256,
     pub funds_raised: u256,
     pub whitelist: Map<ContractAddress, bool>,
     pub buyers: Map<ContractAddress, u256>, // with buy_token
     pub holders: Map<ContractAddress, u256>, // holders of token
     pub successful: bool,
-}
-
-#[derive(Drop, Copy, Default, Serde, PartialEq, starknet::Store)]
-pub enum PresaleStatus {
-    #[default]
-    None,
-    Launched,
-    Finalized,
-    Active,
-    Finished,
-}
-
-impl StatusIntoU8 of Into<PresaleStatus, u8> {
-    #[inline(always)]
-    fn into(self: PresaleStatus) -> u8 {
-        match self {
-            PresaleStatus::None => 0,
-            PresaleStatus::Launched => 1,
-            PresaleStatus::Finalized => 2,
-            PresaleStatus::Active => 3,
-            PresaleStatus::Finished => 4,
-        }
-    }
 }
 
 #[starknet::storage_node]
@@ -111,26 +114,42 @@ pub struct TokenInitParams {
     pub accepted_buy_tokens: Map<ContractAddress, bool>,
 }
 
-// TODO:
-// To be edited
-pub fn default_presale_details() -> PresaleDetails {
-    PresaleDetails {
-        buy_token: ETH,
-        presale_rate: 0,
-        whitelist: false,
-        soft_cap: 0,
-        hard_cap: 0,
-        liquidity_percentage: 0,
-        listing_rate: 0,
-        start_time: get_block_timestamp(),
-        end_time: get_block_timestamp() + 100000,
-        liquidity_lockup: get_block_timestamp() + (60 * 24 * 30 * 30) // in seconds
-    }
+#[starknet::storage_node]
+pub struct Launch {
+    pub unrug_address: ContractAddress,
+    pub fee_amount: u256,
+    pub fee_to: ContractAddress,
+    pub paid_in: ContractAddress,
 }
 
-const ETH: ContractAddress = 0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7
-    .try_into()
-    .unwrap();
+#[derive(Drop, Copy, Serde)]
+pub struct LaunchConfig {
+    pub unrug_address: Option<ContractAddress>,
+    pub fee: Option<(u256, ContractAddress, ContractAddress)>, // amount => to
+}
+
+#[derive(Drop, Copy, Default, Serde, PartialEq, starknet::Store)]
+pub enum TokenStatus {
+    #[default]
+    None,
+    Presale,
+    Finalized,
+    Active,
+    Finished,
+}
+
+impl StatusIntoU8 of Into<TokenStatus, u8> {
+    #[inline(always)]
+    fn into(self: TokenStatus) -> u8 {
+        match self {
+            TokenStatus::None => 0,
+            TokenStatus::Presale => 1,
+            TokenStatus::Finalized => 2,
+            TokenStatus::Active => 3,
+            TokenStatus::Finished => 4,
+        }
+    }
+}
 
 #[derive(Drop, Clone, Serde)]
 pub struct ContractConfig {
@@ -140,6 +159,7 @@ pub struct ContractConfig {
     pub max_token_supply: Option<u256>,
     pub paid_in: Option<ContractAddress>,
     pub token_class_hash: Option<ClassHash>,
+    pub unrug_address: Option<ContractAddress>,
 }
 
 #[derive(Drop, starknet::Event)]

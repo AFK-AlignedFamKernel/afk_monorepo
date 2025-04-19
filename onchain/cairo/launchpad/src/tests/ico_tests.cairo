@@ -10,7 +10,7 @@ mod ico_tests {
     use crate::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use crate::interfaces::ico::{
         ContractConfig, IICOConfigDispatcher, IICOConfigDispatcherTrait, IICODispatcher,
-        IICODispatcherTrait, PresaleDetails, PresaleLaunched, PresaleStatus, TokenCreated,
+        IICODispatcherTrait, PresaleDetails, PresaleLaunched, TokenStatus, TokenCreated,
         TokenDetails,
     };
     use crate::launchpad::ico::ICO;
@@ -122,6 +122,7 @@ mod ico_tests {
             max_token_supply: Option::None,
             paid_in: Option::None,
             token_class_hash: Option::None,
+            unrug_address: Option::None,
         };
         cheat_caller_address(contract, ADMIN, CheatSpan::TargetCalls(1));
         let config_dispatcher = IICOConfigDispatcher { contract_address: contract };
