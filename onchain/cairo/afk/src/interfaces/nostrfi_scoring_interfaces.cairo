@@ -286,15 +286,24 @@ pub impl CreateTokenProfileEncodeImpl of Encode<CreateTokenProfile> {
 // Events
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]
+pub struct DepositRewardsByUserEvent {
+    #[key]
+    pub starknet_address: ContractAddress,
+    pub epoch_index: u64,
+    pub amount_token: u256,
+}
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]
 pub struct DistributionRewardsByUserEvent {
     #[key]
     pub starknet_address: ContractAddress,
     #[key]
     pub nostr_address: NostrPublicKey,
+    pub current_index_epoch: u64,
     pub claimed_at: u64,
     pub amount_algo: u256,
     pub amount_vote: u256,
-    pub amount_total: u256,
+    pub amount_total: u256, 
     // pub veracity_score: u256,
 }
 
@@ -309,6 +318,7 @@ pub struct PushAlgoScoreEvent {
     pub total_nostr_address: u256,
     pub total_points_weight: u256,
     pub is_claimed: bool,
+    pub current_index_epoch: u64,
     // Optional
 // pub veracity_score: u256,
 
@@ -318,6 +328,18 @@ pub struct PushAlgoScoreEvent {
 // pub rewards_amount: u256,
 
     // Add NIP-05 and stats profil after. Gonna write a proposal for it
+}
+
+
+#[derive(Copy, Debug, Drop, PartialEq, starknet::Event, Serde)]
+pub struct NewEpochEvent {
+    #[key]
+    pub old_epoch_index: u64,
+    #[key]
+    pub current_index_epoch: u64,
+    pub start_duration: u64,
+    pub end_duration: u64,
+    pub epoch_duration: u64,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -332,11 +354,12 @@ pub struct TipUserWithVote {
     #[key]
     pub nostr_address: NostrPublicKey,
     #[key]
-    pub nostr_event_id: NostrPublicKey,
     pub starknet_address: ContractAddress,
+    pub current_index_epoch: u64,
     pub amount_token: u256,
     pub amount_vote: u256,
-    pub current_index_epoch: u64,
+    pub nostr_event_id: NostrPublicKey,
+
 }
 
 pub impl TipUserWithVoteDefault of Default<TipUserWithVote> {

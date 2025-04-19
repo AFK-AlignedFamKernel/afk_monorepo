@@ -518,6 +518,7 @@ pub mod Namespace {
             // };
 
             self.total_algo_score_rewards.write(new_total_algo_score_rewards);
+            
 
             self
                 .emit(
@@ -530,6 +531,7 @@ pub mod Namespace {
                         is_claimed: total_algo_score_rewards.is_claimed,
                         claimed_at: now,
                         total_nostr_address: total_algo_score_rewards.total_nostr_address,
+                        current_index_epoch:0,
                         // veracity_score: 0,
                     //   total_score_overview: total_algo_score_rewards.total_score_overview
                     //     + score_algo.overview_score,

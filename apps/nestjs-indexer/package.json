@@ -36,7 +36,8 @@
     "indexer-prisma": "workspace:*",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "viem": "^2.21.53"
+    "viem": "^2.21.53",
+    "common": "workspace:*"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

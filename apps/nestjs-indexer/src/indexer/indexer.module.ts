@@ -16,10 +16,9 @@ import { TipServiceModule } from '../services/tip-service/tipServiceModule';
 import { TipServiceIndexer } from './tip-service.indexer';
 import { MetadataLaunchIndexer } from './metadata-launch.indexer';
 import { MetadataLaunchModule } from 'src/services/metadata/metadata.module';
-import { InfoFiIndexer } from './infofi/link-user.indexer';
+import { InfoFiIndexer } from './infofi/infofi.indexer';
 import { NostrInfofiModule } from 'src/services/nostr-infofi/nostr-infofi.module';
 import { NostrInfofiService } from 'src/services/nostr-infofi/nostr-infofi.service';
-
 @Module({
   imports: [
     TokenLaunchModule,
