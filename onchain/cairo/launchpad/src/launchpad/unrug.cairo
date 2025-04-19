@@ -212,10 +212,8 @@ pub mod UnrugLiquidity {
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
 
         let init_token = TokenQuoteBuyCoin {
-            token_address: token_address,
-            // starting_price,
-            price: 0_256,
-            is_enable: true,
+            token_address: token_address, // starting_price,
+            price: 0_256, is_enable: true,
             // step_increase_linear,
         };
         self.is_custom_launch_enable.write(false);
