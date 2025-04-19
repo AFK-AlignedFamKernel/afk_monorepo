@@ -493,10 +493,21 @@ use core::num::traits::Zero;
         fn _add_liquidity_ekubo(
             ref self: ContractState, coin_address: ContractAddress, launch: LaunchParams
         ) -> (u64, EkuboLP) {
+
+              // pub struct Launch {
+            //     pub unrug_address: ContractAddress,
+            //     pub fee_amount: u256,
+            //     pub fee_to: ContractAddress,
+            //     pub paid_in: ContractAddress,
+            //     pub quote_token: ContractAddress,
+            //     pub launched: Map<ContractAddress, TokenLaunch>,
+            //     pub total_launched: u256
+            // }
+
             // Get unrug liquidity contract
-            let unrug_address = self.launch.
+            let unrug_address = self.launch.unrug_address.read();
             let unrug_dispatcher = IUnrugLiquidityDispatcher {
-                contract_address: unrug_liquidity_address,
+                contract_address: unrug_address,
             };
 
            
