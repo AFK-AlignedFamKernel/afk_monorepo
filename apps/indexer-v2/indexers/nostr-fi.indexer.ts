@@ -6,7 +6,7 @@ import { constants, encode, hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
 import { ABI as nostrFiScoringABI } from './abi/infofi/score.abi';
-import { ABI as scoreFactoryABI } from './abi/infofi/score_factory.abi';
+import { ABI as scoreFactoryABI } from './abi/infofi/score-factory.abi';
 import {
   upsertContractState,
   upsertEpochState,
@@ -15,6 +15,7 @@ import {
   insertSubState,
 } from './db/nostr-fi.db';
 
+const SUB_CREATED = hash.getSelectorFromName('TopicEvent') as `0x${string}`;
 const NEW_EPOCH = hash.getSelectorFromName('NewEpochEvent') as `0x${string}`;
 const DEPOSIT_REWARDS = hash.getSelectorFromName('DepositRewardsByUserEvent') as `0x${string}`;
 const DISTRIBUTION_REWARDS = hash.getSelectorFromName('DistributionRewardsByUserEvent') as `0x${string}`;
@@ -66,28 +67,28 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
 
       const daoCreationData = events.map((event) => {
         const decodedEvent = decodeEvent({
-          abi: scoreFactoryABI,
-          event,
-          eventName: 'afk::interfaces::score_factory_interfaces::INostrFiScoringFactory::SubCreated',
+            abi: scoreFactoryABI,
+            event,
+            eventName: 'afk::infofi::score_factory::TopicEvent',
         });
 
-        const daoAddress = decodedEvent.args.contract_address;
-        const creator = decodedEvent.args.creator;
-        const tokenAddress = decodedEvent.args.token_contract_address;
-        const starknetAddress = decodedEvent.args.starknet_address.toString();
+        const daoAddress = decodedEvent.args?.topic_address;
+        const creator = decodedEvent.args?.admin;
+        const tokenAddress = decodedEvent.args?.main_token_address;
+        const starknetAddress = decodedEvent.args?.starknet_address.toString();
 
         return {
           number: event.eventIndex,
           hash: event.transactionHash,
-          contractAddress: daoAddress as string,
-          contract_address: daoAddress as string,
+          contractAddress: daoAddress,
+          contract_address: daoAddress,
           creator,
           tokenAddress,
           starknetAddress,
         };
       });
 
-      await insertSubState(daoCreationData);
+      // await insertSubState(daoCreationData);
 
       return {
         filter: {

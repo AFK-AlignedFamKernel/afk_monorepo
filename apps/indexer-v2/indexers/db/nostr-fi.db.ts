@@ -1,7 +1,6 @@
-import { contractState, epochState, userProfile, userEpochState } from '../../../indexer-v2-db/src/schema';
 import { and, eq } from 'drizzle-orm';
 import { useDrizzleStorage } from '@apibara/plugin-drizzle';
-
+import { contractState, epochState, userProfile, userEpochState } from 'indexer-v2-db/schema';
 interface ContractStateData {
   contract_address: string;
   network?: string;
