@@ -198,6 +198,8 @@ export class NostrInfofiService {
         where: { contract_address: data.contract_address },
         update: {
           total_amount_deposit: { increment: Number(data.amount_token) },
+          // total_vote_score: { increment: Number(data.amount_token) },
+          // total_tip: { increment: Number(data.amount_token) },
           updated_at: new Date(),
         },
         create: {
@@ -218,18 +220,20 @@ export class NostrInfofiService {
         },
         update: {
           total_amount_deposit: { increment: Number(data.amount_token) },
-          total_ai_score: { increment: Number(data.amount_token) },
+          // total_vote_score: { increment: Number(data.amount_token) },
+          // total_tip: { increment: Number(data.amount_token) },
+          // amount_vote: { increment: Number(data.amount_token) },
           updated_at: new Date(),
         },
         create: {
           epoch_index: epochIndex,
           contract_address: data.contract_address,
           total_amount_deposit: Number(data.amount_token),
-          total_ai_score: Number(data.amount_token),
-          total_vote_score: 0,
-          total_tip: 0,
+          // total_ai_score: Number(data.amount_token),
+          // total_vote_score: Number(data.amount_token),
+          // total_tip: Number(data.amount_token),
           amount_claimed: 0,
-          amount_vote: 0,
+          // amount_vote: Number(data.amount_token),
           amount_algo: 0,
           start_time: new Date(),
           end_time: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default 24 hours
@@ -243,12 +247,15 @@ export class NostrInfofiService {
           where: { nostr_id: data.nostr_address },
           update: {
             total_ai_score: { increment: Number(data.amount_token) },
+            // total_tip: Number(data.amount_token),
+            total_tip: { increment: Number(data.amount_token) },
             updated_at: new Date(),
           },
           create: {
             nostr_id: data.nostr_address,
             starknet_address: data.starknet_address,
-            total_ai_score: Number(data.amount_token),
+            // total_vote_score: Number(data.amount_token),
+            total_tip: Number(data.amount_token),
           },
         });
 
@@ -261,16 +268,19 @@ export class NostrInfofiService {
             },
           },
           update: {
-            total_ai_score: { increment: Number(data.amount_token) },
+            // total_ai_score: { increment: Number(data.amount_token) },
+            // total_vote_score: { increment: Number(data.amount_token) },
+            total_tip: Number(data.amount_token),
+
             updated_at: new Date(),
           },
           create: {
             nostr_id: data.nostr_address,
             epoch_index: epochIndex,
             contract_address: data.contract_address,
-            total_ai_score: Number(data.amount_token),
-            total_vote_score: 0,
-            total_tip: 0,
+            // total_ai_score: Number(data.amount_token),
+            // total_vote_score: Number(data.amount_token),
+            total_tip: Number(data.amount_token),
             amount_claimed: 0,
           },
         });

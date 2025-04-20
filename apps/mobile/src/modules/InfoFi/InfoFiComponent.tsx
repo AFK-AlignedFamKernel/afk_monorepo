@@ -176,14 +176,15 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
           data={allUsers?.data}
           renderItem={({ item }) => (
             <UserCard 
-              userInfo={{
-                nostr_id: item.nostr_id,
-                total_ai_score: item.total_ai_score,
-                total_vote_score: item.total_vote_score,
-                // starknet_address: item.starknet_address,
-                // is_add_by_admin: item.is_add_by_admin,
-                // epoch_states: item.epoch_states
-              }}
+              userInfo={item}
+              // userInfo={{
+              //   nostr_id: item.nostr_id,
+              //   total_ai_score: item.total_ai_score,
+              //   total_vote_score: item.total_vote_score,
+              //   // starknet_address: item.starknet_address,
+              //   // is_add_by_admin: item.is_add_by_admin,
+              //   // epoch_states: item.epoch_states
+              // }}
             />
           )}
           keyExtractor={(item) => item.nostr_id}
