@@ -84,6 +84,7 @@ pub mod tests {
     // pub mod dn404_tests;
     // pub mod nameservice_tests;
     pub mod nostrfi_scoring_tests;
+    pub mod score_factory_tests;
     pub mod utils;
     // pub mod staking_tests;
 

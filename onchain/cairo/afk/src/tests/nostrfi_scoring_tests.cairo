@@ -4,9 +4,8 @@ mod nostrfi_scoring_tests {
     use afk::interfaces::common_interfaces::LinkedStarknetAddress;
     use afk::interfaces::nostrfi_scoring_interfaces::{
         DEFAULT_BATCH_INTERVAL_WEEK, DepositRewardsType, INostrFiScoring, INostrFiScoringDispatcher,
-        INostrFiScoringDispatcherTrait, LinkedResult, NostrPublicKey, ProfileAlgorithmScoring,
-        PushAlgoScoreNostrNote, Vote, VoteNostrNote, VoteParams,
-        NostrMetadata,
+        INostrFiScoringDispatcherTrait, LinkedResult, NostrMetadata, NostrPublicKey,
+        ProfileAlgorithmScoring, PushAlgoScoreNostrNote, Vote, VoteNostrNote, VoteParams,
     };
     use afk::social::namespace::{INostrNamespaceDispatcher, INostrNamespaceDispatcherTrait};
     use afk::social::request::SocialRequest;
@@ -35,10 +34,9 @@ mod nostrfi_scoring_tests {
         admin_nostr_pubkey: NostrPublicKey,
         namespace_address: ContractAddress,
     ) -> INostrFiScoringDispatcher {
-
         let nostr_metadata = NostrMetadata {
             name: "Test Namespace",
-            about:"Test namespace for InfoFI about topics & communities on Nostr and more soon",
+            about: "Test namespace for InfoFI about topics & communities on Nostr and more soon",
             nostr_address: admin_nostr_pubkey,
             event_id_nip_72: 0_u256,
             event_id_nip_29: 0_u256,

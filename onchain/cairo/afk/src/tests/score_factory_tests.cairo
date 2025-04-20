@@ -1,11 +1,14 @@
 #[cfg(test)]
-mod nostrfi_scoring_tests {
+mod score_factory_tests {
     use afk::bip340::SchnorrSignature;
+    use afk::infofi::score_factory::{
+        IFactoryNostrFiScoringDispatcher, IFactoryNostrFiScoringDispatcherTrait,
+    };
     use afk::interfaces::common_interfaces::LinkedStarknetAddress;
     use afk::interfaces::nostrfi_scoring_interfaces::{
         DEFAULT_BATCH_INTERVAL_WEEK, DepositRewardsType, INostrFiScoring, INostrFiScoringDispatcher,
-        INostrFiScoringDispatcherTrait, LinkedResult, NostrPublicKey, ProfileAlgorithmScoring,
-        PushAlgoScoreNostrNote, Vote, VoteNostrNote, VoteParams,
+        INostrFiScoringDispatcherTrait, LinkedResult, NostrMetadata, NostrPublicKey,
+        ProfileAlgorithmScoring, PushAlgoScoreNostrNote, Vote, VoteNostrNote, VoteParams,
     };
     use afk::social::namespace::{INostrNamespaceDispatcher, INostrNamespaceDispatcherTrait};
     use afk::social::request::SocialRequest;
@@ -18,9 +21,8 @@ mod nostrfi_scoring_tests {
         declare, start_cheat_caller_address, start_cheat_caller_address_global,
         stop_cheat_caller_address, stop_cheat_caller_address_global,
     };
-    use starknet::ContractAddress;
+    use starknet::{ClassHash, ContractAddress};
     fn declare_nostrfi_scoring() -> ContractClass {
-        // declare("nostrfi_scoring").unwrap().contract_class()
         *declare("NostrFiScoring").unwrap().contract_class()
     }
 
@@ -33,6 +35,7 @@ mod nostrfi_scoring_tests {
         main_token_address: ContractAddress,
         admin_nostr_pubkey: NostrPublicKey,
         namespace_address: ContractAddress,
+        metadata: NostrMetadata,
     ) -> INostrFiScoringDispatcher {
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
         let mut calldata = array![];
@@ -41,6 +44,7 @@ mod nostrfi_scoring_tests {
         main_token_address.serialize(ref calldata);
         admin_nostr_pubkey.serialize(ref calldata);
         namespace_address.serialize(ref calldata);
+        metadata.serialize(ref calldata);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
 
         INostrFiScoringDispatcher { contract_address }
@@ -50,6 +54,29 @@ mod nostrfi_scoring_tests {
         // declare("Namespace").unwrap().contract_class()
         *declare("Namespace").unwrap().contract_class()
     }
+
+    fn declare_score_factory() -> ContractClass {
+        // declare("Namespace").unwrap().contract_class()
+        *declare("FactoryNostrFiScoring").unwrap().contract_class()
+    }
+
+
+    fn deploy_score_factory(
+        class: ContractClass, score_nostr_hash: ClassHash, namespace_address: ContractAddress,
+    ) -> IFactoryNostrFiScoringDispatcher {
+        let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
+        let admin_nostr_pubkey =
+            0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
+        let mut calldata = array![];
+        ADMIN_ADDRESS.serialize(ref calldata);
+        admin_nostr_pubkey.serialize(ref calldata);
+        score_nostr_hash.serialize(ref calldata);
+        namespace_address.serialize(ref calldata);
+        let (contract_address, _) = class.deploy(@calldata).unwrap();
+
+        IFactoryNostrFiScoringDispatcher { contract_address }
+    }
+
 
     fn deploy_namespace(class: ContractClass) -> INostrNamespaceDispatcher {
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
@@ -97,6 +124,7 @@ mod nostrfi_scoring_tests {
         IERC20Dispatcher,
         SocialRequest<LinkedStarknetAddress>,
         INostrNamespaceDispatcher,
+        IFactoryNostrFiScoringDispatcher,
     ) {
         // recipient private key: 59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35
         // just for testing, do not use for anything else
@@ -124,12 +152,20 @@ mod nostrfi_scoring_tests {
             *erc20_class, "Test Token", "TEST", 1_000_000_u256, sender_address,
         );
 
+        let declare_score_factory_class = declare_score_factory();
+        let score_factory_dispatcher = deploy_score_factory(
+            declare_score_factory_class,
+            nostrfi_scoring_class.class_hash,
+            namespace_dispatcher.contract_address,
+        );
+
         println!("deploying nostrfi scoring");
         let nostrfi_scoring = deploy_nostrfi_scoring(
             nostrfi_scoring_class,
             erc20_dispatcher.contract_address,
             recipient_public_key,
             namespace_dispatcher.contract_address,
+            init_metadata(recipient_public_key, "Test Namespace", "Test namespace for InfoFI about topics & communities on Nostr and more soon", "test@example.com"),
         );
 
         let recipient_address_user: ContractAddress = 678.try_into().unwrap();
@@ -165,7 +201,7 @@ mod nostrfi_scoring_tests {
 
         // https://replit.com/@msghais135/afk-scripts#admin_script.js
 
-        println!("inot nostr push algo score {:?}", recipient_public_key);
+        println!("init nostr push algo score {:?}", recipient_public_key);
         // let nostr_address_score = PushAlgoScoreNostrNote { nostr_address:
         // recipient_public_key.try_into().unwrap()};
         let nostr_address_score = PushAlgoScoreNostrNote { nostr_address: recipient_public_key };
@@ -181,16 +217,7 @@ mod nostrfi_scoring_tests {
                 // working
             // r: 0x315cfcf10274c4c99c940d3885920a5e243fc58f0222a7c71c43296105dce674_u256,
             // s: 0x01b663ddca40625da7fa85f32e7563c24fbf818a820f0717ddd532e615bf5d31_u256,
-
-                // not working
-            // score nostr profile cairo.uint256()
-            // r:0x2559fa484427561a7475a9620280dd20b62f029513bee2ddd713793257f38f45_u256,
-            // s:0x199b34a4ff5fb7a44dade27bc449fc59cf2e1368d2eb8f61beacbd17f3627f75_u256,
-            // r: 0x87333f6b4e8a3c67a5ad26898e40f1e07cb88b39094ffa116a2d8c019c30ec0f_u256,
-            // s: 0x983f5e296fa0f6413118f5d1d8b5d3dd3abf6c7a320a8cab071482d08aa34b01_u256,
-            // r: 0x1c39e12158e86238cea29ba368020ddf02153461e6c9e6597b30264ef738bd55_u256,
-            // s: 0x3ed825a6b69cebdd673be72fcd58b343efdb53b120715fa80fbdcbb7c20992a7_u256,
-            },
+      },
         };
 
         // https://replit.com/@msghais135/afk-scripts#vote.js
@@ -285,6 +312,7 @@ mod nostrfi_scoring_tests {
             erc20_dispatcher,
             request_linked_wallet_to_second_recipient,
             namespace_dispatcher,
+            score_factory_dispatcher,
         )
     }
 
@@ -299,12 +327,13 @@ mod nostrfi_scoring_tests {
         IERC20Dispatcher,
         SocialRequest<LinkedStarknetAddress>,
         INostrNamespaceDispatcher,
+        IFactoryNostrFiScoringDispatcher,
     ) {
         let nostrfi_scoring_class = declare_nostrfi_scoring();
         request_fixture_custom_classes(nostrfi_scoring_class)
     }
 
-    fn push_algo_score_nostr_profile(
+    fn push_profile_score_algo(
         nostrfi_scoring_address: ContractAddress,
         sender_address: ContractAddress,
         recipient_nostr_key: NostrPublicKey,
@@ -588,21 +617,75 @@ mod nostrfi_scoring_tests {
     //     );
     // }
 
+    fn init_metadata(
+        recipient_nostr_key: NostrPublicKey, name: ByteArray, about: ByteArray, main_tag: ByteArray,
+    ) -> NostrMetadata {
+        let nostr_metadata = NostrMetadata {
+            name: name,
+            about: about,
+            nostr_address: recipient_nostr_key,
+            event_id_nip_72: 0_u256,
+            event_id_nip_29: 0_u256,
+            main_tag: main_tag,
+        };
+        nostr_metadata
+    }
+    fn init_score_by_factory(
+        erc20_address: ContractAddress,
+        score_factory_address: ContractAddress,
+        nostr_metadata: NostrMetadata,
+        sender_address: ContractAddress,
+        recipient_nostr_key: NostrPublicKey,
+    ) -> ContractAddress {
+        let score_factory_dispatcher = IFactoryNostrFiScoringDispatcher {
+            contract_address: score_factory_address,
+        };
+
+        start_cheat_caller_address(score_factory_dispatcher.contract_address, sender_address);
+        let topic_address = score_factory_dispatcher
+            .create_nostr_topic(
+                sender_address,
+                recipient_nostr_key,
+                erc20_address,
+                'test@example.com',
+                nostr_metadata,
+            );
+
+        stop_cheat_caller_address(score_factory_dispatcher.contract_address);
+        topic_address
+    }
+
     #[test]
-    fn end_to_end_flow_strk_second_user() {
+    fn init_score_factory() {
         let (
             request,
             recipient_nostr_key,
             sender_address,
-            nostrfi_scoring,
+            _,
             request_profile_score,
             request_score_admin_nostr_profile,
             request_vote_tips_nostr_profile,
             erc20,
             request_linked_wallet_to_second_recipient,
             namespace_dispatcher,
+            score_factory_dispatcher,
         ) =
             request_fixture();
+
+        let topic_address = init_score_by_factory(
+            erc20.contract_address,
+            score_factory_dispatcher.contract_address,
+            init_metadata(
+                recipient_nostr_key,
+                "Test Namespace",
+                "Test namespace for InfoFI about topics & communities on Nostr and more soon",
+                "test@example.com",
+            ),
+            sender_address,
+            recipient_nostr_key,
+        );
+
+        let nostrfi_scoring = INostrFiScoringDispatcher { contract_address: topic_address };
 
         let mut created_at = starknet::get_block_timestamp();
         println!("created at: {:?}", created_at);
@@ -611,26 +694,26 @@ mod nostrfi_scoring_tests {
             + DEFAULT_BATCH_INTERVAL_WEEK
             + 1; // Proposal duration reached
         println!("current time: {:?}", current_time);
-        start_cheat_caller_address(nostrfi_scoring.contract_address, sender_address);
+        start_cheat_caller_address(topic_address, sender_address);
 
         println!("linked nostr profile");
         nostrfi_scoring.linked_nostr_profile(request.clone());
 
-        stop_cheat_caller_address(nostrfi_scoring.contract_address);
+        stop_cheat_caller_address(topic_address);
         let second_sender_address: ContractAddress = 456.try_into().unwrap();
 
-        start_cheat_caller_address(nostrfi_scoring.contract_address, second_sender_address);
+        start_cheat_caller_address(topic_address, second_sender_address);
 
         println!("linked nostr profile second profile");
         nostrfi_scoring.linked_nostr_profile(request_linked_wallet_to_second_recipient.clone());
-        stop_cheat_caller_address(nostrfi_scoring.contract_address);
+        stop_cheat_caller_address(topic_address);
 
         println!("get nostr linked");
         let nostr_linked = nostrfi_scoring.get_nostr_by_sn_default(second_recipient_public_key);
         println!("nostr linked: {:?}", nostr_linked);
         println!("nostr second_sender_address: {:?}", second_sender_address);
         assert!(nostr_linked == second_sender_address, "nostr not linked");
-        start_cheat_caller_address(namespace_dispatcher.contract_address, second_sender_address);
+        start_cheat_caller_address(topic_address, second_sender_address);
 
         println!("namespace linked second recipient: {:?}", second_recipient_public_key);
 
@@ -645,39 +728,255 @@ mod nostrfi_scoring_tests {
         //     nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
         // );
 
-        // let mut amount_token_deposit_rewards = 150_u256;
+        let mut amount_token_deposit_rewards = 150_u256;
 
-        // end_to_end_basic_flow(
-        //     nostrfi_scoring.contract_address,
-        //     sender_address,
-        //     recipient_nostr_key,
-        //     request.clone(),
-        //     request_score_admin_nostr_profile.clone(),
-        //     request_vote_tips_nostr_profile.clone(),
-        //     erc20.clone(),
-        //     0,
-        //     current_time,
-        //     amount_token_deposit_rewards,
-        // );
+        end_to_end_basic_flow(
+            nostrfi_scoring.contract_address,
+            sender_address,
+            recipient_nostr_key,
+            request.clone(),
+            request_score_admin_nostr_profile.clone(),
+            request_vote_tips_nostr_profile.clone(),
+            erc20.clone(),
+            0,
+            current_time,
+            amount_token_deposit_rewards,
+        );
 
-        // let mut new_created_at = starknet::get_block_timestamp();
-        // println!("new_created_at: {:?}", new_created_at);
+        let mut new_created_at = starknet::get_block_timestamp();
+        println!("new_created_at: {:?}", new_created_at);
 
-        // println!("cheat block timestamp");
-        // cheat_block_timestamp(
-        //     nostrfi_scoring.contract_address, new_created_at, CheatSpan::TargetCalls(1),
-        // );
+        println!("cheat block timestamp");
+        cheat_block_timestamp(
+            nostrfi_scoring.contract_address, new_created_at, CheatSpan::TargetCalls(1),
+        );
 
-        // current_time = (new_created_at + DEFAULT_BATCH_INTERVAL_WEEK + 1)
-        //     * 2; // Proposal duration reached
+        current_time = (new_created_at + DEFAULT_BATCH_INTERVAL_WEEK + 1)
+            * 2; // Proposal duration reached
 
-        // current_time = new_created_at
-        // + DEFAULT_BATCH_INTERVAL_WEEK
-        // + 1; // Proposal duration reached
+        current_time = new_created_at
+        + DEFAULT_BATCH_INTERVAL_WEEK
+        + 1; // Proposal duration reached
 
         println!("start end to end basic flow");
         println!("current time second epoch: {:?}", current_time);
     }
+
+    #[test]
+    fn init_score_factory_and_topic() {
+        let (
+            request,
+            recipient_nostr_key,
+            sender_address,
+            _,
+            request_profile_score,
+            request_score_admin_nostr_profile,
+            request_vote_tips_nostr_profile,
+            erc20,
+            request_linked_wallet_to_second_recipient,
+            namespace_dispatcher,
+            score_factory_dispatcher,
+        ) =
+            request_fixture();
+
+        let topic_address = init_score_by_factory(
+            erc20.contract_address,
+            score_factory_dispatcher.contract_address,
+            init_metadata(
+                recipient_nostr_key,
+                "Test Namespace",
+                "Test namespace for InfoFI about topics & communities on Nostr and more soon",
+                "test@example.com",
+            ),
+            sender_address,
+            recipient_nostr_key,
+        );
+
+        let nostrfi_scoring = INostrFiScoringDispatcher { contract_address: topic_address };
+
+        let mut created_at = starknet::get_block_timestamp();
+        println!("created at: {:?}", created_at);
+        println!("start end to end basic flow");
+        let mut current_time = created_at
+            + DEFAULT_BATCH_INTERVAL_WEEK
+            + 1; // Proposal duration reached
+        println!("current time: {:?}", current_time);
+        start_cheat_caller_address(topic_address, sender_address);
+
+        println!("linked nostr profile");
+        nostrfi_scoring.linked_nostr_profile(request.clone());
+
+        stop_cheat_caller_address(topic_address);
+        let second_sender_address: ContractAddress = 456.try_into().unwrap();
+
+        start_cheat_caller_address(topic_address, second_sender_address);
+
+        println!("linked nostr profile second profile");
+        nostrfi_scoring.linked_nostr_profile(request_linked_wallet_to_second_recipient.clone());
+        stop_cheat_caller_address(topic_address);
+
+        println!("get nostr linked");
+        let nostr_linked = nostrfi_scoring.get_nostr_by_sn_default(second_recipient_public_key);
+        println!("nostr linked: {:?}", nostr_linked);
+        println!("nostr second_sender_address: {:?}", second_sender_address);
+        assert!(nostr_linked == second_sender_address, "nostr not linked");
+        start_cheat_caller_address(topic_address, second_sender_address);
+
+        println!("namespace linked second recipient: {:?}", second_recipient_public_key);
+
+        namespace_dispatcher
+            .linked_nostr_profile(request_linked_wallet_to_second_recipient.clone());
+        println!("namespace linked second recipient again: {:?}", second_recipient_public_key);
+
+        namespace_dispatcher
+            .linked_nostr_profile(request_linked_wallet_to_second_recipient.clone());
+
+        // cheat_block_timestamp(
+        //     nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
+        // );
+
+        let mut amount_token_deposit_rewards = 150_u256;
+
+        end_to_end_basic_flow(
+            nostrfi_scoring.contract_address,
+            sender_address,
+            recipient_nostr_key,
+            request.clone(),
+            request_score_admin_nostr_profile.clone(),
+            request_vote_tips_nostr_profile.clone(),
+            erc20.clone(),
+            0,
+            current_time,
+            amount_token_deposit_rewards,
+        );
+
+        let mut new_created_at = starknet::get_block_timestamp();
+        println!("new_created_at: {:?}", new_created_at);
+
+        println!("cheat block timestamp");
+        cheat_block_timestamp(
+            nostrfi_scoring.contract_address, new_created_at, CheatSpan::TargetCalls(1),
+        );
+
+        current_time = (new_created_at + DEFAULT_BATCH_INTERVAL_WEEK + 1)
+            * 2; // Proposal duration reached
+
+        current_time = new_created_at
+        + DEFAULT_BATCH_INTERVAL_WEEK
+        + 1; // Proposal duration reached
+
+        println!("start end to end basic flow");
+        println!("current time second epoch: {:?}", current_time);
+    }
+
+    #[test]
+    fn init_score_factory_and_topic_with_test() {
+        let (
+            request,
+            recipient_nostr_key,
+            sender_address,
+            _,
+            request_profile_score,
+            request_score_admin_nostr_profile,
+            request_vote_tips_nostr_profile,
+            erc20,
+            request_linked_wallet_to_second_recipient,
+            namespace_dispatcher,
+            score_factory_dispatcher,
+        ) =
+            request_fixture();
+
+        let topic_address = init_score_by_factory(
+            erc20.contract_address,
+            score_factory_dispatcher.contract_address,
+            init_metadata(
+                recipient_nostr_key,
+                "Test Namespace",
+                "Test namespace for InfoFI about topics & communities on Nostr and more soon",
+                "test@example.com",
+            ),
+            sender_address,
+            recipient_nostr_key,
+        );
+
+        let nostrfi_scoring = INostrFiScoringDispatcher { contract_address: topic_address };
+
+        let mut created_at = starknet::get_block_timestamp();
+        println!("created at: {:?}", created_at);
+        println!("start end to end basic flow");
+        let mut current_time = created_at
+            + DEFAULT_BATCH_INTERVAL_WEEK
+            + 1; // Proposal duration reached
+        println!("current time: {:?}", current_time);
+        start_cheat_caller_address(topic_address, sender_address);
+
+        println!("linked nostr profile");
+        nostrfi_scoring.linked_nostr_profile(request.clone());
+
+        stop_cheat_caller_address(topic_address);
+        let second_sender_address: ContractAddress = 456.try_into().unwrap();
+
+        start_cheat_caller_address(topic_address, second_sender_address);
+
+        println!("linked nostr profile second profile");
+        nostrfi_scoring.linked_nostr_profile(request_linked_wallet_to_second_recipient.clone());
+        stop_cheat_caller_address(topic_address);
+
+        println!("get nostr linked");
+        let nostr_linked = nostrfi_scoring.get_nostr_by_sn_default(second_recipient_public_key);
+        println!("nostr linked: {:?}", nostr_linked);
+        println!("nostr second_sender_address: {:?}", second_sender_address);
+        assert!(nostr_linked == second_sender_address, "nostr not linked");
+        start_cheat_caller_address(topic_address, second_sender_address);
+
+        println!("namespace linked second recipient: {:?}", second_recipient_public_key);
+
+        namespace_dispatcher
+            .linked_nostr_profile(request_linked_wallet_to_second_recipient.clone());
+        println!("namespace linked second recipient again: {:?}", second_recipient_public_key);
+
+        namespace_dispatcher
+            .linked_nostr_profile(request_linked_wallet_to_second_recipient.clone());
+
+        // cheat_block_timestamp(
+        //     nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
+        // );
+
+        let mut amount_token_deposit_rewards = 150_u256;
+
+        end_to_end_basic_flow(
+            nostrfi_scoring.contract_address,
+            sender_address,
+            recipient_nostr_key,
+            request.clone(),
+            request_score_admin_nostr_profile.clone(),
+            request_vote_tips_nostr_profile.clone(),
+            erc20.clone(),
+            0,
+            current_time,
+            amount_token_deposit_rewards,
+        );
+
+        let mut new_created_at = starknet::get_block_timestamp();
+        println!("new_created_at: {:?}", new_created_at);
+
+        println!("cheat block timestamp");
+        cheat_block_timestamp(
+            nostrfi_scoring.contract_address, new_created_at, CheatSpan::TargetCalls(1),
+        );
+
+        current_time = (new_created_at + DEFAULT_BATCH_INTERVAL_WEEK + 1)
+            * 2; // Proposal duration reached
+
+        current_time = new_created_at
+        + DEFAULT_BATCH_INTERVAL_WEEK
+        + 1; // Proposal duration reached
+
+        println!("start end to end basic flow");
+        println!("current time second epoch: {:?}", current_time);
+    }
+
+
     // #[test]
 // #[should_panic()]
 // fn should_panic_multi_distribute_rewards() {

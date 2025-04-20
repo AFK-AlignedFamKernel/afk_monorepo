@@ -1,5 +1,5 @@
 use afk::interfaces::common_interfaces::{LinkedStarknetAddress, NostrPublicKey};
-use afk::interfaces::nostrfi_scoring_interfaces::TokenLaunchType;
+use afk::interfaces::nostrfi_scoring_interfaces::{NostrMetadata, TokenLaunchType};
 use afk::social::request::SocialRequest;
 use starknet::{ClassHash, ContractAddress};
 // Structs
@@ -46,9 +46,9 @@ pub trait IFactoryNostrFiScoring<TContractState> {
         admin: ContractAddress,
         admin_nostr_pubkey: NostrPublicKey,
         main_token_address: ContractAddress,
-        score_class_hash: ClassHash,
         contract_address_salt: felt252,
-    );
+        nostr_metadata: NostrMetadata,
+    ) -> ContractAddress;
     fn create_token_topic_reward_and_vote(
         ref self: TContractState,
         token_type: TokenLaunchType,
@@ -62,14 +62,9 @@ pub mod FactoryNostrFiScoring {
     use afk::infofi::errors;
 
     use afk::interfaces::nostrfi_scoring_interfaces::{
-        ADMIN_ROLE, AddTopicsMetadataEvent, AdminAddNostrProfile, DepositRewardsByUserEvent,
-        DepositRewardsType, DistributionRewardsByUserEvent, EpochRewards, EpochRewardsDefault,
-        ExternalContracts, INostrFiScoring, NewEpochEvent, NostrAccountScoringDefault,
-        NostrFiAdminStorage, NostrMetadata, NostrMetadataEvent, NostrPublicKey, OPERATOR_ROLE,
-        ProfileAlgorithmScoring, PushAlgoScoreEvent, PushAlgoScoreNostrNote, TipByUser,
-        TipByUserDefault, TipUserWithVote, TotalAlgoScoreRewards, TotalAlgoScoreRewardsDefault,
-        TotalDepositRewards, TotalDepositRewardsDefault, TotalScoreRewards,
-        TotalScoreRewardsDefault, VoteNostrNote, VoteParams,
+        ADMIN_ROLE, NostrAccountScoringDefault, NostrMetadata, NostrPublicKey, OPERATOR_ROLE,
+        PushAlgoScoreEvent, TipByUserDefault, TipUserWithVote, TotalAlgoScoreRewardsDefault,
+        TotalDepositRewardsDefault, TotalScoreRewardsDefault,
         // VoteProfile, NostrAccountScoring
     };
     // use afk_launchpad::launchpad::{ILaunchpadDispatcher, ILaunchpadDispatcherTrait};
@@ -152,7 +147,6 @@ pub mod FactoryNostrFiScoring {
     #[derive(Drop, starknet::Event)]
     enum Event {
         TopicEvent: TopicEvent,
-        DistributionRewardsByUserEvent: DistributionRewardsByUserEvent,
         PushAlgoScoreEvent: PushAlgoScoreEvent,
         TipUserWithVote: TipUserWithVote,
         CreateTokenTopicEvent: CreateTokenTopicEvent,
@@ -168,6 +162,7 @@ pub mod FactoryNostrFiScoring {
         admin: ContractAddress,
         admin_nostr_pubkey: NostrPublicKey,
         score_class_hash: ClassHash,
+        namespace_address: ContractAddress,
     ) {
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
@@ -175,6 +170,11 @@ pub mod FactoryNostrFiScoring {
         self.accesscontrol._grant_role(OPERATOR_ROLE, get_caller_address());
         self.accesscontrol._grant_role(ADMIN_ROLE, get_caller_address());
         self.total_topic.write(0);
+
+        self.score_class_hash.write(score_class_hash);
+        self.admin_nostr_pubkey.write(admin_nostr_pubkey);
+
+        self.namespace_address.write(namespace_address);
     }
 
     // #[abi(embed_v0)]
@@ -208,18 +208,18 @@ pub mod FactoryNostrFiScoring {
             admin: ContractAddress,
             admin_nostr_pubkey: NostrPublicKey,
             main_token_address: ContractAddress,
-            score_class_hash: ClassHash,
             contract_address_salt: felt252,
-        ) {
+            nostr_metadata: NostrMetadata,
+        ) -> ContractAddress {
             let current_index = self.total_topic.read();
             let mut calldata = array![];
             Serde::serialize(@admin.clone(), ref calldata);
+            Serde::serialize(@admin.clone(), ref calldata);
+            Serde::serialize(@main_token_address.clone(), ref calldata);
             Serde::serialize(@self.admin_nostr_pubkey.read(), ref calldata);
-            // Serde::serialize(@admin_nostr_pubkey.clone(), ref calldata);
-            Serde::serialize(@score_class_hash.clone(), ref calldata);
-            Serde::serialize(@contract_address_salt.clone(), ref calldata);
+            Serde::serialize(@self.namespace_address.read(), ref calldata);
             Serde::serialize(@get_block_timestamp(), ref calldata);
-
+            Serde::serialize(@nostr_metadata.clone(), ref calldata);
             let score_class_hash = self.score_class_hash.read();
             let (topic_address, _) = deploy_syscall(
                 score_class_hash, contract_address_salt, calldata.span(), false,
@@ -253,6 +253,7 @@ pub mod FactoryNostrFiScoring {
                         deployer: get_caller_address(),
                     },
                 );
+            topic_address
         }
 
 
@@ -341,17 +342,18 @@ pub mod FactoryNostrFiScoring {
             admin: ContractAddress,
             admin_nostr_pubkey: NostrPublicKey,
             main_token_address: ContractAddress,
-            score_class_hash: ClassHash,
             contract_address_salt: felt252,
-        ) {
-            self
+            nostr_metadata: NostrMetadata,
+        ) -> ContractAddress {
+            let topic_address = self
                 ._create_nostr_topic(
                     admin,
                     admin_nostr_pubkey,
                     main_token_address,
-                    score_class_hash,
                     contract_address_salt,
+                    nostr_metadata,
                 );
+            topic_address
         }
 
         // Factory or deployer of the contract

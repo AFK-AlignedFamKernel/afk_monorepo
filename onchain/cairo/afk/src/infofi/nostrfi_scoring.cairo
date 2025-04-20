@@ -49,7 +49,8 @@ pub mod NostrFiScoring {
 
     const EPOCH_DURATION_7d: u64 = 604800; // 7 days
     const EPOCH_DURATION_1d: u64 = 86400; // 1 day
-    const EPOCH_DURATION_DEFAULT: u64 = EPOCH_DURATION_7d; // 7 days
+    const EPOCH_DURATION_1h: u64 = 3600; // 1 hour
+    const EPOCH_DURATION_DEFAULT: u64 = EPOCH_DURATION_1h; // 1 hour
     const PERCENTAGE_ALGO_SCORE_DISTRIBUTION: u256 = 8000; //80%
     const BPS: u256 = 10_000; // 100% = 10_000 bps
 
