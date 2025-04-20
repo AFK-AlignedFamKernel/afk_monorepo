@@ -1,7 +1,6 @@
 use afk::social::request::{ConvertToBytes, Encode, SocialRequest, SocialRequestImpl};
-use starknet::ContractAddress;
-use starknet::ClassHash;
 use starknet::storage::{Map, Vec};
+use starknet::{ClassHash, ContractAddress};
 // Add this ROLE on a constants file
 pub const OPERATOR_ROLE: felt252 = selector!("OPERATOR_ROLE");
 pub const ADMIN_ROLE: felt252 = selector!("ADMIN_ROLE");
@@ -73,7 +72,10 @@ pub trait INostrFiScoring<TContractState> {
 
 
     fn add_metadata(ref self: TContractState, metadata: NostrMetadata);
-    fn add_topics_metadata(ref self: TContractState, keywords: ByteArray, main_topic: ByteArray// topics_per_order:Map<u64,ByteArray>,
+    fn add_topics_metadata(
+        ref self: TContractState,
+        keywords: ByteArray,
+        main_topic: ByteArray // topics_per_order:Map<u64,ByteArray>,
     );
     // fn get_metadata(ref self: TContractState) -> NostrMetadata;
 // fn get_topics_metadata(ref self: TContractState) -> TopicsMetadata;
@@ -142,10 +144,10 @@ pub enum BenefitFromUser {
 pub enum TokenLaunchType {
     Later,
     Fairlaunch,
-    PrivateSale,
-    PublicSale,
-    ICO,
-    DutchAuction,
+    // PrivateSale,
+// PublicSale,
+// ICO,
+// DutchAuction,
 }
 
 #[derive(Clone, Debug, Drop, Serde)]
@@ -316,7 +318,7 @@ pub struct DistributionRewardsByUserEvent {
     pub claimed_at: u64,
     pub amount_algo: u256,
     pub amount_vote: u256,
-    pub amount_total: u256, 
+    pub amount_total: u256,
     // pub veracity_score: u256,
 }
 
@@ -372,7 +374,6 @@ pub struct TipUserWithVote {
     pub amount_token: u256,
     pub amount_vote: u256,
     pub nostr_event_id: NostrPublicKey,
-
 }
 
 pub impl TipUserWithVoteDefault of Default<TipUserWithVote> {
@@ -422,16 +423,16 @@ pub struct LinkedThisNostrNote {
 pub struct NostrMetadata {
     pub nostr_address: NostrPublicKey,
     pub name: ByteArray,
-    pub about:ByteArray,
-    pub event_id_nip_72:u256,
-    pub event_id_nip_29:u256,
+    pub about: ByteArray,
+    pub event_id_nip_72: u256,
+    pub event_id_nip_29: u256,
     pub main_tag: ByteArray,
     // pub about: ByteArray,
-    // pub picture: ByteArray,
-    // pub nip05: ByteArray,
-    // pub lud06: ByteArray,
-    // pub lud16: ByteArray,
-    // pub topics: Vec<ByteArray>,
+// pub picture: ByteArray,
+// pub nip05: ByteArray,
+// pub lud06: ByteArray,
+// pub lud16: ByteArray,
+// pub topics: Vec<ByteArray>,
 }
 
 #[derive(Clone, Debug, Drop, PartialEq, starknet::Event, Serde)]
@@ -440,8 +441,8 @@ pub struct NostrMetadataEvent {
     pub nostr_address: NostrPublicKey,
     pub main_tag: ByteArray,
     pub about: ByteArray,
-    pub event_id_nip_72:u256,
-    pub event_id_nip_29:u256,
+    pub event_id_nip_72: u256,
+    pub event_id_nip_29: u256,
 }
 
 #[derive(Clone, Debug, Drop, PartialEq, starknet::Event, Serde)]

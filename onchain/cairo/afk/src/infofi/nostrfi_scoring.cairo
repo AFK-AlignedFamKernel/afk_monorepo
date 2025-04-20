@@ -3,14 +3,14 @@ pub mod NostrFiScoring {
     use afk::infofi::errors;
     use afk::interfaces::common_interfaces::{LinkedStarknetAddress, LinkedStarknetAddressImpl};
     use afk::interfaces::nostrfi_scoring_interfaces::{
-        ADMIN_ROLE, AddTopicsMetadataEvent, AdminAddNostrProfile, DepositRewardsType,
-        DistributionRewardsByUserEvent, EpochRewards, EpochRewardsDefault, INostrFiScoring,
-        NostrAccountScoringDefault, NostrFiAdminStorage, NostrMetadata, NostrMetadataEvent,
-        NostrPublicKey, OPERATOR_ROLE, ProfileAlgorithmScoring, PushAlgoScoreEvent,
-        PushAlgoScoreNostrNote, TipByUser, TipByUserDefault, TipUserWithVote, TotalAlgoScoreRewards,
-        TotalAlgoScoreRewardsDefault, TotalDepositRewards, TotalDepositRewardsDefault,
-        TotalScoreRewards, TotalScoreRewardsDefault, VoteNostrNote, VoteParams,
-        DepositRewardsByUserEvent, NewEpochEvent, ExternalContracts
+        ADMIN_ROLE, AddTopicsMetadataEvent, AdminAddNostrProfile, DepositRewardsByUserEvent,
+        DepositRewardsType, DistributionRewardsByUserEvent, EpochRewards, EpochRewardsDefault,
+        ExternalContracts, INostrFiScoring, NewEpochEvent, NostrAccountScoringDefault,
+        NostrFiAdminStorage, NostrMetadata, NostrMetadataEvent, NostrPublicKey, OPERATOR_ROLE,
+        ProfileAlgorithmScoring, PushAlgoScoreEvent, PushAlgoScoreNostrNote, TipByUser,
+        TipByUserDefault, TipUserWithVote, TotalAlgoScoreRewards, TotalAlgoScoreRewardsDefault,
+        TotalDepositRewards, TotalDepositRewardsDefault, TotalScoreRewards,
+        TotalScoreRewardsDefault, VoteNostrNote, VoteParams,
         // VoteProfile, NostrAccountScoring
     };
     use afk::social::namespace::{INostrNamespaceDispatcher, INostrNamespaceDispatcherTrait};
@@ -164,7 +164,7 @@ pub mod NostrFiScoring {
         AddTopicsMetadataEvent: AddTopicsMetadataEvent,
         NostrMetadataEvent: NostrMetadataEvent,
         DepositRewardsByUserEvent: DepositRewardsByUserEvent,
-        NewEpochEvent:NewEpochEvent,
+        NewEpochEvent: NewEpochEvent,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -280,13 +280,16 @@ pub mod NostrFiScoring {
 
         self.total_deposit_rewards_per_epoch_index.entry(0).write(total_deposit_rewards);
 
-        self.emit(NewEpochEvent {
-            old_epoch_index: 0,
-            current_index_epoch: 0,
-            start_duration: now,
-            end_duration: end_epoch_time,
-            epoch_duration: EPOCH_DURATION_DEFAULT,
-        });
+        self
+            .emit(
+                NewEpochEvent {
+                    old_epoch_index: 0,
+                    current_index_epoch: 0,
+                    start_duration: now,
+                    end_duration: end_epoch_time,
+                    epoch_duration: EPOCH_DURATION_DEFAULT,
+                },
+            );
     }
 
     // #[abi(embed_v0)]
@@ -431,13 +434,16 @@ pub mod NostrFiScoring {
             self.epoch_rewards.entry(new_epoch_index).write(new_epoch_rewards);
             self.current_epoch_rewards.write(new_epoch_rewards);
 
-            self.emit(NewEpochEvent {
-                old_epoch_index: epoch_index,
-                current_index_epoch: new_epoch_index,
-                start_duration: now,
-                end_duration: end_epoch_time,
-                epoch_duration: self.epoch_duration.read(),
-            });
+            self
+                .emit(
+                    NewEpochEvent {
+                        old_epoch_index: epoch_index,
+                        current_index_epoch: new_epoch_index,
+                        start_duration: now,
+                        end_duration: end_epoch_time,
+                        epoch_duration: self.epoch_duration.read(),
+                    },
+                );
         }
 
 
@@ -887,7 +893,6 @@ pub mod NostrFiScoring {
             // println!("user_share_vote: {}", user_share_vote);
             erc20.transfer(starknet_user_address, user_share_vote);
 
-            
             // Emit Event distribution by user
 
             self
@@ -1048,12 +1053,14 @@ pub mod NostrFiScoring {
                 .entry(current_index_epoch)
                 .write(total_deposit_rewards);
 
-
-            self.emit(DepositRewardsByUserEvent {
-                starknet_address: caller,
-                epoch_index: current_index_epoch,
-                amount_token: amount,
-            });
+            self
+                .emit(
+                    DepositRewardsByUserEvent {
+                        starknet_address: caller,
+                        epoch_index: current_index_epoch,
+                        amount_token: amount,
+                    },
+                );
             erc20.transfer_from(caller, contract_address, amount);
         }
 
@@ -1272,7 +1279,6 @@ pub mod NostrFiScoring {
             self.dao_class_hash.write(external_contracts.dao_class_hash);
 
             self.external_contracts.write(external_contracts);
-
         }
 
         // Admin functions
@@ -1502,7 +1508,8 @@ pub mod NostrFiScoring {
             self
                 .emit(
                     NostrMetadataEvent {
-                        nostr_address: metadata.nostr_address, main_tag: metadata.main_tag,
+                        nostr_address: metadata.nostr_address,
+                        main_tag: metadata.main_tag,
                         about: metadata.about,
                         event_id_nip_72: metadata.event_id_nip_72,
                         event_id_nip_29: metadata.event_id_nip_29,
