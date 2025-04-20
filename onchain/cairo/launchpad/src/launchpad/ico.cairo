@@ -1,23 +1,32 @@
 #[starknet::contract]
 pub mod ICO {
     use core::num::traits::Zero;
+    use ekubo::types::bounds::Bounds;
+    use ekubo::types::i129::i129;
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::upgrades::UpgradeableComponent;
     use openzeppelin::upgrades::interface::IUpgradeable;
     use starknet::storage::{Map, Mutable, MutableVecTrait, StoragePath, StoragePathEntry, Vec};
-    use starknet::syscalls::deploy_syscall;
+    use starknet::syscalls::{deploy_syscall, library_call_syscall};
     use starknet::{
-        ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
+        ClassHash, ContractAddress, SyscallResultTrait, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
     use crate::interfaces::ico::{
         ContractConfig, IICO, IICOConfig, Launch, LaunchConfig, LaunchParams, PresaleDetails,
         PresaleLaunched, Token, TokenBought, TokenClaimed, TokenCreated, TokenDetails,
         TokenInitParams, TokenStatus, default_presale_details,
     };
-    use crate::interfaces::unrug::IUnrugLiquidityDispatcher;
-    use crate::launchpad::utils::{calculate_sqrt_ratio, sort_tokens};
+    use crate::interfaces::unrug::{IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait};
+    use crate::launchpad::utils::{
+        MAX_TICK_U128, MIN_TICK_U128, align_tick_with_max_tick_and_min_tick, calculate_bound_mag,
+        calculate_sqrt_ratio, sort_tokens,
+    };
     use crate::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use crate::types::launchpad_types::{BondingType, EkuboLP, TokenQuoteBuyCoin, EkuboUnrugLaunchParameters};
+    use crate::types::launchpad_types::{
+        BondingType, EkuboLP, EkuboPoolParameters, EkuboUnrugLaunchParameters, LiquidityCreated,
+        SupportedExchanges, TokenQuoteBuyCoin,
+    };
 
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
@@ -45,6 +54,7 @@ pub mod ICO {
         TokenBought: TokenBought,
         PresaleLaunched: PresaleLaunched,
         TokenClaimed: TokenClaimed,
+        LiquidityCreated: LiquidityCreated,
         #[flat]
         UpgradeableEvent: UpgradeableComponent::Event,
         #[flat]
@@ -214,8 +224,6 @@ pub mod ICO {
             };
             let id = self._launch_liquidity(token_address, b);
             token.status.write(TokenStatus::Active);
-
-            // TODO: emit LiquidityLaunched
             id
         }
 
@@ -495,7 +503,10 @@ pub mod ICO {
         }
 
         fn _add_liquidity_ekubo(
-            ref self: ContractState, coin_address: ContractAddress, launch: LaunchParams, details: PresaleDetails
+            ref self: ContractState,
+            token_address: ContractAddress,
+            launch: LaunchParams,
+            details: PresaleDetails,
         ) -> (u64, EkuboLP) {
             // Get unrug liquidity contract
             let unrug_address = self.launch.unrug_address.read();
@@ -514,7 +525,7 @@ pub mod ICO {
             // Compute sqrt root with the correct placed of token0 and token1
 
             // Sorting of tokens
-            let (_, token1) = sort_tokens(coin_address, launch.token_quote.token_address.clone());
+            let (_, token1) = sort_tokens(token_address, launch.token_quote.token_address.clone());
 
             let is_token1_quote = launch.token_quote.token_address == token1;
 
@@ -522,8 +533,9 @@ pub mod ICO {
             // threshold_liquidity which should be true Calculate the sqrt ratio
 
             // CHECK
+            let token = self.tokens.entry(token_address);
             let mut sqrt_ratio = calculate_sqrt_ratio(
-                launch.liquidity_raised, launch.initial_pool_supply,
+                token.funds_raised.read(), token.current_supply.read(),
             );
 
             // println!("sqrt_ratio after assert {}", sqrt_ratio.clone());
@@ -532,8 +544,6 @@ pub mod ICO {
             let mut call_data: Array<felt252> = array![];
             Serde::serialize(@sqrt_ratio, ref call_data);
 
-            // let class_hash:ClassHash =
-            // 0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
             let class_hash: ClassHash =
                 0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3
                 .try_into()
@@ -586,29 +596,38 @@ pub mod ICO {
             };
 
             // Calculate liquidity amounts
-            let lp_supply = launch.initial_pool_supply.clone();
-            let mut lp_quote_supply = launch.liquidity_raised.clone();
+
+            // NOTE
+            // Random math when launching token,,,
+            // let liquidity_supply = total_supply / LIQUIDITY_RATIO;
+            // let supply_distribution = total_supply - liquidity_supply;
+            // initial_pool_supply = liquidity_supply
+            let lp_supply = token.current_supply.read(); // perhaps divide by LIQUIDITY_RATIO (5)
+            let mut lp_quote_supply = token.funds_raised.read();
 
             // Handle edge case where contract balance is insufficient
             let quote_token = IERC20Dispatcher {
                 contract_address: launch.token_quote.token_address.clone(),
             };
-            let contract_quote_balance = quote_token.balance_of(get_contract_address());
+            // let contract_quote_balance = quote_token.balance_of(get_contract_address());
 
             // TODO audit
             // HIGH SECURITY RISK
             // TODO fix this
             // We do something wrong if we enter this case
             // Can be caused a rounding and approximation error, fees and others stuff
-            if contract_quote_balance < lp_quote_supply
-                && contract_quote_balance < launch.threshold_liquidity {
-                lp_quote_supply = contract_quote_balance.clone();
-            }
+
+            // TODO: Check the threshold_liquidity
+
+            // if contract_quote_balance < lp_quote_supply
+            //     && contract_quote_balance < launch.threshold_liquidity {
+            //     lp_quote_supply = contract_quote_balance.clone();
+            // }
 
             // Prepare launch parameters
             let params = EkuboUnrugLaunchParameters {
                 owner: get_contract_address(),
-                token_address: coin_address,
+                token_address,
                 quote_address: launch.token_quote.token_address.clone(),
                 lp_supply: lp_supply.clone(),
                 lp_quote_supply: lp_quote_supply.clone(),
@@ -617,29 +636,24 @@ pub mod ICO {
             };
 
             // Approve tokens
-            quote_token.approve(unrug_liquidity_address, lp_quote_supply);
-            let memecoin = IERC20Dispatcher { contract_address: coin_address };
-            memecoin.approve(unrug_liquidity_address, lp_supply);
+            quote_token.approve(unrug_address, lp_quote_supply);
+            let token_dispatcher = IERC20Dispatcher { contract_address: token_address };
+            token_dispatcher.approve(unrug_address, lp_supply);
 
             // Launch on Ekubo
             // TODO Audit unrug.cairo
             // Bounds calculated from unrug using the sign
-            let (id, position) = unrug_liquidity.launch_on_ekubo(coin_address, params);
-
-            // Update launch state
-            let mut launch_to_update = self.launched_coins.read(coin_address);
-            launch_to_update.is_liquidity_launch = true;
-            self.launched_coins.entry(coin_address).write(launch_to_update.clone());
+            let (id, position) = unrug_dispatcher.launch_on_ekubo(token_address, params);
 
             // Emit event
             self
                 .emit(
                     LiquidityCreated {
                         id: id.try_into().unwrap(),
-                        pool: coin_address,
-                        asset: coin_address,
+                        pool: token_address,
+                        asset: token_address,
                         quote_token_address: launch.token_quote.token_address,
-                        owner: launch.owner,
+                        owner: token.owner_access.read().unwrap(),
                         exchange: SupportedExchanges::Ekubo,
                         is_unruggable: false,
                     },
