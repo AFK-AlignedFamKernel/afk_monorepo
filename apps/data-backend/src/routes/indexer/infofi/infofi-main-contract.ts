@@ -17,27 +17,23 @@ interface StateUserPerEpochParams {
 }
 
 async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) {
-
-  fastify.get<{
-  }>('/main-sub/overall-state', async (request, reply) => {
+  fastify.get<{}>('/main-sub/overall-state', async (request, reply) => {
     try {
-    
-      const overallState = await prisma.overall_data.findMany({
-    
+      const contractState = await prisma.contractState.findMany({
         select: {
           total_ai_score: true,
-          total_tips:true,
-          total_amount_deposit:true,
+          total_tips: true,
+          total_amount_deposit: true,
           total_vote_score: true,
-          epoch_index: true,
-          end_duration: true,
-          start_duration: true,
-          epoch_duration: true,
+          current_epoch_index: true,
+          current_epoch_end: true,
+          current_epoch_start: true,
+          current_epoch_duration: true,
         },
       });
 
       reply.status(HTTPStatus.OK).send({
-        data: overallState,
+        data: contractState,
       });
     } catch (error) {
       console.error('Error InfoFi Main Contract all users:', error);
@@ -45,16 +41,13 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
     }
   });
 
-  fastify.get<{
-  }>('/main-sub/all-users', async (request, reply) => {
+  fastify.get<{}>('/main-sub/all-users', async (request, reply) => {
     try {
-    
-      const allUsers = await prisma.profile_data.findMany({
-    
+      const allUsers = await prisma.userProfile.findMany({
         select: {
           nostr_id: true,
           total_ai_score: true,
-          total_tip:true,
+          total_tip: true,
           total_vote_score: true,
         },
       });
@@ -68,18 +61,15 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
     }
   });
 
-
   fastify.get<{
     Params: TipUserParams;
   }>('/main-sub/all-tip-user/', async (request, reply) => {
     try {
-    
-
-      const tipUser = await prisma.profile_data.findMany({
+      const tipUser = await prisma.userProfile.findMany({
         select: {
           nostr_id: true,
           total_ai_score: true,
-          total_tip:true,
+          total_tip: true,
           total_vote_score: true,
         },
       });
@@ -92,7 +82,6 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
-
 
   fastify.get<{
     Params: TipUserParams;
@@ -107,14 +96,14 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
         return;
       }
 
-      const tipUser = await prisma.profile_data.findMany({
+      const tipUser = await prisma.userProfile.findMany({
         where: {
-            nostr_id: nostr_address,
+          nostr_id: nostr_address,
         },
         select: {
           nostr_id: true,
           total_ai_score: true,
-          total_tip:true,
+          total_tip: true,
           total_vote_score: true,
         },
       });
@@ -127,7 +116,6 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
-
 
   fastify.get<{
     Params: TipUserParams;
@@ -142,34 +130,34 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
         return;
       }
 
-      const profileData = await prisma.profile_data.findFirst({
+      const profileData = await prisma.userProfile.findFirst({
         where: {
-            nostr_id: nostr_address,
+          nostr_id: nostr_address,
         },
         select: {
           nostr_id: true,
           total_ai_score: true,
-          total_tip:true,
+          total_tip: true,
           total_vote_score: true,
         },
       });
 
-      const statesPerEpoch = await prisma.profile_data_per_epoch.findMany({
+      const statesPerEpoch = await prisma.userEpochState.findMany({
         where: {
           nostr_id: nostr_address,
         },
         select: {
           epoch_index: true,
           total_ai_score: true,
-          total_tip:true,
+          total_tip: true,
           total_vote_score: true,
         },
       });
 
       reply.status(HTTPStatus.OK).send({
         data: {
-          profile:profileData,
-          state_per_epoch:statesPerEpoch,
+          profile: profileData,
+          state_per_epoch: statesPerEpoch,
         },
       });
     } catch (error) {
@@ -177,7 +165,6 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
-
 
   fastify.get<{
     Params: StateUserPerEpochParams;
@@ -192,7 +179,7 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
         return;
       }
 
-      if(!epoch_index) {
+      if (!epoch_index) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
           message: 'Invalid epoch index',
@@ -200,35 +187,35 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
         return;
       }
 
-      const profileData = await prisma.profile_data.findFirst({
+      const profileData = await prisma.userProfile.findFirst({
         where: {
-            nostr_id: nostr_address,
+          nostr_id: nostr_address,
         },
         select: {
           nostr_id: true,
           total_ai_score: true,
-          total_tip:true,
+          total_tip: true,
           total_vote_score: true,
         },
       });
 
-      const statesPerEpoch = await prisma.profile_data_per_epoch.findMany({
+      const statesPerEpoch = await prisma.userEpochState.findMany({
         where: {
           nostr_id: nostr_address,
-          epoch_index: Number(epoch_index),
+          epoch_index: epoch_index,
         },
         select: {
           epoch_index: true,
           total_ai_score: true,
-          total_tip:true,
+          total_tip: true,
           total_vote_score: true,
         },
       });
 
       reply.status(HTTPStatus.OK).send({
         data: {
-          profile:profileData,
-          state_per_epoch:statesPerEpoch,
+          profile: profileData,
+          state_per_epoch: statesPerEpoch,
         },
       });
     } catch (error) {
@@ -239,17 +226,17 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
 
   fastify.get('/main-sub/epoch-state', async (request, reply) => {
     try {
-      const epochState = await prisma.epoch_data.findMany({
+      const epochState = await prisma.epochState.findMany({
         select: {
           epoch_index: true,
-          start_duration: true,
-          end_duration: true,
+          start_time: true,
+          end_time: true,
           epoch_duration: true,
-          amount_claimed:true,
-          amount_vote:true, 
-          total_ai_score:true,
-          total_vote_score:true,
-          total_amount_deposit:true,
+          amount_claimed: true,
+          amount_vote: true,
+          total_ai_score: true,
+          total_vote_score: true,
+          total_amount_deposit: true,
         },
       });
 
@@ -275,20 +262,20 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
         return;
       }
 
-      const epochState = await prisma.epoch_data.findFirst({
+      const epochState = await prisma.epochState.findFirst({
         where: {
           epoch_index: epoch_index,
         },
         select: {
           epoch_index: true,
-          start_duration: true,
-          end_duration: true,
+          start_time: true,
+          end_time: true,
           epoch_duration: true,
-          amount_claimed:true,
-          amount_vote:true, 
-          total_ai_score:true,
-          total_vote_score:true,
-          total_amount_deposit:true,
+          amount_claimed: true,
+          amount_vote: true,
+          total_ai_score: true,
+          total_vote_score: true,
+          total_amount_deposit: true,
         },
       });
 
@@ -301,84 +288,90 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
     }
   });
 
+  // New optimized endpoint for fetching all data
+  fastify.get<{}>('/main-sub/all-data', async (request, reply) => {
+    try {
+      const contractState = await prisma.contractState.findMany({
+        include: {
+          epochs: {
+            select: {
+              epoch_index: true,
+              start_time: true,
+              end_time: true,
+              epoch_duration: true,
+              total_ai_score: true,
+              total_vote_score: true,
+              total_amount_deposit: true,
+              total_tip: true,
+              amount_claimed: true,
+              amount_vote: true,
+              amount_algo: true,
+              user_epoch_states: {
+                select: {
+                  nostr_id: true,
+                  total_ai_score: true,
+                  total_vote_score: true,
+                  total_tip: true,
+                  amount_claimed: true,
+                },
+              },
+            },
+          },
+          user_profiles: {
+            select: {
+              nostr_id: true,
+              starknet_address: true,
+              total_ai_score: true,
+              total_vote_score: true,
+              total_tip: true,
+              amount_claimed: true,
+              is_add_by_admin: true,
+              epoch_states: {
+                select: {
+                  epoch_index: true,
+                  total_ai_score: true,
+                  total_vote_score: true,
+                  total_tip: true,
+                  amount_claimed: true,
+                },
+              },
+            },
+          },
+        },
+      });
 
+      // Calculate aggregations
+      const aggregations = await prisma.contractState.aggregate({
+        _sum: {
+          total_ai_score: true,
+          total_vote_score: true,
+          total_tips: true,
+          total_amount_deposit: true,
+          total_to_claimed: true,
+        },
+        _avg: {
+          percentage_algo_distribution: true,
+        },
+      });
 
-
-
-
-
-
-  // // @TODO fix
-  // fastify.get<{
-  //   Params: DeployLaunchParams;
-  // }>('/deploy-launch/by/:owner_address/', async (request, reply) => {
-  //   try {
-  //     const { owner_address } = request.params;
-  //     if (owner_address && !isValidStarknetAddress(owner_address)) {
-  //       reply.status(HTTPStatus.BadRequest).send({
-  //         code: HTTPStatus.BadRequest,
-  //         message: 'Invalid user address',
-  //       });
-  //       return;
-  //     }
-
-  //     const deploys = await prisma.token_launch.findMany({
-  //       where: { owner_address: owner_address },
-  //       select: {
-  //         memecoin_address: true,
-  //         quote_token: true,
-  //         price: true,
-  //         total_supply: true,
-  //         liquidity_raised: true,
-  //         network: true,
-  //         created_at: true,
-  //       },
-  //     });
-
-  //     reply.status(HTTPStatus.OK).send({
-  //       data: deploys,
-  //     });
-  //   } catch (error) {
-  //     console.error('Error deploying launch by user:', error);
-  //     reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
-  //   }
-  // });
-  // fastify.get<{
-  //   Params: DeployLaunchByUserParams;
-  // }>("/deploy-launch/from/:user/", async (request, reply) => {
-  //   try {
-  //     const { owner_address } = request.params;
-  //     if (!isValidStarknetAddress(owner_address)) {
-  //       reply.status(HTTPStatus.BadRequest).send({
-  //         code: HTTPStatus.BadRequest,
-  //         message: "Invalid token address",
-  //       });
-  //       return;
-  //     }
-
-  //     const deploys = await prisma.token_launch.findMany({
-  //       where: {  owner_address: owner_address },
-  //       select: {
-  //         memecoin_address: true,
-  //         quote_token: true,
-  //         price: true,
-  //         total_supply: true,
-  //         liquidity_raised: true,
-  //         network: true,
-  //         created_at: true,
-  //       },
-  //     });
-
-  //     reply.status(HTTPStatus.OK).send({
-  //       data: deploys,
-  //     });
-  //   } catch (error) {
-  //     console.error("Error deploying launch by user:", error);
-  //     reply
-  //       .status(HTTPStatus.InternalServerError)
-  //       .send({ message: "Internal server error." });
-  //   }
-  // });
+      reply.status(HTTPStatus.OK).send({
+        data: {
+          contract_states: contractState,
+          aggregations: {
+            total_ai_score: aggregations._sum.total_ai_score,
+            total_vote_score: aggregations._sum.total_vote_score,
+            total_tips: aggregations._sum.total_tips,
+            total_amount_deposit: aggregations._sum.total_amount_deposit,
+            total_to_claimed: aggregations._sum.total_to_claimed,
+            average_algo_distribution: aggregations._avg.percentage_algo_distribution,
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching all data:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
+    }
+  });
 }
 
 export default mainInfoFiRoute;

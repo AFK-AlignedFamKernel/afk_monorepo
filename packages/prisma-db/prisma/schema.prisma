@@ -62,9 +62,6 @@ model NoteNostr {
   score         Int?
   noteScore     Json?
   tags          String[]
-  created_at DateTime?
-  saved_at  DateTime? @default(now()) @db.Timestamp(6)
-  updatedAt DateTime? @default(now()) @db.Timestamp(6)
 }
 
 model TrendingNotesNostr {
@@ -79,19 +76,3 @@ enum Role {
   USER
   ADMIN
 }
-
-
-model Scoring {
-  id            String   @id @default(cuid())
-  eventId       String
-  llm        Json?
-  ml        Json?
-  algo        Json?
-  user        Json?
-  noteScore     Json?
-  overviewScore Json?
-  created_at DateTime?
-  saved_at  DateTime? @default(now()) @db.Timestamp(6)
-  updatedAt DateTime? @default(now()) @db.Timestamp(6)
-}
-

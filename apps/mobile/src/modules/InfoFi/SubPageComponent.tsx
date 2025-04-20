@@ -8,11 +8,11 @@ import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
 import { useWalletModal } from '../../hooks/modals';
 
 import stylesheet from './styles';
-import { TokenDeployInterface, TokenLaunchInterface } from '../../types/keys';
+import {  TokenDeployInterface, TokenLaunchInterface } from '../../types/keys';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from 'src/types';
 import { useNamespace } from '../../hooks/infofi/useNamespace';
-import { useDataInfoMain, useGetEpochState, useGetAllTipUser, useGetAllTipByUser, useOverallState } from 'src/hooks/infofi/useDataInfoMain';
+import { useDataInfoMain, useGetEpochState, useGetAllTipUser, useGetAllTipByUser, useOverallState   } from 'src/hooks/infofi/useDataInfoMain';
 import { UserCard } from './UserCard';
 import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
 import { Input } from 'src/components/Input';
@@ -21,14 +21,12 @@ import { formatUnits } from 'viem';
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
 }
-
-export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
+export const SubPageComponent: React.FC<AllKeysComponentInterface> = ({
   isButtonInstantiateEnable,
 }) => {
   const styles = useStyles(stylesheet);
   const { account } = useAccount();
   const { allData, isLoading, isFetching } = useDataInfoMain();
-  const { data: allUsers, isLoading: isLoadingUsers } = useGetAllTipUser();
   const { width } = useWindowDimensions();
   const walletModal = useWalletModal();
   const isDesktop = width >= 1024 ? true : false;
@@ -39,7 +37,6 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
 
   const [amount, setAmount] = useState<string>('');
   const [nostrAddress, setNostrAddress] = useState('');
-  const [refreshing, setRefreshing] = useState(false);
 
   const handleSubscription = async () => {
     const resNamespace = await handleLinkNamespace();
@@ -63,13 +60,7 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
     return formatUnits(BigInt(Math.floor(Number(value) * 1e18)), 18);
   };
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    // Add any refresh logic here
-    setRefreshing(false);
-  };
-
-  if (isLoading || isLoadingUsers) {
+  if (isLoading) {
     return <Loading />;
   }
 
@@ -173,24 +164,10 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>User Rankings</Text>
         <FlatList
-          data={allUsers?.data}
-          renderItem={({ item }) => (
-            <UserCard 
-              userInfo={{
-                nostr_id: item.nostr_id,
-                total_ai_score: item.total_ai_score,
-                total_vote_score: item.total_vote_score,
-                // starknet_address: item.starknet_address,
-                // is_add_by_admin: item.is_add_by_admin,
-                // epoch_states: item.epoch_states
-              }}
-            />
-          )}
+          data={allData?.contract_states[0]?.user_profiles}
+          renderItem={({ item }) => <UserCard userInfo={item} />}
           keyExtractor={(item) => item.nostr_id}
           style={styles.userList}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
         />
       </View>
     </View>
