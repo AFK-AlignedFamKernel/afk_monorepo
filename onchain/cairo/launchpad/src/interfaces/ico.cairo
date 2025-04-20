@@ -10,7 +10,7 @@ pub trait IICO<TContractState> {
         token_address: ContractAddress,
         presale_details: Option<PresaleDetails>,
     );
-    // fn launch_dutch_auction(ref self: TContractState);
+    fn launch_dutch_auction(ref self: TContractState, token_address: ContractAddress);
     fn launch_liquidity(
         ref self: TContractState, token_address: ContractAddress, bonding_type: Option<BondingType>,
     ) -> u64;
