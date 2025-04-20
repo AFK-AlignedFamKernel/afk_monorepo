@@ -114,5 +114,70 @@ export default function useStyles() {
     userList: {
       marginTop: 16,
     },
+    subCard: {
+      backgroundColor: '#1E1E1E',
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
+    subCardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    subCardTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: '#FFFFFF',
+    },
+    subCardSymbol: {
+      fontSize: 16,
+      color: '#888888',
+    },
+    subCardContent: {
+      gap: 8,
+    },
+    subCardText: {
+      fontSize: 14,
+      color: '#CCCCCC',
+    },
+    subList: {
+      flex: 1,
+      padding: 16,
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 16,
+    },
+    errorText: {
+      color: '#FF4444',
+      fontSize: 16,
+    },
+    activityItem: {
+      backgroundColor: '#2A2A2A',
+      borderRadius: 8,
+      padding: 12,
+      marginBottom: 8,
+    },
+    activityText: {
+      fontSize: 14,
+      color: '#FFFFFF',
+      marginBottom: 4,
+    },
+    activityDate: {
+      fontSize: 12,
+      color: '#888888',
+    },
   });
 }

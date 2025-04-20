@@ -1,176 +1,42 @@
-import { useAccount } from '@starknet-react/core';
-import { useEffect, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-
-import { Button } from '../../components';
-import Loading from '../../components/Loading';
-import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
-import { useWalletModal } from '../../hooks/modals';
-
-import stylesheet from './styles';
-import {  TokenDeployInterface, TokenLaunchInterface } from '../../types/keys';
 import { useNavigation } from '@react-navigation/native';
-import { MainStackNavigationProps } from 'src/types';
-import { useNamespace } from '../../hooks/infofi/useNamespace';
-import { useDataInfoMain, useGetEpochState, useGetAllTipUser, useGetAllTipByUser, useOverallState   } from 'src/hooks/infofi/useDataInfoMain';
-import { UserCard } from './UserCard';
-import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
-import { Input } from 'src/components/Input';
-import { formatUnits } from 'viem';
+import { Pressable, Text, View } from 'react-native';
+import { useStyles } from '../../hooks';
+import stylesheet from './styles';
+import { MainStackNavigationProps } from '../../types';
 
-interface AllKeysComponentInterface {
-  isButtonInstantiateEnable?: boolean;
-  
+interface SubCardProps {
+  subInfo: {
+    contract_address: string;
+    name: string;
+    about: string;
+    main_tag: string;
+    total_amount_deposit: number;
+  };
+  onPress?: () => void;
 }
-export const SubCard: React.FC<AllKeysComponentInterface> = ({
-  isButtonInstantiateEnable,
-}) => {
+
+export const SubCard: React.FC<SubCardProps> = ({ subInfo, onPress }) => {
   const styles = useStyles(stylesheet);
-  const { account } = useAccount();
-  const { allData, isLoading, isFetching } = useDataInfoMain();
-  const { width } = useWindowDimensions();
-  const walletModal = useWalletModal();
-  const isDesktop = width >= 1024 ? true : false;
-  const { theme } = useTheme();
   const navigation = useNavigation<MainStackNavigationProps>();
-  const { handleLinkNamespaceFromNostrScore, handleLinkNamespace } = useNamespace();
-  const { handleDepositRewards } = useDepositRewards();
 
-  const [amount, setAmount] = useState<string>('');
-  const [nostrAddress, setNostrAddress] = useState('');
-
-  const handleSubscription = async () => {
-    const resNamespace = await handleLinkNamespace();
-    console.log('resNamespace', resNamespace);
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else {
+      navigation.navigate('SubPage', { subAddress: subInfo.contract_address });
+    }
   };
-
-  const handleDeposit = async () => {
-    await handleDepositRewards(account, {
-      nostr_address: nostrAddress,
-      vote: 'good',
-      is_upvote: true,
-      upvote_amount: Number(amount),
-      downvote_amount: 0,
-      amount: Number(amount),
-      amount_token: Number(amount),
-    });
-  };
-
-  const formatDecimal = (value: any) => {
-    if (!value) return '0';
-    return formatUnits(BigInt(Math.floor(Number(value) * 1e18)), 18);
-  };
-
-  if (isLoading) {
-    return <Loading />;
-  }
 
   return (
-    <View style={styles.container}>
-      {isButtonInstantiateEnable && (
-        <Button
-          onPress={handleSubscription}
-          variant="primary"
-          style={styles.createTokenButton}
-          textStyle={styles.createTokenButtonText}
-        >
-          <Text>Subscribe to InfoFi</Text>
-        </Button>
-      )}
-
-      {/* Overview Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Overview</Text>
-        <View style={styles.overviewGrid}>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total AI Score</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(allData?.aggregations.total_ai_score)}
-            </Text>
-          </View>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total Vote Score</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(allData?.aggregations.total_vote_score)}
-            </Text>
-          </View>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total Tips</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(allData?.aggregations.total_tips)}
-            </Text>
-          </View>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total Deposits</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(allData?.aggregations.total_amount_deposit)}
-            </Text>
-          </View>
-        </View>
+    <Pressable onPress={handlePress} style={styles.subCard}>
+      <View style={styles.subCardHeader}>
+        <Text style={styles.subCardTitle}>{subInfo.name}</Text>
+        <Text style={styles.subCardSymbol}>{subInfo.main_tag}</Text>
       </View>
-
-      {/* Epoch States Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Epoch States</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {allData?.contract_states[0]?.epochs.map((epoch: any) => (
-            <View key={epoch.epoch_index} style={styles.epochCard}>
-              <Text style={styles.epochTitle}>Epoch {epoch.epoch_index}</Text>
-              <View style={styles.epochStats}>
-                <View style={styles.epochStat}>
-                  <Text style={styles.epochStatLabel}>AI Score</Text>
-                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_ai_score)}</Text>
-                </View>
-                <View style={styles.epochStat}>
-                  <Text style={styles.epochStatLabel}>Vote Score</Text>
-                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_vote_score)}</Text>
-                </View>
-                <View style={styles.epochStat}>
-                  <Text style={styles.epochStatLabel}>Deposits</Text>
-                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_amount_deposit)}</Text>
-                </View>
-                <View style={styles.epochStat}>
-                  <Text style={styles.epochStatLabel}>Tips</Text>
-                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_tip)}</Text>
-                </View>
-              </View>
-            </View>
-          ))}
-        </ScrollView>
+      <View style={styles.subCardContent}>
+        <Text style={styles.subCardText}>Address: {subInfo.contract_address}</Text>
+        <Text style={styles.subCardText}>Total deposit to rewards: {subInfo.total_amount_deposit}</Text>
       </View>
-
-      {/* Deposit Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Deposit Rewards</Text>
-        <View style={styles.depositContainer}>
-          <Input
-            placeholder="Amount to deposit"
-            value={amount}
-            onChangeText={setAmount}
-            style={styles.depositInput}
-          />
-          <Input
-            placeholder="Nostr Address"
-            value={nostrAddress}
-            onChangeText={setNostrAddress}
-            style={styles.depositInput}
-          />
-          <Button onPress={handleDeposit} style={styles.depositButton}>
-            <Text style={styles.depositButtonText}>Deposit Rewards</Text>
-          </Button>
-        </View>
-      </View>
-
-      {/* Users Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>User Rankings</Text>
-        <FlatList
-          data={allData?.contract_states[0]?.user_profiles}
-          renderItem={({ item }) => <UserCard userInfo={item} />}
-          keyExtractor={(item) => item.nostr_id}
-          style={styles.userList}
-        />
-      </View>
-    </View>
+    </Pressable>
   );
 };

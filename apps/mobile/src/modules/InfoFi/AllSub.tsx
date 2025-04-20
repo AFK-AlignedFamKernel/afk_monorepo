@@ -17,58 +17,22 @@ import { UserCard } from './UserCard';
 import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
 import { Input } from 'src/components/Input';
 import { formatUnits } from 'viem';
-import { useGetAllSubs } from '../../hooks/infofi/useSubFactoryData';
+import { useScoreFactoryData } from '../../hooks/infofi/useSubFactoryData';
 import { SubCard } from './SubCard';
 
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
 }
 
-export const AllSubsComponent: React.FC<AllKeysComponentInterface> = ({
-  isButtonInstantiateEnable,
-}) => {
+export const AllSubsComponent: React.FC = () => {
   const styles = useStyles(stylesheet);
-  const { account } = useAccount();
-  const { allData, isLoading, isFetching } = useDataInfoMain();
-  const { data: allUsers, isLoading: isLoadingUsers } = useGetAllTipUser();
-  const { width } = useWindowDimensions();
-  const walletModal = useWalletModal();
-  const isDesktop = width >= 1024 ? true : false;
-  const { theme } = useTheme();
   const navigation = useNavigation<MainStackNavigationProps>();
-  const { handleLinkNamespaceFromNostrScore, handleLinkNamespace } = useNamespace();
-  const { handleDepositRewards } = useDepositRewards();
-  const { allSubs, isLoadingSubs, isErrorSubs } = useGetAllSubs();
-
-  const [amount, setAmount] = useState<string>('');
-  const [nostrAddress, setNostrAddress] = useState('');
+  const { allSubs, isLoading, isError, refetch } = useScoreFactoryData();
   const [refreshing, setRefreshing] = useState(false);
-
-  const handleSubscription = async () => {
-    const resNamespace = await handleLinkNamespace();
-    console.log('resNamespace', resNamespace);
-  };
-
-  const handleDeposit = async () => {
-    await handleDepositRewards(account, {
-      nostr_address: nostrAddress,
-      vote: 'good',
-      is_upvote: true,
-      upvote_amount: Number(amount),
-      downvote_amount: 0,
-      amount: Number(amount),
-      amount_token: Number(amount),
-    });
-  };
-
-  const formatDecimal = (value: any) => {
-    if (!value) return '0';
-    return formatUnits(BigInt(Math.floor(Number(value) * 1e18)), 18);
-  };
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // Add any refresh logic here
+    await refetch();
     setRefreshing(false);
   };
 
@@ -76,11 +40,16 @@ export const AllSubsComponent: React.FC<AllKeysComponentInterface> = ({
     navigation.navigate('SubPage', { subAddress });
   };
 
-  if (isLoading || isLoadingUsers || isLoadingSubs) {
+  const formatDecimal = (value: any) => {
+    if (!value) return '0';
+    return formatUnits(BigInt(Math.floor(Number(value) * 1e18)), 18);
+  };
+
+  if (isLoading) {
     return <Loading />;
   }
 
-  if (isErrorSubs) {
+  if (isError) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Error loading subs</Text>
@@ -90,144 +59,26 @@ export const AllSubsComponent: React.FC<AllKeysComponentInterface> = ({
 
   return (
     <View style={styles.container}>
-      {isButtonInstantiateEnable && (
-        <Button
-          onPress={handleSubscription}
-          variant="primary"
-          style={styles.createTokenButton}
-          textStyle={styles.createTokenButtonText}
-        >
-          <Text>Subscribe to InfoFi</Text>
-        </Button>
-      )}
-
-      {/* Overview Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Overview</Text>
-        <View style={styles.overviewGrid}>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total AI Score</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(allData?.aggregations.total_ai_score)}
-            </Text>
-          </View>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total Vote Score</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(allData?.aggregations.total_vote_score)}
-            </Text>
-          </View>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total Tips</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(allData?.aggregations.total_tips)}
-            </Text>
-          </View>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total Deposits</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(allData?.aggregations.total_amount_deposit)}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Epoch States Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Epoch States</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {allData?.contract_states[0]?.epochs.map((epoch: any) => (
-            <View key={epoch.epoch_index} style={styles.epochCard}>
-              <Text style={styles.epochTitle}>Epoch {epoch.epoch_index}</Text>
-              <View style={styles.epochStats}>
-                <View style={styles.epochStat}>
-                  <Text style={styles.epochStatLabel}>AI Score</Text>
-                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_ai_score)}</Text>
-                </View>
-                <View style={styles.epochStat}>
-                  <Text style={styles.epochStatLabel}>Vote Score</Text>
-                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_vote_score)}</Text>
-                </View>
-                <View style={styles.epochStat}>
-                  <Text style={styles.epochStatLabel}>Deposits</Text>
-                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_amount_deposit)}</Text>
-                </View>
-                <View style={styles.epochStat}>
-                  <Text style={styles.epochStatLabel}>Tips</Text>
-                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_tip)}</Text>
-                </View>
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Deposit Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Deposit Rewards</Text>
-        <View style={styles.depositContainer}>
-          <Input
-            placeholder="Amount to deposit"
-            value={amount}
-            onChangeText={setAmount}
-            style={styles.depositInput}
+      <FlatList
+        data={allSubs}
+        renderItem={({ item }) => (
+          <SubCard
+            subInfo={{
+              contract_address: item.contract_address,
+              name: item.name || 'Unnamed Sub',
+              about: item.about || '',
+              main_tag: item.main_tag || '',
+              total_amount_deposit: item.total_amount_deposit || 0,
+            }}
+            onPress={() => handleSubPress(item.contract_address)}
           />
-          <Input
-            placeholder="Nostr Address"
-            value={nostrAddress}
-            onChangeText={setNostrAddress}
-            style={styles.depositInput}
-          />
-          <Button onPress={handleDeposit} style={styles.depositButton}>
-            <Text style={styles.depositButtonText}>Deposit Rewards</Text>
-          </Button>
-        </View>
-      </View>
-
-      {/* Users Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>User Rankings</Text>
-        <FlatList
-          data={allUsers?.data}
-          renderItem={({ item }) => (
-            <UserCard 
-              userInfo={item}
-              // userInfo={{
-              //   nostr_id: item.nostr_id,
-              //   total_ai_score: item.total_ai_score,
-              //   total_vote_score: item.total_vote_score,
-              //   // starknet_address: item.starknet_address,
-              //   // is_add_by_admin: item.is_add_by_admin,
-              //   // epoch_states: item.epoch_states
-              // }}
-            />
-          )}
-          keyExtractor={(item) => item.nostr_id}
-          style={styles.userList}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        />
-      </View>
-
-      {/* Subs Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>All Subs</Text>
-        <FlatList
-          data={allSubs}
-          renderItem={({ item }) => (
-            <SubCard
-              subInfo={item}
-              onPress={() => handleSubPress(item.contract_address)}
-            />
-          )}
-          keyExtractor={(item) => item.contract_address}
-          style={styles.subList}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        />
-      </View>
+        )}
+        keyExtractor={(item) => item.contract_address}
+        style={styles.subList}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      />
     </View>
   );
 };

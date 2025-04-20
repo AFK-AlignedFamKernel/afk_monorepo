@@ -7,7 +7,7 @@ import {useQuery} from '@tanstack/react-query';
 
 import {ApiIndexerInstance} from '../../services/api';
 
-export const useGetAllUsers = () => {
+export const useSubFactoryGetAllUsers = () => {
   return useQuery({
     queryKey: ['all_users'],
     queryFn: async () => {
@@ -23,7 +23,7 @@ export const useGetAllUsers = () => {
 };
 
 
-export const useGetEpochState = () => {
+export const useFactoryGetEpochState = () => {
   return useQuery({
     queryKey: ['epoch_state'],
     queryFn: async () => {
@@ -38,7 +38,7 @@ export const useGetEpochState = () => {
   });
 };
 
-export const useGetAllTipUser = () => {
+export const useFactoryGetAllTipUser = () => {
   return useQuery({
     queryKey: ['all_tip_user'],
     queryFn: async () => {
@@ -53,7 +53,7 @@ export const useGetAllTipUser = () => {
   });
 };
 
-export const useGetAllTipByUser = (nostr_address: string) => {
+export const useFactoryGetAllTipByUser = (nostr_address: string) => {
   return useQuery({
     queryKey: ['all_tip_by_user'],
     queryFn: async () => {
@@ -68,7 +68,7 @@ export const useGetAllTipByUser = (nostr_address: string) => {
   });
 }
 
-export const useOverallState = () => {
+export const useFactoryOverallState = () => {
   return useQuery({
     queryKey: ['overall_state'],
     queryFn: async () => {
@@ -83,7 +83,7 @@ export const useOverallState = () => {
   });
 }
 
-export const useGetAllData = () => {
+export const useFactoryGetAllData = () => {
   return useQuery({
     queryKey: ['all_data'],
     queryFn: async () => {
@@ -97,13 +97,13 @@ export const useGetAllData = () => {
   });
 };
 
-export const useDataInfoMain = () => {
+export const useSubFactoryData = () => {
   const {
     data: allData,
     isLoading: isLoadingAll,
     isError: isErrorAll,
     isFetching: isFetchingAll,
-  } = useGetAllData();
+  } = useFactoryGetAllData();
 
   const [tokens, setTokens] = useState<NostrProfileInfoFiInterface[]>([]);
   const [launches, setLaunches] = useState<NostrProfileInfoFiInterface[]>([]);
@@ -193,18 +193,18 @@ export const useGetAllSubs = () => {
 };
 
 // Get specific sub details
-export const useGetSubDetails = (subAddress: string) => {
+export const useGetSubInfo = (subAddress: string) => {
   return useQuery({
     queryKey: ['score_factory_sub', subAddress],
     queryFn: async () => {
       const endpoint = `/score-factory/sub/${subAddress}`;
       const res = await ApiIndexerInstance.get(endpoint);
       if (res.status !== 200) {
-        throw new Error('Failed to fetch sub details');
+        throw new Error('Failed to fetch sub info');
       }
       return res.data;
     },
-    enabled: !!subAddress, // Only run query if subAddress is provided
+    enabled: !!subAddress,
   });
 };
 
@@ -246,25 +246,38 @@ export const useScoreFactoryData = (subAddress?: string, epochIndex?: string) =>
     data: allSubs,
     isLoading: isLoadingSubs,
     isError: isErrorSubs,
+    refetch: refetchSubs,
   } = useGetAllSubs();
 
   const {
     data: subDetails,
     isLoading: isLoadingDetails,
     isError: isErrorDetails,
-  } = useGetSubDetails(subAddress || '');
+    refetch: refetchDetails,
+  } = useGetSubInfo(subAddress || '');
 
   const {
     data: subProfiles,
     isLoading: isLoadingProfiles,
     isError: isErrorProfiles,
+    refetch: refetchProfiles,
   } = useGetSubProfiles(subAddress || '');
 
   const {
     data: epochProfiles,
     isLoading: isLoadingEpochProfiles,
     isError: isErrorEpochProfiles,
+    refetch: refetchEpochProfiles,
   } = useGetSubProfilesByEpoch(subAddress || '', epochIndex || '');
+
+  const refetch = async () => {
+    await Promise.all([
+      refetchSubs(),
+      refetchDetails(),
+      refetchProfiles(),
+      refetchEpochProfiles(),
+    ]);
+  };
 
   return {
     // All subs data
@@ -290,6 +303,13 @@ export const useScoreFactoryData = (subAddress?: string, epochIndex?: string) =>
     // Combined loading and error states
     isLoading: isLoadingSubs || isLoadingDetails || isLoadingProfiles || isLoadingEpochProfiles,
     isError: isErrorSubs || isErrorDetails || isErrorProfiles || isErrorEpochProfiles,
+
+    // Refetch functions
+    refetch,
+    refetchSubs,
+    refetchDetails,
+    refetchProfiles,
+    refetchEpochProfiles,
   };
 };
 

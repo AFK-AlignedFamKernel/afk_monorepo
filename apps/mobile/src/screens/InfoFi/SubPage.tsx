@@ -7,9 +7,17 @@ export const SubPageScreen: React.FC<SubPageScreenProps> = ({route}) => {
   const { subAddress,  } = route.params;
   const {theme} = useTheme();
   const styles = useStyles(stylesheet);
+
+  if(!subAddress) {
+    return (
+      <View style={styles.container}>
+          <Text>No sub address</Text>
+      </View>
+    );
+  }
   return (
     <View style={styles.container}>
-        <SubPageComponent subAddress={subAddress}></SubPageComponent>
+        <SubPageComponent subAddress={subAddress as string}></SubPageComponent>
     </View>
   );
 };
