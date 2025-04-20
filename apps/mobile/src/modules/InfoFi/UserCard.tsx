@@ -43,12 +43,9 @@ export const UserCard: React.FC<AllKeysComponentInterface> = ({
   const isDesktop = width >= 1024 ? true : false;
 
   const {data: profile} = useProfile({publicKey: userInfo?.nostr_id})
-  console.log("userInfo", userInfo);
-  console.log("profile", profile);
+  // console.log("userInfo", userInfo);
+  // console.log("profile", profile);
   const { theme } = useTheme();
-
-
-
 
   return (
     <View style={styles.container}>
