@@ -1,6 +1,6 @@
+import { contractState, epochState, userProfile, userEpochState } from 'indexer-v2-db/schema';
 import { and, eq } from 'drizzle-orm';
 import { useDrizzleStorage } from '@apibara/plugin-drizzle';
-import { contractState, epochState, userProfile, userEpochState } from 'indexer-v2-db/schema';
 interface ContractStateData {
   contract_address: string;
   network?: string;
@@ -64,14 +64,14 @@ interface UserEpochStateData {
 
 export async function insertSubState(subStates  : ContractStateData[]) {
   const { db } = useDrizzleStorage();
-  return db.insert(contractState).values(subStates).onConflictDoNothing();
+  return db.insert(contractState).values(subStates as any).onConflictDoNothing();
 }
 
 export async function upsertContractState(data: ContractStateData) {
   const { db } = useDrizzleStorage();
   return db
     .insert(contractState)
-    .values(data)
+    .values(data as any)
     .onConflictDoUpdate({
       target: contractState.contract_address,
       set: {

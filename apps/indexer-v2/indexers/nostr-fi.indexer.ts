@@ -2,7 +2,7 @@ import { defineIndexer } from '@apibara/indexer';
 import { useLogger } from '@apibara/indexer/plugins';
 import { drizzleStorage } from '@apibara/plugin-drizzle';
 import { decodeEvent, StarknetStream } from '@apibara/starknet';
-import { constants, encode, hash } from 'starknet';
+import { Abi, constants, encode, hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
 import { ABI as nostrFiScoringABI } from './abi/infofi/score.abi';
@@ -36,17 +36,25 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
         {
           address: "0x20f02a8bebe4728add0704b8ffd772595b4ebf03103560e4e23b93bdbf75dec",
           keys: [
-            NEW_EPOCH,
-            DEPOSIT_REWARDS,
-            DISTRIBUTION_REWARDS,
-            TIP_USER,
-            LINKED_ADDRESS,
-            PUSH_ALGO_SCORE,
-            ADD_TOPICS,
-            NOSTR_METADATA,
+            SUB_CREATED,
           ],
         },
       ],
+      // events: [
+      //   {
+      //     address: "0x20f02a8bebe4728add0704b8ffd772595b4ebf03103560e4e23b93bdbf75dec",
+      //     keys: [
+      //       NEW_EPOCH,
+      //       DEPOSIT_REWARDS,
+      //       DISTRIBUTION_REWARDS,
+      //       TIP_USER,
+      //       LINKED_ADDRESS,
+      //       PUSH_ALGO_SCORE,
+      //       ADD_TOPICS,
+      //       NOSTR_METADATA,
+      //     ],
+      //   },
+      // ],
     },
     plugins: [drizzleStorage({ db })],
     async factory({ block: { events } }) {
@@ -67,15 +75,18 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
 
       const daoCreationData = events.map((event) => {
         const decodedEvent = decodeEvent({
-            abi: scoreFactoryABI,
+            abi: scoreFactoryABI as Abi,
             event,
             eventName: 'afk::infofi::score_factory::TopicEvent',
         });
 
+        console.log(decodedEvent.args);
+
         const daoAddress = decodedEvent.args?.topic_address;
+
         const creator = decodedEvent.args?.admin;
         const tokenAddress = decodedEvent.args?.main_token_address;
-        const starknetAddress = decodedEvent.args?.starknet_address.toString();
+        const starknetAddress = decodedEvent.args?.starknet_address?.toString() as string;
 
         return {
           number: event.eventIndex,
@@ -88,7 +99,11 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
         };
       });
 
-      // await insertSubState(daoCreationData);
+      await insertSubState(daoCreationData as any[]);
+      // await insertSubState(daoCreationData.map(data => ({
+      //   ...data,
+      //   contract_address: data.contract_address?.toString()
+      // })));
 
       return {
         filter: {
@@ -109,7 +124,7 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
         
         try {
           const decodedEvent = decodeEvent({
-            abi: nostrFiScoringABI,
+            abi: nostrFiScoringABI as Abi,
             event,
             eventName: getEventName(event.keys[0]),
           });
