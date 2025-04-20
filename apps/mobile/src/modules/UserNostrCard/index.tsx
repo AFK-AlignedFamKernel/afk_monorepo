@@ -13,8 +13,11 @@ import { MainStackNavigationProps } from 'src/types';
 import { NostrProfileInfoFiInterface } from 'src/types/infofi';
 import { useVoteTip, VoteParams } from '../../hooks/infofi/useVote';
 import { useAccount } from '@starknet-react/core';
+import { NOSTR_FI_SCORING_ADDRESS } from 'common';
+import { constants } from 'starknet';
 export type UserCardProps = {
   profile?: NDKUserProfile;
+  contractAddressSubScore?: string;
   event?: NDKEvent;
   profileIndexer?: NostrProfileInfoFiInterface;
   isRepostProps?: boolean;
@@ -24,7 +27,7 @@ export type UserCardProps = {
 };
 const hashtags = /\B#\w*[a-zA-Z]+\w*/g;
 
-export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profileIndexer, isRepostProps, isBookmarked, isReplyView, isArticle }) => {
+export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profileIndexer, isRepostProps, isBookmarked, isReplyView, isArticle, contractAddressSubScore  }) => {
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
 
@@ -52,7 +55,7 @@ export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profile
   const [voteParams, setVoteParams] = useState<VoteParams>(voteParamsDefault);
   const handleTipUser = () => {
     console.log('profileIndexer', profileIndexer);
-    handleVoteStarknetOnly(account?.account, voteParams,);
+    handleVoteStarknetOnly(account?.account, voteParams, contractAddressSubScore ?? NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]);
   }
 
   return (
