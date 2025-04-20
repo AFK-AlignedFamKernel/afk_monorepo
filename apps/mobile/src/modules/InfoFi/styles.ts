@@ -115,11 +115,11 @@ export default function useStyles() {
       marginTop: 16,
     },
     subCard: {
-      backgroundColor: '#1E1E1E',
+      backgroundColor: theme.colors.surface,
       borderRadius: 12,
       padding: 16,
       marginBottom: 16,
-      shadowColor: '#000',
+      shadowColor: theme.colors.shadow,
       shadowOffset: {
         width: 0,
         height: 2,
@@ -137,18 +137,18 @@ export default function useStyles() {
     subCardTitle: {
       fontSize: 18,
       fontWeight: 'bold',
-      color: '#FFFFFF',
+      color: theme.colors.text,
     },
     subCardSymbol: {
       fontSize: 16,
-      color: '#888888',
+      color: theme.colors.textSecondary,
     },
     subCardContent: {
       gap: 8,
     },
     subCardText: {
       fontSize: 14,
-      color: '#CCCCCC',
+      color: theme.colors.textSecondary,
     },
     subList: {
       flex: 1,
@@ -161,23 +161,23 @@ export default function useStyles() {
       padding: 16,
     },
     errorText: {
-      color: '#FF4444',
+      color: theme.colors.badgeText,
       fontSize: 16,
     },
     activityItem: {
-      backgroundColor: '#2A2A2A',
+      backgroundColor: theme.colors.surface,
       borderRadius: 8,
       padding: 12,
       marginBottom: 8,
     },
     activityText: {
       fontSize: 14,
-      color: '#FFFFFF',
+      color: theme.colors.text,
       marginBottom: 4,
     },
     activityDate: {
       fontSize: 12,
-      color: '#888888',
+      color: theme.colors.textSecondary,
     },
   });
 }
