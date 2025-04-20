@@ -27,6 +27,7 @@ import { NostrProfileInfoFiInterface } from 'src/types/infofi';
 import { useProfile } from 'afk_nostr_sdk';
 import { PostCard } from '../PostCard';
 import { UserNostrCard } from '../UserNostrCard';
+import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
   userInfo?: NostrProfileInfoFiInterface
@@ -45,6 +46,7 @@ export const UserCard: React.FC<AllKeysComponentInterface> = ({
   console.log("userInfo", userInfo);
   console.log("profile", profile);
   const { theme } = useTheme();
+
 
 
 
@@ -80,162 +82,3 @@ export const UserCard: React.FC<AllKeysComponentInterface> = ({
     </View >
   );
 };
-
-export function TokenDashboard({
-  tokenOrLaunch,
-  isDesktop,
-  isFetching,
-  address,
-  onConnect,
-  sortBy,
-}: {
-  tokenOrLaunch: any;
-  isDesktop: boolean;
-  isFetching: boolean;
-  address: any;
-  onConnect: () => void;
-  sortBy?: string;
-}) {
-  const styles = useStyles(stylesheet);
-
-  const { data: myTokens } = useMyTokensCreated(address);
-  const { data: myLaunchs } = useMyLaunchCreated(address);
-
-  const [sortedMyTokens, setSortedMyTokens] = useState<TokenDeployInterface[]>([]);
-  const [sortedMyLaunchs, setSortedMyLaunchs] = useState<LaunchDataMerged[]>([]);
-
-  // console.log("sortBy", sortBy);
-  // console.log("sortedMyTokens", sortedMyTokens);
-  // console.log("sortedMyLaunchs", sortedMyLaunchs);
-  useEffect(() => {
-    // console.log("myTokens", myTokens);
-    // console.log("myLaunchs", myLaunchs);
-
-    if (!myTokens || !myLaunchs) return;
-
-    const sortedMyTokens = myTokens?.data;
-    const sortedMyLaunchs = myLaunchs?.data;
-
-
-    if (tokenOrLaunch == 'MY_DASHBOARD') {
-      switch (sortBy) {
-        case 'recent':
-          sortedMyTokens.sort((a: any, b: any) => {
-            const dateA = new Date(a?.block_timestamp || 0);
-            const dateB = new Date(b?.block_timestamp || 0);
-            return dateB.getTime() - dateA.getTime();
-          });
-          break;
-        case 'oldest':
-          sortedMyTokens.sort((a: any, b: any) => {
-            const dateA = new Date(a?.block_timestamp || 0);
-            const dateB = new Date(b?.block_timestamp || 0);
-            return dateA.getTime() - dateB.getTime();
-          });
-          break;
-        // case 'liquidity':
-        //   sortedTokens.sort((a, b) => {
-        //     const liquidityA = Number(a.liquidity_raised || 0);
-        //     const liquidityB = Number(b.liquidity_raised || 0);
-        //     return liquidityB - liquidityA;
-        //   });
-        //   break;
-      }
-    } else if (tokenOrLaunch == 'MY_LAUNCH_TOKEN') {
-      switch (sortBy) {
-        case 'recent':
-          sortedMyLaunchs.sort((a: any, b: any) => {
-            const dateA = new Date(a?.block_timestamp || 0);
-            const dateB = new Date(b?.block_timestamp || 0);
-            return dateB.getTime() - dateA.getTime();
-          });
-          break;
-        case 'oldest':
-          sortedMyLaunchs.sort((a: any, b: any) => {
-            const dateA = new Date(a?.block_timestamp || 0);
-            const dateB = new Date(b?.block_timestamp || 0);
-            return dateA.getTime() - dateB.getTime();
-          });
-          break;
-      }
-    }
-
-    setSortedMyTokens(sortedMyTokens);
-    setSortedMyLaunchs(sortedMyLaunchs);
-  }, [myTokens, myLaunchs, sortBy, tokenOrLaunch]);
-  // const { tokens: myTokens, launches: myLaunchs } = useLaunchpadStore();
-  const renderContent = () => {
-    if (!address) {
-      return (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Text style={[styles.text, { fontSize: 16, marginBottom: 4 }]}>
-            Connect wallet to see your tokens
-          </Text>
-          <Button onPress={onConnect}>Connect Wallet</Button>
-        </View>
-      );
-    }
-
-    // const data = tokenOrLaunch === 'MY_DASHBOARD' ? myTokens : myLaunchs;
-    const data = tokenOrLaunch === 'MY_DASHBOARD' ? sortedMyTokens : sortedMyLaunchs;
-
-    if (!data || data?.length === 0) {
-      return (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Text style={[styles.text, { fontSize: 16 }]}>No tokens found</Text>
-        </View>
-      );
-    }
-
-    if (tokenOrLaunch == 'MY_DASHBOARD') {
-      return (
-        <FlatList
-          contentContainerStyle={styles.flatListContent}
-          data={sortedMyTokens}
-          keyExtractor={(item, i) => i.toString()}
-          key={`flatlist-${isDesktop ? 2 : 1}`}
-          numColumns={isDesktop ? 2 : 1}
-          renderItem={({ item, index }) => {
-            return <TokenCard key={index} token={item} isTokenOnly={true} />;
-          }}
-          refreshControl={<RefreshControl refreshing={isFetching} />}
-        />
-      );
-    } else {
-      return (
-        <FlatList
-          contentContainerStyle={styles.flatListContent}
-          data={sortedMyLaunchs}
-          keyExtractor={(item, i) => i.toString()}
-          key={`flatlist-${isDesktop ? 2 : 1}`}
-          numColumns={isDesktop ? 2 : 1}
-          renderItem={({ item, index }) => {
-            return <TokenLaunchCard key={index} token={item} />;
-          }}
-          // renderItem={({ item, index }) => {
-
-          //   return <TokenLaunchCard key={item?.token_address} token={item} />;
-          // }}
-          refreshControl={<RefreshControl refreshing={isFetching} />}
-        />
-      );
-
-    }
-
-
-  };
-
-  return renderContent();
-}

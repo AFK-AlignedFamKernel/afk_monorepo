@@ -1,7 +1,7 @@
 import { useAccount, useNetwork, useProvider } from '@starknet-react/core';
 import {  TOKENS_ADDRESS, NOSTR_FI_SCORING_ADDRESS } from 'common';
 import { AccountInterface, byteArray, cairo, CairoCustomEnum, CallData, constants, RpcProvider, uint256 } from 'starknet';
-import { feltToAddress, formatFloatToUint256 } from '../../utils/format';
+import { formatFloatToUint256 } from '../../utils/format';
 import { prepareAndConnectContract } from '../keys/useDataKeys';
 import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
 import { useAuth, useNostrContext } from 'afk_nostr_sdk';
@@ -24,14 +24,14 @@ export interface VoteParams {
   nostr_address: string;
   vote: "good" | "bad";
   is_upvote: boolean;
-  upvote_amount: number;
-  downvote_amount: number;
-  amount: number;
-  amount_token: number;
+  upvote_amount: string;
+  downvote_amount: string;
+  amount: string;
+  amount_token: string;
 }
 
 // Original useNameservice hook for contract interactions
-export const useVote = () => {
+export const useVoteTip = () => {
   const account = useAccount();
   const chain = useNetwork();
   const rpcProvider = useProvider();
@@ -57,6 +57,12 @@ export const useVote = () => {
       '';
     console.log('read nameservice asset');
 
+
+    const amountToken = formatFloatToUint256(Number(voteParams.amount_token));
+    const amount = formatFloatToUint256(Number(voteParams.amount));
+    const upvoteAmount = formatFloatToUint256(Number(voteParams.upvote_amount));
+    const downvoteAmount = formatFloatToUint256(Number(voteParams.downvote_amount));
+
     
 
     let approveCallData = {
@@ -64,7 +70,7 @@ export const useVote = () => {
       entrypoint: 'approve',
       calldata: CallData.compile({
         address: addressContract,
-        amount: uint256.bnToUint256(voteParams.amount_token),
+        amount: amountToken,
       }),
     };
     let voteEnum = new CairoCustomEnum({ Good: {} });
@@ -80,10 +86,10 @@ export const useVote = () => {
       nostr_address: uint256.bnToUint256(`0x${voteParams.nostr_address}`), // Recipient nostr pubkey
       vote: voteEnum,
       is_upvote: cairo.felt(voteParams.is_upvote?.toString()),
-      upvote_amount: cairo.uint256(voteParams.upvote_amount),
-      downvote_amount: cairo.uint256(voteParams.downvote_amount),
-      amount: cairo.uint256(voteParams.amount),
-      amount_token: cairo.uint256(voteParams.amount_token),
+      upvote_amount: upvoteAmount,
+      downvote_amount: downvoteAmount,
+      amount: amount,
+      amount_token: amountToken,
     });
 
     const linkedNamespace = {
@@ -145,12 +151,18 @@ export const useVote = () => {
     // Send the claim through the wallet
     const event = await getNostrEvent();
 
+
+    const amountToken = formatFloatToUint256(Number(voteParams.amount_token));
+    const amount = formatFloatToUint256(Number(voteParams.amount));
+    const upvoteAmount = formatFloatToUint256(Number(voteParams.upvote_amount));
+    const downvoteAmount = formatFloatToUint256(Number(voteParams.downvote_amount));
+
     let approveCallData = {
       contractAddress: quote_address,
       entrypoint: 'approve',
       calldata: CallData.compile({
         address: addressContract,
-        amount: uint256.bnToUint256(voteParams.amount_token),
+        amount: amountToken,
       }),
     };
     const signature = event.sig ?? '';
@@ -173,10 +185,10 @@ export const useVote = () => {
       nostr_address: uint256.bnToUint256(`0x${voteParams.nostr_address}`), // Recipient nostr pubkey
       vote: voteEnum,
       is_upvote: cairo.felt(voteParams.is_upvote?.toString()),
-      upvote_amount: cairo.uint256(voteParams.upvote_amount),
-      downvote_amount: cairo.uint256(voteParams.downvote_amount),
-      amount: cairo.uint256(voteParams.amount),
-      amount_token: cairo.uint256(voteParams.amount_token),
+      upvote_amount: upvoteAmount,
+      downvote_amount: downvoteAmount,
+      amount: amount,
+      amount_token: amountToken,
     });
 
     const linkedNamespace = {

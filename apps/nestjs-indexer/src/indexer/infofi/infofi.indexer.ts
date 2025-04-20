@@ -6,6 +6,7 @@ import { hash, uint256, validateAndParseAddress } from 'starknet';
 import { IndexerService } from '../indexer.service';
 import { ContractAddress } from 'src/common/types';
 import { NostrInfofiService } from 'src/services/nostr-infofi/nostr-infofi.service';
+import { uint256ToHex } from '../utils';
 
 @Injectable()
 export class InfoFiIndexer {
@@ -119,9 +120,15 @@ export class InfoFiIndexer {
       `0x${FieldElement.toBigInt(oldEpochIndexFelt).toString(16)}`,
     ) as string;
 
-    const currentEpochIndex = validateAndParseAddress(
+    let currentEpochIndex = validateAndParseAddress(
       `0x${FieldElement.toBigInt(currentEpochIndexFelt).toString(16)}`,
     ) as string;
+
+    console.log("currentEpochIndex", currentEpochIndex);
+    currentEpochIndex = FieldElement.toBigInt(currentEpochIndexFelt).toString(16);
+    console.log("currentEpochIndex", currentEpochIndex);
+
+
 
     const data = {
       old_epoch_index: Number(oldEpochIndex),
@@ -129,7 +136,7 @@ export class InfoFiIndexer {
       start_duration: new Date(Number(startDurationFelt) * 1000),
       end_duration: new Date(Number(endDurationFelt) * 1000),
       epoch_duration: Number(epochDurationFelt),
-
+      epoch_index: Number(currentEpochIndex),
       transferId,
       network: 'starknet-sepolia',
       transactionHash,
@@ -171,10 +178,18 @@ export class InfoFiIndexer {
       low: FieldElement.toBigInt(nostrAddressLow),
       high: FieldElement.toBigInt(nostrAddressHigh),
     });
-    const nostrAddress = validateAndParseAddress(
-      `0x${nostrAddressRaw.toString(16)}`,
-    ) as ContractAddress;
+    // const nostrAddress = validateAndParseAddress(
+    //   `0x${nostrAddressRaw.toString(16)}`,
+    // ) as ContractAddress;
 
+
+    let nostrAddress = uint256ToHex(nostrAddressLow, nostrAddressHigh);
+
+    console.log("nostrAddress", nostrAddress);
+    if (nostrAddress.startsWith('0x')) {
+      nostrAddress = nostrAddress.slice(2, nostrAddress.length);
+    }
+    console.log("nostrAddress sanitized", nostrAddress);
 
     const [epochIndex, claimedAt, amountAlgoLow, amountAlgoHigh, amountVoteLow, amountVoteHigh, amountTotalLow, amountTotalHigh] = event.data;
 
@@ -207,6 +222,7 @@ export class InfoFiIndexer {
       blockNumber: Number(blockNumber),
       blockHash,
       epoch_index: Number(epochIndex),
+      current_index_epoch: Number(epochIndex),
       amount_algo: amountAlgo,
       amount_vote: amountVote,
       amount_total: amountTotal,
@@ -247,8 +263,16 @@ export class InfoFiIndexer {
 
 
 
-    const [epochIndex, amountTokenLow, amountTokenHigh] = event.data;
+    const [epochIndexFelt, amountTokenLow, amountTokenHigh] = event.data;
 
+    console.log("epochIndexFelt", epochIndexFelt);
+    let epochIndex = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(epochIndexFelt).toString(16)}`,
+    ) as string;
+
+    console.log("epochIndex", epochIndex);
+    epochIndex = FieldElement.toBigInt(epochIndexFelt).toString(16);
+    console.log("epochIndex", epochIndex);
     const amountTokenRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(amountTokenLow),
       high: FieldElement.toBigInt(amountTokenHigh),
@@ -266,6 +290,7 @@ export class InfoFiIndexer {
       blockNumber: Number(blockNumber),
       blockHash,
       epoch_index: Number(epochIndex),
+      current_index_epoch: Number(epochIndex),
       amount_token: amountToken,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
       starknet_address: starknetAddress,
@@ -316,6 +341,54 @@ export class InfoFiIndexer {
 
 
 
+    let nostrAddress = uint256ToHex(nostrPubkeyLow, nostrPubkeyHigh);
+
+    console.log("nostrAddress", nostrAddress);
+    if (nostrAddress.startsWith('0x')) {
+      nostrAddress = nostrAddress.slice(2, nostrAddress.length);
+    }
+    console.log("nostrAddress sanitized", nostrAddress);
+
+
+    const [_totalAiScoreLow, _totalAiScoreHigh, _totalNostrAddressLow, _totalNostrAddressHigh, _totalPointsWeightLow, _totalPointsWeightHigh, _isClaimedFelt, _claimedAtFelt, _currentIndexEpochFelt] = event.data;
+
+
+    const totalAiScoreRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(_totalAiScoreLow),
+      high: FieldElement.toBigInt(_totalAiScoreHigh),
+    });
+
+    const totalAiScore = formatUnits(totalAiScoreRaw, constants.DECIMALS).toString();
+
+    const totalNostrAddressRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(_totalNostrAddressLow),
+      high: FieldElement.toBigInt(_totalNostrAddressHigh),
+    });
+
+    const totalNostrAddress = formatUnits(totalNostrAddressRaw, constants.DECIMALS).toString();
+
+    const totalPointsWeightRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(_totalPointsWeightLow),
+      high: FieldElement.toBigInt(_totalPointsWeightHigh),
+    });
+
+    const totalPointsWeight = formatUnits(totalPointsWeightRaw, constants.DECIMALS).toString();
+
+    const isClaimed = FieldElement.toBigInt(_isClaimedFelt).toString(16);
+
+    console.log("claimedAt", _claimedAtFelt);
+    const claimedAt = new Date(Number(_claimedAtFelt) * 1000);
+    console.log("claimedAt", claimedAt);
+
+
+    let currentEpochIndex = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(_currentIndexEpochFelt).toString(16)}`,
+    ) as string;
+
+    console.log("currentEpochIndex", currentEpochIndex);
+    currentEpochIndex = FieldElement.toBigInt(_currentIndexEpochFelt).toString(16);
+    console.log("currentEpochIndex", currentEpochIndex);
+
     const data = {
       transferId,
       network: 'starknet-sepolia',
@@ -323,7 +396,7 @@ export class InfoFiIndexer {
       blockNumber: Number(blockNumber),
       blockHash,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
-      nostr_address: nostrPubkeyRaw.toString(),
+      nostr_address: nostrAddress,
       starknet_address: starknetAddress,
       contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
     };
@@ -360,17 +433,16 @@ export class InfoFiIndexer {
     const [_, nostrPubkeyLow, nostrPubkeyHigh, starknetAddressFelt] = event.keys;
 
 
-    const nostrPubkeyRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(nostrPubkeyLow),
-      high: FieldElement.toBigInt(nostrPubkeyHigh),
-    });
-
     const starknetAddress = validateAndParseAddress(
       `0x${FieldElement.toBigInt(starknetAddressFelt).toString(16)}`,
     ) as ContractAddress;
 
+    let nostrAddress = uint256ToHex(nostrPubkeyLow, nostrPubkeyHigh);
 
-
+    console.log("nostrAddress", nostrAddress);
+    if (nostrAddress.startsWith('0x')) {
+      nostrAddress = nostrAddress.slice(2, nostrAddress.length);
+    }
     const data = {
       transferId,
       network: 'starknet-sepolia',
@@ -378,8 +450,9 @@ export class InfoFiIndexer {
       blockNumber: Number(blockNumber),
       blockHash,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
-      nostr_address: nostrPubkeyRaw.toString(),
+      nostr_address: nostrAddress,
       starknet_address: starknetAddress,
+
       contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
     };
 
@@ -398,6 +471,12 @@ export class InfoFiIndexer {
       blockHash: blockHashFelt,
       timestamp: blockTimestamp,
     } = header;
+
+    console.log("handleTipUserWithVoteEvent");
+    console.log("handleTipUserWithVoteEvent event", event);
+
+    console.log("event.data", event.data);
+    console.log("event.keys", event.keys);
 
     const blockHash = validateAndParseAddress(
       `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
@@ -418,28 +497,44 @@ export class InfoFiIndexer {
       high: FieldElement.toBigInt(nostrAddressHigh),
     });
 
-    const nostrAddress = validateAndParseAddress(
-      `0x${nostrAddressRaw.toString(16)}`,
-    ) as ContractAddress;
+    // const nostrAddress = validateAndParseAddress(
+    //   `0x${nostrAddressRaw.toString(16)}`,
+    // ) as ContractAddress;
 
+    let nostrAddress = uint256ToHex(nostrAddressLow, nostrAddressHigh);
+
+    console.log("nostrAddress", nostrAddress);
+    if (nostrAddress.startsWith('0x')) {
+      nostrAddress = nostrAddress.slice(2, nostrAddress.length);
+    }
+    console.log("nostrAddress sanitized", nostrAddress);
     const starknetAddress = validateAndParseAddress(
       `0x${FieldElement.toBigInt(starknetAddressFelt).toString(16)}`,
     ) as ContractAddress;
 
+
+
     const [
-      currentIndexEpochFelt,
       amountLow,
       amountHigh,
       amountVoteLow,
       amountVoteHigh,
-      nostrEventIdLow,
-      nostrEventIdHigh,
+      // nostrEventIdLow,
+      // nostrEventIdHigh,
+      currentIndexEpochFelt,
+
     ] = event.data;
 
-    const currentIndexEpoch = validateAndParseAddress(
+    console.log("currentIndexEpochFelt", currentIndexEpochFelt);
+    // const currentIndexEpoch = validateAndParseAddress(
+    //   `0x${FieldElement.toBigInt(currentIndexEpochFelt).toString(16)}`,
+    // ) as string;
+    let currentIndexEpoch = validateAndParseAddress(
       `0x${FieldElement.toBigInt(currentIndexEpochFelt).toString(16)}`,
     ) as string;
-
+    console.log("currentIndexEpoch", currentIndexEpoch);
+    currentIndexEpoch = FieldElement.toBigInt(currentIndexEpochFelt).toString(16)
+    console.log("currentIndexEpoch", currentIndexEpoch);
     const amountRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(amountLow),
       high: FieldElement.toBigInt(amountHigh),
@@ -452,13 +547,13 @@ export class InfoFiIndexer {
     });
     const amountVote = formatUnits(amountVoteRaw, constants.DECIMALS).toString();
 
-    const nostrEventIdRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(nostrEventIdLow),
-      high: FieldElement.toBigInt(nostrEventIdHigh),
-    });
-    const nostrEventId = validateAndParseAddress(
-      `0x${nostrEventIdRaw.toString(16)}`,
-    ) as ContractAddress;
+    // const nostrEventIdRaw = uint256.uint256ToBN({
+    //   low: FieldElement.toBigInt(nostrEventIdLow),
+    //   high: FieldElement.toBigInt(nostrEventIdHigh),
+    // });
+    // const nostrEventId = validateAndParseAddress(
+    //   `0x${nostrEventIdRaw.toString(16)}`,
+    // ) as ContractAddress;
 
 
     const data = {
@@ -472,9 +567,11 @@ export class InfoFiIndexer {
       starknet_address: starknetAddress,
       amount_token: amount,
       amount_vote: amountVote,
-      nostr_event_id: nostrEventId,
-      current_index_epoch: Number(currentIndexEpoch),
+      nostr_event_id: nostrAddress,
+      current_index_epoch: Number(currentIndexEpoch) ?? 0,
+      epoch_index: Number(currentIndexEpoch) ?? 0,
       timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+      contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
     };
 
     await this.nostrInfofiService.createTipUserWithVote(data);

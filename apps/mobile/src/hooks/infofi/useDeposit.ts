@@ -1,5 +1,5 @@
 import { useAccount, useNetwork, useProvider } from '@starknet-react/core';
-import { KEYS_ADDRESS, NAMESERVICE_ADDRESS, TOKENS_ADDRESS } from 'common';
+import { KEYS_ADDRESS, NAMESERVICE_ADDRESS, TOKENS_ADDRESS, NOSTR_FI_SCORING_ADDRESS } from 'common';
 import { AccountInterface, byteArray, cairo, CairoCustomEnum, CallData, constants, RpcProvider, uint256 } from 'starknet';
 import { TokenQuoteBuyKeys } from '../../types/keys';
 import { feltToAddress, formatFloatToUint256 } from '../../utils/format';
@@ -50,7 +50,7 @@ export const useDepositRewards = () => {
     if (!account) return;
 
     const addressContract =
-      contractAddress ?? NAMESERVICE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+      contractAddress ?? NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     console.log('addressContract', addressContract);
     console.log('read asset');
 
@@ -76,24 +76,25 @@ export const useDepositRewards = () => {
     console.log('read amountToPaid');
 
 
-    const getNostrEvent = async () => {
-      const event = new NDKEvent(ndk);
-      event.kind = NDKKind.Text;
-      event.content = `link to ${cairo.felt(account?.address!)}`;
-      event.tags = [];
+    // const getNostrEvent = async () => {
+    //   const event = new NDKEvent(ndk);
+    //   event.kind = NDKKind.Text;
+    //   event.content = `link to ${cairo.felt(account?.address!)}`;
+    //   event.tags = [];
 
-      await event.sign();
-      return event.rawEvent();
-    };
+    //   await event.sign();
+    //   return event.rawEvent();
+    // };
 
-    // Send the claim through the wallet
-    const event = await getNostrEvent();
+    // // Send the claim through the wallet
+    // const event = await getNostrEvent();
 
-    const signature = event.sig ?? '';
-    const signatureR = signature.slice(0, signature.length / 2);
-    const signatureS = signature.slice(signature.length / 2);
+    // const signature = event.sig ?? '';
+    // const signatureR = signature.slice(0, signature.length / 2);
+    // const signatureS = signature.slice(signature.length / 2);
 
     let depositRewardsType = new CairoCustomEnum({ General: {} });
+    const amountToken = formatFloatToUint256(voteParams.amount_token);
 
 
     let approveCallData = {
@@ -101,12 +102,13 @@ export const useDepositRewards = () => {
       entrypoint: 'approve',
       calldata: CallData.compile({
         address: addressContract,
-        amount: uint256.bnToUint256(voteParams.amount_token),
+        amount: amountToken,
       }),
     };
 
     const depositRewardsCallData = CallData.compile({
-     amount: uint256.bnToUint256(voteParams.amount_token),
+    //  amount: uint256.bnToUint256(voteParams.amount_token),
+     amount: amountToken,
      deposit_rewards_type: depositRewardsType
     });
 

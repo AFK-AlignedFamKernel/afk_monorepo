@@ -285,6 +285,42 @@ model token_metadata {
 }
 
 
+model overall_data{
+    contract_address String    @id
+    transaction_hash String   
+    network          String?
+    epoch_index String?
+    block_hash       String?
+    block_number     BigInt?
+    starknet_address String?
+    block_timestamp  DateTime? @db.Timestamp(6)
+    cursor           BigInt?   @map("_cursor")
+    time_stamp       DateTime? @db.Timestamp(6)
+    created_at       DateTime? @default(now()) @db.Timestamp(6)
+    updated_at       DateTime? @default(now()) @db.Timestamp(6)
+    last_deposit_at DateTime? @default(now()) @db.Timestamp(6)
+
+    amount_claimed Int?
+    amount_vote Int?
+    amount_algo Int?
+
+    total_ai_score Int?
+    total_vote_score Int?
+    total_tips Int?
+    total_to_claimed Int?
+    total_amount_deposit Int?
+
+    percentage_algo_distribution Int?
+
+    quote_address String?
+    main_token_address String?
+
+    end_duration DateTime?
+    start_duration DateTime?
+    epoch_duration Int?
+
+}
+
 model overall_vote_data {
     transaction_hash String    @id
     network          String?
@@ -318,12 +354,13 @@ model overall_vote_data {
 }
 
 model epoch_data {
-    transaction_hash String    @id
+    transaction_hash String    
     network          String?
-    epoch_index String?
+    epoch_index String @id
     total_ai_score Int?
     total_vote_score Int? 
     total_amount_deposit Int?
+    total_tip Int?
     block_hash       String?
     block_number     BigInt?
     starknet_address String?
@@ -373,7 +410,6 @@ model profile_data {
   amount_claimed Int?
 
   is_add_by_admin Boolean?
-
 
   state_per_epoch profile_data_per_epoch[]
 

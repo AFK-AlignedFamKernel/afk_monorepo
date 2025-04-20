@@ -38,6 +38,36 @@ export const useGetEpochState = () => {
   });
 };
 
+export const useGetAllTipUser = () => {
+  return useQuery({
+    queryKey: ['all_tip_user'],
+    queryFn: async () => {
+      const endpoint = '/main-sub/all-tip-user/';
+      const res = await ApiIndexerInstance.get(endpoint);
+      if (res.status !== 200) {
+        throw new Error('Failed to fetch epoch state');
+      }
+
+      return res.data;
+    },
+  });
+};
+
+export const useGetAllTipByUser = (nostr_address: string) => {
+  return useQuery({
+    queryKey: ['all_tip_by_user'],
+    queryFn: async () => {
+      const endpoint = `/main-sub/all-tip-user/${nostr_address}`;
+      const res = await ApiIndexerInstance.get(endpoint);
+      if (res.status !== 200) {
+        throw new Error('Failed to fetch epoch state');
+      }
+
+      return res.data;
+    },
+  });
+}
+
 export const useDataInfoMain = () => {
   const {
     data: userData,

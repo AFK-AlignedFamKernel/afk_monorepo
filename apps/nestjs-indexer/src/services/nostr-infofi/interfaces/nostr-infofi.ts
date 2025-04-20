@@ -1,5 +1,5 @@
 
-export interface LinkedDefaultStarknetAddressEventInterface {
+export interface LinkedDefaultStarknetAddressEventInterface extends BaseEventInterface {
   nostr_address: string;
   starknet_address: string;
   nostr_event_id?: string;
@@ -53,6 +53,14 @@ export interface DistributionRewardsByUserEventInterface extends BaseEventInterf
   amount_total: string;
 }
 
+export interface NewEpochEventInterface extends BaseEventInterface {
+  old_epoch_index: number;
+  current_index_epoch: number;
+  start_duration: Date;
+  end_duration: Date;
+  epoch_duration: number;
+}
+
 export interface BaseEventInterface {
   transferId?: string;
   network?: string;
@@ -60,12 +68,5 @@ export interface BaseEventInterface {
   blockNumber?: number;
   blockTimestamp?: Date;
   transactionHash: string;
-}
-
-export interface NewEpochEventInterface extends BaseEventInterface {
-  old_epoch_index: number;
-  current_index_epoch: number;
-  start_duration: Date;
-  end_duration: Date;
-  epoch_duration: number;
+  contract_address: string;
 }

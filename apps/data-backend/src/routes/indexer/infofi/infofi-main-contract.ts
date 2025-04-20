@@ -42,6 +42,29 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
   });
 
 
+  fastify.get<{
+    Params: TipUserParams;
+  }>('/main-sub/all-tip-user/', async (request, reply) => {
+    try {
+    
+
+      const tipUser = await prisma.profile_data.findMany({
+        select: {
+          nostr_id: true,
+          total_ai_score: true,
+          total_tip:true,
+          total_vote_score: true,
+        },
+      });
+
+      reply.status(HTTPStatus.OK).send({
+        data: tipUser,
+      });
+    } catch (error) {
+      console.error('Error InfoFi Main Contract tip user:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
+    }
+  });
 
 
   fastify.get<{
@@ -57,7 +80,7 @@ async function mainInfoFiRoute(fastify: FastifyInstance, options: RouteOptions) 
         return;
       }
 
-      const tipUser = await prisma.profile_data.findFirst({
+      const tipUser = await prisma.profile_data.findMany({
         where: {
             nostr_id: nostr_address,
         },

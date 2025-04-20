@@ -44,6 +44,23 @@ export default ThemedStyleSheet((theme) => ({
     marginLeft: 16,
     gap: 4,
   },
+  text: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+  },
   
-  
+  formTipVote: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    shadowColor: theme.colors.text,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    borderRadius: 12,
+    borderWidth: 0.3,
+    borderColor: theme.colors.cardBorder,
+  },
 }));

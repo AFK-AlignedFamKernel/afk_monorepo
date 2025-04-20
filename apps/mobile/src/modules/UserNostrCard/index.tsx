@@ -3,7 +3,7 @@ import { useState } from 'react';
 import React from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Avatar, Text } from '../../components';
+import { Avatar, Text, Button, Input } from '../../components';
 import { useStyles } from '../../hooks';
 import { Post } from '../Post';
 import stylesheet from './styles';
@@ -11,10 +11,12 @@ import { UserCard } from './User';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from 'src/types';
 import { NostrProfileInfoFiInterface } from 'src/types/infofi';
+import { useVoteTip, VoteParams } from '../../hooks/infofi/useVote';
+import { useAccount } from '@starknet-react/core';
 export type UserCardProps = {
   profile?: NDKUserProfile;
   event?: NDKEvent;
-  profileIndexer?:NostrProfileInfoFiInterface;
+  profileIndexer?: NostrProfileInfoFiInterface;
   isRepostProps?: boolean;
   isBookmarked?: boolean;
   isReplyView?: boolean;
@@ -26,19 +28,32 @@ export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profile
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
 
-  let repostedEvent = undefined;
-  // const [isRepost, setIsRepost] = useState(
-  //   (isRepostProps ?? event?.kind == NDKKind.Repost) ? true : false,
-  // );
+  const account = useAccount();
 
-  // if (event?.kind == NDKKind.Repost) {
-  //   repostedEvent = JSON.stringify(event?.content);
-  // }
   const handleProfilePress = (userId?: string) => {
     if (profileIndexer?.nostr_id) {
       navigation.navigate('Profile', { publicKey: profileIndexer?.nostr_id });
     }
   };
+
+  const { handleVoteStarknetOnly } = useVoteTip();
+
+
+  const voteParamsDefault: VoteParams = {
+    nostr_address: profileIndexer?.nostr_id,
+    vote: 'good',
+    is_upvote: true,
+    upvote_amount: "0",
+    downvote_amount: "0",
+    amount: "0",
+    amount_token: "0",
+  }
+
+  const [voteParams, setVoteParams] = useState<VoteParams>(voteParamsDefault);
+  const handleTipUser = () => {
+    console.log('profileIndexer', profileIndexer);
+    handleVoteStarknetOnly(account?.account, voteParams,);
+  }
 
   return (
     <View style={styles.container}>
@@ -99,11 +114,26 @@ export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profile
           </View>
 
 
-          <View style={styles.infoUser}>
+        </View>
+
+        <View style={styles.formTipVote}>
+
+          <Text style={styles.text}>Tip and boost user</Text>
+          <Input
+            placeholder="Amount"
+            value={voteParams.amount.toString() || ''}
+            onChangeText={(text) => setVoteParams({ ...voteParams, amount: text })}
+          />
+
+
+          <Button
+            onPress={handleTipUser}
+          >
+            <Text>Tip</Text>
+          </Button>
 
 
 
-          </View>
         </View>
       </View>
 
