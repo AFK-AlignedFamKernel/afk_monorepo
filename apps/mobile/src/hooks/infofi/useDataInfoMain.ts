@@ -68,6 +68,21 @@ export const useGetAllTipByUser = (nostr_address: string) => {
   });
 }
 
+export const useOverallState = () => {
+  return useQuery({
+    queryKey: ['overall_state'],
+    queryFn: async () => {
+      const endpoint = `/main-sub/overall-state`;
+      const res = await ApiIndexerInstance.get(endpoint);
+      if (res.status !== 200) {
+        throw new Error('Failed to fetch epoch state');
+      }
+
+      return res.data;
+    },
+  });
+}
+
 export const useDataInfoMain = () => {
   const {
     data: userData,

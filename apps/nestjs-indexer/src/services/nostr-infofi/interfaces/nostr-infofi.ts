@@ -67,6 +67,6 @@ export interface BaseEventInterface {
   blockHash?: string;
   blockNumber?: number;
   blockTimestamp?: Date;
-  transactionHash: string;
-  contract_address: string;
+  transactionHash?: string;
+  contract_address?: string;
 }

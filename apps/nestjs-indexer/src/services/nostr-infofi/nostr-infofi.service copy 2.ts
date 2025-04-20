@@ -113,7 +113,6 @@ export class NostrInfofiService {
         },
       });
 
-      // Update user epoch state
       await this.prismaService.userEpochState.upsert({
         where: {
           nostr_id_epoch_index_contract_address: {
@@ -193,7 +192,7 @@ export class NostrInfofiService {
     try {
       const epochIndex = data.epoch_index?.toString() || "0";
 
-      // First, get or create the contract state to ensure we have the current epoch info
+      // Update contract state
       const contractState = await this.prismaService.contractState.upsert({
         where: { contract_address: data.contract_address },
         update: {
@@ -208,7 +207,7 @@ export class NostrInfofiService {
         },
       });
 
-      // Update epoch state with all required fields
+      // Update epoch state
       const epochState = await this.prismaService.epochState.upsert({
         where: {
           epoch_index_contract_address: {
@@ -218,22 +217,13 @@ export class NostrInfofiService {
         },
         update: {
           total_amount_deposit: { increment: Number(data.amount_token) },
-          total_ai_score: { increment: Number(data.amount_token) },
           updated_at: new Date(),
         },
         create: {
           epoch_index: epochIndex,
           contract_address: data.contract_address,
           total_amount_deposit: Number(data.amount_token),
-          total_ai_score: Number(data.amount_token),
-          total_vote_score: 0,
-          total_tip: 0,
-          amount_claimed: 0,
-          amount_vote: 0,
-          amount_algo: 0,
           start_time: new Date(),
-          end_time: new Date(Date.now() + 24 * 60 * 60 * 1000), // Default 24 hours
-          epoch_duration: 24 * 60 * 60, // Default 24 hours in seconds
         },
       });
 
@@ -269,9 +259,6 @@ export class NostrInfofiService {
             epoch_index: epochIndex,
             contract_address: data.contract_address,
             total_ai_score: Number(data.amount_token),
-            total_vote_score: 0,
-            total_tip: 0,
-            amount_claimed: 0,
           },
         });
 
@@ -344,7 +331,6 @@ export class NostrInfofiService {
         },
       });
 
-      // Update user epoch state
       await this.prismaService.userEpochState.upsert({
         where: {
           nostr_id_epoch_index_contract_address: {

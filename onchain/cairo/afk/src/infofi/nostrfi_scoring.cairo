@@ -599,11 +599,11 @@ pub mod NostrFiScoring {
                 .emit(
                     TipUserWithVote {
                         nostr_address: vote_params.nostr_address,
-                        nostr_event_id: vote_params.nostr_address,
                         starknet_address: nostr_to_sn,
+                        current_index_epoch: current_index_epoch,
                         amount_token: vote_params.amount_token,
                         amount_vote: vote_params.amount_token,
-                        current_index_epoch: current_index_epoch,
+                        nostr_event_id: vote_params.nostr_address,
                     },
                 );
         }

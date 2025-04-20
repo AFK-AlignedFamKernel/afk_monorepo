@@ -12,7 +12,7 @@ import {  TokenDeployInterface, TokenLaunchInterface } from '../../types/keys';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from 'src/types';
 import { useNamespace } from '../../hooks/infofi/useNamespace';
-import { useDataInfoMain, useGetEpochState, useGetAllTipUser, useGetAllTipByUser   } from 'src/hooks/infofi/useDataInfoMain';
+import { useDataInfoMain, useGetEpochState, useGetAllTipUser, useGetAllTipByUser, useOverallState   } from 'src/hooks/infofi/useDataInfoMain';
 import { UserCard } from './UserCard';
 import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
 import { Input } from 'src/components/Input';
@@ -25,7 +25,8 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
   const styles = useStyles(stylesheet);
   const { account } = useAccount();
   const { launches: launchesData, isLoading, isFetching, tokens: tokensData, setTokens: setTokensData, setLaunches: setLaunchesData } = useDataInfoMain();
-
+  const { data: overallState } = useOverallState();
+  console.log("overallState", overallState);
 
   const { data: epochState } = useGetEpochState();
   console.log("epochState", epochState);

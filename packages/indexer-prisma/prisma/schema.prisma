@@ -241,7 +241,7 @@ model tip_transfer {
 
 model IndexerStats {
   id               Int      @id @default(autoincrement())
-  lastBlockScraped Int
+  lastBlockScraped Int      @default(615556)
   lastTx           String
   lastTimestamp    DateTime
   createdAt        DateTime @default(now())
@@ -284,160 +284,220 @@ model token_metadata {
   nostr_event_id   String?
 }
 
-
-model overall_data{
-    contract_address String    @id
-    transaction_hash String   
-    network          String?
-    epoch_index String?
-    block_hash       String?
-    block_number     BigInt?
-    starknet_address String?
-    block_timestamp  DateTime? @db.Timestamp(6)
-    cursor           BigInt?   @map("_cursor")
-    time_stamp       DateTime? @db.Timestamp(6)
-    created_at       DateTime? @default(now()) @db.Timestamp(6)
-    updated_at       DateTime? @default(now()) @db.Timestamp(6)
-    last_deposit_at DateTime? @default(now()) @db.Timestamp(6)
-
-    amount_claimed Int?
-    amount_vote Int?
-    amount_algo Int?
-
-    total_ai_score Int?
-    total_vote_score Int?
-    total_tips Int?
-    total_to_claimed Int?
-    total_amount_deposit Int?
-
-    percentage_algo_distribution Int?
-
-    quote_address String?
-    main_token_address String?
-
-    end_duration DateTime?
-    start_duration DateTime?
-    epoch_duration Int?
-
-}
-
-model overall_vote_data {
-    transaction_hash String    @id
-    network          String?
-    epoch_index String?
-    total_ai_score Int?
-    total_vote_score Int? 
-    total_amount_deposit Int?
-    block_hash       String?
-    block_number     BigInt?
-    starknet_address String?
-    block_timestamp  DateTime? @db.Timestamp(6)
-    cursor           BigInt?   @map("_cursor")
-    time_stamp       DateTime? @db.Timestamp(6)
-    created_at       DateTime? @default(now()) @db.Timestamp(6)
-    updated_at       DateTime? @default(now()) @db.Timestamp(6)
-    last_deposit_at DateTime? @default(now()) @db.Timestamp(6)
-
-    amount_claimed Int?
-    amount_vote Int?
-    amount_algo Int?
-
-    percentage_algo_distribution Int?
-
-    quote_address String?
-    main_token_address String?
-
-    end_duration DateTime?
-    start_duration DateTime?
-    epoch_duration Int?
-
+model overall_data {
+  transaction_hash             String
+  network                      String?
+  epoch_index                  String?
+  block_hash                   String?
+  block_number                 BigInt?
+  starknet_address             String?
+  block_timestamp              DateTime?   @db.Timestamp(6)
+  cursor                       BigInt?     @map("_cursor")
+  time_stamp                   DateTime?   @db.Timestamp(6)
+  created_at                   DateTime?   @default(now()) @db.Timestamp(6)
+  updated_at                   DateTime?   @default(now()) @db.Timestamp(6)
+  last_deposit_at              DateTime?   @default(now()) @db.Timestamp(6)
+  amount_claimed               Int?        @default(0)
+  amount_vote                  Int?        @default(0)
+  amount_algo                  Int?        @default(0)
+  total_ai_score               Int?        @default(0)
+  total_vote_score             Int?        @default(0)
+  total_tips                   Int?        @default(0)
+  total_to_claimed             Int?        @default(0)
+  total_amount_deposit         Int?        @default(0)
+  percentage_algo_distribution Int?        @default(50)
+  quote_address                String?
+  main_token_address           String?
+  end_duration                 DateTime?
+  start_duration               DateTime?
+  epoch_duration               Int?        @default(0)
+  contract_address             String      @id
+  @@index([contract_address])
+  @@index([epoch_index])
+  epochs                       epoch_data[]
 }
 
 model epoch_data {
-    transaction_hash String    
-    network          String?
-    epoch_index String @id
-    total_ai_score Int?
-    total_vote_score Int? 
-    total_amount_deposit Int?
-    total_tip Int?
-    block_hash       String?
-    block_number     BigInt?
-    starknet_address String?
-    block_timestamp  DateTime? @db.Timestamp(6)
-    cursor           BigInt?   @map("_cursor")
-    time_stamp       DateTime? @db.Timestamp(6)
-    created_at       DateTime? @default(now()) @db.Timestamp(6)
-    updated_at       DateTime? @default(now()) @db.Timestamp(6)
-    last_deposit_at DateTime? @default(now()) @db.Timestamp(6)
-
-    amount_claimed Int?
-    amount_vote Int?
-    amount_algo Int?
-
-    percentage_algo_distribution Int?
-
-    quote_address String?
-    main_token_address String?
-
-    end_duration DateTime?
-    start_duration DateTime?
-    epoch_duration Int?
-
+  transaction_hash             String
+  network                      String?
+  epoch_index                  String       @id
+  total_ai_score               Int?         @default(0)
+  total_vote_score             Int?         @default(0)
+  total_amount_deposit         Int?         @default(0)
+  block_hash                   String?
+  block_number                 BigInt?
+  starknet_address             String?
+  block_timestamp              DateTime?    @db.Timestamp(6)
+  cursor                       BigInt?      @map("_cursor")
+  time_stamp                   DateTime?    @db.Timestamp(6)
+  created_at                   DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at                   DateTime?    @default(now()) @db.Timestamp(6)
+  last_deposit_at              DateTime?    @default(now()) @db.Timestamp(6)
+  amount_claimed               Int?         @default(0)
+  amount_algo                  Int?         @default(0)
+  amount_vote                  Int?         @default(0)
+  end_duration                 DateTime?
+  epoch_duration               Int?
+  main_token_address           String?
+  percentage_algo_distribution Int?
+  quote_address                String?
+  start_duration               DateTime?
+  total_tip                    Int?         @default(0)
+  contract_address             String?
+  overall_data_state           overall_data @relation(fields: [epoch_index], references: [contract_address])
+  @@index([contract_address])
+  @@index([epoch_index])
 }
 
-
-
 model profile_data {
-  nostr_id         String @id
-
-  transaction_hash String?  
+  transaction_hash String?
   network          String?
   block_hash       String?
   block_number     BigInt?
   starknet_address String?
-  block_timestamp  DateTime? @db.Timestamp(6)
-  cursor           BigInt?   @map("_cursor")
-  time_stamp       DateTime? @db.Timestamp(6)
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+  block_timestamp  DateTime?                @db.Timestamp(6)
+  nostr_id         String                   @id
+  cursor           BigInt?                  @map("_cursor")
+  time_stamp       DateTime?                @db.Timestamp(6)
+  created_at       DateTime?                @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?                @default(now()) @db.Timestamp(6)
   nostr_event_id   String?
-
-  total_tip Int?
-  total_ai_score Int?
-  total_vote_score Int?
-
-  amount_claimed Int?
-
-  is_add_by_admin Boolean?
-
-  state_per_epoch profile_data_per_epoch[]
-
+  total_ai_score   Int?                     @default(0)
+  total_tip        Int?                     @default(0)
+  total_vote_score Int?                     @default(0)
+  amount_claimed   Int?                     @default(0)
+  is_add_by_admin  Boolean?                 @default(false)
+  state_per_epoch  profile_data_per_epoch[]
 }
 
 model profile_data_per_epoch {
-  id    Int    @id @default(autoincrement())
+  id               Int          @id @default(autoincrement())
   nostr_id         String
-  epoch_index Int
-  transaction_hash String?  
+  epoch_index      Int
+  transaction_hash String?
   network          String?
   block_hash       String?
   block_number     BigInt?
   starknet_address String?
+  block_timestamp  DateTime?    @db.Timestamp(6)
+  cursor           BigInt?      @map("_cursor")
+  time_stamp       DateTime?    @db.Timestamp(6)
+  created_at       DateTime?    @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?    @default(now()) @db.Timestamp(6)
+  nostr_event_id   String?
+  total_tip        Int?         @default(0)
+  total_ai_score   Int?         @default(0)
+  total_vote_score Int?         @default(0)
+  amount_claimed   Int?         @default(0)
+  profile          profile_data @relation(fields: [nostr_id], references: [nostr_id])
+}
+
+// Base model for common blockchain fields
+model BaseBlockchainEvent {
+  id                         Int      @id @default(autoincrement())
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
   block_timestamp  DateTime? @db.Timestamp(6)
-  cursor           BigInt?   @map("_cursor")
-  time_stamp       DateTime? @db.Timestamp(6)
+  transaction_hash String?
   created_at       DateTime? @default(now()) @db.Timestamp(6)
   updated_at       DateTime? @default(now()) @db.Timestamp(6)
-  nostr_event_id   String?
+  cursor           BigInt?   @map("_cursor")
+  time_stamp       DateTime? @db.Timestamp(6)
+  version          Int?      @default(1)
+  is_deleted       Boolean?  @default(false)
+}
 
-  total_tip Int?
-  total_ai_score Int?
-  total_vote_score Int?
+// Contract overall state
+model ContractState {
+  id                         Int      @id @default(autoincrement())
+  contract_address           String   @unique
+  network                    String?
+  current_epoch_index        String?
+  total_ai_score            Decimal? @default(0) @db.Decimal(30, 18)
+  total_vote_score          Decimal? @default(0) @db.Decimal(30, 18)
+  total_tips                Decimal? @default(0) @db.Decimal(30, 18)
+  total_amount_deposit      Decimal? @default(0) @db.Decimal(30, 18)
+  total_to_claimed          Decimal? @default(0) @db.Decimal(30, 18)
+  percentage_algo_distribution Int?  @default(50)
+  quote_address             String?
+  main_token_address        String?
+  current_epoch_duration    Int?     @default(0)
+  current_epoch_start       DateTime?
+  current_epoch_end         DateTime?
+  created_at                DateTime @default(now())
+  updated_at                DateTime @updatedAt
+  epochs                    EpochState[]
+  user_profiles             UserProfile[]
 
-  amount_claimed Int?
+  @@index([contract_address])
+  @@index([current_epoch_index])
+  @@index([main_token_address])
+}
 
+// Epoch state for each batch period
+model EpochState {
+  id                         Int           @id @default(autoincrement())
+  epoch_index                String
+  contract_address           String
+  total_ai_score            Decimal?      @default(0) @db.Decimal(30, 18)
+  total_vote_score          Decimal?      @default(0) @db.Decimal(30, 18)
+  total_amount_deposit      Decimal?      @default(0) @db.Decimal(30, 18)
+  total_tip                 Decimal?      @default(0) @db.Decimal(30, 18)
+  amount_claimed            Decimal?      @default(0) @db.Decimal(30, 18)
+  amount_vote               Decimal?      @default(0) @db.Decimal(30, 18)
+  amount_algo               Decimal?      @default(0) @db.Decimal(30, 18)
+  epoch_duration            Int?
+  start_time                DateTime?
+  end_time                  DateTime?
+  created_at                DateTime      @default(now())
+  updated_at                DateTime      @updatedAt
+  contract                  ContractState @relation(fields: [contract_address], references: [contract_address])
+  user_epoch_states         UserEpochState[]
 
-  profile  profile_data @relation(fields:[nostr_id] , references:[nostr_id])
+  @@unique([epoch_index, contract_address])
+  @@index([epoch_index])
+  @@index([contract_address])
+  @@index([start_time])
+  @@index([end_time])
+}
 
+// User profile with overall stats
+model UserProfile {
+  id               Int      @id @default(autoincrement())
+  nostr_id         String   @unique
+  starknet_address String?
+  total_ai_score   Decimal? @default(0) @db.Decimal(30, 18)
+  total_tip        Decimal? @default(0) @db.Decimal(30, 18)
+  total_vote_score Decimal? @default(0) @db.Decimal(30, 18)
+  amount_claimed   Decimal? @default(0) @db.Decimal(30, 18)
+  is_add_by_admin  Boolean? @default(false)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  epoch_states     UserEpochState[]
+  contract_states  ContractState[]
+
+  @@index([nostr_id])
+  @@index([starknet_address])
+}
+
+// User state per epoch
+model UserEpochState {
+  id               Int         @id @default(autoincrement())
+  nostr_id         String
+  epoch_index      String
+  contract_address String
+  total_tip        Decimal?    @default(0) @db.Decimal(30, 18)
+  total_ai_score   Decimal?    @default(0) @db.Decimal(30, 18)
+  total_vote_score Decimal?    @default(0) @db.Decimal(30, 18)
+  amount_claimed   Decimal?    @default(0) @db.Decimal(30, 18)
+  created_at       DateTime    @default(now())
+  updated_at       DateTime    @updatedAt
+  user             UserProfile @relation(fields: [nostr_id], references: [nostr_id])
+  epoch            EpochState  @relation(fields: [epoch_index, contract_address], references: [epoch_index, contract_address])
+
+  @@unique([nostr_id, epoch_index, contract_address])
+  @@index([nostr_id])
+  @@index([epoch_index])
+  @@index([contract_address])
 }

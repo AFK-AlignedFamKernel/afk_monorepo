@@ -47,7 +47,7 @@ export class InfoFiIndexer {
     event: starknet.IEvent,
     transaction: starknet.ITransaction,
   ) {
-    this.logger.log('Received event sub infofi');
+    this.logger.log('Received event claim user share');
     const eventKey = validateAndParseAddress(FieldElement.toHex(event.keys[0]));
 
     switch (eventKey) {
@@ -520,8 +520,9 @@ export class InfoFiIndexer {
       amountHigh,
       amountVoteLow,
       amountVoteHigh,
+
       // currentIndexEpochFelt,
- 
+
   
 
     ] = event.data;
@@ -536,22 +537,20 @@ export class InfoFiIndexer {
     console.log("currentIndexEpoch", currentIndexEpoch);
     currentIndexEpoch = FieldElement.toBigInt(currentIndexEpochFelt).toString(16)
     console.log("currentIndexEpoch", currentIndexEpoch);
-    console.log("amountLow", amountLow);
-    console.log("amountHigh", amountHigh);
     const amountRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(amountLow),
       high: FieldElement.toBigInt(amountHigh),
     });
-    let amount = formatUnits(amountRaw, constants.DECIMALS).toString();
-    console.log("amount", amount);
-    amount = "0";
-    // const amountVoteRaw = uint256.uint256ToBN({
-    //   low: FieldElement.toBigInt(amountVoteLow),
-    //   high: FieldElement.toBigInt(amountVoteHigh),
-    // });
-    // const amountVote = amountVoteRaw.toString();
+    const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
+
+    const amountVoteRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(amountVoteLow),
+      high: FieldElement.toBigInt(amountVoteHigh),
+    });
+    const amountVote = amountVoteRaw.toString();
 
     console.log("amount", amount);
+    console.log("amountVote", amountVote);
     // const nostrEventIdRaw = uint256.uint256ToBN({
     //   low: FieldElement.toBigInt(nostrEventIdLow),
     //   high: FieldElement.toBigInt(nostrEventIdHigh),
@@ -571,7 +570,7 @@ export class InfoFiIndexer {
       nostr_address: nostrAddress,
       starknet_address: starknetAddress,
       amount_token: amount,
-      amount_vote: amount,
+      amount_vote: amountVote,
       nostr_event_id: nostrAddress,
       current_index_epoch: Number(currentIndexEpoch) ?? 0,
       epoch_index: Number(currentIndexEpoch) ?? 0,
