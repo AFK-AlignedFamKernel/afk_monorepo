@@ -10,7 +10,7 @@ pub mod NostrFiScoring {
         PushAlgoScoreNostrNote, TipByUser, TipByUserDefault, TipUserWithVote, TotalAlgoScoreRewards,
         TotalAlgoScoreRewardsDefault, TotalDepositRewards, TotalDepositRewardsDefault,
         TotalScoreRewards, TotalScoreRewardsDefault, VoteNostrNote, VoteParams,
-        DepositRewardsByUserEvent, NewEpochEvent
+        DepositRewardsByUserEvent, NewEpochEvent, ExternalContracts
         // VoteProfile, NostrAccountScoring
     };
     use afk::social::namespace::{INostrNamespaceDispatcher, INostrNamespaceDispatcherTrait};
@@ -111,6 +111,7 @@ pub mod NostrFiScoring {
         total_deposit_rewards_per_epoch_index: Map<u64, TotalDepositRewards>,
         is_point_vote_accepted: bool,
         // External contract
+        external_contracts: ExternalContracts,
         namespace_address: ContractAddress,
         token_vault: ContractAddress,
         fairlaunch_address: ContractAddress,
@@ -278,6 +279,14 @@ pub mod NostrFiScoring {
         self.total_deposit_rewards.write(total_deposit_rewards);
 
         self.total_deposit_rewards_per_epoch_index.entry(0).write(total_deposit_rewards);
+
+        self.emit(NewEpochEvent {
+            old_epoch_index: 0,
+            current_index_epoch: 0,
+            start_duration: now,
+            end_duration: end_epoch_time,
+            epoch_duration: EPOCH_DURATION_DEFAULT,
+        });
     }
 
     // #[abi(embed_v0)]
@@ -1249,6 +1258,23 @@ pub mod NostrFiScoring {
             self.admin_params.write(admin_params);
         }
 
+        fn set_external_contracts(ref self: ContractState, external_contracts: ExternalContracts) {
+            assert(
+                self.accesscontrol.has_role(ADMIN_ROLE, get_caller_address()),
+                errors::ADMIN_ROLE_REQUIRED,
+            );
+
+            self.namespace_address.write(external_contracts.namespace_address);
+            self.main_token_address.write(external_contracts.main_token_address);
+            self.fairlaunch_address.write(external_contracts.fairlaunch_address);
+            self.class_hash_memecoin.write(external_contracts.class_hash_memecoin);
+            self.vault_staking_class_hash.write(external_contracts.vault_staking_class_hash);
+            self.dao_class_hash.write(external_contracts.dao_class_hash);
+
+            self.external_contracts.write(external_contracts);
+
+        }
+
         // Admin functions
         fn set_admin_nostr_pubkey(
             ref self: ContractState, admin_nostr_pubkey: NostrPublicKey, is_enable: bool,
@@ -1477,6 +1503,9 @@ pub mod NostrFiScoring {
                 .emit(
                     NostrMetadataEvent {
                         nostr_address: metadata.nostr_address, main_tag: metadata.main_tag,
+                        about: metadata.about,
+                        event_id_nip_72: metadata.event_id_nip_72,
+                        event_id_nip_29: metadata.event_id_nip_29,
                     },
                 );
         }

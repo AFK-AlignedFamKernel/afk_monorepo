@@ -1,5 +1,6 @@
 use afk::social::request::{ConvertToBytes, Encode, SocialRequest, SocialRequestImpl};
 use starknet::ContractAddress;
+use starknet::ClassHash;
 use starknet::storage::{Map, Vec};
 // Add this ROLE on a constants file
 pub const OPERATOR_ROLE: felt252 = selector!("OPERATOR_ROLE");
@@ -30,6 +31,7 @@ pub trait INostrFiScoring<TContractState> {
         ref self: TContractState, admin_nostr_pubkey: NostrPublicKey, is_enable: bool,
     );
     fn set_admin_params(ref self: TContractState, admin_params: NostrFiAdminStorage);
+    fn set_external_contracts(ref self: TContractState, external_contracts: ExternalContracts);
     // fn create_dao(ref self: TContractState, request: SocialRequest<LinkedStarknetAddress>);
 
     // Users functions
@@ -156,6 +158,17 @@ pub enum DepositRewardsType {
 
 
 // Structs
+
+#[derive(Clone, Debug, Drop, Serde, starknet::Store)]
+pub struct ExternalContracts {
+    pub token_address: ContractAddress,
+    pub namespace_address: ContractAddress,
+    pub main_token_address: ContractAddress,
+    pub fairlaunch_address: ContractAddress,
+    pub class_hash_memecoin: ClassHash,
+    pub vault_staking_class_hash: ClassHash,
+    pub dao_class_hash: ClassHash,
+}
 
 #[derive(Clone, Debug, Drop, Serde)]
 pub struct PushAlgoScoreNostrNote {
@@ -409,12 +422,15 @@ pub struct LinkedThisNostrNote {
 pub struct NostrMetadata {
     pub nostr_address: NostrPublicKey,
     pub name: ByteArray,
-    pub about: ByteArray,
-    pub picture: ByteArray,
-    pub nip05: ByteArray,
-    pub lud06: ByteArray,
-    pub lud16: ByteArray,
+    pub about:ByteArray,
+    pub event_id_nip_72:u256,
+    pub event_id_nip_29:u256,
     pub main_tag: ByteArray,
+    // pub about: ByteArray,
+    // pub picture: ByteArray,
+    // pub nip05: ByteArray,
+    // pub lud06: ByteArray,
+    // pub lud16: ByteArray,
     // pub topics: Vec<ByteArray>,
 }
 
@@ -423,6 +439,9 @@ pub struct NostrMetadataEvent {
     #[key]
     pub nostr_address: NostrPublicKey,
     pub main_tag: ByteArray,
+    pub about: ByteArray,
+    pub event_id_nip_72:u256,
+    pub event_id_nip_29:u256,
 }
 
 #[derive(Clone, Debug, Drop, PartialEq, starknet::Event, Serde)]
