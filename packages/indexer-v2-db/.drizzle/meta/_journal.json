@@ -15,6 +15,13 @@
       "when": 1741168001457,
       "tag": "0001_cloudy_dazzler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1745174462112,
+      "tag": "0002_optimal_mephistopheles",
+      "breakpoints": true
     }
   ]
 }

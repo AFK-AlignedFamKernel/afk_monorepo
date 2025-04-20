@@ -1,14 +1,14 @@
 import { provider } from "../../utils/starknet";
-import { Account, constants } from "starknet";
+import { Account, constants, cairo } from "starknet";
 import { NOSTR_FI_SCORING_ADDRESS, CLASS_HASH_NOSTR_FI_SCORING } from "../../constants";
 import dotenv from "dotenv";
 import { createNostrFiScoring } from "../../utils/nostr/nostrfi_scoring";
 import { prepareAndConnectContract } from "../../utils/contract";
-import { TOKENS_ADDRESS, NAMESPACE_ADDRESS } from "common/src/contracts";
+import { TOKENS_ADDRESS, NAMESPACE_ADDRESS } from "common";
 dotenv.config();
 
 export const deployNostrFiScoring = async () => {
-      let nostrFiScoring_address: string | undefined = NOSTR_FI_SCORING_ADDRESS[
+  let nostrFiScoring_address: string | undefined = NOSTR_FI_SCORING_ADDRESS[
     constants.StarknetChainId.SN_SEPOLIA
   ] as any; // change default address
   console.log("deploy nostrfi scoring");
@@ -19,8 +19,15 @@ export const deployNostrFiScoring = async () => {
   const main_token_address = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK as any;
   const admin_nostr_pubkey = process.env.NOSTR_PUBKEY_ADMIN as string;
 
-
   const namespace_address = NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as string;
+
+  let nostrFiMetadata = {
+    name: "NostrFi",
+    about: "NostrFi",
+    nostr_address: admin_nostr_pubkey,
+    event_id_nip_72: "0",
+    event_id_nip_29: "0",
+  }
   let nostrFiScoring;
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
     let nostrFiScoringContract = await createNostrFiScoring(
@@ -28,9 +35,10 @@ export const deployNostrFiScoring = async () => {
       accountAddress0,
       main_token_address,
       admin_nostr_pubkey,
-      namespace_address
+      namespace_address,
+      nostrFiMetadata
     );
-    console.log("nostrFiSc address", nostrFiScoringContract?.contract_address);
+    console.log("nostrFiScoring address", nostrFiScoringContract?.contract_address);
     if (nostrFiScoringContract?.contract_address) {
       nostrFiScoring_address = nostrFiScoringContract?.contract_address;
       nostrFiScoring = await prepareAndConnectContract(
@@ -39,7 +47,7 @@ export const deployNostrFiScoring = async () => {
       );
     }
   } else {
-    if(nostrFiScoring_address){ 
+    if (nostrFiScoring_address) {
       nostrFiScoring = await prepareAndConnectContract(
         nostrFiScoring_address,
         account

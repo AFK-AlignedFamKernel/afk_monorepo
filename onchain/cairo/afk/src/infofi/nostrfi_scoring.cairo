@@ -244,6 +244,7 @@ pub mod NostrFiScoring {
                     percentage_algo_score_distribution: PERCENTAGE_ALGO_SCORE_DISTRIBUTION,
                     vote_token_address: main_token_address,
                     subscription_time: 0,
+                    epoch_duration: EPOCH_DURATION_DEFAULT,
                 },
             );
 
@@ -430,11 +431,13 @@ pub mod NostrFiScoring {
             // init new epoch
             let new_epoch_index = self.epoch_index.read() + 1;
             self.epoch_index.write(new_epoch_index);
-            let end_epoch_time = now + self.epoch_duration.read();
+            let epoch_duration = self.admin_params.read().epoch_duration;
+            // let epoch_duration = self.epoch_duration.read();
+            let end_epoch_time = now + epoch_duration;
 
             let new_epoch_rewards = EpochRewards {
                 index: new_epoch_index,
-                epoch_duration: self.epoch_duration.read(),
+                epoch_duration: epoch_duration,
                 start_epoch_time: now,
                 end_epoch_time: end_epoch_time,
                 is_finalized: false,
@@ -455,7 +458,7 @@ pub mod NostrFiScoring {
                         current_index_epoch: new_epoch_index,
                         start_duration: now,
                         end_duration: end_epoch_time,
-                        epoch_duration: self.epoch_duration.read(),
+                        epoch_duration: epoch_duration,
                     },
                 );
         }
@@ -1268,6 +1271,9 @@ pub mod NostrFiScoring {
                 errors::ADMIN_ROLE_REQUIRED,
             );
             self.epoch_duration.write(epoch_duration);
+            let mut admin_params = self.admin_params.read();
+            admin_params.epoch_duration = epoch_duration;
+            self.admin_params.write(admin_params);
         }
 
         fn set_admin_params(ref self: ContractState, admin_params: NostrFiAdminStorage) {

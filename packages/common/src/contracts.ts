@@ -256,8 +256,10 @@ export const NOSTR_FI_SCORING_ADDRESS = {
 
 export const CLASS_HASH_NOSTR_FI_SCORING = {
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x78a022e6906c83e049a30f7464b939b831ecbe47029480d7e89684f20c8d263",
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x30298dde4ac7e0298afa26af3203c659c9689b5094282d3ed44df4a5fe80462",
   [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x30298dde4ac7e0298afa26af3203c659c9689b5094282d3ed44df4a5fe80462",
+    "0x269464f9d4e946bf5405f4afd1901a27bc243bcea8a316c7c31be7463293590",
 };
 
 export const NAMESPACE_ADDRESS = {

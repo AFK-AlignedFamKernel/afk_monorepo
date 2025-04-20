@@ -16,13 +16,22 @@ const PATH_SOCIAL_ACCOUNT_COMPILED = path.resolve(
   "../../../onchain/cairo/afk/target/dev/afk_NostrFiScoring.compiled_contract_class.json"
 );
 
+
+interface NostrFiMetadata {
+  name: string;
+  about: string;
+  nostr_address: string;
+  event_id_nip_72: string;
+  event_id_nip_29: string;
+}
 /** @TODO spec need to be discuss. This function serve as an example */
 export const createNostrFiScoring = async (
   admin: string,
   deployer: string,
   main_token_address: string,
   admin_nostr_pubkey: string,
-  namespace_address: string
+  namespace_address: string,
+  metadata?: NostrFiMetadata
 ) => {
   try {
     // initialize existing predeployed account 0 of Devnet
@@ -81,6 +90,24 @@ export const createNostrFiScoring = async (
       console.log("nonce", nonce);
     }
 
+    let nostrMetadata = null;
+    if (metadata) {
+      nostrMetadata = {
+        name: byteArray.byteArrayFromString(metadata.name),
+        about: byteArray.byteArrayFromString(metadata.about),
+        nostr_address: cairo.uint256(BigInt("0x" + metadata.nostr_address)),
+        event_id_nip_72: cairo.uint256(BigInt("0x" + metadata.event_id_nip_72)),
+        event_id_nip_29: cairo.uint256(BigInt("0x" + metadata.event_id_nip_29)),
+      }
+    } else {
+      nostrMetadata = {
+        name: byteArray.byteArrayFromString(""),
+        about: byteArray.byteArrayFromString(""),
+        nostr_address: cairo.uint256("0x"),
+        event_id_nip_72: cairo.uint256("0x1"),
+        event_id_nip_29: cairo.uint256("0x1"),
+      }
+    }
     // const admin_nostr_pubkey_uint = pubkeyToUint256(admin_nostr_pubkey);
     const public_key = uint256.bnToUint256(BigInt("0x" + admin_nostr_pubkey));
 
@@ -92,7 +119,8 @@ export const createNostrFiScoring = async (
           deployer,
           main_token_address,
           public_key,
-          namespace_address
+          namespace_address,
+          nostrMetadata
         ],
       });
 

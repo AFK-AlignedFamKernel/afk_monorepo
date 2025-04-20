@@ -17,25 +17,30 @@ import { finalizeEvent } from "nostr-tools";
 dotenv.config();
 const PATH_DAO_FACTORY = path.resolve(
   __dirname,
-  "../../../onchain/cairo/afk/target/dev/afk_DaoFactory.contract_class.json"
+  "../../../onchain/cairo/afk/target/dev/afk_ScoreFactory.contract_class.json"
 );
 const PATH_DAO_FACTORY_COMPILED = path.resolve(
   __dirname,
-  "../../../onchain/cairo/afk/target/dev/afk_DaoFactory.compiled_contract_class.json"
+  "../../../onchain/cairo/afk/target/dev/afk_ScoreFactory.compiled_contract_class.json"
 );
 
 const PATH_TOKEN = path.resolve(
   __dirname,
-  "../../../onchain/cairo/afk/target/dev/afk_DaoAA.contract_class.json"
+  "../../../onchain/cairo/afk/target/dev/afk_NostrFiScoring.contract_class.json"
 );
 const PATH_TOKEN_COMPILED = path.resolve(
   __dirname,
-  "../../../onchain/cairo/afk/target/dev/afk_DaoAA.compiled_contract_class.json"
+  "../../../onchain/cairo/afk/target/dev/afk_NostrFiScoring.compiled_contract_class.json"
 );
 
 
 /** @TODO spec need to be discuss. This function serve as an example */
 export const createFactorySub = async (
+  admin: string,
+  admin_nostr_pubkey: string,
+  score_class_hash: string,
+  namespaceAddress: string,
+
 ) => {
   try {
     // initialize existing predeployed account 0 of Devnet
@@ -43,7 +48,7 @@ export const createFactorySub = async (
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
 
     const account0 = new Account(provider, accountAddress0, privateKey0, "1");
-    let DaoFactoryClassHash = process.env.DAO_FACTORY_CLASS_HASH as string;
+    let DaoFactoryClassHash = process.env.SCORE_FACTORY_CLASS_HASH as string;
     console.log("DaoFactoryClassHash", DaoFactoryClassHash);
 
     const compiledSierraAAaccount = json.parse(
@@ -76,7 +81,7 @@ export const createFactorySub = async (
     // const AAaccount = new Account(provider, AAcontractAddress, AAprivateKey);
     /** @description uncomment this to declare your account */
     // console.log("declare account");
-    let dao_class_hash_last = process.env.DAO_CLASS_HASH as string
+    let score_factory_class_hash = process.env.SCORE_FACTORY_CLASS_HASH as string
     if (process.env.REDECLARE_CONTRACT == "true") {
 
       console.log("try declare dao aa");
@@ -97,13 +102,13 @@ export const createFactorySub = async (
       });
 
       if(declareIfNotToken?.transaction_hash) {
-        console.log("dao_class_hash_last", dao_class_hash_last);
+        console.log("score_factory_class_hash", score_factory_class_hash);
           
         console.log("declare DAO AA", declareIfNotToken);
-        dao_class_hash_last = declareIfNotToken?.class_hash ?? dao_class_hash_last
-        console.log("dao_class_hash_last", dao_class_hash_last);
+        score_factory_class_hash = declareIfNotToken?.class_hash ?? score_factory_class_hash
+        console.log("score_factory_class_hash", score_factory_class_hash);
       }
-      dao_class_hash_last = declareIfNotToken?.class_hash
+      score_factory_class_hash = declareIfNotToken?.class_hash
 
       console.log("try declare dao factory");
       // const declareResponse = await account0.declare({
@@ -135,7 +140,10 @@ export const createFactorySub = async (
     await account0.deployContract({
       classHash: DaoFactoryClassHash,
       constructorCalldata: [
-        dao_class_hash_last
+        admin,
+        admin_nostr_pubkey,
+        score_class_hash,
+        namespaceAddress
       ],
     });
     console.log("transaction_hash", transaction_hash);
@@ -145,7 +153,7 @@ export const createFactorySub = async (
     console.log("Tx deploy", tx);
     await provider.waitForTransaction(transaction_hash);
     console.log(
-      "✅ New contract Launchpad created.\n   address =",
+      "✅ New contract Score Factory created.\n   address =",
       contract_address
     );
 

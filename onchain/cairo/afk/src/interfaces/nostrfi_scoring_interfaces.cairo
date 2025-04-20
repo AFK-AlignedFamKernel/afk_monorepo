@@ -508,6 +508,7 @@ pub struct NostrFiAdminStorage {
     pub vote_token_address: ContractAddress,
     pub subscription_time: u64,
     pub percentage_algo_score_distribution: u256,
+    pub epoch_duration: u64,
 }
 
 #[derive(Copy, Debug, Drop, PartialEq, starknet::Store, Serde)]
