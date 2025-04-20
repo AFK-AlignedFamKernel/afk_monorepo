@@ -29,6 +29,19 @@ export interface KeysUser {
   token_quote: TokenQuoteBuyKeys;
 }
 
+
+export interface SubPageInterface extends TokenLaunchInterface, TokenDeployInterface {
+  subAddress?:string;
+  epoch_index?:number;
+  epoch_start?:string;
+  epoch_end?:string;
+  epoch_duration?:number;
+  total_amount_deposit?:number;
+  total_tips?:number;
+  total_vote_score?:number;
+  
+  
+}
 export interface NostrProfileInfoFiInterface extends TokenLaunchInterface, TokenDeployInterface {}
 export interface TokenLaunchInterface {
   nostr_id?: string;

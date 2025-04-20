@@ -72,6 +72,8 @@ import { AuthStackParams, HomeBottomStackParams, MainStackParams, RootStackParam
 import { initGoogleAnalytics, logPageView } from '../utils/analytics';
 import RightSidebar from 'src/modules/Layout/RightSideBar';
 import { InfoFiScreen } from 'src/modules/InfoFi';
+import { AllSubsScreen } from 'src/screens/InfoFi/AllSubs';
+import { SubPageScreen } from 'src/screens/InfoFi/SubPage';
 
 type TabBarIconProps = {
   focused: boolean;
@@ -348,6 +350,8 @@ const MainNavigator: React.FC = () => {
       <MainStack.Screen name="DAOPage" component={DaoPage} />
       <MainStack.Screen name="Pixel" component={PixelScreen} />
       <MainStack.Screen name="InfoFi" component={InfoFiScreen} />
+      <MainStack.Screen name="AllSubs" component={AllSubsScreen} />
+      <MainStack.Screen name="SubPage" component={SubPageScreen} />
     </MainStack.Navigator>
   );
 };

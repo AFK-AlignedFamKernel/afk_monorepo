@@ -20,8 +20,9 @@ import { formatUnits } from 'viem';
 
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
+  
 }
-export const SubPageComponent: React.FC<AllKeysComponentInterface> = ({
+export const SubCard: React.FC<AllKeysComponentInterface> = ({
   isButtonInstantiateEnable,
 }) => {
   const styles = useStyles(stylesheet);
