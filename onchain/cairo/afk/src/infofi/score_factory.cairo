@@ -11,7 +11,7 @@ pub struct Topic {
     pub score_class_hash: ClassHash,
     pub contract_address_salt: felt252,
     pub created_at: u64,
-    pub deployer:ContractAddress,
+    pub deployer: ContractAddress,
 }
 
 // Events
@@ -59,11 +59,6 @@ pub trait IFactoryNostrFiScoring<TContractState> {
 
 #[starknet::contract]
 pub mod FactoryNostrFiScoring {
-    use super::{
-        IFactoryNostrFiScoring, LinkedStarknetAddress, SocialRequest, TokenLaunchType, Topic,
-        TopicEvent,
-        CreateTokenTopicEvent,
-    };
     use afk::infofi::errors;
 
     use afk::interfaces::nostrfi_scoring_interfaces::{
@@ -101,7 +96,11 @@ pub mod FactoryNostrFiScoring {
     use starknet::{
         ClassHash, ContractAddress, get_block_timestamp, get_caller_address, get_contract_address,
     };
- 
+    use super::{
+        CreateTokenTopicEvent, IFactoryNostrFiScoring, LinkedStarknetAddress, SocialRequest,
+        TokenLaunchType, Topic, TopicEvent,
+    };
+
     component!(path: AccessControlComponent, storage: accesscontrol, event: AccessControlEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
     // AccessControl
@@ -199,9 +198,7 @@ pub mod FactoryNostrFiScoring {
         }
 
 
-        fn _create_dao() {
-
-        }
+        fn _create_dao() {}
 
         // Create a new DAO for this topic with the main token address
         // TODO:
@@ -347,15 +344,14 @@ pub mod FactoryNostrFiScoring {
             score_class_hash: ClassHash,
             contract_address_salt: felt252,
         ) {
-
-            self._create_nostr_topic(
-                admin,
-                admin_nostr_pubkey,
-                main_token_address,
-                score_class_hash,
-                contract_address_salt,
-            );
-       
+            self
+                ._create_nostr_topic(
+                    admin,
+                    admin_nostr_pubkey,
+                    main_token_address,
+                    score_class_hash,
+                    contract_address_salt,
+                );
         }
 
         // Factory or deployer of the contract

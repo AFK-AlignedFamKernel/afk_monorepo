@@ -6,6 +6,7 @@ mod nostrfi_scoring_tests {
         DEFAULT_BATCH_INTERVAL_WEEK, DepositRewardsType, INostrFiScoring, INostrFiScoringDispatcher,
         INostrFiScoringDispatcherTrait, LinkedResult, NostrPublicKey, ProfileAlgorithmScoring,
         PushAlgoScoreNostrNote, Vote, VoteNostrNote, VoteParams,
+        NostrMetadata,
     };
     use afk::social::namespace::{INostrNamespaceDispatcher, INostrNamespaceDispatcherTrait};
     use afk::social::request::SocialRequest;
@@ -34,6 +35,15 @@ mod nostrfi_scoring_tests {
         admin_nostr_pubkey: NostrPublicKey,
         namespace_address: ContractAddress,
     ) -> INostrFiScoringDispatcher {
+
+        let nostr_metadata = NostrMetadata {
+            name: "Test Namespace",
+            about:"Test namespace for InfoFI about topics & communities on Nostr and more soon",
+            nostr_address: admin_nostr_pubkey,
+            event_id_nip_72: 0_u256,
+            event_id_nip_29: 0_u256,
+            main_tag: "test@example.com",
+        };
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
         let mut calldata = array![];
         ADMIN_ADDRESS.serialize(ref calldata);
@@ -41,6 +51,7 @@ mod nostrfi_scoring_tests {
         main_token_address.serialize(ref calldata);
         admin_nostr_pubkey.serialize(ref calldata);
         namespace_address.serialize(ref calldata);
+        nostr_metadata.serialize(ref calldata);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
 
         INostrFiScoringDispatcher { contract_address }
@@ -56,6 +67,7 @@ mod nostrfi_scoring_tests {
         let admin_nostr_pubkey =
             0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc_u256;
         let mut calldata = array![];
+
         ADMIN_ADDRESS.serialize(ref calldata);
         admin_nostr_pubkey.serialize(ref calldata);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
@@ -512,81 +524,81 @@ mod nostrfi_scoring_tests {
 
     }
 
-    // #[test]
-    // fn end_to_end_flow_strk() {
-    //     let (
-    //         request,
-    //         recipient_nostr_key,
-    //         sender_address,
-    //         nostrfi_scoring,
-    //         request_profile_score,
-    //         request_score_admin_nostr_profile,
-    //         request_vote_tips_nostr_profile,
-    //         erc20,
-    //         request_linked_wallet_to_second_recipient,
-    //         namespace_dispatcher,
-    //     ) =
-    //         request_fixture();
+    #[test]
+    fn end_to_end_flow_strk() {
+        let (
+            request,
+            recipient_nostr_key,
+            sender_address,
+            nostrfi_scoring,
+            request_profile_score,
+            request_score_admin_nostr_profile,
+            request_vote_tips_nostr_profile,
+            erc20,
+            request_linked_wallet_to_second_recipient,
+            namespace_dispatcher,
+        ) =
+            request_fixture();
 
-    //     let mut created_at = starknet::get_block_timestamp();
-    //     println!("created at: {:?}", created_at);
-    //     println!("start end to end basic flow");
-    //     let mut current_time = created_at
-    //         + DEFAULT_BATCH_INTERVAL_WEEK
-    //         + 1; // Proposal duration reached
-    //     println!("current time: {:?}", current_time);
+        let mut created_at = starknet::get_block_timestamp();
+        println!("created at: {:?}", created_at);
+        println!("start end to end basic flow");
+        let mut current_time = created_at
+            + DEFAULT_BATCH_INTERVAL_WEEK
+            + 1; // Proposal duration reached
+        println!("current time: {:?}", current_time);
 
-    //     let mut amount_token_deposit_rewards = 150_u256;
+        let mut amount_token_deposit_rewards = 150_u256;
 
-    //     end_to_end_basic_flow(
-    //         nostrfi_scoring.contract_address,
-    //         sender_address,
-    //         recipient_nostr_key,
-    //         request.clone(),
-    //         request_score_admin_nostr_profile.clone(),
-    //         request_vote_tips_nostr_profile.clone(),
-    //         erc20.clone(),
-    //         0,
-    //         current_time,
-    //         amount_token_deposit_rewards,
-    //     );
+        end_to_end_basic_flow(
+            nostrfi_scoring.contract_address,
+            sender_address,
+            recipient_nostr_key,
+            request.clone(),
+            request_score_admin_nostr_profile.clone(),
+            request_vote_tips_nostr_profile.clone(),
+            erc20.clone(),
+            0,
+            current_time,
+            amount_token_deposit_rewards,
+        );
 
-    //     cheat_block_timestamp(
-    //         nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
-    //     );
-    //     let mut new_created_at = starknet::get_block_timestamp();
-    //     println!("new_created_at: {:?}", new_created_at);
+        cheat_block_timestamp(
+            nostrfi_scoring.contract_address, current_time, CheatSpan::TargetCalls(1),
+        );
+        let mut new_created_at = starknet::get_block_timestamp();
+        println!("new_created_at: {:?}", new_created_at);
 
-    //     println!("cheat block timestamp");
-    //     cheat_block_timestamp(
-    //         nostrfi_scoring.contract_address, new_created_at, CheatSpan::TargetCalls(1),
-    //     );
+        println!("cheat block timestamp");
+        cheat_block_timestamp(
+            nostrfi_scoring.contract_address, new_created_at, CheatSpan::TargetCalls(1),
+        );
 
-    //     current_time = (new_created_at + DEFAULT_BATCH_INTERVAL_WEEK + 1)
-    //         * 2; // Proposal duration reached
+        current_time = (new_created_at + DEFAULT_BATCH_INTERVAL_WEEK + 1)
+            * 2; // Proposal duration reached
 
-    //     // current_time = new_created_at
-    //     // + DEFAULT_BATCH_INTERVAL_WEEK
-    //     // + 1; // Proposal duration reached
+        // current_time = new_created_at
+        // + DEFAULT_BATCH_INTERVAL_WEEK
+        // + 1; // Proposal duration reached
 
-    //     println!("start end to end basic flow");
-    //     println!("current time second epoch: {:?}", current_time);
+        println!("start end to end basic flow");
+        println!("current time second epoch: {:?}", current_time);
 
-    //     amount_token_deposit_rewards = 200_u256;
+        amount_token_deposit_rewards = 200_u256;
 
-    //     end_to_end_basic_flow(
-    //         nostrfi_scoring.contract_address,
-    //         sender_address,
-    //         recipient_nostr_key,
-    //         request.clone(),
-    //         request_score_admin_nostr_profile.clone(),
-    //         request_vote_tips_nostr_profile.clone(),
-    //         erc20.clone(),
-    //         1,
-    //         current_time,
-    //         amount_token_deposit_rewards,
-    //     );
-    // }
+        end_to_end_basic_flow(
+            nostrfi_scoring.contract_address,
+            sender_address,
+            recipient_nostr_key,
+            request.clone(),
+            request_score_admin_nostr_profile.clone(),
+            request_vote_tips_nostr_profile.clone(),
+            erc20.clone(),
+            1,
+            current_time,
+            amount_token_deposit_rewards,
+        );
+    }
 
     #[test]
     fn end_to_end_flow_strk_second_user() {

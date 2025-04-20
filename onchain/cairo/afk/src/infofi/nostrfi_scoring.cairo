@@ -179,6 +179,7 @@ pub mod NostrFiScoring {
         main_token_address: ContractAddress,
         admin_nostr_pubkey: NostrPublicKey,
         namespace_address: ContractAddress,
+        metadata: NostrMetadata,
     ) {
         self.accesscontrol.initializer();
         self.accesscontrol._grant_role(ADMIN_ROLE, admin);
@@ -280,6 +281,18 @@ pub mod NostrFiScoring {
 
         self.total_deposit_rewards_per_epoch_index.entry(0).write(total_deposit_rewards);
 
+        self.nostr_metadata.write(metadata.clone());
+
+        self
+            .emit(
+                NostrMetadataEvent {
+                    nostr_address: metadata.nostr_address,
+                    main_tag: metadata.main_tag,
+                    about: metadata.about,
+                    event_id_nip_72: metadata.event_id_nip_72,
+                    event_id_nip_29: metadata.event_id_nip_29,
+                },
+            );
         self
             .emit(
                 NewEpochEvent {
