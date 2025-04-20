@@ -63,6 +63,11 @@ interface UserEpochStateData {
   amount_claimed?: string;
 }
 
+export async function insertSubState(subStates  : ContractStateData[]) {
+  const { db } = useDrizzleStorage();
+  return db.insert(contractState).values(subStates).onConflictDoNothing();
+}
+
 export async function upsertContractState(data: ContractStateData) {
   const { db } = useDrizzleStorage();
   return db

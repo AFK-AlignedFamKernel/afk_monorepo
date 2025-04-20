@@ -29,7 +29,6 @@ CREATE TABLE IF NOT EXISTS "contract_state" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "epoch_state" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"epoch_index" text NOT NULL,
 	"contract_address" text NOT NULL,
 	"total_ai_score" numeric(30, 18) DEFAULT '0',
@@ -48,7 +47,6 @@ CREATE TABLE IF NOT EXISTS "epoch_state" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "user_epoch_state" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"nostr_id" text NOT NULL,
 	"epoch_index" text NOT NULL,
 	"contract_address" text NOT NULL,

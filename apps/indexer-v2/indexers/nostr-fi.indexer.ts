@@ -2,15 +2,17 @@ import { defineIndexer } from '@apibara/indexer';
 import { useLogger } from '@apibara/indexer/plugins';
 import { drizzleStorage } from '@apibara/plugin-drizzle';
 import { decodeEvent, StarknetStream } from '@apibara/starknet';
-import { encode, hash } from 'starknet';
+import { constants, encode, hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
-import { ABI as nostrFiScoringABI } from '../abi/nostrFiScoring.abi';
+import { ABI as nostrFiScoringABI } from './abi/infofi/score.abi';
+import { ABI as scoreFactoryABI } from './abi/infofi/score_factory.abi';
 import {
   upsertContractState,
   upsertEpochState,
   upsertUserProfile,
   upsertUserEpochState,
+  insertSubState,
 } from './db/nostr-fi.db';
 
 const NEW_EPOCH = hash.getSelectorFromName('NewEpochEvent') as `0x${string}`;
@@ -31,6 +33,7 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
     filter: {
       events: [
         {
+          address: "0x20f02a8bebe4728add0704b8ffd772595b4ebf03103560e4e23b93bdbf75dec",
           keys: [
             NEW_EPOCH,
             DEPOSIT_REWARDS,
@@ -45,6 +48,53 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
       ],
     },
     plugins: [drizzleStorage({ db })],
+    async factory({ block: { events } }) {
+      const logger = useLogger();
+
+      if (events.length === 0) {
+        return {};
+      }
+
+      const daoCreationEvents = events.map((event) => {
+        const daoAddress = event.keys[1];
+
+        logger.log('Factory: new DAO Address    : ', `\x1b[35m${daoAddress}\x1b[0m`);
+        return {
+          address: daoAddress,
+        };
+      });
+
+      const daoCreationData = events.map((event) => {
+        const decodedEvent = decodeEvent({
+          abi: scoreFactoryABI,
+          event,
+          eventName: 'afk::interfaces::score_factory_interfaces::INostrFiScoringFactory::SubCreated',
+        });
+
+        const daoAddress = decodedEvent.args.contract_address;
+        const creator = decodedEvent.args.creator;
+        const tokenAddress = decodedEvent.args.token_contract_address;
+        const starknetAddress = decodedEvent.args.starknet_address.toString();
+
+        return {
+          number: event.eventIndex,
+          hash: event.transactionHash,
+          contractAddress: daoAddress as string,
+          contract_address: daoAddress as string,
+          creator,
+          tokenAddress,
+          starknetAddress,
+        };
+      });
+
+      await insertSubState(daoCreationData);
+
+      return {
+        filter: {
+          events: daoCreationEvents,
+        },
+      };
+    },
     async transform({ block }) {
       const logger = useLogger();
       const { events, header } = block;

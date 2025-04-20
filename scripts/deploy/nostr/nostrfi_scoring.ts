@@ -22,11 +22,12 @@ export const deployNostrFiScoring = async () => {
   const namespace_address = NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as string;
 
   let nostrFiMetadata = {
+    nostr_address: admin_nostr_pubkey,
     name: "NostrFi",
     about: "NostrFi",
-    nostr_address: admin_nostr_pubkey,
     event_id_nip_72: "0",
     event_id_nip_29: "0",
+    main_tag: "bitcoin",
   }
   let nostrFiScoring;
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
@@ -36,7 +37,7 @@ export const deployNostrFiScoring = async () => {
       main_token_address,
       admin_nostr_pubkey,
       namespace_address,
-      nostrFiMetadata
+      // nostrFiMetadata
     );
     console.log("nostrFiScoring address", nostrFiScoringContract?.contract_address);
     if (nostrFiScoringContract?.contract_address) {

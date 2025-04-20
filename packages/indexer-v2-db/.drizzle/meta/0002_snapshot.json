@@ -1,5 +1,5 @@
 {
-  "id": "bdfc784f-4984-4dbe-90fc-08b4fb8ed566",
+  "id": "3819bfba-7eef-40b2-b69d-4e01339a1999",
   "prevId": "f6b706b3-9f19-4304-88b5-bdbb464d9228",
   "version": "7",
   "dialect": "postgresql",
@@ -379,13 +379,6 @@
       "name": "epoch_state",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
         "epoch_index": {
           "name": "epoch_index",
           "type": "text",
@@ -500,13 +493,6 @@
       "name": "user_epoch_state",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
         "nostr_id": {
           "name": "nostr_id",
           "type": "text",

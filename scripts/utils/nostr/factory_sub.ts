@@ -17,11 +17,11 @@ import { finalizeEvent } from "nostr-tools";
 dotenv.config();
 const PATH_DAO_FACTORY = path.resolve(
   __dirname,
-  "../../../onchain/cairo/afk/target/dev/afk_ScoreFactory.contract_class.json"
+  "../../../onchain/cairo/afk/target/dev/afk_FactoryNostrFiScoring.contract_class.json"
 );
 const PATH_DAO_FACTORY_COMPILED = path.resolve(
   __dirname,
-  "../../../onchain/cairo/afk/target/dev/afk_ScoreFactory.compiled_contract_class.json"
+  "../../../onchain/cairo/afk/target/dev/afk_FactoryNostrFiScoring.compiled_contract_class.json"
 );
 
 const PATH_TOKEN = path.resolve(
@@ -48,8 +48,8 @@ export const createFactorySub = async (
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
 
     const account0 = new Account(provider, accountAddress0, privateKey0, "1");
-    let DaoFactoryClassHash = process.env.SCORE_FACTORY_CLASS_HASH as string;
-    console.log("DaoFactoryClassHash", DaoFactoryClassHash);
+    let FactoryNostrScoreHash = process.env.SCORE_FACTORY_CLASS_HASH as string;
+    console.log("FactoryNostrScoreHash", FactoryNostrScoreHash);
 
     const compiledSierraAAaccount = json.parse(
       fs.readFileSync(PATH_DAO_FACTORY).toString("ascii")
@@ -84,7 +84,7 @@ export const createFactorySub = async (
     let score_factory_class_hash = process.env.SCORE_FACTORY_CLASS_HASH as string
     if (process.env.REDECLARE_CONTRACT == "true") {
 
-      console.log("try declare dao aa");
+      console.log("try declare factory score");
       // declare the contract
       const compiledContract = json.parse(
         fs.readFileSync(PATH_TOKEN).toString("ascii")
@@ -92,8 +92,6 @@ export const createFactorySub = async (
       const compiledCasm = json.parse(
         fs.readFileSync(PATH_TOKEN_COMPILED).toString("ascii")
       );
-
-
       // console.log('check memecoin class hash')
 
       const declareIfNotToken = await account0.declareIfNot({
@@ -104,13 +102,15 @@ export const createFactorySub = async (
       if(declareIfNotToken?.transaction_hash) {
         console.log("score_factory_class_hash", score_factory_class_hash);
           
-        console.log("declare DAO AA", declareIfNotToken);
+        console.log("declare Factory Score", declareIfNotToken);
         score_factory_class_hash = declareIfNotToken?.class_hash ?? score_factory_class_hash
         console.log("score_factory_class_hash", score_factory_class_hash);
+
+        await provider.waitForTransaction(declareIfNotToken?.transaction_hash);
       }
       score_factory_class_hash = declareIfNotToken?.class_hash
 
-      console.log("try declare dao factory");
+      console.log("try declare factory score");
       // const declareResponse = await account0.declare({
         const declareResponse = await account0.declareIfNot({
         contract: compiledSierraAAaccount,
@@ -124,24 +124,28 @@ export const createFactorySub = async (
         console.log("wait declare response")
         // await provider.waitForTransaction(declareResponse?.transaction_hash);
         console.log("DeclareResponse.Factory class_hash", declareResponse.class_hash);
+        await provider.waitForTransaction(declareResponse?.transaction_hash);
       }
 
-      const contractClassHash = declareResponse.class_hash ?? DaoFactoryClassHash;
-      DaoFactoryClassHash = contractClassHash;
-      console.log("DaoFactoryClassHash", DaoFactoryClassHash);
+      const contractClassHash = declareResponse.class_hash ?? FactoryNostrScoreHash;
+      FactoryNostrScoreHash = contractClassHash;
+      console.log("FactoryNostrScoreHash", FactoryNostrScoreHash);
 
       // const nonce = await account0?.getNonce();
       // console.log("nonce", nonce);
     }
 
-    console.log("Try deploy DAO factory");
+    console.log("Try deploy Factory Score");
 
+
+    let adminPubkey = uint256.bnToUint256(BigInt("0x" + admin_nostr_pubkey));
+    
     const { transaction_hash, contract_address } =
     await account0.deployContract({
-      classHash: DaoFactoryClassHash,
+      classHash: FactoryNostrScoreHash,
       constructorCalldata: [
         admin,
-        admin_nostr_pubkey,
+        adminPubkey,
         score_class_hash,
         namespaceAddress
       ],
@@ -156,7 +160,6 @@ export const createFactorySub = async (
       "✅ New contract Score Factory created.\n   address =",
       contract_address
     );
-
     // const contract = new Contract(compiledSierraAAaccount, contract_address, account0)
     return {
       contract_address,
@@ -164,6 +167,6 @@ export const createFactorySub = async (
       // contract
     };
   } catch (error) {
-    console.log("Error createLaunchpad= ", error);
+    console.log("Error create factory score = ", error);
   }
 };

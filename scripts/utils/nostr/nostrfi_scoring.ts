@@ -23,6 +23,7 @@ interface NostrFiMetadata {
   nostr_address: string;
   event_id_nip_72: string;
   event_id_nip_29: string;
+  main_tag?: string;
 }
 /** @TODO spec need to be discuss. This function serve as an example */
 export const createNostrFiScoring = async (
@@ -91,25 +92,39 @@ export const createNostrFiScoring = async (
     }
 
     let nostrMetadata = null;
+    const public_key = uint256.bnToUint256(BigInt("0x" + admin_nostr_pubkey));
+
     if (metadata) {
       nostrMetadata = {
+        nostr_address: cairo.uint256(BigInt("0x" + metadata.nostr_address)),
+
         name: byteArray.byteArrayFromString(metadata.name),
         about: byteArray.byteArrayFromString(metadata.about),
-        nostr_address: cairo.uint256(BigInt("0x" + metadata.nostr_address)),
         event_id_nip_72: cairo.uint256(BigInt("0x" + metadata.event_id_nip_72)),
         event_id_nip_29: cairo.uint256(BigInt("0x" + metadata.event_id_nip_29)),
+        main_tag: byteArray.byteArrayFromString(metadata.main_tag ?? "" ),
       }
     } else {
       nostrMetadata = {
+        nostr_address: public_key,
         name: byteArray.byteArrayFromString(""),
         about: byteArray.byteArrayFromString(""),
-        nostr_address: cairo.uint256("0x"),
-        event_id_nip_72: cairo.uint256("0x1"),
-        event_id_nip_29: cairo.uint256("0x1"),
+        // nostr_address: cairo.uint256(0),
+        event_id_nip_72: uint256.bnToUint256(BigInt(0)),
+        event_id_nip_29: uint256.bnToUint256(BigInt(0)),
+        main_tag: byteArray.byteArrayFromString(""),
       }
+      // nostrMetadata = {
+      //   name: byteArray.byteArrayFromString(""),
+      //   about: byteArray.byteArrayFromString(""),
+      //   // nostr_address: cairo.uint256(0),
+      //   nostr_address: public_key,
+      //   event_id_nip_72: cairo.uint256(0),
+      //   event_id_nip_29: cairo.uint256(0),
+      //   main_tag: byteArray.byteArrayFromString(""),
+      // }
     }
     // const admin_nostr_pubkey_uint = pubkeyToUint256(admin_nostr_pubkey);
-    const public_key = uint256.bnToUint256(BigInt("0x" + admin_nostr_pubkey));
 
     const { transaction_hash, contract_address } =
       await account0.deployContract({

@@ -1,4 +1,4 @@
-[
+export const ABI = [
   {
     "type": "impl",
     "name": "NostrFiScoringImpl",

@@ -25,6 +25,7 @@
     "deploy:multi_canvas": "ts-node ./deploy/multi_canvas.ts",
     "run:create_world": "ts-node ./deploy/multi_canvas/create_world.ts",
     "deploy:nostrfi_scoring": "ts-node ./deploy/nostr/nostrfi_scoring.ts",
+    "deploy:factory_score": "ts-node ./deploy/nostr/factory_score.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",
     "relay:dev": "nodemon --ext *"
