@@ -70,3 +70,19 @@ export interface BaseEventInterface {
   transactionHash?: string;
   contract_address?: string;
 }
+
+
+export interface AddTopicsMetadataEventInterface extends BaseEventInterface {
+  current_index_keywords?: number;
+  keyword?: string;
+  main_topic?: string;
+  keywords?: string[];
+}
+
+export interface NostrMetadataEventInterface extends BaseEventInterface {
+  nostr_address?: string;
+  name?: string;
+  about?: string;
+  event_id_nip_72?: string;
+  event_id_nip_29?: string;
+}

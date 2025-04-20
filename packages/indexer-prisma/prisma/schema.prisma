@@ -285,6 +285,8 @@ model token_metadata {
 }
 
 model overall_data {
+  contract_address             String      @id
+
   transaction_hash             String
   network                      String?
   epoch_index                  String?
@@ -311,8 +313,15 @@ model overall_data {
   end_duration                 DateTime?
   start_duration               DateTime?
   epoch_duration               Int?        @default(0)
-  contract_address             String      @id
   epochs                       epoch_data?
+
+  topic_metadata Json 
+  nostr_metadata Json 
+  name String?
+  about String?
+  main_tag String?
+  keyword String?
+  keywords String[]
 
   @@index([contract_address])
   @@index([epoch_index])
@@ -429,6 +438,18 @@ model ContractState {
   updated_at                   DateTime      @updatedAt
   epochs                       EpochState[]
   user_profiles                UserProfile[] @relation("ContractStateToUserProfile")
+
+
+  topic_metadata Json?
+  nostr_metadata Json?
+  name String?
+  about String?
+  main_tag String?
+  keyword String?
+  keywords String[]
+
+  event_id_nip_29 String?
+  event_id_nip_72 String?
 
   @@index([contract_address])
   @@index([current_epoch_index])

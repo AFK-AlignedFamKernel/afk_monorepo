@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { NostrInfofiInterface, LinkedDefaultStarknetAddressEventInterface, DepositRewardsByUserEventInterface, DistributionRewardsByUserEventInterface, NewEpochEventInterface } from './interfaces';
+import { NostrInfofiInterface, LinkedDefaultStarknetAddressEventInterface, DepositRewardsByUserEventInterface, DistributionRewardsByUserEventInterface, NewEpochEventInterface, AddTopicsMetadataEventInterface, NostrMetadataEventInterface } from './interfaces';
 
 @Injectable()
 export class NostrInfofiService {
@@ -382,6 +382,79 @@ export class NostrInfofiService {
         error.stack,
       );
       throw error;
+    }
+  }
+
+  async handleAddTopicsMetadataEvent(data: AddTopicsMetadataEventInterface) {
+    try {
+
+      // Create new nostr metadata
+      const contractStateMetadata = await this.prismaService.contractState.upsert({
+        where: { contract_address: data.contract_address },
+        update: {
+          topic_metadata: {
+            ...data
+          },
+          nostr_metadata: {
+            ...data
+          },
+          main_tag: data.main_topic,
+          keyword: data.keyword,
+          keywords: data.keywords,
+        },
+        create: {
+          contract_address: data.contract_address,
+          network: data.network,
+          topic_metadata: {
+            ...data
+          },
+          nostr_metadata: {
+            ...data
+          },
+          main_tag: data.main_topic,
+          keyword: data.keyword,
+          keywords: data.keywords,
+        },
+      });
+
+  
+      return {  contractStateMetadata };
+    } catch (error) {
+      this.logger.error(
+        `Error handling new add topics metadata: ${error.message}`,
+        error.stack,
+      );
+    }
+  }
+
+  async handleNostrMetadataEvent(data: NostrMetadataEventInterface) {
+    try {
+        // Create new nostr metadata
+        const contractStateMetadata = await this.prismaService.contractState.upsert({
+          where: { contract_address: data.contract_address },
+          update: {
+            name: data.name,
+            about: data.about,
+            event_id_nip_72: data.event_id_nip_72,
+            event_id_nip_29: data.event_id_nip_29,
+          },
+          create: {
+            contract_address: data.contract_address,
+            network: data.network,
+            name: data.name,
+            about: data.about,
+            event_id_nip_72: data.event_id_nip_72,
+            event_id_nip_29: data.event_id_nip_29,
+          },
+        });
+
+
+      return {  contractStateMetadata };    
+    } catch (error) {
+      this.logger.error(
+        `Error handling new nostr metadata: ${error.message}`,
+        error.stack,
+      );
     }
   }
 }

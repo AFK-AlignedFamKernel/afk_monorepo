@@ -27,9 +27,10 @@ export class InfoFiIndexer {
       validateAndParseAddress(hash.getSelectorFromName('DistributionRewardsByUserEvent')),
       validateAndParseAddress(hash.getSelectorFromName('PushAlgoScoreEvent')),
       validateAndParseAddress(hash.getSelectorFromName('AddTopicsMetadataEvent')),
-      validateAndParseAddress(hash.getSelectorFromName('NostrMetadataEvent')),
       validateAndParseAddress(hash.getSelectorFromName('DepositRewardsByUserEvent')),
       validateAndParseAddress(hash.getSelectorFromName('NewEpochEvent')),
+      validateAndParseAddress(hash.getSelectorFromName('AddTopicsMetadataEvent')),
+      validateAndParseAddress(hash.getSelectorFromName('NostrMetadataEvent')),
 
 
     ];
@@ -76,6 +77,15 @@ export class InfoFiIndexer {
         await this.handleTipUserWithVoteEvent(header, event, transaction);
         break;
 
+      case validateAndParseAddress(hash.getSelectorFromName('AddTopicsMetadataEvent')):
+        this.logger.log('Event name: AddTopicsMetadataEvent');
+        await this.handleAddTopicsMetadataEvent(header, event, transaction);
+        break;
+
+      case validateAndParseAddress(hash.getSelectorFromName('NostrMetadataEvent')):
+        this.logger.log('Event name: NostrMetadataEvent');
+        await this.handleNostrMetadataEvent(header, event, transaction);
+        break;
       // case validateAndParseAddress(hash.getSelectorFromName('TipToClaimByUserBecauseNotLinked')):
       //   this.logger.log('Event name: TipToClaimByUserBecauseNotLinked');
       //   await this.handleLinkedDefaultStarknetAddressEvent(header, event, transaction);
@@ -148,6 +158,147 @@ export class InfoFiIndexer {
 
     await this.nostrInfofiService.handleNewEpochEvent(data);
   }
+
+
+  private async handleAddTopicsMetadataEvent(
+    header: starknet.IBlockHeader,
+    event: starknet.IEvent,
+    transaction: starknet.ITransaction,
+  ) {
+    const {
+      blockNumber,
+      blockHash: blockHashFelt,
+      timestamp: blockTimestamp,
+    } = header;
+
+    const blockHash = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
+    ) as ContractAddress;
+
+    const transactionHashFelt = transaction.meta.hash;
+    const transactionHash = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
+    ) as ContractAddress;
+
+    const transferId = `${transactionHash}_${event.index}`;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, currentIndexKeywordsFelt] = event.keys;
+
+    const [
+      keywordsFelt, mainTopicFelt, mainTagFelt
+    ] = event.data;
+
+
+    const currentIndexKeywords = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(currentIndexKeywordsFelt).toString(16)}`,
+    ) as string;
+
+    let keywords = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(keywordsFelt).toString(16)}`,
+    ) as string;
+
+    console.log("keywords", keywords);
+    keywords = FieldElement.toBigInt(keywordsFelt).toString(16);
+    console.log("keywords", keywords);
+
+    let mainTopic = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(mainTopicFelt).toString(16)}`,
+    ) as string;
+
+    console.log("mainTopic", mainTopic);
+
+    const data = {
+      current_index_keywords: Number(currentIndexKeywords),
+      keywords: keywords.split(','),
+      keyword: keywords[0],
+      main_topic: mainTopic,
+      transferId,
+      network: 'starknet-sepolia',
+      transactionHash,
+      blockNumber: Number(blockNumber),
+      blockHash,
+      blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+      contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
+    };
+
+    await this.nostrInfofiService.handleAddTopicsMetadataEvent(data);
+  }
+
+  private async handleNostrMetadataEvent(
+    header: starknet.IBlockHeader,
+    event: starknet.IEvent,
+    transaction: starknet.ITransaction,
+  ) {
+    const {
+      blockNumber,
+      blockHash: blockHashFelt,
+      timestamp: blockTimestamp,
+    } = header;
+
+    const blockHash = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
+    ) as ContractAddress;
+
+    const transactionHashFelt = transaction.meta.hash;
+    const transactionHash = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(transactionHashFelt).toString(16)}`,
+    ) as ContractAddress;
+
+    const transferId = `${transactionHash}_${event.index}`;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [_, oldEpochIndexFelt, currentEpochIndexFelt,] = event.keys;
+
+    const [
+      eventIdNip72Felt, eventIdNip29Felt, nameFelt, aboutFelt,
+    ] = event.data;
+
+
+    let eventIdNip72 = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(eventIdNip72Felt).toString(16)}`,
+    ) as string;
+
+    let eventIdNip29 = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(eventIdNip29Felt).toString(16)}`,
+    ) as string;
+
+    console.log("eventIdNip72", eventIdNip72);
+    eventIdNip72 = FieldElement.toBigInt(eventIdNip72Felt).toString(16);
+    console.log("eventIdNip72", eventIdNip72);
+
+    console.log("eventIdNip29", eventIdNip29);
+    eventIdNip29 = FieldElement.toBigInt(eventIdNip29Felt).toString(16);
+    console.log("eventIdNip29", eventIdNip29);
+
+    let name = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(nameFelt).toString(16)}`,
+    ) as string;
+
+    let about = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(aboutFelt).toString(16)}`,
+    ) as string;
+
+    console.log("name", name);
+    console.log("about", about);  
+
+    const data = {
+      name: name,
+      about: about, 
+      event_id_nip_72: eventIdNip72,
+      event_id_nip_29: eventIdNip29,
+      transferId,
+      network: 'starknet-sepolia',
+      transactionHash,
+      blockNumber: Number(blockNumber),
+      blockHash,
+      blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+      contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
+    };
+
+    await this.nostrInfofiService.handleNostrMetadataEvent(data);
+  }
+
 
   private async handleDistributionRewardsByUserEvent(
     header: starknet.IBlockHeader,
