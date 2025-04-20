@@ -71,9 +71,7 @@ mod score_factory_tests {
 
 
     fn deploy_score_factory(
-        class: ContractClass,
-        score_nostr_hash: ClassHash, 
-        namespace_address: ContractAddress,
+        class: ContractClass, score_nostr_hash: ClassHash, namespace_address: ContractAddress,
     ) -> IFactoryNostrFiScoringDispatcher {
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
         let admin_nostr_pubkey =
@@ -179,7 +177,12 @@ mod score_factory_tests {
             erc20_dispatcher.contract_address,
             recipient_public_key,
             namespace_dispatcher.contract_address,
-            init_metadata(recipient_public_key, "Test Namespace", "Test namespace for InfoFI about topics & communities on Nostr and more soon", "test@example.com"),
+            init_metadata(
+                recipient_public_key,
+                "Test Namespace",
+                "Test namespace for InfoFI about topics & communities on Nostr and more soon",
+                "test@example.com",
+            ),
         );
 
         let recipient_address_user: ContractAddress = 678.try_into().unwrap();
@@ -231,7 +234,7 @@ mod score_factory_tests {
                 // working
             // r: 0x315cfcf10274c4c99c940d3885920a5e243fc58f0222a7c71c43296105dce674_u256,
             // s: 0x01b663ddca40625da7fa85f32e7563c24fbf818a820f0717ddd532e615bf5d31_u256,
-      },
+            },
         };
 
         // https://replit.com/@msghais135/afk-scripts#vote.js
@@ -654,7 +657,7 @@ mod score_factory_tests {
         let score_factory_dispatcher = IFactoryNostrFiScoringDispatcher {
             contract_address: score_factory_address,
         };
-        let nostr_metadata= NostrMetadata{
+        let nostr_metadata = NostrMetadata {
             name: metadata.name,
             about: metadata.about,
             nostr_address: metadata.nostr_address,
@@ -779,8 +782,8 @@ mod score_factory_tests {
             * 2; // Proposal duration reached
 
         current_time = new_created_at
-        + DEFAULT_BATCH_INTERVAL_WEEK
-        + 1; // Proposal duration reached
+            + DEFAULT_BATCH_INTERVAL_WEEK
+            + 1; // Proposal duration reached
 
         println!("start end to end basic flow");
         println!("current time second epoch: {:?}", current_time);
@@ -802,7 +805,7 @@ mod score_factory_tests {
             score_factory_dispatcher,
         ) =
             request_fixture();
-            println!("init_score_factory_and_topic");
+        println!("init_score_factory_and_topic");
 
         let topic_address = init_score_by_factory(
             erc20.contract_address,
@@ -887,8 +890,8 @@ mod score_factory_tests {
             * 2; // Proposal duration reached
 
         current_time = new_created_at
-        + DEFAULT_BATCH_INTERVAL_WEEK
-        + 1; // Proposal duration reached
+            + DEFAULT_BATCH_INTERVAL_WEEK
+            + 1; // Proposal duration reached
 
         println!("start end to end basic flow");
         println!("current time second epoch: {:?}", current_time);
@@ -995,14 +998,12 @@ mod score_factory_tests {
             * 2; // Proposal duration reached
 
         current_time = new_created_at
-        + DEFAULT_BATCH_INTERVAL_WEEK
-        + 1; // Proposal duration reached
+            + DEFAULT_BATCH_INTERVAL_WEEK
+            + 1; // Proposal duration reached
 
         println!("start end to end basic flow");
         println!("current time second epoch: {:?}", current_time);
     }
-
-
     // #[test]
 // #[should_panic()]
 // fn should_panic_multi_distribute_rewards() {

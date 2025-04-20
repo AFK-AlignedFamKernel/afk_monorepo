@@ -1,4 +1,5 @@
-import { bigint, boolean, integer, pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core';
+import { bigint, boolean, decimal, integer, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
 export const daoCreation = pgTable('dao_creation', {
   _id: uuid('_id').primaryKey().defaultRandom(),
@@ -37,3 +38,110 @@ export const daoProposalVote = pgTable(
   },
   (table) => [primaryKey({ columns: [table.contractAddress, table.proposalId, table.voter] })],
 );
+
+export const contractState = pgTable('contract_state', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  contract_address: text('contract_address').notNull().unique(),
+  network: text('network'),
+  current_epoch_index: text('current_epoch_index'),
+  total_ai_score: decimal('total_ai_score', { precision: 30, scale: 18 }).default('0'),
+  total_vote_score: decimal('total_vote_score', { precision: 30, scale: 18 }).default('0'),
+  total_tips: decimal('total_tips', { precision: 30, scale: 18 }).default('0'),
+  total_amount_deposit: decimal('total_amount_deposit', { precision: 30, scale: 18 }).default('0'),
+  total_to_claimed: decimal('total_to_claimed', { precision: 30, scale: 18 }).default('0'),
+  percentage_algo_distribution: integer('percentage_algo_distribution').default(50),
+  quote_address: text('quote_address'),
+  main_token_address: text('main_token_address'),
+  current_epoch_duration: integer('current_epoch_duration').default(0),
+  current_epoch_start: timestamp('current_epoch_start'),
+  current_epoch_end: timestamp('current_epoch_end'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+  topic_metadata: text('topic_metadata'),
+  nostr_metadata: text('nostr_metadata'),
+  name: text('name'),
+  about: text('about'),
+  main_tag: text('main_tag'),
+  keyword: text('keyword'),
+  keywords: text('keywords').array(),
+  event_id_nip_29: text('event_id_nip_29'),
+  event_id_nip_72: text('event_id_nip_72'),
+});
+
+export const epochState = pgTable('epoch_state', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  epoch_index: text('epoch_index').notNull(),
+  contract_address: text('contract_address').notNull(),
+  total_ai_score: decimal('total_ai_score', { precision: 30, scale: 18 }).default('0'),
+  total_vote_score: decimal('total_vote_score', { precision: 30, scale: 18 }).default('0'),
+  total_amount_deposit: decimal('total_amount_deposit', { precision: 30, scale: 18 }).default('0'),
+  total_tip: decimal('total_tip', { precision: 30, scale: 18 }).default('0'),
+  amount_claimed: decimal('amount_claimed', { precision: 30, scale: 18 }).default('0'),
+  amount_vote: decimal('amount_vote', { precision: 30, scale: 18 }).default('0'),
+  amount_algo: decimal('amount_algo', { precision: 30, scale: 18 }).default('0'),
+  epoch_duration: integer('epoch_duration'),
+  start_time: timestamp('start_time'),
+  end_time: timestamp('end_time'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.epoch_index, table.contract_address] }),
+}));
+
+export const userProfile = pgTable('user_profile', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  nostr_id: text('nostr_id').notNull().unique(),
+  starknet_address: text('starknet_address'),
+  total_ai_score: decimal('total_ai_score', { precision: 30, scale: 18 }).default('0'),
+  total_tip: decimal('total_tip', { precision: 30, scale: 18 }).default('0'),
+  total_vote_score: decimal('total_vote_score', { precision: 30, scale: 18 }).default('0'),
+  amount_claimed: decimal('amount_claimed', { precision: 30, scale: 18 }).default('0'),
+  is_add_by_admin: boolean('is_add_by_admin').default(false),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+});
+
+export const userEpochState = pgTable('user_epoch_state', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  nostr_id: text('nostr_id').notNull(),
+  epoch_index: text('epoch_index').notNull(),
+  contract_address: text('contract_address').notNull(),
+  total_tip: decimal('total_tip', { precision: 30, scale: 18 }).default('0'),
+  total_ai_score: decimal('total_ai_score', { precision: 30, scale: 18 }).default('0'),
+  total_vote_score: decimal('total_vote_score', { precision: 30, scale: 18 }).default('0'),
+  amount_claimed: decimal('amount_claimed', { precision: 30, scale: 18 }).default('0'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.nostr_id, table.epoch_index, table.contract_address] }),
+}));
+
+// Relations
+export const contractStateRelations = relations(contractState, ({ many }) => ({
+  epochs: many(epochState),
+  userProfiles: many(userProfile),
+}));
+
+export const epochStateRelations = relations(epochState, ({ one, many }) => ({
+  contract: one(contractState, {
+    fields: [epochState.contract_address],
+    references: [contractState.contract_address],
+  }),
+  userEpochStates: many(userEpochState),
+}));
+
+export const userProfileRelations = relations(userProfile, ({ many }) => ({
+  epochStates: many(userEpochState),
+  contractStates: many(contractState),
+}));
+
+export const userEpochStateRelations = relations(userEpochState, ({ one }) => ({
+  epoch: one(epochState, {
+    fields: [userEpochState.epoch_index, userEpochState.contract_address],
+    references: [epochState.epoch_index, epochState.contract_address],
+  }),
+  user: one(userProfile, {
+    fields: [userEpochState.nostr_id],
+    references: [userProfile.nostr_id],
+  }),
+}));
