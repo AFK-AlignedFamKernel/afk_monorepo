@@ -16,13 +16,14 @@ export const TOPICS_NAME = [
   // "marketing"
 ]
 export const deployAllChainFactionAdmin = async () => {
+  const scorefiFactoryContractAddress = FACTORY_SCORE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as string;
+
   const privateKey0 = process.env.DEV_PK as string;
   const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
   const account = new Account(provider, accountAddress0, privateKey0, "1");
 
   /** TODO script to save constants address */
 
-  const scorefiFactoryContractAddress = FACTORY_SCORE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as string;
 
   // Loop into Chain faction files
 

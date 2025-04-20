@@ -390,11 +390,6 @@ export const ABI = [
         "kind": "data"
       },
       {
-        "name": "score_class_hash",
-        "type": "core::starknet::class_hash::ClassHash",
-        "kind": "data"
-      },
-      {
         "name": "contract_address_salt",
         "type": "core::felt252",
         "kind": "data"

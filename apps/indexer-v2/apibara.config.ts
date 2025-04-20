@@ -16,6 +16,9 @@ export default defineConfig({
       },
     },
   },
+  // rolldownConfig: {
+  //   plugins: [typescript()],
+  // },
   rollupConfig: {
     plugins: [typescript()],
   },

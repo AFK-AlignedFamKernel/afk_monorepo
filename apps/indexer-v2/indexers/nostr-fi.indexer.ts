@@ -1,8 +1,8 @@
 import { defineIndexer } from '@apibara/indexer';
 import { useLogger } from '@apibara/indexer/plugins';
 import { drizzleStorage } from '@apibara/plugin-drizzle';
-import { decodeEvent, StarknetStream } from '@apibara/starknet';
-import { Abi, constants, encode, hash } from 'starknet';
+import { Abi, decodeEvent, StarknetStream } from '@apibara/starknet';
+import {  constants, encode, hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
 import { ABI as nostrFiScoringABI } from './abi/infofi/score.abi';
@@ -65,9 +65,12 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
       }
 
       const daoCreationEvents = events.map((event) => {
+        console.log("event", event)
+        console.log("event keys", event.keys)
+        console.log("event data", event.data)
         const daoAddress = event.keys[1];
 
-        logger.log('Factory: new DAO Address    : ', `\x1b[35m${daoAddress}\x1b[0m`);
+        logger.log('Factory: new Nostr Sub Topic Address    : ', `\x1b[35m${daoAddress}\x1b[0m`);
         return {
           address: daoAddress,
         };
@@ -80,9 +83,11 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
             eventName: 'afk::infofi::score_factory::TopicEvent',
         });
 
-        console.log(decodedEvent.args);
+        console.log("decodedEvent", decodedEvent)
+        console.log("args",decodedEvent.args);
 
         const daoAddress = decodedEvent.args?.topic_address;
+        console.log("daoAddress",daoAddress);
 
         const creator = decodedEvent.args?.admin;
         const tokenAddress = decodedEvent.args?.main_token_address;
