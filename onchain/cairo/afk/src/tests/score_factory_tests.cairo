@@ -44,7 +44,16 @@ mod score_factory_tests {
         main_token_address.serialize(ref calldata);
         admin_nostr_pubkey.serialize(ref calldata);
         namespace_address.serialize(ref calldata);
-        metadata.serialize(ref calldata);
+        let nostr_metadata = NostrMetadata {
+            name: metadata.name,
+            about: metadata.about,
+            nostr_address: metadata.nostr_address,
+            event_id_nip_72: metadata.event_id_nip_72,
+            event_id_nip_29: metadata.event_id_nip_29,
+            main_tag: metadata.main_tag,
+        };
+        // nostr_metadata.serialize(ref calldata);
+        nostr_metadata.serialize(ref calldata);
         let (contract_address, _) = class.deploy(@calldata).unwrap();
 
         INostrFiScoringDispatcher { contract_address }
@@ -62,7 +71,9 @@ mod score_factory_tests {
 
 
     fn deploy_score_factory(
-        class: ContractClass, score_nostr_hash: ClassHash, namespace_address: ContractAddress,
+        class: ContractClass,
+        score_nostr_hash: ClassHash, 
+        namespace_address: ContractAddress,
     ) -> IFactoryNostrFiScoringDispatcher {
         let ADMIN_ADDRESS: ContractAddress = 123.try_into().unwrap();
         let admin_nostr_pubkey =
@@ -151,8 +162,11 @@ mod score_factory_tests {
         let erc20_dispatcher = deploy_erc20(
             *erc20_class, "Test Token", "TEST", 1_000_000_u256, sender_address,
         );
+        println!("declare score factory");
 
         let declare_score_factory_class = declare_score_factory();
+
+        println!("deploying score factory");
         let score_factory_dispatcher = deploy_score_factory(
             declare_score_factory_class,
             nostrfi_scoring_class.class_hash,
@@ -633,12 +647,20 @@ mod score_factory_tests {
     fn init_score_by_factory(
         erc20_address: ContractAddress,
         score_factory_address: ContractAddress,
-        nostr_metadata: NostrMetadata,
+        metadata: NostrMetadata,
         sender_address: ContractAddress,
         recipient_nostr_key: NostrPublicKey,
     ) -> ContractAddress {
         let score_factory_dispatcher = IFactoryNostrFiScoringDispatcher {
             contract_address: score_factory_address,
+        };
+        let nostr_metadata= NostrMetadata{
+            name: metadata.name,
+            about: metadata.about,
+            nostr_address: metadata.nostr_address,
+            event_id_nip_72: metadata.event_id_nip_72,
+            event_id_nip_29: metadata.event_id_nip_29,
+            main_tag: metadata.main_tag,
         };
 
         start_cheat_caller_address(score_factory_dispatcher.contract_address, sender_address);
@@ -651,6 +673,7 @@ mod score_factory_tests {
                 nostr_metadata,
             );
 
+        println!("topic address: {:?}", topic_address);
         stop_cheat_caller_address(score_factory_dispatcher.contract_address);
         topic_address
     }
@@ -672,6 +695,7 @@ mod score_factory_tests {
         ) =
             request_fixture();
 
+        println!("init score factory");
         let topic_address = init_score_by_factory(
             erc20.contract_address,
             score_factory_dispatcher.contract_address,
@@ -778,6 +802,7 @@ mod score_factory_tests {
             score_factory_dispatcher,
         ) =
             request_fixture();
+            println!("init_score_factory_and_topic");
 
         let topic_address = init_score_by_factory(
             erc20.contract_address,
@@ -885,6 +910,7 @@ mod score_factory_tests {
             score_factory_dispatcher,
         ) =
             request_fixture();
+        println!("init_score_factory_and_topic_with_test");
 
         let topic_address = init_score_by_factory(
             erc20.contract_address,

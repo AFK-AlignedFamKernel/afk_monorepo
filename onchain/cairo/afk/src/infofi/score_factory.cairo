@@ -218,7 +218,6 @@ pub mod FactoryNostrFiScoring {
             Serde::serialize(@main_token_address.clone(), ref calldata);
             Serde::serialize(@self.admin_nostr_pubkey.read(), ref calldata);
             Serde::serialize(@self.namespace_address.read(), ref calldata);
-            Serde::serialize(@get_block_timestamp(), ref calldata);
             Serde::serialize(@nostr_metadata.clone(), ref calldata);
             let score_class_hash = self.score_class_hash.read();
             let (topic_address, _) = deploy_syscall(
