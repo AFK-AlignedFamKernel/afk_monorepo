@@ -15,7 +15,7 @@ interface ScoreFactoryParamsPerEpoch {
 
 async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: RouteOptions) {
   // Get all subs
-  fastify.get('/sub', async (request, reply) => {
+  fastify.get('/score-factory/sub', async (request, reply) => {
     try {
       const subs = await db.select().from(contractState);
 
@@ -29,7 +29,7 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
   // Get one sub by address
   fastify.get<{
     Params: ScoreFactoryParams;
-  }>('/sub/:sub_address', async (request, reply) => {
+  }>('/score-factory/sub/:sub_address', async (request, reply) => {
     try {
       const { sub_address } = request.params;
       if (!isValidStarknetAddress(sub_address)) {
@@ -60,7 +60,7 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
   // Get all proposals for a sub
   fastify.get<{
     Params: ScoreFactoryParams;
-  }>('/sub/:sub_address/profile/', async (request, reply) => {
+  }>('/score-factory/sub/:sub_address/profile', async (request, reply) => {
     try {
       const { sub_address } = request.params;
       if (!isValidStarknetAddress(sub_address)) {
@@ -86,7 +86,7 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
   // Get all proposals for a sub
   fastify.get<{
     Params: ScoreFactoryParamsPerEpoch;
-  }>('/sub/:sub_address/:epoch_index', async (request, reply) => {
+  }>('/score-factory/sub/:sub_address/:epoch_index', async (request, reply) => {
     try {
       const { sub_address, epoch_index } = request.params;
       if (!isValidStarknetAddress(sub_address)) {

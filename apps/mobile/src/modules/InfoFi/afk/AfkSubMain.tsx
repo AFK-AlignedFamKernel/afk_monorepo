@@ -2,28 +2,27 @@ import { useAccount } from '@starknet-react/core';
 import { useEffect, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
-import { Button } from '../../components';
-import Loading from '../../components/Loading';
-import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
-import { useWalletModal } from '../../hooks/modals';
+import { Button } from '../../../components';
+import Loading from '../../../components/Loading';
+import { useStyles, useTheme, useWindowDimensions } from '../../../hooks';
+import { useWalletModal } from '../../../hooks/modals';
 
 import stylesheet from './styles';
-import { TokenDeployInterface, TokenLaunchInterface } from '../../types/keys';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from 'src/types';
-import { useNamespace } from '../../hooks/infofi/useNamespace';
+import { useNamespace } from '../../../hooks/infofi/useNamespace';
 import { useDataInfoMain, useGetEpochState, useGetAllTipUser, useGetAllTipByUser, useOverallState } from 'src/hooks/infofi/useDataInfoMain';
-import { UserCard } from './UserCard';
+import { UserCard } from '../UserCard';
 import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
 import { Input } from 'src/components/Input';
 import { formatUnits } from 'viem';
-import { AllSubsComponent } from './AllSub';
-import { AfkSubCard } from './afk/AfkSubCard';
+import { AllSubsComponent } from '../AllSub';
+
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
 }
 
-export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
+export const AfkSubMain: React.FC<AllKeysComponentInterface> = ({
   isButtonInstantiateEnable,
 }) => {
   const styles = useStyles(stylesheet);
@@ -75,7 +74,7 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
 
       <View>
         {isButtonInstantiateEnable && (
@@ -88,9 +87,6 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
             <Text>Subscribe to InfoFi</Text>
           </Button>
         )}
-
-
-        <AfkSubCard subInfo={allData?.aggregations}></AfkSubCard>
 
 
 
@@ -204,9 +200,9 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
           />
         </View>
 
-        <AllSubsComponent></AllSubsComponent>
       </View>
 
-    </ScrollView>
+    </View>
   );
 };
+
