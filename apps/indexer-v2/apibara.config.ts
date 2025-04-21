@@ -5,7 +5,7 @@ export default defineConfig({
   runtimeConfig: {
     streamUrl: 'https://starknet-sepolia.preview.apibara.org',
     startingCursor: {
-      orderKey: 700_000,
+      orderKey: 705_000,
     },
     pgLiteDBPath: 'memory://persistence',
   },

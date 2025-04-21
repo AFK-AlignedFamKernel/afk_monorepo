@@ -1,5 +1,5 @@
 import { contractState, epochState, userProfile, userEpochState } from 'indexer-v2-db/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { useDrizzleStorage } from '@apibara/plugin-drizzle';
 interface ContractStateData {
   contract_address: string;
@@ -62,10 +62,85 @@ interface UserEpochStateData {
   amount_claimed?: string;
 }
 
-export async function insertSubState(subStates  : ContractStateData[]) {
-  const { db } = useDrizzleStorage();
-  return db.insert(contractState).values(subStates as any).onConflictDoNothing();
+// In nostr-fi.db.ts
+export async function insertSubState(subStates: ContractStateData[]) {
+  try {
+    const { db } = useDrizzleStorage();
+    
+    // Validate input data
+    if (!Array.isArray(subStates) || subStates.length === 0) {
+      throw new Error('Invalid input: subStates must be a non-empty array');
+    }
+
+    // Validate required fields
+    subStates.forEach((state, index) => {
+      if (!state.contract_address) {
+        throw new Error(`Missing contract_address in item ${index}`);
+      }
+    });
+
+    // // First try to remove existing trigger if it exists
+    // await db.execute(
+    //   'DROP TRIGGER IF EXISTS dao_creation_reorg_indexer_dao_factory_default ON dao_creation'
+    // );
+
+    // Then perform the insert
+    const result = await db.insert(contractState)
+      .values(subStates)
+      .onConflictDoNothing();
+
+    return result;
+  } catch (error) {
+    // Structured error logging
+    const errorInfo = {
+      operation: 'insertSubState',
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+      data: subStates.map(s => s.contract_address) // Log only necessary info
+    };
+    console.error('Database operation failed:', errorInfo);
+    
+    // Rethrow with context but don't crash
+    throw new Error(`Failed to insert contract states: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
+
+// export async function insertSubState(subStates  : ContractStateData[]) {
+//   try {
+//     const { db } = useDrizzleStorage();
+//     return db.insert(contractState).values(subStates as any).onConflictDoNothing();
+//   } catch (error) {
+//     console.log("error insertSubState", error);
+//   }
+// }
+
+
+// Add this to nostr-fi.db.ts
+export async function getLastProcessedCursor() {
+  try {
+    const { db } = useDrizzleStorage();
+    // const result = await db.execute(
+    //   sql`SELECT MAX(block_number) as last_block FROM contract_state`
+    // );
+    const last_block = await db.execute(sql`SELECT MAX(block_number) as last_block FROM contract_state`);
+    return last_block;
+  } catch (error) {
+    console.error('Error getting last processed cursor:', error);
+    return null;
+  }
+}
+
+export async function saveCursor(blockNumber: string, blockHash: string) {
+  try {
+    const { db } = useDrizzleStorage();
+    await db.execute(
+      sql`INSERT INTO indexer_cursor (block_number, block_hash, updated_at) VALUES (${blockNumber}, ${blockHash}, NOW())`
+    );
+  } catch (error) {
+    console.error('Error saving cursor:', error);
+  }
+}
+
 
 export async function upsertContractState(data: ContractStateData) {
   try {

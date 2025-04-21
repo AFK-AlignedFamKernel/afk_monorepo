@@ -13,6 +13,7 @@ import {
   upsertUserProfile,
   upsertUserEpochState,
   insertSubState,
+  saveCursor,
 } from './db/nostr-fi.db';
 
 const SUB_CREATED = hash.getSelectorFromName('TopicEvent') as `0x${string}`;
@@ -25,11 +26,20 @@ const PUSH_ALGO_SCORE = hash.getSelectorFromName('PushAlgoScoreEvent') as `0x${s
 const ADD_TOPICS = hash.getSelectorFromName('AddTopicsMetadataEvent') as `0x${string}`;
 const NOSTR_METADATA = hash.getSelectorFromName('NostrMetadataEvent') as `0x${string}`;
 
+const KNOWN_EVENT_KEYS = [
+  NEW_EPOCH,
+  DEPOSIT_REWARDS,
+  DISTRIBUTION_REWARDS,
+  TIP_USER,
+  LINKED_ADDRESS,
+]
 export default function (config: ApibaraRuntimeConfig & { startingCursor: { orderKey: string } }) {
   return defineIndexer(StarknetStream)({
     streamUrl: config.streamUrl as string,
     startingCursor: {
-      orderKey: BigInt(config.startingCursor.orderKey),
+      orderKey: BigInt(config.startingCursor?.orderKey),
+      // blockHash: config.startingCursor.blockHash,
+      // orderKey: config.startingCursor.orderKey,
     },
     filter: {
       events: [
@@ -37,6 +47,14 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
           address: "0x20f02a8bebe4728add0704b8ffd772595b4ebf03103560e4e23b93bdbf75dec",
           keys: [
             SUB_CREATED,
+            // 
+            DEPOSIT_REWARDS,
+            DISTRIBUTION_REWARDS,
+            TIP_USER,
+            LINKED_ADDRESS,
+            PUSH_ALGO_SCORE,
+            ADD_TOPICS,
+            NOSTR_METADATA,
           ],
         },
       ],
@@ -58,112 +76,135 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
     },
     plugins: [drizzleStorage({ db })],
     async factory({ block: { events } }) {
-      const logger = useLogger();
+      try {
+        const logger = useLogger();
 
-      if (events.length === 0) {
-        return {};
-      }
+        if (events.length === 0) {
+          return {};
+        }
 
-      const daoCreationEvents = events.map((event) => {
-        console.log("event", event)
-        console.log("event keys", event.keys)
-        console.log("event data", event.data)
-        const daoAddress = event.keys[1];
+        const daoCreationEvents = events.map((event) => {
+          console.log("event", event)
+          console.log("event keys", event.keys)
+          console.log("event data", event.data)
+          const daoAddress = event.keys[1];
 
-        logger.log('Factory: new Nostr Sub Topic Address    : ', `\x1b[35m${daoAddress}\x1b[0m`);
-        return {
-          address: daoAddress,
-        };
-      });
-
-      const daoCreationData = events.map((event) => {
-        const decodedEvent = decodeEvent({
-          abi: scoreFactoryABI as Abi,
-          event,
-          eventName: 'afk::infofi::score_factory::TopicEvent',
+          logger.log('Factory: new Nostr Sub Topic Address    : ', `\x1b[35m${daoAddress}\x1b[0m`);
+          return {
+            address: daoAddress,
+          };
         });
 
-        console.log("decodedEvent", decodedEvent)
-        console.log("args", decodedEvent.args);
-
-        const daoAddress = decodedEvent.args?.topic_address;
-        console.log("daoAddress", daoAddress);
-
-        const creator = decodedEvent.args?.admin;
-        const tokenAddress = decodedEvent.args?.main_token_address;
-        const starknetAddress = decodedEvent.args?.starknet_address?.toString() as string;
-
-        return {
-          number: event.eventIndex,
-          hash: event.transactionHash,
-          contractAddress: daoAddress,
-          contract_address: daoAddress,
-          creator,
-          tokenAddress,
-          starknetAddress,
-        };
-      });
-
-      await insertSubState(daoCreationData as any[]);
-      // await insertSubState(daoCreationData.map(data => ({
-      //   ...data,
-      //   contract_address: data.contract_address?.toString()
-      // })));
-
-      return {
-        filter: {
-          events: daoCreationEvents,
-        },
-      };
-    },
-    async transform({ block }) {
-      const logger = useLogger();
-      const { events, header } = block;
-
-      if (events.length === 0) {
-        return;
-      }
-
-      for (const event of events) {
-        logger.log(`Found event ${event.keys[0]}`);
-
-        try {
+        const daoCreationData = events.map((event) => {
           const decodedEvent = decodeEvent({
-            abi: nostrFiScoringABI as Abi,
+            abi: scoreFactoryABI as Abi,
             event,
-            eventName: getEventName(event.keys[0]),
+            eventName: 'afk::infofi::score_factory::TopicEvent',
           });
 
-          switch (event.keys[0]) {
-            case NEW_EPOCH:
-              await handleNewEpochEvent(decodedEvent, event.address);
-              break;
-            case DEPOSIT_REWARDS:
-              await handleDepositRewardsEvent(decodedEvent, event.address);
-              break;
-            case DISTRIBUTION_REWARDS:
-              await handleDistributionRewardsEvent(decodedEvent, event.address);
-              break;
-            case TIP_USER:
-              await handleTipUserEvent(decodedEvent, event.address);
-              break;
-            case LINKED_ADDRESS:
-              await handleLinkedAddressEvent(decodedEvent, event.address);
-              break;
-            case PUSH_ALGO_SCORE:
-              await handlePushAlgoScoreEvent(decodedEvent, event.address);
-              break;
-            case ADD_TOPICS:
-              await handleAddTopicsEvent(decodedEvent, event.address);
-              break;
-            case NOSTR_METADATA:
-              await handleNostrMetadataEvent(decodedEvent, event.address);
-              break;
-          }
-        } catch (error: any) {
-          logger.error(`Error processing event: ${error.message}`);
-        }
+          console.log("decodedEvent", decodedEvent)
+          console.log("args", decodedEvent.args);
+
+          const daoAddress = decodedEvent.args?.topic_address;
+          console.log("daoAddress", daoAddress);
+
+          const creator = decodedEvent.args?.admin;
+          const tokenAddress = decodedEvent.args?.main_token_address;
+          const starknetAddress = decodedEvent.args?.starknet_address?.toString() as string;
+
+          return {
+            number: event.eventIndex,
+            hash: event.transactionHash,
+            contractAddress: daoAddress,
+            contract_address: daoAddress,
+            creator,
+            tokenAddress,
+            starknetAddress,
+          };
+        });
+
+        await insertSubState(daoCreationData as any[]);
+        // await insertSubState(daoCreationData.map(data => ({
+        //   ...data,
+        //   contract_address: data.contract_address?.toString()
+        // })));
+
+        return {
+          filter: {
+            events: daoCreationEvents,
+          },
+        };
+      } catch (error) {
+        console.log("error factory", error);
+        return {
+          filter: {
+            events: [],
+          },
+        };
       }
+    },
+    async transform({ block }) {
+      try {
+        const logger = useLogger();
+        const { events, header } = block;
+        // Save cursor at the start
+        await saveCursor(header.blockNumber.toString(), header?.blockHash as string);
+
+        if (events.length === 0) {
+          return;
+        }
+
+        for (const event of events) {
+          logger.log(`Found event ${event.keys[0]}`);
+
+          // Log unknown events instead of failing
+          if (!KNOWN_EVENT_KEYS.includes(event.keys[0])) {
+            logger.warn(`Skipping unknown event key: ${event.keys[0]}`);
+            continue;
+          }
+
+
+          try {
+            const decodedEvent = decodeEvent({
+              abi: nostrFiScoringABI as Abi,
+              event,
+              eventName: getEventName(event.keys[0]),
+            });
+
+            switch (event.keys[0]) {
+              case NEW_EPOCH:
+                await handleNewEpochEvent(decodedEvent, event.address);
+                break;
+              case DEPOSIT_REWARDS:
+                await handleDepositRewardsEvent(decodedEvent, event.address);
+                break;
+              case DISTRIBUTION_REWARDS:
+                await handleDistributionRewardsEvent(decodedEvent, event.address);
+                break;
+              case TIP_USER:
+                await handleTipUserEvent(decodedEvent, event.address);
+                break;
+              case LINKED_ADDRESS:
+                await handleLinkedAddressEvent(decodedEvent, event.address);
+                break;
+              case PUSH_ALGO_SCORE:
+                await handlePushAlgoScoreEvent(decodedEvent, event.address);
+                break;
+              case ADD_TOPICS:
+                await handleAddTopicsEvent(decodedEvent, event.address);
+                break;
+              case NOSTR_METADATA:
+                await handleNostrMetadataEvent(decodedEvent, event.address);
+                break;
+            }
+          } catch (error: any) {
+            logger.error(`Error processing event: ${error.message}`);
+          }
+        }
+      } catch (error) {
+        console.log("error transform", error);
+      }
+
     },
   });
 }
@@ -328,22 +369,22 @@ async function handlePushAlgoScoreEvent(event: any, contractAddress: string) {
       total_ai_score: event.total_ai_score,
     });
 
-  await upsertEpochState({
-    contract_address: contractAddress,
-    epoch_index: event.epoch_index,
-    total_ai_score: event.total_ai_score,
-  });
-
-  if (event.nostr_address) {
-    await upsertUserProfile({
-      nostr_id: event.nostr_address,
+    await upsertEpochState({
+      contract_address: contractAddress,
+      epoch_index: event.epoch_index,
       total_ai_score: event.total_ai_score,
     });
 
-    await upsertUserEpochState({
-      nostr_id: event.nostr_address,
-      contract_address: contractAddress,
-      epoch_index: event.epoch_index,
+    if (event.nostr_address) {
+      await upsertUserProfile({
+        nostr_id: event.nostr_address,
+        total_ai_score: event.total_ai_score,
+      });
+
+      await upsertUserEpochState({
+        nostr_id: event.nostr_address,
+        contract_address: contractAddress,
+        epoch_index: event.epoch_index,
         total_ai_score: event.total_ai_score,
       });
     }
