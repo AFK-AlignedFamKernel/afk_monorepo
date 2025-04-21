@@ -36,12 +36,12 @@ export default function (config: ApibaraRuntimeConfig & {
 
   return defineIndexer(StarknetStream)({
     streamUrl: config.streamUrl as string,
-    startingBlock: BigInt(startingBlock ?? 533390),
-    // startingCursor: {
-    //   orderKey: BigInt(config?.startingCursor?.orderKey ?? 533390),
-    //   // blockHash: config.startingCursor.blockHash,
-    //   // orderKey: config.startingCursor.orderKey,
-    // },
+    // startingBlock: BigInt(startingBlock ?? 533390),
+    startingCursor: {
+      orderKey: BigInt(config?.startingCursor?.orderKey ?? 533390),
+      // blockHash: config.startingCursor.blockHash,
+      // orderKey: config.startingCursor.orderKey,
+    },
     filter: {
       events: [
         {
@@ -68,7 +68,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
       // idColumn: 'id'
     })],
-    async transform({ endCursor, block, context, finality, header }) {
+    async transform({ endCursor, block, context, finality }) {
       const logger = useLogger();
       const { db } = useDrizzleStorage();
       const { events } = block;
@@ -81,7 +81,6 @@ export default function (config: ApibaraRuntimeConfig & {
       );
 
       const transactionHashes = new Set<string>();
-      console.log("block", header?.blockNumber);
       console.log("events length", events?.length);
 
       for (const event of events) {
