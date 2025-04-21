@@ -5,17 +5,10 @@ import { FlatList, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity
 import { Button } from '../../components';
 import Loading from '../../components/Loading';
 import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
-import { useWalletModal } from '../../hooks/modals';
 
 import stylesheet from './styles';
-import { TokenDeployInterface, TokenLaunchInterface } from '../../types/keys';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from 'src/types';
-import { useNamespace } from '../../hooks/infofi/useNamespace';
-import { useDataInfoMain, useGetEpochState, useGetAllTipUser, useGetAllTipByUser, useOverallState } from 'src/hooks/infofi/useDataInfoMain';
-import { UserCard } from './UserCard';
-import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
-import { Input } from 'src/components/Input';
 import { formatUnits } from 'viem';
 import { useScoreFactoryData } from '../../hooks/infofi/useSubFactoryData';
 import { SubCard } from './SubCard';

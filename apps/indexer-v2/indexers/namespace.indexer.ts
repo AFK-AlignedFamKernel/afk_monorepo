@@ -72,7 +72,7 @@ export default function (config: ApibaraRuntimeConfig & {
     async transform({ endCursor, block, context, finality }) {
       const logger = useLogger();
       const { db } = useDrizzleStorage();
-      const { events } = block;
+      const { events, header } = block;
 
       logger.info(
         "Transforming block | orderKey: ",
@@ -81,6 +81,7 @@ export default function (config: ApibaraRuntimeConfig & {
         finality,
       );
 
+      console.log("header", header);
       const transactionHashes = new Set<string>();
       console.log("events length", events?.length);
 
