@@ -198,7 +198,7 @@ pub mod ICO {
             self.emit(event);
         }
 
-        fn launch_dutch_auction(ref self: TContractState, token_address: ContractAddress) {}
+        fn launch_dutch_auction(ref self: ContractState, token_address: ContractAddress) {}
 
         fn launch_liquidity(
             ref self: ContractState,

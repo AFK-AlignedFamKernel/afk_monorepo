@@ -129,6 +129,29 @@ mod ico_tests {
         config_dispatcher.set_config(config);
     }
 
+    fn context(
+        whitelist: bool,
+    ) -> (IICODispatcher, IERC20Dispatcher, IERC20Dispatcher, PresaleDetails) {
+        let contract_address = deploy_default();
+        let dispatcher = IICODispatcher { contract_address };
+        let buy_token = deploy_erc20(OWNER);
+        cheat_caller_address(contract_address, USER, CheatSpan::TargetCalls(1));
+        let token = dispatcher.create_token(get_default_token_details());
+        config(buy_token, contract_address);
+
+        cheat_caller_address(token, USER, CheatSpan::TargetCalls(3));
+        let token_dispatcher = IERC20Dispatcher { contract_address: token };
+        let user_balance = token_dispatcher.balance_of(USER);
+        token_dispatcher.approve(contract_address, user_balance);
+
+        let details = init_presale_details(buy_token, whitelist);
+        assert(token_dispatcher.balance_of(contract_address) == 0, 'INVALID INIT BALANCE');
+        launch_presale(token, details, dispatcher, USER);
+
+        let buy_token_dispatcher = IERC20Dispatcher { contract_address: buy_token };
+        (dispatcher, token_dispatcher, buy_token_dispatcher, details)
+    }
+
     #[test]
     fn test_ico_deploy_erc20() {
         let contract_address = deploy_erc20(OWNER);
@@ -184,24 +207,9 @@ mod ico_tests {
 
     #[test]
     fn test_ico_launch_presale_with_created_token() {
-        let contract_address = deploy_default();
-        let dispatcher = IICODispatcher { contract_address };
-        let buy_token = deploy_erc20(OWNER);
-        cheat_caller_address(contract_address, USER, CheatSpan::TargetCalls(1));
-        let token = dispatcher.create_token(get_default_token_details());
-        config(buy_token, contract_address);
-
-        cheat_caller_address(token, USER, CheatSpan::TargetCalls(3));
-        let token_dispatcher = IERC20Dispatcher { contract_address: token };
-        let user_balance = token_dispatcher.balance_of(USER);
-        token_dispatcher.approve(contract_address, user_balance);
-
-        let details = init_presale_details(buy_token, false);
-        assert(token_dispatcher.balance_of(contract_address) == 0, 'INVALID INIT BALANCE');
-
         let mut spy = spy_events();
-        launch_presale(token, details, dispatcher, USER);
-        assert(token_dispatcher.balance_of(contract_address) > 0, 'INVALID CONTRACT BALANCE');
+        let (ico, token, _, details) = context(false);
+        assert(token.balance_of(ico.contract_address) > 0, 'INVALID CONTRACT BALANCE');
 
         let expected_event = ICO::Event::PresaleLaunched(
             PresaleLaunched {
@@ -217,7 +225,7 @@ mod ico_tests {
             },
         );
 
-        spy.assert_emitted(@array![(contract_address, expected_event)]);
+        spy.assert_emitted(@array![(ico.contract_address, expected_event)]);
     }
 
     #[test]
@@ -305,21 +313,8 @@ mod ico_tests {
     #[ignore]
     #[should_panic(expected: 'PRESALE ALREADY LAUNCHED')]
     fn test_ico_launch_presale_with_already_launched_token() {
-        let contract_address = deploy_default();
-        let dispatcher = IICODispatcher { contract_address };
-        let token = deploy_erc20(OWNER);
-        let buy_token = deploy_erc20(OWNER);
-        config(buy_token, contract_address);
-
-        let token_dispatcher = IERC20Dispatcher { contract_address: token };
-        let user_balance = token_dispatcher.balance_of(OWNER);
-        cheat_caller_address(token, OWNER, CheatSpan::TargetCalls(1));
-        token_dispatcher.approve(contract_address, user_balance);
-
-        let details = init_presale_details(buy_token, false);
-        assert(token_dispatcher.balance_of(contract_address) == 0, 'INVALID INIT BALANCE');
-        launch_presale(token, details, dispatcher, OWNER);
-        launch_presale(token, details, dispatcher, OWNER);
+        let (ico, token, _, details) = context(false);
+        launch_presale(token.contract_address, details, ico, OWNER);
     }
 
     #[test]
@@ -330,13 +325,52 @@ mod ico_tests {
     // TODO: Don't forget to test this state.
 
     #[test]
-    #[ignore]
     #[should_panic(expected: 'CALLER NOT WHITELISTED')]
-    fn test_ico_buy_token_should_panic_on_caller_not_whitelisted() {}
+    fn test_ico_buy_token_should_panic_on_caller_not_whitelisted() {
+        let (ico, token, buy_token, details) = context(true);
+        // the creator is USER
+        let target: ContractAddress = 'TARGET'.try_into().unwrap();
+        cheat_caller_address(buy_token.contract_address, OWNER, CheatSpan::TargetCalls(1));
+        let amount = 10000;
+        buy_token.transfer(target, amount);
+
+        cheat_caller_address(ico.contract_address, USER, CheatSpan::TargetCalls(1));
+        ico.whitelist(token.contract_address, array![target]);
+        // target should be able to buy a token successfully
+        cheat_caller_address(buy_token.contract_address, target, CheatSpan::TargetCalls(1));
+        buy_token.approve(ico.contract_address, amount);
+        cheat_caller_address(ico.contract_address, target, CheatSpan::TargetCalls(1));
+        ico.buy_token(token.contract_address, amount);
+        assert(buy_token.balance_of(ico.contract_address) == amount, 'TRANSFER FAILED');
+        assert(token.balance_of(target) == 0, 'SHOULD BE ZERO');
+
+        println!("Buy by Target successful.");
+        cheat_caller_address(ico.contract_address, OWNER, CheatSpan::TargetCalls(1));
+        ico.buy_token(token.contract_address, amount);
+    }
+
+    #[test]
+    #[should_panic(expected: 'ACCESS DENIED')]
+    fn test_ico_whitelist_should_panic_on_caller_not_token_owner() {
+        let (ico, token, _, _) = context(true);
+        cheat_caller_address(ico.contract_address, OWNER, CheatSpan::TargetCalls(1));
+        ico.whitelist(token.contract_address, array![PROTOCOL]);
+    }
 
     #[test]
     #[ignore]
-    fn test_ico_buy_token_success() {}
+    fn test_ico_buy_token_should_panic_on_ended_presale() { // here, the presale should resolve automatically
+    }
+
+    #[test]
+    #[ignore]
+    #[should_panic(expected: 'PRESALE FAILED')]
+    fn test_ico_launch_liquidity_should_finalize_and_panic_on_failed_presale() {}
+
+    #[test]
+    #[ignore]
+    #[should_panic(expected: 'INVALID LAUNCH')]
+    fn test_ico_launch_liquidity_should_panic_on_invalid_token() {}
 
     #[test]
     #[ignore]
@@ -350,4 +384,6 @@ mod ico_tests {
 
     /// transfer from owner to another user 80% of tokens, and try to launch a presale
 ///
+///
+/// TODO: TESTS ON CLAIM ON FAILED PRESALE...
 }
