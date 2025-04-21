@@ -1,5 +1,5 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useStyles } from '../../../hooks';
 import stylesheet from './styles';
@@ -24,12 +24,25 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
   const { theme } = useTheme();
   const navigation = useNavigation<MainStackNavigationProps>();
   const route = useRoute();
-  const { subDetails, subProfiles, epochProfiles, isLoading, isError, refetch } = useScoreFactoryData(subAddress);
+  const { subDetailsData, subProfiles, epochProfiles, isLoading, isError, refetch } = useScoreFactoryData(subAddress);
+
+  console.log('subDetailsData', subDetailsData);
+
+  // const {subDetails, epochs} = subDetailsData!;
   const [refreshing, setRefreshing] = useState(false);
   const { handleLinkNamespaceFromNostrScore, handleLinkNamespace } = useNamespace();
   const { handleDepositRewards } = useDepositRewards();
   const { account } = useAccount();
   const { data: allUsers, isLoading: isLoadingUsers } = useGetAllTipUser();
+
+
+  const subDetails = useMemo(() => {
+    return subDetailsData?.sub;
+  }, [subDetailsData]);
+
+  const epochs = useMemo(() => {
+    return subDetailsData?.epochs;
+  }, [subDetailsData]);
 
   const [amount, setAmount] = useState<string>('');
   const [nostrAddress, setNostrAddress] = useState('');
@@ -77,7 +90,7 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
   };
 
   return (
-    <ScrollView 
+    <ScrollView
       style={styles.container}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -116,7 +129,7 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
       </View>
 
       <View style={styles.actionsContainer}>
-        <Button 
+        <Button
           onPress={handleSubscription}
           style={styles.actionButton}
         >
@@ -132,7 +145,7 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
             style={styles.depositInput}
             keyboardType="numeric"
           />
-          <Button 
+          <Button
             onPress={handleDeposit}
             style={styles.depositButton}
           >
@@ -141,8 +154,38 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
         </View>
       </View>
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Epoch States</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {epochs?.map((epoch: any) => (
+            <View key={epoch.epoch_index} style={styles.epochCard}>
+              <Text style={styles.epochTitle}>Epoch {epoch.epoch_index}</Text>
+              <View style={styles.epochStats}>
+                <View style={styles.epochStat}>
+                  <Text style={styles.epochStatLabel}>AI Score</Text>
+                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_ai_score)}</Text>
+                </View>
+                <View style={styles.epochStat}>
+                  <Text style={styles.epochStatLabel}>Vote Score</Text>
+                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_vote_score)}</Text>
+                </View>
+                <View style={styles.epochStat}>
+                  <Text style={styles.epochStatLabel}>Deposits</Text>
+                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_amount_deposit)}</Text>
+                </View>
+                <View style={styles.epochStat}>
+                  <Text style={styles.epochStatLabel}>Tips</Text>
+                  <Text style={styles.epochStatValue}>{formatDecimal(epoch.total_tip)}</Text>
+                </View>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+
+      <Text style={styles.sectionTitle}>User Profiles</Text>
+
       <View style={styles.usersSection}>
-        <Text style={styles.sectionTitle}>User Profiles</Text>
         <FlatList
           data={allUsers?.data}
           renderItem={({ item }) => (

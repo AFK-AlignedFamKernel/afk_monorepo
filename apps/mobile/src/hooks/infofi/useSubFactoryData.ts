@@ -286,7 +286,7 @@ export const useScoreFactoryData = (subAddress?: string, epochIndex?: string) =>
     isErrorSubs,
 
     // Single sub details
-    subDetails,
+    subDetailsData:subDetails,
     isLoadingDetails,
     isErrorDetails,
 

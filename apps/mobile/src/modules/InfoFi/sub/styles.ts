@@ -195,5 +195,41 @@ export default function useStyles() {
       marginBottom: 8,
       lineHeight: 20,
     },
+    epochCard: {
+      width: 280,
+      marginRight: 16,
+      padding: 16,
+      backgroundColor: theme.colors.surface,
+      borderRadius: 8,
+    },
+    epochTitle: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginBottom: 12,
+    },
+    epochStats: {
+      gap: 8,
+    },
+    epochStat: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    epochStatLabel: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+    },
+    epochStatValue: {
+      fontSize: 14,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+    },
+    section: {
+      padding: 16,
+    },
+    subList: {
+      padding: 16,
+    },
   });
 }

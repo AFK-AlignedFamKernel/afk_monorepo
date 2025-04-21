@@ -37,7 +37,7 @@ const KNOWN_EVENT_KEYS = [
   ADD_TOPICS,
   NOSTR_METADATA,
 ]
-export default function (config: ApibaraRuntimeConfig & { 
+export default function (config: ApibaraRuntimeConfig & {
   startingBlock: number,
   // startingCursor: { orderKey: string } 
 }) {
@@ -92,8 +92,8 @@ export default function (config: ApibaraRuntimeConfig & {
     })],
     async factory({ block: { events, header } }) {
       try {
-      console.log("factory started", events.length)
-      console.log("block", header?.blockNumber);
+        console.log("factory started", events.length)
+        console.log("block", header?.blockNumber);
 
         const logger = useLogger();
 
@@ -194,8 +194,6 @@ export default function (config: ApibaraRuntimeConfig & {
             const eventName = getEventName(event?.keys[0]);
             console.log("eventName", eventName);
 
-            console.log("event.keys[0]", event.keys[0]);
-            console.log("encode.sanitizeHex(event.keys[0])", encode.sanitizeHex(event.keys[0]));
             let decodedEvent: any;
 
             if (event?.keys[0] == encode.sanitizeHex(NEW_EPOCH)) {
@@ -210,9 +208,19 @@ export default function (config: ApibaraRuntimeConfig & {
               console.log("NEW_EPOCH", decodedEvent);
               await handleNewEpochEvent(decodedEvent, event.address);
               break;
-            } else if (event?.keys[0] == encode.sanitizeHex(DEPOSIT_REWARDS)
-             
-            ) {
+            }
+            else if (event?.keys[0] == encode.sanitizeHex(NOSTR_METADATA)) {
+              console.log("NOSTR_METADATA",);
+
+              const decodedEvent = decodeEvent({
+                abi: nostrFiScoringABI as Abi,
+                event,
+                eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::NostrMetadataEvent",
+              });
+              console.log("decodedEvent", decodedEvent);
+              await handleNostrMetadataEvent(decodedEvent, event.address);
+              break;
+            } else if (event?.keys[0] == encode.sanitizeHex(DEPOSIT_REWARDS)) {
 
               const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
@@ -234,34 +242,34 @@ export default function (config: ApibaraRuntimeConfig & {
               await handleDistributionRewardsEvent(decodedEvent, event.address);
               break;
             } else if (event?.keys[0] == encode.sanitizeHex(TIP_USER)) {
-              console.log("TIP_USER", );
+              console.log("TipUserWithVote",);
               const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
                 event,
                 eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::TipUserWithVote",
               });
               console.log("decodedEvent", decodedEvent);
-          
+
               await handleTipUserEvent(decodedEvent, event.address);
-              break;  
+              break;
             } else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS)) {
               const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
                 event,
                 eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::LinkedDefaultStarknetAddressEvent",
-              }); 
+              });
               console.log("decodedEvent", decodedEvent);
               console.log("LINKED_ADDRESS", decodedEvent);
               await handleLinkedAddressEvent(decodedEvent, event.address);
               break;
             } else if (event?.keys[0] == encode.sanitizeHex(PUSH_ALGO_SCORE)) {
-              const decodedEvent = decodeEvent({  
+              const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
                 event,
                 eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::PushAlgoScoreEvent",
               });
               console.log("decodedEvent", decodedEvent);
-              console.log("PUSH_ALGO_SCORE", decodedEvent); 
+              console.log("PUSH_ALGO_SCORE", decodedEvent);
               await handlePushAlgoScoreEvent(decodedEvent, event.address);
               break;
             } else if (event?.keys[0] == encode.sanitizeHex(ADD_TOPICS)) {
@@ -274,22 +282,12 @@ export default function (config: ApibaraRuntimeConfig & {
               console.log("ADD_TOPICS", decodedEvent);
               await handleAddTopicsEvent(decodedEvent, event.address);
               break;
-            } else if (event?.keys[0] == encode.sanitizeHex(NOSTR_METADATA)) {
-              const decodedEvent = decodeEvent({
-                abi: nostrFiScoringABI as Abi,
-                event,
-                eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::NostrMetadataEvent",
-              }); 
-              console.log("decodedEvent", decodedEvent);
-              console.log("NOSTR_METADATA", decodedEvent);
-              await handleNostrMetadataEvent(decodedEvent, event.address);
-              break;
             }
-            if (!eventName) {
-              console.log("Skipping unknown event key: ", event.keys[0]);
-              logger.warn(`Skipping unknown event key: ${event.keys[0]}`);
-              continue;
-            }
+            // if (!eventName) {
+            //   console.log("Skipping unknown event key: ", event.keys[0]);
+            //   logger.warn(`Skipping unknown event key: ${event.keys[0]}`);
+            //   continue;
+            // }
             // switch (encode.sanitizeHex(event.keys[0])) {
             // switch (event.keys[0]) {
             //   case NEW_EPOCH:
@@ -421,7 +419,7 @@ export default function (config: ApibaraRuntimeConfig & {
   async function handleDepositRewardsEvent(event: any, contractAddress: string) {
     try {
       console.log("handleDepositRewardsEvent", event);
-      let amountTokenBn = event.args?.amount_token; 
+      let amountTokenBn = event.args?.amount_token;
       let amountToken = formatUnits(amountTokenBn, 18);
       console.log("amountToken", amountToken);
       await upsertContractState({

@@ -26,7 +26,7 @@ export type UserCardProps = {
 };
 const hashtags = /\B#\w*[a-zA-Z]+\w*/g;
 
-export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profileIndexer, isRepostProps, isBookmarked, isReplyView, isArticle, contractAddressSubScore  }) => {
+export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profileIndexer,  contractAddressSubScore  }) => {
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
 
