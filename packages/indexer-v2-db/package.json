@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:all":"pnpm run generate && pnpm run migrate && pnpm build",
     "lint": "biome check .",
     "lint:fix": "pnpm lint --write",
     "generate": "drizzle-kit generate",

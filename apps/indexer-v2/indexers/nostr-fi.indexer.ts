@@ -217,6 +217,66 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
               console.log("DEPOSIT_REWARDS", decodedEvent);
               await handleDepositRewardsEvent(decodedEvent, event.address);
               break;
+            } else if (event?.keys[0] == encode.sanitizeHex(DISTRIBUTION_REWARDS)) {
+              const decodedEvent = decodeEvent({
+                abi: nostrFiScoringABI as Abi,
+                event,
+                eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::DistributionRewardsByUserEvent",
+              });
+              console.log("decodedEvent", decodedEvent);
+              console.log("DISTRIBUTION_REWARDS", decodedEvent);
+              await handleDistributionRewardsEvent(decodedEvent, event.address);
+              break;
+            } else if (event?.keys[0] == encode.sanitizeHex(TIP_USER)) {
+              const decodedEvent = decodeEvent({
+                abi: nostrFiScoringABI as Abi,
+                event,
+                eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::TipUserWithVote",
+              });
+              console.log("decodedEvent", decodedEvent);
+              console.log("TIP_USER", decodedEvent);
+              await handleTipUserEvent(decodedEvent, event.address);
+              break;  
+            } else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS)) {
+              const decodedEvent = decodeEvent({
+                abi: nostrFiScoringABI as Abi,
+                event,
+                eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::LinkedDefaultStarknetAddressEvent",
+              }); 
+              console.log("decodedEvent", decodedEvent);
+              console.log("LINKED_ADDRESS", decodedEvent);
+              await handleLinkedAddressEvent(decodedEvent, event.address);
+              break;
+            } else if (event?.keys[0] == encode.sanitizeHex(PUSH_ALGO_SCORE)) {
+              const decodedEvent = decodeEvent({  
+                abi: nostrFiScoringABI as Abi,
+                event,
+                eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::PushAlgoScoreEvent",
+              });
+              console.log("decodedEvent", decodedEvent);
+              console.log("PUSH_ALGO_SCORE", decodedEvent); 
+              await handlePushAlgoScoreEvent(decodedEvent, event.address);
+              break;
+            } else if (event?.keys[0] == encode.sanitizeHex(ADD_TOPICS)) {
+              const decodedEvent = decodeEvent({
+                abi: nostrFiScoringABI as Abi,
+                event,
+                eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::AddTopicsMetadataEvent",
+              });
+              console.log("decodedEvent", decodedEvent);
+              console.log("ADD_TOPICS", decodedEvent);
+              await handleAddTopicsEvent(decodedEvent, event.address);
+              break;
+            } else if (event?.keys[0] == encode.sanitizeHex(NOSTR_METADATA)) {
+              const decodedEvent = decodeEvent({
+                abi: nostrFiScoringABI as Abi,
+                event,
+                eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::NostrMetadataEvent",
+              }); 
+              console.log("decodedEvent", decodedEvent);
+              console.log("NOSTR_METADATA", decodedEvent);
+              await handleNostrMetadataEvent(decodedEvent, event.address);
+              break;
             }
             if (!eventName) {
               console.log("Skipping unknown event key: ", event.keys[0]);

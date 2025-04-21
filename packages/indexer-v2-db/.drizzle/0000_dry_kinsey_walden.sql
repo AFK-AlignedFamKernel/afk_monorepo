@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS "dao_proposal_vote" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "epoch_state" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"epoch_index" text NOT NULL,
 	"contract_address" text NOT NULL,
 	"total_ai_score" numeric(30, 18) DEFAULT '0',
@@ -76,8 +77,7 @@ CREATE TABLE IF NOT EXISTS "epoch_state" (
 	"start_time" timestamp,
 	"end_time" timestamp,
 	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp DEFAULT now(),
-	CONSTRAINT "epoch_state_epoch_index_contract_address_pk" PRIMARY KEY("epoch_index","contract_address")
+	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "indexer_cursor" (
@@ -123,3 +123,5 @@ DO $$ BEGIN
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
+--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "epoch_contract_unique_idx" ON "epoch_state" USING btree ("epoch_index","contract_address");

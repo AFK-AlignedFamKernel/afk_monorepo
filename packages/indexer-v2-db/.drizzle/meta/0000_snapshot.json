@@ -1,5 +1,5 @@
 {
-  "id": "781a3ba5-4868-4042-828d-eaa7ec5ed563",
+  "id": "11e05d6f-d301-4fba-aa4b-82c05b176d42",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -393,6 +393,13 @@
       "name": "epoch_state",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
         "epoch_index": {
           "name": "epoch_index",
           "type": "text",
@@ -487,7 +494,29 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "epoch_contract_unique_idx": {
+          "name": "epoch_contract_unique_idx",
+          "columns": [
+            {
+              "expression": "epoch_index",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "contract_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "epoch_state_contract_address_contract_state_contract_address_fk": {
           "name": "epoch_state_contract_address_contract_state_contract_address_fk",
@@ -503,15 +532,7 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "epoch_state_epoch_index_contract_address_pk": {
-          "name": "epoch_state_epoch_index_contract_address_pk",
-          "columns": [
-            "epoch_index",
-            "contract_address"
-          ]
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},

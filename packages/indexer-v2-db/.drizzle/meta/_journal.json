@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1745243185388,
-      "tag": "0000_lush_the_call",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1745243288589,
-      "tag": "0001_graceful_morlocks",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1745243447447,
-      "tag": "0002_living_typhoid_mary",
+      "when": 1745243758937,
+      "tag": "0000_dry_kinsey_walden",
       "breakpoints": true
     }
   ]

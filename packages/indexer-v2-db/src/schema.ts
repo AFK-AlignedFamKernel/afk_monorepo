@@ -1,4 +1,4 @@
-import { bigint, boolean, decimal, integer, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { bigint, boolean, decimal, integer, pgTable, primaryKey, text, timestamp, uuid, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { InferModel } from 'drizzle-orm';
 
@@ -90,11 +90,9 @@ export const epochState = pgTable('epoch_state', {
   end_time: timestamp('end_time'),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
-}, 
-// (table) => ({
-//   pk: primaryKey({ columns: [table.epoch_index, table.contract_address] }),
-// }
-);
+}, (table) => ({
+  uniqueConstraint: uniqueIndex('epoch_contract_unique_idx').on(table.epoch_index, table.contract_address)
+}));
 
 export const userProfile = pgTable('user_profile', {
 
