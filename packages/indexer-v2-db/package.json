@@ -19,12 +19,13 @@
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "drizzle-orm": "^0.37.0",
+    "drizzle-orm": "^0.40.1",
     "pg": "^8.13.1"
   },
   "devDependencies": {
     "@types/node": "^20.5.2",
-    "drizzle-kit": "^0.29.0",
+    "drizzle-orm": "^0.40.1",
+    "pg": "^8.13.1",
     "typescript": "^5.6.3"
   }
 }

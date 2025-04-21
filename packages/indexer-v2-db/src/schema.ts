@@ -1,8 +1,10 @@
 import { bigint, boolean, decimal, integer, pgTable, primaryKey, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+import type { InferModel } from 'drizzle-orm';
 
 export const daoCreation = pgTable('dao_creation', {
-  _id: uuid('_id').primaryKey().defaultRandom(),
+  // _id: uuid('_id').primaryKey().defaultRandom(),
+  id: uuid('id').primaryKey().defaultRandom(),
   number: bigint('number', { mode: 'number' }),
   hash: text('hash'),
   creator: text('creator'),
@@ -143,3 +145,28 @@ export const userEpochStateRelations = relations(userEpochState, ({ one }) => ({
     references: [userProfile.nostr_id],
   }),
 }));
+
+// Add proper type exports
+export type ContractState = typeof contractState.$inferSelect;
+export type NewContractState = typeof contractState.$inferInsert;
+
+
+export type EpochState = typeof epochState.$inferSelect;
+export type NewEpochState = typeof epochState.$inferInsert;
+
+export type UserProfile = typeof userProfile.$inferSelect;
+export type NewUserProfile = typeof userProfile.$inferInsert;
+
+export type UserEpochState = typeof userEpochState.$inferSelect;
+export type NewUserEpochState = typeof userEpochState.$inferInsert;
+
+export type DaoCreation = typeof daoCreation.$inferSelect;
+export type NewDaoCreation = typeof daoCreation.$inferInsert;
+
+export type DaoProposal = typeof daoProposal.$inferSelect;
+export type NewDaoProposal = typeof daoProposal.$inferInsert;
+
+export type DaoProposalVote = typeof daoProposalVote.$inferSelect;
+export type NewDaoProposalVote = typeof daoProposalVote.$inferInsert;
+
+
