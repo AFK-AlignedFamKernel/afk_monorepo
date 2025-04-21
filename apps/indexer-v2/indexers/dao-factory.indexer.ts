@@ -24,9 +24,10 @@ const PROPOSAL_RESOLVED = hash.getSelectorFromName('ProposalResolved') as `0x${s
 export default function (config: ApibaraRuntimeConfig & { startingCursor: { orderKey: string } }) {
   return defineIndexer(StarknetStream)({
     streamUrl: config.streamUrl as string,
-    startingCursor: {
-      orderKey: BigInt(config.startingCursor?.orderKey),
-    },
+    // startingCursor: {
+    //   orderKey: BigInt(config.startingCursor?.orderKey),
+    // },
+    startingBlock: BigInt(config.startingCursor?.orderKey ?? 533390),
     filter: {
       events: [
         {

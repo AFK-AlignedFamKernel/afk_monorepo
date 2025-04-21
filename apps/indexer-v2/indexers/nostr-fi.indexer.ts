@@ -40,11 +40,13 @@ const KNOWN_EVENT_KEYS = [
 export default function (config: ApibaraRuntimeConfig & { startingCursor: { orderKey: string } }) {
   return defineIndexer(StarknetStream)({
     streamUrl: config.streamUrl as string,
-    startingCursor: {
-      orderKey: BigInt(config.startingCursor?.orderKey ?? 533390),
-      // blockHash: config.startingCursor.blockHash,
-      // orderKey: config.startingCursor.orderKey,
-    },
+    startingBlock: BigInt(config.startingCursor?.orderKey ?? 533390),
+
+    // startingCursor: {
+    //   orderKey: BigInt(config.startingCursor?.orderKey ?? 533390),
+    //   // blockHash: config.startingCursor.blockHash,
+    //   // orderKey: config.startingCursor.orderKey,
+    // },
     filter: {
       events: [
         {
