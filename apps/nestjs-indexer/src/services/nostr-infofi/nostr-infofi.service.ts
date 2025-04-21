@@ -14,7 +14,7 @@ export class NostrInfofiService {
         update: {
           starknet_address: data.starknet_address,
           is_add_by_admin: true,
-          updated_at: new Date(),
+          // updated_at: new Date(),
         },
         create: {
           nostr_id: data.nostr_address,
@@ -38,7 +38,7 @@ export class NostrInfofiService {
         where: { nostr_id: data.nostr_address },
         update: {
           starknet_address: data.starknet_address,
-          updated_at: new Date(),
+          // updated_at: new Date(),
         },
         create: {
           nostr_id: data.nostr_address,
@@ -65,7 +65,7 @@ export class NostrInfofiService {
         update: {
           total_tips: { increment: Number(data.amount_token) },
           total_vote_score: { increment: Number(data.amount_token) },
-          updated_at: new Date(),
+          // updated_at: new Date(),
         },
         create: {
           contract_address: data.contract_address,
@@ -87,7 +87,7 @@ export class NostrInfofiService {
         update: {
           total_vote_score: { increment: Number(data.amount_token) },
           total_tip: { increment: Number(data.amount_token) },
-          updated_at: new Date(),
+          // updated_at: new Date(),
         },
         create: {
           epoch_index: epochIndex,
@@ -104,7 +104,7 @@ export class NostrInfofiService {
         update: {
           total_tip: { increment: Number(data.amount_token) },
           total_vote_score: { increment: Number(data.amount_token) },
-          updated_at: new Date(),
+          // updated_at: new Date(),
         },
         create: {
           nostr_id: data.nostr_address,
@@ -125,7 +125,7 @@ export class NostrInfofiService {
         update: {
           total_tip: { increment: Number(data.amount_token) },
           total_vote_score: { increment: Number(data.amount_token) },
-          updated_at: new Date(),
+          // updated_at: new Date(),
         },
         create: {
           nostr_id: data.nostr_address,
@@ -322,7 +322,7 @@ export class NostrInfofiService {
           amount_claimed: Number(data.amount_total),
           amount_algo: Number(data.amount_algo),
           amount_vote: Number(data.amount_vote),
-          start_time: new Date(),
+          // start_time: new Date(),
         },
       });
 
