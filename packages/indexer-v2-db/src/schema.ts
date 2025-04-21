@@ -76,9 +76,8 @@ export const contractState = pgTable('contract_state', {
 
 export const epochState = pgTable('epoch_state', {
   id: uuid('id').primaryKey().defaultRandom(),
-
   epoch_index: text('epoch_index').notNull(),
-  contract_address: text('contract_address').notNull(),
+  contract_address: text('contract_address').notNull().references(() => contractState.contract_address),
   total_ai_score: decimal('total_ai_score', { precision: 30, scale: 18 }).default('0'),
   total_vote_score: decimal('total_vote_score', { precision: 30, scale: 18 }).default('0'),
   total_amount_deposit: decimal('total_amount_deposit', { precision: 30, scale: 18 }).default('0'),
@@ -91,9 +90,11 @@ export const epochState = pgTable('epoch_state', {
   end_time: timestamp('end_time'),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.epoch_index, table.contract_address] }),
-}));
+}, 
+// (table) => ({
+//   pk: primaryKey({ columns: [table.epoch_index, table.contract_address] }),
+// }
+);
 
 export const userProfile = pgTable('user_profile', {
 

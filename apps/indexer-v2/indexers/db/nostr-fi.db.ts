@@ -186,45 +186,39 @@ export async function upsertEpochState(data: EpochStateData) {
   const { db } = useDrizzleStorage();
   try {
     console.log("upsertEpochState", data);
-    return db.insert(epochState).values(data).onConflictDoNothing();
-    // const tx = await db.transaction(async (tx) => {
-    //   const result = await tx
-    //     .insert(epochState)
-    //     .values({
-    //       epoch_index: data.epoch_index,
-    //       contract_address: data.contract_address,
-    //       total_ai_score: data.total_ai_score,
-    //       total_vote_score: data.total_vote_score,
-    //       total_amount_deposit: data.total_amount_deposit,
-    //       total_tip: data.total_tip,
-    //       amount_claimed: data.amount_claimed,
-    //       amount_vote: data.amount_vote,
-    //       amount_algo: data.amount_algo,
-    //       epoch_duration: data.epoch_duration,
-    //       start_time: data.start_time,
-    //       end_time: data.end_time,
-    //       created_at: new Date(),
-    //       updated_at: new Date(),
-    //     })
-    //     .onConflictDoUpdate({
-    //       target: [epochState.epoch_index, epochState.contract_address],
-    //       set: {
-    //         total_ai_score: data.total_ai_score,
-    //         total_vote_score: data.total_vote_score,
-    //         total_amount_deposit: data.total_amount_deposit,
-    //         total_tip: data.total_tip,
-    //         amount_claimed: data.amount_claimed,
-    //         amount_vote: data.amount_vote,
-    //         amount_algo: data.amount_algo,
-    //         epoch_duration: data.epoch_duration,
-    //         start_time: data.start_time,
-    //         end_time: data.end_time,
-    //         updated_at: new Date(),
-    //       },
-    //     });
-    //   return result;
-    // });
-    // return tx;
+    return db.insert(epochState)
+      .values({
+        epoch_index: data.epoch_index,
+        contract_address: data.contract_address,
+        total_ai_score: data.total_ai_score,
+        total_vote_score: data.total_vote_score,
+        total_amount_deposit: data.total_amount_deposit,
+        total_tip: data.total_tip,
+        amount_claimed: data.amount_claimed,
+        amount_vote: data.amount_vote,
+        amount_algo: data.amount_algo,
+        epoch_duration: data.epoch_duration,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        created_at: new Date(),
+        updated_at: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: [epochState.epoch_index, epochState.contract_address],
+        set: {
+          total_ai_score: data.total_ai_score,
+          total_vote_score: data.total_vote_score,
+          total_amount_deposit: data.total_amount_deposit,
+          total_tip: data.total_tip,
+          amount_claimed: data.amount_claimed,
+          amount_vote: data.amount_vote,
+          amount_algo: data.amount_algo,
+          epoch_duration: data.epoch_duration,
+          start_time: data.start_time,
+          end_time: data.end_time,
+          updated_at: new Date(),
+        },
+      });
   } catch (error) {
     console.error("Error in upsertEpochState:", error);
     return null;

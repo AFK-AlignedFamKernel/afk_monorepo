@@ -63,7 +63,6 @@ CREATE TABLE IF NOT EXISTS "dao_proposal_vote" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "epoch_state" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"epoch_index" text NOT NULL,
 	"contract_address" text NOT NULL,
 	"total_ai_score" numeric(30, 18) DEFAULT '0',
@@ -79,6 +78,16 @@ CREATE TABLE IF NOT EXISTS "epoch_state" (
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	CONSTRAINT "epoch_state_epoch_index_contract_address_pk" PRIMARY KEY("epoch_index","contract_address")
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS "indexer_cursor" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"cursor" text NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	"last_block_number" bigint,
+	"last_block_hash" text,
+	"last_tx_hash" text
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "user_epoch_state" (
@@ -108,3 +117,9 @@ CREATE TABLE IF NOT EXISTS "user_profile" (
 	"updated_at" timestamp DEFAULT now(),
 	CONSTRAINT "user_profile_nostr_id_unique" UNIQUE("nostr_id")
 );
+--> statement-breakpoint
+DO $$ BEGIN
+ ALTER TABLE "epoch_state" ADD CONSTRAINT "epoch_state_contract_address_contract_state_contract_address_fk" FOREIGN KEY ("contract_address") REFERENCES "public"."contract_state"("contract_address") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;

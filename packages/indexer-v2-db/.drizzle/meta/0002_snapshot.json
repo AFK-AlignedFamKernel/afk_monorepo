@@ -1,6 +1,6 @@
 {
-  "id": "23c23b98-6fbd-46ac-b836-38a530a388d9",
-  "prevId": "781a3ba5-4868-4042-828d-eaa7ec5ed563",
+  "id": "f8e4da5b-8c33-4ec7-b063-9750622dc13f",
+  "prevId": "23c23b98-6fbd-46ac-b836-38a530a388d9",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -393,6 +393,13 @@
       "name": "epoch_state",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
         "epoch_index": {
           "name": "epoch_index",
           "type": "text",

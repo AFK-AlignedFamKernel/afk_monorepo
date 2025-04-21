@@ -1,0 +1,1 @@
+ALTER TABLE "epoch_state" DROP CONSTRAINT "epoch_state_epoch_index_contract_address_pk";

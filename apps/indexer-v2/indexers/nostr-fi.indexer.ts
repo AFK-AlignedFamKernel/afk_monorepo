@@ -15,6 +15,7 @@ import {
   insertSubState,
   saveCursor,
 } from './db/nostr-fi.db';
+import { formatUnits } from 'viem';
 
 const SUB_CREATED = hash.getSelectorFromName('TopicEvent') as `0x${string}`;
 const NEW_EPOCH = hash.getSelectorFromName('NewEpochEvent') as `0x${string}`;
@@ -352,27 +353,31 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
 
   async function handleDepositRewardsEvent(event: any, contractAddress: string) {
     try {
+      console.log("handleDepositRewardsEvent", event);
+      let amountTokenBn = event.args?.amount_token; 
+      let amountToken = formatUnits(amountTokenBn, 18);
+      console.log("amountToken", amountToken);
       await upsertContractState({
         contract_address: contractAddress,
-        total_amount_deposit: event.amount_token,
+        total_amount_deposit: amountToken,
       });
 
       await upsertEpochState({
         contract_address: contractAddress,
-        epoch_index: event.epoch_index,
-        total_amount_deposit: event.amount_token,
+        epoch_index: event.args?.epoch_index,
+        total_amount_deposit: amountToken,
       });
 
       if (event.nostr_address) {
         await upsertUserProfile({
-          nostr_id: event.nostr_address,
-          starknet_address: event.starknet_address,
+          nostr_id: event.args?.nostr_address,
+          starknet_address: event.args?.starknet_address,
         });
 
         await upsertUserEpochState({
-          nostr_id: event.nostr_address,
+          nostr_id: event.args?.nostr_address,
           contract_address: contractAddress,
-          epoch_index: event.epoch_index,
+          epoch_index: event.args?.epoch_index,
         });
       }
     } catch (error) {

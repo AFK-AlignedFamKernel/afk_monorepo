@@ -1,5 +1,5 @@
 {
-  "id": "35f80af1-b0ab-4916-93a1-a22494ab588a",
+  "id": "781a3ba5-4868-4042-828d-eaa7ec5ed563",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -393,13 +393,6 @@
       "name": "epoch_state",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
         "epoch_index": {
           "name": "epoch_index",
           "type": "text",
@@ -495,7 +488,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "epoch_state_contract_address_contract_state_contract_address_fk": {
+          "name": "epoch_state_contract_address_contract_state_contract_address_fk",
+          "tableFrom": "epoch_state",
+          "tableTo": "contract_state",
+          "columnsFrom": [
+            "contract_address"
+          ],
+          "columnsTo": [
+            "contract_address"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
         "epoch_state_epoch_index_contract_address_pk": {
           "name": "epoch_state_epoch_index_contract_address_pk",
@@ -505,6 +512,64 @@
           ]
         }
       },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.indexer_cursor": {
+      "name": "indexer_cursor",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "cursor": {
+          "name": "cursor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "last_block_number": {
+          "name": "last_block_number",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_block_hash": {
+          "name": "last_block_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_tx_hash": {
+          "name": "last_tx_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
