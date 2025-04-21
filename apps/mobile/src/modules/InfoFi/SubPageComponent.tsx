@@ -1,6 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
-import { FlatList, RefreshControl, Text, View } from 'react-native';
+import { FlatList, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useStyles } from '../../hooks';
 import stylesheet from './styles';
 import { MainStackNavigationProps } from '../../types';
@@ -11,6 +11,9 @@ import { Button, Input } from 'src/components';
 import { useNamespace } from 'src/hooks/infofi/useNamespace';
 import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
 import { useAccount } from '@starknet-react/core';
+import { useGetAllTipUser } from 'src/hooks/infofi/useDataInfoMain';
+import { UserCard } from './UserCard';
+import { useTheme } from 'src/hooks';
 
 interface SubPageRouteParams {
   subAddress: string;
@@ -18,6 +21,7 @@ interface SubPageRouteParams {
 
 export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) => {
   const styles = useStyles(stylesheet);
+  const { theme } = useTheme();
   const navigation = useNavigation<MainStackNavigationProps>();
   const route = useRoute();
   const { subDetails, subProfiles, epochProfiles, isLoading, isError, refetch } = useScoreFactoryData(subAddress);
@@ -25,6 +29,7 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
   const { handleLinkNamespaceFromNostrScore, handleLinkNamespace } = useNamespace();
   const { handleDepositRewards } = useDepositRewards();
   const { account } = useAccount();
+  const { data: allUsers, isLoading: isLoadingUsers } = useGetAllTipUser();
 
   const [amount, setAmount] = useState<string>('');
   const [nostrAddress, setNostrAddress] = useState('');
@@ -33,6 +38,7 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
     const resNamespace = await handleLinkNamespace();
     console.log('resNamespace', resNamespace);
   };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await refetch();
@@ -70,86 +76,85 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
     );
   };
 
-
   return (
-    <View style={styles.container}>
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{subDetails.name} ({subDetails.main_tag})</Text>
-        <View style={styles.overviewGrid}>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total AI Score</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(subDetails.total_ai_score)}
-            </Text>
-          </View>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total Vote Score</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(subDetails.total_vote_score)}
-            </Text>
-          </View>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total Tips</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(subDetails.total_tips)}
-            </Text>
-          </View>
-          <View style={styles.overviewItem}>
-            <Text style={styles.overviewLabel}>Total Deposits</Text>
-            <Text style={styles.overviewValue}>
-              {formatDecimal(subDetails.total_amount_deposit)}
-            </Text>
-          </View>
+    <ScrollView 
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      <View style={styles.header}>
+        <Text style={styles.title}>{subDetails.name}</Text>
+        <Text style={styles.subtitle}>{subDetails.main_tag}</Text>
+      </View>
+
+      <View style={styles.statsGrid}>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Total AI Score</Text>
+          <Text style={styles.statValue}>
+            {formatDecimal(subDetails.total_ai_score)}
+          </Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Total Vote Score</Text>
+          <Text style={styles.statValue}>
+            {formatDecimal(subDetails.total_vote_score)}
+          </Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Total Tips</Text>
+          <Text style={styles.statValue}>
+            {formatDecimal(subDetails.total_tips)}
+          </Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Total Deposits</Text>
+          <Text style={styles.statValue}>
+            {formatDecimal(subDetails.total_amount_deposit)}
+          </Text>
         </View>
       </View>
 
-      <View style={styles.section}>
+      <View style={styles.actionsContainer}>
+        <Button 
+          onPress={handleSubscription}
+          style={styles.actionButton}
+        >
+          <Text style={styles.actionButtonText}>Subscribe</Text>
+        </Button>
+
+        <View style={styles.depositSection}>
+          <Text style={styles.sectionTitle}>Deposit Rewards</Text>
+          <Input
+            placeholder="Amount to deposit"
+            value={amount}
+            onChangeText={setAmount}
+            style={styles.depositInput}
+            keyboardType="numeric"
+          />
+          <Button 
+            onPress={handleDeposit}
+            style={styles.depositButton}
+          >
+            <Text style={styles.depositButtonText}>Deposit</Text>
+          </Button>
+        </View>
+      </View>
+
+      <View style={styles.usersSection}>
         <Text style={styles.sectionTitle}>User Profiles</Text>
         <FlatList
-          data={subProfiles}
+          data={allUsers?.data}
           renderItem={({ item }) => (
-            <View style={styles.activityItem}>
-              <Text style={styles.activityText}>Nostr ID: {item.nostr_id}</Text>
-              <Text style={styles.activityText}>AI Score: {formatDecimal(item.total_ai_score)}</Text>
-              <Text style={styles.activityText}>Vote Score: {formatDecimal(item.total_vote_score)}</Text>
-              <Text style={styles.activityDate}>Epoch: {item.epoch_index}</Text>
-            </View>
+            <UserCard
+              userInfo={item}
+              contractAddress={subAddress}
+            />
           )}
           keyExtractor={(item) => item.nostr_id}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
+          style={styles.userList}
         />
       </View>
-
-
-      <Button onPress={onRefresh}>
-        <Text>Refresh</Text>
-      </Button>
-
-      <Button onPress={handleSubscription}>
-        <Text>Subscribe</Text>
-      </Button>
-
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Deposit Rewards</Text>
-        <Input
-          placeholder="Amount to deposit"
-          value={amount}
-          onChangeText={setAmount}
-          style={styles.depositInput}
-        />
-        {/* <Input
-          placeholder="Nostr Address"
-          value={nostrAddress}
-          onChangeText={setNostrAddress}
-          style={styles.depositInput}
-        /> */}
-        <Button onPress={handleDeposit}>
-          <Text>Deposit</Text>
-        </Button>
-      </View>
-    </View>
+    </ScrollView>
   );
 };

@@ -7,33 +7,93 @@ export default function useStyles() {
 
   return StyleSheet.create({
     container: {
-      position: 'relative',
       flex: 1,
       backgroundColor: theme.colors.background,
+    },
+    header: {
+      padding: 20,
+      backgroundColor: theme.colors.surface,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.cardBorder,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: theme.colors.text,
+      marginBottom: 4,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: theme.colors.textSecondary,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      padding: 16,
+      gap: 16,
+    },
+    statCard: {
+      flex: 1,
+      minWidth: '45%',
+      backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    statLabel: {
+      fontSize: 14,
+      color: theme.colors.textSecondary,
+      marginBottom: 8,
+    },
+    statValue: {
+      fontSize: 20,
+      fontWeight: 'bold',
       color: theme.colors.text,
     },
-    createTokenButton: {
-      width: 200,
-      borderRadius: 8,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      margin: 16,
+    actionsContainer: {
+      padding: 16,
+      gap: 16,
     },
-    createTokenButtonText: {
+    actionButton: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: 'center',
+    },
+    actionButtonText: {
       color: theme.colors.text,
       fontSize: 16,
       fontWeight: 'bold',
     },
-    section: {
-      margin: 16,
-      padding: 16,
+    depositSection: {
       backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      gap: 12,
+    },
+    depositInput: {
+      backgroundColor: theme.colors.inputBackground,
       borderRadius: 8,
-      shadowColor: theme.colors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
+      padding: 12,
+      fontSize: 16,
+    },
+    depositButton: {
+      backgroundColor: theme.colors.primary,
+      borderRadius: 8,
+      padding: 12,
+      alignItems: 'center',
+    },
+    depositButtonText: {
+      color: theme.colors.text,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    usersSection: {
+      padding: 16,
     },
     sectionTitle: {
       fontSize: 20,
@@ -41,118 +101,8 @@ export default function useStyles() {
       color: theme.colors.text,
       marginBottom: 16,
     },
-    overviewGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'space-between',
-      gap: 16,
-    },
-    overviewItem: {
-      flex: 1,
-      minWidth: '45%',
-      padding: 12,
-      backgroundColor: theme.colors.surface,
-      borderRadius: 8,
-      alignItems: 'center',
-    },
-    overviewLabel: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-      marginBottom: 8,
-    },
-    overviewValue: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-    },
-    epochCard: {
-      width: 280,
-      marginRight: 16,
-      padding: 16,
-      backgroundColor: theme.colors.surface,
-      borderRadius: 8,
-    },
-    epochTitle: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-      marginBottom: 12,
-    },
-    epochStats: {
-      gap: 8,
-    },
-    epochStat: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    epochStatLabel: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-    },
-    epochStatValue: {
-      fontSize: 14,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-    },
-    depositContainer: {
-      gap: 12,
-    },
-    depositInput: {
-      backgroundColor: theme.colors.inputBackground,
-      borderRadius: 8,
-      padding: 12,
-    },
-    depositButton: {
-      marginTop: 8,
-    },
-    depositButtonText: {
-      color: theme.colors.text,
-      fontSize: 16,
-      fontWeight: 'bold',
-    },
     userList: {
-      marginTop: 16,
-    },
-    subCard: {
-      backgroundColor: theme.colors.surface,
-      borderRadius: 12,
-      padding: 16,
-      marginBottom: 16,
-      shadowColor: theme.colors.shadow,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
-    },
-    subCardHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
-    },
-    subCardTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: theme.colors.text,
-    },
-    subCardSymbol: {
-      fontSize: 16,
-      color: theme.colors.textSecondary,
-    },
-    subCardContent: {
-      gap: 8,
-    },
-    subCardText: {
-      fontSize: 14,
-      color: theme.colors.textSecondary,
-    },
-    subList: {
-      flex: 1,
-      padding: 16,
+      marginTop: 8,
     },
     errorContainer: {
       flex: 1,
@@ -164,20 +114,40 @@ export default function useStyles() {
       color: theme.colors.badgeText,
       fontSize: 16,
     },
-    activityItem: {
+    card: {
       backgroundColor: theme.colors.surface,
+      borderRadius: 12,
+      padding: 16,
+      marginBottom: 16,
+      shadowColor: theme.colors.shadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 16,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: theme.colors.cardBorder,
+    },
+    statItem: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    subscribeButton: {
+      marginTop: 16,
+      backgroundColor: theme.colors.primary,
       borderRadius: 8,
       padding: 12,
-      marginBottom: 8,
+      alignItems: 'center',
     },
-    activityText: {
-      fontSize: 14,
+    subscribeButtonText: {
       color: theme.colors.text,
-      marginBottom: 4,
-    },
-    activityDate: {
-      fontSize: 12,
-      color: theme.colors.textSecondary,
+      fontSize: 16,
+      fontWeight: 'bold',
     },
   });
 }

@@ -26,58 +26,63 @@ import { useDataInfoMain } from 'src/hooks/infofi/useDataInfoMain';
 import { NostrProfileInfoFiInterface } from 'src/types/infofi';
 import { useProfile } from 'afk_nostr_sdk';
 import { PostCard } from '../PostCard';
-import { UserNostrCard } from '../UserNostrCard';
+import { UserNostrCard } from './UserNostrCard';
 import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
+import { formatUnits } from 'viem';
+
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
-  userInfo?: NostrProfileInfoFiInterface,
-  contractAddress?: string
+  userInfo?: NostrProfileInfoFiInterface;
+  contractAddress?: string;
 }
+
 export const UserCard: React.FC<AllKeysComponentInterface> = ({
   isButtonInstantiateEnable,
   userInfo,
   contractAddress
 }) => {
   const styles = useStyles(stylesheet);
+  const { theme } = useTheme();
   const { account } = useAccount();
   const { width } = useWindowDimensions();
-  const walletModal = useWalletModal();
   const isDesktop = width >= 1024 ? true : false;
 
-  const {data: profile} = useProfile({publicKey: userInfo?.nostr_id})
-  // console.log("userInfo", userInfo);
-  // console.log("profile", profile);
-  const { theme } = useTheme();
+  const { data: profile } = useProfile({ publicKey: userInfo?.nostr_id });
+
+  const formatDecimal = (value: any) => {
+    if (!value) return '0';
+    return formatUnits(BigInt(Math.floor(Number(value) * 1e18)), 18);
+  };
 
   return (
     <View style={styles.container}>
+      <View style={styles.card}>
+        <UserNostrCard 
+          profile={profile} 
+          profileIndexer={userInfo} 
+          contractAddressSubScore={contractAddress} 
+        />
+        
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>AI Score</Text>
+            <Text style={styles.statValue}>{formatDecimal(userInfo?.total_ai_score)}</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Vote Score</Text>
+            <Text style={styles.statValue}>{formatDecimal(userInfo?.total_vote_score)}</Text>
+          </View>
+        </View>
 
-      <View>
-    
-
-        <UserNostrCard profile={profile} profileIndexer={userInfo} contractAddressSubScore={contractAddress} />
+        {isButtonInstantiateEnable && (
+          <Button
+            onPress={() => {}}
+            style={styles.subscribeButton}
+          >
+            <Text style={styles.subscribeButtonText}>Subscribe</Text>
+          </Button>
+        )}
       </View>
-
-      {/* {isButtonInstantiateEnable && (
-        <Button
-          onPress={handleSubscription}
-          variant="primary"
-          style={styles.createTokenButton}
-          textStyle={styles.createTokenButtonText}
-        >
-          <Text>Subscribe to InfoFi</Text>
-        </Button>
-      )} */}
-   
-      {/* <Pressable
-        style={styles.createPostButton}
-        onPress={() => {
-          showModal();
-        }}
-      >
-        <AddPostIcon width={72} height={72} color={theme.colors.primary} />
-      </Pressable> */}
-
-    </View >
+    </View>
   );
 };

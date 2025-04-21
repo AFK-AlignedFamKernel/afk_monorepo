@@ -1,4 +1,4 @@
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import { ThemedStyleSheet } from 'src/styles';
 
 export default ThemedStyleSheet((theme) => ({
   container: {

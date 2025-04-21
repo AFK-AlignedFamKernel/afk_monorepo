@@ -3,15 +3,14 @@ import { useState } from 'react';
 import React from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Avatar, Text, Button, Input } from '../../components';
-import { useStyles } from '../../hooks';
-import { Post } from '../Post';
+import { Avatar, Text, Button, Input } from 'src/components';
+import { useStyles } from 'src/hooks';
 import stylesheet from './styles';
 import { UserCard } from './User';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from 'src/types';
 import { NostrProfileInfoFiInterface } from 'src/types/infofi';
-import { useVoteTip, VoteParams } from '../../hooks/infofi/useVote';
+import { useVoteTip, VoteParams } from 'src/hooks/infofi/useVote';
 import { useAccount } from '@starknet-react/core';
 import { NOSTR_FI_SCORING_ADDRESS } from 'common';
 import { constants } from 'starknet';
@@ -70,7 +69,7 @@ export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profile
               <Avatar
                 size={50}
                 source={
-                  profile?.image ? { uri: profile.image } : require('../../assets/degen-logo.png')
+                  profile?.image ? { uri: profile.image } : require('src/assets/degen-logo.png')
                 }
               />
 
@@ -125,7 +124,7 @@ export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profile
           <Input
             placeholder="Amount"
             value={voteParams.amount.toString() || ''}
-            onChangeText={(text) => setVoteParams({ ...voteParams, amount: text })}
+            onChangeText={(text) => setVoteParams({ ...voteParams, amount: text, amount_token: text, upvote_amount: text, downvote_amount: text })}
           />
 
 

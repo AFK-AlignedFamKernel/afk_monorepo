@@ -234,13 +234,14 @@ export default function (config: ApibaraRuntimeConfig & {
               await handleDistributionRewardsEvent(decodedEvent, event.address);
               break;
             } else if (event?.keys[0] == encode.sanitizeHex(TIP_USER)) {
+              console.log("TIP_USER", );
               const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
                 event,
                 eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::TipUserWithVote",
               });
               console.log("decodedEvent", decodedEvent);
-              console.log("TIP_USER", decodedEvent);
+          
               await handleTipUserEvent(decodedEvent, event.address);
               break;  
             } else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS)) {
@@ -391,8 +392,8 @@ export default function (config: ApibaraRuntimeConfig & {
       const contractResult = await upsertContractState({
         contract_address: contractAddress,
         current_epoch_index: event.current_epoch_index,
-        current_epoch_start: new Date(event.start_duration * 1000),
-        current_epoch_end: new Date(event.end_duration * 1000),
+        current_epoch_start: new Date(formatUnits(event.start_duration, 18)),
+        current_epoch_end: new Date(formatUnits(event.end_duration, 18)),
         current_epoch_duration: event.epoch_duration,
       });
 

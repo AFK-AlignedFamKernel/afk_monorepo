@@ -139,12 +139,22 @@ export class InfoFiIndexer {
     console.log("currentEpochIndex", currentEpochIndex);
 
 
+    let startDuration = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(startDurationFelt).toString(16)}`,
+    ) as string;
+
+    let endDuration = validateAndParseAddress(
+      `0x${FieldElement.toBigInt(endDurationFelt).toString(16)}`,
+    ) as string;
+    
+    
+
 
     const data = {
       old_epoch_index: Number(oldEpochIndex),
       current_index_epoch: Number(currentEpochIndex),
-      start_duration: new Date(Number(startDurationFelt) * 1000),
-      end_duration: new Date(Number(endDurationFelt) * 1000),
+      start_duration: new Date(Number(startDuration)),
+      end_duration: new Date(Number(endDuration)),
       epoch_duration: Number(epochDurationFelt),
       epoch_index: Number(currentEpochIndex),
       transferId,
@@ -665,16 +675,13 @@ export class InfoFiIndexer {
 
     const [
       currentIndexEpochFelt,
-      nostrEventIdLow,
-      nostrEventIdHigh,
       amountLow,
       amountHigh,
       amountVoteLow,
       amountVoteHigh,
+      nostrEventIdLow,
+      nostrEventIdHigh,
       // currentIndexEpochFelt,
- 
-  
-
     ] = event.data;
 
     console.log("currentIndexEpochFelt", currentIndexEpochFelt);
@@ -695,7 +702,7 @@ export class InfoFiIndexer {
     });
     let amount = formatUnits(amountRaw, constants.DECIMALS).toString();
     console.log("amount", amount);
-    amount = "0";
+    // amount = "0";
     // const amountVoteRaw = uint256.uint256ToBN({
     //   low: FieldElement.toBigInt(amountVoteLow),
     //   high: FieldElement.toBigInt(amountVoteHigh),
