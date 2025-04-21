@@ -27,7 +27,7 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
     // startingCursor: {
     //   orderKey: BigInt(config.startingCursor?.orderKey),
     // },
-    startingBlock: BigInt(config.startingCursor?.orderKey ?? 533390),
+    startingBlock: BigInt(config.startingBlock ?? 533390),
     filter: {
       events: [
         {

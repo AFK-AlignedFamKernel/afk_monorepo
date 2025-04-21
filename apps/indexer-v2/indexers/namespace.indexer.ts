@@ -19,15 +19,20 @@ const LINKED_ADDRESS = hash.getSelectorFromName('LinkedDefaultStarknetAddressEve
 const ADMIN_ADD_NOSTR_PROFILE = hash.getSelectorFromName('AdminAddNostrProfile') as `0x${string}`;
 const PUSH_ALGO_SCORE = hash.getSelectorFromName('PushAlgoScoreEvent') as `0x${string}`;
 
+
 const KNOWN_EVENT_KEYS = [
   LINKED_ADDRESS,
   PUSH_ALGO_SCORE,
   ADMIN_ADD_NOSTR_PROFILE,
 ]
-export default function (config: ApibaraRuntimeConfig & { startingCursor: { orderKey: string } }) {
+export default function (config: ApibaraRuntimeConfig & { 
+  startingBlock: number,
+  // startingCursor: { orderKey: string } 
+}) {
+  console.log("config", config.startingBlock);
   return defineIndexer(StarknetStream)({
     streamUrl: config.streamUrl as string,
-    startingBlock: BigInt(config.startingCursor?.orderKey ?? 533390),
+    startingBlock: BigInt(config.startingBlock ?? 533390),
     // startingCursor: {
     //   orderKey: BigInt(config.startingCursor?.orderKey ?? 533390),
     //   // blockHash: config.startingCursor.blockHash,

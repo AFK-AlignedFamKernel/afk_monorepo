@@ -37,10 +37,14 @@ const KNOWN_EVENT_KEYS = [
   ADD_TOPICS,
   NOSTR_METADATA,
 ]
-export default function (config: ApibaraRuntimeConfig & { startingCursor: { orderKey: string } }) {
+export default function (config: ApibaraRuntimeConfig & { 
+  startingBlock: number,
+  // startingCursor: { orderKey: string } 
+}) {
+  console.log("config", config.startingBlock);
   return defineIndexer(StarknetStream)({
     streamUrl: config.streamUrl as string,
-    startingBlock: BigInt(config.startingCursor?.orderKey ?? 533390),
+    startingBlock: BigInt(config.startingBlock ?? 533390),
 
     // startingCursor: {
     //   orderKey: BigInt(config.startingCursor?.orderKey ?? 533390),
