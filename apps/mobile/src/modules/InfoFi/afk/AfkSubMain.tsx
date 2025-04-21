@@ -29,6 +29,8 @@ export const AfkSubMain: React.FC<AllKeysComponentInterface> = ({
   const { account } = useAccount();
   const { allData, isLoading, isFetching } = useDataInfoMain();
   const { data: allUsers, isLoading: isLoadingUsers } = useGetAllTipUser();
+
+  console.log("allUsers", allUsers);
   const { width } = useWindowDimensions();
   const walletModal = useWalletModal();
   const isDesktop = width >= 1024 ? true : false;
@@ -174,8 +176,9 @@ export const AfkSubMain: React.FC<AllKeysComponentInterface> = ({
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>User Rankings</Text>
+        <Text style={styles.sectionTitle}>User Rankings</Text>
+
+        <ScrollView style={styles.section}>
           <FlatList
             data={allUsers?.data}
             renderItem={({ item }) => (
@@ -197,7 +200,7 @@ export const AfkSubMain: React.FC<AllKeysComponentInterface> = ({
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           />
-        </View>
+        </ScrollView>
 
       </View>
 
