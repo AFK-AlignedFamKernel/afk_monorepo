@@ -8,6 +8,9 @@ import { useQuery } from '@tanstack/react-query';
 import { ApiIndexerInstance } from '../../services/api';
 import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
 import { useAuth, useNostrContext } from 'afk_nostr_sdk';
+import { useWaitConnection } from '..';
+import { useWalletModal } from '../modals/useWalletModal';
+import { useTransaction } from '../modals';
 export const NAMESERVICE_ENDPOINTS = {
   claimed: '/username-claimed',
   byUsername: (username: string) => `/username-claimed/username/${username}`,
@@ -35,19 +38,28 @@ export interface VoteParams {
 
 // Original useNameservice hook for contract interactions
 export const useDepositRewards = () => {
-  const account = useAccount();
   const chain = useNetwork();
   const rpcProvider = useProvider();
   const chainId = chain?.chain?.id;
   const provider = new RpcProvider({ nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL });
   const { ndk } = useNostrContext();
   const { publicKey } = useAuth();
+  const walletModal = useWalletModal();
+  const waitConnection = useWaitConnection();
+  const { sendTransaction } = useTransaction({});
+
+  const account = useAccount();
   const handleDepositRewards = async (
-    account: AccountInterface,
     voteParams: VoteParams,
     contractAddress?: string,
   ) => {
-    if (!account) return;
+    if (!account?.address) {
+      walletModal.show();
+    }
+
+    const connectedAccount = await waitConnection();
+    if (!connectedAccount || !connectedAccount.address) return;
+
 
     const addressContract =
       contractAddress ?? NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
@@ -66,14 +78,6 @@ export const useDepositRewards = () => {
     } catch (error) {
       console.log('Error get amount to paid', error);
     }
-
-    const asset = await prepareAndConnectContract(
-      provider,
-      quote_address ?? TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH,
-      account,
-    );
-    console.log('convert float');
-    console.log('read amountToPaid');
 
 
     // const getNostrEvent = async () => {
@@ -118,10 +122,17 @@ export const useDepositRewards = () => {
       calldata: depositRewardsCallData
     };
 
-    const tx = await account?.execute([approveCallData, depositRewards], undefined, {});
+
+    let tx = await sendTransaction([approveCallData, depositRewards]);
     console.log('tx hash', tx.transaction_hash);
-    const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
-    return wait_tx;
+    return tx;
+    // const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+    // return wait_tx;
+    // const tx = await account?.execute([approveCallData, depositRewards], undefined, {});
+    // console.log('tx hash', tx.transaction_hash);
+    // const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+    // return wait_tx;
+
   };
 
   return {

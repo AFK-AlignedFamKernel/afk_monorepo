@@ -30,11 +30,13 @@ import { UserNostrCard } from '../UserNostrCard';
 import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
-  userInfo?: NostrProfileInfoFiInterface
+  userInfo?: NostrProfileInfoFiInterface,
+  contractAddress?: string
 }
 export const UserCard: React.FC<AllKeysComponentInterface> = ({
   isButtonInstantiateEnable,
-  userInfo
+  userInfo,
+  contractAddress
 }) => {
   const styles = useStyles(stylesheet);
   const { account } = useAccount();
@@ -53,7 +55,7 @@ export const UserCard: React.FC<AllKeysComponentInterface> = ({
       <View>
     
 
-        <UserNostrCard profile={profile} profileIndexer={userInfo} />
+        <UserNostrCard profile={profile} profileIndexer={userInfo} contractAddressSubScore={contractAddress} />
       </View>
 
       {/* {isButtonInstantiateEnable && (

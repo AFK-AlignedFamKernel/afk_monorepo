@@ -68,23 +68,28 @@ export async function insertSubState(subStates  : ContractStateData[]) {
 }
 
 export async function upsertContractState(data: ContractStateData) {
-  const { db } = useDrizzleStorage();
-  return db
-    .insert(contractState)
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .insert(contractState)
     .values(data as any)
     .onConflictDoUpdate({
       target: contractState.contract_address,
       set: {
-        ...data,
-        updated_at: new Date(),
-      },
-    });
+          ...data,
+          updated_at: new Date(),
+        },
+      });
+  } catch (error) {
+    console.log("error upsertContractState", error);
+  }
 }
 
 export async function upsertEpochState(data: EpochStateData) {
-  const { db } = useDrizzleStorage();
-  return db
-    .insert(epochState)
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .insert(epochState)
     .values(data)
     .onConflictDoUpdate({
       target: [epochState.epoch_index, epochState.contract_address],
@@ -93,11 +98,15 @@ export async function upsertEpochState(data: EpochStateData) {
         updated_at: new Date(),
       },
     });
+  } catch (error) {
+    console.log("error upsertEpochState", error);
+  }
 }
 
 export async function upsertUserProfile(data: UserProfileData) {
-  const { db } = useDrizzleStorage();
-  return db
+  try {
+    const { db } = useDrizzleStorage();
+      return db
     .insert(userProfile)
     .values(data)
     .onConflictDoUpdate({
@@ -105,37 +114,49 @@ export async function upsertUserProfile(data: UserProfileData) {
       set: {
         ...data,
         updated_at: new Date(),
-      },
-    });
+        },
+      });
+  } catch (error) {
+    console.log("error upsertUserProfile", error);
+  }
 }
 
 export async function upsertUserEpochState(data: UserEpochStateData) {
-  const { db } = useDrizzleStorage();
-  return db
-    .insert(userEpochState)
-    .values(data)
-    .onConflictDoUpdate({
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .insert(userEpochState)
+      .values(data)
+      .onConflictDoUpdate({
       target: [userEpochState.nostr_id, userEpochState.epoch_index, userEpochState.contract_address],
       set: {
         ...data,
         updated_at: new Date(),
       },
     });
+  } catch (error) {
+    console.log("error upsertUserEpochState", error);
+  }
 }
 
 export async function getContractState(contractAddress: string) {
-  const { db } = useDrizzleStorage();
+  try { 
+    const { db } = useDrizzleStorage();
   return db
     .select()
     .from(contractState)
     .where(eq(contractState.contract_address, contractAddress))
     .limit(1);
+  } catch (error) {
+    console.log("error getContractState", error);
+  }
 }
 
 export async function getEpochState(contractAddress: string, epochIndex: string) {
-  const { db } = useDrizzleStorage();
-  return db
-    .select()
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .select()
     .from(epochState)
     .where(
       and(
@@ -144,20 +165,28 @@ export async function getEpochState(contractAddress: string, epochIndex: string)
       ),
     )
     .limit(1);
+  } catch (error) {
+    console.log("error getEpochState", error);
+  }
 }
 
 export async function getUserProfile(nostrId: string) {
-  const { db } = useDrizzleStorage();
-  return db
-    .select()
-    .from(userProfile)
-    .where(eq(userProfile.nostr_id, nostrId))
-    .limit(1);
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .select()
+      .from(userProfile)
+      .where(eq(userProfile.nostr_id, nostrId))
+      .limit(1);
+  } catch (error) {
+    console.log("error getUserProfile", error);
+  }
 }
 
 export async function getUserEpochState(nostrId: string, contractAddress: string, epochIndex: string) {
-  const { db } = useDrizzleStorage();
-  return db
+  try {
+    const { db } = useDrizzleStorage();
+    return db
     .select()
     .from(userEpochState)
     .where(
@@ -168,4 +197,7 @@ export async function getUserEpochState(nostrId: string, contractAddress: string
       ),
     )
     .limit(1);
+  } catch (error) {
+    console.log("error getUserEpochState", error);
+  }
 } 

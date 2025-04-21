@@ -47,7 +47,7 @@ export const AfkSubMain: React.FC<AllKeysComponentInterface> = ({
   };
 
   const handleDeposit = async () => {
-    await handleDepositRewards(account, {
+    await handleDepositRewards({
       nostr_address: nostrAddress,
       vote: 'good',
       is_upvote: true,

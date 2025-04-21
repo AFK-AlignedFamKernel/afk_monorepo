@@ -7,6 +7,10 @@ import { MainStackNavigationProps } from '../../types';
 import { useScoreFactoryData } from '../../hooks/infofi/useSubFactoryData';
 import Loading from '../../components/Loading';
 import { formatUnits } from 'viem';
+import { Button, Input } from 'src/components';
+import { useNamespace } from 'src/hooks/infofi/useNamespace';
+import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
+import { useAccount } from '@starknet-react/core';
 
 interface SubPageRouteParams {
   subAddress: string;
@@ -18,7 +22,17 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
   const route = useRoute();
   const { subDetails, subProfiles, epochProfiles, isLoading, isError, refetch } = useScoreFactoryData(subAddress);
   const [refreshing, setRefreshing] = useState(false);
+  const { handleLinkNamespaceFromNostrScore, handleLinkNamespace } = useNamespace();
+  const { handleDepositRewards } = useDepositRewards();
+  const { account } = useAccount();
 
+  const [amount, setAmount] = useState<string>('');
+  const [nostrAddress, setNostrAddress] = useState('');
+
+  const handleSubscription = async () => {
+    const resNamespace = await handleLinkNamespace();
+    console.log('resNamespace', resNamespace);
+  };
   const onRefresh = async () => {
     setRefreshing(true);
     await refetch();
@@ -41,6 +55,19 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
       </View>
     );
   }
+
+  const handleDeposit = async () => {
+    await handleDepositRewards({
+      nostr_address: nostrAddress,
+      vote: 'good',
+      is_upvote: true,
+      upvote_amount: Number(amount),
+      downvote_amount: 0,
+      amount: Number(amount),
+      amount_token: Number(amount),
+    });
+  };
+
 
   return (
     <View style={styles.container}>
@@ -91,6 +118,35 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         />
+      </View>
+
+
+      <Button onPress={onRefresh}>
+        <Text>Refresh</Text>
+      </Button>
+
+      <Button onPress={handleSubscription}>
+        <Text>Subscribe</Text>
+      </Button>
+
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Deposit Rewards</Text>
+        <Input
+          placeholder="Amount to deposit"
+          value={amount}
+          onChangeText={setAmount}
+          style={styles.depositInput}
+        />
+        {/* <Input
+          placeholder="Nostr Address"
+          value={nostrAddress}
+          onChangeText={setNostrAddress}
+          style={styles.depositInput}
+        /> */}
+        <Button onPress={handleDeposit}>
+          <Text>Deposit</Text>
+        </Button>
       </View>
     </View>
   );

@@ -507,6 +507,12 @@ const linking = {
           },
           Pixel: 'app/pixel',
           InfoFi: 'app/infofi',
+          SubPage: {
+            path: 'app/sub/:subAddress',
+            parse: {
+              subAddress: (subAddress: string) => `${subAddress}`,
+            },
+          },
         },
       },
     },

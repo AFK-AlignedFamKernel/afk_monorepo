@@ -55,7 +55,7 @@ export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profile
   const [voteParams, setVoteParams] = useState<VoteParams>(voteParamsDefault);
   const handleTipUser = () => {
     console.log('profileIndexer', profileIndexer);
-    handleVoteStarknetOnly(account?.account, voteParams, contractAddressSubScore ?? NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]);
+    handleVoteStarknetOnly(voteParams, contractAddressSubScore ?? NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]);
   }
 
   return (

@@ -5,6 +5,9 @@ import { formatFloatToUint256 } from '../../utils/format';
 import { prepareAndConnectContract } from '../keys/useDataKeys';
 import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
 import { useAuth, useNostrContext } from 'afk_nostr_sdk';
+import { useWaitConnection } from '../useWaitConnection';
+import { useTransaction } from '../modals';
+import { useWalletModal } from '../modals/useWalletModal';
 export const NAMESERVICE_ENDPOINTS = {
   claimed: '/username-claimed',
   byUsername: (username: string) => `/username-claimed/username/${username}`,
@@ -39,12 +42,21 @@ export const useVoteTip = () => {
   const provider = new RpcProvider({ nodeUrl: process.env.EXPO_PUBLIC_PROVIDER_URL });
   const { ndk } = useNostrContext();
   const { publicKey } = useAuth();
+  const walletModal = useWalletModal();
+  const waitConnection = useWaitConnection();
+  const { sendTransaction } = useTransaction({});
+
   const handleVoteStarknetOnly = async (
-    account: AccountInterface,
     voteParams: VoteParams,
     contractAddress?: string,
   ) => {
-    if (!account) return;
+    // if (!account) return;
+    if (!account?.address) {
+      walletModal.show();
+    }
+
+    const connectedAccount = await waitConnection();
+    if (!connectedAccount || !connectedAccount.address) return;
 
     const addressContract =
       contractAddress ?? NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
@@ -98,10 +110,10 @@ export const useVoteTip = () => {
       calldata: linkedData
     };
 
-    const tx = await account?.execute([approveCallData, linkedNamespace], undefined, {});
+    const tx = await sendTransaction([approveCallData, linkedNamespace]);
     console.log('tx hash', tx.transaction_hash);
-    const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
-    return wait_tx;
+    // const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+    return tx;
   };
 
   const handleVoteWithEvent= async (
@@ -197,10 +209,10 @@ export const useVoteTip = () => {
       calldata: linkedData
     };
 
-    const tx = await account?.execute([approveCallData, linkedNamespace], undefined, {});
+    const tx = await sendTransaction([approveCallData, linkedNamespace]);
     console.log('tx hash', tx.transaction_hash);
-    const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
-    return wait_tx;
+    // const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+    return tx;
   };
 
   return {

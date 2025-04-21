@@ -2,7 +2,7 @@ import { defineIndexer } from '@apibara/indexer';
 import { useLogger } from '@apibara/indexer/plugins';
 import { drizzleStorage } from '@apibara/plugin-drizzle';
 import { Abi, decodeEvent, StarknetStream } from '@apibara/starknet';
-import {  constants, encode, hash } from 'starknet';
+import { constants, encode, hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
 import { ABI as nostrFiScoringABI } from './abi/infofi/score.abi';
@@ -78,16 +78,16 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
 
       const daoCreationData = events.map((event) => {
         const decodedEvent = decodeEvent({
-            abi: scoreFactoryABI as Abi,
-            event,
-            eventName: 'afk::infofi::score_factory::TopicEvent',
+          abi: scoreFactoryABI as Abi,
+          event,
+          eventName: 'afk::infofi::score_factory::TopicEvent',
         });
 
         console.log("decodedEvent", decodedEvent)
-        console.log("args",decodedEvent.args);
+        console.log("args", decodedEvent.args);
 
         const daoAddress = decodedEvent.args?.topic_address;
-        console.log("daoAddress",daoAddress);
+        console.log("daoAddress", daoAddress);
 
         const creator = decodedEvent.args?.admin;
         const tokenAddress = decodedEvent.args?.main_token_address;
@@ -126,7 +126,7 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
 
       for (const event of events) {
         logger.log(`Found event ${event.keys[0]}`);
-        
+
         try {
           const decodedEvent = decodeEvent({
             abi: nostrFiScoringABI as Abi,
@@ -192,119 +192,141 @@ function getEventName(eventKey: string): string {
 }
 
 async function handleNewEpochEvent(event: any, contractAddress: string) {
-  await upsertContractState({
-    contract_address: contractAddress,
-    current_epoch_index: event.current_epoch_index,
-    current_epoch_start: new Date(event.start_duration * 1000),
-    current_epoch_end: new Date(event.end_duration * 1000),
-    current_epoch_duration: event.epoch_duration,
-  });
+  try {
+    await upsertContractState({
+      contract_address: contractAddress,
+      current_epoch_index: event.current_epoch_index,
+      current_epoch_start: new Date(event.start_duration * 1000),
+      current_epoch_end: new Date(event.end_duration * 1000),
+      current_epoch_duration: event.epoch_duration,
+    });
 
-  await upsertEpochState({
-    contract_address: contractAddress,
-    epoch_index: event.current_epoch_index,
-    start_time: new Date(event.start_duration * 1000),
-    end_time: new Date(event.end_duration * 1000),
-    epoch_duration: event.epoch_duration,
-  });
+    await upsertEpochState({
+      contract_address: contractAddress,
+      epoch_index: event.current_epoch_index,
+      start_time: new Date(event.start_duration * 1000),
+      end_time: new Date(event.end_duration * 1000),
+      epoch_duration: event.epoch_duration,
+    });
+  } catch (error) {
+    console.log("error handleNewEpochEvent", error);
+  }
+
 }
 
 async function handleDepositRewardsEvent(event: any, contractAddress: string) {
-  await upsertContractState({
-    contract_address: contractAddress,
-    total_amount_deposit: event.amount_token,
-  });
-
-  await upsertEpochState({
-    contract_address: contractAddress,
-    epoch_index: event.epoch_index,
-    total_amount_deposit: event.amount_token,
-  });
-
-  if (event.nostr_address) {
-    await upsertUserProfile({
-      nostr_id: event.nostr_address,
-      starknet_address: event.starknet_address,
+  try {
+    await upsertContractState({
+      contract_address: contractAddress,
+      total_amount_deposit: event.amount_token,
     });
 
-    await upsertUserEpochState({
-      nostr_id: event.nostr_address,
+    await upsertEpochState({
       contract_address: contractAddress,
       epoch_index: event.epoch_index,
+      total_amount_deposit: event.amount_token,
     });
+
+    if (event.nostr_address) {
+      await upsertUserProfile({
+        nostr_id: event.nostr_address,
+        starknet_address: event.starknet_address,
+      });
+
+      await upsertUserEpochState({
+        nostr_id: event.nostr_address,
+        contract_address: contractAddress,
+        epoch_index: event.epoch_index,
+      });
+    }
+  } catch (error) {
+    console.log("error handleDepositRewardsEvent", error);
   }
 }
 
 async function handleDistributionRewardsEvent(event: any, contractAddress: string) {
-  await upsertContractState({
-    contract_address: contractAddress,
-    total_to_claimed: event.amount_total,
-  });
-
-  await upsertEpochState({
-    contract_address: contractAddress,
-    epoch_index: event.epoch_index,
-    amount_claimed: event.amount_total,
-    amount_algo: event.amount_algo,
-    amount_vote: event.amount_vote,
-  });
-
-  if (event.nostr_address) {
-    await upsertUserProfile({
-      nostr_id: event.nostr_address,
-      amount_claimed: event.amount_total,
+  try {
+    await upsertContractState({
+      contract_address: contractAddress,
+      total_to_claimed: event.amount_total,
     });
 
-    await upsertUserEpochState({
-      nostr_id: event.nostr_address,
+    await upsertEpochState({
       contract_address: contractAddress,
       epoch_index: event.epoch_index,
       amount_claimed: event.amount_total,
+      amount_algo: event.amount_algo,
+      amount_vote: event.amount_vote,
     });
+
+    if (event.nostr_address) {
+      await upsertUserProfile({
+        nostr_id: event.nostr_address,
+        amount_claimed: event.amount_total,
+      });
+
+      await upsertUserEpochState({
+        nostr_id: event.nostr_address,
+        contract_address: contractAddress,
+        epoch_index: event.epoch_index,
+        amount_claimed: event.amount_total,
+      });
+    }
+  } catch (error) {
+    console.log("error handleDistributionRewardsEvent", error);
   }
 }
 
 async function handleTipUserEvent(event: any, contractAddress: string) {
-  await upsertContractState({
-    contract_address: contractAddress,
-    total_tips: event.amount_token,
-  });
-
-  await upsertEpochState({
-    contract_address: contractAddress,
-    epoch_index: event.epoch_index,
-    total_tip: event.amount_token,
-  });
-
-  if (event.nostr_address) {
-    await upsertUserProfile({
-      nostr_id: event.nostr_address,
-      total_tip: event.amount_token,
+  try {
+    await upsertContractState({
+      contract_address: contractAddress,
+      total_tips: event.amount_token,
     });
 
-    await upsertUserEpochState({
-      nostr_id: event.nostr_address,
+    await upsertEpochState({
       contract_address: contractAddress,
       epoch_index: event.epoch_index,
       total_tip: event.amount_token,
     });
+
+    if (event.nostr_address) {
+      await upsertUserProfile({
+        nostr_id: event.nostr_address,
+        total_tip: event.amount_token,
+      });
+
+      await upsertUserEpochState({
+        nostr_id: event.nostr_address,
+        contract_address: contractAddress,
+        epoch_index: event.epoch_index,
+        total_tip: event.amount_token,
+      });
+    }
+  } catch (error) {
+    console.log("error handleTipUserEvent", error);
   }
 }
 
 async function handleLinkedAddressEvent(event: any, contractAddress: string) {
-  if (event.nostr_address) {
-    await upsertUserProfile({
-      nostr_id: event.nostr_address,
-      starknet_address: event.starknet_address,
-    });
+  try {
+    if (event.nostr_address) {
+      await upsertUserProfile({
+        nostr_id: event.nostr_address,
+        starknet_address: event.starknet_address,
+      });
+    }
+  } catch (error) {
+    console.log("error handleLinkedAddressEvent", error);
   }
 }
 
 async function handlePushAlgoScoreEvent(event: any, contractAddress: string) {
-  await upsertContractState({
-    contract_address: contractAddress,
-    total_ai_score: event.total_ai_score,
-  });
+  try {
+    await upsertContractState({
+      contract_address: contractAddress,
+      total_ai_score: event.total_ai_score,
+    });
 
   await upsertEpochState({
     contract_address: contractAddress,
@@ -322,28 +344,39 @@ async function handlePushAlgoScoreEvent(event: any, contractAddress: string) {
       nostr_id: event.nostr_address,
       contract_address: contractAddress,
       epoch_index: event.epoch_index,
-      total_ai_score: event.total_ai_score,
-    });
+        total_ai_score: event.total_ai_score,
+      });
+    }
+  } catch (error) {
+    console.log("error handlePushAlgoScoreEvent", error);
   }
 }
 
 async function handleAddTopicsEvent(event: any, contractAddress: string) {
-  await upsertContractState({
-    contract_address: contractAddress,
-    topic_metadata: event.topic_metadata,
-    main_tag: event.main_tag,
-    keyword: event.keyword,
-    keywords: event.keywords,
-  });
+  try {
+    await upsertContractState({
+      contract_address: contractAddress,
+      topic_metadata: event.topic_metadata,
+      main_tag: event.main_tag,
+      keyword: event.keyword,
+      keywords: event.keywords,
+    });
+  } catch (error) {
+    console.log("error handleAddTopicsEvent", error);
+  }
 }
 
 async function handleNostrMetadataEvent(event: any, contractAddress: string) {
-  await upsertContractState({
-    contract_address: contractAddress,
-    nostr_metadata: event.nostr_metadata,
-    name: event.name,
-    about: event.about,
-    event_id_nip_29: event.event_id_nip_29,
-    event_id_nip_72: event.event_id_nip_72,
-  });
+  try {
+    await upsertContractState({
+      contract_address: contractAddress,
+      nostr_metadata: event.nostr_metadata,
+      name: event.name,
+      about: event.about,
+      event_id_nip_29: event.event_id_nip_29,
+      event_id_nip_72: event.event_id_nip_72,
+    });
+  } catch (error) {
+    console.log("error handleNostrMetadataEvent", error);
+  }
 } 

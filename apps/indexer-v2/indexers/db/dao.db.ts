@@ -28,13 +28,21 @@ interface ProposalVoteData {
 }
 
 export async function insertDaoCreation(daoCreationData: DaoCreationData[]) {
-  const { db } = useDrizzleStorage();
-  return db.insert(daoCreation).values(daoCreationData).onConflictDoNothing();
+  try {
+    const { db } = useDrizzleStorage();
+    return db.insert(daoCreation).values(daoCreationData).onConflictDoNothing();
+  } catch (error) {
+    console.log("error insertDaoCreation", error);
+  }
 }
 
 export async function insertProposal(proposalCreationData: ProposalCreationData) {
-  const { db } = useDrizzleStorage();
-  return db.insert(daoProposal).values(proposalCreationData).onConflictDoNothing();
+  try {
+    const { db } = useDrizzleStorage();
+    return db.insert(daoProposal).values(proposalCreationData).onConflictDoNothing();
+  } catch (error) {
+    console.log("error insertProposal", error);
+  }
 }
 
 export async function updateProposalCancellation(
@@ -42,17 +50,21 @@ export async function updateProposalCancellation(
   creator: string,
   proposalId: bigint,
 ) {
-  const { db } = useDrizzleStorage();
-  return db
-    .update(daoProposal)
-    .set({ isCanceled: true })
-    .where(
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .update(daoProposal)
+      .set({ isCanceled: true })
+      .where(
       and(
         eq(daoProposal.contractAddress, contractAddress),
         eq(daoProposal.creator, creator),
         eq(daoProposal.proposalId, proposalId),
       ),
     );
+  } catch (error) {
+    console.log("error updateProposalCancellation", error);
+  }
 }
 
 export async function updateProposalResult(
@@ -61,21 +73,26 @@ export async function updateProposalResult(
   proposalId: bigint,
   result: string,
 ) {
-  const { db } = useDrizzleStorage();
-  return db
-    .update(daoProposal)
-    .set({ result })
-    .where(
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .update(daoProposal)
+      .set({ result })
+      .where(
       and(
         eq(daoProposal.contractAddress, contractAddress),
         eq(daoProposal.creator, creator),
         eq(daoProposal.proposalId, proposalId),
       ),
     );
-}
+  } catch (error) { 
+    console.log("error updateProposalResult", error);
+  }
+  }
 
 export async function upsertProposalVote(proposalVoteData: ProposalVoteData) {
-  const { db } = useDrizzleStorage();
+  try {
+    const { db } = useDrizzleStorage();
   return db
     .insert(daoProposalVote)
     .values(proposalVoteData)
@@ -83,4 +100,7 @@ export async function upsertProposalVote(proposalVoteData: ProposalVoteData) {
       target: [daoProposalVote.contractAddress, daoProposalVote.proposalId, daoProposalVote.voter],
       set: { totalVotes: proposalVoteData.totalVotes },
     });
+  } catch (error) {
+    console.log("error upsertProposalVote", error);
+  }
 }
