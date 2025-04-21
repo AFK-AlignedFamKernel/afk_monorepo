@@ -1,18 +1,18 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 import { FlatList, RefreshControl, ScrollView, Text, View } from 'react-native';
-import { useStyles } from '../../hooks';
+import { useStyles } from '../../../hooks';
 import stylesheet from './styles';
-import { MainStackNavigationProps } from '../../types';
-import { useScoreFactoryData } from '../../hooks/infofi/useSubFactoryData';
-import Loading from '../../components/Loading';
+import { MainStackNavigationProps } from '../../../types';
+import { useScoreFactoryData } from '../../../hooks/infofi/useSubFactoryData';
+import Loading from '../../../components/Loading';
 import { formatUnits } from 'viem';
 import { Button, Input } from 'src/components';
 import { useNamespace } from 'src/hooks/infofi/useNamespace';
 import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
 import { useAccount } from '@starknet-react/core';
 import { useGetAllTipUser } from 'src/hooks/infofi/useDataInfoMain';
-import { UserCard } from './UserCard';
+import { UserCard } from '../UserCard';
 import { useTheme } from 'src/hooks';
 
 interface SubPageRouteParams {

@@ -186,7 +186,7 @@ export default function useStyles() {
     subCardContent: {
       marginTop: 12,
       padding: 12,
-      backgroundColor: theme.colors.backgroundSecondary,
+      backgroundColor: theme.colors.grayBg,
       borderRadius: 8,
     },
     subCardText: {

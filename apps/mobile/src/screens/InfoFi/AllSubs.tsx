@@ -8,7 +8,7 @@ import {useStyles, useTheme, useWaitConnection} from '../../hooks';
 import {useToast, useTransaction, useTransactionModal} from '../../hooks/modals';
 import {AllSubsScreenProps, MainStackNavigationProps} from '../../types';
 import {SelectedTab} from '../../types/tab';
-import {AllSubsComponent} from '../../modules/InfoFi/AllSub';
+import {AllSubsComponent} from '../../modules/InfoFi/sub/AllSub';
 import stylesheet from '../../modules/InfoFi/styles';
 
 export const AllSubsScreen: React.FC<AllSubsScreenProps> = () => {

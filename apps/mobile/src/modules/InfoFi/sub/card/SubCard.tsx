@@ -1,8 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
 import { Pressable, Text, View } from 'react-native';
-import { useStyles } from '../../hooks';
+import { useStyles } from '../../../../hooks';
 import stylesheet from './styles';
-import { MainStackNavigationProps } from '../../types';
+import { MainStackNavigationProps } from '../../../../types';
 
 interface SubCardProps {
   subInfo: {

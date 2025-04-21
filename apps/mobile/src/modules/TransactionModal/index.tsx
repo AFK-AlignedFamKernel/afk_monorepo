@@ -11,12 +11,14 @@ export type TransactionModalProps = {
   transactionHash?: string;
   hide: () => void;
   onReceipt?: (receipt: GetTransactionReceiptResponse) => void;
+  isDisabledSuccess?: boolean;
 };
 
 export const TransactionModal: React.FC<TransactionModalProps> = ({
   transactionHash,
   hide,
   onReceipt,
+  isDisabledSuccess,
 }) => {
   const {theme} = useTheme();
 

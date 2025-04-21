@@ -2,7 +2,7 @@ import {Text, View} from 'react-native';
 import {useStyles, useTheme} from '../../hooks';
 import {SubPageScreenProps} from '../../types';
 import stylesheet from '../../modules/InfoFi/styles';
-import { SubPageComponent } from '../../modules/InfoFi/SubPageComponent';
+import { SubPageComponent } from '../../modules/InfoFi/sub/SubPageComponent';
 export const SubPageScreen: React.FC<SubPageScreenProps> = ({route}) => {
   const { subAddress,  } = route.params;
   const {theme} = useTheme();

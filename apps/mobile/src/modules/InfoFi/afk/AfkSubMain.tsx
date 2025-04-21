@@ -16,7 +16,7 @@ import { UserCard } from '../UserCard';
 import { useDepositRewards } from 'src/hooks/infofi/useDeposit';
 import { Input } from 'src/components/Input';
 import { formatUnits } from 'viem';
-import { AllSubsComponent } from '../AllSub';
+import { AllSubsComponent } from '../sub/AllSub';
 
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;

@@ -1,21 +1,15 @@
-import { useAccount } from '@starknet-react/core';
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, RefreshControl, ScrollView, Text, View } from 'react-native';
 
-import { Button } from '../../components';
-import Loading from '../../components/Loading';
-import { useStyles, useTheme, useWindowDimensions } from '../../hooks';
+import Loading from '../../../components/Loading';
+import { useStyles } from '../../../hooks';
 
 import stylesheet from './styles';
 import { useNavigation } from '@react-navigation/native';
 import { MainStackNavigationProps } from 'src/types';
 import { formatUnits } from 'viem';
-import { useScoreFactoryData } from '../../hooks/infofi/useSubFactoryData';
-import { SubCard } from './SubCard';
-
-interface AllKeysComponentInterface {
-  isButtonInstantiateEnable?: boolean;
-}
+import { useScoreFactoryData } from '../../../hooks/infofi/useSubFactoryData';
+import { SubCard } from './card/SubCard';
 
 export const AllSubsComponent: React.FC = () => {
   const styles = useStyles(stylesheet);
@@ -23,6 +17,7 @@ export const AllSubsComponent: React.FC = () => {
   const { allSubs, isLoading, isError, refetch } = useScoreFactoryData();
   const [refreshing, setRefreshing] = useState(false);
 
+  console.log('allSubs', allSubs);
   const onRefresh = async () => {
     setRefreshing(true);
     await refetch();
@@ -51,7 +46,7 @@ export const AllSubsComponent: React.FC = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <FlatList
         data={allSubs}
         renderItem={({ item }) => (
@@ -72,6 +67,6 @@ export const AllSubsComponent: React.FC = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       />
-    </View>
+    </ScrollView>
   );
 };
