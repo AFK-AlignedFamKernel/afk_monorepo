@@ -66,18 +66,18 @@ export const useDepositRewards = () => {
     console.log('addressContract', addressContract);
     console.log('read asset');
 
-    const nameservice = await prepareAndConnectContract(provider, addressContract);
+    // const nameservice = await prepareAndConnectContract(provider, addressContract);
     let quote_address: string =
       TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK ??
       TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH ??
       '';
     console.log('read nameservice asset');
 
-    try {
-      quote_address = await nameservice.get_token_quote();
-    } catch (error) {
-      console.log('Error get amount to paid', error);
-    }
+    // try {
+    //   quote_address = await nameservice.get_token_quote();
+    // } catch (error) {
+    //   console.log('Error get amount to paid', error);
+    // }
 
 
     // const getNostrEvent = async () => {

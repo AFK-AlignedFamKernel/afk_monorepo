@@ -19,6 +19,7 @@ import { Input } from 'src/components/Input';
 import { formatUnits } from 'viem';
 import { AllSubsComponent } from './AllSub';
 import { AfkSubCard } from './afk/AfkSubCard';
+import { AfkSubMain } from './afk/AfkSubMain';
 interface AllKeysComponentInterface {
   isButtonInstantiateEnable?: boolean;
 }
@@ -37,6 +38,8 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
   const navigation = useNavigation<MainStackNavigationProps>();
   const { handleLinkNamespaceFromNostrScore, handleLinkNamespace } = useNamespace();
   const { handleDepositRewards } = useDepositRewards();
+
+  const [isOpenAfkMain, setIsOpenAfkMain] = useState(false);
 
   const [amount, setAmount] = useState<string>('');
   const [nostrAddress, setNostrAddress] = useState('');
@@ -71,7 +74,11 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
   };
 
   if (isLoading || isLoadingUsers) {
-    return <Loading />;
+    return (
+      <View style={styles.container}>
+        <Loading />
+      </View>
+    )
   }
 
   return (
@@ -90,13 +97,17 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
         )}
 
 
-        <AfkSubCard subInfo={allData?.aggregations}></AfkSubCard>
+        <AfkSubCard subInfo={allData?.aggregations}
+          onPress={() => setIsOpenAfkMain(!isOpenAfkMain)}
+        ></AfkSubCard>
 
 
+        {isOpenAfkMain && (
+          <AfkSubMain></AfkSubMain>
+        )}
 
 
-        {/* Overview Section */}
-        <View style={styles.section}>
+        {/* <View style={styles.section}>
           <Text style={styles.sectionTitle}>Overview</Text>
           <View style={styles.overviewGrid}>
             <View style={styles.overviewItem}>
@@ -126,7 +137,6 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
           </View>
         </View>
 
-        {/* Epoch States Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Epoch States</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -156,7 +166,6 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
           </ScrollView>
         </View>
 
-        {/* Deposit Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Deposit Rewards</Text>
           <View style={styles.depositContainer}>
@@ -178,7 +187,6 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
           </View>
         </View>
 
-        {/* Users Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>User Rankings</Text>
           <FlatList
@@ -202,7 +210,7 @@ export const InfoFiComponent: React.FC<AllKeysComponentInterface> = ({
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
             }
           />
-        </View>
+        </View> */}
 
         <AllSubsComponent></AllSubsComponent>
       </View>

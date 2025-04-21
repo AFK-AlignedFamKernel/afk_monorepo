@@ -65,7 +65,9 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
       downvote_amount: 0,
       amount: Number(amount),
       amount_token: Number(amount),
-    });
+    },
+      subAddress as string
+    );
   };
 
 

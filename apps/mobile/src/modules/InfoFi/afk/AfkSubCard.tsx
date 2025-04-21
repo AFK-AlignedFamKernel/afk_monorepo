@@ -14,11 +14,13 @@ interface SubCardProps {
     total_tips?: string;
     total_amount_deposit?: string;
     contract_address?: string;
-  }
+  },
+  onPress?: () => void
 }
 
 export const AfkSubCard: React.FC<SubCardProps> = ({
-  subInfo
+  subInfo,
+  onPress
 }) => {
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
@@ -29,7 +31,11 @@ export const AfkSubCard: React.FC<SubCardProps> = ({
   };
 
   const handlePress = () => {
-    navigation.navigate('SubPage', { subAddress: subInfo?.contract_address });
+    if (onPress) {
+      onPress();
+    } else {
+      navigation.navigate('SubPage', { subAddress: subInfo?.contract_address });
+    }
   };
 
   return (

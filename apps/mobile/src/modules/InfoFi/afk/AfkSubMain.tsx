@@ -162,19 +162,18 @@ export const AfkSubMain: React.FC<AllKeysComponentInterface> = ({
               onChangeText={setAmount}
               style={styles.depositInput}
             />
-            <Input
+            {/* <Input
               placeholder="Nostr Address"
               value={nostrAddress}
               onChangeText={setNostrAddress}
               style={styles.depositInput}
-            />
+            /> */}
             <Button onPress={handleDeposit} style={styles.depositButton}>
               <Text style={styles.depositButtonText}>Deposit Rewards</Text>
             </Button>
           </View>
         </View>
 
-        {/* Users Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>User Rankings</Text>
           <FlatList
