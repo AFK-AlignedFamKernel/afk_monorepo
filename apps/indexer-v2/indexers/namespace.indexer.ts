@@ -5,7 +5,8 @@ import { Abi, decodeEvent, StarknetStream } from '@apibara/starknet';
 import { constants, encode, hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
-import { ABI as namespaceABI } from './abi/namespace.abi';
+// import { ABI as namespaceABI } from './abi/namespace.abi';
+import { ABI as namespaceABI } from './abi/afkNamespace.abi';
 import {
   upsertContractState,
   upsertEpochState,
