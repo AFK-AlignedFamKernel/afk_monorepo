@@ -1,4 +1,4 @@
-CREATE TABLE "contract_state" (
+CREATE TABLE IF NOT EXISTS "contract_state" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"contract_address" text NOT NULL,
 	"network" text,
@@ -28,7 +28,7 @@ CREATE TABLE "contract_state" (
 	CONSTRAINT "contract_state_contract_address_unique" UNIQUE("contract_address")
 );
 --> statement-breakpoint
-CREATE TABLE "dao_creation" (
+CREATE TABLE IF NOT EXISTS "dao_creation" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"number" bigint,
 	"hash" text,
@@ -38,7 +38,8 @@ CREATE TABLE "dao_creation" (
 	"starknet_address" text
 );
 --> statement-breakpoint
-CREATE TABLE "dao_proposal" (
+CREATE TABLE IF NOT EXISTS "dao_proposal" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"contract_address" text,
 	"proposal_id" bigint,
 	"creator" text,
@@ -46,10 +47,11 @@ CREATE TABLE "dao_proposal" (
 	"end_at" integer,
 	"is_canceled" boolean DEFAULT false,
 	"result" text,
-	CONSTRAINT "dao_proposal_contract_address_proposal_id_pk" PRIMARY KEY("contract_address","proposal_id")
+	CONSTRAINT "id_composite" PRIMARY KEY("contract_address","proposal_id")
 );
 --> statement-breakpoint
-CREATE TABLE "dao_proposal_vote" (
+CREATE TABLE IF NOT EXISTS "dao_proposal_vote" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"contract_address" text,
 	"proposal_id" bigint,
 	"voter" text,
@@ -57,10 +59,11 @@ CREATE TABLE "dao_proposal_vote" (
 	"votes" bigint,
 	"total_votes" bigint,
 	"voted_at" integer,
-	CONSTRAINT "dao_proposal_vote_contract_address_proposal_id_voter_pk" PRIMARY KEY("contract_address","proposal_id","voter")
+	CONSTRAINT "id" PRIMARY KEY("contract_address","proposal_id","voter")
 );
 --> statement-breakpoint
-CREATE TABLE "epoch_state" (
+CREATE TABLE IF NOT EXISTS "epoch_state" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"epoch_index" text NOT NULL,
 	"contract_address" text NOT NULL,
 	"total_ai_score" numeric(30, 18) DEFAULT '0',
@@ -78,7 +81,8 @@ CREATE TABLE "epoch_state" (
 	CONSTRAINT "epoch_state_epoch_index_contract_address_pk" PRIMARY KEY("epoch_index","contract_address")
 );
 --> statement-breakpoint
-CREATE TABLE "user_epoch_state" (
+CREATE TABLE IF NOT EXISTS "user_epoch_state" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"nostr_id" text NOT NULL,
 	"epoch_index" text NOT NULL,
 	"contract_address" text NOT NULL,
@@ -91,7 +95,7 @@ CREATE TABLE "user_epoch_state" (
 	CONSTRAINT "user_epoch_state_nostr_id_epoch_index_contract_address_pk" PRIMARY KEY("nostr_id","epoch_index","contract_address")
 );
 --> statement-breakpoint
-CREATE TABLE "user_profile" (
+CREATE TABLE IF NOT EXISTS "user_profile" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"nostr_id" text NOT NULL,
 	"starknet_address" text,

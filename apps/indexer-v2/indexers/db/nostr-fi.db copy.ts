@@ -68,7 +68,7 @@ interface UserEpochStateData {
 export async function insertSubState(subStates: ContractStateData[]) {
   try {
     const { db } = useDrizzleStorage();
-
+    
     // Validate input data
     if (!Array.isArray(subStates) || subStates.length === 0) {
       throw new Error('Invalid input: subStates must be a non-empty array');
@@ -101,7 +101,7 @@ export async function insertSubState(subStates: ContractStateData[]) {
       data: subStates.map(s => s.contract_address) // Log only necessary info
     };
     console.error('Database operation failed:', errorInfo);
-
+    
     // Rethrow with context but don't crash
     throw new Error(`Failed to insert contract states: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
@@ -145,174 +145,115 @@ export async function saveCursor(blockNumber: string, blockHash: string) {
 
 
 export async function upsertContractState(data: ContractStateData) {
-  const { db } = useDrizzleStorage();
   try {
-    console.log("upsertContractState", data);
-    return db.insert(contractState).values(data).
-      // .onConflictDoNothing();
-      onConflictDoUpdate({
+    const { db } = useDrizzleStorage();
+    return db
+      .insert(contractState)
+      .values({
+        ...data,
+        created_at: new Date(),
+        updated_at: new Date(),
+        id: crypto.randomUUID(), // Add UUID for new records
+      })
+      .onConflictDoUpdate({
         target: contractState.contract_address,
         set: {
           ...data,
           updated_at: new Date(),
         },
+        // Exclude id from updates
+        // exclude: ['id', 'created_at']
       });
-    // const tx = await db.transaction(async (tx) => {
-    //   const result = await tx
-    //     .insert(contractState)
-    //     .values({
-    //       ...data,
-    //       created_at: new Date(),
-    //       updated_at: new Date(),
-    //       id: randomUUID(),
-    //     })
-    //     .onConflictDoUpdate({
-    //       target: contractState.contract_address,
-    //       set: {
-    //         ...data,
-    //         updated_at: new Date(),
-    //       },
-    //     });
-    //   return result;
-    // });
-    // return tx;
   } catch (error) {
-    console.error("Error in upsertContractState:", error);
-    return null; // Return null instead of crashing
+    console.log("error upsertContractState", error);
   }
 }
 
 export async function upsertEpochState(data: EpochStateData) {
-  const { db } = useDrizzleStorage();
   try {
-    console.log("upsertEpochState", data);
-    return db.insert(epochState).values(data).onConflictDoNothing();
-    // const tx = await db.transaction(async (tx) => {
-    //   const result = await tx
-    //     .insert(epochState)
-    //     .values({
-    //       epoch_index: data.epoch_index,
-    //       contract_address: data.contract_address,
-    //       total_ai_score: data.total_ai_score,
-    //       total_vote_score: data.total_vote_score,
-    //       total_amount_deposit: data.total_amount_deposit,
-    //       total_tip: data.total_tip,
-    //       amount_claimed: data.amount_claimed,
-    //       amount_vote: data.amount_vote,
-    //       amount_algo: data.amount_algo,
-    //       epoch_duration: data.epoch_duration,
-    //       start_time: data.start_time,
-    //       end_time: data.end_time,
-    //       created_at: new Date(),
-    //       updated_at: new Date(),
-    //     })
-    //     .onConflictDoUpdate({
-    //       target: [epochState.epoch_index, epochState.contract_address],
-    //       set: {
-    //         total_ai_score: data.total_ai_score,
-    //         total_vote_score: data.total_vote_score,
-    //         total_amount_deposit: data.total_amount_deposit,
-    //         total_tip: data.total_tip,
-    //         amount_claimed: data.amount_claimed,
-    //         amount_vote: data.amount_vote,
-    //         amount_algo: data.amount_algo,
-    //         epoch_duration: data.epoch_duration,
-    //         start_time: data.start_time,
-    //         end_time: data.end_time,
-    //         updated_at: new Date(),
-    //       },
-    //     });
-    //   return result;
-    // });
-    // return tx;
+    const { db } = useDrizzleStorage();
+    return db
+      .insert(epochState)
+      .values({
+        ...data,
+        created_at: new Date(),
+        updated_at: new Date(),
+        id: crypto.randomUUID(), // Add UUID for new records
+      })
+      .onConflictDoUpdate({
+        target: [epochState.epoch_index, epochState.contract_address],
+        set: {
+          total_ai_score: data.total_ai_score,
+          total_vote_score: data.total_vote_score,
+          total_amount_deposit: data.total_amount_deposit,
+          total_tip: data.total_tip,
+          amount_claimed: data.amount_claimed,
+          amount_vote: data.amount_vote,
+          amount_algo: data.amount_algo,
+          epoch_duration: data.epoch_duration,
+          start_time: data.start_time,
+          end_time: data.end_time,
+          updated_at: new Date(),
+        },
+        // Exclude id from updates
+        // exclude: ['id', 'created_at']
+      });
   } catch (error) {
-    console.error("Error in upsertEpochState:", error);
-    return null;
+    console.log("error upsertEpochState", error);
   }
 }
 
 export async function upsertUserProfile(data: UserProfileData) {
-  const { db } = useDrizzleStorage();
   try {
-    return db.insert(userProfile).values(data).onConflictDoNothing();
-    // const tx = await db.transaction(async (tx) => {
-    //   const result = await tx
-    //     .insert(userProfile)
-    //     .values({
-    //       ...data,
-    //       created_at: new Date(),
-    //       updated_at: new Date(),
-    //       id: randomUUID(),
-    //     })
-    //     .onConflictDoUpdate({
-    //       target: userProfile.nostr_id,
-    //       set: {
-    //         ...data,
-    //         updated_at: new Date(),
-    //       },
-    //     });
-    //   return result;
-    // });
-    // return tx;
-  } catch (error) {
-    console.error("Error in upsertUserProfile:", error);
-    return null; // Return null instead of crashing
-  }
-}
-
-export async function upsertUserEpochState(data: UserEpochStateData) {
-  const { db } = useDrizzleStorage();
-  try {
-    return db.insert(userEpochState).values(data).
-      // onConflictDoNothing();
-      onConflictDoUpdate({
-        target: [userEpochState.nostr_id, userEpochState.epoch_index, userEpochState.contract_address],
+    const { db } = useDrizzleStorage();
+    return db
+      .insert(userProfile)
+      .values({
+        ...data,
+        created_at: new Date(),
+        updated_at: new Date(),
+        id: crypto.randomUUID(), // Add UUID for new records
+      })
+      .onConflictDoUpdate({
+        target: userProfile.nostr_id,
         set: {
           ...data,
           updated_at: new Date(),
         },
+        // Exclude id from updates
+        // exclude: ['id', 'created_at']
       });
-    // const tx = await db.transaction(async (tx) => {
-    //   const result = await tx
-    //     .insert(userEpochState)
-    //     .values({
-    //       nostr_id: data.nostr_id,
-    //       epoch_index: data.epoch_index,
-    //       contract_address: data.contract_address,
-    //       total_tip: data.total_tip,
-    //       total_ai_score: data.total_ai_score,
-    //       total_vote_score: data.total_vote_score,
-    //       amount_claimed: data.amount_claimed,
-    //       created_at: new Date(),
-    //       updated_at: new Date(),
-    //     })
-    //     .onConflictDoUpdate({
-    //       target: [userEpochState.nostr_id, userEpochState.epoch_index, userEpochState.contract_address],
-    //       set: {
-    //         total_tip: data.total_tip,
-    //         total_ai_score: data.total_ai_score,
-    //         total_vote_score: data.total_vote_score,
-    //         amount_claimed: data.amount_claimed,
-    //         updated_at: new Date(),
-    //       },
-    //     });
-    //   return result;
-    // });
-    // return tx;
   } catch (error) {
-    console.error("Error in upsertUserEpochState:", error);
-    return null;
+    console.log("error upsertUserProfile", error);
+  }
+}
+
+export async function upsertUserEpochState(data: UserEpochStateData) {
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .insert(userEpochState)
+      .values(data)
+      .onConflictDoUpdate({
+      target: [userEpochState.nostr_id, userEpochState.epoch_index, userEpochState.contract_address],
+      set: {
+        ...data,
+        updated_at: new Date(),
+      },
+    });
+  } catch (error) {
+    console.log("error upsertUserEpochState", error);
   }
 }
 
 export async function getContractState(contractAddress: string) {
-  try {
+  try { 
     const { db } = useDrizzleStorage();
-    return db
-      .select()
-      .from(contractState)
-      .where(eq(contractState.contract_address, contractAddress))
-      .limit(1);
+  return db
+    .select()
+    .from(contractState)
+    .where(eq(contractState.contract_address, contractAddress))
+    .limit(1);
   } catch (error) {
     console.log("error getContractState", error);
   }
@@ -323,14 +264,14 @@ export async function getEpochState(contractAddress: string, epochIndex: string)
     const { db } = useDrizzleStorage();
     return db
       .select()
-      .from(epochState)
-      .where(
-        and(
-          eq(epochState.contract_address, contractAddress),
-          eq(epochState.epoch_index, epochIndex),
-        ),
-      )
-      .limit(1);
+    .from(epochState)
+    .where(
+      and(
+        eq(epochState.contract_address, contractAddress),
+        eq(epochState.epoch_index, epochIndex),
+      ),
+    )
+    .limit(1);
   } catch (error) {
     console.log("error getEpochState", error);
   }
@@ -353,16 +294,16 @@ export async function getUserEpochState(nostrId: string, contractAddress: string
   try {
     const { db } = useDrizzleStorage();
     return db
-      .select()
-      .from(userEpochState)
-      .where(
-        and(
-          eq(userEpochState.nostr_id, nostrId),
-          eq(userEpochState.contract_address, contractAddress),
-          eq(userEpochState.epoch_index, epochIndex),
-        ),
-      )
-      .limit(1);
+    .select()
+    .from(userEpochState)
+    .where(
+      and(
+        eq(userEpochState.nostr_id, nostrId),
+        eq(userEpochState.contract_address, contractAddress),
+        eq(userEpochState.epoch_index, epochIndex),
+      ),
+    )
+    .limit(1);
   } catch (error) {
     console.log("error getUserEpochState", error);
   }

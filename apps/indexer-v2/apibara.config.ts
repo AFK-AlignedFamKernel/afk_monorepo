@@ -1,11 +1,16 @@
 import typescript from '@rollup/plugin-typescript';
 import { defineConfig } from 'apibara/config';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export default defineConfig({
   runtimeConfig: {
     streamUrl: 'https://starknet-sepolia.preview.apibara.org',
     startingCursor: {
-      orderKey: 705_000,
+      orderKey: process.env.ORDER_KEY ? parseInt(process.env.ORDER_KEY) : 705340,
+      // orderKey: 500000,
+      // orderKey: 533390,
     },
     pgLiteDBPath: 'memory://persistence',
   },

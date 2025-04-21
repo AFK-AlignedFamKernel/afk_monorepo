@@ -12,18 +12,25 @@
     "build": "tsc",
     "lint": "biome check .",
     "lint:fix": "pnpm lint --write",
+    "generate": "drizzle-kit generate",
+    "migrate": "drizzle-kit migrate",
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
     "drizzle:migrate:prod": "drizzle-kit migrate --config=./dist/drizzle-prod.config.js",
-    "drizzle:studio": "drizzle-kit studio"
+    "drizzle:studio": "drizzle-kit studio",
+    "build:init": "pnpm run generate && pnpm run migrate && pnpm build"
+
   },
   "dependencies": {
     "dotenv": "^16.4.5",
+    "drizzle-kit": "^0.29.0",
     "drizzle-orm": "^0.40.1",
+    "indexer-v2-db": "link:",
     "pg": "^8.13.1"
   },
   "devDependencies": {
     "@types/node": "^20.5.2",
+    "drizzle-kit": "^0.29.0",
     "drizzle-orm": "^0.40.1",
     "pg": "^8.13.1",
     "typescript": "^5.6.3"

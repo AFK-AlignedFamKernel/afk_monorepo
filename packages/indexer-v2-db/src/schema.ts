@@ -16,6 +16,7 @@ export const daoCreation = pgTable('dao_creation', {
 export const daoProposal = pgTable(
   'dao_proposal',
   {
+    id: uuid('id').primaryKey().defaultRandom(),
     contractAddress: text('contract_address'),
     proposalId: bigint('proposal_id', { mode: 'bigint' }),
     creator: text('creator'),
@@ -24,12 +25,15 @@ export const daoProposal = pgTable(
     isCanceled: boolean('is_canceled').default(false),
     result: text('result'),
   },
-  (table) => [primaryKey({ columns: [table.contractAddress, table.proposalId] })],
+  (table) => [primaryKey({ name: "id_composite", columns: [table.contractAddress, table.proposalId] })],
+  // (table) => [primaryKey({ columns: [table.contractAddress, table.proposalId] })],
 );
 
 export const daoProposalVote = pgTable(
   'dao_proposal_vote',
   {
+    id: uuid('id').primaryKey().defaultRandom(),
+
     contractAddress: text('contract_address'),
     proposalId: bigint('proposal_id', { mode: 'bigint' }),
     voter: text('voter'),
@@ -38,7 +42,7 @@ export const daoProposalVote = pgTable(
     totalVotes: bigint('total_votes', { mode: 'bigint' }),
     votedAt: integer('voted_at'),
   },
-  (table) => [primaryKey({ columns: [table.contractAddress, table.proposalId, table.voter] })],
+  (table) => [primaryKey({ name: "id", columns: [table.contractAddress, table.proposalId, table.voter] })],
 );
 
 export const contractState = pgTable('contract_state', {
@@ -71,6 +75,8 @@ export const contractState = pgTable('contract_state', {
 });
 
 export const epochState = pgTable('epoch_state', {
+  id: uuid('id').primaryKey().defaultRandom(),
+
   epoch_index: text('epoch_index').notNull(),
   contract_address: text('contract_address').notNull(),
   total_ai_score: decimal('total_ai_score', { precision: 30, scale: 18 }).default('0'),
@@ -90,6 +96,7 @@ export const epochState = pgTable('epoch_state', {
 }));
 
 export const userProfile = pgTable('user_profile', {
+
   id: uuid('id').primaryKey().defaultRandom(),
   nostr_id: text('nostr_id').notNull().unique(),
   starknet_address: text('starknet_address'),
@@ -103,6 +110,7 @@ export const userProfile = pgTable('user_profile', {
 });
 
 export const userEpochState = pgTable('user_epoch_state', {
+  id: uuid('id').primaryKey().defaultRandom(),
   nostr_id: text('nostr_id').notNull(),
   epoch_index: text('epoch_index').notNull(),
   contract_address: text('contract_address').notNull(),
@@ -115,6 +123,16 @@ export const userEpochState = pgTable('user_epoch_state', {
 }, (table) => ({
   pk: primaryKey({ columns: [table.nostr_id, table.epoch_index, table.contract_address] }),
 }));
+
+export const indexerCursor = pgTable('indexer_cursor', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  cursor: text('cursor').notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+  last_block_number: bigint('last_block_number', { mode: 'bigint' }),
+  last_block_hash: text('last_block_hash'),
+  last_tx_hash: text('last_tx_hash'),
+});
 
 // Relations
 export const contractStateRelations = relations(contractState, ({ many }) => ({

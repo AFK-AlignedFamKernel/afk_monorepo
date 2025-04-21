@@ -41,7 +41,9 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
       }
 
       const sub = await db
-        .select()
+        .select({
+          contract_address: contractState.contract_address,
+        })
         .from(contractState)
         .where(eq(contractState.contract_address, sub_address))
         .limit(1);
@@ -72,7 +74,17 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
       }
 
       const usersProfile = await db
-        .select()
+        .select({
+          nostr_id: userEpochState.nostr_id,
+          epoch_index: userEpochState.epoch_index,
+          contract_address: userEpochState.contract_address,
+          total_tip: userEpochState.total_tip,
+          total_ai_score: userEpochState.total_ai_score,
+          total_vote_score: userEpochState.total_vote_score,
+          amount_claimed: userEpochState.amount_claimed,
+          created_at: userEpochState.created_at,
+          updated_at: userEpochState.updated_at,
+        })
         .from(userEpochState)
         .where(eq(userEpochState.contract_address, sub_address));
 
@@ -83,7 +95,7 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
     }
   });
 
-  // Get all proposals for a sub
+  // Get all proposals for a sub by epoch
   fastify.get<{
     Params: ScoreFactoryParamsPerEpoch;
   }>('/score-factory/sub/:sub_address/:epoch_index', async (request, reply) => {
@@ -98,12 +110,24 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
       }
 
       const usersProfile = await db
-        .select()
+        .select({
+          nostr_id: userEpochState.nostr_id,
+          epoch_index: userEpochState.epoch_index,
+          contract_address: userEpochState.contract_address,
+          total_tip: userEpochState.total_tip,
+          total_ai_score: userEpochState.total_ai_score,
+          total_vote_score: userEpochState.total_vote_score,
+          amount_claimed: userEpochState.amount_claimed,
+          created_at: userEpochState.created_at,
+          updated_at: userEpochState.updated_at,
+        })
         .from(userEpochState)
-        .where(and(
-          eq(userEpochState.contract_address, sub_address),
-          eq(userEpochState.epoch_index, epoch_index)
-        ));
+        .where(
+          and(
+            eq(userEpochState.contract_address, sub_address),
+            eq(userEpochState.epoch_index, epoch_index)
+          )
+        );
 
       reply.status(HTTPStatus.OK).send(usersProfile);
     } catch (error) {

@@ -21,11 +21,11 @@ const PROPOSAL_VOTED = hash.getSelectorFromName('ProposalVoted') as `0x${string}
 const PROPOSAL_CANCELED = hash.getSelectorFromName('ProposalCanceled') as `0x${string}`;
 const PROPOSAL_RESOLVED = hash.getSelectorFromName('ProposalResolved') as `0x${string}`;
 
-export default function (config: ApibaraRuntimeConfig) {
+export default function (config: ApibaraRuntimeConfig & { startingCursor: { orderKey: string } }) {
   return defineIndexer(StarknetStream)({
-    streamUrl: config.streamUrl,
+    streamUrl: config.streamUrl as string,
     startingCursor: {
-      orderKey: BigInt(config.startingCursor.orderKey),
+      orderKey: BigInt(config.startingCursor?.orderKey),
     },
     filter: {
       events: [
@@ -35,15 +35,25 @@ export default function (config: ApibaraRuntimeConfig) {
         },
       ],
     },
-    plugins: [drizzleStorage({ db })],
-    async factory({ block: { events } }) {
+    plugins: [drizzleStorage({ 
+      db,
+      // idColumn: 'id'
+      // idColumn: [ {
+      //   'dao_creation': 'id',
+      //   'dao_proposal': ['contract_address', 'proposal_id']
+      // }]
+    })],
+    async factory({ block: { events, header } }) {
       const logger = useLogger();
+      console.log("factory started",)
+      console.log("block", header?.blockNumber);
 
       if (events.length === 0) {
         return {};
       }
 
       const daoCreationEvents = events.map((event) => {
+        // const daoAddress = event.keys[1];
         const daoAddress = event.keys[1];
 
         logger.log('Factory: new DAO Address    : ', `\x1b[35m${daoAddress}\x1b[0m`);

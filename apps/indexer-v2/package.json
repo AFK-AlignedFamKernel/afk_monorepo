@@ -11,6 +11,7 @@
     "lint": "biome check .",
     "lint:fix": "pnpm lint --write",
     "test": "vitest"
+ 
   },
   "dependencies": {
     "@apibara/evm": "2.1.0-beta.32",
@@ -21,7 +22,7 @@
     "@electric-sql/pglite": "^0.2.14",
     "apibara": "2.1.0-beta.32",
     "drizzle-orm": "^0.40.1",
-    "drizzle-kit": "^0.31.0",
+    "drizzle-kit": "^0.29.0",
     "indexer-v2": "link:",
     "indexer-v2-db": "workspace:*",
     "starknet": "^6.11.0",
