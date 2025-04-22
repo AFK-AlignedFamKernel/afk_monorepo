@@ -6,7 +6,8 @@ import { constants, encode, hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
 import { ABI as nostrFiScoringABI } from './abi/infofi/score.abi';
-import { ABI as scoreFactoryABI } from './abi/infofi/score-factory.abi';
+// import { ABI as scoreFactoryABI } from './abi/infofi/score-factory.abi';
+import { ABI as scoreFactoryABI } from './abi/infofi/scoreFactory.abi';
 import {
   upsertContractState,
   upsertEpochState,
@@ -57,13 +58,13 @@ export default function (config: ApibaraRuntimeConfig & {
           keys: [
             SUB_CREATED,
             // 
-            DEPOSIT_REWARDS,
-            DISTRIBUTION_REWARDS,
-            TIP_USER,
-            LINKED_ADDRESS,
-            PUSH_ALGO_SCORE,
-            ADD_TOPICS,
-            NOSTR_METADATA,
+            // DEPOSIT_REWARDS,
+            // DISTRIBUTION_REWARDS,
+            // TIP_USER,
+            // LINKED_ADDRESS,
+            // PUSH_ALGO_SCORE,
+            // ADD_TOPICS,
+            // NOSTR_METADATA,
           ],
         },
       ],
@@ -113,7 +114,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
         const subCreationData = events.map((event) => {
           const decodedEvent = decodeEvent({
-            abi: scoreFactoryABI as Abi,
+            abi: scoreFactoryABI,
             event,
             eventName: 'afk::infofi::score_factory::TopicEvent',
           });
@@ -121,12 +122,13 @@ export default function (config: ApibaraRuntimeConfig & {
           console.log("decodedEvent", decodedEvent)
           console.log("args", decodedEvent.args);
 
-          const daoAddress = decodedEvent.args?.topic_address;
+          const daoAddress = decodedEvent?.args?.topic_address;
           console.log("daoAddress", daoAddress);
 
-          const creator = decodedEvent.args?.admin;
-          const tokenAddress = decodedEvent.args?.main_token_address;
-          const starknetAddress = decodedEvent.args?.starknet_address?.toString() as string;
+          const creator = decodedEvent?.args?.admin;
+          const tokenAddress = decodedEvent?.args?.main_token_address;
+          // const starknetAddress = decodedEvent?.args?.starknet_address?.toString() as string;
+          const starknetAddress = decodedEvent?.args?.admin?.toString() as string;
 
           return {
             number: event.eventIndex,
@@ -139,7 +141,7 @@ export default function (config: ApibaraRuntimeConfig & {
           };
         });
 
-        await insertSubState(subCreationData as any[]);
+        await insertSubState(subCreationData);
         // await insertSubState(subCreationData.map(data => ({
         //   ...data,
         //   contract_address: data.contract_address?.toString()
@@ -174,7 +176,7 @@ export default function (config: ApibaraRuntimeConfig & {
         }
 
         for (const event of events) {
-          logger.log(`Found event ${event.keys[0]}`);
+          // logger.log(`Found event ${event.keys[0]}`);
 
           // // Log unknown events instead of failing
           // if (!KNOWN_EVENT_KEYS.includes(event.keys[0])) {
@@ -294,7 +296,7 @@ export default function (config: ApibaraRuntimeConfig & {
               break;
             }
             else if (!eventName) {
-              logger.warn(`Skipping unknown event key: ${event.keys[0]}`);
+              // logger.warn(`Skipping unknown event key: ${event.keys[0]}`);
               continue;
             }
             // switch (encode.sanitizeHex(event.keys[0])) {
@@ -341,7 +343,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
 
   function getEventName(eventKey: string): string | undefined {
-    console.log("eventKey", eventKey);
+    // console.log("eventKey", eventKey);
     // console.log("encode.sanitizeHex(NEW_EPOCH)", encode.sanitizeHex(NEW_EPOCH));
     // console.log("encode.sanitizeHex(DEPOSIT_REWARDS)", encode.sanitizeHex(DEPOSIT_REWARDS));
     // console.log("encode.sanitizeHex(DISTRIBUTION_REWARDS)", encode.sanitizeHex(DISTRIBUTION_REWARDS));

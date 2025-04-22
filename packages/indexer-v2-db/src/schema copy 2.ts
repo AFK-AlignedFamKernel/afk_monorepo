@@ -1,63 +1,48 @@
-import { bigint, boolean, decimal, integer, pgTable, primaryKey, text, timestamp, uuid, uniqueIndex, foreignKey } from 'drizzle-orm/pg-core';
+import { bigint, boolean, decimal, integer, pgTable, primaryKey, text, timestamp, uuid, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { InferModel } from 'drizzle-orm';
 
 export const daoCreation = pgTable('dao_creation', {
+  // _id: uuid('_id').primaryKey().defaultRandom(),
   id: uuid('id').primaryKey().defaultRandom(),
   number: bigint('number', { mode: 'number' }),
   hash: text('hash'),
   creator: text('creator'),
   tokenAddress: text('token_address'),
-  contractAddress: text('contract_address').notNull().unique(),
+  contractAddress: text('contract_address'),
   starknetAddress: text('starknet_address'),
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow(),
 });
 
 export const daoProposal = pgTable(
   'dao_proposal',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    contractAddress: text('contract_address').notNull(),
-    proposalId: bigint('proposal_id', { mode: 'bigint' }).notNull(),
-    creator: text('creator').notNull(),
+    contractAddress: text('contract_address'),
+    proposalId: bigint('proposal_id', { mode: 'bigint' }),
+    creator: text('creator'),
     createdAt: integer('created_at'),
     endAt: integer('end_at'),
     isCanceled: boolean('is_canceled').default(false),
     result: text('result'),
-    created_at: timestamp('created_at').defaultNow(),
-    updated_at: timestamp('updated_at').defaultNow(),
   },
-  (table) => ({
-    compositeKey: primaryKey({ columns: [table.contractAddress, table.proposalId] }),
-    daoFk: foreignKey({
-      columns: [table.contractAddress],
-      foreignColumns: [daoCreation.contractAddress],
-    }),
-  }),
+  (table) => [primaryKey({ name: "id_composite", columns: [table.contractAddress, table.proposalId] })],
+  // (table) => [primaryKey({ columns: [table.contractAddress, table.proposalId] })],
 );
 
 export const daoProposalVote = pgTable(
   'dao_proposal_vote',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    contractAddress: text('contract_address').notNull(),
-    proposalId: bigint('proposal_id', { mode: 'bigint' }).notNull(),
-    voter: text('voter').notNull(),
+
+    contractAddress: text('contract_address'),
+    proposalId: bigint('proposal_id', { mode: 'bigint' }),
+    voter: text('voter'),
     vote: text('vote'),
     votes: bigint('votes', { mode: 'bigint' }),
     totalVotes: bigint('total_votes', { mode: 'bigint' }),
     votedAt: integer('voted_at'),
-    created_at: timestamp('created_at').defaultNow(),
-    updated_at: timestamp('updated_at').defaultNow(),
   },
-  (table) => ({
-    compositeKey: primaryKey({ columns: [table.contractAddress, table.proposalId, table.voter] }),
-    proposalFk: foreignKey({
-      columns: [table.contractAddress, table.proposalId],
-      foreignColumns: [daoProposal.contractAddress, daoProposal.proposalId],
-    }),
-  }),
+  (table) => [primaryKey({ name: "id", columns: [table.contractAddress, table.proposalId, table.voter] })],
 );
 
 export const contractState = pgTable('contract_state', {
@@ -110,6 +95,7 @@ export const epochState = pgTable('epoch_state', {
 }));
 
 export const userProfile = pgTable('user_profile', {
+
   id: uuid('id').primaryKey().defaultRandom(),
   nostr_id: text('nostr_id').notNull().unique(),
   starknet_address: text('starknet_address'),
@@ -177,29 +163,10 @@ export const userEpochStateRelations = relations(userEpochState, ({ one }) => ({
   }),
 }));
 
-// Add relations
-export const daoCreationRelations = relations(daoCreation, ({ many }) => ({
-  proposals: many(daoProposal),
-}));
-
-export const daoProposalRelations = relations(daoProposal, ({ one, many }) => ({
-  dao: one(daoCreation, {
-    fields: [daoProposal.contractAddress],
-    references: [daoCreation.contractAddress],
-  }),
-  votes: many(daoProposalVote),
-}));
-
-export const daoProposalVoteRelations = relations(daoProposalVote, ({ one }) => ({
-  proposal: one(daoProposal, {
-    fields: [daoProposalVote.contractAddress, daoProposalVote.proposalId],
-    references: [daoProposal.contractAddress, daoProposal.proposalId],
-  }),
-}));
-
 // Add proper type exports
 export type ContractState = typeof contractState.$inferSelect;
 export type NewContractState = typeof contractState.$inferInsert;
+
 
 export type EpochState = typeof epochState.$inferSelect;
 export type NewEpochState = typeof epochState.$inferInsert;
