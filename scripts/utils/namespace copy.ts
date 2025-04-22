@@ -228,6 +228,21 @@ export const linkedNostrProfile = async () => {
     account
   );
 
+  // const { event, pk, sk } = await linkedToSecond(accountAddress0);
+
+  // const transferred = await event.sig;
+  // const signature = event.sig ?? '';
+
+  // // const transferredR = `0x${transferred.slice(0, transferred.length / 2)}`;
+  // // const transferredS = `0x${transferred.slice(transferred.length / 2)}`;
+
+  // const signatureR = signature.slice(0, signature.length / 2);
+  // const signatureS = signature.slice(signature.length / 2);
+
+
+  // console.log("signatureR", signatureR);
+  // console.log("signatureS", signatureS);
+
   // let strkAddressUsed = "123";
   let strkAddressUsed = accountAddress0;
   strkAddressUsed = accountAddress0;
@@ -242,8 +257,8 @@ export const linkedNostrProfile = async () => {
     const eventNDk = new NDKEvent(ndk);
     eventNDk.kind = NDKKind.Text;
     // eventNDk.content = `link ${cairo.felt(strkAddressUsed)}`;
-    // eventNDk.content = `link ${cairo.felt(strkAddressUsed)}`;
-    eventNDk.content = `link ${strkAddressUsed}`;
+    eventNDk.content = `link ${cairo.felt(strkAddressUsed)}`;
+    // eventNDk.content = `link ${strkAddressUsed}`;
     // eventNDk.content = `link ${accountAddress0}`;
     // eventNDk.created_at = new Date().getTime();
     eventNDk.tags = [];
@@ -264,34 +279,55 @@ export const linkedNostrProfile = async () => {
 
   let linkedArrayCalldata:any = CallData.compile([
     uint256.bnToUint256(`0x${eventUsed?.pubkey}`),
+    // BigInt("0x" + nostrEvent?.pubkey),
+
+    // cairo.uint256(`0x${event.pubkey}`),
+    // cairo.uint256(BigInt(`0x${event.pubkey}`)),
     eventUsed?.created_at,
     eventUsed?.kind ?? 1,
+    // shortString.encodeShortString(JSON.stringify([])),
+    // byteArray.byteArrayFromString(JSON.stringify(eventUsed?.tags)),
     byteArray.byteArrayFromString(JSON.stringify([])),
     {
+      // starknet_address: cairo.felt(account?.address!),
       starknet_address: strkAddressUsed,
+      // starknet_address: cairo.felt(strkAddressUsed),
     },
     {
+      // r: uint256.bnToUint256(`${transferredR}`),
+      // s: uint256.bnToUint256(`${transferredS}`),
       r: uint256.bnToUint256(`0x${signatureR}`),
       s: uint256.bnToUint256(`0x${signatureS}`),
+      // r: cairo.uint256(BigInt(`0x${signatureR}`)),
+      // s: cairo.uint256(BigInt(`0x${signatureS}`)),
     },
+    
   ]);
 
 
-  let objectCalldata= {
+  let objectArrayCalldata = {
       public_key: uint256.bnToUint256(`0x${eventUsed?.pubkey}`),
+      // cairo.uint256(`0x${event.pubkey}`),
+      // pubkey: cairo.uint256(BigInt(`0x${event.pubkey}`)),
       created_at: eventUsed?.created_at,
       kind: eventUsed?.kind ?? 1,
       tags: shortString.encodeShortString(JSON.stringify([])),
+      // tags: byteArray.byteArrayFromString(JSON.stringify(nostrEvent?.tags ?? [])),
+      // tags: JSON.stringify(nostrEvent?.tags),
       content: {
+        // starknet_address: cairo.felt(strkAddressUsed),
+        // nostr_address: uint256.bnToUint256(`0x${eventUsed?.pubkey}`),
         starknet_address: strkAddressUsed,  
+        // go: strkAddressUsed,  
       },
       sig: {
+  
+        // r: uint256.bnToUint256(BigInt(`0x${signatureR}`)),
+        // s: uint256.bnToUint256(BigInt(`0x${signatureS}`)),
         r: uint256.bnToUint256(`0x${signatureR}`),
         s: uint256.bnToUint256(`0x${signatureS}`),
     },
   }
-  // let objectCompiled = CallData.compile(objectCalldata);
-  let objectCompiled = CallData.compile([objectCalldata]);
   // linkedArrayCalldata = CallData.compile({
   //   pubkey: uint256.bnToUint256(`0x${event.pubkey}`),
   //   // cairo.uint256(`0x${event.pubkey}`),
@@ -318,23 +354,12 @@ export const linkedNostrProfile = async () => {
 
   console.log("linked array calldata", linkedArrayCalldata);
 
-  // const linkedNamespace = {
-  //   contractAddress: namespace_address,
-  //   entrypoint: 'linked_nostr_profile',
-  //   // entrypoint: 'linked_nostr_default_account',
-  //   // calldata: CallData.compile(linkedArrayCalldata)
-  //   calldata: linkedArrayCalldata,
-  //   // calldata: objectCompiled,
-  //   // calldata: CallData.compile(linkedArrayCalldata),
-
-  // };
   const linkedNamespace = {
-    contractAddress: nostrfiContract?.address,
+    contractAddress: namespace_address,
     entrypoint: 'linked_nostr_profile',
     // entrypoint: 'linked_nostr_default_account',
     // calldata: CallData.compile(linkedArrayCalldata)
     calldata: linkedArrayCalldata,
-    // calldata: objectCompiled,
     // calldata: CallData.compile(linkedArrayCalldata),
 
   };
@@ -344,15 +369,10 @@ export const linkedNostrProfile = async () => {
   console.log("execute linked namespace");
   // const tx = await nostrfiContract.linked_nostr_profile(objectArrayCalldata);
   // const tx = await namespaceContract.linked_nostr_profile(linkedArrayCalldata);
-  // const tx = await namespaceContract.linked_nostr_profile(objectArrayCalldata);
+  const tx = await namespaceContract.linked_nostr_profile(objectArrayCalldata);
 
-  console.log("execute linked nostr score namespace");
-  // const tx2 = await nostrfiContract.linked_nostr_profile(objectCompiled);
-  // const tx2 = await nostrfiContract.linked_nostr_profile(objectCompiled);
-  const tx2 = await nostrfiContract.linked_nostr_profile(linkedArrayCalldata);
-  // const tx2 = await account?.execute([linkedNamespace], undefined, {});
-  // console.log("tx", tx);
-  console.log("tx2", tx2);
+  // const tx = await account?.execute([linkedNamespace], undefined, {});
+  console.log("tx", tx);
 
 }
 
