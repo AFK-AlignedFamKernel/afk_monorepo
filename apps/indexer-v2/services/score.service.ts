@@ -1,6 +1,6 @@
 
 import { Abi, decodeEvent, StarknetStream } from '@apibara/starknet';
-import { encode, hash } from 'starknet';
+import { byteArray, encode, hash, uint256 } from 'starknet';
 
 import {
   upsertContractState,
@@ -23,8 +23,8 @@ export const LINKED_ADDRESS = hash.getSelectorFromName('LinkedDefaultStarknetAdd
 export const PUSH_ALGO_SCORE = hash.getSelectorFromName('PushAlgoScoreEvent') as `0x${string}`;
 export const ADD_TOPICS = hash.getSelectorFromName('AddTopicsMetadataEvent') as `0x${string}`;
 export const NOSTR_METADATA = hash.getSelectorFromName('NostrMetadataEvent') as `0x${string}`;
-
-const KNOWN_EVENT_KEYS = [
+export const TIP_USER_WITH_VOTE = "0x00d8310ad187f4cc2574733c2d55959bcf36b83d4f1594a7edb5ca0706a612bf";
+export const KNOWN_EVENT_KEYS = [
   NEW_EPOCH,
   DEPOSIT_REWARDS,
   DISTRIBUTION_REWARDS,
@@ -33,15 +33,14 @@ const KNOWN_EVENT_KEYS = [
   PUSH_ALGO_SCORE,
   ADD_TOPICS,
   NOSTR_METADATA,
+  TIP_USER_WITH_VOTE,
 ]
-
-
 
 export const handleEvent = async (event: any, contractAddress: string) => {
   const eventName = getEventName(event.keys[0]);
   if (!KNOWN_EVENT_KEYS.includes(event.keys[0])) {
     console.log("event not found", event.keys[0]);
-    return;
+    // return;
   }
   if (event?.keys[0] == encode.sanitizeHex(NEW_EPOCH)) {
 
@@ -135,8 +134,47 @@ export const handleEvent = async (event: any, contractAddress: string) => {
     });
     console.log("decodedEvent", decodedEvent);
     return await handleAddTopicsEvent(decodedEvent, event.address);
+  } 
+  else if (event?.keys[0] == encode.sanitizeHex(TIP_USER)) {
+    console.log("TIP_USER");
+    console.log("event find",);
+
+    const decodedEvent = decodeEvent({
+      abi: nostrFiScoringABI as Abi,
+      event,
+      eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::TipUserWithVote",
+    });
+    console.log("decodedEvent", decodedEvent);
+    return await handleTipUserEvent(decodedEvent, event.address);
   }
-  else if (!eventName) {
+  else if (event?.keys[0] == encode.sanitizeHex(TIP_USER_WITH_VOTE)) {
+    console.log("TIP_USER_WITH_VOTE");
+    console.log("event find",);
+
+    const decodedEvent = decodeEvent({
+      abi: nostrFiScoringABI as Abi,
+      event,
+      eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::TipUserWithVote",
+    });
+    console.log("decodedEvent", decodedEvent);
+    return await handleTipUserEvent(decodedEvent, event.address);
+  }
+  else {
+    console.log("TIP_USER");
+    console.log("event else issue sanitize",);
+
+    const decodedEvent = decodeEvent({
+      abi: nostrFiScoringABI as Abi,
+      event,
+      eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::TipUserWithVote",
+    });
+    console.log("decodedEvent", decodedEvent);
+    await handleTipUserEvent(decodedEvent, event.address);
+  }
+  if (!eventName) {
+    console.log("event keys", event.keys[0]);
+    console.log("TIP_USER is this why", TIP_USER);
+    console.log("TIP_USER is this why encode", encode.sanitizeHex(TIP_USER));
     // logger.warn(`Skipping unknown event key: ${event.keys[0]}`);
     return undefined;
   }
@@ -198,12 +236,33 @@ function getEventName(eventKey: string): string | undefined {
 
 async function handleNewEpochEvent(event: any, contractAddress: string) {
   try {
+    console.log("handleNewEpochEvent", event);
+    let startDurationBn= event?.args?.start_duration;
+    let endDurationBn = event?.args?.end_duration;
+    let epochDurationBn = event?.args?.epoch_duration;
+    let startDuration = formatUnits(startDurationBn, 18);
+    let endDuration = formatUnits(endDurationBn, 18);
+    let epochDuration = Number(formatUnits(epochDurationBn, 18));
+    console.log("startDuration", startDuration);
+    console.log("endDuration", endDuration);
+    console.log("epochDuration", epochDuration);
+    // let epochDurationDate = new Date(epochDuration);
+    // let startDurationDate = new Date(startDuration);
+    // let endDurationDate = new Date(endDuration);
+
+    let epochDurationDate = new Date(epochDuration);
+    let startDurationDate = new Date(startDuration);
+    let endDurationDate = new Date(endDuration);
+
+    console.log("epochDurationDate", epochDurationDate);
+    console.log("startDurationDate", startDurationDate);
+    console.log("endDurationDate", endDurationDate);
     const contractResult = await upsertContractState({
       contract_address: contractAddress,
-      current_epoch_index: event.current_epoch_index,
-      current_epoch_start: new Date(formatUnits(event.start_duration, 18)),
-      current_epoch_end: new Date(formatUnits(event.end_duration, 18)),
-      current_epoch_duration: event.epoch_duration,
+      current_epoch_index: event.args?.current_index_epoch,
+      current_epoch_start: startDurationDate,
+      current_epoch_end: endDurationDate,
+      current_epoch_duration: epochDuration,
     });
 
     if (!contractResult) {
@@ -213,9 +272,9 @@ async function handleNewEpochEvent(event: any, contractAddress: string) {
     const epochResult = await upsertEpochState({
       contract_address: contractAddress,
       epoch_index: event.current_epoch_index,
-      start_time: new Date(event.start_duration * 1000),
-      end_time: new Date(event.end_duration * 1000),
-      epoch_duration: event.epoch_duration,
+      start_time: startDurationDate,
+      end_time: endDurationDate,
+      epoch_duration: epochDuration,
     });
 
     if (!epochResult) {
@@ -268,25 +327,30 @@ async function handleDistributionRewardsEvent(event: any, contractAddress: strin
       total_to_claimed: event.amount_total,
     });
 
+    let amountTokenBn = event.args?.amount_token;
+    let amountToken = formatUnits(amountTokenBn, 18);
+    const nostrAddressUint256= event.args?.nostr_address;
+    const nostrAddress =  uint256.bnToUint256(nostrAddressUint256);
+    console.log("nostrAddress", nostrAddress);
     await upsertEpochState({
       contract_address: contractAddress,
-      epoch_index: event.epoch_index,
-      amount_claimed: event.amount_total,
-      amount_algo: event.amount_algo,
-      amount_vote: event.amount_vote,
+      epoch_index: event.args?.epoch_index,
+      amount_claimed: amountToken,
+      amount_algo: formatUnits(event.args?.amount_algo ?? 0, 18),
+      amount_vote: formatUnits(event.args?.amount_vote ?? 0, 18),
     });
 
-    if (event.nostr_address) {
+    if (nostrAddress) {
       await upsertUserProfile({
-        nostr_id: event.nostr_address,
-        amount_claimed: event.amount_total,
+        nostr_id: nostrAddress.toString(),
+        amount_claimed: amountToken,
       });
 
       await upsertUserEpochState({
-        nostr_id: event.nostr_address,
+        nostr_id: nostrAddress.toString(),
         contract_address: contractAddress,
-        epoch_index: event.epoch_index,
-        amount_claimed: event.amount_total,
+        epoch_index: event.args?.epoch_index,
+        amount_claimed: amountToken,
       });
     }
   } catch (error) {
@@ -297,28 +361,31 @@ async function handleDistributionRewardsEvent(event: any, contractAddress: strin
 async function handleTipUserEvent(event: any, contractAddress: string) {
   try {
     console.log("handleTipUserEvent", event);
+
+    const amountTokenBn = event.args?.amount_token;
+    const amountToken = formatUnits(amountTokenBn, 18);
     await upsertContractState({
       contract_address: contractAddress,
-      total_tips: event.amount_token,
+      total_tips: amountToken,
     });
 
     await upsertEpochState({
       contract_address: contractAddress,
-      epoch_index: event.epoch_index,
-      total_tip: event.amount_token,
+      epoch_index: event.args?.current_index_epoch,
+      total_tip: amountToken,
     });
 
     if (event.nostr_address) {
       await upsertUserProfile({
-        nostr_id: event.nostr_address,
-        total_tip: event.amount_token,
+        nostr_id: event.args?.nostr_address,
+        total_tip: amountToken,
       });
 
       await upsertUserEpochState({
-        nostr_id: event.nostr_address,
+        nostr_id: event.args?.nostr_address,
         contract_address: contractAddress,
-        epoch_index: event.epoch_index,
-        total_tip: event.amount_token,
+        epoch_index: event.args?.epoch_index,
+        total_tip: amountToken,
       });
     }
   } catch (error) {
@@ -374,10 +441,9 @@ async function handleAddTopicsEvent(event: any, contractAddress: string) {
   try {
     await upsertContractState({
       contract_address: contractAddress,
-      topic_metadata: event.topic_metadata,
-      main_tag: event.main_tag,
-      keyword: event.keyword,
-      keywords: event.keywords,
+      topic_metadata: byteArray.stringFromByteArray(event?.args?.topic_metadata),
+      main_tag: byteArray.stringFromByteArray(event?.args?.main_tag),
+      keyword: byteArray.stringFromByteArray(event?.args?.keyword),
     });
   } catch (error) {
     console.log("error handleAddTopicsEvent", error);
@@ -386,13 +452,14 @@ async function handleAddTopicsEvent(event: any, contractAddress: string) {
 
 async function handleNostrMetadataEvent(event: any, contractAddress: string) {
   try {
+    console.log("handleNostrMetadataEvent event", event);
     await upsertContractState({
       contract_address: contractAddress,
-      nostr_metadata: event.nostr_metadata,
-      name: event.name,
-      about: event.about,
-      event_id_nip_29: event.event_id_nip_29,
-      event_id_nip_72: event.event_id_nip_72,
+      name: byteArray.stringFromByteArray(event?.args?.main_tag ?? ""),
+      about: byteArray.stringFromByteArray(event?.args?.about),
+      event_id_nip_29: event?.args?.event_id_nip_29,
+      event_id_nip_72: event?.args?.event_id_nip_72,
+      main_tag: byteArray.stringFromByteArray(event?.args?.main_tag ?? ""),
     });
   } catch (error) {
     console.log("error handleNostrMetadataEvent", error);

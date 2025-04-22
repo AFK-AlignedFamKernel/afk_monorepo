@@ -9,6 +9,7 @@ import {
   ADD_TOPICS,
   NOSTR_METADATA,
   handleEvent,
+  KNOWN_EVENT_KEYS
 } from "@/services/score.service";
 import { Abi, StarknetStream, decodeEvent } from "@apibara/starknet";
 import { defineIndexer } from "apibara/indexer";
@@ -33,10 +34,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   return defineIndexer(StarknetStream)({
     streamUrl: runtimeConfig?.streamUrl ?? "https://starknet.preview.apibara.org",
     // finality: "accepted",
-    // startingBlock: 705_000n,
-    startingCursor: {
-      orderKey: BigInt(runtimeConfig?.startingCursor?.orderKey),
-    },
+    startingBlock: 705_000n,
+    // startingCursor: {
+    //   orderKey: BigInt(runtimeConfig?.startingCursor?.orderKey),
+    // },
     plugins: [drizzleStorage({
       db: db as any,
     })],
@@ -171,7 +172,14 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           address: topicAddress,
           keys: [NEW_EPOCH, DEPOSIT_REWARDS, DISTRIBUTION_REWARDS, TIP_USER, LINKED_ADDRESS, PUSH_ALGO_SCORE, ADD_TOPICS, NOSTR_METADATA],
         }
-        return eventData;
+
+        let arrayEvents = KNOWN_EVENT_KEYS.map((event) => {
+          return {
+            address: topicAddress,
+            keys: [event],
+          }
+        })
+        return arrayEvents;
       });
       let filteredSubCreationDataArray = subCreationDataArray.filter((item:any) => item !== undefined);
       // console.log("filteredSubCreationDataArray", filteredSubCreationDataArray)
@@ -181,7 +189,6 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
       }
 
       console.log("subEvents", subEvents)
-
 
       // if (subEvents.length === 0) {
       //   return {};
@@ -204,7 +211,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
    
       for (const event of events) {
 
-        console.log("event", event)
+        // console.log("event", event)
         logger.log(
           "Event Address           : ",
           shortAddress(event.address),
@@ -213,8 +220,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           shortAddress(event.keys[0]),
 
         );
-        console.log("event handled", event)
-        console.log("event key", event.keys[0])
+        // console.log("event handled", event)
 
         await handleEvent(event, event.address)
 

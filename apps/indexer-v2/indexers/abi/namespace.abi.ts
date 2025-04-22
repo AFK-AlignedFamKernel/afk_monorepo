@@ -20,6 +20,24 @@ export const ABI = [
   },
   {
     "type": "struct",
+    "name": "core::bytes_31::bytes31",
+    "members": [
+      {
+        "name": "data",
+        "type": "core::array::Array::<core::bytes_31::bytes31>"
+      },
+      {
+        "name": "pending_word",
+        "type": "core::felt252"
+      },
+      {
+        "name": "pending_word_len",
+        "type": "core::integer::u32"
+      }
+    ]
+  },
+  {
+    "type": "struct",
     "name": "afk::social::namespace::NostrAccountScoring",
     "members": [
       {

@@ -5,9 +5,9 @@ import { FACTORY_SCORE_ADDRESS, TOKENS_ADDRESS } from "common";
 dotenv.config();
 
 export const TOPICS_NAME = [
-  "cypherpunk",
+  // "cypherpunk",
   // "content creator economy",
-  // "bitcoin",
+  "bitcoin",
   // "ethereum",
   // "art",
   // "zk",
@@ -34,15 +34,17 @@ export const deployAllChainFactionAdmin = async () => {
   const public_key = uint256.bnToUint256(BigInt("0x" + admin_nostr_pubkey));
 
   const token_address = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK as string;
-  for (let i = 0; i < TOPICS_NAME.length; i++) {
+  // for (let i = 0; i < TOPICS_NAME.length; i++) {
+  for (let topic of TOPICS_NAME) {
     let nostrFiMetadata = {
       nostr_address: public_key,
-      name: byteArray.byteArrayFromString(TOPICS_NAME[i]),
-      about: byteArray.byteArrayFromString(TOPICS_NAME[i]),
+      name: byteArray.byteArrayFromString(topic),
+      about: byteArray.byteArrayFromString(topic),
       event_id_nip_72: uint256.bnToUint256(BigInt(0)),
       event_id_nip_29: uint256.bnToUint256(BigInt(0)),
-      main_tag: byteArray.byteArrayFromString(TOPICS_NAME[i]),
+      main_tag: byteArray.byteArrayFromString(topic),
     }
+    console.log("nostrFiMetadata", nostrFiMetadata)
     const initChainCall = {
       contractAddress: scorefiFactoryContractAddress,
       entrypoint: 'create_nostr_topic',

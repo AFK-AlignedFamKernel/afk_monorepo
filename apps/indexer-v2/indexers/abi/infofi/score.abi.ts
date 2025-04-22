@@ -34,6 +34,16 @@ export const ABI = [
   },
   {
     "type": "struct",
+    "name": "core::bytes_31::bytes31",
+    "members": [
+      {
+        "name": "data",
+        "type": "core::felt252"
+      }
+    ]
+  },
+  {
+    "type": "struct",
     "name": "afk::interfaces::nostrfi_scoring_interfaces::PushAlgoScoreNostrNote",
     "members": [
       {
@@ -972,6 +982,21 @@ export const ABI = [
       {
         "name": "main_tag",
         "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "about",
+        "type": "core::byte_array::ByteArray",
+        "kind": "data"
+      },
+      {
+        "name": "event_id_nip_72",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "event_id_nip_29",
+        "type": "core::integer::u256",
         "kind": "data"
       }
     ]
