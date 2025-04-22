@@ -176,7 +176,7 @@ export const linkedToSecond = async (starknet_address: string) => {
     {
       kind: 1,
       // created_at: new Date().getTime(),
-      created_at:1716285235,
+      created_at: 1716285235,
       tags: [],
       // content: `link to ${cairo.felt(starknet_address)}`,
       // content: `link ${cairo.felt(starknet_address)}`,
@@ -234,6 +234,10 @@ export const linkedNostrProfile = async () => {
 
   console.log("account address", account.address);
 
+
+  console.log("private key", sk);
+  console.log("public key", getPublicKey(sk as any));
+  // console.log("private key", bytesToHex(sk as any));
   const ndk = new NDK({
     // explicitRelayUrls: AFK_RELAYS,
     signer: new NDKPrivateKeySigner(sk),
@@ -242,8 +246,8 @@ export const linkedNostrProfile = async () => {
     const eventNDk = new NDKEvent(ndk);
     eventNDk.kind = NDKKind.Text;
     // eventNDk.content = `link ${cairo.felt(strkAddressUsed)}`;
-    // eventNDk.content = `link ${cairo.felt(strkAddressUsed)}`;
-    eventNDk.content = `link ${strkAddressUsed}`;
+    eventNDk.content = `link ${cairo.felt(strkAddressUsed)}`;
+    // eventNDk.content = `link ${strkAddressUsed}`;
     // eventNDk.content = `link ${accountAddress0}`;
     // eventNDk.created_at = new Date().getTime();
     eventNDk.tags = [];
@@ -262,13 +266,13 @@ export const linkedNostrProfile = async () => {
   const signatureR = signature.slice(0, signature.length / 2);
   const signatureS = signature.slice(signature.length / 2);
 
-  let linkedArrayCalldata:any = CallData.compile([
+  let linkedArrayCalldata: any = CallData.compile([
     uint256.bnToUint256(`0x${eventUsed?.pubkey}`),
     eventUsed?.created_at,
     eventUsed?.kind ?? 1,
-    byteArray.byteArrayFromString(JSON.stringify([])),
+    byteArray.byteArrayFromString(JSON.stringify(eventUsed?.tags ?? [])),
     {
-      starknet_address: strkAddressUsed,
+      starknet_address: strkAddressUsed as `0x${string}`,
     },
     {
       r: uint256.bnToUint256(`0x${signatureR}`),
@@ -277,17 +281,18 @@ export const linkedNostrProfile = async () => {
   ]);
 
 
-  let objectCalldata= {
-      public_key: uint256.bnToUint256(`0x${eventUsed?.pubkey}`),
-      created_at: eventUsed?.created_at,
-      kind: eventUsed?.kind ?? 1,
-      tags: shortString.encodeShortString(JSON.stringify([])),
-      content: {
-        starknet_address: strkAddressUsed,  
-      },
-      sig: {
-        r: uint256.bnToUint256(`0x${signatureR}`),
-        s: uint256.bnToUint256(`0x${signatureS}`),
+  let objectCalldata = {
+    public_key: uint256.bnToUint256(`0x${eventUsed?.pubkey}`),
+    created_at: eventUsed?.created_at,
+    kind: eventUsed?.kind ?? 1,
+    tags: shortString.encodeShortString(JSON.stringify(eventUsed?.tags ?? [])),
+    content: {
+      // starknet_address: strkAddressUsed, 
+      starknet_address: strkAddressUsed as `0x${string}`,
+    },
+    sig: {
+      r: uint256.bnToUint256(`0x${signatureR}`),
+      s: uint256.bnToUint256(`0x${signatureS}`),
     },
   }
   // let objectCompiled = CallData.compile(objectCalldata);
