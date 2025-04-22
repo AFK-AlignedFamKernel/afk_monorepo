@@ -44,13 +44,12 @@ export default function (config: ApibaraRuntimeConfig & {
   console.log("config", config.startingBlock);
   return defineIndexer(StarknetStream)({
     streamUrl: config.streamUrl as string,
-    startingBlock: BigInt(config.startingBlock ?? 533390),
-
-    // startingCursor: {
-    //   orderKey: BigInt(config.startingCursor?.orderKey ?? 533390),
-    //   // blockHash: config.startingCursor.blockHash,
-    //   // orderKey: config.startingCursor.orderKey,
-    // },
+    // startingBlock: BigInt(config.startingBlock ?? 533390),
+    startingCursor: {
+      orderKey: BigInt(config.startingCursor?.orderKey ?? 700390),
+      // blockHash: config.startingCursor.blockHash,
+      // orderKey: config.startingCursor.orderKey,
+    },
     filter: {
       events: [
         {
@@ -58,13 +57,13 @@ export default function (config: ApibaraRuntimeConfig & {
           keys: [
             SUB_CREATED,
             // 
-            // DEPOSIT_REWARDS,
-            // DISTRIBUTION_REWARDS,
-            // TIP_USER,
-            // LINKED_ADDRESS,
-            // PUSH_ALGO_SCORE,
-            // ADD_TOPICS,
-            // NOSTR_METADATA,
+            DEPOSIT_REWARDS,
+            DISTRIBUTION_REWARDS,
+            TIP_USER,
+            LINKED_ADDRESS,
+            PUSH_ALGO_SCORE,
+            ADD_TOPICS,
+            NOSTR_METADATA,
           ],
         },
       ],
@@ -85,10 +84,7 @@ export default function (config: ApibaraRuntimeConfig & {
       // ],
     },
     plugins: [drizzleStorage({
-      db,
-      // idColumn: 'id'
-
-      // idColumn: 'id'
+      db: db as any,
     })],
     async factory({ block: { events, header } }) {
       try {
@@ -189,15 +185,16 @@ export default function (config: ApibaraRuntimeConfig & {
 
           try {
             let sanitizedEventKey = encode.sanitizeHex(event.keys[0]);
-            console.log("event.keys[0]", event.keys[0]);
-            console.log("sanitizedEventKey", sanitizedEventKey);
+   
             const eventName = getEventName(event?.keys[0]);
-            console.log("eventName", eventName);
-
+            // console.log("event.keys[0]", event.keys[0]);
+            // console.log("sanitizedEventKey", sanitizedEventKey);
+            // console.log("eventName", eventName);
             let decodedEvent: any;
 
             if (event?.keys[0] == encode.sanitizeHex(NEW_EPOCH)) {
 
+              console.log("NEW_EPOCH");
               const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
                 event,
@@ -205,11 +202,11 @@ export default function (config: ApibaraRuntimeConfig & {
               });
               console.log("decodedEvent", decodedEvent);
 
-              console.log("NEW_EPOCH", decodedEvent);
               await handleNewEpochEvent(decodedEvent, event.address);
               break;
             }
             else if (event?.keys[0] == encode.sanitizeHex(NOSTR_METADATA)) {
+              console.log("event find",);
               console.log("NOSTR_METADATA",);
 
               const decodedEvent = decodeEvent({
@@ -221,6 +218,8 @@ export default function (config: ApibaraRuntimeConfig & {
               await handleNostrMetadataEvent(decodedEvent, event.address);
               break;
             } else if (event?.keys[0] == encode.sanitizeHex(DEPOSIT_REWARDS)) {
+              console.log("DEPOSIT_REWARDS");
+              console.log("event find",);
 
               const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
@@ -228,21 +227,25 @@ export default function (config: ApibaraRuntimeConfig & {
                 eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::DepositRewardsByUserEvent",
               });
               console.log("decodedEvent", decodedEvent);
-              console.log("DEPOSIT_REWARDS", decodedEvent);
               await handleDepositRewardsEvent(decodedEvent, event.address);
               break;
             } else if (event?.keys[0] == encode.sanitizeHex(DISTRIBUTION_REWARDS)) {
+              console.log("DISTRIBUTION_REWARDS");
+              console.log("event find",);
+
               const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
                 event,
                 eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::DistributionRewardsByUserEvent",
               });
               console.log("decodedEvent", decodedEvent);
-              console.log("DISTRIBUTION_REWARDS", decodedEvent);
               await handleDistributionRewardsEvent(decodedEvent, event.address);
               break;
             } else if (event?.keys[0] == encode.sanitizeHex(TIP_USER)) {
               console.log("TipUserWithVote",);
+              console.log("TIP_USER",);
+              console.log("event find",);
+
               const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
                 event,
@@ -253,6 +256,9 @@ export default function (config: ApibaraRuntimeConfig & {
               await handleTipUserEvent(decodedEvent, event.address);
               break;
             } else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS)) {
+              console.log("LINKED_ADDRESS");
+              console.log("event find",);
+
               const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
                 event,
@@ -263,31 +269,34 @@ export default function (config: ApibaraRuntimeConfig & {
               await handleLinkedAddressEvent(decodedEvent, event.address);
               break;
             } else if (event?.keys[0] == encode.sanitizeHex(PUSH_ALGO_SCORE)) {
+              console.log("PUSH_ALGO_SCORE");
+              console.log("event find",);
+
               const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
                 event,
                 eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::PushAlgoScoreEvent",
               });
               console.log("decodedEvent", decodedEvent);
-              console.log("PUSH_ALGO_SCORE", decodedEvent);
               await handlePushAlgoScoreEvent(decodedEvent, event.address);
               break;
             } else if (event?.keys[0] == encode.sanitizeHex(ADD_TOPICS)) {
+              console.log("event find",);
+              console.log("ADD_TOPICS");
+
               const decodedEvent = decodeEvent({
                 abi: nostrFiScoringABI as Abi,
                 event,
                 eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::AddTopicsMetadataEvent",
               });
               console.log("decodedEvent", decodedEvent);
-              console.log("ADD_TOPICS", decodedEvent);
               await handleAddTopicsEvent(decodedEvent, event.address);
               break;
             }
-            // if (!eventName) {
-            //   console.log("Skipping unknown event key: ", event.keys[0]);
-            //   logger.warn(`Skipping unknown event key: ${event.keys[0]}`);
-            //   continue;
-            // }
+            else if (!eventName) {
+              logger.warn(`Skipping unknown event key: ${event.keys[0]}`);
+              continue;
+            }
             // switch (encode.sanitizeHex(event.keys[0])) {
             // switch (event.keys[0]) {
             //   case NEW_EPOCH:

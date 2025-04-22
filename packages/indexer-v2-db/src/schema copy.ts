@@ -8,13 +8,11 @@ export const daoCreation = pgTable('dao_creation', {
   hash: text('hash'),
   creator: text('creator'),
   tokenAddress: text('token_address'),
-  contractAddress: text('contract_address').notNull(),
+  contractAddress: text('contract_address').notNull().unique(),
   starknetAddress: text('starknet_address'),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
-}, (table) => ({
-  contractAddressIdx: uniqueIndex('dao_creation_contract_address_idx').on(table.contractAddress)
-}));
+});
 
 export const daoProposal = pgTable(
   'dao_proposal',
@@ -31,12 +29,11 @@ export const daoProposal = pgTable(
     updated_at: timestamp('updated_at').defaultNow(),
   },
   (table) => ({
-    proposalKey: primaryKey({ name: 'dao_proposal_pkey', columns: [table.contractAddress, table.proposalId] }),
+    compositeKey: primaryKey({ columns: [table.contractAddress, table.proposalId] }),
     daoFk: foreignKey({
-      name: 'dao_proposal_contract_address_fkey',
       columns: [table.contractAddress],
       foreignColumns: [daoCreation.contractAddress],
-    }).onDelete('cascade'),
+    }),
   }),
 );
 
@@ -55,12 +52,11 @@ export const daoProposalVote = pgTable(
     updated_at: timestamp('updated_at').defaultNow(),
   },
   (table) => ({
-    voteKey: primaryKey({ name: 'dao_proposal_vote_pkey', columns: [table.contractAddress, table.proposalId, table.voter] }),
+    compositeKey: primaryKey({ columns: [table.contractAddress, table.proposalId, table.voter] }),
     proposalFk: foreignKey({
-      name: 'dao_proposal_vote_proposal_fkey',
       columns: [table.contractAddress, table.proposalId],
       foreignColumns: [daoProposal.contractAddress, daoProposal.proposalId],
-    }).onDelete('cascade'),
+    }),
   }),
 );
 

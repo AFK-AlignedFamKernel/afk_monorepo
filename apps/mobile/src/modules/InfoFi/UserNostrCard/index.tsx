@@ -4,6 +4,7 @@ import React from 'react';
 import { Pressable, View } from 'react-native';
 
 import { Avatar, Text, Button, Input } from 'src/components';
+import { useTheme } from 'src/hooks';
 import { useStyles } from 'src/hooks';
 import stylesheet from './styles';
 import { UserCard } from './User';
@@ -14,6 +15,7 @@ import { useVoteTip, VoteParams } from 'src/hooks/infofi/useVote';
 import { useAccount } from '@starknet-react/core';
 import { NOSTR_FI_SCORING_ADDRESS } from 'common';
 import { constants } from 'starknet';
+import { formatUnits } from 'viem';
 export type UserCardProps = {
   profile?: NDKUserProfile;
   contractAddressSubScore?: string;
@@ -30,6 +32,7 @@ export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profile
   const styles = useStyles(stylesheet);
   const navigation = useNavigation<MainStackNavigationProps>();
 
+  const {theme} = useTheme();
   const account = useAccount();
 
   const handleProfilePress = (userId?: string) => {
@@ -40,7 +43,12 @@ export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profile
 
   const { handleVoteStarknetOnly } = useVoteTip();
 
+  const formatDecimal = (value: any) => {
+    if (!value) return '0';
+    return formatUnits(BigInt(Math.floor(Number(value) * 1e18)), 18);
+  };
 
+  
   const voteParamsDefault: VoteParams = {
     nostr_address: profileIndexer?.nostr_id,
     vote: 'good',
@@ -116,6 +124,51 @@ export const UserNostrCard: React.FC<UserCardProps> = ({ profile, event, profile
           </View>
 
 
+        </View>
+
+        <View style={[styles.statsContainer, {
+          flexDirection: 'row',
+          justifyContent: 'space-around',
+          paddingVertical: 16,
+          borderTopWidth: 1,
+          borderTopColor: theme.colors.cardBorder,
+          marginTop: 12
+        }]}>
+          <View style={[styles.statItem, {
+            alignItems: 'center',
+            flex: 1
+          }]}>
+            <Text style={[styles.statLabel, {
+              fontSize: 14,
+              color: theme.colors.text,
+              opacity: 0.7,
+              marginBottom: 4
+            }]}>AI Score</Text>
+            <Text style={[styles.statValue, {
+              fontSize: 18,
+              fontWeight: '600',
+              color: theme.colors.primary
+              }]}>{formatDecimal(profileIndexer?.total_ai_score)}</Text>
+          </View>
+          
+          <View style={[styles.statItem, {
+            alignItems: 'center', 
+            flex: 1,
+            borderLeftWidth: 1,
+            borderLeftColor: theme.colors.inputBorder
+          }]}>
+            <Text style={[styles.statLabel, {
+              fontSize: 14,
+              color: theme.colors.text,
+              opacity: 0.7,
+              marginBottom: 4
+            }]}>Vote Score</Text>
+            <Text style={[styles.statValue, {
+              fontSize: 18,
+              fontWeight: '600',
+              color: theme.colors.primary
+            }]}>{formatDecimal(profileIndexer?.total_vote_score)}</Text>
+          </View>
         </View>
 
         <View style={styles.formTipVote}>

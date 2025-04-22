@@ -67,13 +67,13 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
     return <Loading />;
   }
 
-  if (isError) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Error loading sub information</Text>
-      </View>
-    );
-  }
+  // if (isError) {
+  //   return (
+  //     <View style={styles.errorContainer}>
+  //       <Text style={styles.errorText}>Error loading sub information</Text>
+  //     </View>
+  //   );
+  // }
 
   const handleDeposit = async () => {
     await handleDepositRewards({
@@ -102,6 +102,18 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
       </View>
 
       <View style={styles.statsGrid}>
+      <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Total Tips</Text>
+          <Text style={styles.statValue}>
+            {formatDecimal(subDetails.total_tips)}
+          </Text>
+        </View>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Total Deposits</Text>
+          <Text style={styles.statValue}>
+            {formatDecimal(subDetails.total_amount_deposit)}
+          </Text>
+        </View>
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>Total AI Score</Text>
           <Text style={styles.statValue}>
@@ -114,18 +126,7 @@ export const SubPageComponent: React.FC<SubPageRouteParams> = ({ subAddress }) =
             {formatDecimal(subDetails.total_vote_score)}
           </Text>
         </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Total Tips</Text>
-          <Text style={styles.statValue}>
-            {formatDecimal(subDetails.total_tips)}
-          </Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Total Deposits</Text>
-          <Text style={styles.statValue}>
-            {formatDecimal(subDetails.total_amount_deposit)}
-          </Text>
-        </View>
+       
       </View>
 
       <View style={styles.actionsContainer}>

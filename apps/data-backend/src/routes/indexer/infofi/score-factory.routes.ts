@@ -39,6 +39,9 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
         });
         return;
       }
+
+      // // Get sub and epoch states with aggregation query
+
       const sub = await db
         .select()
         .from(contractState)
@@ -47,14 +50,37 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
 
       console.log('sub', sub);
 
-      const epochStates = await db
-      .select()
-      .from(epochState)
-      .where(eq(epochState.contract_address, sub_address))
-      .groupBy(epochState.epoch_index);
-      // Get epoch states for this sub
+      const result = await db.query.contractState.findMany({
+        where: eq(contractState.contract_address, sub_address),
+        with: {
+          epochs: true,
+          // userProfiles: true,
+        },
+      });
 
-      console.log('epochStates', epochStates);
+      console.log('result', result);
+      // // Get epoch states for this sub
+
+      // const epochStates = await db
+      //   .select({
+      //     epoch_index: epochState.epoch_index,
+      //     contract_address: epochState.contract_address,
+      //     total_ai_score: epochState.total_ai_score,
+      //     total_vote_score: epochState.total_vote_score,
+      //     total_amount_deposit: epochState.total_amount_deposit,
+      //     total_tip: epochState.total_tip,
+      //     amount_claimed: epochState.amount_claimed,
+      //     amount_vote: epochState.amount_vote,
+      //     amount_algo: epochState.amount_algo,
+      //     epoch_duration: epochState.epoch_duration,
+      //     start_time: epochState.start_time,
+      //     end_time: epochState.end_time,
+      //   })
+      //   .from(epochState)
+      //   .where(eq(epochState.contract_address, sub_address))
+      //   .orderBy(epochState.epoch_index);
+
+      // console.log('epochStates', epochStates);
 
       // const userEpochStates = await db
       //   .select({
@@ -76,7 +102,8 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
       if (sub.length > 0) {
         reply.status(HTTPStatus.OK).send({
           sub:sub[0],
-          epochs: epochStates
+          // epochs: epochStates
+          epochs: result?.[0]?.epochs
         });
       } else {
         reply.status(HTTPStatus.NotFound).send();

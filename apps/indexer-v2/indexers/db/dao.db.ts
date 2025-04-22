@@ -1,6 +1,7 @@
 import { daoCreation, daoProposal, daoProposalVote } from 'indexer-v2-db/schema';
 import { and, eq } from 'drizzle-orm';
 import { useDrizzleStorage } from '@apibara/plugin-drizzle';
+import { sql } from 'drizzle-orm';
 
 interface DaoCreationData {
   number: number;
@@ -27,12 +28,21 @@ interface ProposalVoteData {
   votedAt: number;
 }
 
-export async function insertDaoCreation(daoCreationData: DaoCreationData[]) {
+export async function insertDaoCreation(daoCreationData: any[]) {
+  const { db } = useDrizzleStorage();
   try {
-    const { db } = useDrizzleStorage();
-    return db.insert(daoCreation).values(daoCreationData).onConflictDoNothing();
+    // First try to remove existing trigger if it exists
+    await db.execute(
+      sql`DROP TRIGGER IF EXISTS dao_creation_reorg_indexer_dao_factory_default ON dao_creation`
+    );
+    
+    // Then perform the insert
+    return db.insert(daoCreation)
+      .values(daoCreationData)
+      .onConflictDoNothing();
   } catch (error) {
-    console.log("error insertDaoCreation", error);
+    console.error('Error in insertDaoCreation:', error);
+    throw error;
   }
 }
 

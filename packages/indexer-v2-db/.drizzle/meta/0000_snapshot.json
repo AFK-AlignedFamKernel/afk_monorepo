@@ -1,5 +1,5 @@
 {
-  "id": "11e05d6f-d301-4fba-aa4b-82c05b176d42",
+  "id": "ba6bc002-4eaa-406a-be80-f96e2d6399d6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -230,16 +230,46 @@
           "name": "contract_address",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "starknet_address": {
           "name": "starknet_address",
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "dao_creation_contract_address_idx": {
+          "name": "dao_creation_contract_address_idx",
+          "columns": [
+            {
+              "expression": "contract_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -262,25 +292,26 @@
           "name": "contract_address",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "proposal_id": {
           "name": "proposal_id",
           "type": "bigint",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "creator": {
           "name": "creator",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "now()"
         },
         "end_at": {
           "name": "end_at",
@@ -300,13 +331,34 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "dao_proposal_contract_address_fkey": {
+          "name": "dao_proposal_contract_address_fkey",
+          "tableFrom": "dao_proposal",
+          "tableTo": "dao_creation",
+          "columnsFrom": [
+            "contract_address"
+          ],
+          "columnsTo": [
+            "contract_address"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
-        "id_composite": {
-          "name": "id_composite",
+        "dao_proposal_pkey": {
+          "name": "dao_proposal_pkey",
           "columns": [
             "contract_address",
             "proposal_id"
@@ -333,19 +385,19 @@
           "name": "contract_address",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "proposal_id": {
           "name": "proposal_id",
           "type": "bigint",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "voter": {
           "name": "voter",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "vote": {
           "name": "vote",
@@ -370,13 +422,43 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "dao_proposal_vote_proposal_fkey": {
+          "name": "dao_proposal_vote_proposal_fkey",
+          "tableFrom": "dao_proposal_vote",
+          "tableTo": "dao_proposal",
+          "columnsFrom": [
+            "contract_address",
+            "proposal_id"
+          ],
+          "columnsTo": [
+            "contract_address",
+            "proposal_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
-        "id": {
-          "name": "id",
+        "dao_proposal_vote_pkey": {
+          "name": "dao_proposal_vote_pkey",
           "columns": [
             "contract_address",
             "proposal_id",

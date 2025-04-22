@@ -36,13 +36,8 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
         },
       ],
     },
-    plugins: [drizzleStorage({ 
-      db,
-      // idColumn: 'id'
-      // idColumn: [ {
-      //   'dao_creation': 'id',
-      //   'dao_proposal': ['contract_address', 'proposal_id']
-      // }]
+    plugins: [drizzleStorage({
+      db: db as any, // Temporary type assertion while we fix the underlying issue
     })],
     async factory({ block: { events, header } }) {
       const logger = useLogger();
@@ -96,6 +91,7 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
     async transform({ block }) {
       const logger = useLogger();
       const { events, header } = block;
+      console.log("events", events?.length);
 
       if (events.length === 0) {
         return;
