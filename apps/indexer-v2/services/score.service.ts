@@ -397,8 +397,8 @@ async function handleLinkedAddressEvent(event: any, contractAddress: string) {
   try {
     if (event.nostr_address) {
       await upsertUserProfile({
-        nostr_id: event.nostr_address,
-        starknet_address: event.starknet_address,
+        nostr_id: event?.args?.nostr_address,
+        starknet_address: event?.args?.starknet_address,
       });
     }
   } catch (error) {
@@ -410,26 +410,26 @@ async function handlePushAlgoScoreEvent(event: any, contractAddress: string) {
   try {
     await upsertContractState({
       contract_address: contractAddress,
-      total_ai_score: event.total_ai_score,
+      total_ai_score: event?.args?.total_ai_score,
     });
 
     await upsertEpochState({
       contract_address: contractAddress,
-      epoch_index: event.epoch_index,
-      total_ai_score: event.total_ai_score,
+      epoch_index: event?.args?.epoch_index,
+      total_ai_score: event?.args?.total_ai_score,
     });
 
     if (event.nostr_address) {
       await upsertUserProfile({
-        nostr_id: event.nostr_address,
-        total_ai_score: event.total_ai_score,
+        nostr_id: event?.args?.nostr_address,
+        total_ai_score: event?.args?.total_ai_score,
       });
 
       await upsertUserEpochState({
-        nostr_id: event.nostr_address,
+        nostr_id: event?.args?.nostr_address,
         contract_address: contractAddress,
-        epoch_index: event.epoch_index,
-        total_ai_score: event.total_ai_score,
+        epoch_index: event?.args?.epoch_index,
+        total_ai_score: event?.args?.total_ai_score,
       });
     }
   } catch (error) {

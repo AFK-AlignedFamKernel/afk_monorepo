@@ -4,7 +4,7 @@ import { Account, byteArray, cairo, CallData, constants, uint256 } from "starkne
 import { NAMESPACE_ADDRESS } from "../constants";
 import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
-import { createNamespace, linkedNostrProfile } from "../utils/namespace";
+import { createNamespace } from "../utils/namespace";
 import { finalizeEvent, serializeEvent, verifyEvent } from "nostr-tools";
 dotenv.config();
 export const deployNamespace = async () => {
