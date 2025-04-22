@@ -1,6 +1,4 @@
-import { defineIndexer } from '@apibara/indexer';
-import { useLogger } from '@apibara/indexer/plugins';
-import { drizzleStorage } from '@apibara/plugin-drizzle';
+
 import { Abi, decodeEvent, StarknetStream } from '@apibara/starknet';
 import { encode, hash } from 'starknet';
 
@@ -39,9 +37,10 @@ const KNOWN_EVENT_KEYS = [
 
 
 
-const handleEvent = async (event: any, contractAddress: string) => {
+export const handleEvent = async (event: any, contractAddress: string) => {
   const eventName = getEventName(event.keys[0]);
   if (!KNOWN_EVENT_KEYS.includes(event.keys[0])) {
+    console.log("event not found", event.keys[0]);
     return;
   }
   if (event?.keys[0] == encode.sanitizeHex(NEW_EPOCH)) {

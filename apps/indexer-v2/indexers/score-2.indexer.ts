@@ -1,4 +1,5 @@
-import { SUB_CREATED ,
+import {
+  SUB_CREATED,
   NEW_EPOCH,
   DEPOSIT_REWARDS,
   DISTRIBUTION_REWARDS,
@@ -6,6 +7,8 @@ import { SUB_CREATED ,
   LINKED_ADDRESS,
   PUSH_ALGO_SCORE,
   ADD_TOPICS,
+  NOSTR_METADATA,
+  handleEvent,
 } from "@/services/score.service";
 import { Abi, StarknetStream, decodeEvent } from "@apibara/starknet";
 import { defineIndexer } from "apibara/indexer";
@@ -19,6 +22,7 @@ import { ABI as nostrFiScoringABI } from './abi/infofi/score.abi';
 // import { ABI as scoreFactoryABI } from './abi/infofi/score-factory.abi';
 import { ABI as scoreFactorySecondABI } from './abi/infofi/scoreFactory.abi';
 import { ABI as scoreFactoryABI } from './abi/infofi/score-factory.abi';
+import { insertSubState } from "./db/nostr-fi.db";
 
 const PAIR_CREATED = hash.getSelectorFromName("PairCreated") as `0x${string}`;
 const SWAP = hash.getSelectorFromName("Swap") as `0x${string}`;
@@ -59,10 +63,12 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         },
       ],
     },
-    async factory({ block: { events }}) {
+    async factory({ block: { events } }) {
       const logger = useLogger();
-
-      const poolEvents = (events ?? []).flatMap((event) => {
+      console.log("events", events)
+      console.log("factory started")
+      const subCreationDataArray:any= [];
+      const subEvents = (events ?? []).flatMap((event) => {
 
         const decodedEvent = decodeEvent({
           abi: scoreFactoryABI as Abi,
@@ -83,10 +89,11 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         const topicAddress = decodedEvent?.args?.topic_address;
         console.log("topicAddress", topicAddress);
         let pairAddress = event.data?.[2];
-        console.log("pairAddress", pairAddress);
         console.log("topicAddress", topicAddress);
 
         pairAddress = topicAddress;
+        console.log("pairAddress", pairAddress);
+
         const creator = decodedEvent?.args?.admin;
         const tokenAddress = decodedEvent?.args?.main_token_address;
         // const starknetAddress = decodedEvent?.args?.starknet_address?.toString() as string;
@@ -96,8 +103,8 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           "Factory: PairAddress    : ",
           `\x1b[35m${pairAddress}\x1b[0m`,
         );
-        
-        return {
+
+        let subCreationData = {
           address: pairAddress,
           keys: [NEW_EPOCH, DEPOSIT_REWARDS, DISTRIBUTION_REWARDS, TIP_USER, LINKED_ADDRESS, PUSH_ALGO_SCORE, ADD_TOPICS, NOSTR_METADATA],
           number: event.eventIndex,
@@ -107,15 +114,22 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           tokenAddress,
           starknetAddress,
         };
+        subCreationDataArray.push(subCreationData);
+        return subCreationData;
       });
 
-      if (poolEvents.length === 0) {
+      if(subCreationDataArray.length > 0) {
+        await insertSubState(subCreationDataArray as any[]);
+      }
+
+
+      if (subEvents.length === 0) {
         return {};
       }
 
       return {
         filter: {
-          events: poolEvents,
+          events: subEvents,
         },
       };
     },
@@ -126,13 +140,21 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
       logger.log("Transforming...         : ", endCursor?.orderKey);
       logger.log("Event length...         : ", events.length);
       logger.log("Block number...         : ", header?.blockNumber);
+   
       for (const event of events) {
         logger.log(
           "Event Address           : ",
           shortAddress(event.address),
           "| Txn hash :",
           shortAddress(event.transactionHash),
+          shortAddress(event.keys[0]),
+
         );
+        console.log("event handled", event)
+        console.log("event key", event.keys[0])
+
+        await handleEvent(event, event.address)
+
       }
     },
   });

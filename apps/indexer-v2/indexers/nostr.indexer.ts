@@ -113,12 +113,31 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
         console.log("event keys", event.keys)
         console.log("event data", event.data)
         // const daoAddress = event.keys[1];
-        const subAddress = event.keys[1];
-        console.log("subAddress", subAddress)
+        const decodedEvent = decodeEvent({
+          abi: scoreFactoryABI as Abi,
+          // abi: scoreFactorySecondABI as Abi,
+          event,
+          eventName: 'afk::infofi::score_factory::TopicEvent',
+        });
+        const topicAddress = decodedEvent?.args?.topic_address;
+
+        let subAddress = topicAddress;
+        // const subAddress = event.keys[1];
+        // console.log("subAddress", subAddress)
+        const creator = decodedEvent?.args?.admin;
+        const tokenAddress = decodedEvent?.args?.main_token_address;
+        const starknetAddress = decodedEvent?.args?.admin?.toString() as string;
 
         logger.log('Factory: new Nostr Sub Topic Address    : ', `\x1b[35m${subAddress}\x1b[0m`);
         return {
           address: subAddress,
+          keys: [NEW_EPOCH, DEPOSIT_REWARDS, DISTRIBUTION_REWARDS, TIP_USER, LINKED_ADDRESS, PUSH_ALGO_SCORE, ADD_TOPICS, NOSTR_METADATA],
+          number: event.eventIndex,
+          hash: event.transactionHash,
+          contractAddress: subAddress,
+          creator,
+          tokenAddress,
+          starknetAddress,
         };
       });
 
@@ -195,11 +214,11 @@ export default function (config: ApibaraRuntimeConfig & { startingCursor: { orde
 
       // await insertDaoCreation(daoCreationData);
 
-      console.log("daoCreationEvents", daoCreationEvents)
+      // console.log("daoCreationEvents", daoCreationEvents)
       console.log("subCreationsEvents", subCreationsEvents)
       return {
         filter: {
-          events: daoCreationEvents,
+          events: subCreationsEvents,
           // events: subCreationsEvents,
         },
       };

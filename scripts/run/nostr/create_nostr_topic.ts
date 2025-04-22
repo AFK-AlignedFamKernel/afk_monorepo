@@ -6,7 +6,7 @@ dotenv.config();
 
 export const TOPICS_NAME = [
   "cypherpunk",
-  "content creator economy",
+  // "content creator economy",
   // "bitcoin",
   // "ethereum",
   // "art",

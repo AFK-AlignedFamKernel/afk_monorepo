@@ -1,4 +1,5 @@
-import { SUB_CREATED ,
+import {
+  SUB_CREATED,
   NEW_EPOCH,
   DEPOSIT_REWARDS,
   DISTRIBUTION_REWARDS,
@@ -7,6 +8,7 @@ import { SUB_CREATED ,
   PUSH_ALGO_SCORE,
   ADD_TOPICS,
   NOSTR_METADATA,
+  handleEvent,
 } from "@/services/score.service";
 import { Abi, StarknetStream, decodeEvent } from "@apibara/starknet";
 import { defineIndexer } from "apibara/indexer";
@@ -60,9 +62,11 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         },
       ],
     },
-    async factory({ block: { events }}) {
+    async factory({ block: { events } }) {
       const logger = useLogger();
 
+      console.log("events", events)
+      console.log("factory started")
       const poolEvents = (events ?? []).flatMap((event) => {
 
         const decodedEvent = decodeEvent({
@@ -97,7 +101,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           "Factory: PairAddress    : ",
           `\x1b[35m${pairAddress}\x1b[0m`,
         );
-        
+
         return {
           address: pairAddress,
           keys: [NEW_EPOCH, DEPOSIT_REWARDS, DISTRIBUTION_REWARDS, TIP_USER, LINKED_ADDRESS, PUSH_ALGO_SCORE, ADD_TOPICS, NOSTR_METADATA],
@@ -133,7 +137,14 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           shortAddress(event.address),
           "| Txn hash :",
           shortAddress(event.transactionHash),
+          shortAddress(event.keys[0]),
+
         );
+        console.log("event handled", event)
+        console.log("event key", event.keys[0])
+
+        await handleEvent(event, event.address)
+
       }
     },
   });
