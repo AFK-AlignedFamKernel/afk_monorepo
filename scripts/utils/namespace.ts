@@ -219,7 +219,7 @@ export const linkedNostrProfile = async () => {
   const account = new Account(provider, accountAddress0, privateKey0, "1");
 
   const namespaceContract = await prepareAndConnectContract(
-    NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
+    namespace_address,
     account
   );
 
@@ -246,8 +246,8 @@ export const linkedNostrProfile = async () => {
     const eventNDk = new NDKEvent(ndk);
     eventNDk.kind = NDKKind.Text;
     // eventNDk.content = `link ${cairo.felt(strkAddressUsed)}`;
-    eventNDk.content = `link ${cairo.felt(strkAddressUsed)}`;
-    // eventNDk.content = `link ${strkAddressUsed}`;
+    // eventNDk.content = `link ${cairo.felt(strkAddressUsed)}`;
+    eventNDk.content = `link ${strkAddressUsed}`;
     // eventNDk.content = `link ${accountAddress0}`;
     // eventNDk.created_at = new Date().getTime();
     eventNDk.tags = [];
@@ -334,12 +334,13 @@ export const linkedNostrProfile = async () => {
 
   // };
   const linkedNamespace = {
-    contractAddress: nostrfiContract?.address,
+    // contractAddress: nostrfiContract?.address,
+    contractAddress: namespace_address,
     entrypoint: 'linked_nostr_profile',
     // entrypoint: 'linked_nostr_default_account',
     // calldata: CallData.compile(linkedArrayCalldata)
-    calldata: linkedArrayCalldata,
-    // calldata: objectCompiled,
+    // calldata: linkedArrayCalldata,
+    calldata: objectCompiled,
     // calldata: CallData.compile(linkedArrayCalldata),
 
   };
@@ -354,8 +355,8 @@ export const linkedNostrProfile = async () => {
   console.log("execute linked nostr score namespace");
   // const tx2 = await nostrfiContract.linked_nostr_profile(objectCompiled);
   // const tx2 = await nostrfiContract.linked_nostr_profile(objectCompiled);
-  const tx2 = await nostrfiContract.linked_nostr_profile(linkedArrayCalldata);
-  // const tx2 = await account?.execute([linkedNamespace], undefined, {});
+  // const tx2 = await nostrfiContract.linked_nostr_profile(linkedArrayCalldata);
+  const tx2 = await account?.execute([linkedNamespace], undefined, {});
   // console.log("tx", tx);
   console.log("tx2", tx2);
 

@@ -281,7 +281,10 @@ export const NAMESPACE_ADDRESS = {
 
   // [constants.StarknetChainId.SN_SEPOLIA]:"0x75a336b94c31f47024d1fae7d50d2178befd332ac50bad6158ace12269de6e6"
   // [constants.StarknetChainId.SN_SEPOLIA]:"0x7607c8a50b83938ea3f9da25dc1b7024814c0e5bf4b40bf6d6ff9bc7387aa7d"
-  [constants.StarknetChainId.SN_SEPOLIA]:"0x07607c8A50b83938ea3f9DA25DC1b7024814C0E5bF4B40bF6D6FF9Bc7387aa7d"
+
+  // MVP
+  // [constants.StarknetChainId.SN_SEPOLIA]:"0x07607c8A50b83938ea3f9DA25DC1b7024814C0E5bF4B40bF6D6FF9Bc7387aa7d"
+  [constants.StarknetChainId.SN_SEPOLIA]:"0x11331ec2cefc3804d6ae0fa5f5a077dcb078e59cdaee2f75f1d68f133b363e1"
 
 };
 

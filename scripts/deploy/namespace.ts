@@ -49,6 +49,4 @@ export const deployNamespace = async () => {
 
 
 
-// deployNamespace();
-
-linkedNostrProfile();
+deployNamespace();
