@@ -35,10 +35,8 @@ mod linear_tests {
         total_supply: u256, threshold_liquidity: u256, available_supply: u256,
     ) -> TokenLaunch {
         let token_quote_buy = TokenQuoteBuyCoin {
-            token_address: '123'.try_into().unwrap(),
-            starting_price: 0_u256,
-            price: 0_u256,
-            step_increase_linear: 0_u256,
+            token_address: '123'.try_into().unwrap(), // starting_price: 0_u256,
+            price: 0_u256, // step_increase_linear: 0_u256,
             is_enable: true //TODO
         };
 

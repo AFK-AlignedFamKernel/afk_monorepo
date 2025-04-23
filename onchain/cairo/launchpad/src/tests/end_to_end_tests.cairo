@@ -951,7 +951,7 @@ mod end_to_end_tests {
         let default_token = launchpad.get_default_token();
 
         assert(default_token.token_address == erc20.contract_address, 'no default token');
-   
+
         assert(default_token.is_enable == true, 'not enabled');
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);
@@ -1055,7 +1055,7 @@ mod end_to_end_tests {
         let default_token = launchpad.get_default_token();
 
         assert(default_token.token_address == erc20.contract_address, 'no default token');
- 
+
         assert(default_token.is_enable == true, 'not enabled');
 
         start_cheat_caller_address(launchpad.contract_address, sender_address);

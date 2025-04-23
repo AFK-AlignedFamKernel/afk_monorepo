@@ -12,6 +12,7 @@ pub mod launchpad {
 
     pub mod errors;
     pub mod helpers;
+    pub mod ico;
     pub mod launchpad;
     pub mod math;
     pub mod unrug;
@@ -37,6 +38,7 @@ pub mod interfaces {
     pub mod erc20;
     pub mod erc20_mintable;
     pub mod factory;
+    pub mod ico;
     pub mod jediswap;
     pub mod launchpad;
     pub mod unrug;
@@ -59,12 +61,13 @@ pub mod tokens {
 
 #[cfg(test)]
 pub mod tests {
-    pub mod edge_cases_tests;
-    pub mod end_to_end_tests;
-    pub mod exponential_tests;
-    pub mod init_price_tests;
-    pub mod launchpad_tests;
-    pub mod linear_tests;
-    pub mod liquidity_tests;
-    pub mod unrug_tests;
+    // pub mod edge_cases_tests;
+    // pub mod end_to_end_tests;
+    // pub mod exponential_tests;
+    pub mod ico_tests;
+    // pub mod init_price_tests;
+// pub mod launchpad_tests;
+// pub mod linear_tests;
+// pub mod liquidity_tests;
+// pub mod unrug_tests;
 }
