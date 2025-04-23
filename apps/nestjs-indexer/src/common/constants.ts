@@ -28,8 +28,11 @@ export default {
       LAUNCHPAD_ADDRESS: "0x14b92e6224ac3693ccc396e03744576d93be30daf3f29d92e5b1458b328e9dd",
       NAMESERVICE_ADDRESS:
         '0x15dcd3c28c07846fa98d3a40d29446de21b5e6cd8d49a43773da0f237d5ea7f',
+      // ESCROW_DEPOSIT_ADDRESS:
+      //   '0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee',
       ESCROW_DEPOSIT_ADDRESS:
-        '0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee',
+        '0x7b1cee9650c127b80067e02b6235a526e3c68ba0401460c3e5dcff58ddcd154',
+        
       // NOSTRFI_SCORING_ADDRESS:
       //   NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as string,
      

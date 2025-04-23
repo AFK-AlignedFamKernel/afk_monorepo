@@ -1120,9 +1120,9 @@ pub mod NostrFiScoring {
             let admin_nostr_pubkey = self.admin_nostr_pubkey.read();
 
             // println!("admin_nostr_pubkey: {}", admin_nostr_pubkey);
-            let is_admin_nostr_pubkey_added = self
-                .is_admin_nostr_pubkey_added
-                .read(admin_nostr_pubkey);
+
+            let pubkey = request.public_key;
+            let is_admin_nostr_pubkey_added = self.is_admin_nostr_pubkey_added.read(pubkey);
             assert(
                 is_admin_nostr_pubkey_added || request.public_key == admin_nostr_pubkey,
                 errors::INVALID_PUBKEY,

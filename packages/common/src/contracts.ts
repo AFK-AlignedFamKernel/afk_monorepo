@@ -10,8 +10,10 @@ export const ESCROW_ADDRESSES = {
 
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee",
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   '0x1ed7f4d0afce7bd17acecae039f255724d194373f104ce04b3146d6461e09f',
   [constants.StarknetChainId.SN_SEPOLIA]:
-    '0x1ed7f4d0afce7bd17acecae039f255724d194373f104ce04b3146d6461e09f',
+    '0x7b1cee9650c127b80067e02b6235a526e3c68ba0401460c3e5dcff58ddcd154',
 
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x854a13df46ddc497f610a5bf65097650b0883ce99b6bae614294ecbaf1000d"
 };

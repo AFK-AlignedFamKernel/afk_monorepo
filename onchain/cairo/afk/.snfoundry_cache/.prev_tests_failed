@@ -1,0 +1,3 @@
+afk::bip340::tests::test_20
+afk::bip340::tests::test_verify_partial
+afk::bip340::tests::test_verify_partial_2

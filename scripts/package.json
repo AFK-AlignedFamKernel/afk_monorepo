@@ -28,6 +28,9 @@
     "deploy:factory_score": "ts-node ./deploy/nostr/factory_score.ts",
     "run:create_topic": "ts-node ./run/nostr/create_nostr_topic.ts",
     "run:link_namespace": "ts-node ./run/nostr/link_namespace.ts",
+    "run:profile_score": "ts-node ./run/nostr/profile_score.ts",
+    "run:deposit": "ts-node ./run/escrow/deposit.ts",
+    "run:claim": "ts-node ./run/escrow/claim.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",
     "relay:dev": "nodemon --ext *"
