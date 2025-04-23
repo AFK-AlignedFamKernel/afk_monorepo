@@ -126,74 +126,107 @@ export const linkedNostrProfile = async () => {
 
 
 
-    const { event, isGood, pk, sk } = await linkedToSecond(strkAddressUsed);
-    console.log("private key", sk);
-    console.log("public key", getPublicKey(sk as any));
+    const { 
+        event:eventTool, 
+        isGood, pk, sk } = await linkedToSecond(strkAddressUsed);
+    // console.log("private key", sk);
+    // console.log("public key", getPublicKey(sk as any));
 
-    const nostrEvent = await getNostrEvent(account.address);
-    //   console.log("nostrEvent", nostrEvent);
-    let eventUsed = event;
-    console.log("eventUsed", eventUsed);
+    // const nostrEvent = await getNostrEvent(account.address);
+    // //   console.log("nostrEvent", nostrEvent);
+    // let eventUsed = event;
+    // console.log("eventUsed", eventUsed);
     // eventUsed.content = `link ${strkAddressUsed}`;
-    const signature = eventUsed.sig ?? '';
-    const signatureR = signature.slice(0, signature.length / 2);
-    const signatureS = signature.slice(signature.length / 2);
+    // const signature = eventUsed.sig ?? '';
+    // const signatureR = signature.slice(0, signature.length / 2);
+    // const signatureS = signature.slice(signature.length / 2);
+
+    const linkedWallet = {
+        starknet_address: strkAddressUsed
+    };
+
+    // Use the exact same timestamp as the test
+    const timestamp = 1716285235;
+
+    const event = finalizeEvent(
+        {
+            kind: 1,
+            created_at: timestamp,
+            tags: [],
+            // content: `link ${cairo.felt(strkAddressUsed)}`,
+            content: `link ${strkAddressUsed}`,
+        },
+        sk as any
+    );
+
+    // Use the known working signature from the test
+    const signature = {
+        r: "0xac9c698ef50872a5fbfec95f5aaa84014519912ab398f192df6cd3c91dfb563c",
+        s: "0xf9403e3bf9dea20a06c8416a0ef78ad08e93dd21e665c72826d22976a4d08126"
+    };
+    let eventUsed = event;
+
+
+    const signatureR = signature.r;
+    const signatureS = signature.s;
 
     let linkedArrayCalldata = CallData.compile([
-        // uint256.bnToUint256(`0x${eventUsed?.pubkey}`),
-        uint256.bnToUint256(BigInt(`0x${eventUsed?.pubkey}`)),
-        eventUsed?.created_at,
-        eventUsed?.kind ?? 1,
-        byteArray.byteArrayFromString(JSON.stringify(eventUsed?.tags ?? [])),
+        uint256.bnToUint256(`0x${event.pubkey}`),
+        timestamp,
+        1, // kind
+        byteArray.byteArrayFromString("[]"), // tags
         {
-            starknet_address: strkAddressUsed as `0x${string}`,
+            starknet_address: strkAddressUsed,
+            // starknet_address: strkAddressUsed,
         },
         {
-            r: uint256.bnToUint256(BigInt(`0x${signatureR}`)),
-            s: uint256.bnToUint256(BigInt(`0x${signatureS}`)),
-            //   r: uint256.bnToUint256(`0x${signatureR}`),
-            //   s: uint256.bnToUint256(`0x${signatureS}`),
+            r: uint256.bnToUint256(BigInt(signatureR)),
+            s: uint256.bnToUint256(BigInt(signatureS)),
+            // r: uint256.bnToUint256(signatureR),
+            // s: uint256.bnToUint256(signatureS),
         },
     ]);
     console.log("linked array calldata", linkedArrayCalldata);
 
-    linkedArrayCalldata = [
-        '184674452764868560519724515817148231628',
-        '121185674577639879316174480666903828499',
-        '1716285235',
-        '1',
-        '0',
-        '23389',
-        '2',
-        '123',
-        '150175745381533378901129570494918394507',
-        '189470234747686543257281161595263520109',
-        '266804303043442766451170676428195985912',
-        '293700824625636702068599129940075687784'
-    ];
+    // linkedArrayCalldata = [
+    //     '184674452764868560519724515817148231628',
+    //     '121185674577639879316174480666903828499',
+    //     '1716285235',
+    //     '1',
+    //     '0',
+    //     '23389',
+    //     '2',
+    //     '123',
+    //     '150175745381533378901129570494918394507',
+    //     '189470234747686543257281161595263520109',
+    //     '266804303043442766451170676428195985912',
+    //     '293700824625636702068599129940075687784'
+    // ];
 
     console.log("linked array calldata", linkedArrayCalldata);
 
-    let objectCalldata = {
-        public_key: uint256.bnToUint256(`0x${eventUsed?.pubkey}`),
-        // public_key: uint256.bnToUint256(BigInt(`0x${eventUsed?.pubkey}`)),
-        created_at: eventUsed?.created_at,
-        kind: eventUsed?.kind ?? 1,
-        tags: byteArray.byteArrayFromString(JSON.stringify(eventUsed?.tags ?? [])),
-        // tags: shortString.encodeShortString(JSON.stringify(eventUsed?.tags ?? [])),
-        content: {
-            starknet_address: strkAddressUsed,
-            //   starknet_address: strkAddressUsed as `0x${string}`,
-        },
-        sig: {
-            // r: uint256.bnToUint256(BigInt(`0x${signatureR}`)),
-            // s: uint256.bnToUint256(BigInt(`0x${signatureS}`)),
-            r: uint256.bnToUint256(`0x${signatureR}`),
-            s: uint256.bnToUint256(`0x${signatureS}`),
-        },
-    }
-    //   let objectCompiled = CallData.compile(objectCalldata);
-    let objectCompiled = CallData.compile([objectCalldata]);
+
+
+    // let objectCalldata = {
+    //     public_key: uint256.bnToUint256(`0x${eventUsed?.pubkey}`),
+    //     // public_key: uint256.bnToUint256(BigInt(`0x${eventUsed?.pubkey}`)),
+    //     created_at: eventUsed?.created_at,
+    //     kind: eventUsed?.kind ?? 1,
+    //     tags: byteArray.byteArrayFromString(JSON.stringify(eventUsed?.tags ?? [])),
+    //     // tags: shortString.encodeShortString(JSON.stringify(eventUsed?.tags ?? [])),
+    //     content: {
+    //         starknet_address: strkAddressUsed,
+    //         //   starknet_address: strkAddressUsed as `0x${string}`,
+    //     },
+    //     sig: {
+    //         // r: uint256.bnToUint256(BigInt(`0x${signatureR}`)),
+    //         // s: uint256.bnToUint256(BigInt(`0x${signatureS}`)),
+    //         r: uint256.bnToUint256(`0x${signatureR}`),
+    //         s: uint256.bnToUint256(`0x${signatureS}`),
+    //     },
+    // }
+    // //   let objectCompiled = CallData.compile(objectCalldata);
+    // let objectCompiled = CallData.compile([objectCalldata]);
     // linkedArrayCalldata = CallData.compile({
     //   pubkey: uint256.bnToUint256(`0x${event.pubkey}`),
     //   // cairo.uint256(`0x${event.pubkey}`),
@@ -230,8 +263,8 @@ export const linkedNostrProfile = async () => {
 
     // };
     const linkedNamespace = {
-        contractAddress: nostrfiContract?.address,
-        // contractAddress: namespace_address,
+        // contractAddress: nostrfiContract?.address,
+        contractAddress: namespace_address,
         entrypoint: 'linked_nostr_profile',
         // entrypoint: 'linked_nostr_default_account',
         // calldata: CallData.compile(linkedArrayCalldata)
