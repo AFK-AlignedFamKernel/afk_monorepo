@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { Account, byteArray, CallData, json, uint256, cairo, constants, shortString } from "starknet";
+import { Account, byteArray, CallData, json, uint256, cairo, constants, shortString, Contract } from "starknet";
 import fs from "fs";
 import { provider } from "../../utils/starknet";
 import { finalizeEvent, generateSecretKey, getPublicKey, serializeEvent, verifyEvent } from "nostr-tools";
@@ -11,17 +11,60 @@ import { NAMESPACE_ADDRESS, NOSTR_FI_SCORING_ADDRESS, ESCROW_ADDRESSES,
 import { bytesToHex } from "@noble/hashes/utils";
 import NDK, { NDKEvent, NDKKind, NDKPrivateKeySigner } from "@nostr-dev-kit/ndk";
 import { AFK_RELAYS } from "common";
-import { deposit } from "../../utils/escrow";
 
 dotenv.config();
 
-let sk = "ebbc14b03f042a4a0c9583b9e6c6c2aa177884bb6a739dbf1d7c2fdeb04c73cf";
+let sk = process.env.NOSTR_PRIVATE_KEY_ADMIN as string;
 // console.log("private key", bytesToHex(sk as any));
 const ndk = new NDK({
     // explicitRelayUrls: AFK_RELAYS,
     signer: new NDKPrivateKeySigner(sk),
 });
 
+export const deposit = async (props: {
+    escrow: Contract;
+    account: Account;
+    amount: number;
+    tokenAddress: string;
+    timelock: number;
+    alicePublicKey: string;
+  }) => {
+    try {
+      const { escrow, account, amount, tokenAddress, timelock, alicePublicKey } =
+        props;
+      const depositParams = {
+        amount: uint256.bnToUint256(BigInt("0x" + amount)), // amount float. cairo.uint256(amount) for Int
+        // Float need to be convert with bnToUint
+        token_address: tokenAddress, // token address
+        nostr_recipient: cairo.uint256(BigInt("0x" + alicePublicKey)),
+        timelock: timelock,
+      };
+  
+  
+      console.log("depositParams", depositParams);
+  
+      let approveCall = {
+        contractAddress: tokenAddress,
+        // calldata: [escrow?.address, amount],
+        calldata: CallData.compile([escrow?.address, depositParams.amount]),
+        entrypoint: "approve",
+      }
+      let depositCall = {
+          contractAddress: escrow?.address,
+          calldata: CallData.compile(depositParams),
+          entrypoint: "deposit",
+      }
+      const tx = await account.execute([approveCall, depositCall]);
+  
+      await account.waitForTransaction(tx.transaction_hash);
+  
+      return tx;
+    } catch (e) {
+      console.log("Error deposit", e);
+    }
+  };
+
+  
 export const depositEscrow = async () => {
     console.log("linked nostr profile");
  
@@ -35,16 +78,14 @@ export const depositEscrow = async () => {
         account
     );
 
-
     let strkAddressUsed = "123";
     //   let strkAddressUsed = account.address;
     //   strkAddressUsed = accountAddress0;
-
     console.log("account address", account.address);
 
     let aliceAddress = process.env.NOSTR_PUBKEY_ADMIN as string;
     const tokenAddress = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
-   let tx = await deposit({
+    let tx = await deposit({
         escrow: depositEscrowContract,
         account,
         amount: 1,
