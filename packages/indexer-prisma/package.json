@@ -10,7 +10,10 @@
     "build:pull": "npx prisma generate && npx prisma db pull && tsc",
     "generate": "npx prisma generate",
     "pull": "npx prisma db pull",
-    "push": "npx prisma db push"
+    "push": "npx prisma db push",
+    "migrate": "npx prisma migrate dev",
+    "migrate:prod": "npx prisma migrate deploy",
+    "diff": "npx prisma migrate diff"
   },
   "keywords": [],
   "author": "",

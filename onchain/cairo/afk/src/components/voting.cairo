@@ -3,8 +3,7 @@ pub mod VotingComponent {
     use afk::interfaces::voting::{
         Calldata, ConfigParams, ConfigResponse, IVoteProposal, MetadataDAO, Proposal,
         ProposalCanceled, ProposalCreated, ProposalParams, ProposalResolved, ProposalResult,
-     ProposalVoted, SET_PROPOSAL_DURATION_IN_SECONDS, UserVote,
-        VoteState,
+        ProposalVoted, SET_PROPOSAL_DURATION_IN_SECONDS, UserVote, VoteState,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::execute_calls;
@@ -16,9 +15,7 @@ pub mod VotingComponent {
         Map, MutableVecTrait, StorageMapWriteAccess, StoragePathEntry, StoragePointerReadAccess,
         StoragePointerWriteAccess, Vec,
     };
-    use starknet::{
-        ContractAddress, contract_address_const, get_caller_address,
-    };
+    use starknet::{ContractAddress, contract_address_const, get_caller_address};
 
     #[storage]
     pub struct Storage {

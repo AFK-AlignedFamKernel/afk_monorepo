@@ -110,3 +110,16 @@ export const LAUNCHPAD_ADDRESS = {
   [constants.StarknetChainId.SN_SEPOLIA]:
     "0x19084523bd7307c2169ee32a336be3f9d9eb6bf24197156cb6fc7a42feb7a5",
 };
+
+export const NOSTR_FI_SCORING_ADDRESS = {
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0x78a022e6906c83e049a30f7464b939b831ecbe47029480d7e89684f20c8d263",
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee",
+};
+
+
+export const CLASS_HASH_NOSTR_FI_SCORING = {
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0x78a022e6906c83e049a30f7464b939b831ecbe47029480d7e89684f20c8d263",
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    "0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee",
+};

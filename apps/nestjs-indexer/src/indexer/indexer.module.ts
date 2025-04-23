@@ -16,10 +16,10 @@ import { TipServiceModule } from '../services/tip-service/tipServiceModule';
 import { TipServiceIndexer } from './tip-service.indexer';
 import { MetadataLaunchIndexer } from './metadata-launch.indexer';
 import { MetadataLaunchModule } from 'src/services/metadata/metadata.module';
-import { InfoFiIndexer } from './infofi/link-user.indexer';
+import { InfoFiIndexer } from './infofi/infofi.indexer';
 import { NostrInfofiModule } from 'src/services/nostr-infofi/nostr-infofi.module';
-import { NostrInfofiService } from 'src/services/nostr-infofi/nostr-infofi.service';
-
+import { NamespaceIndexer } from './infofi/namespace';
+import { NamespaceModule } from 'src/services/nostr-infofi/namespace.module';
 @Module({
   imports: [
     TokenLaunchModule,
@@ -31,6 +31,7 @@ import { NostrInfofiService } from 'src/services/nostr-infofi/nostr-infofi.servi
     TipServiceModule,
     MetadataLaunchModule,
     NostrInfofiModule,
+    NamespaceModule,
   ],
   providers: [
     TokenLaunchIndexer,
@@ -43,6 +44,7 @@ import { NostrInfofiService } from 'src/services/nostr-infofi/nostr-infofi.servi
     TipServiceIndexer,
     MetadataLaunchIndexer,
     InfoFiIndexer,
+    NamespaceIndexer,
   ],
   exports: [
     TokenLaunchIndexer,
@@ -54,6 +56,7 @@ import { NostrInfofiService } from 'src/services/nostr-infofi/nostr-infofi.servi
     TipServiceIndexer,
     MetadataLaunchIndexer,
     InfoFiIndexer,
+    NamespaceIndexer,
   ],
 })
 export class IndexerModule {}

@@ -14,6 +14,7 @@ import { AllKeysComponent } from '../KeysMarketplace/AllKeysComponent';
 import { LaunchpadComponent } from '../Launchpad/LaunchpadComponent';
 import stylesheet from './styles';
 import { IconNames } from 'src/components/Icon';
+import { InfoFiComponent } from 'src/modules/InfoFi/InfoFiComponent';
 
 export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
   const theme = useTheme();
@@ -114,6 +115,7 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
                 </>
               )} */}
 
+
               {selectedTab == SelectedTab.LAUNCHPAD_VIEW && (
                 <View>
                   <IconButton
@@ -195,6 +197,12 @@ export const Games: React.FC<GameSreenProps> = ({ navigation }) => {
                   </View>
                   <AllKeysComponent isButtonInstantiateEnable={true}></AllKeysComponent>
                 </>
+              )}
+
+              {selectedTab == SelectedTab.INFOFI_MAIN && (
+                <View>
+                  <InfoFiComponent isButtonInstantiateEnable={true}></InfoFiComponent>
+                </View>
               )}
             </ScrollView>
           </SafeAreaView>

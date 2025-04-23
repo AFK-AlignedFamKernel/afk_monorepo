@@ -1,3 +1,4 @@
+import { getProfilesToAnalyzeOnchainIndexer } from "../db/indexer";
 import { handleProfilesScoring, handleTrendingAndViralEvents } from "./algo-general";
 import { externalTrendings } from "./content/trending";
 
@@ -6,14 +7,11 @@ export const handleScoringByUsersLinked = async () => {
     // const PUBKEY_EXAMPLE = nip19.decode(NPUBKEY_EXAMPLE).data;
     const PUBKEY_EXAMPLE = "c1e9ab3a56a2ab6ca4bebf44ea64b2fda40ac6311e886ba86b4652169cb56b43"
     const limit = 1;
-    const limitEventsProfileScroring = 200;
-    
-
+    const limitEventsProfileScroring = 10;
 
     // Fetch profile to analyze
-    
-
-
+    const profiles = await getProfilesToAnalyzeOnchainIndexer();
+    console.log("profiles", profiles);
     
 
     // // Get recent events from user to score and analyze

@@ -1,4 +1,4 @@
-import { Account, json, Contract, cairo, uint256, byteArray } from "starknet";
+import { Account, json, Contract, cairo, uint256, byteArray, CallData } from "starknet";
 import fs from "fs";
 import dotenv from "dotenv";
 import { provider } from "./starknet";
@@ -114,17 +114,26 @@ export const deposit = async (props: {
     const depositParams = {
       amount: uint256.bnToUint256(BigInt("0x" + amount)), // amount float. cairo.uint256(amount) for Int
       // Float need to be convert with bnToUint
-
       token_address: tokenAddress, // token address
       nostr_recipient: cairo.uint256(BigInt("0x" + alicePublicKey)),
       timelock: timelock,
     };
+
+
     console.log("depositParams", depositParams);
-    const tx = await account.execute({
-      contractAddress: escrow?.address,
-      calldata: depositParams,
-      entrypoint: "deposit",
-    });
+
+    let approveCall = {
+      contractAddress: tokenAddress,
+      // calldata: [escrow?.address, amount],
+      calldata: CallData.compile([escrow?.address, depositParams.amount]),
+      entrypoint: "approve",
+    }
+    let depositCall = {
+        contractAddress: escrow?.address,
+        calldata: CallData.compile(depositParams),
+        entrypoint: "deposit",
+    }
+    const tx = await account.execute([approveCall, depositCall]);
 
     await account.waitForTransaction(tx.transaction_hash);
 

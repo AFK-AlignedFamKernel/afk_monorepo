@@ -10,6 +10,8 @@ pub mod utils;
 
 
 pub mod interfaces {
+    pub mod common_interfaces;
+
     pub mod erc20;
     pub mod erc20_mintable;
     pub mod nameservice;
@@ -46,6 +48,7 @@ pub mod types {
 pub mod components {
     // pub mod voting_proposal;
     pub mod nostr_namespace;
+
     pub mod voting;
 }
 
@@ -55,22 +58,24 @@ pub mod account {
 
 pub mod tokens {
     pub mod erc20;
-    pub mod erc20_mintable;
     pub mod erc20_intern;
+    pub mod erc20_mintable;
     // pub mod token;
-    // pub mod dn404 {
-    //     pub mod dn404;
-    //     pub mod dn404_component;
-    //     pub mod dn404_mirror;
-    //     pub mod dn404_mirror_component;
-    //     pub mod dn404_mirror_preset;
-    //     pub mod dn404_preset;
-    // }
+// pub mod dn404 {
+//     pub mod dn404;
+//     pub mod dn404_component;
+//     pub mod dn404_mirror;
+//     pub mod dn404_mirror_component;
+//     pub mod dn404_mirror_preset;
+//     pub mod dn404_preset;
+// }
 }
 
 pub mod infofi {
     pub mod errors;
+    // pub mod nostr_vault;
     pub mod nostrfi_scoring;
+    pub mod score_factory;
 }
 
 #[cfg(test)]
@@ -79,6 +84,7 @@ pub mod tests {
     // pub mod dn404_tests;
     // pub mod nameservice_tests;
     pub mod nostrfi_scoring_tests;
+    pub mod score_factory_tests;
     pub mod utils;
     // pub mod staking_tests;
 

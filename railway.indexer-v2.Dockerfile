@@ -54,4 +54,4 @@ EXPOSE 3000
 
 # Command to start the application
 WORKDIR /app/apps/indexer-v2
-CMD node build/start.mjs start --indexer dao-factory
+CMD node build/start.mjs start --indexer ${INDEXER_NAME:-dao-factory}

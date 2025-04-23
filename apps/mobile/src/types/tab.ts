@@ -61,6 +61,7 @@ export enum SelectedTab {
   QUEST_FORM = 'QUEST_FORM',
   ALL_QUESTS = 'ALL_QUESTS',
   DAO_COMMUNITY = 'DAO_COMMUNITY',
+  INFOFI_MAIN = 'INFOFI_MAIN',
 }
 
 export const TABS_TIP_LIST: { screen?: string; title: string; tab: SelectedTab }[] = [
@@ -553,6 +554,12 @@ export const CONSOLE_TABS_MENU: {
     // screen: 'PixelPeace',
     tab: SelectedTab.PIXEL_PEACE,
     icon:"PixelArtGameIcon"
+  },
+  {
+    title: 'Info & Attention',
+    description: 'Info & Attention for communities',
+    // screen: 'AFK Nameservice',
+    tab: SelectedTab.INFOFI_MAIN,
   },
   {
     title: 'DAO Community',

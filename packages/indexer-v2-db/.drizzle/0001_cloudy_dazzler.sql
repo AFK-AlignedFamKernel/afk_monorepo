@@ -1,1 +1,0 @@
-ALTER TABLE "dao_proposal" ALTER COLUMN "is_canceled" SET DEFAULT false;

@@ -2,10 +2,10 @@ import prisma from 'indexer-prisma';
 
 export const getProfilesToAnalyzeOnchainIndexer = async () => {
     try {
-        const profiles = await prisma.profile_data.findMany({
+        const profiles = await prisma.userProfile.findMany({
             where: {
                 nostr_id: {
-                not: null
+                // not: null
             }
         }
     });
@@ -16,4 +16,5 @@ export const getProfilesToAnalyzeOnchainIndexer = async () => {
         return [];
     }
 }
+
 

@@ -99,6 +99,9 @@ export type MainStackParams = {
   DAO: undefined;
   DAOPage: { daoAddress: string };
   Pixel: undefined;
+  InfoFi: undefined;
+  AllSubs: undefined;
+  SubPage: { subAddress: string };
 };
 
 export type HomeBottomStackParams = {
@@ -139,6 +142,9 @@ export type HomeBottomStackParams = {
   DAO: undefined;
   DAOPage: { daoAddress: string };
   Pixel:undefined;
+  InfoFi: undefined;
+  AllSubs: undefined;
+  SubPage: { subAddress: string };
 
   // CreateForm: undefined;
   // ChannelsFeed:undefined;
@@ -455,6 +461,21 @@ export type DAOPageProps = CompositeScreenProps<
 
 export type DrawerStackNavigationProps = DrawerNavigationProp<MainStackParams>;
 
+
+export type InfoFiScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams | HomeBottomStackParams, 'InfoFi'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type AllSubsScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'AllSubs'>,
+  NativeStackScreenProps<RootStackParams>
+>;
+
+export type SubPageScreenProps = CompositeScreenProps<
+  NativeStackScreenProps<MainStackParams, 'SubPage'>,
+  NativeStackScreenProps<RootStackParams>
+>;
 /** TODO delete */
 export type DegensAppStackParams = {
   // Home: NavigatorScreenParams<HomeBottomStackParams>;

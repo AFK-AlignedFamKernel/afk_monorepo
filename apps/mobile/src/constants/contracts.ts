@@ -12,6 +12,9 @@ export const ESCROW_ADDRESSES = {
   [constants.StarknetChainId.SN_SEPOLIA]:
     '0x7323351c9e497ef4cc59cfdacdc8ba7b07c6b4aaeb07e78dfda0988f6e8e3ee',
 
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   '0x012fffab5648cff69db8dff3f8a941f1db82b7f3d26ff3d7556317bec49a94ad',
+    
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x854a13df46ddc497f610a5bf65097650b0883ce99b6bae614294ecbaf1000d"
 };
 

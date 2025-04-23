@@ -1,4 +1,4 @@
-use afk::utils::{compute_sha256_byte_array,     };
+use afk::utils::compute_sha256_byte_array;
 use core::byte_array::ByteArrayTrait;
 use core::ec::{EcPoint, ec_point_unwrap};
 use core::option::OptionTrait;
