@@ -29,7 +29,8 @@
     "bip39": "^3.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "zustand": "^4.5.2"
+    "zustand": "^4.5.2",
+    "@noble/secp256k1":"latest"
   },
   "peerDependencies": {
     "@nostr-dev-kit/ndk": "^2.10.1",
