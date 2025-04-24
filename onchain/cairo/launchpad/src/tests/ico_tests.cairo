@@ -10,8 +10,8 @@ mod ico_tests {
     use crate::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use crate::interfaces::ico::{
         ContractConfig, IICOConfigDispatcher, IICOConfigDispatcherTrait, IICODispatcher,
-        IICODispatcherTrait, PresaleDetails, PresaleLaunched, TokenCreated, TokenDetails,
-        TokenStatus,
+        IICODispatcherTrait, PresaleDetails, PresaleFinalized, PresaleLaunched, TokenBought,
+        TokenCreated, TokenDetails, TokenStatus,
     };
     use crate::launchpad::ico::ICO;
 
@@ -339,8 +339,25 @@ mod ico_tests {
         // target should be able to buy a token successfully
         cheat_caller_address(buy_token.contract_address, target, CheatSpan::TargetCalls(1));
         buy_token.approve(ico.contract_address, amount);
+        let mut spy = spy_events();
+
+        assert(buy_token.balance_of(target) == amount, 'INVALID BALANCE');
+
         cheat_caller_address(ico.contract_address, target, CheatSpan::TargetCalls(1));
+        cheat_block_timestamp(ico.contract_address, 1, CheatSpan::TargetCalls(1));
         ico.buy_token(token.contract_address, amount);
+
+        let token_amount = details.presale_rate * amount;
+        let expected_event = ICO::Event::TokenBought(
+            TokenBought {
+                token_address: token.contract_address,
+                amount: token_amount,
+                buyer: target,
+                bought_at: 1,
+            },
+        );
+
+        spy.assert_emitted(@array![(ico.contract_address, expected_event)]);
         assert(buy_token.balance_of(ico.contract_address) == amount, 'TRANSFER FAILED');
         assert(token.balance_of(target) == 0, 'SHOULD BE ZERO');
 
@@ -358,9 +375,56 @@ mod ico_tests {
     }
 
     #[test]
-    #[ignore]
-    fn test_ico_buy_token_should_panic_on_ended_presale() { // here, the presale should resolve automatically
+    #[should_panic(expected: 'PRESALE HAS BEEN FINALIZED')]
+    fn test_ico_buy_token_should_panic_on_ended_presale() {
+        // here, the presale should resolve automatically
+        let (ico, token, buy_token, _) = context(false);
+        let target: ContractAddress = 'TARGET'.try_into().unwrap();
+        cheat_caller_address(ico.contract_address, target, CheatSpan::TargetCalls(1));
+        let amount = 10000;
+
+        // ends at 10, so set the bluck timestamp to 11
+        cheat_block_timestamp(ico.contract_address, 11, CheatSpan::TargetCalls(1));
+        ico.buy_token(token.contract_address, amount);
     }
+
+    #[test]
+    fn test_ico_claim_buy_token_on_failed_presale() {
+        let (ico, token, buy_token, _) = context(false);
+        let target: ContractAddress = 'TARGET'.try_into().unwrap();
+        cheat_caller_address(buy_token.contract_address, OWNER, CheatSpan::TargetCalls(1));
+        let amount = 10000;
+        buy_token.transfer(target, amount);
+
+        cheat_caller_address(buy_token.contract_address, target, CheatSpan::TargetCalls(1));
+        buy_token.approve(ico.contract_address, amount);
+        cheat_caller_address(ico.contract_address, target, CheatSpan::TargetCalls(2));
+        ico.buy_token(token.contract_address, amount);
+        assert(buy_token.balance_of(target) == 0, 'INVALID BALANCE');
+
+        // ends at 10, so set the block timestamp to 11
+        cheat_block_timestamp(ico.contract_address, 11, CheatSpan::TargetCalls(1));
+        let mut spy = spy_events();
+        ico.claim(token.contract_address);
+        // Presale failed, so the token claimed shouldn't be the presale token, but
+        // the token used in buying the presale.
+        assert(buy_token.balance_of(target) == 1000, 'INVALID BALANCE.');
+        let expected_event = ICO::Event::PresaleFinalized(
+            PresaleFinalized {
+                presale_token_address: token.contract_address,
+                buy_token_address: buy_token.contract_address,
+                successful: false,
+            },
+        );
+        spy.assert_emitted(@array![(ico.contract_address, expected_event)]);
+    }
+
+    #[test]
+    fn test_ico_claim_presale_token_on_successful_presale() {}
+
+    #[test]
+    #[should_panic(expected: 'PRESALE NOT ACTIVE')]
+    fn test_ico_claim_should_panic_on_non_active_presale() {}
 
     #[test]
     #[ignore]

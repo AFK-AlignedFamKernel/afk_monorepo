@@ -195,8 +195,11 @@ pub struct TokenBought {
 
 #[derive(Drop, starknet::Event)]
 pub struct BuyCanceled {
+    #[key]
     pub token_address: ContractAddress,
+    pub buyer: ContractAddress,
     pub amount: u256,
+    pub canceled_at: u64,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -207,6 +210,14 @@ pub struct TokenClaimed {
     pub recipient: ContractAddress,
     pub amount: u256,
     pub claimed_at: u64,
+}
+
+#[derive(Drop, starknet::Event)]
+pub struct PresaleFinalized {
+    #[key]
+    pub presale_token_address: ContractAddress,
+    pub buy_token_address: ContractAddress,
+    pub successful: bool,
 }
 
 #[derive(Drop, Copy, starknet::Store)]
