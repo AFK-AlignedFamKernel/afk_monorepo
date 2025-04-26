@@ -131,7 +131,7 @@ pub enum TokenStatus {
     Presale,
     Finalized,
     Active,
-    Finished,
+    Void,
 }
 
 impl StatusIntoU8 of Into<TokenStatus, u8> {
@@ -142,7 +142,7 @@ impl StatusIntoU8 of Into<TokenStatus, u8> {
             TokenStatus::Presale => 1,
             TokenStatus::Finalized => 2,
             TokenStatus::Active => 3,
-            TokenStatus::Finished => 4,
+            TokenStatus::Void => 4,
         }
     }
 }

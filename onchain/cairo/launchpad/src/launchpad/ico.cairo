@@ -238,8 +238,7 @@ pub mod ICO {
 
             self.update_status(token_address, token);
             let mut status = token.status.read();
-            assert(status != TokenStatus::Finalized, 'PRESALE HAS BEEN FINALIZED');
-            assert(status == TokenStatus::Presale, 'PRESALE STATUS ERROR');
+            assert(status == TokenStatus::Presale, 'PRESALE CONCLUDED');
 
             if details.whitelist {
                 assert(token.whitelist.entry(caller).read(), 'CALLER NOT WHITELISTED');
@@ -251,14 +250,15 @@ pub mod ICO {
             let funds_raised = token.funds_raised.read();
             // Stops buyer from buying all available tokens, at any instance.
             let (threshold, _) = get_trade_threshold(details, token.current_supply.read());
-            let current_funds = funds_raised + amount;
+            let mut current_funds = funds_raised + amount;
             let current_funds_token = current_funds * details.presale_rate;
             assert(current_funds_token <= threshold, 'AMOUNT TOO HIGH');
 
             // Peg amount to match hard cap when hard cap is exceeded
             // Test for this.
             if current_funds > details.hard_cap {
-                amount = details.hard_cap - current_funds;
+                amount = details.hard_cap - funds_raised;
+                current_funds = details.hard_cap;
             }
 
             dispatcher.transfer_from(caller, get_contract_address(), amount);
@@ -273,12 +273,7 @@ pub mod ICO {
             self.buyers.entry(caller).push(token_address);
 
             // check cap value, and resolve presale
-            if current_funds >= details.soft_cap {
-                token.successful.write(true);
-                if current_funds == details.hard_cap {
-                    token.status.write(TokenStatus::Finalized);
-                }
-            }
+            self.update_status(token_address, token);
 
             let event = TokenBought {
                 token_address,
@@ -294,8 +289,8 @@ pub mod ICO {
             // presale is not finalized.
             let caller = get_caller_address();
             let token = self.tokens.entry(token_address);
+            self.update_status(token_address, token);
             assert(token.status.read() == TokenStatus::Presale, 'ACTION NOT ALLOWED');
-            let token = self.tokens.entry(token_address);
             let token_amount = token.holders.entry(caller).read();
             assert(token_amount > 0, 'INSUFFICIENT AMOUNT'); // change error message
 
@@ -318,12 +313,15 @@ pub mod ICO {
         }
 
         fn claim(ref self: ContractState, token_address: ContractAddress) {
-            // investors cannot claim token until liquidity has been added
+            // investors cannot claim token until liquidity has been added,
+            // only when presale is successful.
+            // If failed, let users claim before liquidity is launched, because
+            // liquidity is never launched, and status is never active
             let caller = get_caller_address();
             let token = self.tokens.entry(token_address);
             self.update_status(token_address, token);
             let status: u8 = token.status.read().into();
-            assert(status >= TokenStatus::Active.into(), 'PRESALE NOT ACTIVE');
+            assert(status >= TokenStatus::Active.into(), 'PRESALE NOT CLAIMABLE');
             let mut amount = token.buyers.entry(caller).read();
             assert(amount > 0, 'NOTHING TO CLAIM');
 
@@ -331,7 +329,7 @@ pub mod ICO {
         }
 
         fn claim_all(ref self: ContractState) {
-            // investors cannot claim token until liquidity has been added
+            // read comments in `claim`
             let caller = get_caller_address();
             let tokens = self.buyers.entry(caller);
 
@@ -446,14 +444,19 @@ pub mod ICO {
             token: StoragePath<Mutable<Token>>,
         ) {
             let details = token.presale_details.read();
+            let current_funds = token.funds_raised.read();
             if token.status.read() == TokenStatus::Presale
-                && get_block_timestamp() > details.end_time {
+                && get_block_timestamp() > details.end_time || current_funds == details.hard_cap {
                 let mut successful = false;
-                if token.funds_raised.read() > details.soft_cap {
+                if current_funds >= details.soft_cap {
                     successful = true;
+                    token.status.write(TokenStatus::Finalized);
+                } else {
+                    // if it's never successful, then it never progresses farther than this
+                    // Void Presale
+                    token.status.write(TokenStatus::Void);
                 }
                 token.successful.write(successful);
-                token.status.write(TokenStatus::Finalized);
                 let event = PresaleFinalized {
                     presale_token_address: token_address,
                     buy_token_address: details.buy_token,

@@ -152,6 +152,56 @@ mod ico_tests {
         (dispatcher, token_dispatcher, buy_token_dispatcher, details)
     }
 
+    fn buy_presale(
+        ref buyers: Array<ContractAddress>,
+        ico: IICODispatcher,
+        token: IERC20Dispatcher,
+        buy_token: IERC20Dispatcher,
+    ) {
+        for i in 0..buyers.len() {
+            let buyer = *buyers.at(i);
+            let amount = buy_token.balance_of(buyer);
+            println!("Buy presale, buyer{} is {}", i + 1, amount);
+            cheat_caller_address(buy_token.contract_address, buyer, CheatSpan::TargetCalls(1));
+            buy_token.approve(ico.contract_address, amount);
+            cheat_caller_address(ico.contract_address, buyer, CheatSpan::TargetCalls(1));
+            ico.buy_token(token.contract_address, amount);
+        }
+    }
+
+    fn mint(
+        ref targets: Array<ContractAddress>,
+        token: IERC20Dispatcher,
+        default: u256,
+        additional: u256,
+    ) {
+        assert(targets.len() > 0, 'EMPTY TARGET');
+        assert(
+            token.balance_of(OWNER) > (default * targets.len().into() + additional),
+            'BALANCE CHECK FAILED 5',
+        );
+        println!("OWNER BALANCE: {}", token.balance_of(OWNER));
+        for i in 0..targets.len() {
+            let target = *targets.at(i);
+            cheat_caller_address(token.contract_address, OWNER, CheatSpan::TargetCalls(1));
+            token.transfer(target, default);
+            println!(
+                "Transferred {} from OWNER to buyer{}. OWNER BALANCE: {}",
+                default,
+                i + 1,
+                token.balance_of(OWNER),
+            );
+        }
+        if additional > 0 {
+            let final = *targets.at(targets.len() - 1);
+            cheat_caller_address(token.contract_address, OWNER, CheatSpan::TargetCalls(1));
+            token.transfer(final, additional);
+        }
+        assert(token.balance_of(*targets.at(0)) > 0, 'INVALID BALANCE 66');
+    }
+
+    /// TESTS
+
     #[test]
     fn test_ico_deploy_erc20() {
         let contract_address = deploy_erc20(OWNER);
@@ -375,10 +425,10 @@ mod ico_tests {
     }
 
     #[test]
-    #[should_panic(expected: 'PRESALE HAS BEEN FINALIZED')]
+    #[should_panic(expected: 'PRESALE CONCLUDED')]
     fn test_ico_buy_token_should_panic_on_ended_presale() {
         // here, the presale should resolve automatically
-        let (ico, token, buy_token, _) = context(false);
+        let (ico, token, _, _) = context(false);
         let target: ContractAddress = 'TARGET'.try_into().unwrap();
         cheat_caller_address(ico.contract_address, target, CheatSpan::TargetCalls(1));
         let amount = 10000;
@@ -395,20 +445,17 @@ mod ico_tests {
         cheat_caller_address(buy_token.contract_address, OWNER, CheatSpan::TargetCalls(1));
         let amount = 10000;
         buy_token.transfer(target, amount);
+        let mut targets = array![target];
 
-        cheat_caller_address(buy_token.contract_address, target, CheatSpan::TargetCalls(1));
-        buy_token.approve(ico.contract_address, amount);
-        cheat_caller_address(ico.contract_address, target, CheatSpan::TargetCalls(2));
-        ico.buy_token(token.contract_address, amount);
-        assert(buy_token.balance_of(target) == 0, 'INVALID BALANCE');
-
+        buy_presale(ref targets, ico, token, buy_token);
         // ends at 10, so set the block timestamp to 11
-        cheat_block_timestamp(ico.contract_address, 11, CheatSpan::TargetCalls(1));
+        cheat_block_timestamp(ico.contract_address, 11, CheatSpan::TargetCalls(2));
         let mut spy = spy_events();
+        cheat_caller_address(ico.contract_address, target, CheatSpan::TargetCalls(1));
         ico.claim(token.contract_address);
         // Presale failed, so the token claimed shouldn't be the presale token, but
         // the token used in buying the presale.
-        assert(buy_token.balance_of(target) == 1000, 'INVALID BALANCE.');
+        assert(buy_token.balance_of(target) == amount, 'INVALID BALANCE.');
         let expected_event = ICO::Event::PresaleFinalized(
             PresaleFinalized {
                 presale_token_address: token.contract_address,
@@ -420,11 +467,62 @@ mod ico_tests {
     }
 
     #[test]
-    fn test_ico_claim_presale_token_on_successful_presale() {}
+    fn test_ico_presale_token_success_hard_cap_test() {
+        // This also tests the hardcap capping of buy token
+        // when a buyer buys into a presale, and the amount exceeds the hardcap
+        // only the require amount used for the buy transaction.
+        let (ico, token, buy_token, details) = context(false);
+        let buyer1: ContractAddress = 'BUYER1'.try_into().unwrap();
+        let buyer2: ContractAddress = 'BUYER2'.try_into().unwrap();
+        let buyer3: ContractAddress = 'BUYER3'.try_into().unwrap();
+
+        let amount = details.hard_cap / 3; // 500 * fast_power(10, 18)
+        let cash_back = fast_power(10, 20); // 100 * fast_power(10, 18)
+        let mut buyers = array![buyer1, buyer2, buyer3];
+        mint(ref buyers, buy_token, amount, cash_back);
+
+        let mut spy = spy_events();
+        buy_presale(ref buyers, ico, token, buy_token);
+        let expected_event = ICO::Event::PresaleFinalized(
+            PresaleFinalized {
+                presale_token_address: token.contract_address,
+                buy_token_address: buy_token.contract_address,
+                successful: true,
+            },
+        );
+
+        // there should a cash_back
+        assert(buy_token.balance_of(buyer3) == cash_back, 'CASHBACK NOT RETURNED');
+        assert(token.balance_of(buyer3) == 0, 'ERROR IN PRESALE');
+
+        spy.assert_emitted(@array![(ico.contract_address, expected_event)]);
+    }
+
+    fn claim(buyers: Array<ContractAddress>, ico: IICODispatcher, token: IERC20Dispatcher) {
+        for i in 0..buyers.len() {
+            let buyer = *buyers.at(i);
+            cheat_caller_address(ico.contract_address, buyer, CheatSpan::TargetCalls(1));
+            ico.claim(token.contract_address);
+            assert(token.balance_of(buyer) > 0, 'CLAIM FAILED');
+        }
+    }
 
     #[test]
-    #[should_panic(expected: 'PRESALE NOT ACTIVE')]
+    fn test_ico_claim_presale_token_success_using_soft_cap() { // 1050 * fast_power(10, 18); soft cap.
+    }
+
+    #[test]
+    #[ignore]
+    #[should_panic(expected: 'PRESALE NOT CLAIMABLE')]
     fn test_ico_claim_should_panic_on_non_active_presale() {}
+
+    #[test]
+    fn test_ico_cancel_buy_success() {}
+
+    #[test]
+    #[ignore]
+    #[should_panic]
+    fn test_ico_cancel_buy_should_panic_on_concluded_presale() {}
 
     #[test]
     #[ignore]
