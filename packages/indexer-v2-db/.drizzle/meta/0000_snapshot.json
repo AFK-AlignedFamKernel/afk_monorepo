@@ -1,15 +1,202 @@
 {
-  "id": "1c19d70b-4f1a-451e-9bf2-360ffbb1de6f",
+  "id": "ba6bc002-4eaa-406a-be80-f96e2d6399d6",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
+    "public.contract_state": {
+      "name": "contract_state",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "contract_address": {
+          "name": "contract_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "network": {
+          "name": "network",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_epoch_index": {
+          "name": "current_epoch_index",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_ai_score": {
+          "name": "total_ai_score",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "total_vote_score": {
+          "name": "total_vote_score",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "total_tips": {
+          "name": "total_tips",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "total_amount_deposit": {
+          "name": "total_amount_deposit",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "total_to_claimed": {
+          "name": "total_to_claimed",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "percentage_algo_distribution": {
+          "name": "percentage_algo_distribution",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 50
+        },
+        "quote_address": {
+          "name": "quote_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "main_token_address": {
+          "name": "main_token_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_epoch_duration": {
+          "name": "current_epoch_duration",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "default": 0
+        },
+        "current_epoch_start": {
+          "name": "current_epoch_start",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_epoch_end": {
+          "name": "current_epoch_end",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "topic_metadata": {
+          "name": "topic_metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nostr_metadata": {
+          "name": "nostr_metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "about": {
+          "name": "about",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "main_tag": {
+          "name": "main_tag",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "keyword": {
+          "name": "keyword",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "keywords": {
+          "name": "keywords",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "event_id_nip_29": {
+          "name": "event_id_nip_29",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "event_id_nip_72": {
+          "name": "event_id_nip_72",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "contract_state_contract_address_unique": {
+          "name": "contract_state_contract_address_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "contract_address"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.dao_creation": {
       "name": "dao_creation",
       "schema": "",
       "columns": {
-        "_id": {
-          "name": "_id",
+        "id": {
+          "name": "id",
           "type": "uuid",
           "primaryKey": true,
           "notNull": true,
@@ -43,16 +230,46 @@
           "name": "contract_address",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "starknet_address": {
           "name": "starknet_address",
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "dao_creation_contract_address_idx": {
+          "name": "dao_creation_contract_address_idx",
+          "columns": [
+            {
+              "expression": "contract_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -64,29 +281,37 @@
       "name": "dao_proposal",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
         "contract_address": {
           "name": "contract_address",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "proposal_id": {
           "name": "proposal_id",
           "type": "bigint",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "creator": {
           "name": "creator",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
-          "type": "integer",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "now()"
         },
         "end_at": {
           "name": "end_at",
@@ -98,20 +323,42 @@
           "name": "is_canceled",
           "type": "boolean",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": false
         },
         "result": {
           "name": "result",
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "dao_proposal_contract_address_fkey": {
+          "name": "dao_proposal_contract_address_fkey",
+          "tableFrom": "dao_proposal",
+          "tableTo": "dao_creation",
+          "columnsFrom": [
+            "contract_address"
+          ],
+          "columnsTo": [
+            "contract_address"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
-        "dao_proposal_contract_address_proposal_id_pk": {
-          "name": "dao_proposal_contract_address_proposal_id_pk",
+        "dao_proposal_pkey": {
+          "name": "dao_proposal_pkey",
           "columns": [
             "contract_address",
             "proposal_id"
@@ -127,23 +374,30 @@
       "name": "dao_proposal_vote",
       "schema": "",
       "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
         "contract_address": {
           "name": "contract_address",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "proposal_id": {
           "name": "proposal_id",
           "type": "bigint",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "voter": {
           "name": "voter",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "vote": {
           "name": "vote",
@@ -168,13 +422,43 @@
           "type": "integer",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "dao_proposal_vote_proposal_fkey": {
+          "name": "dao_proposal_vote_proposal_fkey",
+          "tableFrom": "dao_proposal_vote",
+          "tableTo": "dao_proposal",
+          "columnsFrom": [
+            "contract_address",
+            "proposal_id"
+          ],
+          "columnsTo": [
+            "contract_address",
+            "proposal_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {
-        "dao_proposal_vote_contract_address_proposal_id_voter_pk": {
-          "name": "dao_proposal_vote_contract_address_proposal_id_voter_pk",
+        "dao_proposal_vote_pkey": {
+          "name": "dao_proposal_vote_pkey",
           "columns": [
             "contract_address",
             "proposal_id",
@@ -183,6 +467,391 @@
         }
       },
       "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.epoch_state": {
+      "name": "epoch_state",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "epoch_index": {
+          "name": "epoch_index",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contract_address": {
+          "name": "contract_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_ai_score": {
+          "name": "total_ai_score",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "total_vote_score": {
+          "name": "total_vote_score",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "total_amount_deposit": {
+          "name": "total_amount_deposit",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "total_tip": {
+          "name": "total_tip",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "amount_claimed": {
+          "name": "amount_claimed",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "amount_vote": {
+          "name": "amount_vote",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "amount_algo": {
+          "name": "amount_algo",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "epoch_duration": {
+          "name": "epoch_duration",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "start_time": {
+          "name": "start_time",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "end_time": {
+          "name": "end_time",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "epoch_contract_unique_idx": {
+          "name": "epoch_contract_unique_idx",
+          "columns": [
+            {
+              "expression": "epoch_index",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "contract_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "epoch_state_contract_address_contract_state_contract_address_fk": {
+          "name": "epoch_state_contract_address_contract_state_contract_address_fk",
+          "tableFrom": "epoch_state",
+          "tableTo": "contract_state",
+          "columnsFrom": [
+            "contract_address"
+          ],
+          "columnsTo": [
+            "contract_address"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.indexer_cursor": {
+      "name": "indexer_cursor",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "cursor": {
+          "name": "cursor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "last_block_number": {
+          "name": "last_block_number",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_block_hash": {
+          "name": "last_block_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_tx_hash": {
+          "name": "last_tx_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_epoch_state": {
+      "name": "user_epoch_state",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "nostr_id": {
+          "name": "nostr_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "epoch_index": {
+          "name": "epoch_index",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "contract_address": {
+          "name": "contract_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "total_tip": {
+          "name": "total_tip",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "total_ai_score": {
+          "name": "total_ai_score",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "total_vote_score": {
+          "name": "total_vote_score",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "amount_claimed": {
+          "name": "amount_claimed",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "user_epoch_state_nostr_id_epoch_index_contract_address_pk": {
+          "name": "user_epoch_state_nostr_id_epoch_index_contract_address_pk",
+          "columns": [
+            "nostr_id",
+            "epoch_index",
+            "contract_address"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_profile": {
+      "name": "user_profile",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "nostr_id": {
+          "name": "nostr_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "starknet_address": {
+          "name": "starknet_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "total_ai_score": {
+          "name": "total_ai_score",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "total_tip": {
+          "name": "total_tip",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "total_vote_score": {
+          "name": "total_vote_score",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "amount_claimed": {
+          "name": "amount_claimed",
+          "type": "numeric(30, 18)",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "is_add_by_admin": {
+          "name": "is_add_by_admin",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_profile_nostr_id_unique": {
+          "name": "user_profile_nostr_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "nostr_id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

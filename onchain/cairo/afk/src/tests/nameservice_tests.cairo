@@ -4,8 +4,8 @@ mod nameservice_tests {
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::nameservice::{INameserviceDispatcher, INameserviceDispatcherTrait};
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, start_cheat_caller_address,
-        stop_cheat_caller_address, DeclareResultTrait
+        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
+        stop_cheat_caller_address,
     };
     use starknet::{ContractAddress, get_block_timestamp};
 
@@ -48,7 +48,7 @@ mod nameservice_tests {
         let (nameservice_address, _) = nameservice_class.deploy(@calldata).unwrap();
 
         let nameservice_dispatcher = INameserviceDispatcher {
-            contract_address: nameservice_address
+            contract_address: nameservice_address,
         };
 
         start_cheat_caller_address(nameservice_dispatcher.contract_address, ADMIN());
@@ -156,7 +156,7 @@ mod nameservice_tests {
         let old_username_address = nameservice_dispatcher.get_username_address(username);
         assert(
             old_username_address == starknet::contract_address_const::<0>(),
-            'Old usrnamestill mapped'
+            'Old usrnamestill mapped',
         );
 
         let new_username_address = nameservice_dispatcher.get_username_address(new_username);
@@ -286,7 +286,7 @@ mod nameservice_tests {
         assert(existing_auction.highest_bid == 0, 'highest_bid not correct');
         assert(
             existing_auction.highest_bidder == starknet::contract_address_const::<0>(),
-            'highest_bidder not correct'
+            'highest_bidder not correct',
         );
     }
 

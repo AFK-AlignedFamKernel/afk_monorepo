@@ -1,8 +1,39 @@
-// 1. Import the extendTheme function
-import {type ThemeConfig, extendTheme, StyleFunctionProps} from '@chakra-ui/react';
-import {mode} from '@chakra-ui/theme-tools';
-// 2. Extend the theme to include custom colors, fonts, etc
+import {
+  ChakraProvider,
+  extendTheme,
+  // theme,
+  ThemeConfig,
+  // createSystem,
+  // defaultConfig,
+  // defineConfig,
+} from '@chakra-ui/react';
+import {mode, StyleFunctionProps} from '@chakra-ui/theme-tools';
+
 const colors = {
+  theme: {
+    breakpoints: {
+      sm: '320px',
+      md: '768px',
+      lg: '960px',
+      xl: '1200px',
+    },
+    tokens: {
+      colors: {
+        red: '#EE0F0F',
+      },
+    },
+    semanticTokens: {
+      colors: {
+        danger: {value: '{colors.red}'},
+      },
+    },
+    keyframes: {
+      spin: {
+        from: {transform: 'rotate(0deg)'},
+        to: {transform: 'rotate(360deg)'},
+      },
+    },
+  },
   brand: {
     primary: '#4FA89B',
     secondary: '#4f89a8',
@@ -32,6 +63,20 @@ const colors = {
     green: 'linear-gradient(53deg, rgba(200, 237, 10, 1) 35%, rgba(253, 217, 13, 1) 100%)',
     primary: 'linear-gradient(53deg, #4FA89B 35%, #4f89a8 100%)',
   },
+
+  semantic: {
+    text: {
+      primary: mode('gray.800', 'whiteAlpha.900'),
+      secondary: mode('gray.600', 'whiteAlpha.700'),
+      tertiary: mode('gray.500', 'whiteAlpha.500'),
+    },
+    bg: {
+      primary: mode('white', 'gray.800'),
+      secondary: mode('gray.50', 'gray.700'),
+      tertiary: mode('gray.100', 'gray.600'),
+    },
+  },
+
   green: {
     primary: '#baef73',
     one: '#baef73',
@@ -68,15 +113,26 @@ const colors = {
 };
 
 // 2. Add your color mode config
-// const config: ThemeConfig = {
-//   initialColorMode: "light",
-//   useSystemColorMode: false,
+const config: ThemeConfig = {
+  initialColorMode: 'light',
+  useSystemColorMode: false,
+};
+
+// const config: defineConfig  {
+//   initialColorMode: 'dark',
+//   useSystemColorMode: true,
 // };
 
-const config: ThemeConfig = {
-  initialColorMode: 'dark',
-  useSystemColorMode: true,
-};
+// const config = defineConfig({
+//   theme: {
+//     tokens: {
+//       colors: {},
+//     },
+//   },
+// })
+// export const configChakra = defineConfig({
+
+// })
 
 const theme = extendTheme({
   colors,
@@ -84,67 +140,67 @@ const theme = extendTheme({
   styles: {
     global: (props: StyleFunctionProps) => ({
       body: {
-        // fontFamily: "body",
-        // color: mode("gray.800", "whiteAlpha.900")(props),
-        // color: mode("gray.800", "gray.900")(props),
-        color: mode('gray.800', 'gray.900')(props),
+        color: mode('gray.800', 'whiteAlpha.900')(props),
+        bg: mode('white', 'gray.800')(props),
         fontFamily: 'monospace',
-        bg: mode('white', 'gray.700')(props),
         lineHeight: 'base',
+      },
+      'h1, h2, h3, h4, h5, h6': {
+        color: mode('gray.800', 'whiteAlpha.900')(props),
+      },
+      p: {
+        color: mode('gray.700', 'whiteAlpha.700')(props),
+      },
+      li: {
+        color: mode('gray.700', 'whiteAlpha.700')(props),
+      },
+      span: {
+        color: mode('gray.700', 'whiteAlpha.700')(props),
+      },
+      a: {
+        color: mode('black.500', 'gray.300')(props),
+        _hover: {
+          color: mode('gray.600', 'gray.200')(props),
+        },
       },
     }),
   },
   components: {
     Text: {
-      // The styles all button have in common
-      baseStyle: {
+      baseStyle: (props: StyleFunctionProps) => ({
+        color: mode('gray.800', 'whiteAlpha.900')(props),
         fontFamily: 'monospace',
-        // fontWeight: "bold",
-        // textTransform: "uppercase",
-        // borderRadius: "base", // <-- border radius is same for all variants and sizes
+      }),
+      variants: {
+        primary: (props: StyleFunctionProps) => ({
+          color: mode('gray.800', 'whiteAlpha.900')(props),
+        }),
+        secondary: (props: StyleFunctionProps) => ({
+          color: mode('gray.600', 'whiteAlpha.700')(props),
+        }),
+        tertiary: (props: StyleFunctionProps) => ({
+          color: mode('gray.500', 'whiteAlpha.500')(props),
+        }),
       },
-      fontFamily: 'monospace',
-      // fontFamily:"PressStart2P",
-
-      // // The default size and variant values
       defaultProps: {
-        // size: 'md',
+        variant: 'primary',
+      },
+    },
+    Button: {
+      baseStyle: (props: StyleFunctionProps) => ({
+        color: mode('gray.800', 'whiteAlpha.900')(props),
         fontFamily: 'monospace',
-        // variant: 'outline',
-      },
-      // Two sizes: sm and md
-      sizes: {
-        sm: {
-          fontSize: '17px',
-          px: 4, // <-- px is short for paddingLeft and paddingRight
-          py: 3, // <-- py is short for paddingTop and paddingBottom
-        },
-        md: {
-          fontSize: '21px',
-          px: 6, // <-- these values are tokens from the design system
-          py: 4, // <-- these values are tokens from the design system
-        },
-        lg: {
-          fontSize: '25px',
-          px: 6, // <-- these values are tokens from the design system
-          py: 4, // <-- these values are tokens from the design system
-        },
-      },
-      // // Two variants: outline and solid
-      // variants: {
-      //   outline: {
-      //     border: '2px solid',
-      //     borderColor: 'purple.500',
-      //     color: 'purple.500',
-      //   },
-      //   solid: {
-      //     bg: 'purple.500',
-      //     color: 'white',
-      //   },
-      // },
-      // fontFamily: "monospace",
+        backgroundColor: mode('white', 'gray.800')(props),
+      }),
+    },
+    Heading: {
+      baseStyle: (props: StyleFunctionProps) => ({
+        color: mode('gray.800', 'whiteAlpha.900')(props),
+        fontFamily: 'monospace',
+      }),
     },
   },
 });
 
+// export default createSystem(defaultConfig, configChakra)
 export default theme;

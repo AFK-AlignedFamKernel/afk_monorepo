@@ -1,7 +1,7 @@
 #[starknet::contract]
 mod StakingRewards {
-    use crate::staking::staking::StakingComponent;
     use starknet::ContractAddress;
+    use crate::staking::staking::StakingComponent;
 
     component!(path: StakingComponent, storage: staking, event: StakingEvent);
 
@@ -23,7 +23,7 @@ mod StakingRewards {
         ref self: ContractState,
         owner: ContractAddress,
         staking_token: ContractAddress,
-        reward_token: ContractAddress
+        reward_token: ContractAddress,
     ) {
         self.staking._initializer(owner, staking_token, reward_token);
     }

@@ -8,11 +8,15 @@ pub mod social;
 pub mod staking;
 pub mod utils;
 
+
 pub mod interfaces {
+    pub mod common_interfaces;
+
     pub mod erc20;
     pub mod erc20_mintable;
     pub mod nameservice;
     pub mod nfts;
+    pub mod nostrfi_scoring_interfaces;
     pub mod username_store;
     pub mod vault;
     pub mod voting;
@@ -38,13 +42,13 @@ pub mod types {
     pub mod defi_types;
     pub mod identity_types;
     pub mod jediswap_types;
-    pub mod keys_types;
-    pub mod pump_types;
     pub mod tap_types;
 }
 
 pub mod components {
     // pub mod voting_proposal;
+    pub mod nostr_namespace;
+
     pub mod voting;
 }
 
@@ -54,16 +58,24 @@ pub mod account {
 
 pub mod tokens {
     pub mod erc20;
+    pub mod erc20_intern;
     pub mod erc20_mintable;
-    pub mod token;
-    pub mod dn404 {
-        pub mod dn404;
-        pub mod dn404_component;
-        pub mod dn404_mirror;
-        pub mod dn404_mirror_component;
-        pub mod dn404_mirror_preset;
-        pub mod dn404_preset;
-    }
+    // pub mod token;
+// pub mod dn404 {
+//     pub mod dn404;
+//     pub mod dn404_component;
+//     pub mod dn404_mirror;
+//     pub mod dn404_mirror_component;
+//     pub mod dn404_mirror_preset;
+//     pub mod dn404_preset;
+// }
+}
+
+pub mod infofi {
+    pub mod errors;
+    // pub mod nostr_vault;
+    pub mod nostrfi_scoring;
+    pub mod score_factory;
 }
 
 #[cfg(test)]
@@ -71,7 +83,10 @@ pub mod tests {
     // pub mod dn404_presets_test;
     // pub mod dn404_tests;
     // pub mod nameservice_tests;
-    pub mod staking_tests;
+    pub mod nostrfi_scoring_tests;
+    pub mod score_factory_tests;
     pub mod utils;
-    pub mod vault_tests;
+    // pub mod staking_tests;
+
+    // pub mod vault_tests;
 }

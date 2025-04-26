@@ -1,10 +1,11 @@
 import { provider } from "../utils/starknet";
 
-import { Account, constants } from "starknet";
+import { Account, byteArray, cairo, CallData, constants, uint256 } from "starknet";
 import { NAMESPACE_ADDRESS } from "../constants";
 import dotenv from "dotenv";
 import { prepareAndConnectContract } from "../utils/contract";
 import { createNamespace } from "../utils/namespace";
+import { finalizeEvent, serializeEvent, verifyEvent } from "nostr-tools";
 dotenv.config();
 export const deployNamespace = async () => {
   console.log("deploy namespace");
@@ -16,9 +17,10 @@ export const deployNamespace = async () => {
   let namespace;
   let namespaceContract;
 
+  console.log("NOSTR_PUBKEY_ADMIN", process.env.NOSTR_PUBKEY_ADMIN);
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
     console.log("try deploy key marketplace");
-    let namespaceContract = await createNamespace();
+    let namespaceContract = await createNamespace(accountAddress0, process.env.NOSTR_PUBKEY_ADMIN as string);
     console.log(
       "namespace contract address",
       namespaceContract?.contract_address
@@ -44,5 +46,7 @@ export const deployNamespace = async () => {
     namespace_address,
   };
 };
+
+
 
 deployNamespace();

@@ -24,26 +24,22 @@ const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
 pub mod Nameservice {
     use afk::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::interfaces::nameservice::INameservice;
+    use openzeppelin::access::accesscontrol::AccessControlComponent;
     // use afk::interfaces::username_store::INameservice;
     use openzeppelin::access::ownable::OwnableComponent;
-
-    use openzeppelin::upgrades::UpgradeableComponent;
-    use openzeppelin::upgrades::interface::IUpgradeable;
-    use openzeppelin::access::accesscontrol::AccessControlComponent;
-
     use openzeppelin::governance::votes::VotesComponent;
     use openzeppelin::introspection::src5::SRC5Component;
-    use openzeppelin::token::erc20::{ERC20Component};
+    use openzeppelin::token::erc20::ERC20Component;
+    use openzeppelin::upgrades::UpgradeableComponent;
+    use openzeppelin::upgrades::interface::IUpgradeable;
     use openzeppelin::utils::cryptography::nonces::NoncesComponent;
     use openzeppelin::utils::cryptography::snip12::SNIP12Metadata;
-    use starknet::storage::{StoragePointerWriteAccess, StoragePathEntry, Map};
+    use starknet::storage::{Map, StoragePathEntry, StoragePointerWriteAccess};
     use starknet::{
-        ContractAddress, contract_address_const, get_caller_address, get_block_timestamp,
-        get_contract_address, ClassHash
+        ClassHash, ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
-    use super::ADMIN_ROLE;
-    use super::MINTER_ROLE;
-    use super::UserNameClaimErrors;
+    use super::{ADMIN_ROLE, MINTER_ROLE, UserNameClaimErrors};
 
     const YEAR_IN_SECONDS: u64 = 31536000_u64; // 365 days in seconds
 
@@ -98,7 +94,7 @@ pub mod Nameservice {
         pub owner: ContractAddress,
         pub username: felt252,
         pub expiry: u64,
-        pub is_claimed: bool
+        pub is_claimed: bool,
     }
 
     #[derive(Drop, Debug, Serde, Copy, starknet::Store)]
@@ -114,20 +110,20 @@ pub mod Nameservice {
         id: u256,
         bidder: ContractAddress,
         amount: u256,
-        is_active: bool
+        is_active: bool,
     }
 
     #[storage]
     struct Storage {
-        usernames: Map::<felt252, ContractAddress>,
-        user_to_username: Map::<ContractAddress, felt252>,
+        usernames: Map<felt252, ContractAddress>,
+        user_to_username: Map<ContractAddress, felt252>,
         usernames_claimed_by_user: Map<ContractAddress, Map<felt252, NameserviceStorage>>,
-        subscription_expiry: Map::<ContractAddress, u64>,
-        username_storage: Map::<felt252, NameserviceStorage>,
-        auctions: Map::<felt252, Auction>,
-        orders: Map::<(felt252, u256), Order>,
-        order_count: Map::<felt252, u256>,
-        order_return: Map::<ContractAddress, Map<felt252, u256>>,
+        subscription_expiry: Map<ContractAddress, u64>,
+        username_storage: Map<felt252, NameserviceStorage>,
+        auctions: Map<felt252, Auction>,
+        orders: Map<(felt252, u256), Order>,
+        order_count: Map<felt252, u256>,
+        order_return: Map<ContractAddress, Map<felt252, u256>>,
         subscription_price: u256,
         token_quote: ContractAddress,
         is_payment_enabled: bool,
@@ -169,7 +165,7 @@ pub mod Nameservice {
         #[flat]
         ERC20Event: ERC20Component::Event,
         #[flat]
-        NoncesEvent: NoncesComponent::Event
+        NoncesEvent: NoncesComponent::Event,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -179,7 +175,7 @@ pub mod Nameservice {
         username: felt252,
         expiry: u64,
         paid: u256,
-        quote_token: ContractAddress
+        quote_token: ContractAddress,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -187,20 +183,20 @@ pub mod Nameservice {
         #[key]
         address: ContractAddress,
         old_username: felt252,
-        new_username: felt252
+        new_username: felt252,
     }
 
     #[derive(Drop, starknet::Event)]
     struct SubscriptionRenewed {
         #[key]
         address: ContractAddress,
-        expiry: u64
+        expiry: u64,
     }
 
     #[derive(Drop, starknet::Event)]
     struct PriceUpdated {
         old_price: u256,
-        new_price: u256
+        new_price: u256,
     }
 
     #[derive(Drop, starknet::Event)]
@@ -229,7 +225,7 @@ pub mod Nameservice {
             ref self: ERC20Component::ComponentState<ContractState>,
             from: ContractAddress,
             recipient: ContractAddress,
-            amount: u256
+            amount: u256,
         ) {
             let mut contract_state = ERC20Component::HasComponent::get_contract_mut(ref self);
             contract_state.erc20_votes.transfer_voting_units(from, recipient, amount);
@@ -237,7 +233,7 @@ pub mod Nameservice {
     }
 
 
-    #[external(v0)]
+    #[abi(embed_v0)]
     impl UpgradeableImpl of IUpgradeable<ContractState> {
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
             // This function can only be called by the owner
@@ -257,7 +253,7 @@ pub mod Nameservice {
         admin: ContractAddress,
         subscription_price: u256,
         token_quote: ContractAddress,
-        is_payment_enabled: bool
+        is_payment_enabled: bool,
     ) {
         self.ownable.initializer(owner);
 
@@ -306,7 +302,7 @@ pub mod Nameservice {
             let price = self.subscription_price.read();
             let quote_token = self.token_quote.read();
 
-            let username_storage = self.username_storage.entry(key);
+            // let username_storage = self.username_storage.entry(key);
 
             //   TODO uncomment. User can claimed few users name.
             // Check for user having username
@@ -319,7 +315,7 @@ pub mod Nameservice {
             let username_address = self.usernames.read(key);
             assert(
                 username_address == contract_address_const::<0>(),
-                UserNameClaimErrors::USERNAME_CLAIMED
+                UserNameClaimErrors::USERNAME_CLAIMED,
             );
 
             // Payment
@@ -333,7 +329,7 @@ pub mod Nameservice {
             self.user_to_username.entry(caller_address).write(key);
 
             let name_claimed = NameserviceStorage {
-                owner: caller_address, username: key, expiry: expiry, is_claimed: true
+                owner: caller_address, username: key, expiry: expiry, is_claimed: true,
             };
             self.username_storage.entry(key).write(name_claimed);
 
@@ -347,8 +343,8 @@ pub mod Nameservice {
                         address: caller_address,
                         expiry,
                         paid: price,
-                        quote_token: quote_token
-                    }
+                        quote_token: quote_token,
+                    },
                 );
         }
 
@@ -378,7 +374,7 @@ pub mod Nameservice {
 
             // Store the auction
             self.auctions.write(username, new_auction);
-            self.emit(AuctionCreated { owner: caller_address, username: username, minimal_price, });
+            self.emit(AuctionCreated { owner: caller_address, username: username, minimal_price });
         }
 
         // TODO
@@ -416,7 +412,7 @@ pub mod Nameservice {
             assert(auction.owner == caller, UserNameClaimErrors::USER_NOT_AUCTION_OWNER);
 
             let order = self.orders.entry((username, id)).read();
-            assert(order.is_active == true, UserNameClaimErrors::ORDER_INACTIVE);
+            assert(order.is_active, UserNameClaimErrors::ORDER_INACTIVE);
 
             let bidder = order.bidder;
 
@@ -425,7 +421,7 @@ pub mod Nameservice {
             updated_order.is_active = false;
             self.orders.entry((username, id)).write(order);
 
-            let mut updated_auction = auction;
+            // let mut updated_auction = auction;
 
             // Send token from contract to auction owner
             let token = IERC20Dispatcher { contract_address: self.token_quote.read() };
@@ -506,7 +502,7 @@ pub mod Nameservice {
 
             assert(
                 new_username_address == contract_address_const::<0>(),
-                UserNameClaimErrors::USERNAME_CLAIMED
+                UserNameClaimErrors::USERNAME_CLAIMED,
             );
 
             // Update username mappings
@@ -519,8 +515,8 @@ pub mod Nameservice {
                     UsernameChanged {
                         old_username: old_username,
                         new_username: new_username,
-                        address: caller_address
-                    }
+                        address: caller_address,
+                    },
                 );
         }
 

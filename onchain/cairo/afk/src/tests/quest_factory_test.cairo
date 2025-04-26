@@ -3,20 +3,17 @@ mod quest_factory_tests {
     use afk::interfaces::erc20_mintable::{IERC20MintableDispatcher, IERC20MintableDispatcherTrait};
     use afk::interfaces::quest::{
         IQuestFactoryDispatcher, IQuestFactoryDispatcherTrait, IQuestNFTDispatcher,
-        IQuestNFTDispatcherTrait, ITapQuestsDispatcher, ITapQuestsDispatcherTrait
+        IQuestNFTDispatcherTrait, ITapQuestsDispatcher, ITapQuestsDispatcherTrait,
     };
-
-    use afk::interfaces::vault::{IERCVaultDispatcher};
+    use afk::interfaces::vault::IERCVaultDispatcher;
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
-    use afk::types::quest::{QuestInfo};
+    use afk::types::quest::QuestInfo;
     use openzeppelin::token::erc721::interface::{IERC721Dispatcher, IERC721DispatcherTrait};
-
     use snforge_std::{
-        declare, ContractClass, ContractClassTrait, DeclareResultTrait, start_cheat_caller_address,
-        stop_cheat_caller_address
+        ContractClass, ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
+        stop_cheat_caller_address,
     };
-
-    use starknet::{ContractAddress};
+    use starknet::ContractAddress;
 
     fn ADMIN() -> ContractAddress {
         123.try_into().unwrap()
@@ -31,7 +28,7 @@ mod quest_factory_tests {
     }
 
     fn quest_info(addr: ContractAddress) -> QuestInfo {
-        return QuestInfo { name: quest_name(), address: addr, quest_id: 0, };
+        return QuestInfo { name: quest_name(), address: addr, quest_id: 0 };
     }
 
     const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
@@ -40,7 +37,7 @@ mod quest_factory_tests {
         let (vault_dispatcher, token_address) = deploy_and_setup_vault();
         let quest_nft_addr = deploy_quest_nft("QUEST NFT", "QNFT", ADMIN());
         let factory_dispatcher = deploy_factory_quest(
-            quest_nft_addr, vault_dispatcher.contract_address
+            quest_nft_addr, vault_dispatcher.contract_address,
         );
         let tap_quest_addr = deploy_tap_quest();
 
@@ -54,7 +51,7 @@ mod quest_factory_tests {
             factory_dispatcher,
             tap_quest_addr,
             IERC721Dispatcher { contract_address: quest_nft_addr },
-            IERC20Dispatcher { contract_address: token_address }
+            IERC20Dispatcher { contract_address: token_address },
         )
     }
 
@@ -70,7 +67,7 @@ mod quest_factory_tests {
     }
 
     fn deploy_factory_quest(
-        quest_nft: ContractAddress, vault: ContractAddress
+        quest_nft: ContractAddress, vault: ContractAddress,
     ) -> IQuestFactoryDispatcher {
         let factory_class = declare("QuestFactory").unwrap().contract_class();
         let mut calldata = array![];
@@ -83,7 +80,7 @@ mod quest_factory_tests {
     }
 
     fn deploy_quest_nft(
-        name: ByteArray, symbol: ByteArray, owner: ContractAddress
+        name: ByteArray, symbol: ByteArray, owner: ContractAddress,
     ) -> ContractAddress {
         let class = declare("QuestNFT").unwrap().contract_class();
         let mut calldata = array![];
@@ -113,7 +110,7 @@ mod quest_factory_tests {
 
         // set minter role in erc20 mintable token
         let abtc_mintable_dispathcer = IERC20MintableDispatcher {
-            contract_address: abtc_dispathcer.contract_address
+            contract_address: abtc_dispathcer.contract_address,
         };
 
         start_cheat_caller_address(abtc_dispathcer.contract_address, ADMIN());

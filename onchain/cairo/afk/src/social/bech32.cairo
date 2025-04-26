@@ -24,7 +24,7 @@ use core::traits::{Into, TryInto};
 
 fn polymod(values: Array<u8>) -> u32 {
     let generator = array![
-        0x3b6a57b2_u32, 0x26508e6d_u32, 0x1ea119fa_u32, 0x3d4233dd_u32, 0x2a1462b3_u32
+        0x3b6a57b2_u32, 0x26508e6d_u32, 0x1ea119fa_u32, 0x3d4233dd_u32, 0x2a1462b3_u32,
     ];
     let generator = generator.span();
 
@@ -41,9 +41,9 @@ fn polymod(values: Array<u8>) -> u32 {
                 chk = chk ^ *generator.at(i.into());
             }
             i += 1;
-        };
+        }
         p += 1;
-    };
+    }
 
     chk
 }
@@ -56,7 +56,7 @@ fn hrp_expand(hrp: @Array<u8>) -> Array<u8> {
     while i != len {
         r.append(shr(*hrp.at(i), 5));
         i += 1;
-    };
+    }
     r.append(0);
 
     let len = hrp.len();
@@ -64,7 +64,7 @@ fn hrp_expand(hrp: @Array<u8>) -> Array<u8> {
     while i != len {
         r.append(*hrp.at(i) & 31);
         i += 1;
-    };
+    }
 
     r
 }
@@ -95,9 +95,9 @@ fn convert_bytes_to_5bit_chunks(bytes: @Array<u8>) -> Array<u8> {
                 acc = 0;
                 missing_bits = 5
             }
-        };
+        }
         i += 1;
-    };
+    }
     if missing_bits < 5 {
         r.append(acc);
     }
@@ -112,7 +112,7 @@ impl ByteArrayTraitIntoArray of Into<@ByteArray, Array<u8>> {
         while i != len {
             r.append(self.at(i).unwrap());
             i += 1;
-        };
+        }
         r
     }
 }
@@ -156,7 +156,7 @@ pub fn encode(hrp: @ByteArray, data: @ByteArray, limit: usize) -> ByteArray {
     while i != len {
         encoded.append_byte(alphabet.at((*combined.at(i)).into()).unwrap());
         i += 1;
-    };
+    }
 
     format!("{hrp}1{encoded}")
 }
@@ -175,7 +175,7 @@ mod tests {
         assert(encode(@"abcd", @"\x00\x00", 90) == "abcd1qqqqzclr2u", 'errorc bech32');
         assert(encode(@"abcd", @"\x00\x00\x00\x00", 90) == "abcd1qqqqqqqgf3j03", 'error bech32');
         assert(
-            encode(@"abcdef", @"\x00\x00\x00\x00", 90) == "abcdef1qqqqqqqex27k2", 'error bech32'
+            encode(@"abcdef", @"\x00\x00\x00\x00", 90) == "abcdef1qqqqqqqex27k2", 'error bech32',
         );
     }
 }

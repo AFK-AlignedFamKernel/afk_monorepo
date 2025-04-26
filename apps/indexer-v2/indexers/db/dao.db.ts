@@ -1,6 +1,7 @@
 import { daoCreation, daoProposal, daoProposalVote } from 'indexer-v2-db/schema';
 import { and, eq } from 'drizzle-orm';
 import { useDrizzleStorage } from '@apibara/plugin-drizzle';
+import { sql } from 'drizzle-orm';
 
 interface DaoCreationData {
   number: number;
@@ -27,14 +28,31 @@ interface ProposalVoteData {
   votedAt: number;
 }
 
-export async function insertDaoCreation(daoCreationData: DaoCreationData[]) {
+export async function insertDaoCreation(daoCreationData: any[]) {
   const { db } = useDrizzleStorage();
-  return db.insert(daoCreation).values(daoCreationData).onConflictDoNothing();
+  try {
+    // First try to remove existing trigger if it exists
+    await db.execute(
+      sql`DROP TRIGGER IF EXISTS dao_creation_reorg_indexer_dao_factory_default ON dao_creation`
+    );
+    
+    // Then perform the insert
+    return db.insert(daoCreation)
+      .values(daoCreationData)
+      .onConflictDoNothing();
+  } catch (error) {
+    console.error('Error in insertDaoCreation:', error);
+    throw error;
+  }
 }
 
 export async function insertProposal(proposalCreationData: ProposalCreationData) {
-  const { db } = useDrizzleStorage();
-  return db.insert(daoProposal).values(proposalCreationData).onConflictDoNothing();
+  try {
+    const { db } = useDrizzleStorage();
+    return db.insert(daoProposal).values(proposalCreationData).onConflictDoNothing();
+  } catch (error) {
+    console.log("error insertProposal", error);
+  }
 }
 
 export async function updateProposalCancellation(
@@ -42,17 +60,21 @@ export async function updateProposalCancellation(
   creator: string,
   proposalId: bigint,
 ) {
-  const { db } = useDrizzleStorage();
-  return db
-    .update(daoProposal)
-    .set({ isCanceled: true })
-    .where(
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .update(daoProposal)
+      .set({ isCanceled: true })
+      .where(
       and(
         eq(daoProposal.contractAddress, contractAddress),
         eq(daoProposal.creator, creator),
         eq(daoProposal.proposalId, proposalId),
       ),
     );
+  } catch (error) {
+    console.log("error updateProposalCancellation", error);
+  }
 }
 
 export async function updateProposalResult(
@@ -61,21 +83,26 @@ export async function updateProposalResult(
   proposalId: bigint,
   result: string,
 ) {
-  const { db } = useDrizzleStorage();
-  return db
-    .update(daoProposal)
-    .set({ result })
-    .where(
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .update(daoProposal)
+      .set({ result })
+      .where(
       and(
         eq(daoProposal.contractAddress, contractAddress),
         eq(daoProposal.creator, creator),
         eq(daoProposal.proposalId, proposalId),
       ),
     );
-}
+  } catch (error) { 
+    console.log("error updateProposalResult", error);
+  }
+  }
 
 export async function upsertProposalVote(proposalVoteData: ProposalVoteData) {
-  const { db } = useDrizzleStorage();
+  try {
+    const { db } = useDrizzleStorage();
   return db
     .insert(daoProposalVote)
     .values(proposalVoteData)
@@ -83,4 +110,7 @@ export async function upsertProposalVote(proposalVoteData: ProposalVoteData) {
       target: [daoProposalVote.contractAddress, daoProposalVote.proposalId, daoProposalVote.voter],
       set: { totalVotes: proposalVoteData.totalVotes },
     });
+  } catch (error) {
+    console.log("error upsertProposalVote", error);
+  }
 }

@@ -51,3 +51,28 @@ model SocialAccount {
   @@unique([userId, platform])
   @@map("social_accounts")
 }
+
+model NoteNostr {
+  id            String   @id @default(cuid())
+  eventId       String
+  pubkey        String?
+  content       String?
+  kind          Int?
+  viralityScore Int?
+  score         Int?
+  noteScore     Json?
+  tags          String[]
+}
+
+model TrendingNotesNostr {
+  id          String  @id @default(cuid())
+  userId      String
+  eventsIds   String?
+  notes       Json[]
+  notesScores Json[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}

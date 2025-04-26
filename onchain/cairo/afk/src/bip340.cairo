@@ -1,22 +1,22 @@
-use afk::utils::{shl, shr, compute_sha256_byte_array};
+use afk::utils::compute_sha256_byte_array;
 use core::byte_array::ByteArrayTrait;
-use core::ec::stark_curve::GEN_X;
-use core::ec::stark_curve::GEN_Y;
-use core::ec::stark_curve::ORDER;
 use core::ec::{EcPoint, ec_point_unwrap};
 use core::option::OptionTrait;
 // TODO: uncomment once Cairo 2.7 is available
 // use core::sha256::compute_sha256_byte_array;
 use core::starknet::SyscallResultTrait;
 use core::traits::Into;
+use starknet::secp256_trait::{Secp256PointTrait, Secp256Trait};
+use starknet::secp256k1::Secp256k1Point;
 //! bip340 implementation
 
 use starknet::{ContractAddress, get_caller_address};
-use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait, Secp256PointTrait}};
-use super::social::{
-    request::{SocialRequest, ConvertToBytes, UnsignedSocialRequest, UnsignedSocialRequestMessage},
-    transfer::Transfer, deposit::Claim, namespace::LinkedStarknetAddress
+use super::components::nostr_namespace::LinkedStarknetAddress;
+use super::social::deposit::Claim;
+use super::social::request::{
+    ConvertToBytes, SocialRequest, UnsignedSocialRequest, UnsignedSocialRequestMessage,
 };
+use super::social::transfer::Transfer;
 
 
 const TWO_POW_32: u128 = 0x100000000;
@@ -47,7 +47,7 @@ pub struct SchnorrSignature {
 #[derive(Copy, Drop, Debug, Serde)]
 pub struct Signature {
     pub r: u256,
-    pub s: u256
+    pub s: u256,
 }
 
 impl PartialEqImpl of PartialEq<EcPoint> {
@@ -151,7 +151,7 @@ pub fn verify(px: u256, rx: u256, s: u256, m: ByteArray) -> bool {
         match Secp256Trait::<Secp256k1Point>::secp256_ec_get_point_from_x_syscall(px, false)
             .unwrap_syscall() {
         Option::Some(P) => P,
-        Option::None => { return false; }
+        Option::None => { return false; },
     };
 
     // e = int(hashBIP0340/challenge(bytes(rx) || bytes(px) || m)) mod n.
@@ -178,7 +178,7 @@ pub fn count_digits(mut num: u256) -> (u32, felt252) {
     while num > 0 {
         num = num / BASE;
         count = count + 1;
-    };
+    }
     let res: felt252 = count.try_into().unwrap();
     (count, res)
 }
@@ -207,7 +207,7 @@ pub fn transfer_to_bytes(transfer: Transfer) -> ByteArray {
     ba.append_word(amount_felt252, amount_count);
 
     // Encode token
-    ba.append_word(transfer.token, 1_u32);
+    // ba.append_word(transfer.token, 1_u32);
 
     // Encode token_address
     ba.append_word(transfer.token_address.into(), 1_u32);
@@ -219,7 +219,7 @@ pub fn transfer_to_bytes(transfer: Transfer) -> ByteArray {
     ba.append_word(joyboy_felt252, joyboy_count);
     for relay in transfer.joyboy.relays {
         ba.append(@relay);
-    };
+    }
 
     // Encode recipient (NostrProfile encoding)
     let (recipient_count, recipient_count_felt252) = count_digits(transfer.recipient.public_key);
@@ -228,7 +228,7 @@ pub fn transfer_to_bytes(transfer: Transfer) -> ByteArray {
     ba.append_word(recipient_felt252, recipient_count);
     for relay in transfer.recipient.relays {
         ba.append(@relay);
-    };
+    }
 
     // Encode recipient_address
     ba.append_word(transfer.recipient_address.into(), 1_u32);
@@ -237,7 +237,7 @@ pub fn transfer_to_bytes(transfer: Transfer) -> ByteArray {
 }
 
 pub fn encodeSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>>(
-    request: SocialRequest<C>
+    request: SocialRequest<C>,
 ) -> ByteArray {
     let mut ba: ByteArray = "";
 
@@ -275,7 +275,7 @@ pub fn encodeSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>
 
 
 pub fn encodeUnsignedSocialRequest<C, impl CImpl: ConvertToBytes<C>, impl CDrop: Drop<C>>(
-    request: UnsignedSocialRequest<C>
+    request: UnsignedSocialRequest<C>,
 ) -> ByteArray {
     let mut ba: ByteArray = "";
 
@@ -343,7 +343,7 @@ pub fn encodeUnsignedSocialRequestMessage(request: UnsignedSocialRequestMessage)
 // Highly senstive data
 // Take care of the result
 pub fn generate_keypair(
-    vrf_contract_address: ContractAddress
+    vrf_contract_address: ContractAddress,
 ) -> (core::felt252, core::starknet::secp256k1::Secp256k1Point, u256) {
     // vrf address
     let vrf_provider = IVrfProviderDispatcher { contract_address: vrf_contract_address };
@@ -394,7 +394,7 @@ fn compute_challenge(R: u256, public_key: Secp256k1Point, message: ByteArray) ->
 }
 
 pub fn sign(
-    private_key: u256, message: ByteArray, vrf_contract_address: ContractAddress
+    private_key: u256, message: ByteArray, vrf_contract_address: ContractAddress,
 ) -> SchnorrSignature {
     let (nonce, R) = generate_nonce_point(vrf_contract_address);
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
@@ -416,7 +416,7 @@ pub fn verify_sig(
     public_key: Secp256k1Point,
     message: ByteArray,
     signature: SchnorrSignature,
-    vrf_contract_address: ContractAddress
+    vrf_contract_address: ContractAddress,
 ) -> bool {
     let G = Secp256Trait::<Secp256k1Point>::get_generator_point();
     let e = compute_challenge(signature.r, public_key, message);
@@ -448,12 +448,12 @@ mod tests {
     use core::clone::Clone;
     use core::option::OptionTrait;
     use core::traits::Into;
-    use starknet::SyscallResultTrait;
-    use starknet::{secp256k1::{Secp256k1Point}, secp256_trait::{Secp256Trait}, ContractAddress};
-    use super::Secp256PointTrait;
-    use super::{IVrfProvider, IVrfProviderDispatcher};
+    use starknet::secp256_trait::Secp256Trait;
+    use starknet::secp256k1::Secp256k1Point;
+    use starknet::{ContractAddress, SyscallResultTrait};
+    use super::{IVrfProvider, IVrfProviderDispatcher, Secp256PointTrait};
     // use super::*;
-    use super::{verify, verify_sig, sign, generate_keypair};
+    use super::{generate_keypair, sign, verify, verify_sig};
     impl U256IntoByteArray of Into<u256, ByteArray> {
         fn into(self: u256) -> ByteArray {
             let mut ba = Default::default();
@@ -702,11 +702,11 @@ mod tests {
     #[test]
     fn test_20() {
         let vrf_provider = IVrfProviderDispatcher {
-            contract_address: CONTRACT_ADDRESS().try_into().unwrap()
+            contract_address: CONTRACT_ADDRESS().try_into().unwrap(),
         };
 
         let (private_key, public_key_point, public_key_x) = generate_keypair(
-            vrf_provider.contract_address
+            vrf_provider.contract_address,
         );
 
         println!("private_key: {}", private_key);
@@ -719,7 +719,7 @@ mod tests {
 
         // Verify signature
         let is_valid = verify_sig(
-            public_key_point, message, signature, vrf_provider.contract_address
+            public_key_point, message, signature, vrf_provider.contract_address,
         );
 
         assert!(is_valid);
@@ -729,11 +729,11 @@ mod tests {
     #[fork("Sepolia")]
     fn test_generate_sign_and_verify() {
         let vrf_provider = IVrfProviderDispatcher {
-            contract_address: CONTRACT_ADDRESS().try_into().unwrap()
+            contract_address: CONTRACT_ADDRESS().try_into().unwrap(),
         };
 
         let (private_key, public_key_point, public_key_x) = generate_keypair(
-            vrf_provider.contract_address
+            vrf_provider.contract_address,
         );
 
         // Message to sign
@@ -745,7 +745,7 @@ mod tests {
 
         // Verify signature
         let is_valid = verify_sig(
-            public_key_point, message, signature, vrf_provider.contract_address
+            public_key_point, message, signature, vrf_provider.contract_address,
         );
 
         assert!(is_valid);

@@ -142,7 +142,7 @@ export const FeedComponent: React.FC = () => {
 
       // const profileNdk = new NDKUserProfile({publicKey});
       const user = ndk.getUser({ pubkey: publicKey });
-      const profileNdk = await user.fetchProfile();
+      // const profileNdk = await user.fetchProfile();
 
       // const followers = profile?.data?.followers;
       const followers = await user?.follows();

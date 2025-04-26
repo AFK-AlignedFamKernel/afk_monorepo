@@ -9,4 +9,4 @@ export default defineConfig({
   dbCredentials: {
     url: process.env.INDEXER_V2_DATABASE_URL,
   },
-}) as Config;
+}) satisfies Config;

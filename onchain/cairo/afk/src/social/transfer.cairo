@@ -1,15 +1,14 @@
 use starknet::ContractAddress;
 use super::profile::{NostrProfile, NostrProfileTrait};
-use super::request::ConvertToBytes;
-use super::request::Encode;
+use super::request::{ConvertToBytes, Encode};
 #[derive(Clone, Debug, Drop, Serde)]
 pub struct Transfer {
     pub amount: u256,
-    pub token: felt252,
+    // pub token: felt252,
     pub token_address: ContractAddress,
     pub joyboy: NostrProfile,
     pub recipient: NostrProfile,
-    pub recipient_address: ContractAddress
+    pub recipient_address: ContractAddress,
 }
 
 fn len(f: felt252) -> usize {
@@ -18,17 +17,23 @@ fn len(f: felt252) -> usize {
     while f != 0 {
         f = f / 256;
         l += 1;
-    };
+    }
     l
 }
 
 impl TransferEncodeImpl of Encode<Transfer> {
     fn encode(self: @Transfer) -> @ByteArray {
         let mut token: ByteArray = Default::default();
+
+        let token_address = *self.token_address;
+        let token_address_felt252: felt252 = token_address.try_into().unwrap();
         // assuming token is no longer than 16 bytes
-        token.append_word(*self.token, len(*self.token));
         @format!(
-            "{} send {} {} to {}", self.joyboy.encode(), self.amount, token, self.recipient.encode()
+            "{} send {} {} to {}",
+            self.joyboy.encode(),
+            self.amount,
+            token_address_felt252,
+            self.recipient.encode(),
         )
     }
 }
@@ -38,7 +43,7 @@ fn count_digits(mut num: u256) -> (u32, felt252) {
     while num > 0 {
         num = num / BASE;
         count = count + 1;
-    };
+    }
     let res: felt252 = count.try_into().unwrap();
     (count, res)
 }
@@ -53,7 +58,7 @@ impl TransferImpl of ConvertToBytes<Transfer> {
         ba.append_word(amount_felt252, amount_count);
 
         // Encode token
-        ba.append_word(*self.token, 1_u32);
+        // ba.append_word(*self.token, 1_u32);
 
         // Encode token_address
         //  let addr:felt252 = self.token_address.into();
@@ -72,7 +77,7 @@ impl TransferImpl of ConvertToBytes<Transfer> {
         let joyboy_relays = self.joyboy.relays.span();
         for relay in joyboy_relays {
             ba.append(relay);
-        };
+        }
 
         // Encode recipient (NostrProfile encoding)
         let (recipient_count, recipient_count_felt252) = count_digits(*self.recipient.public_key);
@@ -85,7 +90,7 @@ impl TransferImpl of ConvertToBytes<Transfer> {
         let recipient_relays = self.recipient.relays.span();
         for relay in recipient_relays {
             ba.append(relay);
-        };
+        }
 
         // Encode recipient_address
         let receipient_add = *self.recipient_address;
@@ -100,24 +105,24 @@ mod tests {
     use core::option::OptionTrait;
     use starknet::ContractAddress;
     use super::Transfer;
-    use super::super::profile::{NostrProfile};
+    use super::super::profile::NostrProfile;
     use super::super::request::Encode;
 
     #[test]
     fn encode() {
         let joyboy = NostrProfile {
             public_key: 0x84603b4e300840036ca8cc812befcc8e240c09b73812639d5cdd8ece7d6eba40,
-            relays: array!["wss://relay.joyboy.community.com"]
+            relays: array!["wss://relay.joyboy.community.com"],
         };
 
         let recipient = NostrProfile {
             public_key: 0xa87622b57b52f366457e867e1dccc60ea631ccac94b7c74ab08254c489ef12c6,
-            relays: array![]
+            relays: array![],
         };
 
         let request = Transfer {
             amount: 1,
-            token: 'USDC',
+            // token: 'USDC',
             token_address: 1.try_into().unwrap(),
             joyboy,
             recipient,

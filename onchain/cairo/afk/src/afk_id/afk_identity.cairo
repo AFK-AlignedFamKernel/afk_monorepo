@@ -1,7 +1,7 @@
-use afk::types::identity_types::{};
+use starknet::storage_access::StorageBaseAddress;
 use starknet::{
-    ContractAddress, get_caller_address, storage_access::StorageBaseAddress, contract_address_const,
-    get_block_timestamp, get_contract_address, ClassHash
+    ClassHash, ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+    get_contract_address,
 };
 #[starknet::interface]
 pub trait IAfkId<T> {}
@@ -10,15 +10,16 @@ pub trait IAfkId<T> {}
 mod AfkIdentity {
     use core::num::traits::Zero;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map
+        Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
+    use starknet::storage_access::StorageBaseAddress;
     use starknet::{
-        ContractAddress, get_caller_address, storage_access::StorageBaseAddress,
-        contract_address_const, get_block_timestamp, get_contract_address, ClassHash
+        ClassHash, ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+        get_contract_address,
     };
     #[storage]
     struct Storage {
-        id_user_exist: Map<ContractAddress, bool>
+        id_user_exist: Map<ContractAddress, bool>,
     }
 
     #[event]

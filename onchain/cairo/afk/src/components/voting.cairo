@@ -1,9 +1,9 @@
 #[starknet::component]
 pub mod VotingComponent {
     use afk::interfaces::voting::{
-        IVoteProposal, Proposal, ProposalParams, ProposalResult, ProposalType, UserVote, VoteState,
-        ProposalCreated, SET_PROPOSAL_DURATION_IN_SECONDS, TOKEN_DECIMALS, ProposalVoted,
-        ProposalResolved, ConfigParams, ConfigResponse, ProposalCanceled, Calldata,
+        Calldata, ConfigParams, ConfigResponse, IVoteProposal, MetadataDAO, Proposal,
+        ProposalCanceled, ProposalCreated, ProposalParams, ProposalResolved, ProposalResult,
+        ProposalVoted, SET_PROPOSAL_DURATION_IN_SECONDS, UserVote, VoteState,
     };
     use afk::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use afk::utils::execute_calls;
@@ -12,13 +12,10 @@ pub mod VotingComponent {
     use openzeppelin::utils::cryptography::snip12::StructHash;
     use starknet::account::Call;
     use starknet::storage::{
-        StoragePointerReadAccess, StoragePointerWriteAccess, StoragePathEntry, Map,
-        StorageMapWriteAccess, Vec, MutableVecTrait,
+        Map, MutableVecTrait, StorageMapWriteAccess, StoragePathEntry, StoragePointerReadAccess,
+        StoragePointerWriteAccess, Vec,
     };
-    use starknet::{
-        get_caller_address, get_contract_address, get_tx_info, ContractAddress,
-        contract_address_const,
-    };
+    use starknet::{ContractAddress, contract_address_const, get_caller_address};
 
     #[storage]
     pub struct Storage {
@@ -49,6 +46,9 @@ pub mod VotingComponent {
         max_executable_clone: Map<felt252, u64>,
         current_max_tx_count: u64, // optimized for get iteration
         total_voters: u128,
+        deployer: ContractAddress,
+        owner: ContractAddress,
+        metadata_dao: MetadataDAO,
     }
 
     #[event]
@@ -62,7 +62,7 @@ pub mod VotingComponent {
 
     #[embeddable_as(VotingImpl)]
     pub impl Vote<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
     > of IVoteProposal<ComponentState<TContractState>> {
         // TODO
         // Check if ERC20 minimal balance to create a proposal is needed, if yes check the  balance
@@ -118,7 +118,7 @@ pub mod VotingComponent {
         fn cast_vote(
             ref self: ComponentState<TContractState>,
             proposal_id: u256,
-            opt_vote_type: Option<UserVote>
+            opt_vote_type: Option<UserVote>,
         ) {
             // TODO
             // Check if ERC20 minimal balance is needed
@@ -170,7 +170,8 @@ pub mod VotingComponent {
 
             vote_state.user_votes.entry(caller).write((vote_type, caller_votes));
             vote_state.user_has_voted.entry(caller).write(true);
-            vote_state.voters_list.append().write(caller);
+            // vote_state.voters_list.append().write(caller);
+            // vote_state.voters_list.push(caller);
             self.total_voters.write(self.total_voters.read() + 1);
 
             // NOTE: Config for abstention currently does nothing in this function
@@ -182,7 +183,7 @@ pub mod VotingComponent {
                 vote_state.no_votes.write((no_votes + 1, vote_point + caller_votes));
             } else {
                 caller_votes = 0;
-            };
+            }
 
             let previous_vote_count = vote_state.no_of_votes.read();
             vote_state.no_of_votes.write(previous_vote_count + caller_votes);
@@ -261,25 +262,22 @@ pub mod VotingComponent {
                 let proposal_txs = self.proposal_tx.entry(proposal_id);
 
                 // extract list of txs for the given proposal
-                for i in 0
-                    ..proposal_txs
-                        .len() {
-                            let proposal_tx = proposal_txs.at(i).read();
-                            // further optimized.
-                            // situation where different proposals have the same calldata to
-                            // execute.
-                            let mut tx_count = self.max_executable_clone.entry(proposal_tx).read()
-                                + 1;
+                for i in 0..proposal_txs.len() {
+                    let proposal_tx = proposal_txs.at(i).read();
+                    // further optimized.
+                    // situation where different proposals have the same calldata to
+                    // execute.
+                    let mut tx_count = self.max_executable_clone.entry(proposal_tx).read() + 1;
 
-                            self.executable_tx.entry((proposal_tx, tx_count)).write(true);
-                            let mut current_max_tx_count = self.current_max_tx_count.read();
-                            // update the current max if the new tx_count is > current_max_tx_count
-                            if tx_count > current_max_tx_count {
-                                self.current_max_tx_count.write(tx_count);
-                            }
-                            self.max_executable_clone.entry(proposal_tx).write(tx_count);
-                            executables_count += 1;
-                        };
+                    self.executable_tx.entry((proposal_tx, tx_count)).write(true);
+                    let mut current_max_tx_count = self.current_max_tx_count.read();
+                    // update the current max if the new tx_count is > current_max_tx_count
+                    if tx_count > current_max_tx_count {
+                        self.current_max_tx_count.write(tx_count);
+                    }
+                    self.max_executable_clone.entry(proposal_tx).write(tx_count);
+                    executables_count += 1;
+                }
 
                 // update the number of executables adequately
                 self.executables_count.write(executables_count);
@@ -300,27 +298,37 @@ pub mod VotingComponent {
             let mut is_executable = false;
             let calldata_hash = calldata.hash_struct();
             let max_executable_clone = self.max_executable_clone.entry(calldata_hash).read() + 1;
-            for i in 0
-                ..max_executable_clone {
-                    if self.executable_tx.entry((calldata_hash, i)).read() {
-                        is_executable = true;
-                        break;
-                    }
-                };
+            for i in 0..max_executable_clone {
+                if self.executable_tx.entry((calldata_hash, i)).read() {
+                    is_executable = true;
+                    break;
+                }
+            }
             is_executable
+        }
+
+        fn add_metadata_dao(ref self: ComponentState<TContractState>, metadata: MetadataDAO) {
+            let caller = get_caller_address();
+            assert(caller == self.owner.read(), 'UNAUTHORIZED CALLER');
+            self.metadata_dao.write(metadata);
         }
     }
 
     #[generate_trait]
     pub impl VotingInternalImpl<
-        TContractState, +HasComponent<TContractState>
+        TContractState, +HasComponent<TContractState>,
     > of VoteInternalTrait<TContractState> {
         fn _init(
-            ref self: ComponentState<TContractState>, token_contract_address: ContractAddress
+            ref self: ComponentState<TContractState>,
+            token_contract_address: ContractAddress,
+            deployer: ContractAddress,
+            owner: ContractAddress,
         ) {
             self.token_contract_address.write(token_contract_address);
             self.is_only_dao_execution.write(true);
             self.minimum_threshold_percentage.write(60);
+            self.deployer.write(deployer);
+            self.owner.write(owner);
         }
         fn _get_proposal(self: @ComponentState<TContractState>, proposal_id: u256) -> Proposal {
             let opt_proposal = self.proposals.entry(proposal_id).read();
@@ -367,7 +375,7 @@ pub mod VotingComponent {
         }
 
         fn _resolve_proposal_calldata(
-            ref self: ComponentState<TContractState>, id: u256, calldata: Array<Call>
+            ref self: ComponentState<TContractState>, id: u256, calldata: Array<Call>,
         ) {
             let proposal_calldata = self.proposals_calldata.entry(id);
 
@@ -376,54 +384,45 @@ pub mod VotingComponent {
                 proposal_calldata.append().selector.write(data.selector);
                 proposal_calldata.append().is_executed.write(false);
 
-                for call in data
-                    .calldata {
-                        proposal_calldata.append().calldata.append().write(*call);
-                    };
+                for call in data.calldata {
+                    proposal_calldata.append().calldata.append().write(*call);
+                }
 
                 self.proposal_tx.entry(id).append().write(data.hash_struct());
             };
         }
 
         fn _execute(
-            ref self: ComponentState<TContractState>, calls: Array<Call>
+            ref self: ComponentState<TContractState>, calls: Array<Call>,
         ) -> Array<Span<felt252>> {
             let mut verified_calls: Array<(felt252, u64)> = array![];
             // Verify calls before executing
-            for i in 0
-                ..calls
-                    .len() {
-                        // iterate through the max_executable_clone for each tx.
-                        let current_call = *calls.at(i);
-                        let current_call_hash = current_call.hash_struct();
-                        let max_tx_count = self
-                            .max_executable_clone
-                            .entry(current_call_hash)
-                            .read();
-                        let mut tx_count = 1;
-                        let mut is_executable = false;
-                        while tx_count <= max_tx_count {
-                            is_executable = self
-                                .executable_tx
-                                .entry((current_call_hash, tx_count))
-                                .read();
-                            if is_executable {
-                                // mark the call as executed (now as a non-executable)
-                                // not yet, add to list of verified calls
-                                // self
-                                //     .executable_tx
-                                //     .entry((current_call_hash, tx_count))
-                                //     .write(false);
-                                verified_calls.append((current_call_hash, tx_count));
-                                break;
-                            }
-                            tx_count += 1;
-                        };
-                        assert(is_executable, 'CALL VALIDATION ERROR');
-                        // TODO
-                    // currently there's no way to set a Proposal as executed because this task
-                    // will require the proposals id. In that case, it must be done manually.
-                    };
+            for i in 0..calls.len() {
+                // iterate through the max_executable_clone for each tx.
+                let current_call = *calls.at(i);
+                let current_call_hash = current_call.hash_struct();
+                let max_tx_count = self.max_executable_clone.entry(current_call_hash).read();
+                let mut tx_count = 1;
+                let mut is_executable = false;
+                while tx_count <= max_tx_count {
+                    is_executable = self.executable_tx.entry((current_call_hash, tx_count)).read();
+                    if is_executable {
+                        // mark the call as executed (now as a non-executable)
+                        // not yet, add to list of verified calls
+                        // self
+                        //     .executable_tx
+                        //     .entry((current_call_hash, tx_count))
+                        //     .write(false);
+                        verified_calls.append((current_call_hash, tx_count));
+                        break;
+                    }
+                    tx_count += 1;
+                }
+                assert(is_executable, 'CALL VALIDATION ERROR');
+                // TODO
+            // currently there's no way to set a Proposal as executed because this task
+            // will require the proposals id. In that case, it must be done manually.
+            }
 
             let executed_calls = execute_calls(calls);
 
@@ -431,7 +430,7 @@ pub mod VotingComponent {
             for verified_call in verified_calls {
                 self.executable_tx.entry(verified_call).write(false);
                 self.executed_count.write(self.executed_count.read() + 1);
-            };
+            }
 
             executed_calls
         }

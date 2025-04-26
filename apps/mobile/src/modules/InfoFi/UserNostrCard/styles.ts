@@ -1,0 +1,152 @@
+import { ThemedStyleSheet } from 'src/styles';
+
+export default ThemedStyleSheet((theme) => ({
+  container: {
+    backgroundColor: theme.colors.background,
+    paddingVertical: 20,
+    paddingHorizontal: 25,
+    marginBottom: 15,
+    borderRadius: 12,
+    borderWidth: 0.3,
+    borderColor: theme.colors.cardBorder,
+  },
+  hashtagColor: {
+    color: theme.colors.primary,
+  },
+  infoUser: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  infoProfile: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  info: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
+  profileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  avatarSection: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    overflow: 'hidden',
+  },
+  infoSection: {
+    flex: 1,
+    flexDirection: 'column',
+    marginLeft: 16,
+    gap: 4,
+  },
+  text: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+  },
+  
+  formTipVote: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    shadowColor: theme.colors.text,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    borderRadius: 12,
+    borderWidth: 0.3,
+    borderColor: theme.colors.cardBorder,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 16,
+    gap: 16,
+  },
+  statCard: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: theme.colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: theme.colors.text,
+  },
+  subCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 16,
+    shadowColor: theme.colors.shadow,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: theme.colors.cardBorder,
+  },
+  subCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  subCardTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: theme.colors.text,
+    letterSpacing: 0.5,
+  },
+  subCardSymbol: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.primary,
+    backgroundColor: theme.colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  subCardContent: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: theme.colors.bg,
+    borderRadius: 8,
+  },
+  subCardText: {
+    fontSize: 15,
+    color: theme.colors.textSecondary,
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.cardBorder,
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1
+  },
+  
+}));

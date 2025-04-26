@@ -6,7 +6,7 @@ import {
   StarkNetCursor,
   v1alpha2 as starknet,
 } from '@apibara/starknet';
-import { validateAndParseAddress } from 'starknet';
+import { hash, validateAndParseAddress } from 'starknet';
 import constants from 'src/common/constants';
 import { env } from 'src/common/env';
 import { IndexerConfig } from './interfaces';
@@ -57,6 +57,24 @@ export class IndexerService {
 
     const combinedFilter = this.combineFilters();
 
+    console.log("startingBlock", startingBlock);
+
+  //  let indexerStatsUpdate = await this.prismaService.indexerStats.upsert({
+  //     where: {
+  //       id: 1,
+  //     },
+  //     update: {
+  //       lastBlockScraped: Number(startingBlock),
+  //       lastTx: indexerStats?.lastTx || "",
+  //       lastTimestamp: new Date(),
+  //     },
+  //     create: {
+  //       lastBlockScraped: Number(startingBlock),
+  //       lastTx: indexerStats?.lastTx || "",
+  //       lastTimestamp: new Date(),
+  //       },
+  //   });
+    // console.log("indexerStatsUpdate", indexerStatsUpdate);
     this.client.configure({
       filter: combinedFilter,
       batchSize: 1,
@@ -80,6 +98,12 @@ export class IndexerService {
       validateAndParseAddress(constants.contracts.sepolia.NAMESERVICE_ADDRESS),
       validateAndParseAddress(
         constants.contracts.sepolia.ESCROW_DEPOSIT_ADDRESS,
+      ),
+      validateAndParseAddress(
+        constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
+      ),
+      validateAndParseAddress(
+        constants.contracts.sepolia.NAMESPACE_ADDRESS,
       ),
     ].map((address) => FieldElement.fromBigInt(BigInt(address)));
 
