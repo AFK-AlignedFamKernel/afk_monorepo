@@ -24,6 +24,7 @@ mod ico_tests {
     const ADMIN: ContractAddress = 'ADMIN'.try_into().unwrap();
     const PROTOCOL: ContractAddress = 'PROTOCOL'.try_into().unwrap();
     const USER: ContractAddress = 'USER'.try_into().unwrap();
+    const BUYER: ContractAddress = 'BUYER'.try_into().unwrap();
 
     fn get_max_supply() -> u256 {
         1_000_000 * fast_power(10, 18)
@@ -161,7 +162,6 @@ mod ico_tests {
         for i in 0..buyers.len() {
             let buyer = *buyers.at(i);
             let amount = buy_token.balance_of(buyer);
-            println!("Buy presale, buyer{} is {}", i + 1, amount);
             cheat_caller_address(buy_token.contract_address, buyer, CheatSpan::TargetCalls(1));
             buy_token.approve(ico.contract_address, amount);
             cheat_caller_address(ico.contract_address, buyer, CheatSpan::TargetCalls(1));
@@ -198,6 +198,33 @@ mod ico_tests {
             token.transfer(final, additional);
         }
         assert(token.balance_of(*targets.at(0)) > 0, 'INVALID BALANCE 66');
+    }
+
+    fn claim(buyers: Array<ContractAddress>, ico: IICODispatcher, token: IERC20Dispatcher) {
+        for i in 0..buyers.len() {
+            let buyer = *buyers.at(i);
+            cheat_caller_address(ico.contract_address, buyer, CheatSpan::TargetCalls(1));
+            ico.claim(token.contract_address);
+            assert(token.balance_of(buyer) > 0, 'CLAIM FAILED');
+        }
+    }
+
+    fn default_buyers() -> Array<ContractAddress> {
+        let buyer1: ContractAddress = 'BUYER1'.try_into().unwrap();
+        let buyer2: ContractAddress = 'BUYER2'.try_into().unwrap();
+        let buyer3: ContractAddress = 'BUYER3'.try_into().unwrap();
+        array![buyer1, buyer2, buyer3]
+    }
+
+    fn feign_default_presale() -> (IICODispatcher, IERC20Dispatcher, IERC20Dispatcher) {
+        let (ico, token, buy_token, _) = context(false);
+        let mut buyer_ref = array![BUYER];
+        let amount = 1000;
+        mint(ref buyer_ref, buy_token, amount, 0);
+        assert(buy_token.balance_of(BUYER) == amount, 'MINTING FAILED');
+        buy_presale(ref buyer_ref, ico, token, buy_token);
+        assert(buy_token.balance_of(BUYER) == 0, 'BUY FAILED');
+        (ico, token, buy_token)
     }
 
     /// TESTS
@@ -355,24 +382,11 @@ mod ico_tests {
     }
 
     #[test]
-    #[ignore]
-    #[should_panic]
-    fn test_ico_launch_presale_incorrect_presale_details() {}
-
-    #[test]
-    #[ignore]
     #[should_panic(expected: 'PRESALE ALREADY LAUNCHED')]
     fn test_ico_launch_presale_with_already_launched_token() {
         let (ico, token, _, details) = context(false);
         launch_presale(token.contract_address, details, ico, OWNER);
     }
-
-    #[test]
-    #[ignore]
-    #[should_panic(expected: "CONFIG REQUIRES 20 PERCENT OF SUPPLY TO NOT BE SOLD")]
-    fn test_ico_launch_presale_below_min_supply_threshold() {}
-    // Remember the storage mutable issh, with update status -- doesn't take in a ref of token.
-    // TODO: Don't forget to test this state.
 
     #[test]
     #[should_panic(expected: 'CALLER NOT WHITELISTED')]
@@ -417,7 +431,7 @@ mod ico_tests {
     }
 
     #[test]
-    #[should_panic(expected: 'ACCESS DENIED')]
+    #[should_panic(expected: 'UNAUTHORIZED')]
     fn test_ico_whitelist_should_panic_on_caller_not_token_owner() {
         let (ico, token, _, _) = context(true);
         cheat_caller_address(ico.contract_address, OWNER, CheatSpan::TargetCalls(1));
@@ -425,8 +439,8 @@ mod ico_tests {
     }
 
     #[test]
-    #[should_panic(expected: 'PRESALE CONCLUDED')]
-    fn test_ico_buy_token_should_panic_on_ended_presale() {
+    #[should_panic(expected: 'PRESALE CONCLUDED OR INVALID')]
+    fn test_ico_buy_token_should_panic_on_concluded_presale() {
         // here, the presale should resolve automatically
         let (ico, token, _, _) = context(false);
         let target: ContractAddress = 'TARGET'.try_into().unwrap();
@@ -472,13 +486,10 @@ mod ico_tests {
         // when a buyer buys into a presale, and the amount exceeds the hardcap
         // only the require amount used for the buy transaction.
         let (ico, token, buy_token, details) = context(false);
-        let buyer1: ContractAddress = 'BUYER1'.try_into().unwrap();
-        let buyer2: ContractAddress = 'BUYER2'.try_into().unwrap();
-        let buyer3: ContractAddress = 'BUYER3'.try_into().unwrap();
 
         let amount = details.hard_cap / 3; // 500 * fast_power(10, 18)
         let cash_back = fast_power(10, 20); // 100 * fast_power(10, 18)
-        let mut buyers = array![buyer1, buyer2, buyer3];
+        let mut buyers = default_buyers();
         mint(ref buyers, buy_token, amount, cash_back);
 
         let mut spy = spy_events();
@@ -492,42 +503,82 @@ mod ico_tests {
         );
 
         // there should a cash_back
+        let buyer3 = *buyers.at(buyers.len() - 1);
         assert(buy_token.balance_of(buyer3) == cash_back, 'CASHBACK NOT RETURNED');
         assert(token.balance_of(buyer3) == 0, 'ERROR IN PRESALE');
 
         spy.assert_emitted(@array![(ico.contract_address, expected_event)]);
     }
 
-    fn claim(buyers: Array<ContractAddress>, ico: IICODispatcher, token: IERC20Dispatcher) {
-        for i in 0..buyers.len() {
-            let buyer = *buyers.at(i);
-            cheat_caller_address(ico.contract_address, buyer, CheatSpan::TargetCalls(1));
-            ico.claim(token.contract_address);
-            assert(token.balance_of(buyer) > 0, 'CLAIM FAILED');
-        }
-    }
-
     #[test]
-    fn test_ico_claim_presale_token_success_using_soft_cap() { // 1050 * fast_power(10, 18); soft cap.
+    fn test_ico_presale_token_success_soft_cap_test() {
+        // 1050 * fast_power(10, 18); soft cap.
+        // any entry function that handles interaction with an already existing presale
+        // can finalize the presale using `update_status()`
+        let (ico, token, buy_token, details) = context(false);
+        let amount = details.soft_cap / 3; // 350 * fast_power(10, 18)
+
+        // 350 each for soft cap
+        let mut buyers = default_buyers();
+        mint(ref buyers, buy_token, amount, 0);
+
+        buy_presale(ref buyers, ico, token, buy_token);
+        cheat_block_timestamp(ico.contract_address, 11, CheatSpan::TargetCalls(1));
+        cheat_caller_address(ico.contract_address, ADMIN, CheatSpan::TargetCalls(1));
+        let successful = ico.is_successful(token.contract_address);
+        assert(successful, 'PRESALE SOFT CAP ERROR');
     }
 
     #[test]
     #[ignore]
     #[should_panic(expected: 'PRESALE NOT CLAIMABLE')]
-    fn test_ico_claim_should_panic_on_non_active_presale() {}
+    fn test_ico_claim_should_panic_on_non_active_presale() {
+        let (ico, token, _) = feign_default_presale();
+        cheat_caller_address(ico.contract_address, BUYER, CheatSpan::TargetCalls(1));
+        ico.claim(token.contract_address);
+    }
 
     #[test]
-    fn test_ico_cancel_buy_success() {}
+    fn test_ico_cancel_buy_success() {
+        let (ico, token, buy_token) = feign_default_presale();
+        cheat_caller_address(ico.contract_address, BUYER, CheatSpan::TargetCalls(1));
+        ico.cancel_buy(token.contract_address);
+        assert(buy_token.balance_of(BUYER) == 1000, 'CANCEL BUY FAILED');
+    }
 
     #[test]
-    #[ignore]
-    #[should_panic]
-    fn test_ico_cancel_buy_should_panic_on_concluded_presale() {}
+    #[should_panic(expected: 'ACTION NOT ALLOWED')]
+    fn test_ico_cancel_buy_should_panic_on_concluded_presale() {
+        let (ico, token, _) = feign_default_presale();
+        cheat_caller_address(ico.contract_address, BUYER, CheatSpan::TargetCalls(1));
+        cheat_block_timestamp(ico.contract_address, 11, CheatSpan::TargetCalls(1));
+        ico.cancel_buy(token.contract_address);
+    }
+
+    #[test]
+    fn test_ico_claim_all_on_failed_presale() {
+        let (ico, token, buy_token) = feign_default_presale();
+        // buy again, total amount 1150
+        let mut buyer_ref = array![BUYER];
+        mint(ref buyer_ref, buy_token, 150, 0);
+        cheat_caller_address(ico.contract_address, BUYER, CheatSpan::TargetCalls(5));
+        buy_presale(ref buyer_ref, ico, token, buy_token);
+        assert(buy_token.balance_of(BUYER) == 0, 'BALANCE SHOULD BE ZERO');
+        cheat_block_timestamp(ico.contract_address, 11, CheatSpan::TargetCalls(1));
+        cheat_caller_address(ico.contract_address, BUYER, CheatSpan::TargetCalls(5));
+        ico.claim_all();
+        assert(buy_token.balance_of(BUYER) == 1150, 'INVALID BALANCE');
+    }
 
     #[test]
     #[ignore]
     #[should_panic(expected: 'PRESALE FAILED')]
-    fn test_ico_launch_liquidity_should_finalize_and_panic_on_failed_presale() {}
+    fn test_ico_launch_liquidity_should_finalize_and_panic_on_failed_presale() {
+        let (ico, token, _) = feign_default_presale();
+        cheat_block_timestamp(ico.contract_address, 11, CheatSpan::TargetCalls(5));
+        cheat_caller_address(ico.contract_address, ADMIN, CheatSpan::TargetCalls(2));
+        ico.launch_liquidity(token.contract_address, Option::None);
+    }
 
     #[test]
     #[ignore]
@@ -536,9 +587,17 @@ mod ico_tests {
 
     #[test]
     #[ignore]
-    #[should_panic(expected: 'PRESALE STATUS ERROR')]
-    fn test_ico_buy_token_should_panic_on_invalid_presale() {}
-    // Test buy_token for a token twice, run claim_all, it shouldn't throw an error, but it should
+    #[should_panic]
+    fn test_ico_launch_presale_incorrect_presale_details() {}
+
+    #[test]
+    #[ignore]
+    #[should_panic(expected: "CONFIG REQUIRES 20 PERCENT OF SUPPLY TO NOT BE SOLD")]
+    fn test_ico_launch_presale_below_min_supply_threshold() {}
+    // test_ico_presale_token_success_soft_cap_test -- again, maybe when launching liquidity
+// Remember the storage mutable issh, with update status -- doesn't take in a ref of token.
+// TODO: Don't forget to test this state.
+// Test buy_token for a token twice, run claim_all, it shouldn't throw an error, but it should
 // run perfectly.
 // buy_token pushes the token's contract twice, so the second call to _claim should do
 // absolutely nothing.

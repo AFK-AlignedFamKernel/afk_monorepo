@@ -210,15 +210,14 @@ pub mod ICO {
             let token = self.tokens.entry(token_address);
             assert(token.status.read() != Default::default(), 'INVALID LAUNCH');
             let owner = token.owner_access.read();
+            let caller = get_caller_address();
 
             // finalize, if applicable
             self.update_status(token_address, token);
 
-            assert(token.successful.read(), 'PRESALE FAILED');
-            assert(
-                owner.is_some() && token.status.read() == TokenStatus::Finalized,
-                'LAUNCHING FAILED',
-            );
+            assert(owner.is_some(), 'INVALID TOKEN');
+            assert(owner.unwrap() == caller, 'UNAUTHORIZED');
+            assert(token.status.read() == TokenStatus::Finalized, 'LAUNCHING FAILED');
 
             let exchange_address = self.exchange_address.read();
             assert(exchange_address.is_non_zero(), 'EXCHANGE ADDRESS IS ZERO');
@@ -226,7 +225,7 @@ pub mod ICO {
                 Option::Some(val) => val,
                 _ => BondingType::Exponential,
             };
-            let id = self._launch_liquidity(token_address, b);
+            let id = self._launch_liquidity(token_address, b, caller);
             token.status.write(TokenStatus::Active);
             id
         }
@@ -238,7 +237,7 @@ pub mod ICO {
 
             self.update_status(token_address, token);
             let mut status = token.status.read();
-            assert(status == TokenStatus::Presale, 'PRESALE CONCLUDED');
+            assert(status == TokenStatus::Presale, 'PRESALE CONCLUDED OR INVALID');
 
             if details.whitelist {
                 assert(token.whitelist.entry(caller).read(), 'CALLER NOT WHITELISTED');
@@ -353,11 +352,19 @@ pub mod ICO {
             assert(target.len() > 0, 'TARGET IS EMPTY');
             let token = self.tokens.entry(token_address);
             assert(token.owner_access.read().is_some(), 'INVALID TOKEN ADDRESS');
-            assert(token.owner_access.read().unwrap() == get_caller_address(), 'ACCESS DENIED');
+            assert(token.owner_access.read().unwrap() == get_caller_address(), 'UNAUTHORIZED');
             assert(token.presale_details.read().whitelist, 'ERROR WHITELISTING TARGET');
             for address in target {
                 token.whitelist.entry(address).write(true);
             };
+        }
+
+        fn is_successful(ref self: ContractState, token_address: ContractAddress) -> bool {
+            self.ownable.assert_only_owner();
+            let token = self.tokens.entry(token_address);
+            self.update_status(token_address, token);
+            let status = token.status.read();
+            status == TokenStatus::Finalized || status == TokenStatus::Active
         }
     }
 
@@ -449,14 +456,13 @@ pub mod ICO {
                 && get_block_timestamp() > details.end_time || current_funds == details.hard_cap {
                 let mut successful = false;
                 if current_funds >= details.soft_cap {
-                    successful = true;
                     token.status.write(TokenStatus::Finalized);
+                    successful = true;
                 } else {
-                    // if it's never successful, then it never progresses farther than this
+                    // if it's never successful, then it never progresses farther than this.
                     // Void Presale
                     token.status.write(TokenStatus::Void);
                 }
-                token.successful.write(successful);
                 let event = PresaleFinalized {
                     presale_token_address: token_address,
                     buy_token_address: details.buy_token,
@@ -477,13 +483,13 @@ pub mod ICO {
             let mut amount = token.buyers.entry(caller).read();
             let mut claimed_token_address = token_address;
             let mut claimed_amount = amount;
-            if token.successful.read() {
+            if token.status.read() == TokenStatus::Active {
                 let dispatcher = IERC20Dispatcher { contract_address: token_address };
                 let token_amount = token.holders.entry(caller).read();
                 dispatcher.transfer(caller, token_amount);
                 claimed_amount = token_amount;
             } else {
-                // refund
+                // refund, if void.
                 claimed_token_address = token.presale_details.read().buy_token;
                 let dispatcher = IERC20Dispatcher { contract_address: claimed_token_address };
                 dispatcher.transfer(caller, amount);
@@ -503,9 +509,11 @@ pub mod ICO {
         }
 
         fn _launch_liquidity(
-            ref self: ContractState, token_address: ContractAddress, bonding_type: BondingType,
+            ref self: ContractState,
+            token_address: ContractAddress,
+            bonding_type: BondingType,
+            caller: ContractAddress,
         ) -> u64 {
-            let caller = get_caller_address();
             let token = self.tokens.entry(token_address);
             let details = token.presale_details.read();
 

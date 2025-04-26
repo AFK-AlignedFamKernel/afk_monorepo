@@ -27,6 +27,9 @@ pub trait IICO<TContractState> {
     fn whitelist(
         ref self: TContractState, token_address: ContractAddress, target: Array<ContractAddress>,
     );
+
+    // for testing
+    fn is_successful(ref self: TContractState, token_address: ContractAddress) -> bool;
 }
 
 #[starknet::interface]
@@ -93,8 +96,7 @@ pub struct Token {
     pub funds_raised: u256,
     pub whitelist: Map<ContractAddress, bool>,
     pub buyers: Map<ContractAddress, u256>, // with buy_token
-    pub holders: Map<ContractAddress, u256>, // holders of token
-    pub successful: bool,
+    pub holders: Map<ContractAddress, u256> // holders of token
 }
 
 #[starknet::storage_node]
