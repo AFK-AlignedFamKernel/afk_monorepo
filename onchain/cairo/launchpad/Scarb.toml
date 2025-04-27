@@ -48,3 +48,7 @@ block_id.number = "672259"
 name = "Sepolia"
 url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_8"
 block_id.number = "615925"
+
+# [profile.dev.cairo]
+# unstable-add-statements-code-locations-debug-info = true
+# unstable-add-statements-functions-debug-info = true

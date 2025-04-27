@@ -13,9 +13,9 @@ pub mod ICO {
         get_contract_address,
     };
     use crate::interfaces::ico::{
-        ContractConfig, IICO, IICOConfig, Launch, LaunchConfig, LaunchParams, PresaleDetails,
-        PresaleLaunched, Token, TokenBought, TokenClaimed, TokenCreated, TokenDetails,
-        TokenInitParams, TokenStatus, default_presale_details,
+        BuyCanceled, ContractConfig, IICO, IICOConfig, Launch, LaunchConfig, LaunchParams,
+        PresaleDetails, PresaleFinalized, PresaleLaunched, Token, TokenBought, TokenClaimed,
+        TokenCreated, TokenDetails, TokenInitParams, TokenStatus, default_presale_details,
     };
     use crate::interfaces::unrug::{IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait};
     use crate::launchpad::utils::{
@@ -53,6 +53,8 @@ pub mod ICO {
         TokenCreated: TokenCreated,
         TokenBought: TokenBought,
         PresaleLaunched: PresaleLaunched,
+        PresaleFinalized: PresaleFinalized,
+        BuyCanceled: BuyCanceled,
         TokenClaimed: TokenClaimed,
         LiquidityCreated: LiquidityCreated,
         #[flat]
@@ -208,23 +210,23 @@ pub mod ICO {
             let token = self.tokens.entry(token_address);
             assert(token.status.read() != Default::default(), 'INVALID LAUNCH');
             let owner = token.owner_access.read();
+            let caller = get_caller_address();
 
             // finalize, if applicable
-            update_status(token);
+            self.update_status(token_address, token);
 
-            assert(token.successful.read(), 'PRESALE FAILED');
-            assert(
-                owner.is_some() && token.status.read() == TokenStatus::Finalized,
-                'LAUNCHING FAILED',
-            );
+            assert(owner.is_some(), 'INVALID TOKEN');
+            assert(owner.unwrap() == caller, 'UNAUTHORIZED');
+            assert(token.status.read() == TokenStatus::Finalized, 'LAUNCHING FAILED');
 
+            // Check this exchange address... remove if necessary
             let exchange_address = self.exchange_address.read();
             assert(exchange_address.is_non_zero(), 'EXCHANGE ADDRESS IS ZERO');
             let b = match bonding_type {
                 Option::Some(val) => val,
                 _ => BondingType::Exponential,
             };
-            let id = self._launch_liquidity(token_address, b);
+            let id = self._launch_liquidity(token_address, b, caller);
             token.status.write(TokenStatus::Active);
             id
         }
@@ -234,29 +236,29 @@ pub mod ICO {
             let token = self.tokens.entry(token_address);
             let details = token.presale_details.read();
 
-            update_status(token);
+            self.update_status(token_address, token);
             let mut status = token.status.read();
-            assert(status != TokenStatus::Finalized, 'PRESALE HAS BEEN FINALIZED');
-            assert(status == TokenStatus::Presale, 'PRESALE STATUS ERROR');
+            assert(status == TokenStatus::Presale, 'PRESALE CONCLUDED OR INVALID');
 
             if details.whitelist {
                 assert(token.whitelist.entry(caller).read(), 'CALLER NOT WHITELISTED');
             }
 
             let dispatcher = IERC20Dispatcher { contract_address: details.buy_token };
-            assert(dispatcher.balance_of(caller) > amount, 'INSUFFICIENT FUNDS');
+            assert(dispatcher.balance_of(caller) >= amount, 'INSUFFICIENT FUNDS');
 
             let funds_raised = token.funds_raised.read();
             // Stops buyer from buying all available tokens, at any instance.
             let (threshold, _) = get_trade_threshold(details, token.current_supply.read());
-            let current_funds = funds_raised + amount;
+            let mut current_funds = funds_raised + amount;
             let current_funds_token = current_funds * details.presale_rate;
             assert(current_funds_token <= threshold, 'AMOUNT TOO HIGH');
 
             // Peg amount to match hard cap when hard cap is exceeded
             // Test for this.
             if current_funds > details.hard_cap {
-                amount = details.hard_cap - current_funds;
+                amount = details.hard_cap - funds_raised;
+                current_funds = details.hard_cap;
             }
 
             dispatcher.transfer_from(caller, get_contract_address(), amount);
@@ -271,12 +273,7 @@ pub mod ICO {
             self.buyers.entry(caller).push(token_address);
 
             // check cap value, and resolve presale
-            if current_funds >= details.soft_cap {
-                token.successful.write(true);
-                if current_funds == details.hard_cap {
-                    token.status.write(TokenStatus::Finalized);
-                }
-            }
+            self.update_status(token_address, token);
 
             let event = TokenBought {
                 token_address,
@@ -292,8 +289,8 @@ pub mod ICO {
             // presale is not finalized.
             let caller = get_caller_address();
             let token = self.tokens.entry(token_address);
+            self.update_status(token_address, token);
             assert(token.status.read() == TokenStatus::Presale, 'ACTION NOT ALLOWED');
-            let token = self.tokens.entry(token_address);
             let token_amount = token.holders.entry(caller).read();
             assert(token_amount > 0, 'INSUFFICIENT AMOUNT'); // change error message
 
@@ -308,16 +305,23 @@ pub mod ICO {
             token.funds_raised.write(funds_raised - amount);
             token.holders.entry(caller).write(0);
             token.current_supply.write(token.current_supply.read() - token_amount);
-            // emit event
+
+            let event = BuyCanceled {
+                token_address, buyer: caller, amount, canceled_at: get_block_timestamp(),
+            };
+            self.emit(event);
         }
 
         fn claim(ref self: ContractState, token_address: ContractAddress) {
-            // investors cannot claim token until liquidity has been added
+            // investors cannot claim token until liquidity has been added,
+            // only when presale is successful.
+            // If failed, let users claim before liquidity is launched, because
+            // liquidity is never launched, and status is never active
             let caller = get_caller_address();
             let token = self.tokens.entry(token_address);
-            update_status(token);
+            self.update_status(token_address, token);
             let status: u8 = token.status.read().into();
-            assert(status >= TokenStatus::Active.into(), 'PRESALE NOT ACTIVE');
+            assert(status >= TokenStatus::Active.into(), 'PRESALE NOT CLAIMABLE');
             let mut amount = token.buyers.entry(caller).read();
             assert(amount > 0, 'NOTHING TO CLAIM');
 
@@ -325,14 +329,14 @@ pub mod ICO {
         }
 
         fn claim_all(ref self: ContractState) {
-            // investors cannot claim token until liquidity has been added
+            // read comments in `claim`
             let caller = get_caller_address();
             let tokens = self.buyers.entry(caller);
 
             assert(tokens.len() > 0, 'NOTHING TO CLAIM');
             while let Option::Some(token_address) = tokens.pop() {
                 let token = self.tokens.entry(token_address);
-                update_status(token);
+                self.update_status(token_address, token);
                 let status: u8 = token.status.read().into();
                 let amount = token.buyers.entry(caller).read();
                 if status >= TokenStatus::Active.into() && amount > 0 {
@@ -349,11 +353,19 @@ pub mod ICO {
             assert(target.len() > 0, 'TARGET IS EMPTY');
             let token = self.tokens.entry(token_address);
             assert(token.owner_access.read().is_some(), 'INVALID TOKEN ADDRESS');
-            assert(token.owner_access.read().unwrap() == get_caller_address(), 'ACCESS DENIED');
+            assert(token.owner_access.read().unwrap() == get_caller_address(), 'UNAUTHORIZED');
             assert(token.presale_details.read().whitelist, 'ERROR WHITELISTING TARGET');
             for address in target {
                 token.whitelist.entry(address).write(true);
             };
+        }
+
+        fn is_successful(ref self: ContractState, token_address: ContractAddress) -> bool {
+            self.ownable.assert_only_owner();
+            let token = self.tokens.entry(token_address);
+            self.update_status(token_address, token);
+            let status = token.status.read();
+            status == TokenStatus::Finalized || status == TokenStatus::Active
         }
     }
 
@@ -434,6 +446,34 @@ pub mod ICO {
             self.tokens.entry(token_address).owner_access.write(Option::Some(caller));
         }
 
+        fn update_status(
+            ref self: ContractState,
+            token_address: ContractAddress,
+            token: StoragePath<Mutable<Token>>,
+        ) {
+            let details = token.presale_details.read();
+            let current_funds = token.funds_raised.read();
+            if token.status.read() == TokenStatus::Presale
+                && get_block_timestamp() > details.end_time || current_funds == details.hard_cap {
+                let mut successful = false;
+                if current_funds >= details.soft_cap {
+                    token.status.write(TokenStatus::Finalized);
+                    successful = true;
+                } else {
+                    // if it's never successful, then it never progresses farther than this.
+                    // Void Presale
+                    token.status.write(TokenStatus::Void);
+                }
+                let event = PresaleFinalized {
+                    presale_token_address: token_address,
+                    buy_token_address: details.buy_token,
+                    successful,
+                };
+
+                self.emit(event);
+            }
+        }
+
         fn _claim(
             ref self: ContractState,
             token_address: ContractAddress,
@@ -444,13 +484,13 @@ pub mod ICO {
             let mut amount = token.buyers.entry(caller).read();
             let mut claimed_token_address = token_address;
             let mut claimed_amount = amount;
-            if token.successful.read() {
+            if token.status.read() == TokenStatus::Active {
                 let dispatcher = IERC20Dispatcher { contract_address: token_address };
                 let token_amount = token.holders.entry(caller).read();
                 dispatcher.transfer(caller, token_amount);
                 claimed_amount = token_amount;
             } else {
-                // refund
+                // refund, if void.
                 claimed_token_address = token.presale_details.read().buy_token;
                 let dispatcher = IERC20Dispatcher { contract_address: claimed_token_address };
                 dispatcher.transfer(caller, amount);
@@ -470,9 +510,11 @@ pub mod ICO {
         }
 
         fn _launch_liquidity(
-            ref self: ContractState, token_address: ContractAddress, bonding_type: BondingType,
+            ref self: ContractState,
+            token_address: ContractAddress,
+            bonding_type: BondingType,
+            caller: ContractAddress,
         ) -> u64 {
-            let caller = get_caller_address();
             let token = self.tokens.entry(token_address);
             let details = token.presale_details.read();
 
@@ -680,16 +722,6 @@ pub mod ICO {
 
         assert(current_supply > max_supply, 'MAX SUPPLY < CURRENT SUPPLY');
         (current_supply - max_supply, min_supply)
-    }
-
-    fn update_status(token: StoragePath<Mutable<Token>>) {
-        let details = token.presale_details.read();
-        if token.status.read() == TokenStatus::Presale && details.end_time > get_block_timestamp() {
-            if token.funds_raised.read() > details.soft_cap {
-                token.successful.write(true);
-            }
-            token.status.write(TokenStatus::Finalized);
-        }
     }
 
     fn assert_non_zero(addresses: Array<ContractAddress>) {

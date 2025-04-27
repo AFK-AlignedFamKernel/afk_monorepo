@@ -27,6 +27,9 @@ pub trait IICO<TContractState> {
     fn whitelist(
         ref self: TContractState, token_address: ContractAddress, target: Array<ContractAddress>,
     );
+
+    // for testing
+    fn is_successful(ref self: TContractState, token_address: ContractAddress) -> bool;
 }
 
 #[starknet::interface]
@@ -93,8 +96,7 @@ pub struct Token {
     pub funds_raised: u256,
     pub whitelist: Map<ContractAddress, bool>,
     pub buyers: Map<ContractAddress, u256>, // with buy_token
-    pub holders: Map<ContractAddress, u256>, // holders of token
-    pub successful: bool,
+    pub holders: Map<ContractAddress, u256> // holders of token
 }
 
 #[starknet::storage_node]
@@ -131,7 +133,7 @@ pub enum TokenStatus {
     Presale,
     Finalized,
     Active,
-    Finished,
+    Void,
 }
 
 impl StatusIntoU8 of Into<TokenStatus, u8> {
@@ -142,7 +144,7 @@ impl StatusIntoU8 of Into<TokenStatus, u8> {
             TokenStatus::Presale => 1,
             TokenStatus::Finalized => 2,
             TokenStatus::Active => 3,
-            TokenStatus::Finished => 4,
+            TokenStatus::Void => 4,
         }
     }
 }
@@ -195,8 +197,11 @@ pub struct TokenBought {
 
 #[derive(Drop, starknet::Event)]
 pub struct BuyCanceled {
+    #[key]
     pub token_address: ContractAddress,
+    pub buyer: ContractAddress,
     pub amount: u256,
+    pub canceled_at: u64,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -207,6 +212,14 @@ pub struct TokenClaimed {
     pub recipient: ContractAddress,
     pub amount: u256,
     pub claimed_at: u64,
+}
+
+#[derive(Drop, starknet::Event)]
+pub struct PresaleFinalized {
+    #[key]
+    pub presale_token_address: ContractAddress,
+    pub buy_token_address: ContractAddress,
+    pub successful: bool,
 }
 
 #[derive(Drop, Copy, starknet::Store)]
