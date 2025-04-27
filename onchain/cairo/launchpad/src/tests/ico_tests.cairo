@@ -1,17 +1,16 @@
 mod ico_tests {
     use alexandria_math::fast_power::fast_power;
     use core::num::traits::Zero;
-    use snforge_std::cheatcodes::events::Event;
     use snforge_std::{
         CheatSpan, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, EventSpyTrait,
-        EventsFilterTrait, cheat_block_timestamp, cheat_caller_address, declare, spy_events,
+        cheat_block_timestamp, cheat_caller_address, declare, spy_events,
     };
     use starknet::{ClassHash, ContractAddress};
     use crate::interfaces::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use crate::interfaces::ico::{
         ContractConfig, IICOConfigDispatcher, IICOConfigDispatcherTrait, IICODispatcher,
         IICODispatcherTrait, PresaleDetails, PresaleFinalized, PresaleLaunched, TokenBought,
-        TokenCreated, TokenDetails, TokenStatus,
+        TokenCreated, TokenDetails,
     };
     use crate::launchpad::ico::ICO;
 
@@ -576,7 +575,6 @@ mod ico_tests {
         cheat_block_timestamp(ico.contract_address, 11, CheatSpan::TargetCalls(5));
         cheat_caller_address(ico.contract_address, USER, CheatSpan::TargetCalls(2));
         ico.launch_liquidity(token.contract_address, Option::None);
-
         // rest assured, it'll panic with UNAUTHORIZED if caller is not owner
     }
 
@@ -592,10 +590,31 @@ mod ico_tests {
 
     #[test]
     #[ignore]
-    #[should_panic]
-    fn test_ico_launch_presale_incorrect_presale_details() {
-        
+    fn test_ico_claim_all_after_two_presales() {
+        // this test requires more than one presale to occur
+        let (ico, token, buy_token, details) = context(false);
+
+        let amount = details.hard_cap / 3; // 500 * fast_power(10, 18)
+        let mut buyers = default_buyers(); // three buyers
+        mint(ref buyers, buy_token, amount, 0);
+
+        let mut spy = spy_events();
+        buy_presale(ref buyers, ico, token, buy_token);
+        // start another presale
+        // here, all buyers have zero funds, in both the previous concluded presale token
+        // and the token using in buying the presale
+        let details = init_presale_details();
     }
+
+    #[test]
+    fn test_ico_launch_liquidity_success() {// This will require the overhead of testing the same function tested in the
+    // launchpad_tests.cairo
+    }
+
+    #[test]
+    #[ignore]
+    #[should_panic]
+    fn test_ico_launch_presale_incorrect_presale_details() {}
 
     #[test]
     #[ignore]
