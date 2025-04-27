@@ -601,13 +601,13 @@ mod ico_tests {
         let mut spy = spy_events();
         buy_presale(ref buyers, ico, token, buy_token);
         // start another presale
-        // here, all buyers have zero funds, in both the previous concluded presale token
-        // and the token using in buying the presale
-        let details = init_presale_details();
+    // here, all buyers have zero funds, in both the previous concluded presale token
+    // and the token using in buying the presale
+    // let details = init_presale_details();
     }
 
     #[test]
-    fn test_ico_launch_liquidity_success() {// This will require the overhead of testing the same function tested in the
+    fn test_ico_launch_liquidity_success() { // This will require the overhead of testing the same function tested in the
     // launchpad_tests.cairo
     }
 
