@@ -530,7 +530,6 @@ mod ico_tests {
     }
 
     #[test]
-    #[ignore]
     #[should_panic(expected: 'PRESALE NOT CLAIMABLE')]
     fn test_ico_claim_should_panic_on_non_active_presale() {
         let (ico, token, _) = feign_default_presale();
@@ -571,24 +570,32 @@ mod ico_tests {
     }
 
     #[test]
-    #[ignore]
-    #[should_panic(expected: 'PRESALE FAILED')]
+    #[should_panic(expected: 'LAUNCHING FAILED')]
     fn test_ico_launch_liquidity_should_finalize_and_panic_on_failed_presale() {
         let (ico, token, _) = feign_default_presale();
         cheat_block_timestamp(ico.contract_address, 11, CheatSpan::TargetCalls(5));
-        cheat_caller_address(ico.contract_address, ADMIN, CheatSpan::TargetCalls(2));
+        cheat_caller_address(ico.contract_address, USER, CheatSpan::TargetCalls(2));
         ico.launch_liquidity(token.contract_address, Option::None);
+
+        // rest assured, it'll panic with UNAUTHORIZED if caller is not owner
+    }
+
+    #[test]
+    #[should_panic(expected: 'INVALID LAUNCH')]
+    fn test_ico_launch_liquidity_should_panic_on_invalid_token_or_unlaunched_presale() {
+        let unlaunched_token = deploy_erc20(OWNER);
+        let contract_address = deploy_default();
+        let ico = IICODispatcher { contract_address };
+        cheat_caller_address(contract_address, OWNER, CheatSpan::TargetCalls(1));
+        ico.launch_liquidity(unlaunched_token, Option::None);
     }
 
     #[test]
     #[ignore]
-    #[should_panic(expected: 'INVALID LAUNCH')]
-    fn test_ico_launch_liquidity_should_panic_on_invalid_token() {}
-
-    #[test]
-    #[ignore]
     #[should_panic]
-    fn test_ico_launch_presale_incorrect_presale_details() {}
+    fn test_ico_launch_presale_incorrect_presale_details() {
+        
+    }
 
     #[test]
     #[ignore]

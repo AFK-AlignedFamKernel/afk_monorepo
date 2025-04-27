@@ -219,6 +219,7 @@ pub mod ICO {
             assert(owner.unwrap() == caller, 'UNAUTHORIZED');
             assert(token.status.read() == TokenStatus::Finalized, 'LAUNCHING FAILED');
 
+            // Check this exchange address... remove if necessary
             let exchange_address = self.exchange_address.read();
             assert(exchange_address.is_non_zero(), 'EXCHANGE ADDRESS IS ZERO');
             let b = match bonding_type {
