@@ -152,7 +152,7 @@ mod DutchAuction {
 
         // Validate inputs
         assert(duration_seconds > 0, ERRORS::DURATION_ZERO);
-        assert(total_tokens > 0, Errors::SUPPLY_ZERO);
+        assert(total_tokens > 0, ERRORS::SUPPLY_ZERO);
 
         // Store configuration
         self.token_for_sale_address.write(token_for_sale);
