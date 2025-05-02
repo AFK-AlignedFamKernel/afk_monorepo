@@ -10,7 +10,10 @@ import NDK, { NDKEvent, NDKKind, NDKPrivateKeySigner } from "@nostr-dev-kit/ndk"
 import { AFK_RELAYS } from "common";
 dotenv.config();
 
-let sk = "ebbc14b03f042a4a0c9583b9e6c6c2aa177884bb6a739dbf1d7c2fdeb04c73cf";
+// let sk = "ebbc14b03f042a4a0c9583b9e6c6c2aa177884bb6a739dbf1d7c2fdeb04c73cf";
+let sk = "59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35";
+const SK= "59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35"
+const PK= "5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc"
 // console.log("private key", bytesToHex(sk as any));
 const ndk = new NDK({
     // explicitRelayUrls: AFK_RELAYS,
@@ -46,7 +49,6 @@ export const linkedToSecond = async (starknet_address: string) => {
 
     // let sk = "3f310984112c5b5305162ecadfea7d59c682a8c04f16945e65572f22b019c2b0";
     // let pk = "852d7fd9511ccd03c5d8da09273668dbbb160771d5da78ca4367be565fd0fb8b";
-    let sk = "ebbc14b03f042a4a0c9583b9e6c6c2aa177884bb6a739dbf1d7c2fdeb04c73cf";
     let pk = getPublicKey(sk as any);
     console.log("second secret key", sk);
 
@@ -99,226 +101,146 @@ export const linkedToSecond = async (starknet_address: string) => {
 };
 
 export const linkedNostrProfile = async () => {
-    console.log("linked nostr profile");
-    let namespace_address: string | undefined =
-        NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]; // change default address
-    const privateKey0 = process.env.DEV_PK as string;
+    const namespace_address = NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
-
+    const privateKey0 = process.env.DEV_PK as string;
     const account = new Account(provider, accountAddress0, privateKey0, "1");
 
-    const namespaceContract = await prepareAndConnectContract(
-        namespace_address,
-        account
-    );
+    // Convert starknet address to decimal format WITHOUT 0x prefix
+    const starknetAddress = account.address;
+    // const starknetAddressFelt = BigInt(account.address).toString(10);
+    const starknetAddressFelt = cairo.felt(account.address);
 
-    const nostrfiContract = await prepareAndConnectContract(
-        NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
-        account
-    );
+    console.log("starknetAddress", starknetAddress);
+    console.log("starknetAddressFelt", starknetAddressFelt);
+    // Format content EXACTLY as specified in LinkedStarknetAddressEncodeImpl
+    // See the encode implementation in common_interfaces.cairo:
+    // @format!("link {}", recipient_address)
+    const content = `link ${starknetAddressFelt}`;
 
-    // let strkAddressUsed = "123";
-      let strkAddressUsed = account.address;
-        // Convert starknet address to decimal format without 0x prefix
-        strkAddressUsed = BigInt(account?.address!).toString(10);
-
-    //   strkAddressUsed = accountAddress0;
-
-    console.log("account address", account.address);
-
-
-
-
-    const { 
-        event:eventTool, 
-        isGood, pk, sk } = await linkedToSecond(strkAddressUsed);
-    // console.log("private key", sk);
-    // console.log("public key", getPublicKey(sk as any));
-
-    // const nostrEvent = await getNostrEvent(account.address);
-    // //   console.log("nostrEvent", nostrEvent);
-    // let eventUsed = event;
-    // console.log("eventUsed", eventUsed);
-    // eventUsed.content = `link ${strkAddressUsed}`;
-    // const signature = eventUsed.sig ?? '';
-    // const signatureR = signature.slice(0, signature.length / 2);
-    // const signatureS = signature.slice(signature.length / 2);
-
-    const linkedWallet = {
-        starknet_address: strkAddressUsed
-    };
-
-    // Use the exact same timestamp as the test
+    // Use EXACT timestamp from working test
     const timestamp = 1716285235;
 
-    const event = finalizeEvent(
+    let event = finalizeEvent(
         {
             kind: 1,
             created_at: timestamp,
-            tags: [],
-            // content: `link ${cairo.felt(strkAddressUsed)}`,
-            content: `link ${strkAddressUsed}`,
+            tags: [], // Must be empty array
+            content: content,
         },
         sk as any
     );
 
-    // Use the known working signature from the test
-    // const signature = {
-    //     r: "0xac9c698ef50872a5fbfec95f5aaa84014519912ab398f192df6cd3c91dfb563c",
-    //     s: "0xf9403e3bf9dea20a06c8416a0ef78ad08e93dd21e665c72826d22976a4d08126"
-    // };
-    let eventUsed = event;
-  const transferred = await event.sig;
-  const signature = await event.sig;
+    if (!verifyEvent(event)) {
+        throw new Error("Event verification failed locally");
+    }
 
-    const transferredR = `0x${transferred.slice(0, transferred.length / 2)}`;
-    const transferredS = `0x${transferred.slice(transferred.length / 2)}`;
-    console.log(transferredR);
-    console.log(transferredS);
+    const signature = event.sig;
+    const signatureR = "0x" + signature.slice(0, signature.length / 2);
+    const signatureS = "0x" + signature.slice(signature.length / 2);
 
-    // const signatureR = transferredR;
-    // const signatureS = transferredS;
-    const signatureR = "0x" + signature.slice(0, signature.length/2);
-    const signatureS = "0x" + signature.slice(signature.length/2);
+    // Format calldata EXACTLY as the test case expects
 
-
-    let linkedArrayCalldata = CallData.compile([
-        // uint256.bnToUint256(BigInt(`0x${event.pubkey}`)),
-        uint256.bnToUint256(BigInt(`0x${event.pubkey}`)),
-        timestamp,
-        1, // kind
-        byteArray.byteArrayFromString("[]"), // tags
-        {
-            starknet_address: strkAddressUsed,
-            // starknet_address: strkAddressUsed,
+    event = {
+        kind: 1,
+        created_at: 1716285235,
+        tags: [],
+        content: 'link 1201582117220250281093610950915479340547227715138863347526632183964894709336',
+        pubkey: '5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc',
+        id: '31135e106f671fc8bd4fe5060d59c82ad3d27db7a19b24f80eddaa52bdb4f986',
+        sig: '999115eeba54e7e5e9652e8576359db375bf089d054bbbd33cd859177ac88713d919f8b27c5436930ced1ca03310d9dfd2b63e3722cb6a14ce8ed72ccbb93038',
+    } as any
+    const linkedArrayCalldata = CallData.compile([{
+        // public_key as uint256
+        public_key: cairo.uint256(`0x${event.pubkey}`),
+        // created_at as u64
+        created_at: timestamp,
+        // kind as u16
+        kind: 1,
+        // tags as ByteArray - must be "[]"
+        tags: byteArray.byteArrayFromString("[]"),
+        // content as LinkedStarknetAddress struct
+        content: {
+            // starknet_address: starknetAddressFelt, // decimal format without 0x
+            starknet_address: starknetAddress, // decimal format without 0x
         },
-        {
-            // r: uint256.bnToUint256(BigInt(signatureR)),
-            // s: uint256.bnToUint256(BigInt(signatureS)),
-            r: uint256.bnToUint256(signatureR),
-            s: uint256.bnToUint256(signatureS),
+        // signature as SchnorrSignature struct
+        sig: {
+            r: cairo.uint256(signatureR),
+            s: cairo.uint256(signatureS),
         },
+    }
+
     ]);
-    console.log("linked array calldata", linkedArrayCalldata);
-     linkedArrayCalldata = CallData.compile([
-        // uint256.bnToUint256(BigInt(`0x${event.pubkey}`)),
-        uint256.bnToUint256(`0x${event.pubkey}`),
-        event?.created_at,
-        event?.kind, // kind
-        byteArray.byteArrayFromString(JSON.stringify(event?.tags)), // tags
-        {
-            starknet_address: strkAddressUsed, // Use decimal format
-        },
-        {
-            r: uint256.bnToUint256(signatureR),
-            s: uint256.bnToUint256(signatureS),
-        },
-    ]);
-    console.log("linked array calldata", linkedArrayCalldata);
 
-    // linkedArrayCalldata = [
-    //     '184674452764868560519724515817148231628',
-    //     '121185674577639879316174480666903828499',
-    //     '1716285235',
-    //     '1',
-    //     '0',
-    //     '23389',
-    //     '2',
-    //     '123',
-    //     '150175745381533378901129570494918394507',
-    //     '189470234747686543257281161595263520109',
-    //     '266804303043442766451170676428195985912',
-    //     '293700824625636702068599129940075687784'
-    // ];
-
-    console.log("linked array calldata", linkedArrayCalldata);
-
-
-
-    // let objectCalldata = {
-    //     public_key: uint256.bnToUint256(`0x${eventUsed?.pubkey}`),
-    //     // public_key: uint256.bnToUint256(BigInt(`0x${eventUsed?.pubkey}`)),
-    //     created_at: eventUsed?.created_at,
-    //     kind: eventUsed?.kind ?? 1,
-    //     tags: byteArray.byteArrayFromString(JSON.stringify(eventUsed?.tags ?? [])),
-    //     // tags: shortString.encodeShortString(JSON.stringify(eventUsed?.tags ?? [])),
-    //     content: {
-    //         starknet_address: strkAddressUsed,
-    //         //   starknet_address: strkAddressUsed as `0x${string}`,
+    // const linkedArrayCalldata = CallData.compile([
+    //     // public_key as uint256
+    //     cairo.uint256(`0x${event.pubkey}`),
+    //     // created_at as u64
+    //     timestamp,
+    //     // kind as u16
+    //     1,
+    //     // tags as ByteArray - must be "[]"
+    //     byteArray.byteArrayFromString("[]"),
+    //     // content as LinkedStarknetAddress struct
+    //     {
+    //         // starknet_address: starknetAddressFelt, // decimal format without 0x
+    //         starknet_address: starknetAddress, // decimal format without 0x
     //     },
-    //     sig: {
-    //         // r: uint256.bnToUint256(BigInt(`0x${signatureR}`)),
-    //         // s: uint256.bnToUint256(BigInt(`0x${signatureS}`)),
-    //         r: uint256.bnToUint256(`0x${signatureR}`),
-    //         s: uint256.bnToUint256(`0x${signatureS}`),
+    //     // signature as SchnorrSignature struct
+    //     {
+    //         r: cairo.uint256(signatureR),
+    //         s: cairo.uint256(signatureS),
     //     },
-    // }
-    // //   let objectCompiled = CallData.compile(objectCalldata);
-    // let objectCompiled = CallData.compile([objectCalldata]);
-    // linkedArrayCalldata = CallData.compile({
-    //   pubkey: uint256.bnToUint256(`0x${event.pubkey}`),
-    //   // cairo.uint256(`0x${event.pubkey}`),
-    //   // pubkey: cairo.uint256(BigInt(`0x${event.pubkey}`)),
-    //   created_at: event.created_at,
-    //   kind: event.kind ?? 1,
-    //   tags: byteArray.byteArrayFromString(JSON.stringify(event.tags)),
-    //   content: {
-    //     // starknet_address: cairo.felt(account?.address!),
-    //     starknet_address: accountAddress0,
-    //   },
-    //   sig: {
-    //     // r: uint256.bnToUint256(`${transferredR}`),
-    //     // s: uint256.bnToUint256(`${transferredS}`),
+    // ]);
 
-    //     // r: uint256.bnToUint256(BigInt(`0x${signatureR}`)),
-    //     // s: uint256.bnToUint256(BigInt(`0x${signatureS}`)),
-    //     r: uint256.bnToUint256(`0x${signatureR}`),
-    //     s: uint256.bnToUint256(`0x${signatureS}`),
-    //     // r: cairo.uint256(BigInt(`0x${signatureR}`)),
-    //     // s: cairo.uint256(BigInt(`0x${signatureS}`)),
-    //   },
-    // });
+    // Add debug logs
+    console.log("Debug Info:");
+    console.log("Content:", content);
+    console.log("Public Key:", event.pubkey);
+    console.log("Signature R:", signatureR);
+    console.log("Signature S:", signatureS);
+    console.log("Starknet Address (felt):", starknetAddressFelt);
+    console.log("Full event:", event);
 
 
-    // const linkedNamespace = {
-    //   contractAddress: namespace_address,
-    //   entrypoint: 'linked_nostr_profile',
-    //   // entrypoint: 'linked_nostr_default_account',
-    //   // calldata: CallData.compile(linkedArrayCalldata)
-    //   calldata: linkedArrayCalldata,
-    //   // calldata: objectCompiled,
-    //   // calldata: CallData.compile(linkedArrayCalldata),
+    const libCalldata = [
+        '184674452764868560519724515817148231628',
+        '121185674577639879316174480666903828499',
+        '1716285235',
+        '1',
+        '0',
+        '23389',
+        '2',
+        '1201582117220250281093610950915479340547227715138863347526632183964894709336',
+        '322278953791080398970703239293229163626',
+        '57449106521304501817227111162887800063',
+        '137077259727980457847581598543456117111',
+        '31723784927455455798973291421350990118'
+        // '184674452764868560519724515817148231628',
+        // '121185674577639879316174480666903828499',
+        // '1716285235',
+        // '1',
+        // '0',
+        // '23389',
+        // '2',
+        // '1201582117220250281093610950915479340547227715138863347526632183964894709336',
+        // '6744342364905278961218105152019156848',
+        // '288993467196674772370774149581502640399',
+        // '248051260723712574157634603789891298693',
+        // '82210318389643421572033968917451813434'
+    ];
 
-    // };
-    const linkedNamespace = {
-        // contractAddress: nostrfiContract?.address,
+    const tx = await account.execute({
         contractAddress: namespace_address,
         entrypoint: 'linked_nostr_profile',
-        // entrypoint: 'linked_nostr_default_account',
-        // calldata: CallData.compile(linkedArrayCalldata)
-        calldata: linkedArrayCalldata,
-        //  calldata: objectCompiled,
-        // calldata: objectCalldata,
-        // calldata: CallData.compile(linkedArrayCalldata),
+        calldata: linkedArrayCalldata
+        // calldata: libCalldata
+    });
 
-    };
-    console.log("linked namespace", linkedNamespace);
-
-
-    console.log("execute linked namespace");
-    // const tx = await nostrfiContract.linked_nostr_profile(objectArrayCalldata);
-    // const tx = await namespaceContract.linked_nostr_profile(linkedArrayCalldata);
-    //   const tx2 = await namespaceContract.linked_nostr_profile(objectCompiled);
-
-    console.log("execute linked nostr score namespace");
-    // const tx2 = await nostrfiContract.linked_nostr_profile(objectCompiled);
-    // const tx2 = await nostrfiContract.linked_nostr_profile(objectCompiled);
-    // const tx2 = await nostrfiContract.linked_nostr_profile(linkedArrayCalldata);
-    const tx2 = await account?.execute([linkedNamespace], undefined, {});
-    // console.log("tx", tx);
-    console.log("tx2", tx2);
-
-}
+    await account.waitForTransaction(tx.transaction_hash);
+    return tx;
+};
 
 
 linkedNostrProfile()
