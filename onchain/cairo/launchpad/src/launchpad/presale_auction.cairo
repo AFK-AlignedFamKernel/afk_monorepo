@@ -19,13 +19,6 @@ pub trait IDutchAuction<TContractState> {
 }
 
 #[starknet::contract]
-/// Implements a Dutch auction contract for ERC20 token presales.
-///
-/// This contract allows an owner to set up an auction where the price of a token
-/// starts high and decreases linearly over a set duration until a minimum price
-/// is reached. Users can buy tokens at the current price by sending payment tokens
-/// (typically an ETH wrapper) after approving the contract. The owner can withdraw
-/// collected payments and claim unsold tokens after the auction concludes.
 mod DutchAuction {
     use super::*;
 
@@ -52,8 +45,8 @@ mod DutchAuction {
         duration: u64,
         /// The price per token at the start of the auction, denominated in the payment token.
         start_price: u256,
-        /// The minimum price per token, reached at the end of the auction duration.
-        end_price: u256,
+        time_step: u256,
+        price_decrement: u256,
         /// The total amount of tokens offered for sale in this auction.
         total_tokens_for_sale: u256,
         /// A counter tracking the cumulative amount of tokens sold so far.
@@ -83,7 +76,8 @@ mod DutchAuction {
         start_time: u64,
         duration: u64,
         start_price: u256,
-        end_price: u256,
+        time_step: u256,
+        price_decrement: u256,
         total_tokens_for_sale: u256,
         token_for_sale: ContractAddress,
         payment_token: ContractAddress,
@@ -110,7 +104,6 @@ mod DutchAuction {
         amount: u256,
     }
 
-    /// Defines constant felt252 error messages for cleaner assertions.
     mod Errors {
         const AUCTION_NOT_STARTED: felt252 = 'Auction: Not started yet';
         const AUCTION_ENDED: felt252 = 'Auction: Already ended';
@@ -119,8 +112,6 @@ mod DutchAuction {
         const DURATION_ZERO: felt252 = 'Auction: Duration cannot be 0';
         const PRICE_ORDER: felt252 = 'Auction: Start price < end price';
         const SUPPLY_ZERO: felt252 = 'Auction: Supply cannot be 0';
-        const ALREADY_ENDED: felt252 =
-            'Auction: Already ended'; // Used potentially? Replaced by AUCTION_ENDED generally
         const NOT_ENDED: felt252 = 'Auction: Not ended yet';
         const ZERO_BALANCE: felt252 = 'Auction: No payment to withdraw';
     }
@@ -138,13 +129,11 @@ mod DutchAuction {
     /// - `payment_token`: `ContractAddress` - The ERC20 token address used for payment (e.g., ETH
     /// wrapper).
     /// - `start_price`: `u256` - The initial price per token sold, in units of the payment token.
-    /// - `end_price`: `u256` - The minimum price per token sold, reached at the auction's end.
     /// - `duration_seconds`: `u64` - The total duration of the auction in seconds.
     /// - `total_tokens`: `u256` - The total amount of `token_for_sale` available in this auction.
     ///
     /// # Panics
     /// - If `duration_seconds` is 0 (`Errors::DURATION_ZERO`).
-    /// - If `start_price` is less than `end_price` (`Errors::PRICE_ORDER`).
     /// - If `total_tokens` is 0 (`Errors::SUPPLY_ZERO`).
     #[constructor]
     fn constructor(
@@ -153,7 +142,8 @@ mod DutchAuction {
         token_for_sale: ContractAddress,
         payment_token: ContractAddress,
         start_price: u256,
-        end_price: u256,
+        time_step: u256,
+        price_decrement: u256,
         duration_seconds: u64,
         total_tokens: u256,
     ) {
@@ -161,30 +151,28 @@ mod DutchAuction {
         self.owner.initializer(initial_owner);
 
         // Validate inputs
-        assert(duration_seconds > 0, Errors::DURATION_ZERO);
-        assert(start_price >= end_price, Errors::PRICE_ORDER);
+        assert(duration_seconds > 0, ERRORS::DURATION_ZERO);
         assert(total_tokens > 0, Errors::SUPPLY_ZERO);
 
         // Store configuration
         self.token_for_sale_address.write(token_for_sale);
         self.payment_token_address.write(payment_token);
         self.start_price.write(start_price);
-        self.end_price.write(end_price);
         self.duration.write(duration_seconds);
         self.total_tokens_for_sale.write(total_tokens);
-
-        // Set start time and initial sold count
+        self.time_step.write(time_step);
+        self.price_decrement.write(price_decrement);
         self.start_time.write(get_block_timestamp());
         self.tokens_sold.write(0);
 
-        // Emit event
         self
             .emit(
                 AuctionCreated {
                     start_time: self.start_time.read(),
                     duration: duration_seconds,
                     start_price: start_price,
-                    end_price: end_price,
+                    time_step: time_step,
+                    price_decrement: price_decrement,
                     total_tokens_for_sale: total_tokens,
                     token_for_sale: token_for_sale,
                     payment_token: payment_token,
@@ -197,7 +185,7 @@ mod DutchAuction {
         /// Calculates the current price per token based on the time elapsed since the auction
         /// start.
         ///
-        /// The price decreases linearly from `start_price` to `end_price` over the `duration`.
+        /// The price decreases linearly by `price_decrement` from `start_price` over the `duration` every `time_step`.
         /// Before the auction starts, it returns `start_price`. After the auction ends,
         /// it returns `end_price`.
         ///
@@ -209,6 +197,8 @@ mod DutchAuction {
             let start_price = self.start_price.read();
             let end_price = self.end_price.read();
             let current_time = get_block_timestamp();
+            let time_step = self.time_step.read();
+            let price_decrement = self.price_decrement.read();
 
             if current_time < start_time {
                 return start_price;
@@ -220,16 +210,14 @@ mod DutchAuction {
             }
 
             let elapsed_time: u256 = (current_time - start_time).into();
-            let total_duration: u256 = duration.into();
-            let price_drop: u256 = start_price - end_price;
-            let current_reduction = (price_drop * elapsed_time) / total_duration;
-            let current_price = start_price - current_reduction;
+            let intervals: u256 = elapsed_time / time_step;
+            let amt_to_decrement = intervals * price_decrement;
 
-            if current_price < end_price {
-                return end_price;
+            if amt_to_decrement >= start_price {
+                return 0;
+            } else {
+                start_price - amt_to_decrement
             }
-
-            current_price
         }
 
         /// Allows a user to purchase tokens during the active auction period.
@@ -365,14 +353,12 @@ mod DutchAuction {
         /// Retrieves the core configuration parameters and current state of the auction.
         ///
         /// # Returns
-        /// `(ContractAddress, ContractAddress, u64, u64, u256, u256, u256, u256)` - A tuple
-        /// containing:
+        ///
         ///   - `token_for_sale_address`: Address of the token being sold.
         ///   - `payment_token_address`: Address of the token used for payment.
         ///   - `start_time`: Timestamp when the auction started.
         ///   - `duration`: Duration of the auction in seconds.
         ///   - `start_price`: Initial price per token.
-        ///   - `end_price`: Final minimum price per token.
         ///   - `total_tokens_for_sale`: Total tokens initially offered.
         ///   - `tokens_sold`: Total tokens sold so far.
         fn get_auction_details(
@@ -384,7 +370,6 @@ mod DutchAuction {
                 self.start_time.read(),
                 self.duration.read(),
                 self.start_price.read(),
-                self.end_price.read(),
                 self.total_tokens_for_sale.read(),
                 self.tokens_sold.read(),
             )
