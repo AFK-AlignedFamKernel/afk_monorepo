@@ -2,8 +2,9 @@
     "buildCommand": "pnpm install && pnpm build:web",
     "outputDirectory": "dist",
     "devCommand": "pnpm start:web",
+    "packageManager": "pnpm@8.15.9",
     "cleanUrls": true,
-    "framework": "nextjs",
+    "framework": null,
     "rewrites": [
       {
         "source": "/:path*",
