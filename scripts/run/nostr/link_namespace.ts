@@ -107,7 +107,8 @@ export const linkedNostrProfile = async () => {
     const account = new Account(provider, accountAddress0, privateKey0, "1");
 
     // Use exactly 123 as the starknet address like in the test
-    const starknetAddress = "123"; // This matches sender_address in the test
+    const starknetAddress = accountAddress0; // This matches sender_address in the test
+    // const starknetAddress = "123"; // This matches sender_address in the test
     const starknetAddressFelt = cairo.felt(starknetAddress);
 
     // Format content exactly as in the test
@@ -137,7 +138,8 @@ export const linkedNostrProfile = async () => {
     // Format calldata exactly as the test expects
     const linkedArrayCalldata = CallData.compile([
         // recipient_public_key from test
-        cairo.uint256(`0x${PK}`),
+        cairo.uint256(`0x${event?.pubkey}`),
+        // uint256.bnToUint256(BigInt(`0x${event?.pubkey}`)),
         // cairo.uint256("0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc"),
         timestamp,
         1, // kind
