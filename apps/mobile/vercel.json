@@ -1,5 +1,5 @@
 {
-    "buildCommand": "pnpm build:web",
+    "buildCommand": "pnpm install && pnpm build:web",
     "outputDirectory": "dist",
     "devCommand": "pnpm start:web",
     "cleanUrls": true,
@@ -10,7 +10,7 @@
         "destination": "/"
       }
     ],
-    "installCommand": "pnpm install",
+    "installCommand": "pnpm install --frozen-lockfile",
     "builds": [
       {
         "src": "package.json",
