@@ -1,13 +1,23 @@
 {
-    "buildCommand": "expo export -p web",
+    "buildCommand": "pnpm build:web",
     "outputDirectory": "dist",
-    "devCommand": "expo",
+    "devCommand": "pnpm start:web",
     "cleanUrls": true,
-    "framework": null,
+    "framework": "nextjs",
     "rewrites": [
       {
         "source": "/:path*",
         "destination": "/"
+      }
+    ],
+    "installCommand": "pnpm install",
+    "builds": [
+      {
+        "src": "package.json",
+        "use": "@vercel/static-build",
+        "config": {
+          "distDir": "dist"
+        }
       }
     ]
   }
