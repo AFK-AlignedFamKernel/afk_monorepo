@@ -119,7 +119,7 @@
     "lexical": "^0.29.0",
     "markdown-it": "^14.1.0",
     "memoize-one": "^6.0.0",
-    "metro-react-native-babel-preset": "^0.77.0",
+    "metro-react-native-babel-preset": "latest",
     "nativewind": "^4.1.23",
     "npx": "^10.2.2",
     "path": "^0.12.7",
