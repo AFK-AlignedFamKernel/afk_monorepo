@@ -1,6 +1,7 @@
 use starknet::storage::Map;
 use starknet::{ClassHash, ContractAddress, get_block_timestamp};
 use crate::types::launchpad_types::{BondingType, LiquidityType, TokenQuoteBuyCoin};
+use alexandria_math::fast_power::fast_power;
 
 #[starknet::interface]
 pub trait IICO<TContractState> {
@@ -38,17 +39,20 @@ pub trait IICOConfig<TContractState> {
     fn set_liquidity_config(ref self: TContractState, config: LaunchConfig);
 }
 
-// TODO:
-// To be edited
+pub fn default_supply() -> u256 {
+    1_000_000 * fast_power(10, 18)
+}
+
 pub fn default_presale_details() -> PresaleDetails {
+    let expected_lp_tokens = (default_supply() * 100)/ (2 * 70);
     PresaleDetails {
         buy_token: ETH,
-        presale_rate: 0,
+        presale_rate: default_supply() / 2,
         whitelist: false,
-        soft_cap: 0,
-        hard_cap: 0,
-        liquidity_percentage: 0,
-        listing_rate: 0,
+        soft_cap: expected_lp_tokens - (300_000 * fast_power(10, 18)),
+        hard_cap: expected_lp_tokens,
+        liquidity_percentage: 70,
+        listing_rate: 1,
         start_time: get_block_timestamp(),
         end_time: get_block_timestamp() + 100000,
         liquidity_lockup: get_block_timestamp() + (60 * 24 * 30 * 30) // in seconds
