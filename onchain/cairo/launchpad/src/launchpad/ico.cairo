@@ -231,7 +231,7 @@ pub mod ICO {
             // remove this, if necessary.
             // Stops buyer from buying all available tokens, at any instance.
             // let (threshold, _) = get_trade_threshold(details, token.current_supply.read());
-            
+
             let mut current_funds = funds_raised + amount;
             // let current_funds_token = current_funds * details.presale_rate;
             // assert(current_funds_token <= threshold, 'AMOUNT TOO HIGH');
@@ -352,7 +352,9 @@ pub mod ICO {
         ) {
             let _ = get_caller_address();
             assert(recipients.len() > 0 && amounts.len() > 0, 'TARGET IS EMPTY');
-            assert!(recipients.len() == amounts.len(), "Length of recipients and amounts is not equal.");
+            assert!(
+                recipients.len() == amounts.len(), "Length of recipients and amounts is not equal.",
+            );
             let token = self.tokens.entry(token_address);
             assert(token.owner_access.read().is_some(), 'INVALID TOKEN ADDRESS');
             assert(token.owner_access.read().unwrap() == get_caller_address(), 'UNAUTHORIZED');
@@ -360,8 +362,8 @@ pub mod ICO {
             // assert presale is >= Active
             let _ = IERC20Dispatcher { contract_address: token_address };
             // calculate the total amount, and check the remaining balance in contract
-            // if the contract balance is zero, check the caller's balance
-            // distribute tokens on behalf of the caller, if caller's balance >= total amount
+        // if the contract balance is zero, check the caller's balance
+        // distribute tokens on behalf of the caller, if caller's balance >= total amount
         }
 
         fn is_successful(ref self: ContractState, token_address: ContractAddress) -> bool {
