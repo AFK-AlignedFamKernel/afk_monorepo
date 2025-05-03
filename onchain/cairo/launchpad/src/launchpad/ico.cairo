@@ -467,11 +467,12 @@ pub mod ICO {
                 soft_cap_threshold,
             );
 
-            assert!(
-                details.presale_rate > min_presale_rate(),
-                "The minimum presale rate for this ico is: {}",
-                min_presale_rate(),
-            );
+            // assert!(
+            //     details.presale_rate > min_presale_rate(),
+            //     "The minimum presale rate for this ico is: {}",
+            //     min_presale_rate(),
+            // );
+            assert(details.presale_rate > 0, 'PRESALE RATE CANNOT BE ZERO');
             assert(details.listing_rate > 0, 'LISTING RATE CANNOT BE ZERO');
             assert(details.start_time < details.end_time, 'INVALID START AND END TIME');
             assert(
@@ -483,7 +484,17 @@ pub mod ICO {
                 * details.liquidity_percentage.into()
                 * details.listing_rate
                 / 100;
-            let max_presale_supply = details.presale_rate + expected_lp_tokens;
+            // let max_presale_supply = details.presale_rate + expected_lp_tokens;
+            // assert!(
+            //     max_presale_supply <= total_supply,
+            //     "Presale + liquidity allocation exceeds total supply.",
+            // );
+
+            let max_possible_sold = details.presale_rate * details.soft_cap;
+            let presale_tokens = total_supply; // for now
+            assert(presale_tokens > max_possible_sold, 'PRESALE SUPPLY < SOFT CAP');
+
+            let max_presale_supply = max_possible_sold + expected_lp_tokens;
             assert!(
                 max_presale_supply <= total_supply,
                 "Presale + liquidity allocation exceeds total supply.",
@@ -570,7 +581,8 @@ pub mod ICO {
                 dispatcher.transfer_from(caller, self.launch.fee_to.read(), fee);
             }
 
-            // Check
+            // Check price
+            // The price is never used, by the way
             let token_quote = TokenQuoteBuyCoin {
                 token_address: details.buy_token, price: details.presale_rate, is_enable: true,
             };
@@ -690,8 +702,11 @@ pub mod ICO {
             // let liquidity_supply = total_supply / LIQUIDITY_RATIO;
             // let supply_distribution = total_supply - liquidity_supply;
             // initial_pool_supply = liquidity_supply
-            let lp_supply = token.current_supply.read(); // perhaps divide by LIQUIDITY_RATIO (5)
-            let mut lp_quote_supply = token.funds_raised.read();
+            // perhaps divide by LIQUIDITY_RATIO (5)
+            let lp_quote_supply = token.funds_raised.read()
+                * details.liquidity_percentage.into()
+                / 100;
+            let lp_supply = lp_quote_supply * details.listing_rate;
 
             // Handle edge case where contract balance is insufficient
             let quote_token = IERC20Dispatcher {
@@ -712,6 +727,7 @@ pub mod ICO {
             //     lp_quote_supply = contract_quote_balance.clone();
             // }
 
+            // TODO: calculate lp_supply and lp_quote_supply here
             // Prepare launch parameters
             let params = EkuboUnrugLaunchParameters {
                 owner: get_contract_address(),

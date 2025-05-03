@@ -57,7 +57,8 @@ pub fn default_presale_details() -> PresaleDetails {
     let expected_lp_tokens = (default_supply() * 100) / (2 * 70);
     PresaleDetails {
         buy_token: ETH,
-        presale_rate: default_supply() / 2,
+        // presale_rate: default_supply() / 2,
+        presale_rate: 40,
         whitelist: false,
         soft_cap: expected_lp_tokens / 2, // 50% of hard cap
         hard_cap: expected_lp_tokens,
