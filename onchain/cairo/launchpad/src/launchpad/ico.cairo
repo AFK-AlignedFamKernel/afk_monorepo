@@ -16,6 +16,7 @@ pub mod ICO {
         BuyCanceled, ContractConfig, IICO, IICOConfig, Launch, LaunchConfig, LaunchParams,
         PresaleDetails, PresaleFinalized, PresaleLaunched, Token, TokenBought, TokenClaimed,
         TokenCreated, TokenDetails, TokenInitParams, TokenStatus, default_presale_details,
+        min_presale_rate,
     };
     use crate::interfaces::unrug::{IUnrugLiquidityDispatcher, IUnrugLiquidityDispatcherTrait};
     use crate::launchpad::utils::{
@@ -142,40 +143,18 @@ pub mod ICO {
         ) {
             let caller = get_caller_address();
             self._verify_token(token_address, caller);
+
+            let dispatcher = IERC20Dispatcher { contract_address: token_address };
             let details = match presale_details {
                 Option::Some(details) => details,
                 _ => default_presale_details(),
             };
 
-            assert(details.buy_token.is_non_zero(), 'BUY TOKEN IS ZERO');
-            assert(
-                self.token_init.accepted_buy_tokens.entry(details.buy_token).read(),
-                'BUY TOKEN NOT SUPPORTED',
-            );
-            let soft_cap_threshold: u256 = (25 * details.hard_cap) / 100;
-            assert!(
-                details.soft_cap >= soft_cap_threshold,
-                "SOFT CAP IS LESS THAN THRESHOLD {}",
-                soft_cap_threshold,
-            );
-
-            assert(details.start_time < details.end_time, 'INVALID START AND END TIME');
-            assert(
-                details.liquidity_percentage >= 51 && details.liquidity_percentage <= 100,
-                'INVALID LIQUIDITY RANGE',
-            );
+            let current_supply = verify_balance(dispatcher, caller);
+            self._verify_presale_details(details, current_supply);
             let token = self.tokens.entry(token_address);
 
             // fund contract and store data.
-            let dispatcher = IERC20Dispatcher { contract_address: token_address };
-            let current_supply = verify_balance(dispatcher, caller);
-
-            // Not all should be sold, say around 20% should remain
-            // if rate = 1000 tokens to 1 base, then the current supply check math should be --
-            // the current supply should be greater than 80% of 1000 * hard_cap
-
-            let (threshold, min_supply) = get_trade_threshold(details, current_supply);
-            assert!(threshold >= min_supply, "CONFIG REQUIRES 20 PERCENT OF SUPPLY TO NOT BE SOLD");
             dispatcher.transfer_from(caller, get_contract_address(), current_supply);
 
             token.current_supply.write(current_supply);
@@ -222,11 +201,11 @@ pub mod ICO {
             // Check this exchange address... remove if necessary
             let exchange_address = self.exchange_address.read();
             assert(exchange_address.is_non_zero(), 'EXCHANGE ADDRESS IS ZERO');
-            let b = match bonding_type {
+            let bond = match bonding_type {
                 Option::Some(val) => val,
                 _ => BondingType::Exponential,
             };
-            let id = self._launch_liquidity(token_address, b, caller);
+            let id = self._launch_liquidity(token_address, bond, caller);
             token.status.write(TokenStatus::Active);
             id
         }
@@ -248,11 +227,14 @@ pub mod ICO {
             assert(dispatcher.balance_of(caller) >= amount, 'INSUFFICIENT FUNDS');
 
             let funds_raised = token.funds_raised.read();
+
+            // remove this, if necessary.
             // Stops buyer from buying all available tokens, at any instance.
-            let (threshold, _) = get_trade_threshold(details, token.current_supply.read());
+            // let (threshold, _) = get_trade_threshold(details, token.current_supply.read());
+            
             let mut current_funds = funds_raised + amount;
-            let current_funds_token = current_funds * details.presale_rate;
-            assert(current_funds_token <= threshold, 'AMOUNT TOO HIGH');
+            // let current_funds_token = current_funds * details.presale_rate;
+            // assert(current_funds_token <= threshold, 'AMOUNT TOO HIGH');
 
             // Peg amount to match hard cap when hard cap is exceeded
             // Test for this.
@@ -272,7 +254,7 @@ pub mod ICO {
             token.holders.entry(caller).write(token.holders.entry(caller).read() + token_amount);
             self.buyers.entry(caller).push(token_address);
 
-            // check cap value, and resolve presale
+            // check cap value, and resolve presale if needed.
             self.update_status(token_address, token);
 
             let event = TokenBought {
@@ -348,16 +330,38 @@ pub mod ICO {
         }
 
         fn whitelist(
-            ref self: ContractState, token_address: ContractAddress, target: Array<ContractAddress>,
+            ref self: ContractState,
+            token_address: ContractAddress,
+            targets: Array<ContractAddress>,
         ) {
-            assert(target.len() > 0, 'TARGET IS EMPTY');
+            assert(targets.len() > 0, 'TARGET IS EMPTY');
             let token = self.tokens.entry(token_address);
             assert(token.owner_access.read().is_some(), 'INVALID TOKEN ADDRESS');
             assert(token.owner_access.read().unwrap() == get_caller_address(), 'UNAUTHORIZED');
             assert(token.presale_details.read().whitelist, 'ERROR WHITELISTING TARGET');
-            for address in target {
-                token.whitelist.entry(address).write(true);
+            for target in targets {
+                token.whitelist.entry(target).write(true);
             };
+        }
+
+        fn distribute(
+            ref self: ContractState,
+            token_address: ContractAddress,
+            recipients: Array<ContractAddress>,
+            amounts: Array<u256>,
+        ) {
+            let _ = get_caller_address();
+            assert(recipients.len() > 0 && amounts.len() > 0, 'TARGET IS EMPTY');
+            assert!(recipients.len() == amounts.len(), "Length of recipients and amounts is not equal.");
+            let token = self.tokens.entry(token_address);
+            assert(token.owner_access.read().is_some(), 'INVALID TOKEN ADDRESS');
+            assert(token.owner_access.read().unwrap() == get_caller_address(), 'UNAUTHORIZED');
+
+            // assert presale is >= Active
+            let _ = IERC20Dispatcher { contract_address: token_address };
+            // calculate the total amount, and check the remaining balance in contract
+            // if the contract balance is zero, check the caller's balance
+            // distribute tokens on behalf of the caller, if caller's balance >= total amount
         }
 
         fn is_successful(ref self: ContractState, token_address: ContractAddress) -> bool {
@@ -444,6 +448,44 @@ pub mod ICO {
             verify_balance(dispatcher, caller);
             // TODO: Other checks to meet ICO standard, if any
             self.tokens.entry(token_address).owner_access.write(Option::Some(caller));
+        }
+
+        fn _verify_presale_details(
+            ref self: ContractState, details: PresaleDetails, total_supply: u256,
+        ) {
+            assert(details.buy_token.is_non_zero(), 'BUY TOKEN IS ZERO');
+            assert(
+                self.token_init.accepted_buy_tokens.entry(details.buy_token).read(),
+                'BUY TOKEN NOT SUPPORTED',
+            );
+            let soft_cap_threshold: u256 = (25 * details.hard_cap) / 100;
+            assert!(
+                details.soft_cap >= soft_cap_threshold,
+                "SOFT CAP IS LESS THAN THRESHOLD {}",
+                soft_cap_threshold,
+            );
+
+            assert!(
+                details.presale_rate > min_presale_rate(),
+                "The minimum presale rate for this ico is: {}",
+                min_presale_rate(),
+            );
+            assert(details.listing_rate > 0, 'LISTING RATE CANNOT BE ZERO');
+            assert(details.start_time < details.end_time, 'INVALID START AND END TIME');
+            assert(
+                details.liquidity_percentage >= 51 && details.liquidity_percentage <= 100,
+                'INVALID LIQUIDITY RANGE',
+            );
+
+            let expected_lp_tokens = details.hard_cap
+                * details.liquidity_percentage.into()
+                * details.listing_rate
+                / 100;
+            let max_presale_supply = details.presale_rate + expected_lp_tokens;
+            assert!(
+                max_presale_supply <= total_supply,
+                "Presale + liquidity allocation exceeds total supply.",
+            );
         }
 
         fn update_status(
@@ -735,4 +777,7 @@ pub mod ICO {
     impl InternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
     impl UpgradeableInternalImpl = UpgradeableComponent::InternalImpl<ContractState>;
+    // let (threshold, min_supply) = get_trade_threshold(details, current_supply);
+// assert!(threshold >= min_supply, "CONFIG REQUIRES 20 PERCENT OF SUPPLY TO NOT BE
+// SOLD");
 }

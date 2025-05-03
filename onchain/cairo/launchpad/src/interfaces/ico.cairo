@@ -1,7 +1,7 @@
+use alexandria_math::fast_power::fast_power;
 use starknet::storage::Map;
 use starknet::{ClassHash, ContractAddress, get_block_timestamp};
 use crate::types::launchpad_types::{BondingType, LiquidityType, TokenQuoteBuyCoin};
-use alexandria_math::fast_power::fast_power;
 
 #[starknet::interface]
 pub trait IICO<TContractState> {
@@ -26,7 +26,13 @@ pub trait IICO<TContractState> {
     fn claim(ref self: TContractState, token_address: ContractAddress);
     fn claim_all(ref self: TContractState);
     fn whitelist(
-        ref self: TContractState, token_address: ContractAddress, target: Array<ContractAddress>,
+        ref self: TContractState, token_address: ContractAddress, targets: Array<ContractAddress>,
+    );
+    fn distribute(
+        ref self: TContractState,
+        token_address: ContractAddress,
+        recipients: Array<ContractAddress>,
+        amounts: Array<u256>,
     );
 
     // for testing
@@ -43,16 +49,20 @@ pub fn default_supply() -> u256 {
     1_000_000 * fast_power(10, 18)
 }
 
+pub fn min_presale_rate() -> u256 {
+    2000 * fast_power(10, 18)
+}
+
 pub fn default_presale_details() -> PresaleDetails {
-    let expected_lp_tokens = (default_supply() * 100)/ (2 * 70);
+    let expected_lp_tokens = (default_supply() * 100) / (2 * 70);
     PresaleDetails {
         buy_token: ETH,
         presale_rate: default_supply() / 2,
         whitelist: false,
-        soft_cap: expected_lp_tokens - (300_000 * fast_power(10, 18)),
+        soft_cap: expected_lp_tokens / 2, // 50% of hard cap
         hard_cap: expected_lp_tokens,
         liquidity_percentage: 70,
-        listing_rate: 1,
+        listing_rate: 20, // 1 quote to 20 presale tokens
         start_time: get_block_timestamp(),
         end_time: get_block_timestamp() + 100000,
         liquidity_lockup: get_block_timestamp() + (60 * 24 * 30 * 30) // in seconds
