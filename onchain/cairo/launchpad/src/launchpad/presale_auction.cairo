@@ -29,10 +29,8 @@ mod DutchAuction {
 
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
-    /// Defines the storage variables for the Dutch Auction contract.
     #[storage]
     struct Storage {
-        /// Storage for the Ownable component, tracking the owner.
         #[substorage(v0)]
         owner: OwnableComponent::Storage,
         /// The address of the ERC20 token being sold in the auction.
@@ -53,11 +51,9 @@ mod DutchAuction {
         tokens_sold: u256,
     }
 
-    /// Defines the events emitted by the Dutch Auction contract.
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
-        /// Event emitted by the embedded Ownable component.
         #[flat]
         OwnableEvent: OwnableComponent::Event,
         /// Emitted when the auction is successfully created and configured.
@@ -115,7 +111,6 @@ mod DutchAuction {
         const NOT_ENDED: felt252 = 'Auction: Not ended yet';
         const ZERO_BALANCE: felt252 = 'Auction: No payment to withdraw';
     }
-
 
     /// Initializes the Dutch Auction contract state.
     ///
@@ -185,7 +180,8 @@ mod DutchAuction {
         /// Calculates the current price per token based on the time elapsed since the auction
         /// start.
         ///
-        /// The price decreases linearly by `price_decrement` from `start_price` over the `duration` every `time_step`.
+        /// The price decreases linearly by `price_decrement` from `start_price` over the `duration`
+        /// every `time_step`.
         /// Before the auction starts, it returns `start_price`. After the auction ends,
         /// it returns `end_price`.
         ///

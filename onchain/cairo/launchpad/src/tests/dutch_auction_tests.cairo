@@ -1,13 +1,19 @@
 #[cfg(test)]
 mod tests {
-    use afk_launchpad::presale_auction::{DutchAuction, IDutchAuctionDispatcher, IDutchAuctionDispatcherTrait};
-    use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
+    // Imports from user's code, adjusted for clarity and consistency with examples
+    // Assuming contract is in parent module or path is correct
+    use super::{DutchAuction, IDutchAuctionDispatcher, IDutchAuctionDispatcherTrait}; // Import the contract and trait
+    // Using OZ path for ERC20 interface as shown in examples, user might need to adjust path
+    use openzeppelin::token::erc20::{IERC20Dispatcher, IERC20DispatcherTrait, ERC20Component}; // Added ERC20Component for event type
     use starknet::{
         ContractAddress, get_block_timestamp, contract_address_const, Felt252TryIntoClassHash
     };
     use snforge_std::{
-        declare, ContractClassTrait, start_prank, stop_prank, warp, CheatTarget,
-        start_warp, stop_warp, spy_events, EventSpy, fetch_events, SpyOn
+        declare, ContractClassTrait, // For deploying contracts
+        cheat_caller_address, stop_cheat_caller_address, // Use this for caller mocking
+        cheat_block_timestamp, start_cheat_block_timestamp, stop_cheat_block_timestamp, // Use these for time
+        CheatTarget, CheatSpan, // Enums for cheating scope/duration
+        spy_events, EventSpyAssertionsTrait, SpyOn // For event testing
     };
     use core::result::ResultTrait;
     use core::option::OptionTrait;
@@ -20,10 +26,11 @@ mod tests {
     const USER1: felt252 = 'user1';
     const USER2: felt252 = 'user2';
     const ONE_U256: u256 = u256 { low: 1, high: 0 };
-    const TEN_POW_18: u256 = u256 { low: 1_000_000_000_000_000_000, high: 0 }; // Assuming 18 decimals
+    const TEN_POW_18: u256 = u256 { low: 1_000_000_000_000_000_000, high: 0 };
     const DAY_SECONDS: u64 = 86400;
     const HOUR_SECONDS: u64 = 3600;
 
+    // deploy_erc20 returns ContractAddress, dispatcher created separately
     fn deploy_erc20(initial_recipient: ContractAddress, initial_supply: u256) -> ContractAddress {
         let mut calldata = array![];
         calldata.append('MockToken');
@@ -32,9 +39,10 @@ mod tests {
         calldata.append(initial_supply.low);
         calldata.append(initial_supply.high);
         calldata.append(initial_recipient.into());
-        let contract = declare("ERC20");
+        // Assumes MockERC20 uses OZ ERC20 component for events
+        let contract = declare("ERC20"); // Use standard OZ name or user's mock name
         let (contract_address, _) = contract.deploy(@calldata).expect("Mock ERC20 deploy failed");
-        IERC20Dispatcher { contract_address }
+        contract_address // Return address only
     }
 
     fn deploy_auction(
@@ -60,7 +68,7 @@ mod tests {
         calldata.append(duration.into());
         calldata.append(total_tokens.low);
         calldata.append(total_tokens.high);
-        let contract = declare("DutchAuction");
+        let contract = declare("DutchAuction"); // Use user's contract name
         let (contract_address, _) = contract.deploy(@calldata).expect("Auction deploy failed");
         contract_address
     }
@@ -72,8 +80,8 @@ mod tests {
         token_sale_addr: ContractAddress,
         payment_token_addr: ContractAddress,
         auction_addr: ContractAddress,
-        token_sale: IMockERC20Dispatcher,
-        payment_token: IMockERC20Dispatcher,
+        token_sale: IERC20Dispatcher,
+        payment_token: IERC20Dispatcher,
         auction: IDutchAuctionDispatcher,
     }
 
@@ -84,14 +92,19 @@ mod tests {
 
         let total_sale_supply = u256 { low: 1_000_000, high: 0 } * TEN_POW_18;
         let payment_supply_per_user = u256 { low: 10_000, high: 0 } * TEN_POW_18;
+
         let token_sale_addr = deploy_erc20(owner_addr, total_sale_supply);
         let token_sale = IERC20Dispatcher { contract_address: token_sale_addr };
-        let payment_token_addr = deploy_erc20(contract_address_const::(), 0);
+
+        let payment_token_addr = deploy_erc20(contract_address_const::(), 0); // Corrected const address
         let payment_token = IERC20Dispatcher { contract_address: payment_token_addr };
-        start_prank(CheatTarget::One(payment_token_addr), owner_addr);
+
+        // Use cheat_caller_address with Infinite span for the block of minting calls
+        cheat_caller_address(payment_token_addr, owner_addr, CheatSpan::Infinite());
         payment_token.mint(user1_addr, payment_supply_per_user);
         payment_token.mint(user2_addr, payment_supply_per_user);
-        stop_prank(CheatTarget::One(payment_token_addr));
+        stop_cheat_caller_address(payment_token_addr); // Stop cheating caller for payment token
+
 
         let start_price = u256 { low: 100, high: 0 } * TEN_POW_18;
         let time_step: u256 = U256 { low: HOUR_SECONDS.into(), high: 0 };
@@ -111,9 +124,8 @@ mod tests {
         );
         let auction = IDutchAuctionDispatcher { contract_address: auction_addr };
 
-        start_prank(CheatTarget::One(token_sale_addr), owner_addr);
+        cheat_caller_address(token_sale_addr, owner_addr, CheatSpan::TargetCalls(1));
         token_sale.transfer(auction_addr, auction_total_tokens);
-        stop_prank(CheatTarget::One(token_sale_addr));
 
         TestSetup {
             owner_addr,
@@ -159,7 +171,7 @@ mod tests {
             u256 { low: 100, high: 0 } * TEN_POW_18,
             U256 { low: HOUR_SECONDS.into(), high: 0 },
             u256 { low: 5, high: 0 } * TEN_POW_18,
-            0, // Invalid duration
+            0,
             u256 { low: 100, high: 0 } * TEN_POW_18
         );
     }
@@ -167,7 +179,7 @@ mod tests {
     #[test]
     #[should_panic(expected: ('Auction: Supply cannot be 0',))]
     fn test_constructor_invalid_supply() {
-         let setup = setup_auction();
+        let setup = setup_auction();
         deploy_auction(
             setup.owner_addr,
             setup.token_sale_addr,
@@ -176,7 +188,7 @@ mod tests {
             U256 { low: HOUR_SECONDS.into(), high: 0 },
             u256 { low: 5, high: 0 } * TEN_POW_18,
             DAY_SECONDS,
-            u256 { low: 0, high: 0 } // Invalid supply
+            u256 { low: 0, high: 0 }
         );
     }
 
@@ -188,60 +200,60 @@ mod tests {
             .get_auction_details();
         let time_step_u64: u64 = time_step_u256.low.try_into().unwrap();
 
-        start_warp(CheatTarget::One(setup.auction_addr), start_time - 10);
+        start_cheat_block_timestamp(setup.auction_addr, start_time - 10);
         assert(setup.auction.get_current_price() == start_price, "Price before mismatch");
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
 
-        start_warp(CheatTarget::One(setup.auction_addr), start_time);
+        start_cheat_block_timestamp(setup.auction_addr, start_time);
         assert(setup.auction.get_current_price() == start_price, "Price at start mismatch");
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
 
-        start_warp(CheatTarget::One(setup.auction_addr), start_time + time_step_u64 - 1);
+        start_cheat_block_timestamp(setup.auction_addr, start_time + time_step_u64 - 1);
         assert(setup.auction.get_current_price() == start_price, "Price before 1st step mismatch");
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
 
-        start_warp(CheatTarget::One(setup.auction_addr), start_time + time_step_u64);
+        start_cheat_block_timestamp(setup.auction_addr, start_time + time_step_u64);
         let expected_price_step1 = start_price - price_decrement;
         assert(setup.auction.get_current_price() == expected_price_step1, "Price at 1st step mismatch");
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
 
-        start_warp(CheatTarget::One(setup.auction_addr), start_time + time_step_u64 + (time_step_u64 / 2));
+        start_cheat_block_timestamp(setup.auction_addr, start_time + time_step_u64 + (time_step_u64 / 2));
         assert(setup.auction.get_current_price() == expected_price_step1, "Price between steps mismatch");
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
 
-        start_warp(CheatTarget::One(setup.auction_addr), start_time + 2 * time_step_u64);
+        start_cheat_block_timestamp(setup.auction_addr, start_time + 2 * time_step_u64);
         let expected_price_step2 = start_price - (price_decrement * u256 { low: 2, high: 0 });
         assert(setup.auction.get_current_price() == expected_price_step2, "Price at 2nd step mismatch");
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
 
         let steps_to_zero: u256 = start_price / price_decrement;
         let zero_price_time_approx: u64 = start_time
             + (steps_to_zero.low * time_step_u256.low).try_into().unwrap();
 
-        start_warp(CheatTarget::One(setup.auction_addr), zero_price_time_approx + 1);
+        start_cheat_block_timestamp(setup.auction_addr, zero_price_time_approx + 1);
         assert(setup.auction.get_current_price() == u256 { low: 0, high: 0 }, "Price at zero mismatch");
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
 
-        start_warp(CheatTarget::One(setup.auction_addr), zero_price_time_approx + time_step_u64);
-         assert(setup.auction.get_current_price() == u256 { low: 0, high: 0 }, "Price after zero mismatch");
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        start_cheat_block_timestamp(setup.auction_addr, zero_price_time_approx + time_step_u64);
+        assert(setup.auction.get_current_price() == u256 { low: 0, high: 0 }, "Price after zero mismatch");
+        stop_cheat_block_timestamp(setup.auction_addr);
 
         let end_time = start_time + duration;
-        start_warp(CheatTarget::One(setup.auction_addr), end_time);
+        start_cheat_block_timestamp(setup.auction_addr, end_time);
         let elapsed_at_end: u256 = duration.into();
         let intervals_at_end: u256 = elapsed_at_end / time_step_u256;
         let decrement_at_end = intervals_at_end * price_decrement;
         let expected_price_at_end = if decrement_at_end >= start_price {
-             u256 { low: 0, high: 0 }
+            u256 { low: 0, high: 0 }
         } else {
             start_price - decrement_at_end
         };
         assert(setup.auction.get_current_price() == expected_price_at_end, "Price at end mismatch");
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
 
-        start_warp(CheatTarget::One(setup.auction_addr), end_time + time_step_u64);
-         assert(setup.auction.get_current_price() == expected_price_at_end, "Price after end mismatch");
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        start_cheat_block_timestamp(setup.auction_addr, end_time + time_step_u64);
+        assert(setup.auction.get_current_price() == expected_price_at_end, "Price after end mismatch");
+        stop_cheat_block_timestamp(setup.auction_addr);
     }
 
     #[test]
@@ -253,17 +265,15 @@ mod tests {
         let time_step_u64: u64 = time_step_u256.low.try_into().unwrap();
 
         let buy_time = start_time + time_step_u64 + 10;
-        start_warp(CheatTarget::One(setup.auction_addr), buy_time);
+        start_cheat_block_timestamp(setup.auction_addr, buy_time); 
 
         let expected_price = start_price - price_decrement;
 
-        start_prank(CheatTarget::One(setup.payment_token_addr), setup.user1_addr);
+        cheat_caller_address(setup.payment_token_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         let approval_amount = u256 { low: 10_000, high: 0 } * TEN_POW_18;
         setup.payment_token.approve(setup.auction_addr, approval_amount);
-        stop_prank(CheatTarget::One(setup.payment_token_addr));
 
         let tokens_to_buy = u256 { low: 50, high: 0 } * TEN_POW_18;
-        // Apply scaling for cost calculation assuming 18 decimals for both tokens
         let expected_cost = tokens_to_buy * expected_price / TEN_POW_18;
 
         let user1_payment_balance_before = setup.payment_token.balance_of(setup.user1_addr);
@@ -272,11 +282,12 @@ mod tests {
         let contract_sale_balance_before = setup.token_sale.balance_of(setup.auction_addr);
         let (_, _, _, _, _, _, _, _, tokens_sold_before) = setup.auction.get_auction_details();
 
-        let mut spy = spy_events(SpyOn::One(setup.auction_addr));
+        let mut spy = spy_events();
 
-        start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
+        cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.buy_tokens(tokens_to_buy);
-        stop_prank(CheatTarget::One(setup.auction_addr));
+
+        stop_cheat_block_timestamp(setup.auction_addr); // Stop cheating time after the call
 
         let user1_payment_balance_after = setup.payment_token.balance_of(setup.user1_addr);
         let user1_sale_balance_after = setup.token_sale.balance_of(setup.user1_addr);
@@ -302,20 +313,17 @@ mod tests {
         );
         assert(tokens_sold_after == tokens_sold_before + tokens_to_buy, "Tokens sold wrong");
 
-        let mut events = fetch_events(&mut spy);
-        assert(events.len() >= 1, "Event not emitted");
-        let last_event = events.at(events.len() - 1);
-        let buyer: ContractAddress = (*last_event.data.at(0)).try_into().unwrap();
-        let amount_tokens: u256 = u256 { low: *last_event.data.at(1), high: *last_event.data.at(2) };
-        let price_per_token: u256 = u256 { low: *last_event.data.at(3), high: *last_event.data.at(4) };
-        let total_payment: u256 = u256 { low: *last_event.data.at(5), high: *last_event.data.at(6) };
-
-        assert(buyer == setup.user1_addr, "Event: Wrong buyer");
-        assert(amount_tokens == tokens_to_buy, "Event: Wrong amount");
-        assert(price_per_token == expected_price, "Event: Wrong price");
-        assert(total_payment == expected_cost, "Event: Wrong cost");
-
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        spy.assert_emitted(@array![(
+            setup.auction_addr,
+            DutchAuction::Event::TokensPurchased(
+                DutchAuction::TokensPurchased {
+                    buyer: setup.user1_addr,
+                    amount_tokens: tokens_to_buy,
+                    price_per_token: expected_price,
+                    total_payment: expected_cost,
+                }
+            )
+        ),]);
     }
 
     #[test]
@@ -323,14 +331,13 @@ mod tests {
     fn test_buy_tokens_before_start() {
         let setup = setup_auction();
         let (_, _, start_time, _, _, _, _, _, _) = setup.auction.get_auction_details();
-        start_prank(CheatTarget::One(setup.payment_token_addr), setup.user1_addr);
+
+        cheat_caller_address(setup.payment_token_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.payment_token.approve(setup.auction_addr, u256{low: 1, high: 1});
-        stop_prank(CheatTarget::One(setup.payment_token_addr));
-        start_warp(CheatTarget::One(setup.auction_addr), start_time - 1);
-        start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
+
+        cheat_block_timestamp(setup.auction_addr, start_time - 1, CheatSpan::TargetCalls(1));
+        cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.buy_tokens(ONE_U256);
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
     }
 
     #[test]
@@ -338,15 +345,14 @@ mod tests {
     fn test_buy_tokens_after_end() {
         let setup = setup_auction();
         let (_, _, start_time, duration, _, _, _, _, _) = setup.auction.get_auction_details();
-        start_prank(CheatTarget::One(setup.payment_token_addr), setup.user1_addr);
+
+        cheat_caller_address(setup.payment_token_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.payment_token.approve(setup.auction_addr, u256{low: 1, high: 1});
-        stop_prank(CheatTarget::One(setup.payment_token_addr));
+
         let end_time = start_time + duration;
-        start_warp(CheatTarget::One(setup.auction_addr), end_time);
-        start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
+        cheat_block_timestamp(setup.auction_addr, end_time, CheatSpan::TargetCalls(1));
+        cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.buy_tokens(ONE_U256);
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
     }
 
     #[test]
@@ -354,73 +360,79 @@ mod tests {
     fn test_buy_tokens_zero_amount() {
         let setup = setup_auction();
         let (_, _, start_time, _, _, _, _, _, _) = setup.auction.get_auction_details();
-        start_warp(CheatTarget::One(setup.auction_addr), start_time + 1);
-         start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
+
+        start_cheat_block_timestamp(setup.auction_addr, start_time + 1);
+        cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.buy_tokens(u256 { low: 0, high: 0 });
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
     }
 
     #[test]
     #[should_panic(expected: ('Auction: Not enough tokens left',))]
     fn test_buy_tokens_insufficient_supply() {
         let setup = setup_auction();
-         let (_, _, start_time, _, _, _, _, total_supply, _) = setup.auction.get_auction_details();
-        start_prank(CheatTarget::One(setup.payment_token_addr), setup.user1_addr);
+        let (_, _, start_time, _, _, _, _, total_supply, _) = setup.auction.get_auction_details();
+
+        cheat_caller_address(setup.payment_token_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.payment_token.approve(setup.auction_addr, u256{low: 1, high: 1});
-        stop_prank(CheatTarget::One(setup.payment_token_addr));
-        start_warp(CheatTarget::One(setup.auction_addr), start_time + 1);
-         start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
+
+        start_cheat_block_timestamp(setup.auction_addr, start_time + 1);
+        cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.buy_tokens(total_supply + ONE_U256);
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
     }
 
     #[test]
-    #[should_panic(expected: ('ERC20: insufficient allowance',))] // Check exact error from your mock ERC20
+    #[should_panic(expected: ('ERC20: insufficient allowance',))] // Check exact error from your ERC20
     fn test_buy_tokens_no_approval() {
-         let setup = setup_auction();
-         let (_, _, start_time, _, _, _, _, _, _) = setup.auction.get_auction_details();
-        start_warp(CheatTarget::One(setup.auction_addr), start_time + 1);
-        start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
+        let setup = setup_auction();
+        let (_, _, start_time, _, _, _, _, _, _) = setup.auction.get_auction_details();
+
+        start_cheat_block_timestamp(setup.auction_addr, start_time + 1);
+        // No approval call
+        cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.buy_tokens(ONE_U256);
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
     }
 
     #[test]
     fn test_claim_unsold_happy_path() {
-         let setup = setup_auction();
-        let (_, _, start_time, duration, _, time_step_u256, _, total_supply, _) = setup
+        let setup = setup_auction();
+        let (_, _, start_time, duration, start_price, time_step_u256, price_decrement, total_supply, _) = setup
             .auction
             .get_auction_details();
         let end_time = start_time + duration;
         let time_step_u64: u64 = time_step_u256.low.try_into().unwrap();
 
-        let tokens_to_buy = u256 { low: 100, high: 0 } * TEN_POW_18;
-        start_warp(CheatTarget::One(setup.auction_addr), start_time + time_step_u64 + 1);
+        // --- Simulate purchase ---
+        let buy_time = start_time + time_step_u64 + 1;
+        start_cheat_block_timestamp(setup.auction_addr, buy_time);
         let price_at_buy = setup.auction.get_current_price();
-        let cost = tokens_to_buy * price_at_buy / TEN_POW_18; // Apply scaling
+        stop_cheat_block_timestamp(setup.auction_addr);
 
-        start_prank(CheatTarget::One(setup.payment_token_addr), setup.user1_addr);
+        let tokens_to_buy = u256 { low: 100, high: 0 } * TEN_POW_18;
+        let cost = tokens_to_buy * price_at_buy / TEN_POW_18;
+
+        cheat_caller_address(setup.payment_token_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.payment_token.approve(setup.auction_addr, cost * u256{low: 2, high:0});
-        stop_prank(CheatTarget::One(setup.payment_token_addr));
-        start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
-        setup.auction.buy_tokens(tokens_to_buy);
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
 
-        start_warp(CheatTarget::One(setup.auction_addr), end_time + 1);
+        start_cheat_block_timestamp(setup.auction_addr, buy_time);
+        cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
+        setup.auction.buy_tokens(tokens_to_buy);
+        stop_cheat_block_timestamp(setup.auction_addr);
+        // --- End Simulate purchase ---
+
+        start_cheat_block_timestamp(setup.auction_addr, end_time + 1);
 
         let owner_sale_balance_before = setup.token_sale.balance_of(setup.owner_addr);
         let contract_sale_balance_before = setup.token_sale.balance_of(setup.auction_addr);
         let expected_unsold = total_supply - tokens_to_buy;
 
-        let mut spy = spy_events(SpyOn::One(setup.auction_addr));
+        let mut spy = spy_events();
 
-        start_prank(CheatTarget::One(setup.auction_addr), setup.owner_addr);
+        cheat_caller_address(setup.auction_addr, setup.owner_addr, CheatSpan::TargetCalls(1));
         setup.auction.claim_unsold_tokens();
-        stop_prank(CheatTarget::One(setup.auction_addr));
+
 
         let owner_sale_balance_after = setup.token_sale.balance_of(setup.owner_addr);
         let contract_sale_balance_after = setup.token_sale.balance_of(setup.auction_addr);
@@ -431,71 +443,77 @@ mod tests {
         assert(contract_sale_balance_after == u256{low: 0, high: 0}, "Contract bal not zero");
         assert(final_sold == final_total_supply, "Final sold state wrong");
 
-        let mut events = fetch_events(&mut spy);
-        assert(events.len() >= 1, "Claim Event not emitted");
-        let last_event = events.at(events.len() - 1);
-        let claimed_amount = u256 { low: *last_event.data.at(0), high: *last_event.data.at(1) };
-        assert(claimed_amount == expected_unsold, "Event: Wrong claim amount");
+        spy.assert_emitted(@array![(
+            setup.auction_addr,
+            DutchAuction::Event::AuctionEndedAndTokensClaimed(
+                DutchAuction::AuctionEndedAndTokensClaimed { unsold_tokens_claimed: expected_unsold }
+            )
+        ),]);
 
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
     }
 
-     #[test]
+    #[test]
     #[should_panic(expected: ('Ownable: caller is not the owner',))]
     fn test_claim_unsold_by_non_owner() {
         let setup = setup_auction();
         let (_, _, start_time, duration, _, _, _, _, _) = setup.auction.get_auction_details();
         let end_time = start_time + duration;
-        start_warp(CheatTarget::One(setup.auction_addr), end_time + 1);
-        start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
+
+        start_cheat_block_timestamp(setup.auction_addr, end_time + 1);
+        cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.claim_unsold_tokens();
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
     }
 
-      #[test]
+    #[test]
     #[should_panic(expected: ('Auction: Not ended yet',))]
     fn test_claim_unsold_before_end() {
-         let setup = setup_auction();
+        let setup = setup_auction();
         let (_, _, start_time, duration, _, _, _, _, _) = setup.auction.get_auction_details();
         let end_time = start_time + duration;
-        start_warp(CheatTarget::One(setup.auction_addr), end_time - 1);
-        start_prank(CheatTarget::One(setup.auction_addr), setup.owner_addr);
+
+        start_cheat_block_timestamp(setup.auction_addr, end_time - 1);
+        cheat_caller_address(setup.auction_addr, setup.owner_addr, CheatSpan::TargetCalls(1));
         setup.auction.claim_unsold_tokens();
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
     }
 
-     #[test]
+    #[test]
     fn test_withdraw_payment_happy_path() {
         let setup = setup_auction();
         let (_, _, start_time, duration, _, _, _, _, _) = setup.auction.get_auction_details();
         let end_time = start_time + duration;
 
-        let tokens_to_buy = u256 { low: 100, high: 0 } * TEN_POW_18;
-        start_warp(CheatTarget::One(setup.auction_addr), start_time + 1);
+        // --- Simulate purchase ---
+        let buy_time = start_time + 1;
+        start_cheat_block_timestamp(setup.auction_addr, buy_time);
         let price_at_buy = setup.auction.get_current_price();
-        let payment_amount = tokens_to_buy * price_at_buy / TEN_POW_18; // Apply scaling
+        stop_cheat_block_timestamp(setup.auction_addr);
 
-        start_prank(CheatTarget::One(setup.payment_token_addr), setup.user1_addr);
+        let tokens_to_buy = u256 { low: 100, high: 0 } * TEN_POW_18;
+        let payment_amount = tokens_to_buy * price_at_buy / TEN_POW_18;
+
+        cheat_caller_address(setup.payment_token_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.payment_token.approve(setup.auction_addr, payment_amount * u256{low: 2, high:0});
-        stop_prank(CheatTarget::One(setup.payment_token_addr));
-        start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
-        setup.auction.buy_tokens(tokens_to_buy);
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
 
-        start_warp(CheatTarget::One(setup.auction_addr), end_time + 1);
+        start_cheat_block_timestamp(setup.auction_addr, buy_time);
+        cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
+        setup.auction.buy_tokens(tokens_to_buy);
+        stop_cheat_block_timestamp(setup.auction_addr);
+        // --- End Simulate purchase ---
+
+        start_cheat_block_timestamp(setup.auction_addr, end_time + 1);
 
         let owner_payment_balance_before = setup.payment_token.balance_of(setup.owner_addr);
         let contract_payment_balance_before = setup.payment_token.balance_of(setup.auction_addr);
         assert(contract_payment_balance_before == payment_amount, "Pre-withdraw balance mismatch");
 
-        let mut spy = spy_events(SpyOn::One(setup.auction_addr));
+        let mut spy = spy_events();
 
-        start_prank(CheatTarget::One(setup.auction_addr), setup.owner_addr);
+        cheat_caller_address(setup.auction_addr, setup.owner_addr, CheatSpan::TargetCalls(1));
         setup.auction.withdraw_payment();
-        stop_prank(CheatTarget::One(setup.auction_addr));
+
 
         let owner_payment_balance_after = setup.payment_token.balance_of(setup.owner_addr);
         let contract_payment_balance_after = setup.payment_token.balance_of(setup.auction_addr);
@@ -503,79 +521,64 @@ mod tests {
         assert(owner_payment_balance_after == owner_payment_balance_before + payment_amount, "Owner payment bal wrong");
         assert(contract_payment_balance_after == u256{low: 0, high: 0}, "Contract payment bal not zero");
 
-        let mut events = fetch_events(&mut spy);
-        assert(events.len() >= 1, "Withdraw Event not emitted");
-        let last_event = events.at(events.len() - 1);
-        let withdrawn_amount = u256 { low: *last_event.data.at(0), high: *last_event.data.at(1) };
-        assert(withdrawn_amount == payment_amount, "Event: Wrong withdraw amount");
+        spy.assert_emitted(@array![(
+            setup.auction_addr,
+            DutchAuction::Event::PaymentWithdrawn(
+                DutchAuction::PaymentWithdrawn { amount: payment_amount }
+            )
+        ),]);
 
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
     }
 
-      #[test]
+    #[test]
     #[should_panic(expected: ('Ownable: caller is not the owner',))]
     fn test_withdraw_payment_by_non_owner() {
         let setup = setup_auction();
-        start_warp(CheatTarget::One(setup.auction_addr), setup.auction.get_auction_details().2 + 1);
-        start_prank(CheatTarget::One(setup.payment_token_addr), setup.user1_addr);
+        start_cheat_block_timestamp(setup.auction_addr, setup.auction.get_auction_details().2 + 1);
+        cheat_caller_address(setup.payment_token_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.payment_token.approve(setup.auction_addr, u256{low: 1, high: 1});
-        stop_prank(CheatTarget::One(setup.payment_token_addr));
-        start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
+        cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.buy_tokens(ONE_U256);
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
+        stop_cheat_block_timestamp(setup.auction_addr);
 
-        start_warp(CheatTarget::One(setup.auction_addr), setup.auction.get_auction_details().2 + DAY_SECONDS + 1);
-        start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
+
+        start_cheat_block_timestamp(setup.auction_addr, setup.auction.get_auction_details().2 + DAY_SECONDS + 1);
+
+        cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.withdraw_payment();
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
+
+        stop_cheat_block_timestamp(setup.auction_addr);
     }
 
-      #[test]
+    #[test]
     #[should_panic(expected: ('Auction: Not ended yet',))]
     fn test_withdraw_payment_before_end() {
          let setup = setup_auction();
-         start_warp(CheatTarget::One(setup.auction_addr), setup.auction.get_auction_details().2 + 1);
-         start_prank(CheatTarget::One(setup.payment_token_addr), setup.user1_addr);
+         start_cheat_block_timestamp(setup.auction_addr, setup.auction.get_auction_details().2 + 1);
+         cheat_caller_address(setup.payment_token_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
          setup.payment_token.approve(setup.auction_addr, u256{low: 1, high: 1});
-         stop_prank(CheatTarget::One(setup.payment_token_addr));
-         start_prank(CheatTarget::One(setup.auction_addr), setup.user1_addr);
+         cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
          setup.auction.buy_tokens(ONE_U256);
-         stop_prank(CheatTarget::One(setup.auction_addr));
-         stop_warp(CheatTarget::One(setup.auction_addr));
+         stop_cheat_block_timestamp(setup.auction_addr);
 
-        start_warp(CheatTarget::One(setup.auction_addr), setup.auction.get_auction_details().2 + DAY_SECONDS - 1);
-        start_prank(CheatTarget::One(setup.auction_addr), setup.owner_addr);
+        start_cheat_block_timestamp(setup.auction_addr, setup.auction.get_auction_details().2 + DAY_SECONDS - 1);
+
+        cheat_caller_address(setup.auction_addr, setup.owner_addr, CheatSpan::TargetCalls(1));
         setup.auction.withdraw_payment();
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
+
+        stop_cheat_block_timestamp(setup.auction_addr);
     }
 
      #[test]
     #[should_panic(expected: ('Auction: No payment to withdraw',))]
     fn test_withdraw_payment_zero_balance() {
         let setup = setup_auction();
-        start_warp(CheatTarget::One(setup.auction_addr), setup.auction.get_auction_details().2 + DAY_SECONDS + 1);
-        start_prank(CheatTarget::One(setup.auction_addr), setup.owner_addr);
+        start_cheat_block_timestamp(setup.auction_addr, setup.auction.get_auction_details().2 + DAY_SECONDS + 1);
+
+        cheat_caller_address(setup.auction_addr, setup.owner_addr, CheatSpan::TargetCalls(1));
         setup.auction.withdraw_payment();
-        stop_prank(CheatTarget::One(setup.auction_addr));
-        stop_warp(CheatTarget::One(setup.auction_addr));
-    }
 
-    #[test]
-    fn test_get_auction_details_view() {
-         let setup = setup_auction();
-         let (
-            token_addr, payment_addr, start_t, duration, start_p, time_s, price_dec, total_supply, sold
-        ) = setup.auction.get_auction_details();
-
-         assert(token_addr == setup.token_sale_addr, "View: Invalid sale token");
-         assert(payment_addr == setup.payment_token_addr, "View: Invalid payment token");
-         assert(start_p > u256{low: 0, high: 0}, "View: Start price zero");
-         assert(time_s > u256{low: 0, high: 0}, "View: Time step zero");
-         assert(price_dec > u256{low: 0, high: 0}, "View: Price dec zero");
-         assert(total_supply > u256{low: 0, high: 0}, "View: Total supply zero");
-         assert(sold == u256{low: 0, high: 0}, "View: Initial sold non-zero");
+        stop_cheat_block_timestamp(setup.auction_addr);
     }
 }

@@ -48,6 +48,9 @@ name = "Sepolia"
 url = "https://starknet-sepolia.public.blastapi.io/rpc/v0_8"
 block_id.number = "615925"
 
+[tool.scarb]
+allow-prebuilt-plugins = ["snforge_std"]
+
 # [profile.dev.cairo]
 # unstable-add-statements-code-locations-debug-info = true
 # unstable-add-statements-functions-debug-info = true
