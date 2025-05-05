@@ -1,19 +1,16 @@
 #[cfg(test)]
 mod tests {
-    // Imports from user's code, adjusted for clarity and consistency with examples
-    // Assuming contract is in parent module or path is correct
-    use super::{DutchAuction, IDutchAuctionDispatcher, IDutchAuctionDispatcherTrait}; // Import the contract and trait
-    // Using OZ path for ERC20 interface as shown in examples, user might need to adjust path
-    use openzeppelin::token::erc20::{IERC20Dispatcher, IERC20DispatcherTrait, ERC20Component}; // Added ERC20Component for event type
+    use afk_launchpad::presale_auction::{DutchAuction, IDutchAuctionDispatcher, IDutchAuctionDispatcherTrait}; 
+    use openzeppelin::token::erc20::{IERC20Dispatcher, IERC20DispatcherTrait, ERC20Component};
     use starknet::{
         ContractAddress, get_block_timestamp, contract_address_const, Felt252TryIntoClassHash
     };
     use snforge_std::{
-        declare, ContractClassTrait, // For deploying contracts
-        cheat_caller_address, stop_cheat_caller_address, // Use this for caller mocking
-        cheat_block_timestamp, start_cheat_block_timestamp, stop_cheat_block_timestamp, // Use these for time
-        CheatTarget, CheatSpan, // Enums for cheating scope/duration
-        spy_events, EventSpyAssertionsTrait, SpyOn // For event testing
+        declare, ContractClassTrait,
+        cheat_caller_address, stop_cheat_caller_address,
+        cheat_block_timestamp, start_cheat_block_timestamp, stop_cheat_block_timestamp, 
+        CheatTarget, CheatSpan,
+        spy_events, EventSpyAssertionsTrait, 
     };
     use core::result::ResultTrait;
     use core::option::OptionTrait;
@@ -30,7 +27,6 @@ mod tests {
     const DAY_SECONDS: u64 = 86400;
     const HOUR_SECONDS: u64 = 3600;
 
-    // deploy_erc20 returns ContractAddress, dispatcher created separately
     fn deploy_erc20(initial_recipient: ContractAddress, initial_supply: u256) -> ContractAddress {
         let mut calldata = array![];
         calldata.append('MockToken');
@@ -39,10 +35,9 @@ mod tests {
         calldata.append(initial_supply.low);
         calldata.append(initial_supply.high);
         calldata.append(initial_recipient.into());
-        // Assumes MockERC20 uses OZ ERC20 component for events
-        let contract = declare("ERC20"); // Use standard OZ name or user's mock name
+        let contract = declare("ERC20");
         let (contract_address, _) = contract.deploy(@calldata).expect("Mock ERC20 deploy failed");
-        contract_address // Return address only
+        contract_address
     }
 
     fn deploy_auction(
@@ -68,7 +63,7 @@ mod tests {
         calldata.append(duration.into());
         calldata.append(total_tokens.low);
         calldata.append(total_tokens.high);
-        let contract = declare("DutchAuction"); // Use user's contract name
+        let contract = declare("DutchAuction"); 
         let (contract_address, _) = contract.deploy(@calldata).expect("Auction deploy failed");
         contract_address
     }
@@ -96,14 +91,13 @@ mod tests {
         let token_sale_addr = deploy_erc20(owner_addr, total_sale_supply);
         let token_sale = IERC20Dispatcher { contract_address: token_sale_addr };
 
-        let payment_token_addr = deploy_erc20(contract_address_const::(), 0); // Corrected const address
+        let payment_token_addr = deploy_erc20(contract_address_const::(), 0);
         let payment_token = IERC20Dispatcher { contract_address: payment_token_addr };
 
-        // Use cheat_caller_address with Infinite span for the block of minting calls
         cheat_caller_address(payment_token_addr, owner_addr, CheatSpan::Infinite());
         payment_token.mint(user1_addr, payment_supply_per_user);
         payment_token.mint(user2_addr, payment_supply_per_user);
-        stop_cheat_caller_address(payment_token_addr); // Stop cheating caller for payment token
+        stop_cheat_caller_address(payment_token_addr); 
 
 
         let start_price = u256 { low: 100, high: 0 } * TEN_POW_18;
@@ -287,7 +281,7 @@ mod tests {
         cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.buy_tokens(tokens_to_buy);
 
-        stop_cheat_block_timestamp(setup.auction_addr); // Stop cheating time after the call
+        stop_cheat_block_timestamp(setup.auction_addr); 
 
         let user1_payment_balance_after = setup.payment_token.balance_of(setup.user1_addr);
         let user1_sale_balance_after = setup.token_sale.balance_of(setup.user1_addr);
@@ -383,7 +377,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected: ('ERC20: insufficient allowance',))] // Check exact error from your ERC20
+    #[should_panic(expected: ('ERC20: insufficient allowance',))] 
     fn test_buy_tokens_no_approval() {
         let setup = setup_auction();
         let (_, _, start_time, _, _, _, _, _, _) = setup.auction.get_auction_details();
@@ -404,7 +398,6 @@ mod tests {
         let end_time = start_time + duration;
         let time_step_u64: u64 = time_step_u256.low.try_into().unwrap();
 
-        // --- Simulate purchase ---
         let buy_time = start_time + time_step_u64 + 1;
         start_cheat_block_timestamp(setup.auction_addr, buy_time);
         let price_at_buy = setup.auction.get_current_price();
@@ -420,7 +413,6 @@ mod tests {
         cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.buy_tokens(tokens_to_buy);
         stop_cheat_block_timestamp(setup.auction_addr);
-        // --- End Simulate purchase ---
 
         start_cheat_block_timestamp(setup.auction_addr, end_time + 1);
 
@@ -485,7 +477,6 @@ mod tests {
         let (_, _, start_time, duration, _, _, _, _, _) = setup.auction.get_auction_details();
         let end_time = start_time + duration;
 
-        // --- Simulate purchase ---
         let buy_time = start_time + 1;
         start_cheat_block_timestamp(setup.auction_addr, buy_time);
         let price_at_buy = setup.auction.get_current_price();
@@ -501,7 +492,6 @@ mod tests {
         cheat_caller_address(setup.auction_addr, setup.user1_addr, CheatSpan::TargetCalls(1));
         setup.auction.buy_tokens(tokens_to_buy);
         stop_cheat_block_timestamp(setup.auction_addr);
-        // --- End Simulate purchase ---
 
         start_cheat_block_timestamp(setup.auction_addr, end_time + 1);
 
