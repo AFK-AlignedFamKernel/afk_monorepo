@@ -1,53 +1,72 @@
-const {getDefaultConfig} = require('expo/metro-config');
-const { withNativeWind } = require('nativewind/metro');
+// const { getDefaultConfig } = require('expo/metro-config');
+// const path = require('path');
+// const fs = require('fs');
 
-const path = require('path');
+// /** @type {import('expo/metro-config').MetroConfig} */
+// const config = getDefaultConfig(__dirname);
 
-const workspaceRoot = path.resolve(__dirname, '../..');
-const projectRoot = __dirname;
+// config.resolver.resolveRequest = (context, moduleName, platform) => {
+//   // if (platform === 'web' && moduleName === 'lodash') {
+//   //   return {
+//   //     type: 'empty',
+//   //   };
+//   // }
 
-const config = getDefaultConfig(projectRoot);
+//   // Ensure you call the default resolver.
+//   return context.resolveRequest(context, moduleName, platform);
+// };
 
-config.watchFolders = [workspaceRoot];
-config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, 'node_modules'),
-  path.resolve(workspaceRoot, 'node_modules'),
-];
-config.resolver.disableHierarchicalLookup = true;
+// module.exports = config;
 
-config.resolver = {
-  ...config.resolver,
-  resolveRequest: (context, moduleName, platform) => {
-    // Handle the starknetkit specific case
-    if (moduleName.startsWith('starknetkit/')) {
-      try {
-        const path = require.resolve(moduleName);
-        return {
-          filePath: path,
-          type: 'sourceFile',
-        };
-      } catch (e) {
-        // Fall back to default resolution
-        return context.resolveRequest(context, moduleName, platform);
-      }
-    }
-    // Default resolution for all other modules
-    return context.resolveRequest(context, moduleName, platform);
-  },
-};
 
-config.watchFolders = [workspaceRoot];
-config.server = {
-  ...config.server,
-  usePolling: true,
-  pollingInterval: 1000,
-};
+// const {getDefaultConfig} = require('expo/metro-config');
+// const { withNativeWind } = require('nativewind/metro');
 
-module.exports = withNativeWind(config, {
-  input: './global.css',
-  inlineRem: 16,
-});
+// const path = require('path');
 
-module.exports = config;
+// const workspaceRoot = path.resolve(__dirname, '../..');
+// const projectRoot = __dirname;
+
+// const config = getDefaultConfig(projectRoot);
+
+// config.watchFolders = [workspaceRoot];
+// config.resolver.nodeModulesPaths = [
+//   path.resolve(projectRoot, 'node_modules'),
+//   path.resolve(workspaceRoot, 'node_modules'),
+// ];
+// config.resolver.disableHierarchicalLookup = true;
+
+// config.resolver = {
+//   ...config.resolver,
+//   resolveRequest: (context, moduleName, platform) => {
+//     // Handle the starknetkit specific case
+//     if (moduleName.startsWith('starknetkit/')) {
+//       try {
+//         const path = require.resolve(moduleName);
+//         return {
+//           filePath: path,
+//           type: 'sourceFile',
+//         };
+//       } catch (e) {
+//         // Fall back to default resolution
+//         return context.resolveRequest(context, moduleName, platform);
+//       }
+//     }
+//     // Default resolution for all other modules
+//     return context.resolveRequest(context, moduleName, platform);
+//   },
+// };
+
+// config.watchFolders = [workspaceRoot];
+// config.server = {
+//   ...config.server,
+//   usePolling: true,
+//   pollingInterval: 1000,
+// };
+
+// module.exports = withNativeWind(config, {
+//   input: './global.css',
+//   inlineRem: 16,
+// });
 
 
