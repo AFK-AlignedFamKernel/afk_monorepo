@@ -117,13 +117,51 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
         },
       });
 
-      reply.status(HTTPStatus.OK).send({
-        data: launchStats,
-      });
+      const [transactions, holders, graph] = await Promise.all([
+        prisma.token_transactions.findMany({
+          where: { memecoin_address: launch },
+          select: {
+            transaction_type: true,
+            amount: true,
+            quote_amount: true,
+            price: true,
+            time_stamp: true,
+            liquidity_raised: true,
+          },
+        }),
+        prisma.token_transactions.groupBy({
+          by: ['owner_address', 'transaction_type'],
+          where: { memecoin_address: launch },
+          _sum: {
+            amount: true,
+          },
+          _count: {
+            owner_address: true,
+          },
+        }),
+        prisma.token_transactions.findMany({
+          where: { memecoin_address: launch },
+          select: {
+            price: true,
+            time_stamp: true,
+          },
+          orderBy: {
+            time_stamp: 'asc'
+          }
+        })
+      ]);
+
+      const response = {
+        ...launchStats,
+        transactions,
+        holders,
+        graph
+      };
 
       reply.status(HTTPStatus.OK).send({
-        data: undefined,
+        data: response,
       });
+
     } catch (error) {
       console.error('Error deploying launch:', error);
       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });

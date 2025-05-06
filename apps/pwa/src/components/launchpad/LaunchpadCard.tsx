@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import React from 'react';
 
 interface LaunchpadCardProps {
@@ -62,9 +63,9 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
       </div>
 
       <div className="mt-4 pt-4 border-t border-shade-200">
-        <button className="sidebar-nav-item w-full">
+        <Link  href={`/launchpad/${token.token_address}`} className="sidebar-nav-item w-full">
           View Details
-        </button>
+        </Link>
       </div>
     </div>
   );
