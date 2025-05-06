@@ -7,6 +7,7 @@ import { formatFloatToUint256 } from '../utils/format';
 import { BondingType, MetadataOnchain } from '../types/token';
 import { byteArray } from 'starknet';
 import { useStarknet } from './useStarknet';
+import { useAccount } from '@starknet-react/core';
 
 export type DeployTokenFormValues = {
   recipient?: string;
@@ -24,8 +25,8 @@ export type DeployTokenFormValues = {
 export const useCreateToken = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { address } = useStarknet();
-
+  // const { address } = useStarknet();
+  const { account, address: address } = useAccount();
   const deployToken = async (account: AccountInterface, data: DeployTokenFormValues) => {
     try {
       // const CONTRACT_ADDRESS_SALT_DEFAULT =
@@ -86,6 +87,7 @@ export const useCreateToken = () => {
   };
 
   const deployTokenAndLaunch = async (data: DeployTokenFormValues, metadata?: MetadataOnchain) => {
+    console.log('deployTokenAndLaunch', data, metadata);
     if (!address) {
       throw new Error('Wallet not connected');
     }
@@ -137,23 +139,27 @@ export const useCreateToken = () => {
         }),
       };
 
-      const response = await fetch('/api/tokens/deploy', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          deployCall,
-          address,
-        }),
-      });
+      const tx = await account.execute(deployCall);
+      console.log('tx', tx);
+      const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+      return wait_tx;
+      // const response = await fetch('/api/tokens/deploy', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({
+      //     deployCall,
+      //     address,
+      //   }),
+      // });
 
-      if (!response.ok) {
-        throw new Error('Failed to deploy token');
-      }
+      // if (!response.ok) {
+      //   throw new Error('Failed to deploy token');
+      // }
 
-      const result = await response.json();
-      return result;
+      // const result = await response.json();
+      // return result;
     } catch (err) {
       setError(err as Error);
       throw err;

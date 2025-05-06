@@ -11,7 +11,7 @@ export const useTokens = (): TokensResponse => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['tokens'],
     queryFn: async () => {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy-token`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy`);
       if (!response.ok) {
         throw new Error('Failed to fetch tokens');
       }

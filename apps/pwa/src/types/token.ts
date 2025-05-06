@@ -33,3 +33,19 @@ export interface TokenResponse {
   chain_id?: number;
   metadata?: MetadataOnchain;
 } 
+
+
+export interface Launch {
+  memecoin_address: string;
+  quote_token: string;
+  price: string;
+  total_supply: string;
+  liquidity_raised: string;
+  network: string;
+  created_at: string;
+  threshold_liquidity: string;
+  bonding_type: string;
+  total_token_holded: string | null;
+  block_timestamp: string;
+  is_liquidity_added: boolean;
+}

@@ -6,7 +6,25 @@ import { Filter, SortOption } from '@/components/launchpad/Filter';
 import { LaunchpadCard } from '@/components/launchpad/LaunchpadCard';
 import { useTokens } from '@/hooks/api/indexer/useTokens';
 import { useLaunches } from '@/hooks/api/indexer/useLaunches';
-import Link from 'next/link';
+
+interface TokenDeployInterface {
+  token_address: string;
+  memecoin_address?: string;
+  name?: string;
+  symbol?: string;
+  description?: string;
+  block_timestamp: string;
+  liquidity_raised?: string | number;
+  is_liquidity_added?: boolean;
+  quote_token?: string;
+  price?: string;
+  total_supply?: string;
+  network?: string;
+  created_at?: string;
+  threshold_liquidity?: string;
+  bonding_type?: string;
+  total_token_holded?: string | null;
+}
 
 export default function LaunchpadPage() {
   const [showFilters, setShowFilters] = useState(true);
@@ -34,8 +52,8 @@ export default function LaunchpadPage() {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         item =>
-          item.name.toLowerCase().includes(query) ||
-          item.symbol.toLowerCase().includes(query) ||
+          item.name?.toLowerCase().includes(query) ||
+          item.symbol?.toLowerCase().includes(query) ||
           item.description?.toLowerCase().includes(query)
       );
     }
@@ -49,7 +67,7 @@ export default function LaunchpadPage() {
         filtered.sort((a, b) => new Date(a.block_timestamp).getTime() - new Date(b.block_timestamp).getTime());
         break;
       case 'liquidity':
-        filtered.sort((a, b) => (b.liquidity_raised || 0) - (a.liquidity_raised || 0));
+        filtered.sort((a, b) => (Number(b.liquidity_raised) || 0) - (Number(a.liquidity_raised) || 0));
         break;
       case 'graduated':
         filtered.sort((a, b) => (b.is_liquidity_added ? 1 : 0) - (a.is_liquidity_added ? 1 : 0));
@@ -62,23 +80,42 @@ export default function LaunchpadPage() {
   const isLoading = isLoadingTokens || isLoadingLaunches;
   const error = tokensError || launchesError;
 
-  if (error) {
-    return (
-      <div className="content">
-        <div className="card">
-          <div className="text-red-500">Error loading data: {error.message}</div>
-        </div>
-      </div>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <div className="content">
+  //       <div className="card">
+  //         <div className="text-red-500">Error loading data: {error.message}</div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="content">
-      <Link href="/launchpad/create">Create Token</Link>  
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Launchpad</h1>
+        <a
+          href="/launchpad/create"
+          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+        >
+          Create Token
+        </a>
+      </div>
+
       <div className="card">
         <div className="flex flex-col gap-4">
           {/* Search */}
-          <Search onSearch={handleSearch} placeholder="Search tokens or launches..." />
+
+          <div className="flex justify-between items-center mb-6">
+            <Search onSearch={handleSearch} placeholder="Search tokens or launches..." />
+            {/* <Filter
+              showFilters={showFilters}
+              setShowFilters={setShowFilters}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              isLaunchView={isLaunchView}
+            /> */}
+          </div>
 
           {/* Action Toggle */}
           <div className="flex gap-2 overflow-x-auto pb-2">
@@ -119,13 +156,13 @@ export default function LaunchpadPage() {
           </div>
 
           {/* Filter Section */}
-          <Filter
+          {/* <Filter
             showFilters={showFilters}
             setShowFilters={setShowFilters}
             sortBy={sortBy}
             setSortBy={setSortBy}
             isLaunchView={isLaunchView}
-          />
+          /> */}
 
           {/* Content Grid */}
           {isLoading ? (
@@ -138,10 +175,18 @@ export default function LaunchpadPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredData.map((item) => (
+              {filteredData.map((item: TokenDeployInterface) => (
                 <LaunchpadCard
-                  key={item.token_address}
-                  token={item}
+                  key={item.memecoin_address || item.token_address}
+                  token={{
+                    token_address: item.memecoin_address || item.token_address,
+                    name: item.name || 'Unnamed Token',
+                    symbol: item.symbol || '???',
+                    description: item.description,
+                    block_timestamp: item.block_timestamp,
+                    liquidity_raised: Number(item.liquidity_raised) || 0,
+                    is_liquidity_added: item.is_liquidity_added
+                  }}
                   type={isLaunchView ? 'LAUNCH' : 'TOKEN'}
                 />
               ))}

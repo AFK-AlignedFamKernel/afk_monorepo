@@ -27,6 +27,8 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           total_token_holded:true,
           block_timestamp:true,
           is_liquidity_added:true,
+          name:true,
+          symbol:true,
         },
       });
 
