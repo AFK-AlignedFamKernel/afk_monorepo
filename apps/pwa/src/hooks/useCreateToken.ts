@@ -27,7 +27,7 @@ export const useCreateToken = () => {
   const [error, setError] = useState<Error | null>(null);
   // const { address } = useStarknet();
   const { account, address: address } = useAccount();
-  const deployToken = async (account: AccountInterface, data: DeployTokenFormValues) => {
+  const deployToken = async (data: DeployTokenFormValues) => {
     try {
       // const CONTRACT_ADDRESS_SALT_DEFAULT =
       //   data?.contract_address_salt ??
@@ -139,7 +139,7 @@ export const useCreateToken = () => {
         }),
       };
 
-      const tx = await account.execute(deployCall);
+      const tx = await account?.execute(deployCall);
       console.log('tx', tx);
       const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
       return wait_tx;

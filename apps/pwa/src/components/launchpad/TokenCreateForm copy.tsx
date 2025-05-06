@@ -7,7 +7,6 @@ import { useCreateToken, DeployTokenFormValues } from '../../hooks/useCreateToke
 import { useStarknet } from '../../hooks/useStarknet';
 import { BondingType } from '../../types/token';
 import { WalletConnectButton } from '../WalletConnectButton';
-import { useAccount } from '@starknet-react/core';
 
 interface TokenCreateFormProps {
   onSuccess?: () => void;
@@ -39,8 +38,8 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
 }) => {
   const [showMetadata, setShowMetadata] = useState(false);
   const { address } = useStarknet();
-  const { deployTokenAndLaunch, isLoading, error, deployToken, deployTokenAndLaunchWithMetadata } = useCreateToken();
-  const { account } = useAccount();
+  const { deployTokenAndLaunch, isLoading, error } = useCreateToken();
+
   const initialValues: DeployTokenFormValues = {
     name: '',
     symbol: '',
@@ -245,16 +244,6 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Creating Token...' : 'Create Token'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                console.log('test');
-                deployToken(initialValues);
-              }}
-            >
-              Create token  
             </button>
           </Form>
         )}

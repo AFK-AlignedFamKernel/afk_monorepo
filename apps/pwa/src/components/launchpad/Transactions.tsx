@@ -56,7 +56,7 @@ export const Transactions: React.FC<TransactionsProps> = ({ transactions, loadin
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {transactions.map((tx, index) => (
+              {transactions && transactions?.length > 0 && transactions?.map((tx, index) => (
                 <tr key={index}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
@@ -66,20 +66,20 @@ export const Transactions: React.FC<TransactionsProps> = ({ transactions, loadin
                           : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {tx.type}
+                      {tx?.type}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {tx.amount}
+                    {tx?.amount}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {tx.price}
+                    {tx?.price}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {tx.from.slice(0, 6)}...{tx.from.slice(-4)}
+                    {tx?.from?.slice(0, 6)}...{tx?.from?.slice(-4)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {tx.to.slice(0, 6)}...{tx.to.slice(-4)}
+                    {tx?.to?.slice(0, 6)}...{tx?.to?.slice(-4)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(tx.timestamp).toLocaleString()}

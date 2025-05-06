@@ -1,9 +1,9 @@
 import React from 'react';
 
 interface Holder {
-  address: string;
-  amount: string;
-  percentage: number;
+  owner?: string;
+  amount_owned?: string;
+  percentage?: number;
 }
 
 interface HoldersProps {
@@ -23,7 +23,7 @@ export const Holders: React.FC<HoldersProps> = ({ holders, loading }) => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Total Holders: {holders.length}</h3>
+        <h3 className="text-lg font-semibold">Total Holders: {holders?.length}</h3>
       </div>
 
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -43,16 +43,16 @@ export const Holders: React.FC<HoldersProps> = ({ holders, loading }) => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {holders.map((holder, index) => (
+              {holders && holders.length > 0 && holders?.map((holder, index) => (
                 <tr key={index}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {holder.address.slice(0, 6)}...{holder.address.slice(-4)}
+                    {holder?.owner?.slice(0, 6)}...{holder?.owner?.slice(-4)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {holder.amount}
+                    {holder?.amount_owned}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {holder.percentage.toFixed(2)}%
+                    {holder?.percentage?.toFixed(2)}%
                   </td>
                 </tr>
               ))}

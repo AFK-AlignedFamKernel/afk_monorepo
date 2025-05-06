@@ -117,45 +117,43 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
         },
       });
 
-      const [transactions, holders, graph] = await Promise.all([
-        prisma.token_transactions.findMany({
-          where: { memecoin_address: launch },
-          select: {
-            transaction_type: true,
-            amount: true,
-            quote_amount: true,
-            price: true,
-            time_stamp: true,
-            liquidity_raised: true,
-          },
-        }),
-        prisma.token_transactions.groupBy({
-          by: ['owner_address', 'transaction_type'],
-          where: { memecoin_address: launch },
-          _sum: {
-            amount: true,
-          },
-          _count: {
-            owner_address: true,
-          },
-        }),
-        prisma.token_transactions.findMany({
-          where: { memecoin_address: launch },
-          select: {
-            price: true,
-            time_stamp: true,
-          },
-          orderBy: {
-            time_stamp: 'asc'
-          }
-        })
-      ]);
+    
+      const holdings = await prisma.shares_token_user.findMany({
+        where: { token_address: launch, },
+        select: {
+          owner: true,
+          token_address: true,
+          amount_owned: true,
+          // created_at: true,
+        },
+      });
+
+      const allTransactions = await prisma.token_transactions.findMany({
+        where: {
+          memecoin_address: launch,
+        },
+        select: {
+          memecoin_address: true,
+          owner_address: true,
+          amount: true,
+          price: true,
+          coin_received: true,
+          liquidity_raised: true,
+          total_supply: true,
+          network: true,
+          transaction_type: true,
+          created_at: true,
+          quote_amount: true,
+          time_stamp: true,
+        },
+      });
+
 
       const response = {
-        ...launchStats,
-        transactions,
-        holders,
-        graph
+        launch: launchStats,
+        holdings,
+        holders: holdings,
+        transactions: allTransactions,
       };
 
       reply.status(HTTPStatus.OK).send({
