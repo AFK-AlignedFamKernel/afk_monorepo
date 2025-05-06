@@ -26,7 +26,6 @@
     "dotenv": "^16.4.5",
     "drizzle-kit": "^0.29.0",
     "drizzle-orm": "^0.40.1",
-    "indexer-v2-db": "link:",
     "pg": "^8.13.1"
   },
   "devDependencies": {

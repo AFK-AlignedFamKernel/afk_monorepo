@@ -30,8 +30,6 @@
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "onchain": "link:",
-    "solidity": "link:",
     "starknet": "^6.6.6"
 
   }
