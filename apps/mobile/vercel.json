@@ -1,16 +1,14 @@
 {
-    "buildCommand": "pnpm install && pnpm build:web",
-    "outputDirectory": "dist",
-    "devCommand": "pnpm start:web",
-    "cleanUrls": true,
-    "framework": null,
-    "rewrites": [
-      {
-        "source": "/:path*",
-        "destination": "/"
-      }
-    ],
-    "installCommand": "pnpm install --no-frozen-lockfile"
- 
-  }
-  
+  "buildCommand": "npx expo export:web",
+  "outputDirectory": "dist",
+  "devCommand": "pnpm start:web",
+  "cleanUrls": true,
+  "framework": "nextjs",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ],
+  "installCommand": "pnpm install --no-frozen-lockfile"
+}

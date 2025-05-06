@@ -183,5 +183,8 @@
     "prettier": "^3.3.3",
     "typescript": "~5.3.3"
   },
-  "private": true
+  "private": true,
+  "expo": {
+    "entryPoint": "./index.js"
+  }
 }
