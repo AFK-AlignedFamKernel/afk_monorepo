@@ -169,6 +169,11 @@ pub fn verify(px: u256, rx: u256, s: u256, m: ByteArray) -> bool {
     let (Rx, Ry) = R.get_coordinates().unwrap_syscall();
 
     // fail if is_infinite(R) || not has_even_y(R) || x(R) ≠ rx.
+
+    // assert(!(Rx == 0 && Ry == 0), 'R is infinite');
+    // assert(Ry % 2 == 0 , 'Ry % 2 == 0');
+    // assert(Rx == rx, 'Rx != rx');
+    // assert(!(Rx == 0 && Ry == 0) && Ry % 2 == 0 && Rx == rx, 'issue  verify');
     !(Rx == 0 && Ry == 0) && Ry % 2 == 0 && Rx == rx
 }
 
