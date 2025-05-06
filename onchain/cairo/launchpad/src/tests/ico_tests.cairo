@@ -620,6 +620,9 @@ mod ico_tests {
     #[ignore]
     #[should_panic(expected: "CONFIG REQUIRES 20 PERCENT OF SUPPLY TO NOT BE SOLD")]
     fn test_ico_launch_presale_below_min_supply_threshold() {}
+
+    #[test]
+    fn test_ico_launch_presale_success_and_none_presale_details() {}
     // test_ico_presale_token_success_soft_cap_test -- again, maybe when launching liquidity
 // Remember the storage mutable issh, with update status -- doesn't take in a ref of token.
 // TODO: Don't forget to test this state.
@@ -633,4 +636,6 @@ mod ico_tests {
 ///
 ///
 /// TODO: TESTS ON CLAIM ON FAILED PRESALE...
+///
+
 }
