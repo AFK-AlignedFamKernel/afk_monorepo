@@ -10,7 +10,7 @@
         "destination": "/"
       }
     ],
-    "installCommand": "pnpm install --frozen-lockfile"
+    "installCommand": "pnpm install --no-frozen-lockfile"
  
   }
   

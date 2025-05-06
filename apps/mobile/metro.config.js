@@ -1,22 +1,26 @@
+// /** @type {import('expo/metro-config').MetroConfig} */
 // const { getDefaultConfig } = require('expo/metro-config');
 // const path = require('path');
 // const fs = require('fs');
+// // const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config')
+// const defaultConfig = getDefaultConfig(__dirname)
 
-// /** @type {import('expo/metro-config').MetroConfig} */
+
 // const config = getDefaultConfig(__dirname);
 
-// config.resolver.resolveRequest = (context, moduleName, platform) => {
-//   // if (platform === 'web' && moduleName === 'lodash') {
-//   //   return {
-//   //     type: 'empty',
-//   //   };
-//   // }
+// // config.resolver.resolveRequest = (context, moduleName, platform) => {
+// //   // if (platform === 'web' && moduleName === 'lodash') {
+// //   //   return {
+// //   //     type: 'empty',
+// //   //   };
+// //   // }
 
-//   // Ensure you call the default resolver.
-//   return context.resolveRequest(context, moduleName, platform);
-// };
+// //   // Ensure you call the default resolver.
+// //   return context.resolveRequest(context, moduleName, platform);
+// // };
 
-// module.exports = config;
+// // module.exports = config;
+// module.exports = defaultConfig;
 
 
 // const {getDefaultConfig} = require('expo/metro-config');
