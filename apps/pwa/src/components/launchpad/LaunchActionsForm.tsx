@@ -37,14 +37,14 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
 
   const handleAction = async () => {
     if (!amount || isNaN(Number(amount))) return;
-    
+
     try {
       if (typeAction === 'BUY' && onBuyPress) {
         // await onBuyPress(Number(amount));
         await handleBuyCoins(
           account?.address,
           memecoinAddress,
-          Number(amount)  ,
+          Number(amount),
           launch?.quote_token,
         );
       } else if (typeAction === 'SELL' && onSellPress) {
@@ -73,21 +73,19 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
       <div className="flex space-x-4 mb-6">
         <button
           onClick={() => setTypeAction('BUY')}
-          className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
-            typeAction === 'BUY'
+          className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${typeAction === 'BUY'
               ? 'bg-green-500 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+            }`}
         >
           Buy
         </button>
         <button
           onClick={() => setTypeAction('SELL')}
-          className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
-            typeAction === 'SELL'
+          className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${typeAction === 'SELL'
               ? 'bg-red-500 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
+            }`}
         >
           Sell
         </button>
@@ -126,20 +124,17 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
         <button
           onClick={handleAction}
           disabled={loading || !amount || !account}
-          className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${
-            loading || !amount || !account
+          className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${loading || !amount || !account
               ? 'bg-gray-400 cursor-not-allowed'
               : typeAction === 'BUY'
-              ? 'bg-green-500 hover:bg-green-600'
-              : 'bg-red-500 hover:bg-red-600'
-          }`}
+                ? 'bg-green-500 hover:bg-green-600'
+                : 'bg-red-500 hover:bg-red-600'
+            }`}
         >
           {loading ? (
             <div className="flex items-center justify-center">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
             </div>
-          ) : !account ? (
-            <WalletConnectButton></WalletConnectButton>
           ) : (
             `${typeAction} ${launch?.symbol || 'Token'}`
           )}
