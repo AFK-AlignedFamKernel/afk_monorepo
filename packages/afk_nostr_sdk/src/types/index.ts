@@ -49,9 +49,9 @@ export interface ICashuInvoice {
   expiry?:number;
 }
 
-export interface ProofInvoice extends Proof, ICashuInvoice {}
+export interface ProofInvoice extends Omit<Proof, 'id'>, ICashuInvoice {}
 
 // Export all type declarations
-export * from './global';
+export * from './global.d';
 
 // Add any other type exports here

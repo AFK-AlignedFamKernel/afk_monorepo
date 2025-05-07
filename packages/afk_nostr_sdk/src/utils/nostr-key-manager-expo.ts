@@ -155,7 +155,7 @@ export class NostrKeyManager {
     publicKey: string;
     mnemonic: string;
   }> {
-    const { publicKey, secretKey } = await generateRandomKeys();
+    const { publicKey, privateKey: secretKey } = generateRandomKeypair();
     // const publicKey = getPublicKey(secretKey);
     const mnemonic = Bip39.generateMnemonic(128, undefined, Bip39.wordlists['english']);
 
@@ -390,12 +390,3 @@ export class NostrKeyManager {
     return { secretKey: decryptedPrivateKey, mnemonic: decryptedMnemonic };
   }
 }
-
-export const generateRandomKeys = async () => {
-  try {
-    const { publicKey, privateKey: secretKey } = await generateRandomKeypair();
-    return { publicKey, secretKey };
-  } catch (error) {
-    throw new Error('Failed to generate random keys');
-  }
-};

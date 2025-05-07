@@ -11,14 +11,14 @@ export default function HomePage() {
       <p className="mb-4">You can add more content here.</p>
       
       <div className="card">
-        <h2 className="text-xl font-semibold mb-2">Responsive Layout Demo</h2>
-        <p className="mb-2">Check out our responsive layout with mobile drawer and desktop sidebar.</p>
-        <a 
-          href="/responsive-layout" 
+        <h2 className="text-xl font-semibold">AFK is coming soon</h2>
+        {/* <p className="mb-2">AFK is a decentralized social network that allows you to connect with your friends and family.</p> */}
+        {/* <a 
+          href="/layout" 
           className="sidebar-nav-item"
         >
           View Demo
-        </a>
+        </a> */}
       </div>
     </div>
   );
