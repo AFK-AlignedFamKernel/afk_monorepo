@@ -153,7 +153,7 @@ const Layout = ({ children }: LayoutProps) => {
               Home
             </a>
 
-            <a href="/launchpad" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Link href="/launchpad" className="sidebar-nav-item" onClick={closeSidebar}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect
                   x="3"
@@ -208,8 +208,8 @@ const Layout = ({ children }: LayoutProps) => {
                 />
               </svg>
               Launchpad
-            </a>
-            <a href="/stream" className="sidebar-nav-item" onClick={closeSidebar}>
+            </Link>
+            {/* <a href="/stream" className="sidebar-nav-item" onClick={closeSidebar}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect
                   x="2"
@@ -244,7 +244,7 @@ const Layout = ({ children }: LayoutProps) => {
                 />
               </svg>
               Stream
-            </a>
+            </a> */}
           </div>
 
           <div className="sidebar-nav-footer">
