@@ -1,28 +1,25 @@
 'use client';
-import {Box, useColorModeValue} from '@chakra-ui/react';
-import { ART_PEACE_ADDRESS } from 'common';
-import { constants } from "starknet";
 
-const AppRender = dynamic(() => import('pixel_ui').then((mod) => mod.AppRender), {
-  ssr: false,
-});
+import React from 'react';
 
-import dynamic from 'next/dynamic';
-
-export default function App() {
-  const bgColor = useColorModeValue('gray.300', 'gray.700');
-  const textColor = useColorModeValue('gray.800', 'gray.300');
+// Use inline Layout to avoid type issues
+export default function HomePage() {
   return (
-    <Box className="min-h-screen w-full relative" bg={bgColor} color={textColor}>
-      <p>Hello</p>
-      {/* <Navbar /> */}
-      {/* <AppRender
-        // artPeaceAddress={process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS ?? ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]}
-        artPeaceAddress={process.env.NEXT_PUBLIC_CANVAS_STARKNET_CONTRACT_ADDRESS ?? ART_PEACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]}
-
-        nftCanvasAddress={process.env.NEXT_PUBLIC_CANVAS_NFT_CONTRACT_ADDRESS}
-        usernameAddress={process.env.NEXT_PUBLIC_USERNAME_STORE_CONTRACT_ADDRESS}
-      ></AppRender> */}
-    </Box>
+    <div className="content">
+      <h1 className="text-2xl font-bold mb-4">Welcome to AFK</h1>
+      <p className="mb-4">This is the main content of the home page.</p>
+      <p className="mb-4">You can add more content here.</p>
+      
+      <div className="card">
+        <h2 className="text-xl font-semibold">AFK is coming soon</h2>
+        {/* <p className="mb-2">AFK is a decentralized social network that allows you to connect with your friends and family.</p> */}
+        {/* <a 
+          href="/layout" 
+          className="sidebar-nav-item"
+        >
+          View Demo
+        </a> */}
+      </div>
+    </div>
   );
 }

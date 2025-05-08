@@ -1,10 +1,17 @@
 import {schnorr} from '@noble/curves/secp256k1';
 import {getSharedSecret} from '@noble/secp256k1';
 import * as secp from '@noble/secp256k1';
-import {CryptoDigestAlgorithm, digestStringAsync, getRandomBytes} from 'expo-crypto';
-export const generateRandomKeypair = () => {
+
+// Web Crypto API implementation
+export const getRandomBytes = async (length: number): Promise<Uint8Array> => {
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return array;
+};
+
+export const generateRandomKeypair = async () => {
   try {
-    const privateKey = getRandomBytes(32);
+    const privateKey = await getRandomBytes(32);
     const privateKeyHex = Buffer.from(privateKey).toString('hex');
 
     const publicKey = schnorr.getPublicKey(privateKeyHex);
@@ -20,11 +27,9 @@ export const generateRandomKeypair = () => {
   }
 };
 
-export const generateRandomBytes = () => {
+export const generateRandomBytes = async () => {
   try {
-    const randomBytes = getRandomBytes(32);
-
-    return randomBytes;
+    return await getRandomBytes(32);
   } catch (error) {
     // We shouldn't throw the original error for security reasons
     throw new Error('Failed to generateRandomBytes');
@@ -38,16 +43,6 @@ export function generateSharedSecret(privateKey, publicKey) {
   // The shared secret is a Uint8Array; convert it to hex
   return sharedSecret.slice(1); // Slice to remove the parity byte
 }
-
-// export const transformStringToUint8Array = (str: string) => {
-//     // Convert string to Uint8Array using Buffer
-//     const uint8Array = new Uint8Array(Buffer.from(str, 'utf-8'));
-
-//     // Log the Uint8Array
-//     console.log(uint8Array);
-
-//     return uint8Array
-// }
 
 export const transformStringToUint8Array = (str: string) => {
   // Convert string to Uint8Array using Buffer
@@ -70,28 +65,8 @@ export const transformStringToUint8Array = (str: string) => {
     uint8Array.set(initialUint8Array);
   }
 
-  // Log the Uint8Array
-  console.log(uint8Array);
-
   return uint8Array;
 };
-
-// // Helper function to convert a hex string to a Uint8Array
-// function hexToUint8Array(hex: string): Uint8Array {
-//     if (hex.length % 2 !== 0) {
-//       throw new Error('Hex string must have an even length');
-//     }
-//     const uint8Array = new Uint8Array(hex.length / 2);
-//     for (let i = 0; i < hex.length; i += 2) {
-//       uint8Array[i / 2] = parseInt(hex.substring(i, i + 2), 16);
-//     }
-//     return uint8Array;
-//   }
-
-// // Helper function to convert a hex string to a Uint8Array
-// function hexToUint8Array(hex: string): Uint8Array {
-//     return new Uint8Array(hex.match(/.{1,2}/g)?.map(byte => parseInt(byte, 16)) || []);
-// }
 
 // Helper function to convert hex string to Uint8Array
 function hexToUint8Array(hex: string): Uint8Array {
@@ -105,52 +80,6 @@ function hexToUint8Array(hex: string): Uint8Array {
   return uint8Array;
 }
 
-// // Example: Derive a shared secret key between two users
-// export function deriveSharedSecret(privateKeyHex: string, publicKeyHex: string): Uint8Array {
-//     try {
-//         // Convert private and public keys from hex strings to Uint8Array
-//         const privateKey = hexToUint8Array(privateKeyHex);
-//         const publicKey = hexToUint8Array(publicKeyHex);
-//         console.log("publicKey", publicKey)
-
-//         //   // Validate the public key before using it
-//         const publicKeyPoint = secp.ProjectivePoint.fromHex(publicKeyHex);
-//         if (!publicKeyPoint.assertValidity()) {
-//             throw new Error('Public key is not valid on the curve');
-//         }
-
-//         // Compute the shared secret
-//         const sharedSecret = secp.getSharedSecret(privateKey, publicKeyPoint.toRawBytes(true), false);
-//         //   const sharedSecret = getSharedSecret(privateKey, publicKey, true);
-//         console.log("sharedSecret", sharedSecret)
-
-//         // Return the shared secret, removing the first byte which is used for parity (as per the library documentation)
-//         return sharedSecret.slice(1);
-//     } catch (error) {
-//         console.error('Error deriving shared secret:', error);
-//         throw error;
-//     }
-// }
-
-// // Derive the shared conversation key
-// export function deriveSharedKey(authorPrivateKeyHex: string, recipientPublicKeyHex: string): Uint8Array {
-//     try {
-//         const privateKey = hexToUint8Array(authorPrivateKeyHex);
-//         //   const publicKey = secp.Point.fromHex(recipientPublicKeyHex);
-//         const publicKey = secp.ProjectivePoint.fromHex(recipientPublicKeyHex);
-
-//         // Validate public key before using
-//         publicKey.assertValidity();
-
-//         // Compute shared secret
-//         const sharedSecret = secp.getSharedSecret(privateKey, publicKey.toRawBytes(true), true);
-//         return sharedSecret.slice(1); // Remove the first byte used for parity
-//     } catch (error) {
-//         console.error('Error deriving shared key:', error);
-//         throw error;
-//     }
-// }
-
 // Derive the shared conversation key
 export function deriveSharedKey(
   authorPrivateKeyHex: string,
@@ -161,15 +90,9 @@ export function deriveSharedKey(
     const privateKey = hexToUint8Array(authorPrivateKeyHex);
 
     // Convert the public key from a hex string to a secp256k1 Point
-    // const publicKeyPoint = secp.ProjectivePoint.fromHex(recipientPublicKeyHex);
-    // const publicKeyPoint = secp.schnorr.getPublicKey(recipientPublicKeyHex);
     const publicKeyPoint = recipientPublicKeyHex;
 
-    // Validate the public key before using it
-    // publicKeyPoint.assertValidity();
-
     // Compute shared secret using the ECDH method
-    // const sharedSecret = secp.getSharedSecret(privateKey, publicKeyPoint.toRawBytes(true), true);
     const sharedSecret = secp.getSharedSecret(privateKey, publicKeyPoint.toString(), true);
 
     // Return the shared secret (skip the first byte which is used for parity)
@@ -236,11 +159,6 @@ export function stringToHex(str: string): string {
  * @throws Error if the pubkey is invalid or cannot be corrected.
  */
 export function fixPubKey(pubkey: string): string {
-  //   // Ensure the pubkey is a valid hexadecimal string
-  //   if (!/^[0-9a-fA-F]*$/.test(pubkey)) {
-  //     throw new Error('Invalid public key format. Public key must be a hexadecimal string.');
-  //   }
-
   // Determine the desired length for a compressed pubkey (66 characters)
   const desiredLength = 66;
 
@@ -248,33 +166,20 @@ export function fixPubKey(pubkey: string): string {
     throw new Error('Public key is too long or unrecognized format.');
   }
 
-  // Pad with leading zeros if the length is less than desired
-  // const fixedPubKey = pubkey.padStart(desiredLength, '0');
-  /** TODO fix pubkey padding way */
-  const fixedPubKey = pubkey.padStart(desiredLength, '02');
-
-  // Validate the corrected public key using secp256k1 library
-  try {
-    console.log("assure verification key")
-    // secp.getSharedSecret(fixedPubKey);
-    // const publicKeyPoint = secp.getPublicKey(fixedPubKey);
-    // publicKeyPoint.assertValidity(); // Check if the point is valid on the curve
-  } catch (error) {
-    throw new Error('Corrected public key is not valid on the secp256k1 curve.');
-  }
-
-  return fixedPubKey;
+  // Pad with leading zeros if necessary
+  return pubkey.padStart(desiredLength, '0');
 }
 
-// Function to hash the tag using expo-crypto
-export const hashTag = async (tag) => {
-  return await digestStringAsync(CryptoDigestAlgorithm.SHA256, tag);
+export const hashTag = async (tag: string) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(tag);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
+
 export const generateRandomIdentifier = async (length = 16) => {
-  // Generate random bytes
-  const randomBytes = getRandomBytes(length);
-  // Convert bytes to a hexadecimal string
-  return Array.from(randomBytes)
-    .map((byte) => byte.toString(16).padStart(2, '0')) // Convert to hex and pad
-    .join('');
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 };

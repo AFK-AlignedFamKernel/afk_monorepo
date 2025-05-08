@@ -5,8 +5,9 @@ import {Box, Button} from '@chakra-ui/react';
 import {Connector, useAccount, useConnect} from '@starknet-react/core';
 import React, {useEffect, useState} from 'react';
 import {AccountInterface, constants, Signature} from 'starknet';
-import {connect, ConnectorData, StarknetWindowObject} from 'starknetkit-next';
-import {disconnect} from 'starknetkit-next';
+import {connect, ConnectorData, StarknetWindowObject} from 'starknetkit';
+import {disconnect} from 'starknetkit';
+
 const AccountStarknet = (props) => {
   const {address, account} = useAccount();
   const [queryAddress, setQueryAddress] = useState<string | undefined>(undefined);

@@ -74,6 +74,8 @@ model token_launch {
   twitter                 String?
   url                     String?
   website                 String?
+  name                    String?
+  symbol                  String?
 }
 
 model unrugmeme_deploy {
