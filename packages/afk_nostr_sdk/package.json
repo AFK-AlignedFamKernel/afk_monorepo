@@ -1,10 +1,10 @@
 {
   "name": "afk_nostr_sdk",
   "version": "0.0.1",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts --format esm,cjs --dts",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
@@ -45,7 +45,6 @@
     ".": {
       "import": "./dist/index.mjs",
       "require": "./dist/index.js",
-      "browser": "./dist/index.global.js",
       "types": "./dist/index.d.ts"
     }
   },

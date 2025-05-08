@@ -1,14 +1,7 @@
 import {schnorr} from '@noble/curves/secp256k1';
 import {getSharedSecret} from '@noble/secp256k1';
 import * as secp from '@noble/secp256k1';
-
-// Replace expo-crypto's getRandomBytes with Web Crypto API
-export const getRandomBytes = (length: number): Uint8Array => {
-  const array = new Uint8Array(length);
-  crypto.getRandomValues(array);
-  return array;
-};
-
+import {CryptoDigestAlgorithm, digestStringAsync, getRandomBytes} from 'expo-crypto';
 export const generateRandomKeypair = () => {
   try {
     const privateKey = getRandomBytes(32);
@@ -273,18 +266,15 @@ export function fixPubKey(pubkey: string): string {
   return fixedPubKey;
 }
 
-// Replace expo-crypto's digestStringAsync with Web Crypto API
-export const hashTag = async (tag: string): Promise<string> => {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(tag);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+// Function to hash the tag using expo-crypto
+export const hashTag = async (tag) => {
+  return await digestStringAsync(CryptoDigestAlgorithm.SHA256, tag);
 };
-
-export const generateRandomIdentifier = async (length = 16): Promise<string> => {
+export const generateRandomIdentifier = async (length = 16) => {
+  // Generate random bytes
   const randomBytes = getRandomBytes(length);
+  // Convert bytes to a hexadecimal string
   return Array.from(randomBytes)
-    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .map((byte) => byte.toString(16).padStart(2, '0')) // Convert to hex and pad
     .join('');
 };
