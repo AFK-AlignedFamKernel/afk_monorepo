@@ -40,13 +40,13 @@
     "react-dom": "^18.3.1",
     "zustand": "^4.5.2"
   },
-  "module": "dist/index.mjs",
+  "module": "dist/index.js",
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
+      "import": "./dist/index.js",
       "require": "./dist/index.js",
       "types": "./dist/index.d.ts"
-    }
+    } 
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
