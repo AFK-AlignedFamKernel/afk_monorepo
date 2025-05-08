@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { TanstackProvider, NostrProvider } from 'afk_nostr_sdk';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -19,11 +20,15 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+      <TanstackProvider>
+        <NostrProvider>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </NostrProvider>
+      </TanstackProvider>
       <StatusBar style="auto" />
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
