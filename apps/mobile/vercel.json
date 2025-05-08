@@ -1,14 +1,13 @@
 {
-  "buildCommand": "npx expo export:web",
+  "buildCommand": "expo export -p web",
   "outputDirectory": "dist",
-  "devCommand": "pnpm start:web",
+  "devCommand": "expo",
   "cleanUrls": true,
-  "framework": "nextjs",
+  "framework": null,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/:path*",
       "destination": "/"
     }
-  ],
-  "installCommand": "pnpm install --no-frozen-lockfile"
+  ]
 }
