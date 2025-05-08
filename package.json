@@ -1,10 +1,10 @@
 {
-  "name": "afk_monorepo",
-  "version": "0.0.1",
+  "name": "afk-monorepo",
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "mobile-template"
   ],
   "prisma": {},
   "scripts": {
