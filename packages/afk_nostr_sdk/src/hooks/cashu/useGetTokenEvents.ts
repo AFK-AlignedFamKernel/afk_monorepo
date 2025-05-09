@@ -1,8 +1,9 @@
-import {NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser} from '@nostr-dev-kit/ndk';
-import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
+import { NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
+import { InfiniteData, useInfiniteQuery, UseInfiniteQueryResult } from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context';
-import {useAuth} from '../../store';
+import { useNostrContext } from '../../context';
+import { useAuth } from '../../store';
+import { v2 } from '../../utils/nip44';
 
 export interface UseTokenEventsOptions {
   authors?: string[];
@@ -21,9 +22,9 @@ interface TokenEventContent {
   }>;
 }
 
-export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
-  const {ndk} = useNostrContext();
-  const {publicKey, privateKey} = useAuth();
+export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions): UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
+  const { ndk } = useNostrContext();
+  const { publicKey, privateKey } = useAuth();
 
   return useInfiniteQuery({
     initialPageParam: 0,
@@ -43,7 +44,7 @@ export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions):UseInfin
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
-    queryFn: async ({pageParam}) => {
+    queryFn: async ({ pageParam }) => {
       const filter: {
         kinds: number[];
         authors?: string[];
@@ -77,21 +78,25 @@ export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions):UseInfin
 
       // Filter events by proof IDs
       const signer = new NDKPrivateKeySigner(privateKey);
-      const user = new NDKUser({pubkey: publicKey});
+      const user = new NDKUser({ pubkey: publicKey });
 
 
       console.log("tokenEvents", tokenEvents);
 
+
       const filteredEvents = await Promise.all(
         [...tokenEvents].map(async (event) => {
           try {
+            const conversationKey = await v2.utils.getConversationKey(publicKey, options?.walletId);
+
             // Decrypt the event content
-            const decryptedContent = await signer.nip44Decrypt(user, event.content);
+            // const decryptedContent = await v2.decrypt(event.content, conversationKey);
+            const decryptedContent = await signer.decrypt(user, event.content, "nip44");
             const content: TokenEventContent = JSON.parse(decryptedContent);
 
             // Check if any of the proofs match the filter
 
-            if(options?.proofIds) {
+            if (options?.proofIds) {
               const hasMatchingProof = content?.proofs?.some((proof) =>
                 options?.proofIds?.includes(proof?.id),
               );
@@ -117,6 +122,6 @@ export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions):UseInfin
       // Remove null values and return filtered events
       return filteredEvents.filter((event): event is typeof event => event !== null);
     },
-    placeholderData: {pages: [], pageParams: []},
+    placeholderData: { pages: [], pageParams: [] },
   });
 };

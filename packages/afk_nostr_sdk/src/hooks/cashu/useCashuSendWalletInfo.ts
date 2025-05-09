@@ -46,6 +46,7 @@ export const useCreateCashuSendWalletInfo = ():UseMutationResult<any, Error, any
     mutationFn: async (data: {
       content: string;
       nameWallet: string;
+      mint?: string;
       amount?: string;
       symbol?: string;
       relayUrl?: string;
@@ -54,14 +55,15 @@ export const useCreateCashuSendWalletInfo = ():UseMutationResult<any, Error, any
       isEncrypted?: boolean;
       encryptedMessage?: string;
     }) => {
-      const {nameWallet, amount, symbol} = data;
+      const {nameWallet, amount, symbol, mint} = data;
 
-      const wallet = ndkWallet.createCashuWallet();
-      wallet.name = nameWallet;
-      wallet.relays = ['wss://relay1', 'wss://relay2'];
+      const wallet = await ndkWallet.getCashuWallet(mint ?? 'https://mint1');
+      // wallet.name = nameWallet;
+      // wallet.relays = ['wss://relay1', 'wss://relay2'];
 
-      const eventPublish = await wallet?.publish();
-      return eventPublish;
+      // const eventPublish = await wallet.publish();
+      return wallet;
+      // return eventPublish;
     },
   });
 };
@@ -82,15 +84,16 @@ export const useCashuSendWalletInfo = ():UseMutationResult<any, Error, any, any>
       tags?: string[][];
       isEncrypted?: boolean;
       encryptedMessage?: string;
+      mint?: string;
     }) => {
-      const {nameWallet, amount, symbol} = data;
+      const {nameWallet, amount, symbol, mint} = data;
 
-      const wallet = ndkWallet.createCashuWallet();
-      wallet.name = nameWallet;
-      wallet.relays = ['wss://relay1', 'wss://relay2'];
+      const wallet = await ndkWallet.getCashuWallet(mint ?? 'https://mint1');
+      // wallet.name = nameWallet;
+      // wallet.relays = ['wss://relay1', 'wss://relay2'];
 
-      const eventPublish = await wallet?.publish();
-      return eventPublish;
+      // const eventPublish = await wallet?.publish();
+      return wallet;
     },
   });
 };

@@ -4,7 +4,7 @@ import { FeedNostr } from '@/components/Nostr/feed/feed';
 import React from 'react';
 
 // Use inline Layout to avoid type issues
-export default function HomePage() {
+export default function NostrPage() {
   return (
     <div className="content">
       <h1 className="text-2xl font-bold mb-4">Welcome to AFK</h1>

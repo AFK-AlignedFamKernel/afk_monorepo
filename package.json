@@ -55,10 +55,10 @@
     "@noble/curves": "1.9.0",
     "@noble/hashes": "1.8.0",
     "@noble/secp256k1": "^2.2.3",
-    "@scure/bip32": "^1.7.0",
     "bip39": "^3.1.0",
+    "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
-
+    "@scure/base": "^1.2.5",
     "@nostr-dev-kit/ndk": "^2.14.9",
     "@nostr-dev-kit/ndk-wallet": "^0.5.13"
   },
@@ -67,11 +67,11 @@
     "@noble/curves": "1.9.0",
     "@noble/hashes": "1.8.0",
     "@noble/secp256k1": "^2.2.3",
-    "@nostr-dev-kit/ndk": "^2.14.9",
+    "bip39": "^3.1.0",
     "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
-    "bip39": "^3.1.0",
-
+    "@scure/base": "^1.2.5",
+    "@nostr-dev-kit/ndk": "^2.14.9",
     "@nostr-dev-kit/ndk-wallet": "^0.5.13"
   },
   "devDependencies": {

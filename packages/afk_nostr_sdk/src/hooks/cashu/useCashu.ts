@@ -16,7 +16,7 @@ import {
   ProofState,
 } from '@cashu/cashu-ts';
 import { bytesToHex } from '@noble/curves/abstract/utils';
-import { NDKCashuToken } from '@nostr-dev-kit/ndk-wallet';
+import { NDKCashuDeposit } from '@nostr-dev-kit/ndk-wallet';
 import * as Bip39 from 'bip39';
 import { useEffect, useMemo, useState } from 'react';
 import { getProofs as getProofsStorage, storeProofs as storeProofsStorage } from '../../storage';
@@ -24,6 +24,7 @@ import { useNostrContext } from '../../context';
 import { useAuth, useCashuStore } from '../../store';
 import { generateMnemonic } from 'bip39';
 import { MintData } from '../../types';
+import { NDKCashuToken } from '@nostr-dev-kit/ndk';
 
 export interface ICashu {
   wallet: CashuWallet;
@@ -75,7 +76,7 @@ export interface ICashu {
   getUnitProofs: (unit: string, pMint: MintData, proofsLocal: Proof[]) => Promise<Proof[]>;
   getUnitBalance: (unit: string, pMint: MintData, proofs: Proof[]) => Promise<number>;
   getKeys: () => Promise<MintActiveKeys>;
-  getProofs: (tokens: NDKCashuToken[]) => Promise<void>;
+  getProofs: (tokens: NDKCashuToken[]) => Promise<Proof[]>;
   getFeesForExternalInvoice: (externalInvoice: string) => Promise<number>;
   payExternalInvoice: (
     amount: number,
@@ -421,8 +422,9 @@ export const useCashu = (): ICashu => {
   };
 
   const getProofs = async (tokens: NDKCashuToken[]) => {
-    const proofsCheck = await ndkCashuWallet?.checkProofs([...tokens]);
-    return proofsCheck;
+    return []
+    // const proofsCheck = await wallet?.checkProofsStates([...tokens]);
+    // return proofsCheck;
   };
 
   const getKeySets = async () => {

@@ -75,9 +75,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <StarknetProvider>
             {/* <WagmiProvider config={config} reconnectOnMount={false}> */}
             <QueryClientProvider client={queryClient}>
-              {children}
               <TanstackProvider>
-                <NostrProvider />
+                <NostrProvider>
+                  {children}
+                </NostrProvider>
               </TanstackProvider>
             </QueryClientProvider>
             {/* </WagmiProvider> */}
