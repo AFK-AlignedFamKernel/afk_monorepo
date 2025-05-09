@@ -63,6 +63,11 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     // search: searchQuery
   });
   console.log("notesData", notesData);
+  console.log("isLoading", isLoading);
+  console.log("isError", isError);
+  console.log("error", error);
+  console.log("hasNextPage", hasNextPage);
+  console.log("refetch", refetch);
 
   // Force refetch when parameters change
   useEffect(() => {
@@ -182,7 +187,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   
   return (
     <div className={`nostr-feed__content ${className}`}>
-      {allEvents.length === 0 ? (
+      {allEvents.length === 0 && !isLoading ? (
         <div className="nostr-feed__empty-state">
           <p>No events found. Try following more users or changing filters.</p>
           <div className="mt-4 text-sm text-gray-500">
