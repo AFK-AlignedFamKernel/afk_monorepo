@@ -1,4 +1,5 @@
 const createExpoWebpackConfigAsync = require('@expo/webpack-config');
+const path = require('path');
 
 module.exports = async function (env, argv) {
   const config = await createExpoWebpackConfigAsync(
@@ -6,12 +7,24 @@ module.exports = async function (env, argv) {
       ...env,
       babel: {
         dangerouslyAddModulePathsToTranspile: [
-          // Add any problematic modules that need to be transpiled
+          '@nostr-dev-kit/ndk',
+          '@nostr-dev-kit',
+          'nostr-tools'
         ],
       },
     },
     argv
   );
+  
+  // Add polyfill
+  if (!config.entry) {
+    config.entry = [];
+  } else if (!Array.isArray(config.entry)) {
+    config.entry = [config.entry];
+  }
+  
+  // Add polyfill as the first entry
+  config.entry.unshift(path.resolve(__dirname, 'polyfills.js'));
   
   // Enable import.meta support
   if (!config.resolve.alias) {

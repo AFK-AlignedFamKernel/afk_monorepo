@@ -1,25 +1,7 @@
 const { getDefaultConfig } = require('expo/metro-config');
-const path = require('path');
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
-
-// Add support for transpiling node modules with import.meta
-config.transformer = {
-  ...config.transformer,
-  unstable_allowRequireContext: true,
-  // babelTransformerPath: require.resolve('@react-native/metro-babel-transformer'),
-  babelTransformerPath: require.resolve('metro-react-native-babel-transformer'),
-};
-
-// Set sourceExts to include all required extensions
-config.resolver.sourceExts = [
-  'js', 'jsx', 'ts', 'tsx', 'cjs', 'mjs', 'json'
-];
-
-// Add ES modules support
-config.resolver.unstable_enablePackageExports = true;
-config.resolver.unstable_conditionNames = ['import', 'require', 'node', 'default'];
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName.startsWith('afk_nostr_sdk')) {

@@ -114,9 +114,11 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@babel/plugin-syntax-import-meta": "^7.10.4",
+    "@react-native/metro-babel-transformer": "^0.79.2",
     "@types/react": "~19.0.10",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
+    "metro-react-native-babel-transformer": "^0.77.0",
     "typescript": "~5.8.3"
   },
   "private": true
