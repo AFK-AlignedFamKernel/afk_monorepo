@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // import {mainnet, sepolia} from 'wagmi/chains';
 
 import StarknetProvider from '@/context/StarknetProvider';
+import { NostrProvider, TanstackProvider } from 'afk_nostr_sdk';
 
 import theme from '../theme'; // Import your custom theme
 
@@ -74,9 +75,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <StarknetProvider>
             {/* <WagmiProvider config={config} reconnectOnMount={false}> */}
             <QueryClientProvider client={queryClient}>
-              {/* <RainbowKitProvider> */}
               {children}
-              {/* </RainbowKitProvider> */}
+              <TanstackProvider>
+                <NostrProvider />
+              </TanstackProvider>
             </QueryClientProvider>
             {/* </WagmiProvider> */}
           </StarknetProvider>
