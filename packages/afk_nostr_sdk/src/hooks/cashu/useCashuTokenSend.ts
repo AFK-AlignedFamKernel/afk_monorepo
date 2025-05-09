@@ -1,6 +1,6 @@
 import {Proof} from '@cashu/cashu-ts';
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, UseMutationResult  } from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
@@ -36,7 +36,7 @@ There can be multiple `kind:7375` events for the same mint, and multiple proofs 
 }
 ```
  */
-export const useCashuTokenSend = () => {
+export const useCashuTokenSend = ():UseMutationResult<any, Error, any, any> => {
   const {ndk} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 

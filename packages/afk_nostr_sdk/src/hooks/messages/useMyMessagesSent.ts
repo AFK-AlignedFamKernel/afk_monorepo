@@ -1,5 +1,5 @@
 import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery, UseInfiniteQueryResult } from '@tanstack/react-query';
 
 import { useNostrContext } from '../../context';
 import { useAuth } from '../../store';
@@ -31,7 +31,7 @@ interface DecryptedMessage {
   decryptedContent: string;
 }
 
-export const useMyMessagesSent = (options?: UseMyMessagesSentOptions) => {
+export const useMyMessagesSent = (options?: UseMyMessagesSentOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error>=> {
   const { ndk } = useNostrContext();
   const { publicKey } = useAuth();
   return useInfiniteQuery({

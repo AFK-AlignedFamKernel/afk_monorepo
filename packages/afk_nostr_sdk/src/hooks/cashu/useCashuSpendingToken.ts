@@ -1,5 +1,5 @@
 import {NDKEvent} from '@nostr-dev-kit/ndk';
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, UseMutationResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
@@ -22,7 +22,7 @@ Clients SHOULD publish kind:7376 events to create a transaction history when the
     ]
 }
  */
-export const useCashuSpendingToken = () => {
+export const useCashuSpendingToken = ():UseMutationResult<any, Error, any, any> => {
   const {ndk} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 

@@ -1,5 +1,5 @@
 import {NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery, useMutation, useQuery} from '@tanstack/react-query';
+import {InfiniteData, useInfiniteQuery, useMutation, useQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
@@ -124,7 +124,7 @@ export const useGetRecipientNutZapInfo = (recipientPubkey?: string) => {
 };
 
 // Hook to fetch received NutZaps
-export const useGetReceivedNutZaps = (options?: {mints?: string[]; since?: number}) => {
+export const useGetReceivedNutZaps = (options?: {mints?: string[]; since?: number}):UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
   const {ndk} = useNostrContext();
   const {publicKey} = useAuth();
 

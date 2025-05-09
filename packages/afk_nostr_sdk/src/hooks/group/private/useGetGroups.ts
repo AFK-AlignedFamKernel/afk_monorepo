@@ -1,5 +1,5 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
 
@@ -15,7 +15,7 @@ interface UseGetActiveGroupListOptions {
  * @param options
  * @returns
  */
-export const useGetGroupList = (options: UseGetActiveGroupListOptions) => {
+export const useGetGroupList = (options: UseGetActiveGroupListOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
   const {ndk} = useNostrContext();
   const GroupAdminDeleteGroup: any = 9008;
   const groupMap = new Map<string, {event: NDKEvent; originalGroupId: string}>();

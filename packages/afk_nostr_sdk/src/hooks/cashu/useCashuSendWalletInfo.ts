@@ -1,5 +1,5 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, UseMutationResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
@@ -37,7 +37,7 @@ import {v2} from '../../utils/nip44';
 }
  */
 
-export const useCreateCashuSendWalletInfo = () => {
+export const useCreateCashuSendWalletInfo = ():UseMutationResult<any, Error, any, any> => {
   const {ndk, ndkCashuWallet, ndkWallet} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 
@@ -66,7 +66,7 @@ export const useCreateCashuSendWalletInfo = () => {
   });
 };
 
-export const useCashuSendWalletInfo = () => {
+export const useCashuSendWalletInfo = ():UseMutationResult<any, Error, any, any> => {
   const {ndk, ndkCashuWallet, ndkWallet} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 

@@ -1,4 +1,4 @@
-import {useInfiniteQuery} from '@tanstack/react-query';
+import {useInfiniteQuery, UseInfiniteQueryResult, InfiniteData} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
@@ -8,7 +8,7 @@ export type UseRootProfilesOptions = {
   search?: string;
 };
 
-export const useMyGiftWrapMessages = (options?: UseRootProfilesOptions) => {
+export const useMyGiftWrapMessages = (options?: UseRootProfilesOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
   const {ndk} = useNostrContext();
   const {publicKey} = useAuth();
   return useInfiniteQuery({

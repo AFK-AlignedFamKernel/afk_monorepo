@@ -1,6 +1,6 @@
 // useSearchUsers.ts
 import {NDKKind} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context/NostrContext';
 interface UseSearchTag {
@@ -11,7 +11,7 @@ interface UseSearchTag {
   limit?: number;
   hashtag?: string; // New option for hashtag search
 }
-export const useSearchTag = (options?: UseSearchTag) => {
+export const useSearchTag = (options?: UseSearchTag):UseInfiniteQueryResult<InfiniteData<any, any>, Error>=> {
   const {ndk} = useNostrContext();
 
   return useInfiniteQuery({
