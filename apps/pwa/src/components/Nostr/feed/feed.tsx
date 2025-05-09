@@ -1,33 +1,26 @@
-import { useNostrContext } from 'afk_nostr_sdk';
-import { useEffect, useState } from 'react';
-import { NDKEvent } from '@nostr-dev-kit/ndk';
+'use client';
 
-export const FeedNostr= () => {
-  const { ndk } = useNostrContext();
-  const [events, setEvents] = useState<NDKEvent[]>([]);
+import React from 'react';
+import NostrFeed from './NostrFeed';
 
-  useEffect(() => {
-    const fetchEvents = async () => {
-      if (!ndk) return;
+interface FeedNostrProps {
+  searchQuery?: string;
+  limit?: number;
+  kinds?: number[];
+}
 
-      const events = await ndk.fetchEvents({
-        kinds: [1], // Regular notes
-        limit: 50
-      });
-
-      setEvents(Array.from(events));
-    };
-
-    fetchEvents();
-  }, [ndk]);
-
+export const FeedNostr: React.FC<FeedNostrProps> = ({
+  searchQuery,
+  limit = 10,
+  kinds = [1] // Default to regular notes
+}) => {
   return (
-    <div>
-      {events.map((event) => (
-        <div key={event.id}>
-          <p>{event.content}</p>
-        </div>
-      ))}
+    <div className="nostr-feed-container">
+      <NostrFeed 
+        kinds={kinds}
+        limit={limit}
+        searchQuery={searchQuery}
+      />
     </div>
   );
 };

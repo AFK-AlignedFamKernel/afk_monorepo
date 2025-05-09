@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { NDKKind } from '@nostr-dev-kit/ndk';
 import { NostrEventKind } from '@/types/nostr';
 import NostrFeed from './NostrFeed';
 import './feed.scss';
@@ -9,25 +8,33 @@ import './feed.scss';
 interface Tab {
   id: string;
   label: string;
-  kinds: NDKKind[];
+  kinds: number[];
   icon?: React.ReactNode;
 }
 
 interface FeedTabsProps {
   className?: string;
+  limit?: number;
+  authors?: string[];
+  searchQuery?: string;
 }
 
-export const FeedTabs: React.FC<FeedTabsProps> = ({ className = '' }) => {
+export const FeedTabs: React.FC<FeedTabsProps> = ({ 
+  className = '',
+  limit = 10,
+  authors,
+  searchQuery
+}) => {
   const tabs: Tab[] = [
     {
       id: 'all',
       label: 'All',
       kinds: [
-        NDKKind.Text, 
-        NostrEventKind.Article as unknown as NDKKind,
-        NostrEventKind.ShortForm as unknown as NDKKind,
-        NostrEventKind.VerticalVideo as unknown as NDKKind,
-        NostrEventKind.HorizontalVideo as unknown as NDKKind
+        1, // Text
+        30023, // Article
+        1311, // ShortForm
+        31000, // VerticalVideo
+        31001, // HorizontalVideo
       ],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -38,7 +45,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({ className = '' }) => {
     {
       id: 'posts',
       label: 'Posts',
-      kinds: [NDKKind.Text],
+      kinds: [1], // Text
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clipRule="evenodd" />
@@ -48,7 +55,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({ className = '' }) => {
     {
       id: 'articles',
       label: 'Articles',
-      kinds: [NostrEventKind.Article as unknown as NDKKind],
+      kinds: [30023], // Article
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clipRule="evenodd" />
@@ -60,9 +67,10 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({ className = '' }) => {
       id: 'shorts',
       label: 'Shorts',
       kinds: [
-        NostrEventKind.ShortForm as unknown as NDKKind,
-        NostrEventKind.VerticalVideo as unknown as NDKKind,
-        NostrEventKind.HorizontalVideo as unknown as NDKKind
+        // 1311, // ShortForm
+        31000, // VerticalVideo
+        31001, // HorizontalVideo
+        34236,
       ],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -74,7 +82,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({ className = '' }) => {
 
   const [activeTab, setActiveTab] = useState<string>(tabs[0].id);
   
-  const getActiveTabKinds = (): NDKKind[] => {
+  const getActiveTabKinds = (): number[] => {
     const tab = tabs.find(tab => tab.id === activeTab);
     return tab ? tab.kinds : tabs[0].kinds;
   };
@@ -97,7 +105,12 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({ className = '' }) => {
       </div>
 
       <div className="nostr-feed__content">
-        <NostrFeed kinds={getActiveTabKinds()} />
+        <NostrFeed 
+          kinds={getActiveTabKinds()} 
+          limit={limit}
+          authors={authors}
+          searchQuery={searchQuery}
+        />
       </div>
     </div>
   );

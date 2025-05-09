@@ -1,29 +1,37 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NostrShortEventProps } from '@/types/nostr';
 import NostrEventCardBase from './NostrEventCardBase';
 import '../feed/feed.scss';
+import { NostrEvent } from '@nostr-dev-kit/ndk';
 
 export const ShortEventCard: React.FC<NostrShortEventProps> = (props) => {
   const { event } = props;
 
+  console.log('event', event);
+
+  const [mediaUrlState, setMediaUrlState] = useState<string | undefined>();
   // Parse media URL from content or tags
   let mediaUrl = '';
   let caption = '';
-  
-  try {
-    // Try to parse JSON format first
-    const content = JSON.parse(event.content);
-    mediaUrl = content.media || content.url || '';
-    caption = content.caption || content.text || '';
-  } catch (e) {
-    // If not JSON, check tags for media URL
-    const mediaTags = event.tags.filter(tag => tag[0] === 'media' || tag[0] === 'video');
-    if (mediaTags.length > 0) {
-      mediaUrl = mediaTags[0][1] || '';
+
+
+  const extractAllVideoUrls = () => {
+    try {
+      // Try to parse JSON format first
+      const content = JSON.parse(event.content);
+      mediaUrl = content.media || content.url || '';
+      caption = content.caption || content.text || '';
+    } catch (e) {
+      // If not JSON, check tags for media URL
+      const mediaTags = event.tags.filter(tag => tag[0] === 'media' || tag[0] === 'video' || tag[0] === 'image');
+      if (mediaTags.length > 0) {
+        mediaUrl = mediaTags[0][1] || '';
+        setMediaUrlState(mediaUrl);
+      }
+      caption = event.content;
     }
-    caption = event.content;
   }
 
   // If we still don't have media, check if content is a URL
@@ -32,37 +40,63 @@ export const ShortEventCard: React.FC<NostrShortEventProps> = (props) => {
     caption = '';
   }
 
-  const isVideo = mediaUrl && mediaUrl.match(/\.(mp4|webm|mov)$/i);
+  const extractVideoURL = (event: NostrEvent) => {
 
+    const tags = event?.tags?.find((tag) => tag?.[0] === 'url' || tag?.[0] == "imeta")?.[1] || '';
+
+    if (tags.includes('url:')) {
+      return tags.split('url:')[1].trim();
+    } else if (tags.includes('etc:')) {
+      return tags.split('etc:')[1].trim();
+    }
+    const urlMatch = tags.match(/(https?:\/\/[^\s]+\.(mp4|mov|avi|mkv|webm|gif))/i);
+    if (urlMatch) {
+      return urlMatch[0];
+    }
+    return tags
+  };
+
+  useEffect(() => {
+    const videoUrl = extractVideoURL(event);
+    console.log('videoUrl', videoUrl);
+    setMediaUrlState(videoUrl);
+    mediaUrl = videoUrl;
+  }, [event]);
+
+
+  const isVideo = mediaUrlState && mediaUrlState.match(/\.(mp4|webm|mov)$/i);
+
+  console.log('mediaUrl', mediaUrl);
+  console.log('mediaUrlState', mediaUrlState);
   return (
     <div className="short-event-card">
       <NostrEventCardBase {...props}>
         <div className="mt-2">
-          {mediaUrl && (
+          {mediaUrlState && (
             <div className={`media-container ${isVideo ? 'media-container--video' : ''}`}>
               {isVideo ? (
-                <video 
-                  src={mediaUrl}
+                <video
+                  src={mediaUrlState}
                   controls
                   loop
                   className="video-player"
                 />
               ) : (
-                <img 
-                  src={mediaUrl} 
+                <img
+                  src={mediaUrlState}
                   alt="Media content"
                   className="image-content"
                 />
               )}
             </div>
           )}
-          
+
           {caption && (
             <div className="text-gray-800 dark:text-gray-200 mb-3">
               {caption}
             </div>
           )}
-          
+
           <div className="flex items-center justify-between text-gray-500 dark:text-gray-400 text-sm">
             <div className="flex space-x-4">
               <button className="flex items-center hover:text-red-500">

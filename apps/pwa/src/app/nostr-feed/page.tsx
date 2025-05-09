@@ -1,95 +1,91 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FeedTabs } from '@/components/Nostr/feed';
+import { FeedTabs } from '@/components/Nostr/feed/FeedTabs';
 import '../../components/Nostr/feed/feed.scss';
 
 export default function NostrFeedPage() {
   const [mobileFiltersVisible, setMobileFiltersVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleMobileFilters = () => {
     setMobileFiltersVisible(!mobileFiltersVisible);
   };
 
   return (
-    <div className="nostr-feed__container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Nostr Feed
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400">
-          Explore content from the Nostr network
-        </p>
+    <div className="bg-white dark:bg-gray-900 min-h-screen">
+      <header className="bg-white dark:bg-gray-800 shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Nostr Feed
+          </h1>
+        </div>
       </header>
-      
-      <main>
-        {/* Mobile filters toggle button */}
-    
 
-        <div className="nostr-feed__layout">
-          {/* Desktop Sidebar - Filters */}
-          {/* <aside className="nostr-feed__sidebar hidden md:flex md:flex-col">
-            <div className="nostr-feed__filters">
-              <div className="nostr-feed__filters-container">
-                <h2 className="nostr-feed__filters-title">
-                  Filters
-                </h2>
-                
-                <div className="nostr-feed__filters-group">
-                  <div className="nostr-feed__filters-option">
-                    <input type="checkbox" id="following" defaultChecked />
-                    <label htmlFor="following">Following</label>
-                  </div>
-                  <div className="nostr-feed__filters-option">
-                    <input type="checkbox" id="trending" />
-                    <label htmlFor="trending">Trending</label>
-                  </div>
-                  <div className="nostr-feed__filters-option">
-                    <input type="checkbox" id="global" />
-                    <label htmlFor="global">Global</label>
-                  </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Search and Filters */}
+          <div className="md:w-1/4 space-y-4">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
+                Search
+              </h3>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="w-full p-2 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  placeholder="Search by keywords..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <div className="absolute left-3 top-2.5 text-gray-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
                 </div>
               </div>
             </div>
-            
-            <div className="nostr-feed__card">
-              <h2 className="nostr-feed__filters-title">
-                Suggestions
-              </h2>
-              
+
+            <div className="hidden md:block bg-white dark:bg-gray-800 shadow rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
+                Filters
+              </h3>
+              {/* Filter options would go here */}
               <div className="space-y-3">
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full mr-2"></div>
-                  <div>
-                    <p className="text-gray-900 dark:text-white font-medium">User 1</p>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">@user1</p>
-                  </div>
+                {/* Filter sections */}
+                <div>
+                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Date Range</h4>
+                  {/* Date range options */}
                 </div>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full mr-2"></div>
-                  <div>
-                    <p className="text-gray-900 dark:text-white font-medium">User 2</p>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">@user2</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full mr-2"></div>
-                  <div>
-                    <p className="text-gray-900 dark:text-white font-medium">User 3</p>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">@user3</p>
-                  </div>
+                <div>
+                  <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Authors</h4>
+                  {/* Author options */}
                 </div>
               </div>
             </div>
-          </aside> */}
+          </div>
           
           {/* Main Content */}
-          <div className="nostr-feed__main">
-            <FeedTabs />
+          <div className="md:w-3/4">
+            <FeedTabs searchQuery={searchQuery} />
           </div>
       
         </div>
       </main>
+
+      {/* Debug Panel */}
+      {/* <DebugPanel isOpen={false} /> */}
     </div>
   );
 } 

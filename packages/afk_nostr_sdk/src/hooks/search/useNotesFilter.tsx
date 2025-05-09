@@ -15,7 +15,6 @@ export type UseSearch = {
 
 export const useNotesFilter = (options?: UseSearch):UseInfiniteQueryResult<InfiniteData<any, any>, Error>=> {
   const {ndk} = useNostrContext();
-
   return useInfiniteQuery({
     initialPageParam: 0,
     queryKey: ['notesFilter', options?.authors, options?.search, options?.kind, options?.kinds, ndk],
