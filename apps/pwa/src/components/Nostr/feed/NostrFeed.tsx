@@ -59,7 +59,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     // Convert number[] to NDKKind[]
     kinds: kinds.map(k => k as unknown as NDK),
     limit,
-    // authors,
+    authors,
     // search: searchQuery
   });
   console.log("notesData", notesData);

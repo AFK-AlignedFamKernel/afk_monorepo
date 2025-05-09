@@ -54,7 +54,7 @@ export const useSearch = (options?: UseSearch):UseInfiniteQueryResult<any> => {
       // const notes = await ndk.fetchEvents({
       const notes = await ndk.fetchEvents({
         kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
-        // authors: options?.authors ?? [], # TODO fix issue feed if authors is empty
+        authors: options?.authors ?? [],
         search: options?.search,
         since: options?.since ? options?.since : sinceTimestamp,
         // content: options?.search,
