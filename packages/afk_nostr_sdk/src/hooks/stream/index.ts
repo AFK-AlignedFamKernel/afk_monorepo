@@ -1,4 +1,4 @@
-import { signSync } from '@noble/secp256k1';
+import { signAsync } from '@noble/secp256k1';
 import { NDKEvent, NDKFilter } from '@nostr-dev-kit/ndk';
 import { useInfiniteQuery, UseInfiniteQueryResult, useMutation, useQuery, UseMutationResult, InfiniteData } from '@tanstack/react-query';
 
@@ -21,7 +21,7 @@ const generateParticipantProof = async (kind: number, pubkey: string, identifier
   const { privateKey } = generateRandomKeypair();
   const tag = `${kind}:${pubkey}:${identifier}`;
   const hash = await hashTag(tag);
-  const signature = await signSync(hash, privateKey);
+  const signature = await signAsync(hash, privateKey);
   return signature;
 };
 

@@ -11,7 +11,7 @@ export const getRandomBytes = (length: number): Uint8Array => {
 
 export const generateRandomKeypair = () => {
   try {
-    const privateKey = await getRandomBytes(32);
+    const privateKey = getRandomBytes(32);
     const privateKeyHex = Buffer.from(privateKey).toString('hex');
 
     const publicKey = schnorr.getPublicKey(privateKeyHex);

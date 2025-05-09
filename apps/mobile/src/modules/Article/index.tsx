@@ -38,7 +38,7 @@ import { ContentWithClickableHashtags } from '../PostCard';
 import stylesheet from './styles';
 import { SliderImages } from './SliderImages';
 import MiniVideoPlayer from '../../components/VideoPlayer/MiniVideoPlayer';
-import { useQuoteNoteModal } from '@/hooks/modals/useQuoteNoteModal';
+import { useQuoteNoteModal } from '../../hooks/modals/useQuoteNoteModal';
 
 import Markdown, { MarkdownIt } from 'react-native-markdown-display';
 import WebView from 'react-native-webview';

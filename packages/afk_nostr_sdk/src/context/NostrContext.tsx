@@ -1,6 +1,6 @@
 import React from 'react';
 import NDK, {NDKNip07Signer, NDKNwc, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
-import NDKWallet, {NDKCashuWallet} from '@nostr-dev-kit/ndk-wallet';
+import {NDKCashuWallet, NDKWalletNWC} from '@nostr-dev-kit/ndk-wallet';
 import {createContext, useContext, useEffect, useState} from 'react';
 
 import {useSettingsStore} from '../store';
@@ -15,7 +15,7 @@ export type NostrContextType = {
   nip07Signer?: NDKNip07Signer;
   nwcNdk?: NDKNwc;
   ndkCashuWallet?: NDKCashuWallet;
-  ndkWallet?: NDKWallet;
+  ndkWallet?: NDKWalletNWC;
 };
 
 export const NostrContext = createContext<NostrContextType | null>(null);
@@ -37,7 +37,8 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
   const [ndkCashuWallet, setNDKCashuWallet] = useState<any>(
     new NDKCashuWallet(ndk as any),
   );
-  const [ndkWallet, setNDKWallet] = useState<any>(new NDKWallet(ndk as any));
+  const [ndkWallet, setNDKWallet] = useState<any>();
+  // const [ndkWallet, setNDKWallet] = useState<any>(new NDKWalletNWC(ndk as any));
 
   const [nwcNdk, setNWCNdk] = useState<NDKNwc | undefined>(undefined);
 
@@ -67,8 +68,8 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
     const ndkCashuWalletNew = new NDKCashuWallet(ndk as any);
     setNDKCashuWallet(ndkCashuWalletNew);
 
-    const ndkNewWallet = new NDKWallet(ndk as any);
-    setNDKWallet(ndkNewWallet);
+    // const ndkNewWallet = new NDKWalletNWC(ndk as any);
+    // setNDKWallet(ndkNewWallet);
   }, [privateKey, isExtension]);
 
   useEffect(() => {
