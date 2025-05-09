@@ -1,7 +1,8 @@
 'use client';
 
-import { FeedNostr } from '@/components/Nostr/feed/feed';
+import { FeedNostr } from '@/components/Nostr/feed';
 import React from 'react';
+import Link from 'next/link';
 
 // Use inline Layout to avoid type issues
 export default function NostrPage() {
@@ -13,14 +14,17 @@ export default function NostrPage() {
 
       <div className="card">
         <h2 className="text-xl font-semibold">AFK is coming soon</h2>
-        <FeedNostr />
-        {/* <p className="mb-2">AFK is a decentralized social network that allows you to connect with your friends and family.</p> */}
-        {/* <a 
-          href="/layout" 
-          className="sidebar-nav-item"
-        >
-          View Demo
-        </a> */}
+        <div className="mb-4">
+          <FeedNostr />
+        </div>
+        <div className="mt-6">
+          <Link 
+            href="/nostr-feed" 
+            className="inline-block px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          >
+            View Enhanced Nostr Feed
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -58,7 +58,6 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
         ? nip07Signer
         : undefined,
     });
-    console.log('test');
 
     newNdk.connect().then(() => {
       setNdk(newNdk);
