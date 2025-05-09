@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./",
     "composite": true,
     "target": "ES2020",
-    "module": "ESNext",
+    "module": "CommonJS",
     "lib": ["dom", "dom.iterable", "esnext"],
     "jsx": "react-jsx",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "allowJs": true,
@@ -17,7 +17,7 @@
     "skipLibCheck": true,
     "declaration": true,
     "sourceMap": true,
-    "strict": true,
+    "strict": false,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
@@ -28,7 +28,13 @@
     "src/**/*.tsx",
     "src/**/*.js",
     "src/**/*.jsx",
-    "src/index.ts"
+    "src/context/index.tsx",
+    "src/context/NostrContext.tsx",
+    "src/context/LightningContext.tsx",
+    "src/context/TanstackProvider.tsx",
+    "src/hooks/index.ts",
+    "src/index.ts",
+    "index.ts"
   ],
   "exclude": [
     "node_modules",

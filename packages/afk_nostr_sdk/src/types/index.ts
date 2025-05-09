@@ -49,4 +49,4 @@ export interface ICashuInvoice {
   expiry?:number;
 }
 
-export interface ProofInvoice extends Proof, ICashuInvoice {}
+export interface ProofInvoice extends Omit<Proof, 'id'>, ICashuInvoice {}

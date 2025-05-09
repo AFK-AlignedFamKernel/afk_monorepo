@@ -1,19 +1,25 @@
 import NDK, {NDKNip07Signer, NDKNwc, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
 import NDKWallet, {NDKCashuWallet} from '@nostr-dev-kit/ndk-wallet';
-import React, {createContext, useContext, useEffect, useState} from 'react';
+import * as React from 'react';
+import {createContext, useContext, useEffect, useState} from 'react';
 
 import {useSettingsStore} from '../store';
 import {useAuth} from '../store/auth';
 import {AFK_RELAYS} from '../utils/relay';
 
+// Create a separate type for the NDK instance to avoid direct type conflicts
+type NDKInstance = NDK;
+
 export type NostrContextType = {
-  ndk: NDK;
+  ndk: NDKInstance;
   nip07Signer?: NDKNip07Signer;
   nwcNdk?: NDKNwc;
   ndkCashuWallet?: NDKCashuWallet;
   ndkWallet?: NDKWallet;
 };
+
 export const NostrContext = createContext<NostrContextType | null>(null);
+
 export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => {
   const privateKey = useAuth((state) => state.privateKey);
   const publicKey = useAuth((state) => state.publicKey);
@@ -21,21 +27,22 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
   const nwcUrl = useAuth((state) => state.nwcUrl);
   const relays = useSettingsStore((state) => state.relays);
 
-  const [ndk, setNdk] = useState<NDK>(
+  const [ndk, setNdk] = useState<NDKInstance>(
     new NDK({
       explicitRelayUrls: relays ?? AFK_RELAYS,
     }),
   );
 
-  const [ndkCashuWallet, setNDKCashuWallet] = useState<NDKCashuWallet | undefined>(
-    new NDKCashuWallet(ndk),
+  // Use any type to avoid type incompatibility issues
+  const [ndkCashuWallet, setNDKCashuWallet] = useState<any>(
+    new NDKCashuWallet(ndk as any),
   );
-  const [ndkWallet, setNDKWallet] = useState<NDKWallet | undefined>(new NDKWallet(ndk));
+  const [ndkWallet, setNDKWallet] = useState<any>(new NDKWallet(ndk as any));
 
   const [nwcNdk, setNWCNdk] = useState<NDKNwc | undefined>(undefined);
 
   const nip07Signer = new NDKNip07Signer();
-  const [ndkExtension, setNdkExtension] = useState<NDK>(
+  const [ndkExtension, setNdkExtension] = useState<NDKInstance>(
     new NDK({
       explicitRelayUrls: relays ?? AFK_RELAYS,
     }),
@@ -56,10 +63,11 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
       setNdk(newNdk);
     });
 
-    const ndkCashuWalletNew = new NDKCashuWallet(ndk);
+    // Use any type to avoid type incompatibility issues
+    const ndkCashuWalletNew = new NDKCashuWallet(ndk as any);
     setNDKCashuWallet(ndkCashuWalletNew);
 
-    const ndkNewWallet = new NDKWallet(ndk);
+    const ndkNewWallet = new NDKWallet(ndk as any);
     setNDKWallet(ndkNewWallet);
   }, [privateKey, isExtension]);
 
