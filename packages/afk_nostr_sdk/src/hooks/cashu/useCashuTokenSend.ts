@@ -93,7 +93,7 @@ export const useCashuTokenSend = ():UseMutationResult<any, Error, any, any> => {
       // })
 
       const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
-      const nonce = generateRandomBytes();
+      const nonce = await generateRandomBytes();
       /** TODO verify NIP-44 */
       event.content = v2.encrypt(
         JSON.stringify(mint && proofs ? contentProps : content),

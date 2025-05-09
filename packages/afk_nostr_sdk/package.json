@@ -4,7 +4,8 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsup",
+    "build": "pnpm run build:ts && pnpm run build:types",
+    "build:ts": "tsup",
     "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",

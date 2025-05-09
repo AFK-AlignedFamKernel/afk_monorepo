@@ -1,6 +1,7 @@
 import React from 'react';
 import NDK, {NDKNip07Signer, NDKNwc, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
-import {NDKCashuWallet, NDKWalletNWC} from '@nostr-dev-kit/ndk-wallet';
+import {NDKCashuWallet} from '@nostr-dev-kit/ndk-wallet';
+import NDKWalletNWC from '@nostr-dev-kit/ndk-wallet';
 import {createContext, useContext, useEffect, useState} from 'react';
 
 import {useSettingsStore} from '../store';

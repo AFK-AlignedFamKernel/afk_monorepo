@@ -1,5 +1,5 @@
 import { Invoice } from '@getalby/lightning-tools';
-import NDK, { NDKEvent, NDKNwcResponse } from '@nostr-dev-kit/ndk';
+import NDK, { NDKEvent, NDKNwcResponse, NDKRpcResponse } from '@nostr-dev-kit/ndk';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { SendPaymentResponse } from '@webbtc/webln-types';
 
@@ -56,14 +56,8 @@ export const useSendZap = () => {
 
         //   // }
         // )
-        let payLnInvoice:
-          | NDKNwcResponse<{
-            preimage?: string;
-          }>
-          | undefined;
-        console.log('nwcNdk', nwcNdk);
 
-        let paymentResponse: undefined | SendPaymentResponse;
+
       } catch (e) {
         console.log('issue send zap', e);
       }
@@ -125,7 +119,7 @@ export const useSendZapReiceved = () => {
     mutationKey: ['useSendZapReiceved', ndk, nwcNdk],
     mutationFn: async ({ event, amount, lud16, options }: ISendZapNote) => {
       try {
-        const zap = await ndk.zap(event, amount, {});
+        const zap = await ndk?.zap(event, amount, {});
 
         console.log('zap', zap);
 
@@ -215,7 +209,7 @@ export const useConnectNWC = () => {
   return useMutation({
     mutationKey: ['useConnectNWC', ndk],
     mutationFn: async (nwcUrl: string) => {
-      const nwc = await ndk.nwc(nwcUrl);
+      const nwc = await ndk?.nwc(nwcUrl);
       setNWCUrl(nwcUrl);
 
       //Implement send Zap

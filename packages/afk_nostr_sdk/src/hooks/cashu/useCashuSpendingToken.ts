@@ -76,7 +76,7 @@ export const useCashuSpendingToken = ():UseMutationResult<any, Error, any, any> 
       // [ "e", "<event-id-of-spent-token>", "<relay-hint>", "created" ],
 
       const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
-      const nonce = generateRandomBytes();
+      const nonce = await generateRandomBytes();
       /** TODO verify NIP-44 */
       event.content = v2.encrypt(
         JSON.stringify(amount && unit && direction ? contentProps : content),

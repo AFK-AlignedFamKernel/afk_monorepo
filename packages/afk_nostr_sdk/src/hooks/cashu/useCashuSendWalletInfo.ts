@@ -151,7 +151,7 @@ export const useCashuSendWalletInfoManual = () => {
       const {publicKey: randomPublicKey, privateKey: randomPrivateKeyStr} = generateRandomKeypair();
       const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
       // Generate a random IV (initialization vector)
-      const nonce = generateRandomBytes();
+      const nonce = await generateRandomBytes();
 
       /** TODO verify NIP-44 */
       event.content = v2.encrypt(

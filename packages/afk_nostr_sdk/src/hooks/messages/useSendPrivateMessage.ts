@@ -73,7 +73,7 @@ export const useSendPrivateMessage = () => {
       const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
       console.log('conversationKey', conversationKey);
       // Generate a random IV (initialization vector)
-      const nonce = generateRandomBytes();
+      const nonce = await generateRandomBytes();
       /** Sealed event 13
        *
        * TO used in the Gift wrap content in a encrypted way

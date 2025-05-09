@@ -183,7 +183,7 @@ export const useRecordNutZapRedemption = () => {
     }) => {
       const signer = new NDKPrivateKeySigner(privateKey);
       const user = new NDKUser({pubkey: publicKey});
-      const content = await signer.nip44Encrypt(
+      const content = await signer?.nip44Encrypt(
         user,
         JSON.stringify([
           ['direction', 'in'],
