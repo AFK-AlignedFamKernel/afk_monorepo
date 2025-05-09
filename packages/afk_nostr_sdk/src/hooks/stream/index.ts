@@ -1,6 +1,6 @@
-import { signAsync } from '@noble/secp256k1';
+import { signSync } from '@noble/secp256k1';
 import { NDKEvent, NDKFilter } from '@nostr-dev-kit/ndk';
-import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, UseInfiniteQueryResult, useMutation, useQuery, UseMutationResult, InfiniteData } from '@tanstack/react-query';
 
 import { useNostrContext } from '../../context';
 import { useAuth } from '../../store';
@@ -21,8 +21,8 @@ const generateParticipantProof = async (kind: number, pubkey: string, identifier
   const { privateKey } = generateRandomKeypair();
   const tag = `${kind}:${pubkey}:${identifier}`;
   const hash = await hashTag(tag);
-  const signature = await signAsync(hash, privateKey);
-  return signature.toCompactHex();
+  const signature = await signSync(hash, privateKey);
+  return signature;
 };
 
 const useDeleteEvent = () => {
@@ -45,66 +45,136 @@ const useDeleteEvent = () => {
   });
 };
 
+// export const useCreateEvent = (): UseMutationResult<any> => {
+//   const { ndk } = useNostrContext();
+//   const { publicKey: currentUserPubkey } = useAuth();
+
+//   return useMutation({
+//     mutationKey: ['createLiveEvent', ndk],
+//     mutationFn: async (data: LiveEventData) => {
+//       const event = new NDKEvent(ndk);
+//       event.kind = LIVE_EVENT_KIND;
+//       const identifier = await generateRandomIdentifier();
+
+//       const tags: string[][] = [['d', identifier]];
+
+//       if (data.title) tags.push(['title', data.title]);
+//       if (data.summary) tags.push(['summary', data.summary]);
+//       if (data.imageUrl) tags.push(['image', data.imageUrl]);
+//       if (data.streamingUrl) tags.push(['streaming', data.streamingUrl]);
+//       if (data.recordingUrl) tags.push(['recording', data.recordingUrl]);
+//       if (data?.startsAt) tags.push(['starts', data.startsAt.toString()]);
+//       if (data?.endsAt) tags.push(['ends', data.endsAt.toString()]);
+//       tags.push(['status', data.status]);
+
+//       if (data.currentParticipants) {
+//         tags.push(['current_participants', data.currentParticipants.toString()]);
+//       }
+//       if (data.totalParticipants) {
+//         tags.push(['total_participants', data.totalParticipants.toString()]);
+//       }
+//       const proof = await generateParticipantProof(LIVE_EVENT_KIND, currentUserPubkey, identifier);
+
+//       data.participants.forEach((participant) => {
+//         tags.push([
+//           'p',
+//           participant.pubkey,
+//           participant.relay || '',
+//           participant.role,
+//           proof || '',
+//         ]);
+//       });
+
+//       if (data.relays?.length) {
+//         tags.push(['relays', ...data.relays]);
+//       }
+
+//       data.hashtags?.forEach((tag) => {
+//         tags.push(['t', tag]);
+//       });
+
+//       event.tags = tags;
+//       event.content = '';
+
+//       return event.publish();
+//     },
+//   });
+// };
+
 // Main hook for all live event operations
-export const useLiveActivity = (eventId?: string) => {
+export const useLiveActivity = (eventId?: string): {
+  addParticipant: UseMutationResult<any>;
+  removeParticipant: UseMutationResult<any>;
+  useSendLiveChatMessage: UseMutationResult<any>;
+  useGetLiveChat: (options?: UseLiveEventsOptions & { eventId: string }) => UseInfiniteQueryResult<InfiniteData<ParsedLiveChatMessage[], unknown>, Error>;
+  createEvent: UseMutationResult<any>;
+  updateEvent: UseMutationResult<any>;
+  deleteEvent: UseMutationResult<any>;
+  currentEvent: LiveEventData | null;
+} => {
   const updateEvent = useEditEvent();
   const deleteEvent = useDeleteEvent();
-  const { data: event } = useGetSingleEvent({ eventId });
+  const { data: event } = useGetSingleEvent({ eventId: eventId ?? "" });
   const { ndk } = useNostrContext();
   const { publicKey: currentUserPubkey } = useAuth();
 
-  // Create new live event
-  const createEvent = useMutation({
-    mutationKey: ['createLiveEvent', ndk],
-    mutationFn: async (data: LiveEventData) => {
-      const event = new NDKEvent(ndk);
-      event.kind = LIVE_EVENT_KIND;
-      const identifier = await generateRandomIdentifier();
 
-      const tags: string[][] = [['d', identifier]];
 
-      if (data.title) tags.push(['title', data.title]);
-      if (data.summary) tags.push(['summary', data.summary]);
-      if (data.imageUrl) tags.push(['image', data.imageUrl]);
-      if (data.streamingUrl) tags.push(['streaming', data.streamingUrl]);
-      if (data.recordingUrl) tags.push(['recording', data.recordingUrl]);
-      if (data?.startsAt) tags.push(['starts', data.startsAt.toString()]);
-      if (data?.endsAt) tags.push(['ends', data.endsAt.toString()]);
-      tags.push(['status', data.status]);
+  const useCreateEvent = (): UseMutationResult<any> => {
+    const { ndk } = useNostrContext();
+    const { publicKey: currentUserPubkey } = useAuth();
 
-      if (data.currentParticipants) {
-        tags.push(['current_participants', data.currentParticipants.toString()]);
-      }
-      if (data.totalParticipants) {
-        tags.push(['total_participants', data.totalParticipants.toString()]);
-      }
-      const proof = await generateParticipantProof(LIVE_EVENT_KIND, currentUserPubkey, identifier);
+    return useMutation({
+      mutationKey: ['createLiveEvent', ndk],
+      mutationFn: async (data: LiveEventData) => {
+        const event = new NDKEvent(ndk);
+        event.kind = LIVE_EVENT_KIND;
+        const identifier = await generateRandomIdentifier();
 
-      data.participants.forEach((participant) => {
-        tags.push([
-          'p',
-          participant.pubkey,
-          participant.relay || '',
-          participant.role,
-          proof || '',
-        ]);
-      });
+        const tags: string[][] = [['d', identifier]];
 
-      if (data.relays?.length) {
-        tags.push(['relays', ...data.relays]);
-      }
+        if (data.title) tags.push(['title', data.title]);
+        if (data.summary) tags.push(['summary', data.summary]);
+        if (data.imageUrl) tags.push(['image', data.imageUrl]);
+        if (data.streamingUrl) tags.push(['streaming', data.streamingUrl]);
+        if (data.recordingUrl) tags.push(['recording', data.recordingUrl]);
+        if (data?.startsAt) tags.push(['starts', data.startsAt.toString()]);
+        if (data?.endsAt) tags.push(['ends', data.endsAt.toString()]);
+        tags.push(['status', data.status]);
 
-      data.hashtags?.forEach((tag) => {
-        tags.push(['t', tag]);
-      });
+        if (data.currentParticipants) {
+          tags.push(['current_participants', data.currentParticipants.toString()]);
+        }
+        if (data.totalParticipants) {
+          tags.push(['total_participants', data.totalParticipants.toString()]);
+        }
+        const proof = await generateParticipantProof(LIVE_EVENT_KIND, currentUserPubkey, identifier);
 
-      event.tags = tags;
-      event.content = '';
+        data.participants.forEach((participant) => {
+          tags.push([
+            'p',
+            participant.pubkey,
+            participant.relay || '',
+            participant.role,
+            proof ? String(proof) : '',
+          ]);
+        });
 
-      return event.publish();
-    },
-  });
+        if (data.relays?.length) {
+          tags.push(['relays', ...data.relays]);
+        }
 
+        data.hashtags?.forEach((tag) => {
+          tags.push(['t', tag]);
+        });
+
+        event.tags = tags;
+        event.content = '';
+
+        return event.publish();
+      },
+    });
+  };
   // Manage participants
   const addParticipant = useMutation({
     mutationKey: ['addParticipant', eventId],
@@ -203,7 +273,7 @@ export const useLiveActivity = (eventId?: string) => {
 
         const filter: NDKFilter = {
           kinds: [LIVE_CHAT_KIND as any],
-          '#a': [`${LIVE_EVENT_KIND}:${options.eventId}`],
+          '#a': [`${LIVE_EVENT_KIND}:${options?.eventId}`],
           // '#a': [`${LIVE_EVENT_KIND}:${currentUserPubkey}:${options.eventId}`],
           until: pageParam || Math.round(Date.now() / 1000),
           limit: options?.limit || 20,
@@ -256,7 +326,7 @@ export const useLiveActivity = (eventId?: string) => {
 
   return {
     // Event CRUD operations
-    createEvent,
+    createEvent: useCreateEvent(),
     updateEvent,
     deleteEvent,
 
@@ -267,11 +337,14 @@ export const useLiveActivity = (eventId?: string) => {
     // Chat functionality
     useSendLiveChatMessage,
     useGetLiveChat,
+    
+    // Current event data
+    currentEvent: event || null,
   };
 };
 
 // Fetch multiple events with pagination
-export const useGetLiveEvents = (options?: UseLiveEventsOptions) => {
+export const useGetLiveEvents = (options?: UseLiveEventsOptions): UseInfiniteQueryResult<any> => {
   const { ndk } = useNostrContext();
   return useInfiniteQuery({
     initialPageParam: 0,

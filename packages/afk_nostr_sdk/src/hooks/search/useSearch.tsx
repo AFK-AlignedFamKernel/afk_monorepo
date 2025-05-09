@@ -1,5 +1,5 @@
 import { NDKKind } from '@nostr-dev-kit/ndk';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, UseInfiniteQueryResult } from '@tanstack/react-query';
 
 import { useNostrContext } from '../../context/NostrContext';
 
@@ -14,7 +14,7 @@ export type UseSearch = {
   since?: number;
 };
 
-export const useSearch = (options?: UseSearch) => {
+export const useSearch = (options?: UseSearch):UseInfiniteQueryResult<any> => {
   const { ndk } = useNostrContext();
 
   return useInfiniteQuery({

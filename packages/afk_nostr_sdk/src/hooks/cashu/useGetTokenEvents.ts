@@ -35,7 +35,7 @@ export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions) => {
       options?.proofIds,
       ndk,
     ],
-    getNextPageParam: (lastPage: NDKEvent[], allPages, lastPageParam) => {
+    getNextPageParam: (lastPage, allPages, lastPageParam) => {
       if (!lastPage?.length) return undefined;
 
       const pageParam = lastPage[lastPage.length - 1].created_at - 1;
@@ -114,9 +114,8 @@ export const useGetCashuTokenEvents = (options?: UseTokenEventsOptions) => {
           }
         }),
       );
-
       // Remove null values and return filtered events
-      return filteredEvents.filter((event): event is NDKEvent => event !== null);
+      return filteredEvents.filter((event): event is typeof event => event !== null);
     },
     placeholderData: {pages: [], pageParams: []},
   });

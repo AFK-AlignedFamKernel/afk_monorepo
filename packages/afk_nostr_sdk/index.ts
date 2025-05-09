@@ -1,7 +1,16 @@
+// Export all public APIs
 export * from './src/context';
 export * from './src/hooks';
 export * from './src/store';
-export * from './src/index';
+export * from './src/types';
+export * from './src/utils';
+export * from './src/storage';
+
+// Re-export key dependencies
+export { NDKEvent, NDKKind, NDKUser } from '@nostr-dev-kit/ndk';
+
+// Constants
+export { AFK_RELAYS } from './src/utils/relay';
 
 // import { NostrContext } from "./context/NostrContext";
 // import { TanstackProvider } from "./context/TanstackProvider";
