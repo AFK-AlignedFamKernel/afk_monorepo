@@ -14,13 +14,16 @@ module.exports = function (api) {
   return {
     presets: [['babel-preset-expo', { jsxImportSource: 'nativewind' }], 'nativewind/babel'],
     plugins: [
+      '@babel/plugin-proposal-export-namespace-from',
+      '@babel/plugin-syntax-import-meta',
+      'react-native-reanimated/plugin',
       [
         'module-resolver',
         {
           root: ['.'],
           alias: {
-            'afk_nostr_sdk': '../../packages/afk_nostr_sdk/src',
-            'common': '../../packages/common/src',
+            'afk_nostr_sdk': '../packages/afk_nostr_sdk/src',
+            'common': '../packages/common/src',
           },
           extensions: [
             '.ios.ts',
@@ -35,8 +38,6 @@ module.exports = function (api) {
           ],
         },
       ],
-      'react-native-reanimated/plugin',
-      "@babel/plugin-proposal-export-namespace-from",
     ],
   };
 };

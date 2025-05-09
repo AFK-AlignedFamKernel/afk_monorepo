@@ -12,6 +12,14 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
       type: 'sourceFile',
     };
   }
+  if (moduleName.startsWith('common')) {
+    // Logic to resolve the module name to a file path...
+    // NOTE: Throw an error if there is no resolution.
+    return {
+      filePath: '../packages/common/src',
+      type: 'sourceFile',
+    };
+  }
 
   // Ensure you call the default resolver.
   return context.resolveRequest(context, moduleName, platform);

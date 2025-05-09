@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { TanstackProvider, NostrProvider } from 'afk_nostr_sdk';
+import { LAUNCHPAD_ADDRESS } from 'common';
 import { PostDetail } from '@/screens/PostDetail';
 import Sidebar from '@/modules/Layout/sidebar';
 export default function RootLayout() {

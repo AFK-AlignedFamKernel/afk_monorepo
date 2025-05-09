@@ -3,22 +3,23 @@
   "compilerOptions": {
     "jsx": "react",
     "strict": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowJs": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "module": "ESNext",
     "paths": {
       "@/*": [
         "./*"
       ],
       "afk_nostr_sdk": [
-        "../../packages/afk_nostr_sdk/src"
+        "../packages/afk_nostr_sdk/src"
       ],
       "afk_nostr_sdk/*": [
-        "../../packages/afk_nostr_sdk/src/*"
+        "../packages/afk_nostr_sdk/src/*"
       ],
       "common": [
-        "../../packages/common/src"
+        "../packages/common/src"
       ]
     }
   },

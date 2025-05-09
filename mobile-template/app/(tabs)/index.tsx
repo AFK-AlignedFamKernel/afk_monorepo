@@ -25,7 +25,7 @@ export default function HomeScreen() {
 
       <ThemedText>Hello</ThemedText>
 
-      {/* <FeedComponent></FeedComponent> */}
+      <FeedComponent></FeedComponent>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>

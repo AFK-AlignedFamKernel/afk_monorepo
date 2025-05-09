@@ -110,7 +110,7 @@ export const FeedComponent: React.FC = () => {
       activeSortBy == SORT_OPTION_EVENT_NOSTR.TIME?.toString()
     ) {
       console.log('RECENT SORT',);
-      filtered = flattenedPages?.filter((item) =>
+      filtered = flattenedPages?.filter((item: { content: { toLowerCase: () => (string | undefined)[]; }; }) =>
         item?.content?.toLowerCase().includes(searchLower),
       )
         .sort((a, b) => {
