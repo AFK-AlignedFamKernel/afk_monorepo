@@ -21,6 +21,14 @@ config.resolver.sourceExts = [
 config.resolver.unstable_enablePackageExports = true;
 config.resolver.unstable_conditionNames = ['import', 'require', 'node', 'default'];
 
+// Ensure polyfills are loaded before any other modules
+config.serializer = {
+  ...config.serializer,
+  getPolyfills: () => [
+    require.resolve('./polyfills')
+  ]
+};
+
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName.startsWith('afk_nostr_sdk')) {
     // Logic to resolve the module name to a file path...

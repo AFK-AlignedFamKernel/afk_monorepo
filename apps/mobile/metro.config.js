@@ -37,7 +37,14 @@ config.resolver = {
   },
 };
 
-config.watchFolders = [workspaceRoot];
+// Only needed if you're using Metro's transformer directly
+config.transformer = {
+  ...config.transformer,
+  // babelTransformerPath: require.resolve('metro-react-native-babel-transformer'),
+};
+
+
+// config.watchFolders = [workspaceRoot];
 config.server = {
   ...config.server,
   usePolling: true,

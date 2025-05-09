@@ -13,4 +13,7 @@ if (typeof globalThis.import.meta === 'undefined') {
 // Expose as a global in case it's used directly
 if (typeof globalThis.importMeta === 'undefined') {
   globalThis.importMeta = globalThis.import.meta;
-} 
+}
+
+// Import babel helpers
+require('./utils/babelInteropHelper'); 
