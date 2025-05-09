@@ -3,7 +3,7 @@ import {createContext, useCallback, useMemo, useRef, useState} from 'react';
 
 import {TipModal} from '../modules/TipModal';
 import {TipSuccessModal, TipSuccessModalProps} from '../modules/TipSuccessModal';
-import { QuoteNostrModal } from 'src/modules/QuoteNote';
+import { QuoteNostrModal } from '../modules/QuoteNote';
 
 export type QuoteNostrModalContextType = {
   show: (event: NDKEvent) => void;

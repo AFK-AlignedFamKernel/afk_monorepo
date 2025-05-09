@@ -15,12 +15,12 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 
-import {CommentIcon, GiftIcon} from '../../../assets/icons';
-import {IconButton, Menu, Text} from '../../../components';
-import {useNostrAuth, useStyles, useTheme} from '../../../hooks';
-import {useTipModal} from '../../../hooks/modals';
-import {MainStackNavigationProps} from '../../../types';
-import {IChannelsMetadata} from '../../../types/channels';
+// import {CommentIcon, GiftIcon} from '@/assets/icons';
+import {Icon, IconButton, Menu, Text} from '@/components';
+import {useNostrAuth, useStyles, useTheme} from '@/hooks';
+import {useTipModal} from '@/hooks/modals';
+import {MainStackNavigationProps} from '@/types';
+import {IChannelsMetadata} from '@/types/channels';
 import {ChannelInfo} from './ChannelInfo';
 import stylesheet from './styles';
 export type PostProps = {
@@ -137,7 +137,8 @@ export const CardChannel: React.FC<PostProps> = ({asComment, event}) => {
         <View style={styles.footer}>
           <Pressable onPress={handleNavigateToPostDetails}>
             <View style={styles.footerComments}>
-              <CommentIcon height={15} color={theme.colors.textPrimary} />
+              <Icon name="comment" size={15} color={theme.colors.textPrimary} />
+              {/* <CommentIcon height={15} color={theme.colors.textPrimary} /> */}
 
               <Text color="textSecondary" fontSize={11} lineHeight={16}>
                 {comments.data?.pages.flat().length}
@@ -151,7 +152,8 @@ export const CardChannel: React.FC<PostProps> = ({asComment, event}) => {
               showTipModal(event);
             }}
           >
-            <GiftIcon height={15} color={theme.colors.textPrimary} />
+            <Icon name="gift" size={15} color={theme.colors.textPrimary} />
+            {/* <GiftIcon height={15} color={theme.colors.textPrimary} /> */}
           </Pressable>
         </View>
       )}

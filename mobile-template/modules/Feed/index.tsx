@@ -3,21 +3,20 @@ import { useAllProfiles, useNostrContext, useProfile, useSearch } from 'afk_nost
 import { useAuth, useContacts } from 'afk_nostr_sdk';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, View, Text } from 'react-native';
-
-import { AddPostIcon } from '../../assets/icons';
+// import { AddPostIcon } from '../../assets/icons';
 import { BubbleUser } from '../../components/BubbleUser';
-import SearchComponent from '../../components/search';
+import SearchComponent from '@/components/search';
 import { useNostrAuth, useStyles, useTheme } from '../../hooks';
-import { ChannelComponent } from '../ChannelCard';
-import { PostCard } from '../PostCard';
-import { VideoPostCard } from '../VideoPostCard';
+import { ChannelComponent } from '@/modules/ChannelCard';
+import { PostCard } from '@/modules/PostCard';
+import { VideoPostCard } from '@/modules/VideoPostCard';
 import { FeedScreenProps, MainStackNavigationProps } from '../../types';
 import stylesheet from './styles';
 import { SORT_OPTIONS, SORT_OPTION_EVENT_NOSTR } from '../../types/nostr';
-import { RenderEventCard } from '../Studio';
-import { Button } from '../../components';
+import { RenderEventCard } from '@/modules/Studio';
+import { Button } from '@/components';
 import { useNavigation } from '@react-navigation/native';
-import { ArticleCard } from '../ArticleCard';
+import { ArticleCard } from '@/modules/ArticleCard';
 
 export const FeedComponent: React.FC = () => {
 
@@ -494,12 +493,12 @@ export const FeedComponent: React.FC = () => {
         }}
       // onEndReached={() => notes.fetchNextPage()}
       />
-
       <Pressable
         style={styles.createPostButton}
         onPress={() => navigation.navigate('MainStack', { screen: 'CreateForm' })}
       >
-        <AddPostIcon width={72} height={72} color={theme.colors.primary} />
+        <Icon name="plus" size={24} color={theme.colors.primary} />
+        {/* <AddPostIcon width={72} height={72} color={theme.colors.primary} /> */}
       </Pressable>
     </View>
   );

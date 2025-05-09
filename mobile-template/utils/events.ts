@@ -1,8 +1,8 @@
 import {getChecksumAddress} from 'starknet';
 
-import {CHAIN_ID} from '../constants/env';
-import {EventKey, EventKeyForKeysMarketplace} from '../constants/misc';
-import {TOKEN_ADDRESSES} from '../constants/tokens';
+import {CHAIN_ID} from '@/constants/env';
+import {EventKey, EventKeyForKeysMarketplace} from '@/constants/misc';
+import {TOKEN_ADDRESSES} from '@/constants/tokens';
 
 export type ContractEvent = {
   from_address: string;

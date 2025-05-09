@@ -8,7 +8,7 @@ import { TipSuccessModalProps } from '../TipSuccessModal';
 import { FormQuoteNostr } from './note/form';
 import stylesheet from './styles';
 import { useRepost } from 'afk_nostr_sdk';
-import { useToast } from 'src/hooks/modals';
+import { useToast } from '@/hooks/modals';
 
 export type TipModal = Modalize;
 

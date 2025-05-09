@@ -46,6 +46,7 @@
     "@babel/core": "^7.20.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
     "@prisma/client": "^5.18.0",
+    "fbjs": "^3.0.5",
     "prettier": "^2.8.8",
     "prisma": "5.18.0",
     "tsup": "^8.0.2",

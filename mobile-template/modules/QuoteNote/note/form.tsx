@@ -8,7 +8,7 @@ import { useStyles } from '../../../hooks';
 import { useToast } from '../../../hooks/modals';
 import { TipSuccessModalProps } from '../../TipSuccessModal';
 import stylesheet from './styles';
-import { useQuoteNoteModal } from 'src/hooks/modals/useQuoteNoteModal';
+import { useQuoteNoteModal } from '@/hooks/modals/useQuoteNoteModal';
 import { useQueryClient } from '@tanstack/react-query';
 
 export type QuoteNostrModal = Modalize;

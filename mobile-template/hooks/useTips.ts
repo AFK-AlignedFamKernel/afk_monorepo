@@ -3,11 +3,12 @@ import {useQuery} from '@tanstack/react-query';
 import {useAuth} from 'afk_nostr_sdk';
 import {uint256} from 'starknet';
 
-import {ESCROW_ADDRESSES} from '../constants/contracts';
-import {CHAIN_ID} from '../constants/env';
-import {EventKey} from '../constants/misc';
-import {parseClaimEvent, parseDepositEvent} from '../utils/events';
+import {CHAIN_ID} from '@/constants/env';
+import {EventKey} from '@/constants/misc';
+import {parseClaimEvent, parseDepositEvent} from '@/utils/events';
 import {useRpcProvider} from './useRpcProvider';
+// import {ESCROW_ADDRESSES} from 'common';
+import {ESCROW_ADDRESSES} from '@/constants/contracts';
 
 export const useTips = () => {
   const provider = useRpcProvider();

@@ -17,7 +17,7 @@ import { useCashuContext } from '../providers/CashuProvider';
 import { useToast } from './modals';
 import { useGetTokensByProofs } from './useGetTokensByProof';
 import { useMintStorage, useProofsStorage, useTransactionsStorage, useWalletIdStorage } from './useStorageState';
-import { proofsByMintApi, settingsApi } from 'src/utils/database';
+import { proofsByMintApi, settingsApi } from '@/utils/database';
 
 export const usePayment = () => {
   const { showToast } = useToast();

@@ -8,12 +8,12 @@ import { useStyles } from '../../../hooks';
 import { useToast } from '../../../hooks/modals';
 import { TipSuccessModalProps } from '../../TipSuccessModal';
 import stylesheet from './styles';
-import { usePayment } from 'src/hooks/usePayment';
+import { usePayment } from '@/hooks/usePayment';
 import { canUseBiometricAuthentication } from 'expo-secure-store';
-import { retrieveAndDecryptCashuMnemonic, retrievePassword } from 'src/utils/storage';
+import { retrieveAndDecryptCashuMnemonic, retrievePassword } from '@/utils/storage';
 import { CashuMint, CheckStateEnum } from '@cashu/cashu-ts';
-import { mintsApi, proofsByMintApi, proofsSpentsByMintApi, settingsApi } from 'src/utils/database';
-import { useActiveMintStorage } from 'src/hooks/useDexieStorage';
+import { mintsApi, proofsByMintApi, proofsSpentsByMintApi, settingsApi } from '@/utils/database';
+import { useActiveMintStorage } from '@/hooks/useDexieStorage';
 
 export type TipModalLightning = Modalize;
 
