@@ -1,11 +1,12 @@
 'use client';
 
-import { FeedNostr } from '@/components/Nostr/feed';
+  import { FeedTabs } from '@/components/Nostr/feed/FeedTabs';
 import React from 'react';
 import Link from 'next/link';
 
 // Use inline Layout to avoid type issues
 export default function NostrPage() {
+  const [searchQuery, setSearchQuery] = React.useState<string | undefined>(undefined);
   return (
     <div className="content">
       <h1 className="text-2xl font-bold mb-4">Welcome to AFK</h1>
@@ -15,7 +16,7 @@ export default function NostrPage() {
       <div className="card">
         <h2 className="text-xl font-semibold">AFK is coming soon</h2>
         <div className="mb-4">
-          <FeedNostr />
+          <FeedTabs />
         </div>
         <div className="mt-6">
           <Link 

@@ -13,19 +13,19 @@ export default function NostrFeedPage() {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 min-h-screen">
-      <header className="bg-white dark:bg-gray-800 shadow">
+    <div className="min-h-screen">
+      {/* <header className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Nostr Feed
           </h1>
         </div>
-      </header>
+      </header> */}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row gap-6">
           {/* Search and Filters */}
-          <div className="md:w-1/4 space-y-4">
+          {/* <div className="md:w-1/4 space-y-4">
             <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
               <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
                 Search
@@ -61,20 +61,16 @@ export default function NostrFeedPage() {
               <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
                 Filters
               </h3>
-              {/* Filter options would go here */}
               <div className="space-y-3">
-                {/* Filter sections */}
                 <div>
                   <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Date Range</h4>
-                  {/* Date range options */}
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Authors</h4>
-                  {/* Author options */}
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
           
           {/* Main Content */}
           <div className="md:w-3/4">
