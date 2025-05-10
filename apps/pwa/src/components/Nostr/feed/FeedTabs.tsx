@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { NostrEventKind } from '@/types/nostr';
 import NostrFeed from './NostrFeed';
 import './feed.scss';
+import { NDKKind } from '@nostr-dev-kit/ndk';
 
 interface Tab {
   id: string;
@@ -71,6 +72,12 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
         31000, // VerticalVideo
         31001, // HorizontalVideo
         34236,
+        NDKKind.ShortVideo,
+        // NDKKind.Image,
+        NDKKind.VerticalVideo,
+        NDKKind.HorizontalVideo,
+        NDKKind.Video,
+
       ],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

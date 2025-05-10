@@ -14,7 +14,7 @@ export type UseSearch = {
   since?: number;
 };
 
-export const useSearch = (options?: UseSearch):UseInfiniteQueryResult<any> => {
+export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
   const { ndk } = useNostrContext();
 
   return useInfiniteQuery({
@@ -43,9 +43,24 @@ export const useSearch = (options?: UseSearch):UseInfiniteQueryResult<any> => {
       // const sinceTimestamp = Math.round(Date.now() / 1000) - 24 * 60 * 60;
 
       // Calculate the 'since' timestamp
+
+      let basicTimestamp = Math.round(Date.now() / 1000) - 1 * 60 * 60;
+
+      if (options?.since) {
+        basicTimestamp = options?.since
+      }
+
+      if (options?.kinds?.includes(NDKKind.ShortVideo) || options?.kinds?.includes(NDKKind.Image) || options?.kinds?.includes(NDKKind.VerticalVideo)
+        || options?.kinds?.includes(NDKKind.HorizontalVideo)
+        || options?.kinds?.includes(NDKKind.Article)
+        || options?.kinds?.includes(NDKKind.Video)
+      ) {
+        basicTimestamp = Math.round(Date.now() / 1000) - 1 * 60 * 60 * 24 * 3;
+      }
+
       const sinceTimestamp = pageParam
         ? pageParam - 1 * 60 * 60 :// Restart from pageParam minus 1 hour
-          Math.round(Date.now() / 1000) - 1 * 60 * 60; // Start from 1 hour ago
+        basicTimestamp; // Start from 1 hour ago
 
       // const sinceTimestamp = pageParam
       // ? pageParam - 24 * 60 * 60 :// Restart from pageParam minus 24 hours
