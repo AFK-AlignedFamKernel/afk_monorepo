@@ -9,6 +9,7 @@ import { settingsStore, NostrProvider, TanstackProvider, useNostrContext } from 
 
 import StarknetProvider from '@/context/StarknetProvider';
 import { AFK_RELAYS } from 'common';
+import { UIProvider } from '@/providers/UIProvider';
 
 
 // Custom wrapper for NostrProvider that ensures relays are configured
@@ -63,9 +64,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <TanstackProvider>
           <RelayInitializer>
             <NostrProvider>
-              <NDKConnector>
-                {children}
-              </NDKConnector>
+              <UIProvider>
+                <NDKConnector>
+                  {children}
+                </NDKConnector>
+              </UIProvider>
             </NostrProvider>
           </RelayInitializer>
         </TanstackProvider>

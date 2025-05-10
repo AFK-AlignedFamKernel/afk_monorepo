@@ -8,6 +8,7 @@ import { FeedTabs } from '@/components/Nostr/feed'
 import { useAuth } from 'afk_nostr_sdk'
 import { NostrKeyManager } from 'afk_nostr_sdk'
 import { NostrProfileEditForm } from '@/components/Nostr/profile/edit-form'
+import { useUIStore } from '@/store/uiStore'
 export default function MyNostrProfilePage() {
   const { publicKey, setAuth } = useAuth()
   const { ndk } = useNostrContext()
@@ -15,6 +16,7 @@ export default function MyNostrProfilePage() {
     publicKey: publicKey as string,
   })
   const [isEditOpen, setIsEditOpen] = useState(false)
+  const { showToast, showModal } = useUIStore()
   
 
   // console.log('profile', profile)
@@ -57,6 +59,7 @@ export default function MyNostrProfilePage() {
   //   return <div>Profile not found</div>
   // }
 
+
   return (
     <div className="p-4">
 
@@ -69,7 +72,10 @@ export default function MyNostrProfilePage() {
       {profile &&
         <>
           <ProfileHeader profile={profile} />
-          <button onClick={() => setIsEditOpen(!isEditOpen)}>{isEditOpen ? 'Close' : 'Edit'} Profile</button>
+          <button onClick={() => {
+            setIsEditOpen(!isEditOpen)
+            showModal(<NostrProfileEditForm />)
+          }}>{isEditOpen ? 'Close' : 'Edit'} Profile</button>
           {isEditOpen && <NostrProfileEditForm />}
         </>
       }

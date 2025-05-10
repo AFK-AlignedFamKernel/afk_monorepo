@@ -10,18 +10,18 @@ export const NostrProfileEditForm = () => {
         publicKey: publicKey as string,
     })
     const [formData, setFormData] = useState({
-        username: String(profile?.username) || '',
-        name: String(profile?.name) || '',
-        about: String(profile?.about) || '',
-        picture: String(profile?.picture) || '',
-        banner: String(profile?.banner) || '',
-        nip05: String(profile?.nip05) || '',
-        lud16: String(profile?.lud16) || '',
-        telegram: profile?.telegram || '',
-        github: profile?.github || '',
-        twitter: profile?.twitter || '',
-        lud06: profile?.lud06 || '',
-        tags: profile?.tags || []
+        username: profile?.username ? String(profile?.username) : '',
+        name: profile?.name ? String(profile?.name) : '',
+        about: profile?.about ? String(profile?.about) : '',
+        picture: profile?.picture ? String(profile?.picture) : '',
+        banner: profile?.banner ? String(profile?.banner) : '',
+        nip05: profile?.nip05 ? String(profile?.nip05) : '',
+        lud16: profile?.lud16 ? String(profile?.lud16) : '',
+        telegram: profile?.telegram ?? '',
+        github: profile?.github ?? '',
+        twitter: profile?.twitter ?? '',
+        lud06: profile?.lud06 ?? '',
+        tags: profile?.tags ?? []
     })
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -73,7 +73,7 @@ export const NostrProfileEditForm = () => {
                     type="text"
                     id="username"
                     name="username"
-                    value={formData.username}
+                    value={formData.username ?? ''}
                     onChange={handleChange}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400"
                 />
@@ -87,7 +87,7 @@ export const NostrProfileEditForm = () => {
                     type="text"
                     id="name"
                     name="name"
-                    value={formData.name}
+                    value={formData.name ?? ''}
                     onChange={handleChange}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400"
                 />
