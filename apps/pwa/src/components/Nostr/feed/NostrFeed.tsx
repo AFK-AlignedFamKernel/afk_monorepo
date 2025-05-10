@@ -62,12 +62,12 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     authors,
     // search: searchQuery
   });
-  console.log("notesData", notesData);
-  console.log("isLoading", isLoading);
-  console.log("isError", isError);
-  console.log("error", error);
-  console.log("hasNextPage", hasNextPage);
-  console.log("refetch", refetch);
+  // console.log("notesData", notesData);
+  // console.log("isLoading", isLoading);
+  // console.log("isError", isError);
+  // console.log("error", error);
+  // console.log("hasNextPage", hasNextPage);
+  // console.log("refetch", refetch);
 
   // Force refetch when parameters change
   useEffect(() => {
@@ -76,11 +76,11 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   // Log query parameters and results
   useEffect(() => {
-    console.log('Query parameters:', { kinds, limit, authors, searchQuery, since, until });
-    console.log('Notes data:', notesData);
-    console.log('isLoading:', isLoading);
-    console.log('isError:', isError);
-    console.log('error:', error);
+    // console.log('Query parameters:', { kinds, limit, authors, searchQuery, since, until });
+    // console.log('Notes data:', notesData);
+    // console.log('isLoading:', isLoading);
+    // console.log('isError:', isError);
+    // console.log('error:', error);
   }, [notesData, isLoading, isError, error, kinds, limit, authors, searchQuery, since, until]);
 
 

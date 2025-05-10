@@ -210,6 +210,23 @@ const Layout = ({ children }: LayoutProps) => {
               Social
             </Link>
 
+            <Link href="/profile" className="sidebar-nav-item" onClick={closeSidebar}>
+              <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect
+                  x="3"
+                  y="3"
+                  width="18"
+                  height="18"
+                  rx="2"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Profile
+            </Link>
+
             <Link href="/nostr/login" className="sidebar-nav-item" onClick={closeSidebar}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect

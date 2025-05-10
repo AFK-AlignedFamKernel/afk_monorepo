@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useNostrContext, settingsStore, authStore, NostrKeyManager } from 'afk_nostr_sdk';
 import { generateRandomKeypair } from '../../../../../../packages/afk_nostr_sdk/src/utils/keypair';
-
+import * as bip39 from 'bip39';
 export default function NostrLoginPage() {
     const [passkey, setPasskey] = useState(false);
     const [error, setError] = useState('');
@@ -34,6 +34,15 @@ export default function NostrLoginPage() {
 
             window.localStorage.setItem('privateKey', privateKey)
             window.localStorage.setItem('publicKey', publicKey)
+            const mnemonic = bip39.generateMnemonic(128, undefined, bip39.wordlists['english']);
+
+            const seedCashu = bip39.mnemonicToSeedSync(mnemonic).toString('hex');
+
+            // Nostr key manager on storage
+            NostrKeyManager?.setNostrWalletConnected({ secretKey: privateKey, publicKey, mnemonic: '', seed: seedCashu });
+            NostrKeyManager?.setAccountConnected({ secretKey: privateKey, publicKey, mnemonic: '', seed: seedCashu });
+            NostrKeyManager?.setNostrWalletConnectedStorage({ secretKey: privateKey, publicKey, mnemonic: '', seed: seedCashu });
+
 
             // Redirect to home page on success
             //   router.push('/');

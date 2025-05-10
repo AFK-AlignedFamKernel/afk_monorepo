@@ -5,7 +5,7 @@ import * as Bip39 from 'bip39';
 import { generateRandomKeypair } from './keypair';
 import { NDKUserProfile } from '@nostr-dev-kit/ndk';
 
-type NostrWallet = {
+export type NostrWallet = {
   secretKey: string;
   privateKey?: string;
   publicKey: string;
