@@ -7,10 +7,16 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useSearch } from 'afk_nostr_sdk';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-
+  const notesForYou = useSearch({
+    kinds: [1],
+    limit: 10,
+    // authors: [...contacts?.data?.map((c) => c) || [], ...followersPubkey]
+  });
+  console.log("notesForYou", notesForYou);
   return (
     <Tabs
       screenOptions={{

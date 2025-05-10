@@ -1,35 +1,17 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "jsx": "react",
     "strict": true,
-    "moduleResolution": "bundler",
-    "allowJs": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "module": "ESNext",
     "paths": {
       "@/*": [
         "./*"
-      ],
-      "afk_nostr_sdk": [
-        "../packages/afk_nostr_sdk/src"
-      ],
-      "afk_nostr_sdk/*": [
-        "../packages/afk_nostr_sdk/src/*"
-      ],
-      "common": [
-        "../packages/common/src"
       ]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    "**/*.js",
-    "**/*.jsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "nativewind-env.d.ts"
+    "expo-env.d.ts"
   ]
 }

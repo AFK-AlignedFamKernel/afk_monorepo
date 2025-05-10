@@ -6,8 +6,6 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { FeedComponent } from '@/modules/Feed';
-import React from 'react';
-
 export default function HomeScreen() {
   return (
     <ParallaxScrollView
@@ -22,10 +20,8 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
-
-      <ThemedText>Hello</ThemedText>
-
-      <FeedComponent></FeedComponent>
+      <ThemedView style={styles.stepContainer}> LFG</ThemedView>
+      {/* <FeedComponent /> */}
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>
