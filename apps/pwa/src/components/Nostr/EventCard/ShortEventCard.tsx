@@ -4,10 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { NostrShortEventProps } from '@/types/nostr';
 import NostrEventCardBase from './NostrEventCardBase';
 import '../feed/feed.scss';
-import { NostrEvent } from '@nostr-dev-kit/ndk';
+import { NostrEvent, NDKUserProfile, NDKEvent } from '@nostr-dev-kit/ndk';
 
-export const ShortEventCard: React.FC<NostrShortEventProps> = (props) => {
-  const { event } = props;
+
+interface ShortEventCardProps extends NostrShortEventProps {  
+  event: NDKEvent;
+  profile?: NDKUserProfile;
+  isReadMore?: boolean;
+}
+
+export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
+  const { event, profile, isReadMore } = props;
 
   console.log('event', event);
 
