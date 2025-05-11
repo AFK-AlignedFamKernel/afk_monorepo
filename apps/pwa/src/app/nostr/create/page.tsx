@@ -11,7 +11,7 @@ export default function CreateNostrEvent() {
   const [content, setContent] = useState('');
   const sendNote = useSendNote();
   const { publicKey } = useAuth();
-
+  
   const { showToast } = useUIStore();
   const handleSubmit = async (data: NostrFormData) => {
     

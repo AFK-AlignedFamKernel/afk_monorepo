@@ -1,0 +1,110 @@
+// Base button styles
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  outline: none;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+// Primary button
+.btn-primary {
+  background-color: var(--primary-color, #3b82f6);
+  color: white;
+  
+  &:hover {
+    background-color: darken(#3b82f6, 10%);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+}
+
+// Secondary button
+.btn-secondary {
+  background-color: var(--secondary-color, #64748b);
+  color: white;
+
+  &:hover {
+    background-color: darken(#64748b, 10%);
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+  }
+}
+
+// Gradient buttons
+.btn-gradient-blue {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  
+  &:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+  }
+}
+
+.btn-gradient-purple {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: white;
+  
+  &:hover {
+    background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
+    box-shadow: 0 4px 15px rgba(109, 40, 217, 0.4);
+  }
+}
+
+// Gradient buttons
+.btn-gradient-green {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    
+    &:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
+    }
+  }
+
+// Animated button
+.btn-animated {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
+    );
+    transition: all 0.6s;
+  }
+  
+  &:hover::before {
+    left: 100%;
+  }
+}
+
+// Disabled state
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  
+  &:hover {
+    box-shadow: none;
+    transform: none;
+  }
+}
