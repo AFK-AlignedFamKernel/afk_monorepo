@@ -7,14 +7,23 @@ import { generateRandomKeypair } from '../../../../../../packages/afk_nostr_sdk/
 import * as bip39 from 'bip39';
 import { useUIStore } from '@/store/uiStore';
 import LoginNostrComponent from '@/components/Nostr/login/LoginNostrComponent';
+import { ProfileManagement } from '@/components/Nostr/profile/profile-management';
+import NostrCreateAccountComponent from '@/components/Nostr/login/NostrCreateAccount';
 export default function NostrLoginPage() {
     const [error, setError] = useState('');
 
+    const [type, setType] = useState<'login' | 'register'>('login');
 
     return (
         <div className="">
-            <LoginNostrComponent />
-            
+
+            <NostrCreateAccountComponent />
+
+            <ProfileManagement />
+
+            <button onClick={() => setType(type == "login" ? "register" : "login")}>
+                {type == "login" ? "Create Account" : "Login"}
+            </button>
         </div>
     );
 }

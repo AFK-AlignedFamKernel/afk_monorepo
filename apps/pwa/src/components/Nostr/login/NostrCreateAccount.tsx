@@ -7,7 +7,7 @@ import { generateRandomKeypair } from '../../../../../../packages/afk_nostr_sdk/
 import * as bip39 from 'bip39';
 import { useUIStore } from '@/store/uiStore';
 
-export default function LoginNostrComponent() {
+export default function NostrCreateAccountComponent() {
     const [passkey, setPasskey] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
@@ -54,7 +54,7 @@ export default function LoginNostrComponent() {
 
 
             showToast({
-                message: 'Login successful',
+                message: 'Account created successfully',
                 type: 'success',
             })
             // Redirect to home page on success

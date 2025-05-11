@@ -10,10 +10,12 @@ interface UIState {
     isVisible: boolean;
     message: string;
     type: ToastType;
+    description: string;
+    duration?:number;
   };
   showModal: (content: React.ReactNode) => void;
   hideModal: () => void;
-  showToast: ({message, type}: {message: string, type?: ToastType}) => void;
+  showToast: ({message, type, description, duration}: {message: string, type?: ToastType, description?: string, duration?:number}) => void;
   hideToast: () => void;
 }
 
@@ -26,6 +28,8 @@ export const useUIStore = create<UIState>((set) => ({
     isVisible: false,
     message: '',
     type: 'info',
+    description: '',
+    duration: 3000,
   },
   showModal: (content) =>
     set({
@@ -41,12 +45,14 @@ export const useUIStore = create<UIState>((set) => ({
         content: null,
       },
     }),
-  showToast: ({message, type = 'info'}) =>
+  showToast: ({message, type = 'info', description = '', duration = 3000}) =>
     set({
       toast: {
         isVisible: true,
         message,
         type,
+        description,  
+        duration,
       },
     }),
   hideToast: () =>
@@ -55,6 +61,8 @@ export const useUIStore = create<UIState>((set) => ({
         isVisible: false,
         message: '',
         type: 'info',
+        description: '',
+        duration: 3000,
       },
     }),
 })); 

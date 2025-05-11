@@ -62,7 +62,8 @@ $header-height: 60px;
   
   // System colors
   --background: var(--shade-50);
-  --foreground: #ffffff;
+  // --foreground: #ffffff;
+  --foreground: var(--shade-900);
   --border: var(--shade-200);
   --sidebar-bg: var(--shade-50);
   --header-bg: var(--shade-50);
@@ -146,7 +147,8 @@ span {
 }
 
 p {
-  color: var(--foreground);
+  // color: var(--foreground);
+  color: var(--contrast-900);
   margin-bottom: 1rem;
   line-height: 1.5;
 }

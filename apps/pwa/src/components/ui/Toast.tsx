@@ -5,9 +5,10 @@ interface ToastProps {
   title: string;
   type: 'success' | 'error' | 'info';
   onClose: () => void;
+  description?: string;
 }
 
-export const Toast = ({ title, type, onClose }: ToastProps) => {
+export const Toast = ({ title, type, onClose, description }: ToastProps) => {
   const colors = {
     success: 'bg-green-50 text-green-800 border-green-200',
     error: 'bg-red-50 text-red-800 border-red-200',
@@ -21,6 +22,9 @@ export const Toast = ({ title, type, onClose }: ToastProps) => {
           <div className="flex-1">
             <p className="text-sm font-medium">{title}</p>
           </div>
+          {description && (
+            <div className="flex-1">  {description}</div>
+          )}
           <div className="ml-4 flex flex-shrink-0">
             <button
               type="button"

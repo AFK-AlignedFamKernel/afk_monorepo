@@ -23,6 +23,7 @@ export class NostrKeyManager {
   private static IS_CASHU_WALLET_SETUP = 'is_cashu_wallet_setup';
   private static NOSTR_WALLET_CONNECTED = 'nostr_wallet_connected';
   private static WALLET_CONNECTED = 'wallet_connected';
+  private static ALL_NOSTR_ACCOUNTS = 'all_nostr_accounts';
 
 
   private static NOSTR_WALLETS: {
@@ -69,6 +70,18 @@ export class NostrKeyManager {
       `${NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX}`,
       JSON.stringify(nostrWallet),
     );
+
+    const allNostrAccounts = NostrKeyManager.getAllNostrAccountsFromStorage();
+    allNostrAccounts.push(nostrWallet);
+    console.log("allNostrAccounts", allNostrAccounts);
+    localStorage.setItem(NostrKeyManager.ALL_NOSTR_ACCOUNTS, JSON.stringify(allNostrAccounts));
+  }
+
+  static getAllNostrAccountsFromStorage() {
+    const allNostrAccounts = localStorage.getItem(NostrKeyManager.ALL_NOSTR_ACCOUNTS);
+
+    if (!allNostrAccounts) return [];
+    return JSON.parse(allNostrAccounts);
   }
 
   static getNostrAccountsFromStorage() {
