@@ -69,6 +69,35 @@ $header-height: 60px;
   --card-bg: var(--shade-100);
 }
 
+// Contrast colors (light on dark, dark on light)
+:root {
+  --contrast-50: #ffffff;
+  --contrast-100: #f8fafc;
+  --contrast-200: #f1f5f9;
+  --contrast-300: #e2e8f0;
+  --contrast-400: #cbd5e1;
+  --contrast-500: #94a3b8;
+  --contrast-600: #64748b;
+  --contrast-700: #475569;
+  --contrast-800: #1e293b;
+  --contrast-900: #0f172a;
+  --contrast-950: #020617;
+}
+
+.dark-mode {
+  --contrast-50: #020617;
+  --contrast-100: #0f172a;
+  --contrast-200: #1e293b;
+  --contrast-300: #475569;
+  --contrast-400: #64748b;
+  --contrast-500: #94a3b8;
+  --contrast-600: #cbd5e1;
+  --contrast-700: #e2e8f0;
+  --contrast-800: #f1f5f9;
+  --contrast-900: #f8fafc;
+  --contrast-950: #ffffff;
+}
+
 // Global styles
 * {
   box-sizing: border-box;
@@ -88,14 +117,43 @@ html, body {
 
 // Typography
 h1, h2, h3, h4, h5, h6 {
-  color: var(--foreground);
+  color: var(--contrast-900);
   margin-bottom: 1rem;
+}
+
+div {
+  color: var(--contrast-900);
+  // background-color: var(--background);
+}
+
+input {
+  color: var(--contrast-900);
+  background-color: var(--contrast-500);
+  border: 1px solid var(--border);
+  text-wrap: nowrap;
+}
+
+// button {
+//   color: var(--contrast-900);
+//   background-color: var(--contrast-500);
+//   border: 3px solid var(--border);
+//   padding: 0.5rem 0.5rem;
+//   text-wrap: nowrap;
+// }
+
+span {
+  color: var(--contrast-900);
 }
 
 p {
   color: var(--foreground);
   margin-bottom: 1rem;
   line-height: 1.5;
+}
+
+input {
+  color: var(--foreground);
+  background-color: var(--background);
 }
 
 a {

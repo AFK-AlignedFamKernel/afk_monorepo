@@ -66,10 +66,10 @@ export default function LoginNostrComponent() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-lg shadow">
+        <div className="min-h-screen flex items-center justify-center">
+            <div className="max-w-md w-full space-y-8 p-8 rounded-lg shadow">
                 <div>
-                    <h2 className="mt-6 text-center text-2xl font-extrabold text-gray-900">
+                    <h2 className="mt-6 text-center text-2xl font-extrabold">
                         Create a Nostr account
                     </h2>
 
@@ -116,14 +116,14 @@ export default function LoginNostrComponent() {
                                 onClick={() => {
                                     navigator.clipboard.writeText(newPrivateKey);
                                 }}
-                                className="text-sm text-indigo-600 hover:text-indigo-500"
+                                className="text-sm hover:text-indigo-500"
                             >
                                 Copy
                             </button>
                         </div>
-                        <div className="mt-1 break-all bg-gray-50 p-2 rounded text-sm font-mono">
+                        <span className="mt-1 break-all p-2 rounded text-sm font-mono">
                             {newPrivateKey}
-                        </div>
+                        </span>
                     </div>
                 }
 
@@ -135,14 +135,14 @@ export default function LoginNostrComponent() {
                                 onClick={() => {
                                     navigator.clipboard.writeText(newPublicKey);
                                 }}
-                                className="text-sm text-indigo-600 hover:text-indigo-500"
+                                className="text-sm hover:text-indigo-500"
                             >
                                 Copy
                             </button>
                         </div>
-                        <div className="mt-1 break-all bg-gray-50 p-2 rounded text-sm font-mono">
+                        <span className="mt-1 break-all p-2 rounded text-sm font-mono">
                             {newPublicKey}
-                        </div>
+                        </span>
                     </div>
                 )}
             </div>

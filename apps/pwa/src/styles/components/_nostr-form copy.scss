@@ -1,33 +1,31 @@
-// Form variables for light theme
 :root {
-  --form-bg: var(--background);
-  --form-text: var(--contrast-900);
-  --form-border: var(--border);
-  --form-focus: var(--primary-500);
+  --form-bg: #ffffff;
+  --form-text: #1a1a1a;
+  --form-border: #e5e7eb;
+  --form-focus: #3b82f6;
   --form-error: #ef4444;
   --form-success: #22c55e;
-  --form-tag-bg: var(--card-bg);
-  --form-tag-text: var(--contrast-700);
-  --form-tag-hover: var(--shade-200);
-  --form-button-bg: var(--primary-600);
-  --form-button-text: var(--contrast-50);
-  --form-button-hover: var(--primary-700);
+  --form-tag-bg: #f3f4f6;
+  --form-tag-text: #4b5563;
+  --form-tag-hover: #e5e7eb;
+  --form-button-bg: #3b82f6;
+  --form-button-text: #ffffff;
+  --form-button-hover: #2563eb;
 }
 
-// Form variables for dark theme
-.dark-mode {
-  --form-bg: var(--background);
-  --form-text: var(--contrast-900);
-  --form-border: var(--border);
-  --form-focus: var(--primary-400);
+[data-theme="dark"] {
+  --form-bg: #1a1a1a;
+  --form-text: #ffffff;
+  --form-border: #374151;
+  --form-focus: #60a5fa;
   --form-error: #f87171;
   --form-success: #4ade80;
-  --form-tag-bg: var(--card-bg);
-  --form-tag-text: var(--contrast-600);
-  --form-tag-hover: var(--shade-300);
-  --form-button-bg: var(--primary-500);
-  --form-button-text: var(--contrast-50);
-  --form-button-hover: var(--primary-600);
+  --form-tag-bg: #2a2a2a;
+  --form-tag-text: #9ca3af;
+  --form-tag-hover: #374151;
+  --form-button-bg: #60a5fa;
+  --form-button-text: #ffffff;
+  --form-button-hover: #3b82f6;
 }
 
 .nostr-form {
@@ -164,4 +162,4 @@
       box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
     }
   }
-}
+} 
