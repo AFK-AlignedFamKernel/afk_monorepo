@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useEditProfile, useAuth, useProfile } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
+import { useFileUpload } from '@/hooks/useFileUpload';
 export const NostrProfileEditForm = () => {
 
     const editProfile = useEditProfile()
@@ -9,6 +10,8 @@ export const NostrProfileEditForm = () => {
     const { data: profile } = useProfile({
         publicKey: publicKey as string,
     })
+    const fileUpload = useFileUpload();
+    
     const [formData, setFormData] = useState({
         username: profile?.username ? String(profile?.username) : '',
         name: profile?.name ? String(profile?.name) : '',
@@ -38,14 +41,28 @@ export const NostrProfileEditForm = () => {
         try {
             const values = formData;
             const { picture, banner } = values;
+
+            let bannerUrl = banner;
+            let pictureUrl = picture;
+            if (picture) {
+                const result = await fileUpload.mutateAsync(picture);
+                if (result.data.url) pictureUrl = result.data.url;
+            }
+            if (banner) {
+                const result = await fileUpload.mutateAsync(banner);
+                if (result.data.url) bannerUrl = result.data.url;
+            }   
+
+            console.log("pictureUrl", pictureUrl);
+            console.log("bannerUrl", bannerUrl);
             //   await publishEvent({
             //     kind: 0,
             //     content: JSON.stringify(formData),
             //     tags: []
             //   })
             await editProfile.mutateAsync({
-                image: picture,
-                banner,
+                image: pictureUrl,
+                banner: bannerUrl,
                 nip05: values.name || undefined,
                 displayName: values.username || undefined,
                 about: values.about || undefined,
