@@ -6,6 +6,7 @@ import { useSearch, useProfile, useNostrContext } from 'afk_nostr_sdk';
 import { NostrEventCard } from '../EventCard';
 import { NostrEventKind } from '@/types/nostr';
 import './feed.scss';
+import CryptoLoading from '@/components/small/crypto-loading';
 
 interface NostrFeedProps {
   kinds?: number[];
@@ -31,19 +32,19 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   const { ndk } = useNostrContext();
 
   // Debug log the NDK instance and relays
-  useEffect(() => {
-    console.log('NDK instance:', ndk);
-    console.log('Connected relays count:', ndk.pool?.relays?.size || 0);
-    const relayUrls = ndk.pool?.relays ? Array.from(ndk.pool.relays.keys()) : [];
-    console.log('Relay URLs:', relayUrls);
-    
-    // Force connection to relays
-    ndk.connect().then(() => {
-      console.log('NDK connected!');
-    }).catch(err => {
-      console.error('NDK connection error:', err);
-    });
-  }, [ndk]);
+  // useEffect(() => {
+  //   console.log('NDK instance:', ndk);
+  //   console.log('Connected relays count:', ndk.pool?.relays?.size || 0);
+  //   const relayUrls = ndk.pool?.relays ? Array.from(ndk.pool.relays.keys()) : [];
+  //   console.log('Relay URLs:', relayUrls);
+
+  //   // Force connection to relays
+  //   ndk.connect().then(() => {
+  //     console.log('NDK connected!');
+  //   }).catch(err => {
+  //     console.error('NDK connection error:', err);
+  //   });
+  // }, [ndk]);
 
   // Use the useNotesFilter hook from afk_nostr_sdk
   const {
@@ -86,7 +87,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   // Extract events from the paginated data
   const events = notesData?.pages?.flat() || [];
-  
+
   // Function to handle event selection
   const handleEventClick = (eventId: string) => {
     setSelectedEvent(eventId === selectedEvent ? null : eventId);
@@ -119,7 +120,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   // // Fetch manually if hook isn't returning data
   // const [manualEvents, setManualEvents] = useState<NDKEvent[]>([]);
-  
+
   // useEffect(() => {
   //   if (!isLoading && events.length === 0) {
   //     // Try to fetch manually if the hook isn't returning data
@@ -127,19 +128,19 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   //       try {
   //         console.log('Fetching events manually');
   //         await ndk.connect();
-          
+
   //         const notes = await ndk.fetchEvents({
   //           kinds: kinds.map(k => k as unknown as NDK),
   //           limit: 20
   //         });
-          
+
   //         console.log('Manually fetched notes:', notes);
   //         setManualEvents(Array.from(notes));
   //       } catch (e) {
   //         console.error('Manual fetch error:', e);
   //       }
   //     };
-      
+
   //     fetchEventsManually();
   //   }
   // }, [ndk, events.length, isLoading, kinds]);
@@ -150,7 +151,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       <div className={`nostr-feed__content ${className}`}>
         {[...Array(3)].map((_, index) => (
           <div key={`skeleton-${index}`} className="nostr-feed__card nostr-feed__card--skeleton">
-            <NostrEventCard 
+            <NostrEventCard
               key={`skeleton-${index}`}
               event={{} as NDKEvent}
               isLoading={true}
@@ -167,7 +168,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       <div className={`nostr-feed__content ${className}`}>
         <div className="nostr-feed__error">
           <p>Error loading events: {error?.message || 'Unknown error'}</p>
-          <button 
+          <button
             className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
             onClick={() => refetch()}
           >
@@ -181,13 +182,14 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   // Combine events from hook and manual fetch
   const allEvents = events.length > 0 ? events : [];
   // const allEvents = events.length > 0 ? events : manualEvents;
-  
+
   // Get number of connected relays
   const relayCount = ndk.pool?.relays ? ndk.pool.relays.size : 0;
-  
+
   return (
     <div className={`nostr-feed__content ${className}`}>
-      {allEvents.length === 0 && !isLoading ? (
+
+      {allEvents.length === 0 && !isLoading && !isFetching ? (
         <div className="nostr-feed__empty-state">
           <p>No events found. Try following more users or changing filters.</p>
           <div className="mt-4 text-sm text-gray-500">
@@ -195,7 +197,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
             <p>- Connected to {relayCount} relays</p>
             <p>- Kinds: {kinds?.join(', ')}</p>
             <p>- Query status: {isLoading ? 'Loading' : (isError ? 'Error' : 'No Results')}</p>
-            <button 
+            <button
               className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
               onClick={() => refetch()}
             >
@@ -208,24 +210,25 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
           {allEvents.map((event) => {
             // Skip events without an id
             if (!event?.id) return null;
-            
+
             return (
-              <div 
-                key={event.id} 
+              <div
+                key={event.id}
                 className="nostr-feed__card"
                 onClick={() => handleEventClick(event.id)}
               >
-                <NostrEventCard 
+                <NostrEventCard
                   event={event}
                 />
               </div>
             );
           })}
-          
+
           <div ref={loaderRef} className="nostr-feed__loader">
             {isFetching && (
               <div className="nostr-feed__loading-more">
                 <p>Loading more events...</p>
+                <CryptoLoading /> 
               </div>
             )}
           </div>
