@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { NostrPostEventProps } from '@/types/nostr';
 import NostrEventCardBase from './NostrEventCardBase';
 import '../feed/feed.scss';
+import { useNote, useReplyNotes, useSendNote } from 'afk_nostr_sdk';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const { event } = props;
@@ -12,24 +14,55 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const content = event.content || '';
   const shouldTruncate = content.length > 280 && !isExpanded;
   const displayContent = shouldTruncate ? `${content.substring(0, 280)}...` : content;
+  const [comment, setComment] = useState('');
+  const { data: note = event } = useNote({ noteId: event?.id });
+  const comments = useReplyNotes({ noteId: note?.id });
+  const sendNote = useSendNote();
 
+  const queryClient = useQueryClient();
   // Extract hashtags from content
   const hashtags = content.match(/#[a-zA-Z0-9_]+/g) || [];
 
   // Format content to highlight hashtags
   const formatContent = (text: string) => {
     if (!hashtags.length) return text;
-    
+
     let formattedText = text;
     hashtags.forEach(tag => {
       formattedText = formattedText.replace(
-        new RegExp(tag, 'g'), 
+        new RegExp(tag, 'g'),
         `<span class="hashtag">${tag}</span>`
       );
     });
-    
+
     return (
       <div dangerouslySetInnerHTML={{ __html: formattedText }} />
+    );
+  };
+
+
+  const handleSendComment = async () => {
+    if (!comment || comment?.trim().length == 0) {
+      showToast({ type: 'error', title: 'Please write your comment' });
+      return;
+    }
+    // await handleCheckNostrAndSendConnectDialog();
+
+    sendNote.mutate(
+      { content: comment, tags: [['e', note?.id ?? '', '', 'root', note?.pubkey ?? '']] },
+      {
+        onSuccess() {
+          showToast({ type: 'success', title: 'Comment sent successfully' });
+          queryClient.invalidateQueries({ queryKey: ['replyNotes', note?.id] });
+          setComment('');
+        },
+        onError() {
+          showToast({
+            type: 'error',
+            title: 'Error! Comment could not be sent. Please try again later.',
+          });
+        },
+      },
     );
   };
 
@@ -40,7 +73,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
           <div className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
             {formatContent(displayContent)}
             {shouldTruncate && (
-              <button 
+              <button
                 onClick={() => setIsExpanded(true)}
                 className="text-blue-500 hover:text-blue-700 ml-1 text-sm"
               >
@@ -52,8 +85,8 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
           {hashtags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {hashtags.map((tag, index) => (
-                <span 
-                  key={index} 
+                <span
+                  key={index}
                   className="hashtag inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full text-xs"
                 >
                   {tag}
@@ -61,7 +94,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
               ))}
             </div>
           )}
-          
+
           <div className="mt-3 flex items-center text-gray-500 dark:text-gray-400 text-sm space-x-4">
             <button className="flex items-center hover:text-blue-500">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">

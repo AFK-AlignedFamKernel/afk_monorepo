@@ -13,7 +13,7 @@ interface UIState {
   };
   showModal: (content: React.ReactNode) => void;
   hideModal: () => void;
-  showToast: (message: string, type?: ToastType) => void;
+  showToast: ({message, type}: {message: string, type?: ToastType}) => void;
   hideToast: () => void;
 }
 
@@ -41,7 +41,7 @@ export const useUIStore = create<UIState>((set) => ({
         content: null,
       },
     }),
-  showToast: (message, type = 'info') =>
+  showToast: ({message, type = 'info'}) =>
     set({
       toast: {
         isVisible: true,

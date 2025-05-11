@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useAccount } from '@starknet-react/core';
 import { WalletConnectButton } from './WalletConnectButton';
+import { NostrKeyManager, useAuth } from 'afk_nostr_sdk';
 
 interface LayoutProps {
   children: ReactNode;
@@ -15,6 +16,31 @@ const Layout = ({ children }: LayoutProps) => {
   const [darkMode, setDarkMode] = useState(false);
 
   const { address } = useAccount();
+
+  const { publicKey, setAuth } = useAuth();
+  useEffect(() => {
+    if (address) {
+      console.log('address', address);
+    }
+  }, [address]);
+
+
+  useEffect(() => {
+
+    const readNostrStorage = () => {
+      const nostrStorageStr = NostrKeyManager.getNostrWalletConnected()
+      if (!nostrStorageStr) {
+        return
+      }
+      const nostrStorage = JSON.parse(nostrStorageStr)
+      if (nostrStorage && nostrStorage?.publicKey) {
+        setAuth(nostrStorage?.publicKey, nostrStorage?.secretKey)
+      }
+    }
+    if (!publicKey) {
+      readNostrStorage()
+    }
+  }, [publicKey])
 
   // Close sidebar when window resizes to desktop
   useEffect(() => {
@@ -73,21 +99,7 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="page">
       {/* Mobile Header */}
       <header className="mobile-header">
-        <button
-          className="sidebar-toggle"
-          onClick={toggleSidebar}
-          aria-label="Toggle navigation"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M3 12H21M3 6H21M3 18H21"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+
 
         <div className="mobile-header-logo">
           <a href="/">AFK</a>
@@ -123,6 +135,22 @@ const Layout = ({ children }: LayoutProps) => {
             )}
           </button>
         </div>
+
+        <button
+          // className="sidebar-toggle"
+          onClick={toggleSidebar}
+          aria-label="Toggle navigation"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M3 12H21M3 6H21M3 18H21"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
       </header>
 
       {/* Sidebar */}
@@ -284,6 +312,8 @@ const Layout = ({ children }: LayoutProps) => {
               Login
             </Link>
 
+            <Link href="/nostr/create" className="sidebar-nav-item" onClick={closeSidebar}>Create</Link>
+
             <Link href="/launchpad" className="sidebar-nav-item" onClick={closeSidebar}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect
@@ -340,6 +370,36 @@ const Layout = ({ children }: LayoutProps) => {
               </svg>
               Launchpad
             </Link>
+            <div className="flex items-center gap-4">
+              <WalletConnectButton />
+              <button
+                className="theme-toggle"
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+              >
+                {darkMode ? (
+                  <svg className="theme-toggle__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12 3V4M12 20V21M21 12H20M4 12H3M18.364 18.364L17.657 17.657M6.343 6.343L5.636 5.636M18.364 5.636L17.657 6.343M6.343 17.657L5.636 18.364M16 12C16 14.209 14.209 16 12 16C9.791 16 8 14.209 8 12C8 9.791 9.791 8 12 8C14.209 8 16 9.791 16 12Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg className="theme-toggle__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M21.752 15.002C20.915 15.7527 19.9638 16.3526 18.938 16.774C17.9123 17.1954 16.8305 17.4329 15.738 17.476C14.6456 17.5192 13.5513 17.3672 12.5 17.027C8.6 15.7 5.9 11.992 5.9 8.002C5.9 7.302 5.978 6.618 6.14 5.959C6.28224 5.39118 6.48413 4.83807 6.743 4.309C3.57 5.7 1.25 8.97 1.25 12.826C1.25 18.001 5.394 22.125 10.575 22.125C15.268 22.125 19.143 19.092 20.45 14.985C20.8874 14.3631 21.2663 13.703 21.582 13.013C21.6 13.02 21.671 14.192 21.752 15.002Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
             {/* <a href="/stream" className="sidebar-nav-item" onClick={closeSidebar}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect
