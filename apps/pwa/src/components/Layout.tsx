@@ -9,6 +9,10 @@ import { NostrKeyManager, useAuth } from 'afk_nostr_sdk';
 import { Icon } from './small/icon-component';
 import { useRouter } from 'next/navigation';
 import CryptoLoading from './small/crypto-loading';
+import Image from 'next/image';
+import { ProfileManagement } from './Nostr/profile/profile-management';
+import { useUIStore } from '@/store/uiStore';
+
 interface LayoutProps {
   children: ReactNode;
 }
@@ -17,6 +21,7 @@ const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
+  const { showToast, showModal } = useUIStore()
   const [isLoading, setIsLoading] = useState(false);
   const router = typeof window === 'undefined' ? null : useRouter();
 
@@ -98,7 +103,7 @@ const Layout = ({ children }: LayoutProps) => {
       document.body.classList.remove('dark-mode');
       localStorage.setItem('theme', 'light');
     }
-    
+
   };
 
   useEffect(() => {
@@ -138,11 +143,20 @@ const Layout = ({ children }: LayoutProps) => {
 
 
         <div className="mobile-header-logo">
-          <a href="/">AFK</a>
+          <a href="/">
+            <Image
+              src="/afk_logo_circle.png"
+              alt="AFK Logo"
+              width={50}
+              height={50}
+            />
+          </a>
         </div>
 
         <div className="flex items-center gap-4">
-          <WalletConnectButton />
+          <button className="btn btn-primary" onClick={() => showModal(<ProfileManagement />)}>
+            Connect
+          </button>
           <button
             className="theme-toggle"
             onClick={toggleTheme}
