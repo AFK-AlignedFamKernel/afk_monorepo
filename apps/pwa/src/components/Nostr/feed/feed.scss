@@ -3,7 +3,7 @@
   &__container {
     width: 100%;
     margin: 0 auto;
-    max-width: 1200px;
+    // max-width: 1200px;
   }
 
   &__tabs {
@@ -59,11 +59,13 @@
   }
 
   &__card {
-    background-color: var(--card-bg, white);
+    // background-color: var(--card-bg, white);
     border-radius: 0.5rem;
     padding: 1rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--border-color, #e5e7eb);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    // border: 1px solid var(--border-color, #e5e7eb);
+    // border-bottom: 1px solid var(--border-color, #e5e7eb);
+    // border: 1px 0 0 3px solid var(--border-color, #e5e7eb);
     transition: box-shadow 0.2s ease;
 
     &:hover {
@@ -205,7 +207,7 @@
 
 // Event card styles
 .event-card {
-  background-color: var(--card-bg, white);
+  // background-color: var(--card-bg, white);
   border-radius: 0.5rem;
   padding: 1rem;
   width: 100%;
@@ -266,7 +268,8 @@
 // Dark mode styles
 @media (prefers-color-scheme: dark) {
   .nostr-feed {
-    --card-bg: #1f2937;
+    --card-bg: var(--background);
+    --card-bg-constrast: #1f2937;
     --border-color: #374151;
     --text-primary: #f9fafb;
     --text-secondary: #d1d5db;

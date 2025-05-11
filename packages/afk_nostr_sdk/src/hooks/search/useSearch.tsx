@@ -50,10 +50,16 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
         basicTimestamp = options?.since
       }
 
-      if (options?.kinds?.includes(NDKKind.ShortVideo) || options?.kinds?.includes(NDKKind.Image) || options?.kinds?.includes(NDKKind.VerticalVideo)
-        || options?.kinds?.includes(NDKKind.HorizontalVideo)
-        || options?.kinds?.includes(NDKKind.Article)
-        || options?.kinds?.includes(NDKKind.Video)
+
+
+      if (
+
+
+        !options?.kinds?.includes(NDKKind.Text) ||
+        (options?.kinds?.includes(NDKKind.ShortVideo) || options?.kinds?.includes(NDKKind.Image) || options?.kinds?.includes(NDKKind.VerticalVideo)
+          || options?.kinds?.includes(NDKKind.HorizontalVideo)
+          || options?.kinds?.includes(NDKKind.Article)
+          || options?.kinds?.includes(NDKKind.Video))
       ) {
         basicTimestamp = Math.round(Date.now() / 1000) - 1 * 60 * 60 * 24 * 3;
       }

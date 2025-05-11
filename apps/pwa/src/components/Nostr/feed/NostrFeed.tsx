@@ -212,23 +212,28 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
             if (!event?.id) return null;
 
             return (
-              <div
-                key={event.id}
-                className="nostr-feed__card"
-                onClick={() => handleEventClick(event.id)}
-              >
-                <NostrEventCard
-                  event={event}
-                />
-              </div>
+
+              <>
+                <div
+                  key={event.id}
+                  className="nostr-feed__card"
+                  onClick={() => handleEventClick(event.id)}
+                >
+                  <NostrEventCard
+                    event={event}
+                  />
+                </div>
+                {/* <div className="border-b border-gray-100 dark:border-gray-800 my-4"></div> */}
+              </>
+
             );
           })}
 
           <div ref={loaderRef} className="nostr-feed__loader">
             {isFetching && (
               <div className="nostr-feed__loading-more">
-                <p>Loading more events...</p>
-                <CryptoLoading /> 
+                {/* <p>Loading more events...</p> */}
+                <CryptoLoading />
               </div>
             )}
           </div>

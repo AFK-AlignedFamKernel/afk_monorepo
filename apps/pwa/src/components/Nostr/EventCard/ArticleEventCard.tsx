@@ -105,14 +105,18 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
             {summary}
           </div> */}
 
-          <div>
+          <div
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="cursor-pointer"
+          >
             <div
               style={{
                 // backgroundColor: theme.colors.background,
                 // color: theme.colors.text,
+                color: 'var(--text-primary)',
                 padding: 16,
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                fontSize: 16,
+                // fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                // fontSize: 16,
                 lineHeight: 1.6,
               }}
               dangerouslySetInnerHTML={{ __html: markdownContent }}

@@ -7,7 +7,7 @@ import '../feed/feed.scss';
 import { NostrEvent, NDKUserProfile, NDKEvent } from '@nostr-dev-kit/ndk';
 
 
-interface ShortEventCardProps extends NostrShortEventProps {  
+interface ShortEventCardProps extends NostrShortEventProps {
   event: NDKEvent;
   profile?: NDKUserProfile;
   isReadMore?: boolean;
@@ -80,13 +80,26 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
       <NostrEventCardBase {...props}>
         <div className="mt-2">
           {mediaUrlState && (
-            <div className={`media-container ${isVideo ? 'media-container--video' : ''}`}>
+            <div className={`media-container ${isVideo ? 'media-container--video' : ''}`}
+              // style={{
+              //   height: 'calc(100vh - 180px)', // Subtracting header + card padding
+              //   width: '100%',
+              //   objectFit: 'contain',
+              //   // backgroundColor: '#000'
+              // }}
+            >
               {isVideo ? (
                 <video
                   src={mediaUrlState}
                   controls
                   loop
                   className="video-player"
+                  // style={{
+                  //   height: 'calc(100vh - 180px)', // Subtracting header + card padding
+                  //   width: '100%',
+                  //   objectFit: 'contain',
+                  //   // backgroundColor: '#000'
+                  // }}
                 />
               ) : (
                 <img

@@ -81,7 +81,10 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
     <div className="post-event-card">
       <NostrEventCardBase {...props}>
         <div className="mt-2">
-          <div className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
+          <div 
+          // className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words"
+          className="dark:text-gray-200 whitespace-pre-wrap break-words"
+          >
             {formatContent(displayContent)}
             {shouldTruncate && (
               <button
