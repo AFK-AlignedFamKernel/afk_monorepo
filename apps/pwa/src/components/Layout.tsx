@@ -6,7 +6,9 @@ import Link from 'next/link';
 import { useAccount } from '@starknet-react/core';
 import { WalletConnectButton } from './WalletConnectButton';
 import { NostrKeyManager, useAuth } from 'afk_nostr_sdk';
-
+import { Icon } from './small/icon-component';
+import { useRouter } from 'next/navigation';
+import CryptoLoading from './small/crypto-loading';
 interface LayoutProps {
   children: ReactNode;
 }
@@ -14,6 +16,9 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const router = typeof window === 'undefined' ? null : useRouter();
 
   const { address } = useAccount();
 
@@ -93,7 +98,38 @@ const Layout = ({ children }: LayoutProps) => {
       document.body.classList.remove('dark-mode');
       localStorage.setItem('theme', 'light');
     }
+    
   };
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [darkMode]);
+
+  useEffect(() => {
+    const handleStart = () => {
+      setIsLoading(true);
+      document.body.classList.add('page-transition');
+    };
+
+    const handleComplete = () => {
+      setIsLoading(false);
+      document.body.classList.remove('page-transition');
+    };
+
+    // router?.events?.on('routeChangeStart', handleStart);
+    // router?.events?.on('routeChangeComplete', handleComplete);
+    // router?.events?.on('routeChangeError', handleComplete);
+
+    // return () => {
+    //   router?.events?.off('routeChangeStart', handleStart);
+    //   router?.events?.off('routeChangeComplete', handleComplete);
+    //   router?.events?.off('routeChangeError', handleComplete);
+    // };
+  }, [router]);
 
   return (
     <div className="page">
@@ -182,7 +218,8 @@ const Layout = ({ children }: LayoutProps) => {
             </a>
 
             <Link href="/nostr" className="sidebar-nav-item" onClick={closeSidebar}>
-              <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <Icon name="ConsoleIcon" size={24} />
+              {/* <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect
                   x="3"
                   y="3"
@@ -235,84 +272,23 @@ const Layout = ({ children }: LayoutProps) => {
                   strokeLinejoin="round"
                 />
               </svg>
-              Social
+              Social */}
             </Link>
 
             <Link href="/profile" className="sidebar-nav-item" onClick={closeSidebar}>
-              <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect
-                  x="3"
-                  y="3"
-                  width="18"
-                  height="18"
-                  rx="2"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <Icon name="UserIcon" size={24} />
+
               Profile
             </Link>
 
             <Link href="/nostr/login" className="sidebar-nav-item" onClick={closeSidebar}>
-              <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect
-                  x="3"
-                  y="3"
-                  width="18"
-                  height="18"
-                  rx="2"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1="3"
-                  y1="9"
-                  x2="21"
-                  y2="9"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1="3"
-                  y1="15"
-                  x2="21"
-                  y2="15"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1="9"
-                  y1="3"
-                  x2="9"
-                  y2="21"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1="15"
-                  y1="3"
-                  x2="15"
-                  y2="21"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <Icon name="LoginIcon" size={24} />
               Login
             </Link>
 
-            <Link href="/nostr/create" className="sidebar-nav-item" onClick={closeSidebar}>Create</Link>
+            <Link href="/nostr/create" className="sidebar-nav-item" onClick={closeSidebar}>
+              <Icon name="AddPostIcon" size={24} />
+              Create</Link>
 
             <Link href="/launchpad" className="sidebar-nav-item" onClick={closeSidebar}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -483,6 +459,7 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Main Content */}
       <main className="main-content">
         <div className="content">
+          {isLoading && <CryptoLoading />}
           {children}
         </div>
       </main>
