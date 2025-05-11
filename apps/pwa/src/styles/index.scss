@@ -217,7 +217,7 @@ a {
   margin-left: $sidebar-width;
   min-height: 100vh;
   width: calc(100% - $sidebar-width);
-  // padding: 0.25rem;
+  padding: 0.5rem;
   background-color: var(--background);
   transition: margin-left 0.3s ease-in-out;
 

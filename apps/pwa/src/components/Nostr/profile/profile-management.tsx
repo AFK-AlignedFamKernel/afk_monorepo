@@ -8,6 +8,7 @@ import { NostrKeyManager, useAuth } from 'afk_nostr_sdk';
 import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
 import { Avatar } from '@chakra-ui/react';
 import { useUIStore } from '@/store/uiStore';
+import { Icon } from '@/components/small/icon-component';
 interface CustomHeaderInterface {
     title?: string;
     showLogo?: boolean;
@@ -67,7 +68,17 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                     <p className='text-sm'>No Nostr Accounts</p>
                 </div>
             )}
-            {isModalMode && isOpenProfile && (
+
+            {publicKey && (
+                <div>
+                    <p className='text-sm' style={{
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                    }}>Public Key connected: {publicKey}</p>
+                </div>
+            )}
+            {/* {isModalMode && isOpenProfile && (
                 <div style={{
                     position: 'fixed',
                     top: 0,
@@ -140,7 +151,7 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                         </div>
                     </div>
                 </div>
-            )}
+            )} */}
 
             <div style={{
                 display: 'flex',
@@ -176,8 +187,12 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                         {publicKey && (
                             <span>{publicKey?.slice(0, 3)}...{publicKey?.slice(-5)}</span>
                         )}
+
+                        <Icon name="ChevronDown" size={16} />
                     </button>
+
                 </div>
+
             </div>
 
             {!isModalMode && isOpenProfile && (
@@ -210,9 +225,27 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                                         handleConnectWallet(item);
                                     }}
                                 >
-                                    <p className='text-sm overflow-hidden text-ellipsis'>{item?.publicKey}</p>
-                                    <p className='text-sm'>{item?.name}</p>
-                                    <p className='text-sm'>{item?.username}</p>
+
+                                    <div className='flex flex-row gap-2'>
+                                        <div
+                                            style={{
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }}
+                                        >
+                                            <p className='text-sm overflow-hidden text-ellipsis'>{item?.publicKey}</p>
+                                            <p className='text-sm'>{item?.name}</p>
+                                            <p className='text-sm'>{item?.username}</p>
+
+
+                                            <div>
+                                                <button className='btn btn-primary'>Connect</button>
+                                            </div>
+
+                                        </div>
+
+                                    </div>
                                 </div>
                             )
                         })}

@@ -1021,18 +1021,18 @@ export const GalleryIcon: React.FC<SvgProps> = (props) => {
 // );
 
 
-// export const RocketIcon: React.FC<SvgProps> = (props) => (
-//   <Svg viewBox="0 0 24 24" fill="none" {...props}>
-//     <Path
-//       d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 3.93v5.14c0 .48.39.93.87.93h.26c.48 0 .87-.45.87-.93V5.93c0-.48-.39-.93-.87-.93h-.26c-.48 0-.87.45-.87.93zm5.34 2.84l-2.57 4.45c-.24.42-.1.96.32 1.2l.23.13c.42.24.96.1 1.2-.32l2.57-4.45c.24-.42.1-.96-.32-1.2l-.23-.13c-.42-.24-.96-.1-1.2.32z"
-//       fill="currentColor"
-//     />
-//     <Path
-//       d="M8.66 8.77c-.24-.42-.78-.56-1.2-.32l-.23.13c-.42.24-.56.78-.32 1.2l2.57 4.45c.24.42.78.56 1.2.32l.23-.13c.42-.24.56-.78.32-1.2L8.66 8.77z"
-//       fill="currentColor"
-//     />
-//   </Svg>
-// );
+export const RocketIcon: React.FC<SvgProps<SVGSVGElement>> = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" {...props}>
+    <path
+      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 3.93v5.14c0 .48.39.93.87.93h.26c.48 0 .87-.45.87-.93V5.93c0-.48-.39-.93-.87-.93h-.26c-.48 0-.87.45-.87.93zm5.34 2.84l-2.57 4.45c-.24.42-.1.96.32 1.2l.23.13c.42.24.96.1 1.2-.32l2.57-4.45c.24-.42.1-.96-.32-1.2l-.23-.13c-.42-.24-.96-.1-1.2.32z"
+      fill="currentColor"
+    />
+    <path
+      d="M8.66 8.77c-.24-.42-.78-.56-1.2-.32l-.23.13c-.42.24-.56.78-.32 1.2l2.57 4.45c.24.42.78.56 1.2.32l.23-.13c.42-.24.56-.78.32-1.2L8.66 8.77z"
+      fill="currentColor"
+    />
+  </svg>
+);
 
 // export const PixelArtGameIcon: React.FC<SvgProps> = (props) => (
 //   <Svg viewBox="0 0 24 24" fill="none" {...props}>
@@ -1055,14 +1055,14 @@ export const GalleryIcon: React.FC<SvgProps> = (props) => {
 //   </Svg>
 // );
 
-// export const ChevronDown: React.FC<SvgProps> = (props) => (
-//   <Svg viewBox="0 0 24 24" fill="none" {...props}>
-//     <Path
-//       d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
-//       fill="currentColor"
-//     />
-//   </Svg>
-// );
+export const ChevronDown: React.FC<SvgProps<SVGSVGElement>> = (props) => (
+  <svg viewBox="0 0 24 24" fill="none" {...props}>
+    <path
+      d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"
+      fill="currentColor"
+    />
+  </svg>
+);
 
 // export const FeedIcon: React.FC<SvgProps> = (props) => (
 //   <Svg viewBox="0 0 24 24" fill="none" {...props}>
