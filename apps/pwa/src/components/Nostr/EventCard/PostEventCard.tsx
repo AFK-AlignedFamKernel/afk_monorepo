@@ -8,6 +8,7 @@ import { useAuth, useNote, useQuote, useReact, useReactions, useReplyNotes, useR
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
 import CommentContainer from './CommentContainer';
+import { QuoteRepostComponent } from './quote-repost-component';
 
 export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const { event } = props;
@@ -21,7 +22,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const comments = useReplyNotes({ noteId: note?.id });
   const sendNote = useSendNote();
   const [isOpenComment, setIsOpenComment] = useState(false);
-  const { showToast } = useUIStore();
+  const { showToast, showModal } = useUIStore();
   const repostMutation = useRepost({ event });
   const quoteMutation = useQuote({ event });
   const react = useReact();
@@ -114,7 +115,15 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
               </svg>
               Reply
             </button>
-            <button className="flex items-center hover:text-green-500">
+            <button className="flex items-center hover:text-green-500"
+              onClick={() => showModal(
+                <>
+                  <QuoteRepostComponent event={event} >
+                  </QuoteRepostComponent>
+                  <button onClick={() => showModal(null)}>Close</button>
+                </>
+              )}
+            >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
