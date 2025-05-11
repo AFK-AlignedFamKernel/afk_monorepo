@@ -78,8 +78,8 @@ export class NostrKeyManager {
   }
 
   static getAllNostrAccountsFromStorage() {
+    if (!localStorage) return undefined;
     const allNostrAccounts = localStorage.getItem(NostrKeyManager.ALL_NOSTR_ACCOUNTS);
-
     if (!allNostrAccounts) return [];
     return JSON.parse(allNostrAccounts);
   }
@@ -93,21 +93,29 @@ export class NostrKeyManager {
   }
 
   static getNostrWalletConnected() {
+    if (!localStorage) return undefined;
+
     const storedPubKey = localStorage.getItem(NostrKeyManager.NOSTR_WALLET_CONNECTED);
     return storedPubKey;
   }
 
   static setNostrWalletConnected(nostrWallet: NostrWallet) {
+    if (!localStorage) return undefined;
+
     localStorage.setItem(NostrKeyManager.NOSTR_WALLET_CONNECTED, JSON.stringify(nostrWallet));
   }
 
 
   static getAccountConnected() {
+    if (!localStorage) return undefined;
+
     const storedPubKey = localStorage.getItem(NostrKeyManager.WALLET_CONNECTED);
     return storedPubKey;
   }
 
   static setAccountConnected(account: any) {
+    if (!localStorage) return undefined;
+
     localStorage.setItem(NostrKeyManager.WALLET_CONNECTED, JSON.stringify(account));
   }
 
@@ -118,6 +126,8 @@ export class NostrKeyManager {
     credential?: Credential | null;
   } | undefined> {
     try {
+      if (!localStorage) return undefined;
+
       const storedPubKey = localStorage.getItem(NostrKeyManager.STORAGE_KEY);
       console.log('storedPubKey', storedPubKey);
 

@@ -53,7 +53,20 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
     }
 
     return (
-        <div style={{ width: '100%' }}>
+        <div style={{
+            width: '100%',
+            padding: 8,
+        }}>
+
+            {nostrProfiles.length > 0 ? (
+                <div>
+                    <p className='text-sm'>Nostr Accounts : {nostrProfiles.length}</p>
+                </div>
+            ) : (
+                <div>
+                    <p className='text-sm'>No Nostr Accounts</p>
+                </div>
+            )}
             {isModalMode && isOpenProfile && (
                 <div style={{
                     position: 'fixed',
@@ -185,7 +198,10 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                                     style={{
                                         padding: '10px',
                                         border: '1px solid #ddd',
-                                        borderRadius: '4px'
+                                        borderRadius: '4px',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        gap: '10px'
                                     }}
                                     onClick={() => {
                                         // setAuth(item?.publicKey, item?.secretKey);
@@ -194,7 +210,7 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                                         handleConnectWallet(item);
                                     }}
                                 >
-                                    <p className='text-sm'>{item?.publicKey}</p>
+                                    <p className='text-sm overflow-hidden text-ellipsis'>{item?.publicKey}</p>
                                     <p className='text-sm'>{item?.name}</p>
                                     <p className='text-sm'>{item?.username}</p>
                                 </div>

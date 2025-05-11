@@ -2,16 +2,21 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useNostrContext, settingsStore, authStore, NostrKeyManager } from 'afk_nostr_sdk';
+import { useNostrContext, settingsStore, authStore, NostrKeyManager, useEditProfile } from 'afk_nostr_sdk';
 import { generateRandomKeypair } from '../../../../../../packages/afk_nostr_sdk/src/utils/keypair';
 import * as bip39 from 'bip39';
 import { useUIStore } from '@/store/uiStore';
+import { Icon } from '@/components/small/icon-component';
 
 export default function NostrCreateAccountComponent() {
     const [passkey, setPasskey] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
     const { ndk } = useNostrContext();
+    const [username, setUsername] = useState('');
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+    const editProfile = useEditProfile();
 
     const [newPrivateKey, setNewPrivateKey] = useState('');
     const [newPublicKey, setNewPublicKey] = useState('');
@@ -41,8 +46,8 @@ export default function NostrCreateAccountComponent() {
                 seed: '',
             })
 
-            window.localStorage.setItem('privateKey', privateKey)
-            window.localStorage.setItem('publicKey', publicKey)
+            // window.localStorage.setItem('privateKey', privateKey)
+            // window.localStorage.setItem('publicKey', publicKey)
             const mnemonic = bip39.generateMnemonic(128, undefined, bip39.wordlists['english']);
 
             const seedCashu = bip39.mnemonicToSeedSync(mnemonic).toString('hex');
@@ -59,6 +64,17 @@ export default function NostrCreateAccountComponent() {
             })
             // Redirect to home page on success
             //   router.push('/');
+
+            editProfile.mutate({
+                username: username,
+            }, {
+                onSuccess: () => {
+                    showToast({
+                        message: 'Profile updated successfully',
+                        type: 'success',
+                    })
+                }
+            })
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to set private key');
@@ -97,54 +113,65 @@ export default function NostrCreateAccountComponent() {
                         </div>
                     )}
 
+                    <input type="text" placeholder='Username'
+                        className='w-full p-2 rounded-md border border-gray-300'
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+
                     <div>
                         <button
                             type="submit"
                             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                         >
-                            Sign in
+                            Create Account
                         </button>
                     </div>
                 </form>
 
 
-                {newPrivateKey &&
-                    <div>
-                        <div className="flex items-center justify-between">
-                            <p className="font-medium">Private key</p>
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(newPrivateKey);
-                                }}
-                                className="text-sm hover:text-indigo-500"
-                            >
-                                Copy
-                            </button>
+                <div
+                    className="mt-8 space-y-6"
+                >
+                    {newPrivateKey &&
+                        <div>
+                            <div className="flex items-center justify-between">
+                                <p className="font-medium">Private key</p>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(newPrivateKey);
+                                    }}
+                                    className="text-sm hover:text-indigo-500"
+                                >
+                                    <Icon name="CopyIcon" size={16} />
+                                    Copy
+                                </button>
+                            </div>
+                            <span className="mt-1 break-all p-2 rounded text-sm font-mono">
+                                {newPrivateKey}
+                            </span>
                         </div>
-                        <span className="mt-1 break-all p-2 rounded text-sm font-mono">
-                            {newPrivateKey}
-                        </span>
-                    </div>
-                }
+                    }
 
-                {newPublicKey && (
-                    <div>
-                        <div className="flex items-center justify-between">
-                            <p className="font-medium">Public key</p>
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(newPublicKey);
-                                }}
-                                className="text-sm hover:text-indigo-500"
-                            >
-                                Copy
-                            </button>
+                    {newPublicKey && (
+                        <div>
+                            <div className="flex items-center justify-between">
+                                <p className="font-medium">Public key</p>
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(newPublicKey);
+                                    }}
+                                    className="text-sm hover:text-indigo-500"
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                            <span className="mt-1 break-all p-2 rounded text-sm font-mono">
+                                {newPublicKey}
+                            </span>
                         </div>
-                        <span className="mt-1 break-all p-2 rounded text-sm font-mono">
-                            {newPublicKey}
-                        </span>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -9,7 +9,7 @@ import { useUIStore } from '@/store/uiStore';
 import LoginNostrComponent from '@/components/Nostr/login/LoginNostrComponent';
 import { ProfileManagement } from '@/components/Nostr/profile/profile-management';
 import NostrCreateAccountComponent from '@/components/Nostr/login/NostrCreateAccount';
-export default function NostrLoginPage() {
+export default function NostrCreateProfile() {
     const [error, setError] = useState('');
 
     const [type, setType] = useState<'login' | 'register'>('login');
@@ -18,13 +18,6 @@ export default function NostrLoginPage() {
         <div className="">
 
             <NostrCreateAccountComponent />
-
-            <ProfileManagement />
-            
-            {/* 
-            <button onClick={() => setType(type == "login" ? "register" : "login")}>
-                {type == "login" ? "Create Account" : "Login"}
-            </button> */}
         </div>
     );
 }
