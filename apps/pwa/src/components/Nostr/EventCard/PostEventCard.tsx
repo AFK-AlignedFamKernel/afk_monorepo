@@ -1,16 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { NostrPostEventProps } from '@/types/nostr';
 import NostrEventCardBase from './NostrEventCardBase';
 import '../feed/feed.scss';
-import { useNote, useReplyNotes, useSendNote } from 'afk_nostr_sdk';
+import { useAuth, useNote, useQuote, useReact, useReactions, useReplyNotes, useRepost, useSendNote } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
+import { useUIStore } from '@/store/uiStore';
+import CommentContainer from './CommentContainer';
 
 export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const { event } = props;
   const [isExpanded, setIsExpanded] = useState(false);
-
+  const { publicKey } = useAuth();
   const content = event.content || '';
   const shouldTruncate = content.length > 280 && !isExpanded;
   const displayContent = shouldTruncate ? `${content.substring(0, 280)}...` : content;
@@ -18,6 +20,12 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const { data: note = event } = useNote({ noteId: event?.id });
   const comments = useReplyNotes({ noteId: note?.id });
   const sendNote = useSendNote();
+  const [isOpenComment, setIsOpenComment] = useState(false);
+  const { showToast } = useUIStore();
+  const repostMutation = useRepost({ event });
+  const quoteMutation = useQuote({ event });
+  const react = useReact();
+  const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
 
   const queryClient = useQueryClient();
   // Extract hashtags from content
@@ -40,27 +48,29 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
     );
   };
 
+  const isLiked = useMemo(
+    () =>
+      Array.isArray(userReaction.data) &&
+      userReaction.data[0] &&
+      userReaction.data[0]?.content !== '-',
+    [userReaction.data],
+  );
 
-  const handleSendComment = async () => {
-    if (!comment || comment?.trim().length == 0) {
-      showToast({ type: 'error', title: 'Please write your comment' });
-      return;
-    }
+  const toggleLike = async () => {
+    if (!event?.id) return;
+
     // await handleCheckNostrAndSendConnectDialog();
-
-    sendNote.mutate(
-      { content: comment, tags: [['e', note?.id ?? '', '', 'root', note?.pubkey ?? '']] },
+    await react.mutateAsync(
+      { event, type: isLiked ? 'dislike' : 'like' },
       {
-        onSuccess() {
-          showToast({ type: 'success', title: 'Comment sent successfully' });
-          queryClient.invalidateQueries({ queryKey: ['replyNotes', note?.id] });
-          setComment('');
-        },
-        onError() {
-          showToast({
-            type: 'error',
-            title: 'Error! Comment could not be sent. Please try again later.',
-          });
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['reactions', event?.id] });
+
+          showToast({ type: 'success', message: 'Reaction updated' });
+          // scale.value = withSequence(
+          //   withTiming(1.5, { duration: 100, easing: Easing.out(Easing.ease) }),
+          //   withSpring(1, { damping: 6, stiffness: 200 }),
+          // );
         },
       },
     );
@@ -96,7 +106,9 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
           )}
 
           <div className="mt-3 flex items-center text-gray-500 dark:text-gray-400 text-sm space-x-4">
-            <button className="flex items-center hover:text-blue-500">
+            <button className="flex items-center hover:text-blue-500"
+              onClick={() => setIsOpenComment(!isOpenComment)}
+            >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
@@ -108,7 +120,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
               </svg>
               Repost
             </button>
-            <button className="flex items-center hover:text-red-500">
+            <button className={`flex items-center hover:text-red-500 ${isLiked ? 'text-red-500' : ''}`} onClick={toggleLike}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
@@ -116,6 +128,13 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
             </button>
           </div>
         </div>
+
+        {isOpenComment && (
+          <div className="mt-3">
+            <CommentContainer event={event} />
+          </div>
+        )}
+
       </NostrEventCardBase>
     </div>
   );
