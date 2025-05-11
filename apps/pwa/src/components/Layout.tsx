@@ -304,7 +304,10 @@ const Layout = ({ children }: LayoutProps) => {
               Launchpad
             </Link>
             <div className="flex items-center gap-4">
-              <WalletConnectButton />
+              <button className="btn btn-gradient-green" onClick={() => showModal(<ProfileManagement />)}>
+                Connect
+              </button>
+
               <button
                 className="theme-toggle"
                 onClick={toggleTheme}

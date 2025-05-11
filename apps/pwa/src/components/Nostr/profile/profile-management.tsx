@@ -23,7 +23,6 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
     const { publicKey, setAuth } = useAuth();
     const [isOpenProfile, setIsOpenProfile] = React.useState(true);
     const nostrAccounts = NostrKeyManager.getAllNostrAccountsFromStorage();
-    console.log("nostrAccounts", nostrAccounts)
     const [isWalletSelectOpen, setIsWalletSelectOpen] = React.useState(true);
     const { showToast } = useUIStore();
     const handleIsOpenProfile = () => {
@@ -40,11 +39,7 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
         return users;
     }, [nostrAccounts]);
 
-    console.log("nostrProfiles", nostrProfiles)
-
-
     const handleConnectWallet = (item: any) => {
-        console.log("item", item)
         setIsWalletSelectOpen(!isWalletSelectOpen);
         setAuth(item?.publicKey, item?.secretKey);
         NostrKeyManager.setAccountConnected(item);
