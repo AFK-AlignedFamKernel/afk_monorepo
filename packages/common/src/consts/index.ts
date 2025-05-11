@@ -17,7 +17,7 @@ const isProduction =
 const backendConfig = isProduction ? backendConfigProd : backendConfigDev;
 const isLocal = backendConfig.local;
 
-console.log('isProduction', isProduction);
+// console.log('isProduction', isProduction);
 
 export const backendUrl =
   isProduction && !isLocal
@@ -27,7 +27,7 @@ export const backendUrl =
         backendConfig.host)
     : 'http://' + backendConfig.host + ':' + backendConfig.port;
 
-console.log('backendUrl', backendUrl);
+// console.log('backendUrl', backendUrl);
 
 export const wsUrl =
   isProduction && !isLocal
@@ -36,7 +36,7 @@ export const wsUrl =
         ? (process.env.NEXT_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL) + '/ws'
         : backendConfig.host + '/ws')
     : 'ws://' + backendConfig.host + ':' + backendConfig.consumer_port + '/ws';
-console.log('wsUrl', wsUrl);
+// console.log('wsUrl', wsUrl);
 
 export const nftUrl =
   isProduction && !isLocal
@@ -46,7 +46,7 @@ export const nftUrl =
         backendConfig.host)
     : 'http://' + backendConfig.host + ':' + backendConfig.consumer_port;
 
-console.log('nftUrl', nftUrl);
+// console.log('nftUrl', nftUrl);
 
 export const templateUrl =
   isProduction && !isLocal
@@ -61,9 +61,9 @@ export const templateUrl =
       ':' +
       backendConfig.port;
 
-console.log('templateUrl', templateUrl);
+// console.log('templateUrl', templateUrl);
 
-console.log('nftUrl', nftUrl);
+// console.log('nftUrl', nftUrl);
 
 export const devnetMode = backendConfig.production === false;
 // export const devnetMode = backendConfig.production === false;
