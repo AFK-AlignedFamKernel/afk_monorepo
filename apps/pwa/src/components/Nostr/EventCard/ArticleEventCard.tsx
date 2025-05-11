@@ -9,7 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
 import { useRouter } from 'next/navigation';
 import { NDKUserProfile, NDKEvent } from '@nostr-dev-kit/ndk';
-
+import MarkdownIt from 'markdown-it';
 interface ArticleEventCardProps extends NostrArticleEventProps {
   profile?: NDKUserProfile;
   event: NDKEvent;
@@ -23,6 +23,8 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
   const router = useRouter();
   const [isOpenComment, setIsOpenComment] = useState(false);
   const queryClient = useQueryClient();
+
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const { showToast } = useUIStore();
   // Parse the article content - typically articles may have JSON metadata
@@ -72,6 +74,17 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
     );
   };
 
+  const truncatedContent = !isExpanded && event.content.length > 200 ? `${event.content.slice(0, 200)}...` : event.content;
+
+
+
+  const markdownContent = MarkdownIt({
+    // html: false,
+    html: true,
+    linkify: true,
+    typographer: true
+  }).render(truncatedContent);
+
   return (
     <div className="article-event-card">
       <NostrEventCardBase event={event} profile={profile}>
@@ -88,8 +101,25 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
             </div>
           )}
 
-          <div className="text-gray-600 dark:text-gray-300 mb-4">
+          {/* <div className="text-gray-600 dark:text-gray-300 mb-4">
             {summary}
+          </div> */}
+
+          <div>
+            <div
+              style={{
+                // backgroundColor: theme.colors.background,
+                // color: theme.colors.text,
+                padding: 16,
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                fontSize: 16,
+                lineHeight: 1.6,
+              }}
+              dangerouslySetInnerHTML={{ __html: markdownContent }}
+            />
+            <button onClick={() => setIsExpanded(!isExpanded)}>
+              {isExpanded ? 'Read Less' : 'Read More'}
+            </button>
           </div>
 
           <div className="flex items-center justify-between">

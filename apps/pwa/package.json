@@ -33,6 +33,8 @@
     "@pinata/sdk": "^2.1.0",
     "@rainbow-me/rainbowkit": "^2.1.5",
     "@scure/bip32": "^1.7.0",
+    "quill": "2.0.3",
+    "markdown-it": "^14.1.0",
     "@starknet-react/chains": "^0.1.7",
     "@starknet-react/core": "^2.8.2",
     "@tanstack/react-query": "^5.40.0",
