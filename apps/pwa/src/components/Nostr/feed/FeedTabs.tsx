@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { NostrEventKind } from '@/types/nostr';
 import NostrFeed from './NostrFeed';
 import { NDKKind } from '@nostr-dev-kit/ndk';
-import "./feed.scss"
+// import "./feed.scss"
 
 interface Tab {
   id: string;
