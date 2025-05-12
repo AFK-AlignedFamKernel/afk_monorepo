@@ -12,6 +12,7 @@ export type UseSearch = {
   limit?: number;
   isWithouthReply?: boolean;
   since?: number;
+  sinceInterval?: number;
 };
 
 export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
@@ -45,14 +46,29 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
       // Calculate the 'since' timestamp
 
       // let basicTimestamp = Math.round(Date.now() / 1000) - 1 * 60 * 60;
-      let basicTimestamp = Math.round(Date.now() / 1000) - 1 * 60 * 60 * 3;
+
+      let sinceInterval = 1 * 60 * 60 * 3;
+
+      if (options?.sinceInterval) {
+        sinceInterval = options?.sinceInterval
+      }
+
+      if (!options?.kinds?.includes(NDKKind.Text) ||
+
+        (options?.kinds?.includes(NDKKind.ShortVideo) || options?.kinds?.includes(NDKKind.Image) || options?.kinds?.includes(NDKKind.VerticalVideo)
+          || options?.kinds?.includes(NDKKind.HorizontalVideo)
+          || options?.kinds?.includes(NDKKind.Article)
+          || options?.kinds?.includes(NDKKind.Video))
+      ) {
+        sinceInterval = 1 * 60 * 60 * 24* 3;
+      }
+
+      let basicTimestamp = Math.round(Date.now() / 1000) - sinceInterval;
       // let basicTimestamp = Math.round(Date.now() / 1000) - 1 * 60 * 60 * 24;
 
       if (options?.since) {
         basicTimestamp = options?.since
       }
-
-
 
       if (
 
@@ -63,8 +79,10 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
           || options?.kinds?.includes(NDKKind.Article)
           || options?.kinds?.includes(NDKKind.Video))
       ) {
-        basicTimestamp = Math.round(Date.now() / 1000) - 1 * 60 * 60 * 24 * 3;
+        // basicTimestamp = Math.round(Date.now() / 1000) - 1 * 60 * 60 * 24 * 3;
+        basicTimestamp = Math.round(Date.now() / 1000) - sinceInterval;
       }
+
 
       const sinceTimestamp = pageParam
         ? pageParam - basicTimestamp :// Restart from pageParam minus 1 hour
