@@ -12,6 +12,7 @@ import CryptoLoading from './small/crypto-loading';
 import Image from 'next/image';
 import { ProfileManagement } from './Nostr/profile/profile-management';
 import { useUIStore } from '@/store/uiStore';
+import Accordion from './small/accordion';
 
 interface LayoutProps {
   children: ReactNode;
@@ -204,12 +205,12 @@ const Layout = ({ children }: LayoutProps) => {
       </header>
 
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''} `}>
         <div className="logo">
           <a href="/" onClick={closeSidebar}>AFK</a>
         </div>
 
-        <div className="sidebar-nav">
+        <div className="sidebar-nav overflow-y-hidden scrollbar-hide">
           <div className="sidebar-nav-header">
             <a href="/" className="sidebar-nav-item" onClick={closeSidebar}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -231,6 +232,35 @@ const Layout = ({ children }: LayoutProps) => {
               Home
             </a>
 
+            <div className='sidebar-nav-item'>
+            <Accordion title="Nostr"
+              items={[{
+                title: "Nostr",
+                icon: (<Icon name="SocialNostr" size={24}></Icon>),
+                content: (
+                  <>
+                     <Link href="/nostr/feed" className="sidebar-nav-item" onClick={closeSidebar}>
+                      <Icon name="FeedIcon" size={24} />
+
+                      Feed
+                    </Link>
+                    <Link href="/nostr/my-profile" className="sidebar-nav-item" onClick={closeSidebar}>
+                      <Icon name="UserIcon" size={24} />
+
+                      My Profile
+                    </Link>
+                    <Link href="/nostr/login" className="sidebar-nav-item" onClick={closeSidebar}>
+                      <Icon name="LoginIcon" size={24} />
+                      Login
+                    </Link>
+                    <Link href="/nostr/create-account" className="sidebar-nav-item" onClick={closeSidebar}>
+                      <Icon name="UserPlusIcon" size={24} />
+                      Create Account
+                    </Link>
+                  </>)
+              },
+              ]} />
+            </div>
 
             <Link href="/profile" className="sidebar-nav-item" onClick={closeSidebar}>
               <Icon name="UserIcon" size={24} />
