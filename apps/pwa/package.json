@@ -17,6 +17,8 @@
     "safe-build": "pnpm run build || echo 'Build failed but continuing...'"
   },
   "dependencies": {
+    "@atomiqlabs/chain-starknet": "^1.0.9",
+    "@atomiqlabs/sdk": "^3.0.4",
     "@argent/tma-wallet": "1.19.3",
     "@argent/x-sessions": "^6.7.4",
     "@avnu/avnu-sdk": "^2.0.0",
