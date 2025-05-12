@@ -9,6 +9,8 @@ interface NostrFormProps {
   type?: NostrEventType;
   className?: string;
   initialData?: Partial<NostrFormData>;
+  content?: string;
+  setContent?: (content: string) => void;
 }
 
 export interface NostrFormData {
@@ -23,6 +25,7 @@ export const NostrForm: React.FC<NostrFormProps> = ({
   type = 'note',
   className,
   initialData,
+  content,
 }) => {
   const [formData, setFormData] = useState<NostrFormData>({
     content: initialData?.content || '',
