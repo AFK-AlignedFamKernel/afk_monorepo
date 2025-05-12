@@ -219,7 +219,7 @@ a {
   margin-left: $sidebar-width;
   min-height: 100vh;
   width: calc(100% - $sidebar-width);
-  padding: 0.5rem;
+  // padding: 0.5rem;
   background-color: var(--background);
   transition: margin-left 0.3s ease-in-out;
 
@@ -232,7 +232,7 @@ a {
 
 .content {
   max-width: 1200px;
-  margin: 0 auto;
+  // margin: 0 auto;
   width: 100%;
 }
 

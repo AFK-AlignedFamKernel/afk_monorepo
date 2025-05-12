@@ -1,3 +1,4 @@
+
 // Feed SCSS Styles
 .nostr-feed {
   &__container {
@@ -34,15 +35,15 @@
       cursor: pointer;
 
       &--active {
-        background-color: var(--primary-bg-light, #ebf5ff);
-        color: var(--primary-color, #3b82f6);
+        background-color: var(--text-secondary, var(--card-bg));
+        color: var(--primary-color, var(--text-secondary));
       }
 
       &:not(.nostr-feed__tabs-button--active) {
-        color: var(--text-secondary, #6b7280);
+        color: var(--foreground);
         
         &:hover {
-          background-color: var(--hover-bg, #f3f4f6);
+          background-color: var(--g, --hover-bg);
         }
       }
 
@@ -209,7 +210,7 @@
 .event-card {
   // background-color: var(--card-bg, white);
   border-radius: 0.5rem;
-  padding: 1rem;
+  // padding: 1rem;
   width: 100%;
   
   // Post specific styles

@@ -21,7 +21,7 @@ export default function NostrFeedPage() {
         </div>
       </header> */}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-7xl mx-auto py-6">
         <div className="flex flex-col md:flex-row gap-6">
           {/* Search and Filters */}
           {/* <div className="md:w-1/4 space-y-4">

@@ -16,7 +16,7 @@ interface CustomHeaderInterface {
 }
 
 
-export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeaderInterface) => {
+export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomHeaderInterface) => {
     // const isDesktop = React.useMemo(() => {
     //     return dimensions.width >= 1024;
     // }, [dimensions]);
@@ -239,12 +239,20 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                                             <p className='text-sm'>{item?.username}</p>
 
 
+                                            {publicKey == item?.publicKey &&
+                                                <div className='flex'>
+                                                    <p>
+                                                        Connected
+                                                    </p>
+                                                    <Icon name="CheckIcon" size={16}></Icon>
+                                                </div>
+                                            }
+
                                             <div>
-                                                <button className='btn btn-primary'>Connect</button>
+                                                <button className='btn btn-primary'>Connect
+                                                </button>
                                             </div>
-
                                         </div>
-
                                     </div>
                                 </div>
                             )

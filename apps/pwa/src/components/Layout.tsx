@@ -10,7 +10,8 @@ import { Icon } from './small/icon-component';
 import { useRouter } from 'next/navigation';
 import CryptoLoading from './small/crypto-loading';
 import Image from 'next/image';
-import { ProfileManagement } from './Nostr/profile/profile-management';
+// import { ProfileManagement } from './Nostr/profile/nostr-profile-management';
+import { ProfileManagement } from '@/components/profile/profile-management';
 import { useUIStore } from '@/store/uiStore';
 import Accordion from './small/accordion';
 
@@ -235,7 +236,7 @@ const Layout = ({ children }: LayoutProps) => {
             <div className='sidebar-nav-item'>
             <Accordion title="Nostr"
               items={[{
-                title: "Nostr",
+                title: "Social Nostr",
                 icon: (<Icon name="SocialNostr" size={24}></Icon>),
                 content: (
                   <>
@@ -266,11 +267,6 @@ const Layout = ({ children }: LayoutProps) => {
               <Icon name="UserIcon" size={24} />
 
               Profile
-            </Link>
-
-            <Link href="/nostr/login" className="sidebar-nav-item" onClick={closeSidebar}>
-              <Icon name="LoginIcon" size={24} />
-              Login
             </Link>
 
             <Link href="/create" className="sidebar-nav-item" onClick={closeSidebar}>

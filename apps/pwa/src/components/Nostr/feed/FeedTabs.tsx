@@ -101,7 +101,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
 
   return (
     <div className={`nostr-feed__container ${className}`}>
-      <div className="nostr-feed__tabs">
+      <div className="nostr-feed__tabs px-4">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -110,7 +110,10 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.icon}
+            <span>
             {tab.label}
+
+            </span>
           </button>
         ))}
       </div>
