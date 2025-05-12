@@ -20,7 +20,7 @@ interface FeedTabsProps {
   searchQuery?: string;
 }
 
-export const FeedTabs: React.FC<FeedTabsProps> = ({ 
+export const FeedTabs: React.FC<FeedTabsProps> = ({
   className = '',
   limit = 10,
   authors,
@@ -48,9 +48,9 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
     {
       id: 'posts',
       label: 'Posts',
-      kinds: [1,
-                NDKKind.Repost,
-        NDKKind.GenericRepost,
+      kinds: [NDKKind.Text,
+      NDKKind.Repost,
+      NDKKind.GenericRepost,
       ], // Text
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -93,7 +93,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
   ];
 
   const [activeTab, setActiveTab] = useState<string>(tabs[0].id);
-  
+
   const getActiveTabKinds = (): number[] => {
     const tab = tabs.find(tab => tab.id === activeTab);
     return tab ? tab.kinds : tabs[0].kinds;
@@ -105,9 +105,8 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            className={`nostr-feed__tabs-button ${
-              activeTab === tab.id ? 'nostr-feed__tabs-button--active' : ''
-            }`}
+            className={`nostr-feed__tabs-button ${activeTab === tab.id ? 'nostr-feed__tabs-button--active' : ''
+              }`}
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.icon}
@@ -117,8 +116,8 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
       </div>
 
       <div className="nostr-feed__content">
-        <NostrFeed 
-          kinds={getActiveTabKinds()} 
+        <NostrFeed
+          kinds={getActiveTabKinds()}
           limit={limit}
           authors={authors}
           searchQuery={searchQuery}

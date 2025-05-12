@@ -154,9 +154,7 @@ const Layout = ({ children }: LayoutProps) => {
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="btn btn-primary" onClick={() => showModal(<ProfileManagement />)}>
-            Connect
-          </button>
+
           <button
             className="theme-toggle"
             onClick={toggleTheme}
@@ -185,7 +183,9 @@ const Layout = ({ children }: LayoutProps) => {
             )}
           </button>
         </div>
-
+        <button className="btn btn-blue" onClick={() => showModal(<ProfileManagement />)}>
+          Connect
+        </button>
         <button
           // className="sidebar-toggle"
           onClick={toggleSidebar}

@@ -6,6 +6,7 @@ import { Modal } from '@/components/Modal/Modal';
 import { NostrForm, NostrFormData } from '@/components/Form/NostrForm';
 import { useUIStore } from '@/store/uiStore';
 import { TokenCreateForm } from '../launchpad/TokenCreateForm';
+import { NostrArticleForm } from './NostrArticleForm';
 enum CreateType {
   POST = 'post',
   ARTICLE = 'article',
@@ -49,7 +50,7 @@ export default function CreateAll() {
         <button className="btn btn-primary" onClick={() => setCreateType(CreateType.POST)}>Post</button>
         <button className="btn btn-primary" onClick={() => setCreateType(CreateType.TOKEN)}>Token</button>
 
-        {/* <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600" onClick={() => setCreateType(CreateType.ARTICLE)}>Article</button> */}
+        <button className="btn btn-primary" onClick={() => setCreateType(CreateType.ARTICLE)}>Article</button>
 
 
       </div>
@@ -65,6 +66,7 @@ export default function CreateAll() {
       {createType === CreateType.ARTICLE && (
         <div>
           <h1>Article</h1>
+          <NostrArticleForm onSubmit={handleSubmit}></NostrArticleForm>
         </div>
       )}
 
