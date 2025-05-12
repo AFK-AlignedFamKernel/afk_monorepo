@@ -78,21 +78,21 @@ export const CommentContainer: React.FC<CommentContainerProps> = (props) => {
 
     <div className="mt-3">
       {comments.data?.pages.flat().map((comment) => (
-        <div key={comment.id} className="mb-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div key={comment.id} className="mb-4 p-4 rounded-lg shadow border border-right-gray-200 dark:border-gray-700">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+              <div className="w-8 h-8 rounded-full "></div>
             </div>
             <div className="flex-1">
               <div className="flex items-center space-x-2">
-                <span className="font-medium text-gray-900 dark:text-gray-100">
+                <span className="font-medium ">
                   {truncate(comment.pubkey, 8)}
                 </span>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
+                <span className="text-sm">
                   {formatTimestamp(comment.created_at)}
                 </span>
               </div>
-              <div className="mt-1 text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words">
+              <div className="mt-1 whitespace-pre-wrap break-words">
                 {formatContent(comment.content)}
               </div>
               <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
