@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { NostrPostEventProps } from '@/types/nostr';
 import NostrEventCardBase from './NostrEventCardBase';
 import '../feed/feed.scss';
-import { useAuth, useNote, useQuote, useReact, useReactions, useReplyNotes, useRepost, useSendNote } from 'afk_nostr_sdk';
+import { useAuth, useNote, useProfile, useQuote, useReact, useReactions, useReplyNotes, useRepost, useSendNote } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
 import CommentContainer from './CommentContainer';
@@ -16,6 +16,7 @@ import { NDKKind } from '@nostr-dev-kit/ndk';
 import { useRouter } from 'next/navigation';
 import { SliderImages } from '@/components/small/slider-image';
 import Image from 'next/image';
+import { TipNostr } from '../tips';
 
 export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const { event } = props;
@@ -29,6 +30,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const { data: note = event } = useNote({ noteId: event?.id });
   const comments = useReplyNotes({ noteId: note?.id });
   const sendNote = useSendNote();
+  // const {profile} = useProfile({publicKey:event?.pubkey})
   const [isOpenComment, setIsOpenComment] = useState(false);
   const { showToast, showModal } = useUIStore();
   const repostMutation = useRepost({ event });
@@ -37,6 +39,10 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
   const [dimensionsMedia, setMediaDimensions] = useState([250, 300]);
   const [imgUrls, setImageUrls] = useState<string[]>([]);
+
+  const handleTipsModal = () => {
+    showModal(<TipNostr event={event} profile={props?.profile}></TipNostr>)
+  }
 
   const queryClient = useQueryClient();
   // Extract hashtags from content
@@ -214,12 +220,12 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
 
           <div>
 
-          {postSource && (
-            <Image
-              src={postSource.uri}
-              alt="Post Source"
-              width={postSource.width}
-              height={postSource.height}
+            {postSource && (
+              <Image
+                src={postSource.uri}
+                alt="Post Source"
+                width={postSource.width}
+                height={postSource.height}
               // style={[
               //   styles.contentImage,
               //   {
@@ -227,12 +233,12 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
               //     aspectRatio: getImageRatio(postSource.width, postSource.height),
               //   },
               // ]}
-            />
-          )}
+              />
+            )}
 
-          {imgUrls.length > 0 && (
-            <SliderImages imgUrls={imgUrls} />
-          )}
+            {imgUrls.length > 0 && (
+              <SliderImages imgUrls={imgUrls} />
+            )}
           </div>
 
           {hashtags.length > 0 && (
@@ -285,6 +291,13 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg> */}
               Like
+            </button>
+
+            <button className={`flex items-center hover:text-purple-500 gap-1 ${isLiked ? 'text-red-500' : ''}`} onClick={handleTipsModal}>
+
+              <Icon name="GiftIcon" size={16} ></Icon>
+
+              Tips
             </button>
           </div>
         </div>
