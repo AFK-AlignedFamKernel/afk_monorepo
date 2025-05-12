@@ -7,6 +7,7 @@
 @import './nostr/feed.scss';
 // Basic variables
 $sidebar-width: 250px;
+$sidebar-width-right: 30%;
 $mobile-breakpoint: 768px;
 $desktop-breakpoint: 769px;
 $header-height: 60px;
@@ -268,6 +269,44 @@ a {
   }
 }
 
+// Sidebar styles
+.sidebar-right {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: $sidebar-width-right;
+  padding: 2rem;
+  border-left: 1px solid var(--border);
+  background-color: var(--sidebar-bg);
+  z-index: 1000;
+  transition: transform 0.3s ease-in-out, background-color 0.2s ease-in-out;
+
+  // overflow-y: auto;
+  // &::-webkit-scrollbar {
+  //   display: none;
+  // }
+  
+  // -ms-overflow-style: none;  /* IE and Edge */
+  // scrollbar-width: none;  /* Firefox */
+  // @media (max-width: $mobile-breakpoint) {
+  //   transform: translateX(-100%);
+  //   width: 80%;
+  //   max-width: 300px;
+  //   padding-top: calc($header-height + 2rem);
+
+  //   &.open {
+  //     transform: translateX(0);
+  //   }
+  // }
+}
+
+@media (min-width: $desktop-breakpoint) {
+  .sidebar-right {
+    display: none;
+  }
+}
+
 .logo {
   font-weight: 700;
   font-size: 1.25rem;
@@ -293,6 +332,27 @@ a {
   
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+
+.sidebar-nav-right {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  // overflow-y: auto;
+  overflow-y: auto;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+@media (min-width: $desktop-breakpoint) {
+  .sidebar-nav-right {
+    display: none;
+  }
 }
 
 .sidebar-nav-header {

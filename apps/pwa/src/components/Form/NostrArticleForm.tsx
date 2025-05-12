@@ -31,6 +31,12 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
   className,
   initialData,
 }) => {
+
+  const Delta = Quill.import('delta');
+
+  // Use a ref to access the quill instance directly
+  const quillRef = useRef();
+  
   const [formData, setFormData] = useState<NostrFormData>({
     content: initialData?.content || '',
     title: initialData?.title || '',
@@ -195,10 +201,6 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
     });
   };
 
-  const Delta = Quill.import('delta');
-
-  // Use a ref to access the quill instance directly
-  const quillRef = useRef();
 
   return (
     <form

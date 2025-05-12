@@ -73,7 +73,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   // Force refetch when parameters change
   useEffect(() => {
     refetch();
-  }, [kinds, limit, authors, searchQuery, refetch]);
+  }, [kinds, limit, authors, searchQuery]);
 
   // Log query parameters and results
   useEffect(() => {

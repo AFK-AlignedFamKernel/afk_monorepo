@@ -71,7 +71,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <div className="w-full max-w-2xl mx-auto p-6 rounded-lg shadow-lg">
       <div className="mb-6">
         <WalletConnectButton />
       </div>
@@ -84,7 +84,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
         {({ errors, touched }) => (
           <Form className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-medium">
                 Token Name
               </label>
               <Field
@@ -98,7 +98,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-medium">
                 Token Symbol
               </label>
               <Field
@@ -133,10 +133,15 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
               <Field
                 as="select"
                 name="bonding_type"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                // className="mt-1 block w-full text-black rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
               >
-                <option value={BondingType.Linear}>Linear</option>
-                <option value={BondingType.Exponential}>Exponential</option>
+                <option value={BondingType.Linear}>
+                  <span>Linear</span>
+                </option>
+                <option value={BondingType.Exponential}>
+                  <span>Exponential</span>
+                </option>
               </Field>
               {errors.bonding_type && touched.bonding_type && (
                 <p className="mt-1 text-sm text-red-600">{errors.bonding_type}</p>

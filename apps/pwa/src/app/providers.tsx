@@ -65,9 +65,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <RelayInitializer>
             <NostrProvider>
               <UIProvider>
-                <NDKConnector>
+                {/* <NDKConnector> */}
                   {children}
-                </NDKConnector>
+                {/* </NDKConnector> */}
               </UIProvider>
             </NostrProvider>
           </RelayInitializer>

@@ -14,6 +14,7 @@ import Image from 'next/image';
 import { ProfileManagement } from '@/components/profile/profile-management';
 import { useUIStore } from '@/store/uiStore';
 import Accordion from './small/accordion';
+import RightBarDesktop from './RightBarDesktop';
 
 interface LayoutProps {
   children: ReactNode;
@@ -234,33 +235,33 @@ const Layout = ({ children }: LayoutProps) => {
             </a>
 
             <div className='sidebar-nav-item'>
-            <Accordion title="Nostr"
-              items={[{
-                title: "Social Nostr",
-                icon: (<Icon name="SocialNostr" size={24}></Icon>),
-                content: (
-                  <>
-                     <Link href="/nostr/feed" className="sidebar-nav-item" onClick={closeSidebar}>
-                      <Icon name="FeedIcon" size={24} />
+              <Accordion title="Nostr"
+                items={[{
+                  title: "Social Nostr",
+                  icon: (<Icon name="SocialNostr" size={24}></Icon>),
+                  content: (
+                    <>
+                      <Link href="/nostr/feed" className="sidebar-nav-item" onClick={closeSidebar}>
+                        <Icon name="FeedIcon" size={24} />
 
-                      Feed
-                    </Link>
-                    <Link href="/nostr/my-profile" className="sidebar-nav-item" onClick={closeSidebar}>
-                      <Icon name="UserIcon" size={24} />
+                        Feed
+                      </Link>
+                      <Link href="/nostr/my-profile" className="sidebar-nav-item" onClick={closeSidebar}>
+                        <Icon name="UserIcon" size={24} />
 
-                      My Profile
-                    </Link>
-                    <Link href="/nostr/login" className="sidebar-nav-item" onClick={closeSidebar}>
-                      <Icon name="LoginIcon" size={24} />
-                      Login
-                    </Link>
-                    <Link href="/nostr/create-account" className="sidebar-nav-item" onClick={closeSidebar}>
-                      <Icon name="UserPlusIcon" size={24} />
-                      Create Account
-                    </Link>
-                  </>)
-              },
-              ]} />
+                        My Profile
+                      </Link>
+                      <Link href="/nostr/login" className="sidebar-nav-item" onClick={closeSidebar}>
+                        <Icon name="LoginIcon" size={24} />
+                        Login
+                      </Link>
+                      <Link href="/nostr/create-account" className="sidebar-nav-item" onClick={closeSidebar}>
+                        <Icon name="UserPlusIcon" size={24} />
+                        Create Account
+                      </Link>
+                    </>)
+                },
+                ]} />
             </div>
 
             <Link href="/profile" className="sidebar-nav-item" onClick={closeSidebar}>
@@ -446,7 +447,13 @@ const Layout = ({ children }: LayoutProps) => {
       <main className="main-content">
         <div className="content">
           {isLoading && <CryptoLoading />}
-          {children}
+          <div className="content">
+            {children}
+            {/* <RightBarDesktop /> */}
+
+          </div>
+
+
         </div>
       </main>
     </div>
