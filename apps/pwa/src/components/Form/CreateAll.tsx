@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSendNote, useAuth } from 'afk_nostr_sdk';
 import { NostrForm, NostrFormData } from '@/components/Form/NostrForm';
 import { useUIStore } from '@/store/uiStore';
@@ -18,6 +18,8 @@ export default function CreateAll() {
   const { publicKey } = useAuth();
 
   const [createType, setCreateType] = useState<CreateType>(CreateType.POST);
+
+  
   
   const { showToast } = useUIStore();
   const handleSubmit = async (data: NostrFormData) => {
@@ -40,6 +42,11 @@ export default function CreateAll() {
       console.error('Failed to create event:', error);
     }
   };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    // Now safe to use browser APIs
+  }, []);
 
   return (
     <div className="container mx-auto p-4">

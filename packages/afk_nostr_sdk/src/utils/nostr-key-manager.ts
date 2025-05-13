@@ -5,6 +5,9 @@ import * as Bip39 from 'bip39';
 import { generateRandomKeypair } from './keypair';
 import { NDKUserProfile } from '@nostr-dev-kit/ndk';
 
+
+const localStorage = typeof window !== 'undefined' ? window.localStorage : null;
+
 export type NostrWallet = {
   secretKey: string;
   privateKey?: string;
@@ -78,45 +81,43 @@ export class NostrKeyManager {
   }
 
   static getAllNostrAccountsFromStorage() {
-    if (!localStorage) return undefined;
-    const allNostrAccounts = localStorage.getItem(NostrKeyManager.ALL_NOSTR_ACCOUNTS);
+    // if (!localStorage) return undefined;
+    const allNostrAccounts = localStorage?.getItem(NostrKeyManager.ALL_NOSTR_ACCOUNTS);
     if (!allNostrAccounts) return [];
     return JSON.parse(allNostrAccounts);
   }
 
   static getNostrAccountsFromStorage() {
 
-    if (!localStorage) return undefined;
-    const storedPubKey = localStorage.getItem(NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX);
+    // if (!localStorage) return undefined;
+    const storedPubKey = localStorage?.getItem(NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX);
     if (!storedPubKey) return undefined;
     return JSON.parse(storedPubKey);
   }
 
   static getNostrWalletConnected() {
-    if (!localStorage) return undefined;
-
-    const storedPubKey = localStorage.getItem(NostrKeyManager.NOSTR_WALLET_CONNECTED);
+    // if (!localStorage) return undefined;
+    const storedPubKey = localStorage?.getItem(NostrKeyManager.NOSTR_WALLET_CONNECTED);
     return storedPubKey;
   }
 
   static setNostrWalletConnected(nostrWallet: NostrWallet) {
-    if (!localStorage) return undefined;
-
-    localStorage.setItem(NostrKeyManager.NOSTR_WALLET_CONNECTED, JSON.stringify(nostrWallet));
+    // if (!localStorage) return undefined;
+    localStorage?.setItem(NostrKeyManager.NOSTR_WALLET_CONNECTED, JSON.stringify(nostrWallet));
   }
 
 
   static getAccountConnected() {
-    if (!localStorage) return undefined;
+    // if (!localStorage) return undefined;
 
-    const storedPubKey = localStorage.getItem(NostrKeyManager.WALLET_CONNECTED);
+    const storedPubKey = localStorage?.getItem(NostrKeyManager.WALLET_CONNECTED);
     return storedPubKey;
   }
 
   static setAccountConnected(account: any) {
-    if (!localStorage) return undefined;
+    // if (!localStorage) return undefined;
 
-    localStorage.setItem(NostrKeyManager.WALLET_CONNECTED, JSON.stringify(account));
+    localStorage?.setItem(NostrKeyManager.WALLET_CONNECTED, JSON.stringify(account));
   }
 
   static async getOrCreateKeyPair(credential?: Credential | null, isCreatedBlocked?: boolean, nostrProfileMetadata?: NDKUserProfile): Promise<{
@@ -126,7 +127,7 @@ export class NostrKeyManager {
     credential?: Credential | null;
   } | undefined> {
     try {
-      if (!localStorage) return undefined;
+      // if (!localStorage) return undefined;
 
       const storedPubKey = localStorage.getItem(NostrKeyManager.STORAGE_KEY);
       console.log('storedPubKey', storedPubKey);

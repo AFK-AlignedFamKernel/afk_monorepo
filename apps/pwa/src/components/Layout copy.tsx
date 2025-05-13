@@ -10,14 +10,11 @@ import { Icon } from './small/icon-component';
 import { useRouter } from 'next/navigation';
 import CryptoLoading from './small/crypto-loading';
 import Image from 'next/image';
+// import { ProfileManagement } from './Nostr/profile/nostr-profile-management';
+import { ProfileManagement } from '@/components/profile/profile-management';
 import { useUIStore } from '@/store/uiStore';
 import Accordion from './small/accordion';
 import RightBarDesktop from './RightBarDesktop';
-
-// const ProfileManagement = dynamic(() => import('@/components/profile/profile-management'), {
-//   ssr: false
-// });
-import { ProfileManagement } from '@/components/profile/profile-management';
 
 interface LayoutProps {
   children: ReactNode;
@@ -26,7 +23,6 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
-  const [mounted, setMounted] = useState(false);
 
   const { showToast, showModal } = useUIStore()
   const [isLoading, setIsLoading] = useState(false);
@@ -43,8 +39,7 @@ const Layout = ({ children }: LayoutProps) => {
 
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
+
     const readNostrStorage = () => {
       const nostrStorageStr = NostrKeyManager.getNostrWalletConnected()
       if (!nostrStorageStr) {
@@ -74,9 +69,7 @@ const Layout = ({ children }: LayoutProps) => {
 
   // Initialize dark mode from localStorage or system preference
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    // Now safe to use localStorage or document
+    // Check localStorage first
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       setDarkMode(true);
@@ -145,16 +138,6 @@ const Layout = ({ children }: LayoutProps) => {
     //   router?.events?.off('routeChangeError', handleComplete);
     // };
   }, [router]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Then use mounted state to guard browser API access
-  useEffect(() => {
-    if (!mounted) return;
-    // Safe to use browser APIs here
-  }, [mounted]);
 
   return (
     <div className="page">
