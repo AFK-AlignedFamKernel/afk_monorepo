@@ -35,7 +35,7 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
   const Delta = Quill.import('delta');
 
   // Use a ref to access the quill instance directly
-  const quillRef = useRef();
+  const quillRef = useRef<Quill>(null);
   
   const [formData, setFormData] = useState<NostrFormData>({
     content: initialData?.content || '',
@@ -184,10 +184,10 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
     if (e.key === 'Enter' && tagInput.trim()) {
       e.preventDefault();
       const newTag = tagInput.trim();
-      if (!formData.tags.includes(newTag)) {
+      if (!formData?.tags?.includes(newTag)) {
         setFormData({
           ...formData,
-          tags: [...formData.tags, newTag],
+          tags: [...formData?.tags || [], newTag],
         });
       }
       setTagInput('');
@@ -197,7 +197,7 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
   const removeTag = (tagToRemove: string) => {
     setFormData({
       ...formData,
-      tags: formData.tags.filter((tag) => tag !== tagToRemove),
+      tags: formData?.tags?.filter((tag) => tag !== tagToRemove),
     });
   };
 

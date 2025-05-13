@@ -43,4 +43,4 @@ const AccordionList: React.FC<AccordionProps> = ({ items, title }) => {
   );
 };
 
-export default Accordion;
+export default AccordionList;

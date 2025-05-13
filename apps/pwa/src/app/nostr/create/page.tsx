@@ -11,10 +11,10 @@ export default function CreateNostrEvent() {
   const [content, setContent] = useState('');
   const sendNote = useSendNote();
   const { publicKey } = useAuth();
-  
+
   const { showToast } = useUIStore();
   const handleSubmit = async (data: NostrFormData) => {
-    
+
     try {
       await sendNote.mutate({
         content,
@@ -57,7 +57,9 @@ export default function CreateNostrEvent() {
 
         <div className="p-4">
           <h2 className="text-xl font-bold mb-4">Create New Post</h2>
-          <form onSubmit={handleSubmit}>
+          <form
+          //  onSubmit={handleSubmit}
+          >
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -66,6 +68,10 @@ export default function CreateNostrEvent() {
             />
             <div className="flex justify-end mt-4">
               <button
+                onClick={() => handleSubmit({
+                  content,
+                  tags: []
+                })}
                 type="submit"
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
               >

@@ -11,7 +11,7 @@ export const NostrProfileEditForm = () => {
         publicKey: publicKey as string,
     })
     const fileUpload = useFileUpload();
-    
+
     const [formData, setFormData] = useState({
         username: profile?.username ? String(profile?.username) : '',
         name: profile?.name ? String(profile?.name) : '',
@@ -51,7 +51,7 @@ export const NostrProfileEditForm = () => {
             if (banner) {
                 const result = await fileUpload.mutateAsync(banner);
                 if (result.data.url) bannerUrl = result.data.url;
-            }   
+            }
 
             console.log("pictureUrl", pictureUrl);
             console.log("bannerUrl", bannerUrl);
@@ -139,12 +139,12 @@ export const NostrProfileEditForm = () => {
                             if (file) {
                                 const reader = new FileReader();
                                 reader.onloadend = () => {
-                                    handleChange({
-                                        target: {
-                                            name: 'picture',
-                                            value: reader.result as string
-                                        }
-                                    });
+                                    const event = new Event('change', { bubbles: true });
+                                    const target = Object.assign(event.target ?? {}, {
+                                        name: 'picture',
+                                        value: reader.result as string
+                                    }) as HTMLInputElement;
+                                    handleChange({ target } as React.ChangeEvent<HTMLInputElement>);
                                 };
                                 reader.readAsDataURL(file);
                             }
@@ -180,12 +180,20 @@ export const NostrProfileEditForm = () => {
                             if (file) {
                                 const reader = new FileReader();
                                 reader.onloadend = () => {
-                                    handleChange({
-                                        target: {
-                                            name: 'banner',
-                                            value: reader.result as string
-                                        }
-                                    });
+                                    // handleChange({
+                                    //     target: {
+                                    //         name: 'banner',
+                                    //         value: reader.result as string
+                                    //     }
+                                    // });
+                                };
+                                reader.onloadend = () => {
+                                    const event = new Event('change', { bubbles: true });
+                                    const target = Object.assign(event.target ?? {}, {
+                                        name: 'picture',
+                                        value: reader.result as string
+                                    }) as HTMLInputElement;
+                                    handleChange({ target } as React.ChangeEvent<HTMLInputElement>);
                                 };
                                 reader.readAsDataURL(file);
                             }

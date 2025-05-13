@@ -7,16 +7,17 @@ import '../feed/feed.scss';
 import { useNote, useReplyNotes, useSendNote } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
 
 interface CommentContainerProps {
-  event: NostrPostEventProps;
+  event: NDKEvent;
   isExpanded?: boolean;
 }
 
 export const CommentContainer: React.FC<CommentContainerProps> = (props) => {
   const { event, isExpanded = false } = props;
 
-  const content = event.content || '';
+  const content = event?.content || '';
   const shouldTruncate = content.length > 280 && !isExpanded;
   const displayContent = shouldTruncate ? `${content.substring(0, 280)}...` : content;
   const [comment, setComment] = useState('');

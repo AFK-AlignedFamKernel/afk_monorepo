@@ -63,10 +63,10 @@ export const NostrForm: React.FC<NostrFormProps> = ({
     if (e.key === 'Enter' && tagInput.trim()) {
       e.preventDefault();
       const newTag = tagInput.trim();
-      if (!formData.tags.includes(newTag)) {
+      if (!formData?.tags?.includes(newTag)) {
         setFormData({
           ...formData,
-          tags: [...formData.tags, newTag],
+          tags: [...formData?.tags || [], newTag],
         });
       }
       setTagInput('');
@@ -76,7 +76,7 @@ export const NostrForm: React.FC<NostrFormProps> = ({
   const removeTag = (tagToRemove: string) => {
     setFormData({
       ...formData,
-      tags: formData.tags.filter((tag) => tag !== tagToRemove),
+      tags: formData?.tags?.filter((tag) => tag !== tagToRemove) || [],
     });
   };
 
@@ -135,7 +135,7 @@ export const NostrForm: React.FC<NostrFormProps> = ({
           Tags
         </label>
         <div className="nostr-form__tags">
-          {formData.tags.map((tag) => (
+          {formData?.tags?.map((tag) => (
             <span key={tag} className="nostr-form__tag">
               #{tag}
               <button

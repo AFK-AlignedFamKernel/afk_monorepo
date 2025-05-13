@@ -1,6 +1,7 @@
-import { SVGProps as SvgProps } from "react";
+import { PropsWithChildren } from "react";
+import { ReactSVGElement, SVGProps as SvgProps, } from "react";
 
-export const ConsoleIcon: React.FC<SvgProps<SVGElement>> = (props) => (
+export const ConsoleIcon: React.FC<SvgProps<SVGSVGElement>> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" {...props}>
     <path
       fill="currentColor"
@@ -10,7 +11,7 @@ export const ConsoleIcon: React.FC<SvgProps<SVGElement>> = (props) => (
   </svg>
 );
 
-export const AddPostIcon: React.FC<SvgProps<SVGElement>> = (props) => (
+export const AddPostIcon: React.FC<SvgProps<SVGSVGElement>> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" fill="none" {...props} className="icon">
     <path
       fill="currentColor"
@@ -25,7 +26,7 @@ export const AddPostIcon: React.FC<SvgProps<SVGElement>> = (props) => (
   </svg>
 );
 
-export const LoginIcon: React.FC<SvgProps<SVGSVGElement>> = (props) => (
+export const LoginIcon: React.FC<SvgProps<SVGSVGElement >> = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" {...props}>
     <path
       d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"

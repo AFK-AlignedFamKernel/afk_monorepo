@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useSendNote, useAuth } from 'afk_nostr_sdk';
-import { Modal } from '@/components/Modal/Modal';
 import { NostrForm, NostrFormData } from '@/components/Form/NostrForm';
 import { useUIStore } from '@/store/uiStore';
 import { TokenCreateForm } from '../launchpad/TokenCreateForm';

@@ -47,6 +47,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
     initialSupply: undefined,
     bonding_type: BondingType.Linear,
     creator_fee_percent: 0,
+    contract_address_salt: '',
     metadata: {
       url: '',
       twitter: '',
@@ -81,7 +82,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
-        {({ errors, touched }) => (
+        {({ errors, touched, handleChange }) => (
           <Form className="space-y-6">
             <div>
               <label className="block text-sm font-medium">
@@ -183,9 +184,9 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
                       name="metadata.url"
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                     />
-                    {errors.metadata?.url && touched.metadata?.url && (
+                    {/* {errors.metadata?.url && touched.metadata?.url && (
                       <p className="mt-1 text-sm text-red-600">{errors.metadata.url}</p>
-                    )}
+                    )} */}
                   </div>
 
                   <div>
@@ -230,8 +231,8 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
                       name="metadata.website"
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                     />
-                    {errors.metadata?.website && touched.metadata?.website && (
-                      <p className="mt-1 text-sm text-red-600">{errors.metadata.website}</p>
+                    {errors?.metadata && touched.metadata && (
+                      <p className="mt-1 text-sm text-red-600">{errors.metadata}</p>
                     )}
                   </div>
                 </div>
