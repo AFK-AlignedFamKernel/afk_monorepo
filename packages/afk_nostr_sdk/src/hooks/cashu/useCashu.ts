@@ -147,10 +147,10 @@ export const useCashu = (): ICashu => {
     // console.log('activeMint', activeMint);
     if (activeMint) return new CashuMint(activeMint);
     if (!activeMint && mintUrls && activeMintIndex) {
-      return new CashuMint(mintUrls[activeMintIndex].url);
+      return new CashuMint(mintUrls[activeMintIndex]?.url);
     }
     if (!activeMint && !mintUrls && !activeMintIndex) {
-      return new CashuMint(mintUrls[0].url);
+      return new CashuMint(mintUrls[0]?.url);
     }
   }, [activeMint, mintUrls, activeMintIndex, setMintUrlSelected]);
 

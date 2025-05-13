@@ -231,8 +231,8 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
                       name="metadata.website"
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                     />
-                    {errors?.metadata && touched.metadata && (
-                      <p className="mt-1 text-sm text-red-600">{errors.metadata}</p>
+                    {errors?.metadata?.website && touched.metadata?.website && (
+                      <p className="mt-1 text-sm text-red-600">{errors?.metadata?.website}</p>
                     )}
                   </div>
                 </div>

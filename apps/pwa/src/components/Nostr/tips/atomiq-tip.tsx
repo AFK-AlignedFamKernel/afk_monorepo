@@ -4,7 +4,7 @@ import { useLN, useProfile } from 'afk_nostr_sdk';
 import React, { useState } from 'react';
 import { CallData, uint256 } from 'starknet';
 import { ESCROW_ADDRESSES } from '@/constants/contracts';
-import { useAtomiqLab } from '@/hooks/atomiqlab';
+// import { useAtomiqLab } from '@/hooks/atomiqlab';
 import { useUIStore } from '@/store/uiStore';
 import { TokenSymbol } from 'common';
 import Image from 'next/image';
@@ -39,44 +39,47 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
   const [successMessage, setSuccessMessage] = useState<any | null>(null);
   const [successUrl, setSuccessUrl] = useState<any | null>(null);
   const [preimage, setPreimage] = useState<string | null>(null);
-  const { handlePayInvoice, handleConnect, handlePayLnurl, starknetSwapper } = useAtomiqLab();
+  // const { handlePayInvoice, handleConnect, handlePayLnurl, starknetSwapper } = useAtomiqLab();
   const [isLoading, setIsLoading] = useState(false);
 
   const isActive = !!amount && !!token;
 
   const onTipPress = async () => {
     try {
-      if (!profile?.lud16) {
-        showToast({ message: "No LUD16 found", type: 'error' });
-        return;
-      }
 
-      if (!amount) {
-        showToast({ message: "No amount found", type: 'error' });
-        return;
-      }
-      setIsLoading(true);
+      return showToast({ message: "Will be implemented soon", type: 'error' });
+      // if (!profile?.lud16) {
+      //   showToast({ message: "No LUD16 found", type: 'error' });
+      //   return;
+      // }
 
-      const invoice = await getInvoiceFromLnAddress(profile?.lud16, Number(amount));
+      // if (!amount) {
+      //   showToast({ message: "No amount found", type: 'error' });
+      //   return;
+      // }
+      // setIsLoading(true);
 
-      if (!invoice?.paymentRequest) {
-        showToast({ message: "Invoice not found", type: 'error' });
-        return;
-      }
+      // const invoice = await getInvoiceFromLnAddress(profile?.lud16, Number(amount));
 
-      showToast({ message: "Paying invoice in process", type: 'info' });
-      const res = await handlePayLnurl(profile?.lud16, Number(amount));
+      // if (!invoice?.paymentRequest) {
+      //   showToast({ message: "Invoice not found", type: 'error' });
+      //   return;
+      // }
 
-      if (res.success && res?.lightningSecret) {
-        setPreimage(res.lightningSecret);
-        setSuccessAction(res.successAction);
-        setSuccessUrl(res.successUrl);
+      // showToast({ message: "Paying invoice in process", type: 'info' });
+      
+      // const res = await handlePayLnurl(profile?.lud16, Number(amount));
 
-        showToast({
-          message: "Tip sent",
-          type: "success"
-        });
-      }
+      // if (res.success && res?.lightningSecret) {
+      //   setPreimage(res.lightningSecret);
+      //   setSuccessAction(res.successAction);
+      //   setSuccessUrl(res.successUrl);
+
+      //   showToast({
+      //     message: "Tip sent",
+      //     type: "success"
+      //   });
+      // }
     } catch (error) {
       showToast({
         message: "Error",

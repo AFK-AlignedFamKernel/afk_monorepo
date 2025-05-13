@@ -104,15 +104,15 @@ export const useGift = ({chainProps, recipientAddress, tokenAddress}: IGiftHook)
       console.log('addressToken', addressToken);
       sendTransaction({to: recipientAddress as `0x${string}`, value: parseEther('0.00001')});
 
-      await writeContract({
-        abi: erc20Abi,
-        address: addressToken ?? '0x6b175474e89094c44da98b954eedeac495271d0f',
-        functionName: 'transfer',
-        args: [
-          (recipientAddress as `0x${string}`) ?? (recipientVaultAddress as `0x${string}`),
-          parseUnits(amount, decimals),
-        ],
-      });
+      // await writeContract({
+      //   abi: erc20Abi,
+      //   address: addressToken ?? '0x6b175474e89094c44da98b954eedeac495271d0f',
+      //   functionName: 'transfer',
+      //   args: [
+      //     (recipientAddress as `0x${string}`) ?? (recipientVaultAddress as `0x${string}`),
+      //     parseUnits(amount, decimals),
+      //   ],
+      // });
     }
   };
 
