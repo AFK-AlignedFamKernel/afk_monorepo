@@ -99,7 +99,7 @@ export function deriveSharedKey(
     return sharedSecret.slice(1);
   } catch (error) {
     console.error('Error deriving shared key:', error);
-    throw error;
+    return null;
   }
 }
 

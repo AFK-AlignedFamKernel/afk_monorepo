@@ -31,7 +31,7 @@ export const useIncomingMessageUsers = (options?: UseMyMessagesSentOptions):UseI
       const [incomingGiftWraps, outgoingGiftWraps] = await Promise.all([
         ndk.fetchEvents({
           kinds: [1059 as NDKKind],
-          '#p': [publicKey],
+          // '#p': [publicKey],
           since: pageParam || undefined,
           limit: options?.limit || 20,
         }),

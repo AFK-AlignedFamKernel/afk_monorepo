@@ -52,6 +52,7 @@ export const useMyMessagesSent = (options?: UseMyMessagesSentOptions):UseInfinit
         search: options?.search,
         // until: pageParam || Math.round(Date.now() / 1000),
         limit: 20,
+        // "#p": options?.authors,
       });
 
       return [...giftsWrap];
@@ -82,9 +83,10 @@ export const useRoomMessages = (options?: UseRoomMessageOptions) => {
     queryFn: async ({ pageParam }) => {
       const giftWraps = await ndk.fetchEvents({
         kinds: [1059 as NDKKind],
-        authors: options.roomParticipants,
+        // authors: options.roomParticipants,
         since: pageParam ? pageParam : undefined,
         limit: options?.limit || 20,
+        "#p": options.roomParticipants,
       });
 
       const decryptedMessages: DecryptedMessage[] = await Promise.all(

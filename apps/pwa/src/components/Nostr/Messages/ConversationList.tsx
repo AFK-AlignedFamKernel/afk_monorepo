@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useAuth, useContacts, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages } from 'afk_nostr_sdk';
+import { deriveSharedKey, useAuth, useContacts, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages, useSendPrivateMessage, v2 } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
 import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
 import { ChatConversation } from './ChatConversation';
+import { useUIStore } from '@/store/uiStore';
 
 export const NostrConversationList: React.FC = () => {
   const { publicKey, privateKey } = useAuth();
@@ -18,18 +19,23 @@ export const NostrConversationList: React.FC = () => {
   const [showNewMessageForm, setShowNewMessageForm] = useState(false);
 
   const { data: incomingMessages, isPending, refetch } = useIncomingMessageUsers();
-  console.log('data?.pages.flat()', incomingMessages?.pages.flat());
-
-  const { data: dataMessagesSent } = useMyMessagesSent();
-  const giftMessages = useMyGiftWrapMessages();
+  // const { data: dataMessagesSent } = useMyMessagesSent();
+  // const giftMessages = useMyGiftWrapMessages();
   const contacts = useContacts();
-
-  console.log('giftMessages', giftMessages?.data?.pages.flat());
+  const [message, setMessage] = useState<string | null>(null);
 
   const { ndk } = useNostrContext();
   const [ndkSigner, setNdkSigner] = useState<NDKPrivateKeySigner | null>(null);
   const [ndkUser, setNdkUser] = useState<NDKUser | null>(null);
-
+  const { mutateAsync: sendMessage } = useSendPrivateMessage();
+  const roomIds = selectedConversation
+    ? [selectedConversation?.senderPublicKey, selectedConversation?.receiverPublicKey]
+    : [];
+  // const { data: messagesSentRoom, fetchNextPage, hasNextPage, isFetchingNextPage } = useMyMessagesSent({
+  //   authors: roomIds ?? [],
+  // });
+  // console.log('messagesSentRoom', messagesSentRoom?.pages?.flat()?.length);
+  const { showToast } = useUIStore();
   useEffect(() => {
     if (privateKey && publicKey && ndkSigner == null) {
       setNdkSigner(new NDKPrivateKeySigner(privateKey));
@@ -38,31 +44,6 @@ export const NostrConversationList: React.FC = () => {
       }));
     }
   }, [privateKey, publicKey, ndkSigner, ndkUser]);
-  console.log("messageData", messagesData)
-  // useEffect(() => {
-  //   const processMessages = async () => {
-  //     if (publicKey && !isProcessingMessages) {
-  //       setIsProcessingMessages(true);
-  //       try {
-  //         // await refetch();
-  //       } catch (error) {
-  //         console.error('Error processing messages:', error);
-  //       } finally {
-  //         setIsProcessingMessages(false);
-  //       }
-  //     }
-  //   };
-
-  //   if (publicKey) {
-  //     processMessages();
-  //   }
-  // }, [publicKey, refetch]);
-
-  // useEffect(() => {
-  //   if (data && data?.pages?.flat().length > 0) {
-  //     setMessages(data?.pages.flat());
-  //   }
-  // }, [data]);
 
   const handleGoBack = () => {
     setSelectedConversation(null);
@@ -75,9 +56,6 @@ export const NostrConversationList: React.FC = () => {
     }
   };
 
-  const roomIds = selectedConversation
-    ? [selectedConversation?.senderPublicKey, selectedConversation?.receiverPublicKey]
-    : [];
 
   const messagesSent = useRoomMessages({
     roomParticipants: roomIds,
@@ -111,6 +89,41 @@ export const NostrConversationList: React.FC = () => {
       </div>
     );
   }
+
+  const handleSendMessage = async (message: string) => {
+    if (!message) return;
+    console.log('roomIds', roomIds);
+    let receiverPublicKey = roomIds.find((id) => id !== publicKey);
+
+
+    // TODO auto saved message
+    if (roomIds[0] === roomIds[1]) {
+      receiverPublicKey = roomIds[0] ?? publicKey;
+    }
+    if (!receiverPublicKey && roomIds.length > 1 && roomIds[0] != roomIds[1]) {
+      showToast({ message: 'Invalid receiver', type: 'error' });
+      return;
+    }
+    console.log('receiverPublicKey', receiverPublicKey);
+    await sendMessage(
+      {
+        content: message,
+        receiverPublicKeyProps: receiverPublicKey,
+      },
+      {
+        onSuccess: () => {
+          showToast({ message: 'Message sent', type: 'success' });
+          //   queryClient.invalidateQueries({
+          //     queryKey: ['messagesSent'],
+          //   });
+        },
+        onError() {
+          showToast({ message: 'Error sending message', type: 'error' });
+        },
+      },
+    );
+  };
+
 
   return (
     <div className="flex flex-col h-full">
@@ -154,19 +167,42 @@ export const NostrConversationList: React.FC = () => {
                   </button>
                   <div className="flex items-center">
                     <div className="w-8 h-8 rounded-full bg-gray-200 mr-2" />
-                    <span>{selectedConversation.senderPublicKey.slice(0, 8)}</span>
+                    <span>{selectedConversation?.senderPublicKey?.slice(0, 8)}</span>
                   </div>
-                  <ChatConversation
+                  {/* <ChatConversation
                     item={selectedConversation}
-                    publicKey={publicKey}
+                    publicKeyProps={publicKey}
                     receiverPublicKey={selectedConversation.receiverPublicKey}
                     handleGoBack={handleGoBack}
                     messagesSentParents={messagesSentState}
-                  />
+                  /> */}
                 </div>
-
+                {/* {messagesSentRoom?.pages.flat().map(async (msg: any) => {
+                  // console.log('msg', msg);
+                  // const isSender = msg?.senderPublicKey === selectedConversation?.senderPublicKey;
+                  // const conversationPublicKey = deriveSharedKey(publicKey, selectedConversation?.receiverPublicKey);
+                  // const decryptedContent = v2.decrypt(msg?.content, conversationPublicKey);
+                  // console.log('decryptedContent', decryptedContent);
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg?.senderPublicKey === selectedConversation?.senderPublicKey ? 'justify-start' : 'justify-end'
+                        }`}
+                    >
+                      <div
+                        className={`max-w-[70%] rounded-lg p-3 ${msg?.senderPublicKey === selectedConversation?.senderPublicKey
+                          ? 'bg-gray-100'
+                          : 'bg-primary text-primary-foreground'
+                          }`}
+                      >
+                        <span className="text-xs opacity-70">
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })} */}
                 {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4">
+                {/* <div className="flex-1 overflow-y-auto p-4">
                   {messagesSentState.map((msg: any) => (
                     <div
                       key={msg.id}
@@ -181,11 +217,10 @@ export const NostrConversationList: React.FC = () => {
                           : 'bg-blue-500 text-white'
                           }`}
                       >
-                        {ndkSigner?.decrypt(ndkUser, msg?.content, "nip44")}
                       </div>
                     </div>
                   ))}
-                </div>
+                </div> */}
 
                 {/* Message Input */}
                 <div className="p-4 border-t">
@@ -194,8 +229,11 @@ export const NostrConversationList: React.FC = () => {
                       type="text"
                       placeholder="Type a message..."
                       className="flex-1 p-2 border rounded-l"
+                      onChange={(e) => setMessage(e.target.value)}
                     />
-                    <button className="px-4 py-2 bg-blue-500 text-white rounded-r">
+                    <button className="px-4 py-2 bg-blue-500 text-white rounded-r"
+                      onClick={() => handleSendMessage(message)}
+                    >
                       Send
                     </button>
                   </div>
@@ -203,69 +241,91 @@ export const NostrConversationList: React.FC = () => {
               </div>
             ) : (
               <div className="h-full">
-                {messagesData.length === 0 && !incomingMessages?.pages.flat().length ? (
+                {messagesData.length === 0 && !incomingMessages?.pages.flat().length && (
                   <div className="flex items-center justify-center h-24">
                     <p className="text-gray-500">You don't have any messages</p>
                   </div>
-                ) : (
-                  <div className="overflow-y-auto h-full">
-                    {/* Incoming Messages */}
-                    {messagesData.map((item: any) => (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          setSelectedConversation(item);
-                          setIsBack(false);
-                        }}
-                        className="w-full p-4 hover:bg-gray-100 border-b"
-                      >
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
-                          <div className="flex-1 text-left">
-                            <p className="font-medium">
-                              {item.senderPublicKey.slice(0, 8)}
-                            </p>
-                            <p className="text-sm text-gray-500 truncate">
-                              {ndkSigner?.decrypt(ndkUser, item?.content, "nip44")}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-
-                    {/* Sent Messages */}
-                    {incomingMessages?.pages.flat()?.length > 0 && incomingMessages?.pages.flat()?.map((item: any) => (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          setSelectedConversation({
-                            senderPublicKey: item.receiverPublicKey,
-                            receiverPublicKey: publicKey,
-                            content: item.content,
-                            id: item.id
-                          });
-                          setIsBack(false);
-                        }}
-                        className="w-full p-4 hover:bg-gray-100 border-b"
-                      >
-                        <div className="flex items-center">
-                          <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
-                          <div className="flex-1 text-left">
-                            <p className="font-medium">
-                              {item?.receiverPublicKey?.slice(0, 8)}
-                            </p>
-                            <p className="text-sm text-gray-500 truncate">
-                              {item?.content &&
-                                ndkSigner?.decrypt(ndkUser, item?.content, "nip44")
-                              }
-
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
                 )}
+                <div className="overflow-y-auto h-full">
+                  {/* Incoming Messages */}
+                  {messagesData.map((item: any) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setSelectedConversation(item);
+                        setIsBack(false);
+                      }}
+                      className="w-full p-4 hover:bg-gray-100 border-b"
+                    >
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
+                        <div className="flex-1 text-left">
+                          <p className="font-medium">
+                            {item.senderPublicKey.slice(0, 8)}
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">
+                            {/* {ndkSigner?.decrypt(ndkUser, item?.content, "nip44")} */}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+
+                  {messagesSent.data?.pages.flat().map((item: any) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setSelectedConversation(item);
+                        setIsBack(false);
+                      }}
+                      className="w-full p-4 hover:bg-gray-100 border-b"
+                    >
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
+                        <div className="flex-1 text-left">
+                          <p className="font-medium">
+                            {item.senderPublicKey.slice(0, 8)}
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">
+                            {/* {ndkSigner?.decrypt(ndkUser, item?.content, "nip44")} */}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+
+                  {/* Sent Messages */}
+                  {incomingMessages?.pages.flat()?.length > 0 && incomingMessages?.pages.flat()?.map((item: any) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setSelectedConversation({
+                          senderPublicKey: item.receiverPublicKey,
+                          receiverPublicKey: publicKey,
+                          content: item.content,
+                          id: item.id
+                        });
+                        setIsBack(false);
+                      }}
+                      className="w-full p-4 hover:bg-gray-100 border-b"
+                    >
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
+                        <div className="flex-1 text-left">
+                          <p className="font-medium">
+                            {item?.receiverPublicKey?.slice(0, 8)}
+                          </p>
+                          <p className="text-sm text-gray-500 truncate">
+                            {/* {item?.content &&
+                              ndkSigner?.decrypt(ndkUser, item?.content, "nip44")
+                            } */}
+
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
 
                 {/* New Message Button and Form */}
                 <>

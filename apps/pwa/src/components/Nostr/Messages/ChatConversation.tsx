@@ -2,9 +2,11 @@
 // 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { useAuth, useProfile, useRoomMessages } from 'afk_nostr_sdk';
+import { useAuth, useIncomingMessageUsers, useMyMessagesSent, useProfile, useRoomMessages } from 'afk_nostr_sdk';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
+import { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
+import { NDKUser } from '@nostr-dev-kit/ndk';
 
 interface ChatProps {
     item: any;
@@ -24,33 +26,41 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const { data: profile } = useProfile(item.senderPublicKey);
     const [message, setMessage] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
-    const { publicKey } = useAuth();
+    const { publicKey, privateKey } = useAuth();
+    const [ndkUser, setNdkUser] = useState<NDKUser | null>(null);
+    const [ndkSigner, setNdkSigner] = useState<NDKPrivateKeySigner | null>(null);
 
-    const roomParticipants = [publicKey, receiverPublicKey];
-    // const { data: messagesSent } = useRoomMessages({
-    //     roomParticipants,
-    // });
-    // useEffect(() => {
-    //     if (scrollRef.current) {
-    //         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    //     }
-    // }, [messagesSentParents]);
-    const roomIds = item ?[publicKey, item?.receiverPublicKey] : [publicKey, receiverPublicKey];
+    useEffect(() => {
+        if (privateKey && publicKey && ndkSigner == null) {
+            setNdkSigner(new NDKPrivateKeySigner(privateKey));
+        }
+    }, [privateKey, publicKey, ndkSigner]);
+
+    const roomIds = item ? [publicKey, item?.receiverPublicKey] : [publicKey, receiverPublicKey];
     // console.log('roomIds', roomIds);
     const messagesSent = useRoomMessages({
         roomParticipants: roomIds ?? [],
     });
-    console.log('messagesSent', messagesSent.data?.pages.flat());
-    const messagesSentState = React.useMemo(() => {
-        if (roomIds.length === 0) {
-            return [];
-        }
-        if (item) {
-            return messagesSent.data?.pages.flat() || [];
-        }
-        return [];
-    }, [item, messagesSent.data?.pages]);
-    console.log('messagesSentState', messagesSentState);
+
+    const { data: incomingMessages, isPending, refetch } = useIncomingMessageUsers();
+    console.log('incomingMessages', incomingMessages?.pages.flat());
+
+
+    const { data: messagesSentRoom } = useMyMessagesSent({
+        authors: roomIds ?? [],
+    });
+    console.log('messagesSentRoom', messagesSentRoom);
+    // console.log('messagesSent', messagesSent.data?.pages.flat());
+    // const messagesSentState = React.useMemo(() => {
+    //     if (roomIds.length === 0) {
+    //         return [];
+    //     }
+    //     if (item) {
+    //         return messagesSent.data?.pages.flat() || [];
+    //     }
+    //     return [];
+    // }, [item, messagesSent.data?.pages]);
+    // console.log('messagesSentState', messagesSentState);
     const handleSendMessage = async () => {
         if (!message.trim()) return;
         // Implement your message sending logic here
@@ -77,7 +87,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
 
             <div ref={scrollRef} className="flex-1 p-4">
 
-            <div className="space-y-4">
+                {/* <div className="space-y-4">
                     {messagesSentState.map((msg: any) => (
                         <div
                             key={msg.id}
@@ -97,7 +107,56 @@ export const ChatConversation: React.FC<ChatProps> = ({
                             </div>
                         </div>
                     ))}
+                </div> */}
+                <div className="space-y-4">
+                    {messagesSentRoom?.pages.flat().map((msg: any) => {
+                        return (
+                            <div
+                                key={msg.id}
+                                className={`flex ${msg?.senderPublicKey === item.senderPublicKey ? 'justify-start' : 'justify-end'
+                                    }`}
+                            >
+                                <div
+                                    className={`max-w-[70%] rounded-lg p-3 ${msg?.senderPublicKey === item?.senderPublicKey
+                                        ? 'bg-gray-100'
+                                        : 'bg-primary text-primary-foreground'
+                                        }`}
+                                >
+                                    <p className="text-sm">{msg.content}</p>
+                                    <span className="text-xs opacity-70">
+                                    </span>
+                                </div>
+                            </div>
+                        )
+                    })}
                 </div>
+
+                <div className="space-y-4">
+                    {incomingMessages?.pages.flat().map((msg: any) => {
+                        // const decryptedContent = ndkSigner?.decrypt(ndkUser, msg.content, "nip44");
+                        const decryptedContent = msg.content;
+
+                        return (
+                            <div
+                                key={msg.id}
+                                className={`flex ${msg?.senderPublicKey === item.senderPublicKey ? 'justify-start' : 'justify-end'
+                                    }`}
+                            >
+                                <div
+                                    className={`max-w-[70%] rounded-lg p-3 ${msg?.senderPublicKey === item?.senderPublicKey
+                                        ? 'bg-gray-100'
+                                        : 'bg-primary text-primary-foreground'
+                                        }`}
+                                >
+                                    <p className="text-sm">{decryptedContent}</p>
+                                    <span className="text-xs opacity-70">
+                                    </span>
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+
                 <div className="space-y-4">
                     {messagesSent.data?.pages.flat().map((msg: any) => (
                         <div
@@ -148,7 +207,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Type a message..."
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    // onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     />
                     <button onClick={handleSendMessage}>
                         {/* <Icon name="SendIcon" className="h-4 w-4" /> */}

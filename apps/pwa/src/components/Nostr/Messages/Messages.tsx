@@ -1,43 +1,19 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useAuth, useContacts, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages } from 'afk_nostr_sdk';
+import React, { useState } from 'react';
+import { useAuth } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
-import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
 import { NostrConversationList } from './ConversationList';
-import { NostrContactList } from './NostrContactList';
+
 export const NostrMessagesComponent: React.FC = () => {
-  const { publicKey, privateKey } = useAuth();
+  const { publicKey } = useAuth();
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
-  const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<string>('messages');
-  const [isProcessingMessages, setIsProcessingMessages] = useState(false);
-  const [messagesData, setMessages] = useState<any>([]);
-  const [isBack, setIsBack] = useState(false);
   const [showNewMessageForm, setShowNewMessageForm] = useState(false);
 
-  const contacts = useContacts();
-
-  const { ndk } = useNostrContext();
-  const [ndkSigner, setNdkSigner] = useState<NDKPrivateKeySigner | null>(null);
-  const [ndkUser, setNdkUser] = useState<NDKUser | null>(null);
-
-  const handleGoBack = () => {
-    setSelectedConversation(null);
-  };
-
-  const handleConnect = async () => {
-    const connected = await handleCheckNostrAndSendConnectDialog();
-    if (connected) {
-      // refetch();
-    }
-  };
-
-
-  const handleNewMessageSent = () => {
-    setShowNewMessageForm(false);
-    // refetch();
+  const handleConnect = () => {
+    handleCheckNostrAndSendConnectDialog();
   };
 
   if (!publicKey) {
@@ -78,17 +54,9 @@ export const NostrMessagesComponent: React.FC = () => {
         </button>
       </div>
 
-      {activeTab == "messages" && (
-
-        <>
-          <NostrConversationList />
-        </>
+      {activeTab === "messages" && (
+        <NostrConversationList />
       )}
-
-      {activeTab == "contacts" && (
-        <NostrContactList />
-      )}
-
     </div>
   );
 };

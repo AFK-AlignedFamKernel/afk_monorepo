@@ -29,7 +29,7 @@ export const useMyGiftWrapMessages = (options?: UseRootProfilesOptions):UseInfin
         search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
         limit: 20,
-        "#p": [publicKey],
+        // "#p": [publicKey],
       });
 
       console.log('giftsWrap', giftsWrap);
