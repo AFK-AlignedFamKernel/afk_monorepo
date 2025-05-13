@@ -3,8 +3,7 @@ import { useAccount } from '@starknet-react/core';
 import { useLN, useProfile } from 'afk_nostr_sdk';
 import React, { useState } from 'react';
 import { CallData, uint256 } from 'starknet';
-import { ESCROW_ADDRESSES } from '@/constants/contracts';
-// import { useAtomiqLab } from '@/hooks/atomiqlab';
+import { useAtomiqLab } from '@/hooks/atomiqlab';
 import { useUIStore } from '@/store/uiStore';
 import { TokenSymbol } from 'common';
 import Image from 'next/image';
@@ -39,7 +38,7 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
   const [successMessage, setSuccessMessage] = useState<any | null>(null);
   const [successUrl, setSuccessUrl] = useState<any | null>(null);
   const [preimage, setPreimage] = useState<string | null>(null);
-  // const { handlePayInvoice, handleConnect, handlePayLnurl, starknetSwapper } = useAtomiqLab();
+  const { handlePayInvoice, handleConnect, handlePayLnurl, starknetSwapper } = useAtomiqLab();
   const [isLoading, setIsLoading] = useState(false);
 
   const isActive = !!amount && !!token;
@@ -47,39 +46,39 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
   const onTipPress = async () => {
     try {
 
-      return showToast({ message: "Will be implemented soon", type: 'error' });
-      // if (!profile?.lud16) {
-      //   showToast({ message: "No LUD16 found", type: 'error' });
-      //   return;
-      // }
+      // return showToast({ message: "Will be implemented soon", type: 'error' });
+      if (!profile?.lud16) {
+        showToast({ message: "No LUD16 found", type: 'error' });
+        return;
+      }
 
-      // if (!amount) {
-      //   showToast({ message: "No amount found", type: 'error' });
-      //   return;
-      // }
-      // setIsLoading(true);
+      if (!amount) {
+        showToast({ message: "No amount found", type: 'error' });
+        return;
+      }
+      setIsLoading(true);
 
-      // const invoice = await getInvoiceFromLnAddress(profile?.lud16, Number(amount));
+      const invoice = await getInvoiceFromLnAddress(profile?.lud16, Number(amount));
 
-      // if (!invoice?.paymentRequest) {
-      //   showToast({ message: "Invoice not found", type: 'error' });
-      //   return;
-      // }
+      if (!invoice?.paymentRequest) {
+        showToast({ message: "Invoice not found", type: 'error' });
+        return;
+      }
 
-      // showToast({ message: "Paying invoice in process", type: 'info' });
+      showToast({ message: "Paying invoice in process", type: 'info' });
       
-      // const res = await handlePayLnurl(profile?.lud16, Number(amount));
+      const res = await handlePayLnurl(profile?.lud16, Number(amount));
 
-      // if (res.success && res?.lightningSecret) {
-      //   setPreimage(res.lightningSecret);
-      //   setSuccessAction(res.successAction);
-      //   setSuccessUrl(res.successUrl);
+      if (res.success && res?.lightningSecret) {
+        setPreimage(res.lightningSecret);
+        setSuccessAction(res.successAction);
+        setSuccessUrl(res.successUrl);
 
-      //   showToast({
-      //     message: "Tip sent",
-      //     type: "success"
-      //   });
-      // }
+        showToast({
+          message: "Tip sent",
+          type: "success"
+        });
+      }
     } catch (error) {
       showToast({
         message: "Error",
@@ -153,7 +152,7 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
           // variant="secondary"
           disabled={!isActive || isLoading}
           onClick={onTipPress}
-          className="w-full"
+          className="w-full btn btn-primary"
         >
           {isLoading ? (
             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />

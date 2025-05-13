@@ -5,7 +5,7 @@ import { Icon } from '../small/icon-component';
 
 export default function MenuGameComponent() {
   return (
-      <div className="card">
+      <div className="shadow-lg p-4 rounded-lg px-4">
         <h2 className="text-xl font-semibold">AFK is your gateway for your Freedom</h2>
         <p>
           AFK is a gateway for your Freedom.

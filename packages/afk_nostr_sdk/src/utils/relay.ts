@@ -1,6 +1,6 @@
 export const RELAYS_PROD = [
   'wss://relay.primal.net',
-  'wss://relay.damus.io',
+  // 'wss://relay.damus.io',
   'wss://nos.lol'
   // 'wss://relay.snort.social',
   // 'wss://nos.lol'
@@ -18,6 +18,7 @@ export const RELAY_AFK_PRODUCTION = 'wss://nostr-relay-nestjs-production.up.rail
 export const AFK_RELAYS =
   process.env.EXPO_NODE_ENV == 'production' ||
     process.env.EXPO_PUBLIC_NODE_ENV == 'production' ||
+    process.env.NEXT_PUBLIC_NODE_ENV == 'production' ||
     process.env.NODE_ENV == 'production'
     ? [
       ...RELAYS_PROD,

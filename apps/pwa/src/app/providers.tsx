@@ -29,7 +29,7 @@ const NDKConnector: React.FC<{children: React.ReactNode}> = ({ children }) => {
   useEffect(() => {
     const connectNDK = async () => {
       try {
-        console.log('Connecting NDK to relays...');
+        // console.log('Connecting NDK to relays...');
         await ndk.connect();
         console.log('NDK connected successfully');
       } catch (err) {
@@ -65,9 +65,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <RelayInitializer>
             <NostrProvider>
               <UIProvider>
-                {/* <NDKConnector> */}
+                <NDKConnector>
                   {children}
-                {/* </NDKConnector> */}
+                </NDKConnector>
               </UIProvider>
             </NostrProvider>
           </RelayInitializer>

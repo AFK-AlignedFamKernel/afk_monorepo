@@ -63,10 +63,10 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     authors,
     // search: searchQuery
   });
-  // console.log("notesData", notesData);
+  console.log("notesData", notesData);
   // console.log("isLoading", isLoading);
   // console.log("isError", isError);
-  // console.log("error", error);
+  console.log("error", error);
   // console.log("hasNextPage", hasNextPage);
   // console.log("refetch", refetch);
 
