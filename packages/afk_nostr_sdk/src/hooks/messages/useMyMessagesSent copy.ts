@@ -31,75 +31,33 @@ interface DecryptedMessage {
   decryptedContent: string;
 }
 
-export const useMyMessagesSent = (options?: {
-  authors?: string[];
-  limit?: number;
-}) => {
+export const useMyMessagesSent = (options?: UseMyMessagesSentOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error>=> {
   const { ndk } = useNostrContext();
-  const { publicKey, privateKey } = useAuth();
-
+  const { publicKey } = useAuth();
   return useInfiniteQuery({
-    queryKey: ['myMessagesSent', options?.authors],
     initialPageParam: 0,
+    queryKey: ['myMessagesSent', options?.authors, options?.search, ndk],
     getNextPageParam: (lastPage: any, allPages, lastPageParam) => {
       if (!lastPage?.length) return undefined;
+
       const pageParam = lastPage[lastPage.length - 1].created_at - 1;
+
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
     queryFn: async ({ pageParam }) => {
-      if (!privateKey || !publicKey) {
-        throw new Error('Private key or public key not available');
-      }
-
-      const messages = await ndk.fetchEvents({
-        kinds: [1059 as NDKKind],
-        // authors: options?.authors || [publicKey],
+      const giftsWrap = await ndk.fetchEvents({
+        kinds: [1059 as number],
         authors: options?.authors,
-        since: pageParam || undefined,
-        limit: options?.limit || 20,
-        "#p": options?.authors,
+        search: options?.search,
+        // until: pageParam || Math.round(Date.now() / 1000),
+        limit: 20,
+        // "#p": options?.authors,
       });
 
-      const decryptMessages = async (giftWraps: NDKEvent[]) => {
-        return Promise.all(
-          [...giftWraps].map(async (giftWrap: NDKEvent) => {
-            try {
-              const receiverPublicKey = giftWrap.tags.find((tag) => tag[0] === 'p')?.[1];
-              if (!receiverPublicKey) return null;
-
-              const conversationKey = deriveSharedKey(privateKey, fixPubKey(receiverPublicKey));
-
-              // Decrypt the gift wrap content to get the sealed event
-              const sealedEventJson = v2.decrypt(giftWrap.content, conversationKey);
-              const sealedEvent = JSON.parse(sealedEventJson);
-
-              if (sealedEvent.kind !== 13) return null;
-
-              // Decrypt the sealed event content to get the direct message
-              const directMessageJson = v2.decrypt(sealedEvent.content, conversationKey);
-              const directMessage = JSON.parse(directMessageJson);
-
-              if (directMessage.kind !== 14) return null;
-
-              return {
-                id: giftWrap.id,
-                content: directMessage.content,
-                created_at: giftWrap.created_at,
-                senderPublicKey: giftWrap.pubkey,
-                receiverPublicKey,
-              };
-            } catch (error) {
-              console.error('Failed to decrypt message:', error);
-              return null;
-            }
-          })
-        );
-      };
-
-      const decryptedMessages = await decryptMessages(messages as any);
-      return decryptedMessages.filter(Boolean);
+      return [...giftsWrap];
     },
+    placeholderData: { pages: [], pageParams: [] },
   });
 };
 
@@ -210,7 +168,6 @@ export const useRoomMessages = (options?: UseRoomMessageOptions) => {
         }),
       );
 
-      console.log('decryptedMessages', decryptedMessages);
       // Filter out null values (failed decryptions)
       return decryptedMessages.filter((message): message is DecryptedMessage => message !== null);
     },

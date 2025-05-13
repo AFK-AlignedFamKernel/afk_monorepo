@@ -500,7 +500,7 @@ export const HandshakeIcon: React.FC<SVGProps<SVGSVGElement>> = (props) => (
     />
     <path
       d="M9.5 14.5l5-5"
-      fill="none"
+      fill="none" 
       stroke="currentColor"
       strokeWidth="2"
       strokeLinecap="round"

@@ -31,16 +31,16 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
       const sinceTimestamp = pageParam || Math.round(Date.now() / 1000) - (24 * 60 * 60); // Default to 24 hours ago
 
       try {
-        const notes = await ndk.fetchEvents({
-          kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
-          authors: options?.authors,
-          search: options?.search,
+      const notes = await ndk.fetchEvents({
+        kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
+        authors: options?.authors,
+        search: options?.search,
           since: sinceTimestamp,
           until: Math.round(Date.now() / 1000),
-          limit: options?.limit ?? 20,
-        });
+        limit: options?.limit ?? 20,
+      });
 
-        return [...notes];
+      return [...notes];
       } catch (error) {
         console.error('Error fetching events:', error);
         return [];

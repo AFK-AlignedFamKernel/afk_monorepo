@@ -8,11 +8,15 @@ import { useUIStore } from '@/store/uiStore';
 interface FormPrivateMessageProps {
   onClose: () => void;
   onMessageSent?: () => void;
+  type: "NIP4" | "NIP17";
+  setType?: (type: "NIP4" | "NIP17") => void;
 }
 
 export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   onClose,
-  onMessageSent
+  onMessageSent,
+  type,
+  setType
 }) => {
   const { publicKey } = useAuth();
   const [recipient, setRecipient] = useState('');

@@ -1,4 +1,4 @@
-import { NostrMessagesComponent } from "@/components/Nostr/Messages";
+import { NostrMessagesComponent } from "@/components/Nostr/Messages/nip17";
 
     export default function Messages() {
     return (

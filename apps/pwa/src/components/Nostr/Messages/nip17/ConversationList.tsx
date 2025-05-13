@@ -7,8 +7,13 @@ import { FormPrivateMessage } from './FormPrivateMessage';
 import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
 import { ChatConversation } from './ChatConversation';
 import { useUIStore } from '@/store/uiStore';
+import CryptoLoading from '@/components/small/crypto-loading';
 
-export const NostrConversationList: React.FC = () => {
+interface NostrConversationListProps {
+  type: "NIP4" | "NIP17";
+  setType?: (type: "NIP4" | "NIP17") => void;
+}
+export const NostrConversationList: React.FC<NostrConversationListProps> = ({ type, setType }) => {
   const { publicKey, privateKey } = useAuth();
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
@@ -18,7 +23,9 @@ export const NostrConversationList: React.FC = () => {
   const [isBack, setIsBack] = useState(false);
   const [showNewMessageForm, setShowNewMessageForm] = useState(false);
 
-  const { data: incomingMessages, isPending, refetch } = useIncomingMessageUsers();
+  const { data: incomingMessages, isPending, refetch } = useIncomingMessageUsers({
+    limit: 100,
+  });
   // const { data: dataMessagesSent } = useMyMessagesSent();
   // const giftMessages = useMyGiftWrapMessages();
   const contacts = useContacts();
@@ -57,8 +64,9 @@ export const NostrConversationList: React.FC = () => {
   };
 
 
-  const messagesSent = useRoomMessages({
+  const { data: messagesSent, isLoading: isLoadingMessagesSent } = useRoomMessages({
     roomParticipants: roomIds,
+    limit: 100,
   });
 
   const messagesSentState = React.useMemo(() => {
@@ -66,10 +74,10 @@ export const NostrConversationList: React.FC = () => {
       return [];
     }
     if (selectedConversation) {
-      return messagesSent.data?.pages.flat() || [];
+      return messagesSent?.pages.flat() || [];
     }
     return [];
-  }, [selectedConversation, messagesSent.data?.pages, isBack]);
+  }, [selectedConversation, messagesSent?.pages, isBack]);
 
   const handleNewMessageSent = () => {
     setShowNewMessageForm(false);
@@ -157,8 +165,7 @@ export const NostrConversationList: React.FC = () => {
           <div className="h-full">
             {selectedConversation ? (
               <div className="flex flex-col h-full">
-                {/* Chat Header */}
-                <div className="flex items-center p-4 border-b">
+                {/* <div className="flex items-center p-4 border-b">
                   <button
                     onClick={handleGoBack}
                     className="mr-2 p-2 hover:bg-gray-100 rounded"
@@ -169,14 +176,8 @@ export const NostrConversationList: React.FC = () => {
                     <div className="w-8 h-8 rounded-full bg-gray-200 mr-2" />
                     <span>{selectedConversation?.senderPublicKey?.slice(0, 8)}</span>
                   </div>
-                  {/* <ChatConversation
-                    item={selectedConversation}
-                    publicKeyProps={publicKey}
-                    receiverPublicKey={selectedConversation.receiverPublicKey}
-                    handleGoBack={handleGoBack}
-                    messagesSentParents={messagesSentState}
-                  /> */}
-                </div>
+
+                </div> */}
                 {/* {messagesSentRoom?.pages.flat().map(async (msg: any) => {
                   // console.log('msg', msg);
                   // const isSender = msg?.senderPublicKey === selectedConversation?.senderPublicKey;
@@ -224,6 +225,14 @@ export const NostrConversationList: React.FC = () => {
 
                 {/* Message Input */}
                 <div className="p-4 border-t">
+
+                  <ChatConversation
+                    item={selectedConversation}
+                    publicKeyProps={publicKey}
+                    receiverPublicKey={selectedConversation.receiverPublicKey}
+                    handleGoBack={handleGoBack}
+                    messagesSentParents={messagesSentState}
+                  />
                   <div className="flex">
                     <input
                       type="text"
@@ -243,7 +252,9 @@ export const NostrConversationList: React.FC = () => {
               <div className="h-full">
                 {messagesData.length === 0 && !incomingMessages?.pages.flat().length && (
                   <div className="flex items-center justify-center h-24">
-                    <p className="text-gray-500">You don't have any messages</p>
+
+                    {/* {isLoadingMessagesSent && <CryptoLoading></CryptoLoading>} */}
+                    {/* {!isLoadingMessagesSent && <p className="text-gray-500">You don't have any messages</p>} */}
                   </div>
                 )}
                 <div className="overflow-y-auto h-full">
@@ -271,7 +282,7 @@ export const NostrConversationList: React.FC = () => {
                     </button>
                   ))}
 
-                  {messagesSent.data?.pages.flat().map((item: any) => (
+                  {messagesSent && messagesSent?.pages.flat().length > 0 && messagesSent?.pages.flat().map((item: any) => (
                     <button
                       key={item.id}
                       onClick={() => {
@@ -295,6 +306,7 @@ export const NostrConversationList: React.FC = () => {
                   ))}
 
                   {/* Sent Messages */}
+
                   {incomingMessages?.pages.flat()?.length > 0 && incomingMessages?.pages.flat()?.map((item: any) => (
                     <button
                       key={item.id}
@@ -316,10 +328,6 @@ export const NostrConversationList: React.FC = () => {
                             {item?.receiverPublicKey?.slice(0, 8)}
                           </p>
                           <p className="text-sm text-gray-500 truncate">
-                            {/* {item?.content &&
-                              ndkSigner?.decrypt(ndkUser, item?.content, "nip44")
-                            } */}
-
                           </p>
                         </div>
                       </div>
@@ -340,6 +348,8 @@ export const NostrConversationList: React.FC = () => {
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
                       <div className="bg-white rounded-lg w-full max-w-md">
                         <FormPrivateMessage
+                          type={type}
+                          setType={setType}
                           onClose={() => setShowNewMessageForm(false)}
                           onMessageSent={handleNewMessageSent}
                         />

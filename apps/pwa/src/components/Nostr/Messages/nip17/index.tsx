@@ -6,8 +6,9 @@ import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
 import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
 import { NostrConversationList } from './ConversationList';
-import { NostrContactList } from './NostrContactList';
+import { NostrContactList } from '../NostrContactList';
 export const NostrMessagesComponent: React.FC = () => {
+  const [type, setType] = useState<"NIP4" | "NIP17">('NIP17');
   const { publicKey, privateKey } = useAuth();
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
@@ -81,7 +82,7 @@ export const NostrMessagesComponent: React.FC = () => {
       {activeTab == "messages" && (
 
         <>
-          <NostrConversationList />
+          <NostrConversationList type={type} setType={setType} />
         </>
       )}
 
