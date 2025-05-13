@@ -1,5 +1,4 @@
 import { Fragment } from 'react';
-import { CheckCircleIcon, XCircleIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface ToastProps {
   title: string;

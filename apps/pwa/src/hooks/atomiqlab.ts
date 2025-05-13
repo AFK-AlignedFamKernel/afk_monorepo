@@ -5,13 +5,16 @@ import {
     StarknetSigner,
     StarknetTokens
 } from "@atomiqlabs/chain-starknet";
-import { BitcoinNetwork, ISwap, LNURLPay, LNURLWithdraw, Swapper, SwapperFactory, SwapperWithSigner, ToBTCLNSwap } from '@atomiqlabs/sdk';
+import { BitcoinNetwork, ChainInitializer, ISwap, LNURLPay, LNURLWithdraw, Swapper, SwapperFactory, SwapperWithSigner, ToBTCLNSwap } from '@atomiqlabs/sdk';
 import { useAccount, useConnect, useProvider } from '@starknet-react/core';
 import { useEffect, useState } from 'react';
-import { Provider, RpcProvider, WalletAccount } from 'starknet';
+import { Account, Provider, RpcProvider, WalletAccount } from 'starknet';
 import { connect } from "starknetkit"
 
+// const Factory = new SwapperFactory<[StarknetInitializerType]>([StarknetInitializer] as const);
+// @ts-ignore - Disable type checking for SwapperFactory initialization
 const Factory = new SwapperFactory<[StarknetInitializerType]>([StarknetInitializer] as const);
+// const Factory = new SwapperFactory<[StarknetInitializerType | null]>([StarknetInitializer] as readonly ChainInitializer<any, any, any>[]);
 const Tokens = Factory.Tokens; //Get the supported tokens for all the specified chains.
 const starknetRpc = "https://starknet-mainnet.public.blastapi.io/rpc/v0_7"
 const rpcProvider = new RpcProvider({
@@ -25,7 +28,7 @@ export const useAtomiqLab = () => {
     const { account } = useAccount()
     const [lastSwap, setLastSwap] = useState<ISwap | null | ToBTCLNSwap<never>>(null);
 
-    const [starknetSwapper, setStarknetSwapper] = useState<SwapperWithSigner<{ STARKNET: StarknetChainType }, "STARKNET">>();
+    const [starknetSwapper, setStarknetSwapper] = useState<SwapperWithSigner<{ STARKNET: StarknetChainType }, "STARKNET"> | null>(null);
 
     const handleConnect = async () => {
         //Browser, using get-starknet
@@ -35,7 +38,7 @@ export const useAtomiqLab = () => {
         let wallet: StarknetSigner | null = null;
 
         if (swo && swo?.wallet) {
-            wallet = new StarknetSigner(new WalletAccount(rpcProvider, swo.wallet));
+            wallet = new StarknetSigner(new WalletAccount(rpcProvider, swo?.wallet) as Account);
             setWalletAtomiq(wallet);
             // setWalletAtomiq(swo);
         } else {
@@ -187,11 +190,11 @@ export const useAtomiqLab = () => {
     }
 
     const helperLnurl = async (input: string) => {
-        const isLNInvoice: boolean = starknetSwapper.isValidLightningInvoice(input); //Checks if the input is lightning network invoice
-        const isLNURL: boolean = starknetSwapper.isValidLNURL(input); //Checks if the input is LNURL or lightning identifier
+        const isLNInvoice: boolean = starknetSwapper?.isValidLightningInvoice(input); //Checks if the input is lightning network invoice
+        const isLNURL: boolean = starknetSwapper?.isValidLNURL(input); //Checks if the input is LNURL or lightning identifier
         if (isLNURL) {
             //Get the type of the LNURL
-            const result: (LNURLPay | LNURLWithdraw | null) = await starknetSwapper.getLNURLTypeAndData(input);
+            const result: (LNURLPay | LNURLWithdraw | null) = await starknetSwapper?.getLNURLTypeAndData(input);
             if (result?.type === "pay") {
                 const lnurlPayData: LNURLPay = result;
                 const minPayable: bigint = lnurlPayData.min; //Minimum payment amount in satoshis
