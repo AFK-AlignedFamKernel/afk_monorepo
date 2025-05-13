@@ -1,21 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useNostrContext, useNote, useProfile } from 'afk_nostr_sdk'
-import { NDKUserProfile } from '@nostr-dev-kit/ndk'
-import { FeedTabs } from '@/components/Nostr/feed'
+import { useParams } from 'next/navigation'
+import { useNote } from 'afk_nostr_sdk'
 import { ArticleEventCard } from '@/components/Nostr/EventCard/ArticleEventCard'
 import { ShortEventCard } from '@/components/Nostr/EventCard'
 export default function NotePage() {
   const { id } = useParams()
-  const { ndk } = useNostrContext()
-  const router = useRouter()
   const { data: note, isLoading: noteLoading, isError, isFetching } = useNote({
     noteId: id as string,
   })
 
-  // console.log('profile', profile)
   if (noteLoading) {
     return <div>Loading note...</div>
   }
