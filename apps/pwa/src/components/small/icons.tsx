@@ -579,3 +579,20 @@ export const SocialNostr: IconComponent = forwardRef<SVGSVGElement, IconProps>((
     />
   </svg>
 ));
+
+
+export const WalletIcon: React.FC<SVGProps<SVGSVGElement>> = (props) => (
+  <svg viewBox="0 0 32 32" fill="none" {...props}>
+    <path
+      d="M4 8C4 6.34315 5.34315 5 7 5H25C26.6569 5 28 6.34315 28 8V24C28 25.6569 26.6569 27 25 27H7C5.34315 27 4 25.6569 4 24V8Z"
+      stroke="currentColor"
+      strokeWidth="2"
+      fill="none"
+    />
+    <path
+      d="M22 16C22 15.4477 22.4477 15 23 15H25C25.5523 15 26 15.4477 26 16V18C26 18.5523 25.5523 19 25 19H23C22.4477 19 22 18.5523 22 18V16Z"
+      fill="currentColor"
+    />
+  </svg>
+
+);

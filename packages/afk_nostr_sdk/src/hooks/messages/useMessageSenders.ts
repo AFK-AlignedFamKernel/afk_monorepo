@@ -43,6 +43,8 @@ export const useIncomingMessageUsers = (options?: UseMyMessagesSentOptions):UseI
         }),
       ]);
 
+      console.log('incomingGiftWraps', incomingGiftWraps);
+
       const decryptMessages = async (giftWraps: NDKEvent[]) => {
         return Promise.all(
           [...giftWraps].map(async (giftWrap: NDKEvent) => {
@@ -100,6 +102,7 @@ export const useIncomingMessageUsers = (options?: UseMyMessagesSentOptions):UseI
         decryptMessages(incomingGiftWraps as any),
         decryptMessages(outgoingGiftWraps as any),
       ]);
+      console.log('incomingMessages', incomingMessages);
 
       const userMap = new Map();
 

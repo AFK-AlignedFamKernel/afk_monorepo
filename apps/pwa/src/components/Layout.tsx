@@ -272,14 +272,23 @@ const Layout = ({ children }: LayoutProps) => {
                         <Icon name="LoginIcon" size={24} />
                         Login
                       </Link>
-                      <Link href="/nostr/create-account" className="sidebar-nav-item" onClick={closeSidebar}>
-                        <Icon name="UserPlusIcon" size={24} />
-                        Create Account
-                      </Link>
+
+                      {publicKey && (
+                        <Link href="/nostr/messages" className="sidebar-nav-item" onClick={closeSidebar}>
+                          <Icon name="MessageIcon" size={24} />
+                          Messages
+                        </Link>
+                      )}
                     </>)
                 },
                 ]} />
             </div>
+
+             <Link href="/wallet" className="sidebar-nav-item" onClick={closeSidebar}>
+              <Icon name="WalletIcon" size={24} />
+              Wallet
+            </Link>
+
 
             <Link href="/profile" className="sidebar-nav-item" onClick={closeSidebar}>
               <Icon name="UserIcon" size={24} />

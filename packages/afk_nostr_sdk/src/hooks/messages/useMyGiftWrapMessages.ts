@@ -29,8 +29,10 @@ export const useMyGiftWrapMessages = (options?: UseRootProfilesOptions):UseInfin
         search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
         limit: 20,
+        "#p": [publicKey],
       });
 
+      console.log('giftsWrap', giftsWrap);
       return [...giftsWrap].filter((note) =>
         note.tags.every((tag) => tag[0] == 'p' && tag[1] == publicKey),
       );
