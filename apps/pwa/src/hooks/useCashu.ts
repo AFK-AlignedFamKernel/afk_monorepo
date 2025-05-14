@@ -535,6 +535,40 @@ export function useCashu() {
       addTransaction('received', amount, 'Received ecash token', token);
       addToken(token, amount, mintUrl);
       
+      // IMPORTANT ADDITION: Store the proofs directly in the SDK's wallet if possible
+      try {
+        // Check if the result contains proofs and the wallet supports storing them
+        if (result.proofs && Array.isArray(result.proofs) && wallet.addProofs) {
+          await wallet.addProofs(result.proofs);
+          console.log(`${result.proofs.length} proofs stored in wallet from received token`);
+        } else if (result.token && wallet.addProofsByToken) {
+          // Some wallet implementations might use a different method
+          await wallet.addProofsByToken(result.token);
+          console.log('Proofs stored in wallet by token');
+        }
+        
+        // If the SDK supports updating the balance directly
+        if (typeof wallet.updateBalance === 'function') {
+          await wallet.updateBalance();
+          console.log('Wallet balance updated after receiving token');
+        }
+        
+        // Update the Cashu store with the new balance
+        try {
+          // Use the setActiveBalance function directly from the SDK
+          const { setActiveBalance } = useCashuStore();
+          if (typeof setActiveBalance === 'function') {
+            setActiveBalance(walletData.balance + amount);
+            console.log('Cashu store balance updated:', walletData.balance + amount);
+          }
+        } catch (storeErr) {
+          console.error('Error updating Cashu store balance:', storeErr);
+        }
+      } catch (proofErr) {
+        console.error('Error storing proofs in wallet:', proofErr);
+        // Don't throw here - we already saved the token in storage
+      }
+      
       return {
         success: true,
         amount,
@@ -571,40 +605,61 @@ export function useCashu() {
       if (!wallet || !wallet.mint) {
         throw new Error('Wallet not properly initialized');
       }
+
+      // Check if wallet has proofs available
+      // This is likely the issue - the wallet might not have proofs to spend
+      const hasProofs = wallet.proofs && Array.isArray(wallet.proofs) && wallet.proofs.length > 0;
+      if (!hasProofs) {
+        console.warn('No proofs available in wallet. This might cause the reduce error.');
+        // Depending on your implementation, you might want to throw an error or create mock tokens
+        throw new Error('No tokens available to send. Please receive some tokens first.');
+      }
       
       // Use the SDK to create a real token
-      const token = await wallet.send(amount);
-      
-      if (!token) {
-        throw new Error('Failed to generate token');
-      }
-      
-      console.log('Generated ecash token:', token);
-      
-      // Encode the token if it's not already a string
-      let encodedToken = token;
-      if (typeof token !== 'string') {
-        // If token is an object, encode it properly
-        try {
-          if (typeof token.encode === 'function') {
-            encodedToken = token.encode();
-          } else {
+      console.log('Attempting to create token with wallet.send...');
+      try {
+        const token = await wallet.send(amount);
+        
+        if (!token) {
+          throw new Error('Failed to generate token');
+        }
+        
+        console.log('Generated ecash token:', token);
+        
+        // Encode the token if it's not already a string
+        let encodedToken = token;
+        if (typeof token !== 'string') {
+          // If token is an object, encode it properly
+          try {
+            if (typeof token.encode === 'function') {
+              encodedToken = token.encode();
+            } else {
+              encodedToken = JSON.stringify(token);
+            }
+          } catch (encodeErr) {
+            console.error('Error encoding token:', encodeErr);
             encodedToken = JSON.stringify(token);
           }
-        } catch (encodeErr) {
-          console.error('Error encoding token:', encodeErr);
-          encodedToken = JSON.stringify(token);
+        }
+        
+        // Record the transaction
+        addTransaction('sent', amount, 'Created send token', encodedToken);
+        
+        return {
+          success: true,
+          token: encodedToken,
+          amount,
+        };
+      } catch (tokenErr) {
+        console.error('Error in wallet.send:', tokenErr);
+        // Try to provide more detailed error information
+        const errorMessage = tokenErr instanceof Error ? tokenErr.message : 'Unknown error creating token';
+        if (errorMessage.includes('reduce') || errorMessage.includes('undefined')) {
+          throw new Error('Could not create token: No available tokens to spend. You may need to receive tokens first.');
+        } else {
+          throw tokenErr;
         }
       }
-      
-      // Record the transaction
-      addTransaction('sent', amount, 'Created send token', encodedToken);
-      
-      return {
-        success: true,
-        token: encodedToken,
-        amount,
-      };
     } catch (err) {
       console.error('Error creating send token:', err);
       setError(err instanceof Error ? err.message : 'Failed to create send token');
@@ -704,6 +759,10 @@ export function useCashu() {
         try {
           await walletConnected.mint.getInfo();
           console.log('Existing wallet connection verified');
+          
+          // Check if we need to load proofs into the wallet
+          await loadProofsIntoWallet(walletConnected, mintUrl);
+          
           return { 
             ready: true, 
             wallet: walletConnected, 
@@ -738,6 +797,10 @@ export function useCashu() {
       try {
         await wallet.mint.getInfo();
         console.log('New wallet connection verified');
+        
+        // Load proofs into the new wallet
+        await loadProofsIntoWallet(wallet, mintUrl);
+        
       } catch (err) {
         throw new Error(`Wallet initialization failed verification: ${err instanceof Error ? err.message : 'Unknown error'}`);
       }
@@ -755,6 +818,66 @@ export function useCashu() {
         ready: false, 
         error: err instanceof Error ? err.message : 'Unknown error during wallet readiness check' 
       };
+    }
+  };
+  
+  // Helper function to load proofs from storage into wallet
+  const loadProofsIntoWallet = async (wallet: any, mintUrl: string) => {
+    try {
+      if (!wallet || !wallet.mint) {
+        console.warn('Cannot load proofs: invalid wallet');
+        return;
+      }
+      
+      // Get tokens from storage for this mint
+      const mintTokens = walletData.tokens.filter(token => 
+        token.mintUrl === mintUrl && token.spendable
+      );
+      
+      if (mintTokens.length === 0) {
+        console.log('No stored tokens found for mint:', mintUrl);
+        return;
+      }
+      
+      console.log(`Found ${mintTokens.length} tokens in storage for mint: ${mintUrl}`);
+      
+      // Try to load the tokens/proofs into the wallet
+      if (typeof wallet.addProofs === 'function' || typeof wallet.addProofsByToken === 'function') {
+        let proofsLoaded = 0;
+        
+        for (const tokenData of mintTokens) {
+          try {
+            if (typeof wallet.addProofsByToken === 'function') {
+              // If wallet supports loading proofs from token directly
+              await wallet.addProofsByToken(tokenData.token);
+              proofsLoaded++;
+            } else if (typeof wallet.extractProofsFromToken === 'function' && typeof wallet.addProofs === 'function') {
+              // If wallet supports extracting and then adding proofs
+              const proofs = await wallet.extractProofsFromToken(tokenData.token);
+              if (proofs && Array.isArray(proofs) && proofs.length > 0) {
+                await wallet.addProofs(proofs);
+                proofsLoaded++;
+              }
+            }
+          } catch (tokenErr) {
+            console.error(`Error loading proofs from token: ${tokenErr instanceof Error ? tokenErr.message : 'Unknown error'}`);
+            // Continue with next token
+          }
+        }
+        
+        console.log(`Successfully loaded proofs from ${proofsLoaded}/${mintTokens.length} tokens`);
+        
+        // Update wallet balance if supported
+        if (typeof wallet.updateBalance === 'function') {
+          await wallet.updateBalance();
+          console.log('Updated wallet balance after loading proofs');
+        }
+      } else {
+        console.warn('Wallet does not support loading proofs from tokens');
+      }
+    } catch (err) {
+      console.error('Error loading proofs into wallet:', err);
+      // Don't throw, just log the error
     }
   };
 
@@ -775,7 +898,7 @@ export function useCashu() {
     }
     
     // Check if we're dealing with a fallback payment hash
-    const isFallbackHash = transaction.paymentHash.startsWith('fallback-');
+    const isFallbackHash = transaction.paymentHash?.startsWith('fallback-');
     if (isFallbackHash) {
       console.warn(`Transaction uses fallback payment hash: ${transaction.paymentHash}`);
       
@@ -813,6 +936,9 @@ export function useCashu() {
         throw new Error(`Wallet not ready: ${readinessCheck.error}`);
       }
       
+      // Get the wallet connection
+      const { wallet } = readinessCheck;
+      
       // Get payment status from the mint
       const status = await checkInvoiceStatus(transaction.mintUrl, transaction.paymentHash || transaction.invoice);
       
@@ -833,6 +959,43 @@ export function useCashu() {
         const newBalance = walletData.balance + transaction.amount;
         
         console.log(`Payment confirmed for hash: ${transaction.paymentHash}, updating balance from ${walletData.balance} to ${newBalance}`);
+        
+        // IMPORTANT ADDITION: Get and save the proofs from the mint
+        try {
+          console.log('Retrieving proofs from the mint for the paid invoice');
+          
+          // Retrieve proofs for this payment if possible
+          if (wallet && wallet.mint && typeof wallet.mint.receiveTokensForLightning === 'function') {
+            const proofsResult = await wallet.mint.receiveTokensForLightning(transaction.paymentHash);
+            console.log('Retrieved proofs from mint:', proofsResult);
+            
+            // If we got proofs, save them to the wallet
+            if (proofsResult && proofsResult.token) {
+              // Add the token to local storage
+              addToken(
+                typeof proofsResult.token === 'string' ? 
+                  proofsResult.token : 
+                  JSON.stringify(proofsResult.token),
+                transaction.amount,
+                transaction.mintUrl
+              );
+              
+              console.log('Added token to storage from received proofs');
+              
+              // If SDK has a way to save proofs directly
+              if (wallet.addProofs && Array.isArray(proofsResult.proofs)) {
+                await wallet.addProofs(proofsResult.proofs);
+                console.log('Added proofs to wallet');
+              }
+            }
+          } else {
+            console.warn('Wallet does not support retrieving tokens for lightning payments');
+          }
+        } catch (proofsErr) {
+          console.error('Error retrieving proofs from mint:', proofsErr);
+          // Don't throw here - we'll still consider the payment successful
+          // but log the error for debugging
+        }
         
         // Save updated data
         saveWalletData({

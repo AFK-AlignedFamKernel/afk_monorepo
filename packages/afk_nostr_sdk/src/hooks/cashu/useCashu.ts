@@ -130,7 +130,7 @@ export const useCashu = (): ICashu => {
 
   const [isWebsocketProofs, setIsWebsocketProofs] = useState<boolean>(false);
 
-  const [mintUrlSelected, setMintUrlSelected] = useState<string>("https://mint.minibits.cash/Bitcoin");
+  const [mintUrlSelected, setMintUrlSelected] = useState<string>("https://mint.cubabitcoin.org");
 
   const [activeMint, setActiveMint] = useState<string>();
   // const [activeMint, setActiveMint] = useState<string>("https://mint.minibits.cash/Bitcoin");
@@ -139,7 +139,7 @@ export const useCashu = (): ICashu => {
   const [activeCurrency, setActiveCurrency] = useState<string>();
   const [mints, setMints] = useState<MintData[]>();
   const [mintUrls, setMintUrls] = useState<MintData[]>([]);
-  const [mintsUrlsString, setMintsUrlsString] = useState<string[]>(['https://mint.minibits.cash/Bitcoin']);
+  const [mintsUrlsString, setMintsUrlsString] = useState<string[]>(['https://mint.cubabitcoin.org']);
 
   const [proofs, setProofs] = useState<Proof[]>([]);
   const [mintInfo, setMintInfo] = useState<GetInfoResponse | undefined>();

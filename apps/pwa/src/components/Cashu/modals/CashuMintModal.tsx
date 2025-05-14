@@ -29,16 +29,17 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
   const [showAddForm, setShowAddForm] = useState(false);
   const [newMintUrl, setNewMintUrl] = useState('');
   const [newMintAlias, setNewMintAlias] = useState('');
+  const [defaultMint, setDefaultMint] = useState<string | undefined>(activeMint ?? 'https://mint.cubabitcoin.org');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useUIStore();
-  
+
   // Get setMintUrl from the SDK store
   const { setMintUrl } = useCashuStore();
 
   const handleSelectMint = (mintUrl: string) => {
     // Update the mint URL in the SDK store
     setMintUrl(mintUrl);
-    
+
     // Then call the parent component's handler
     onChangeMint(mintUrl);
     onClose();
@@ -46,7 +47,7 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
 
   const handleAddMint = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newMintUrl) {
       showToast({
         message: 'Validation Error',
@@ -55,7 +56,7 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
       });
       return;
     }
-    
+
     if (!newMintAlias) {
       showToast({
         message: 'Validation Error',
@@ -64,23 +65,23 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
       });
       return;
     }
-    
+
     try {
       setIsSubmitting(true);
-      
+
       // Add the new mint
       await onAddMint(newMintUrl, newMintAlias);
-      
+
       // Also update the SDK store if this is the first mint
       if (mints.length === 0) {
         setMintUrl(newMintUrl);
       }
-      
+
       // Reset form
       setNewMintUrl('');
       setNewMintAlias('');
       setShowAddForm(false);
-      
+
       // Show success message
       showToast({
         message: 'Mint Added Successfully',
@@ -112,14 +113,14 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
             <Icon name="CloseIcon" size={24} />
           </button>
         </div>
-        
+
         <div className="cashu-wallet__modal-content-body">
           {/* Mint list */}
           {mints.length > 0 ? (
             <div className="cashu-wallet__settings-mints">
               {mints.map((mint) => (
-                <div 
-                  key={mint.url} 
+                <div
+                  key={mint.url}
                   className={`cashu-wallet__settings-mint ${mint.url === activeMint ? 'cashu-wallet__settings-mint--active' : ''}`}
                   onClick={() => handleSelectMint(mint.url)}
                   style={{
@@ -137,10 +138,10 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
                     <div style={{ fontWeight: 500 }}>{mint.alias}</div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>{mint.url}</div>
                   </div>
-                  
+
                   {mint.url === activeMint && (
-                    <div style={{ 
-                      backgroundColor: 'var(--primary-600)', 
+                    <div style={{
+                      backgroundColor: 'var(--primary-600)',
                       color: 'white',
                       borderRadius: '50%',
                       width: '24px',
@@ -158,11 +159,37 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
           ) : (
             <div>No mints configured.</div>
           )}
-          
+
           {/* Add mint form */}
           {showAddForm ? (
             <div className="cashu-wallet__add-mint-form" style={{ marginTop: '16px' }}>
               <h4>Add New Mint</h4>
+
+
+              <div className="cashu-wallet__form-group">
+                <label className="cashu-wallet__form-group-label"> Add the Default Mint</label>
+                <input
+                  type="text"
+                  className="cashu-wallet__form-group-input"
+                  value={defaultMint}
+                  onChange={(e) => setDefaultMint(e.target.value)}
+                  placeholder="https://mint.example.com"
+                  disabled={isSubmitting}
+                  required
+                />
+                <button
+                  type="button"
+                  className="cashu-wallet__button cashu-wallet__button--secondary"
+                  onClick={() => {
+                    setDefaultMint('https://mint.cubabitcoin.org');
+                    setNewMintUrl('https://mint.cubabitcoin.org');
+                    setNewMintAlias('Default Mint (cubabitcoin)');
+                  }}
+                >
+                  Set Default Mint
+                </button>
+              </div>
+
               <form onSubmit={handleAddMint}>
                 <div className="cashu-wallet__form-group">
                   <label className="cashu-wallet__form-group-label">Mint URL</label>
@@ -226,7 +253,7 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
               </button>
             </div>
           )}
-          
+
           {/* Bottom buttons (when not showing add form) */}
           {!showAddForm && (
             <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>

@@ -71,7 +71,15 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
         throw new Error('Failed to generate token');
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send ecash';
+      let errorMessage = err instanceof Error ? err.message : 'Failed to send ecash';
+      
+      // Check for specific error messages and provide more user-friendly versions
+      if (errorMessage.includes('No tokens available') || 
+          errorMessage.includes('reduce') || 
+          errorMessage.includes('Cannot read properties of undefined')) {
+        errorMessage = 'You need to receive tokens first before you can send them. Please use the Receive tab to get some ecash tokens.';
+      }
+      
       showToast({
         message: 'Error creating token',
         type: 'error',

@@ -619,4 +619,67 @@
   justify-content: center;
   display: flex;
   align-items: center;
+}
+
+/* Loading proofs */
+.cashu-wallet__loading-proofs {
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: var(--card-bg);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cashu-wallet__loading-proofs p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--foreground-muted);
+}
+
+.cashu-wallet__loading-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(var(--primary-rgb), 0.2);
+  border-top: 2px solid var(--primary-600);
+  border-radius: 50%;
+  animation: cashu-spinner 1s linear infinite;
+}
+
+@keyframes cashu-spinner {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Guidance message for empty wallets */
+.cashu-wallet__guidance-message {
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: var(--card-bg);
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--primary-600);
+}
+
+.cashu-wallet__guidance-message p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  color: var(--foreground-muted);
+}
+
+.cashu-wallet__button--text {
+  background: none;
+  border: none;
+  color: var(--primary-600);
+  padding: 0.25rem 0;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.cashu-wallet__button--text:hover {
+  color: var(--primary-700);
+  text-decoration: underline;
 } 

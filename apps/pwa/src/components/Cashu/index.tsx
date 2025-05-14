@@ -54,6 +54,7 @@ export default function Cashu() {
   const [isCheckingPayment, setIsCheckingPayment] = useState<boolean>(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [walletReady, setWalletReady] = useState<boolean>(false);
+  const [isLoadingProofs, setIsLoadingProofs] = useState<boolean>(false);
 
   // Initialize wallet connection on mount or when active mint changes
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function Cashu() {
       
       try {
         setIsBalanceLoading(true);
+        setIsLoadingProofs(true);
         console.log('Initializing wallet connection to mint:', activeMint);
         
         // Check if wallet is ready
@@ -91,6 +93,7 @@ export default function Cashu() {
         });
       } finally {
         setIsBalanceLoading(false);
+        setIsLoadingProofs(false);
       }
     }
     
@@ -214,7 +217,12 @@ export default function Cashu() {
   const handleCloseReceiveModal = () => setIsReceiveModalOpen(false);
   const handleOpenSettingsModal = () => setIsSettingsModalOpen(true);
   const handleCloseSettingsModal = () => setIsSettingsModalOpen(false);
-  const handleOpenMintModal = () => setIsMintModalOpen(true);
+  const handleOpenMintModal = (defaultMint?: string) => {
+    setIsMintModalOpen(true);
+    if (defaultMint) {
+      setActiveMint(defaultMint);
+    }
+  }
   const handleCloseMintModal = () => setIsMintModalOpen(false);
   
   // Handle adding a new mint
@@ -296,6 +304,16 @@ export default function Cashu() {
     }
     
     try {
+      // Check if there are any tokens to spend
+      if (balance <= 0) {
+        showToast({
+          message: 'No tokens available',
+          type: 'error',
+          description: 'You need to receive tokens first before you can send them'
+        });
+        throw new Error('No tokens available to send. Please receive some tokens first.');
+      }
+      
       const token = await createSendToken(amount);
       console.log('Generated token:', token);
       
@@ -305,11 +323,24 @@ export default function Cashu() {
       return token; // Return token data to the modal
     } catch (err) {
       console.error('Error creating send token:', err);
-      showToast({
-        message: 'Failed to create token',
-        type: 'error',
-        description: err instanceof Error ? err.message : 'Unknown error'
-      });
+      
+      // Check for specific errors about missing proofs/tokens
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (errorMessage.includes('No tokens available') || 
+          errorMessage.includes('reduce') || 
+          errorMessage.includes('undefined')) {
+        showToast({
+          message: 'No tokens available',
+          type: 'warning',
+          description: 'You need to receive tokens first before you can send them'
+        });
+      } else {
+        showToast({
+          message: 'Failed to create token',
+          type: 'error',
+          description: errorMessage
+        });
+      }
       return null;
     }
   };
@@ -389,6 +420,7 @@ export default function Cashu() {
     
     setIsCheckingPayment(true);
     setSelectedTransaction(transaction);
+    setIsLoadingProofs(true);
     
     try {
       // Verify wallet is ready first
@@ -412,7 +444,7 @@ export default function Cashu() {
           showToast({
             message: 'Payment confirmed',
             type: 'success',
-            description: `${transaction.amount} ${activeUnit || 'sats'}`
+            description: `${transaction.amount} ${activeUnit || 'sats'} and token proofs loaded`
           });
         } else if (result.error) {
           showToast({
@@ -461,6 +493,7 @@ export default function Cashu() {
       return null;
     } finally {
       setIsCheckingPayment(false);
+      setIsLoadingProofs(false);
     }
   };
   
@@ -484,6 +517,25 @@ export default function Cashu() {
               onSend={handleOpenSendModal}
               onReceive={handleOpenReceiveModal}
             />
+            
+            {/* {isLoadingProofs && (
+              <div className="cashu-wallet__loading-proofs">
+                <div className="cashu-wallet__loading-spinner"></div>
+                <p>Loading tokens into wallet...</p>
+              </div>
+            )}
+             */}
+            {/* {balance <= 0 && !isLoadingProofs && (
+              <div className="cashu-wallet__guidance-message">
+                <p>You have no tokens yet. Click "Receive" to get some ecash tokens or create a Lightning invoice to load your wallet.</p>
+                <button
+                  className="cashu-wallet__button cashu-wallet__button--text"
+                  onClick={handleOpenReceiveModal}
+                >
+                  Receive Tokens First →
+                </button>
+              </div>
+            )} */}
             <CashuTransactions 
               transactions={transactions} 
               onCheckPayment={handleCheckPayment}

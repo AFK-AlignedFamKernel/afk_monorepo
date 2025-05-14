@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Icon } from '../small/icon-component';
+// import { useCashu } from '@/hooks/useCashu';
 
 interface CashuNoMintProps {
   onAddMint: (mintUrl: string, alias: string) => void;
@@ -13,7 +14,7 @@ export const CashuNoMint: React.FC<CashuNoMintProps> = ({
   const [showForm, setShowForm] = useState<boolean>(false);
 
   const handleAddDefaultMint = () => {
-    onAddMint('https://mint.minibits.cash/Bitcoin', 'Default Mint (minibits)');
+    onAddMint('https://mint.cubabitcoin.org', 'Default Mint (cubabitcoin)');
   };
 
   const handleAddCustomMint = (e: React.FormEvent) => {
