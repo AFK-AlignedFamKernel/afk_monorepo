@@ -5,41 +5,60 @@ interface CashuReceiveModalProps {
   onClose: () => void;
   mint: string;
   unit: string;
+  onReceiveToken: (token: string) => Promise<void>;
+  onCreateInvoice: (amount: number) => Promise<any>;
 }
 
 export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
   onClose,
   mint,
   unit,
+  onReceiveToken,
+  onCreateInvoice,
 }) => {
   const [activeTab, setActiveTab] = useState<'lightning' | 'ecash'>('lightning');
   const [amount, setAmount] = useState<string>('');
   const [invoice, setInvoice] = useState<string>('');
   const [ecashToken, setEcashToken] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleTabChange = (tab: 'lightning' | 'ecash') => {
     setActiveTab(tab);
+    setError(null);
   };
 
-  const handleCreateInvoice = (e: React.FormEvent) => {
+  const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    // In a real implementation, this would create a lightning invoice
-    setTimeout(() => {
-      setInvoice('lnbc1500n1p0z3n32pp5xyax8c9zhttz3dz0xvhujvs9j5tcq3d4vz82f57u6r8e3st5v0sdqqcqzpgxqyz5vqsp5fckmrhwv08luva4f8gqr0ntjcpzjgv89tq8qr9keuwatp5r36mfs9qyyssqcyarj6953ghafs6v5fenjxf8penjrh97lmnycnttvuy5vldxz7688rwymzgtcvywe8ssx33fsw05tewvmxu9835m6w0d5hj5mktx49mgqcw7al6');
+    setError(null);
+    
+    try {
+      const invoiceData = await onCreateInvoice(Number(amount));
+      if (invoiceData && invoiceData.invoice) {
+        setInvoice(invoiceData.invoice);
+      } else {
+        throw new Error('Failed to create invoice');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create invoice');
+    } finally {
       setIsProcessing(false);
-    }, 1500);
+    }
   };
 
-  const handleReceiveEcash = (e: React.FormEvent) => {
+  const handleReceiveEcash = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    // In a real implementation, this would handle the ecash token
-    setTimeout(() => {
+    setError(null);
+    
+    try {
+      await onReceiveToken(ecashToken);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to receive token');
+    } finally {
       setIsProcessing(false);
-      onClose();
-    }, 1500);
+    }
   };
 
   return (
@@ -72,6 +91,12 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
         </div>
         
         <div className="cashu-wallet__modal-content-body">
+          {error && (
+            <div style={{ color: '#EF4444', marginBottom: '1rem', fontSize: '0.875rem' }}>
+              {error}
+            </div>
+          )}
+          
           {activeTab === 'lightning' && (
             <>
               {!invoice ? (

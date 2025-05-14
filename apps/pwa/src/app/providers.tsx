@@ -10,6 +10,7 @@ import { settingsStore, NostrProvider, TanstackProvider, useNostrContext } from 
 import StarknetProvider from '@/context/StarknetProvider';
 import { AFK_RELAYS } from 'common';
 import { UIProvider } from '@/providers/UIProvider';
+import { CashuProvider } from '@/providers/CashuProvider';
 
 
 // Custom wrapper for NostrProvider that ensures relays are configured
@@ -22,35 +23,33 @@ const RelayInitializer: React.FC<{children: React.ReactNode}> = ({ children }) =
   return <>{children}</>;
 };
 
-// Ensure NDK is connected as soon as NostrProvider is mounted
+// Add NDK functionality to children components
 const NDKConnector: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const { ndk } = useNostrContext();
+  const { ndk, setNDK } = useNostrContext();
   
   useEffect(() => {
-    const connectNDK = async () => {
-      try {
-        // console.log('Connecting NDK to relays...');
-        await ndk.connect();
-        console.log('NDK connected successfully');
-      } catch (err) {
-        console.error('Failed to connect NDK:', err);
-      }
-    };
-    
-    connectNDK();
-    
-    // Set up reconnection on focus
-    const handleFocus = () => {
-      console.log('Window focused, reconnecting NDK');
-      connectNDK();
-    };
-    
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [ndk]);
+    // When relay settings are already loaded, connect NDK
+    if (settingsStore.getState().relays.length > 0 && !ndk) {
+      // Create an NDK instance
+      const ndkInstance = new NDK({
+        explicitRelayUrls: settingsStore.getState().relays,
+      });
+      
+      // Connect to relays
+      ndkInstance.connect().then(() => {
+        console.log('Connected to relays!');
+        // Set the NDK instance in the context
+        setNDK(ndkInstance);
+      }).catch(err => {
+        console.error('Failed to connect to relays', err);
+      });
+      
+      // Cleanup on unmount
+      return () => {
+        ndkInstance.disconnect();
+      };
+    }
+  }, [ndk, setNDK]);
   
   return <>{children}</>;
 };
@@ -64,11 +63,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <TanstackProvider>
           <RelayInitializer>
             <NostrProvider>
-              <UIProvider>
-                <NDKConnector>
-                  {children}
-                </NDKConnector>
-              </UIProvider>
+              <CashuProvider>
+                <UIProvider>
+                  <NDKConnector>
+                    {children}
+                  </NDKConnector>
+                </UIProvider>
+              </CashuProvider>
             </NostrProvider>
           </RelayInitializer>
         </TanstackProvider>

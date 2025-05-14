@@ -195,8 +195,10 @@ export const CashuView = () => {
 
     try {
       setAddingMint(true);
-      const defaultMintUrl = 'https://mint.minibits.cash/Bitcoin';
-      const defaultMintAlias = 'Default Mint (minibits)';
+      // const defaultMintUrl = 'https://mint.minibits.cash/Bitcoin';
+
+      const defaultMintUrl = 'https://mint.cubabitcoin.org';
+      const defaultMintAlias = 'Default Mint (cubabitcoin)';
       setActiveMintStorage(defaultMintUrl);
       const data = await buildMintData(defaultMintUrl, defaultMintAlias);
       setActiveUnitStorage(data.units[0]);

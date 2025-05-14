@@ -5,30 +5,54 @@ interface CashuSendModalProps {
   onClose: () => void;
   balance: number;
   unit: string;
+  onSendToken: (amount: number) => Promise<void>;
+  onPayInvoice: (invoice: string) => Promise<void>;
 }
 
 export const CashuSendModal: React.FC<CashuSendModalProps> = ({
   onClose,
   balance,
   unit,
+  onSendToken,
+  onPayInvoice,
 }) => {
   const [activeTab, setActiveTab] = useState<'lightning' | 'ecash'>('ecash');
   const [amount, setAmount] = useState<string>('');
-  const [recipient, setRecipient] = useState<string>('');
+  const [invoice, setInvoice] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleTabChange = (tab: 'lightning' | 'ecash') => {
     setActiveTab(tab);
+    setError(null);
   };
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSendEcash = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    // In a real implementation, this would handle the ecash sending logic
-    setTimeout(() => {
+    setError(null);
+    
+    try {
+      await onSendToken(Number(amount));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send ecash');
+    } finally {
       setIsProcessing(false);
-      onClose();
-    }, 1500);
+    }
+  };
+
+  const handlePayLightningInvoice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+    setError(null);
+    
+    try {
+      await onPayInvoice(invoice);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to pay invoice');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -61,16 +85,22 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
         </div>
         
         <div className="cashu-wallet__modal-content-body">
+          {error && (
+            <div style={{ color: '#EF4444', marginBottom: '1rem', fontSize: '0.875rem' }}>
+              {error}
+            </div>
+          )}
+          
           {activeTab === 'lightning' && (
-            <form onSubmit={handleSend}>
+            <form onSubmit={handlePayLightningInvoice}>
               <div className="cashu-wallet__form-group">
                 <label className="cashu-wallet__form-group-label">
                   Invoice
                 </label>
                 <textarea
                   className="cashu-wallet__form-group-textarea"
-                  value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
+                  value={invoice}
+                  onChange={(e) => setInvoice(e.target.value)}
                   placeholder="Paste Lightning Invoice"
                   required
                 />
@@ -79,7 +109,7 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
               <button
                 type="submit"
                 className="cashu-wallet__button cashu-wallet__button--primary"
-                disabled={isProcessing || !recipient}
+                disabled={isProcessing || !invoice}
               >
                 {isProcessing ? 'Processing...' : 'Pay Invoice'}
               </button>
@@ -87,7 +117,7 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
           )}
           
           {activeTab === 'ecash' && (
-            <form onSubmit={handleSend}>
+            <form onSubmit={handleSendEcash}>
               <div className="cashu-wallet__form-group">
                 <label className="cashu-wallet__form-group-label">
                   Amount ({unit})

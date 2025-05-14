@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CashuWallet } from './CashuWallet';
 import { CashuBalance } from './CashuBalance';
 import { CashuActions } from './CashuActions';
@@ -9,16 +9,53 @@ import { CashuNoMint } from './CashuNoMint';
 import { CashuSendModal } from './modals/CashuSendModal';
 import { CashuReceiveModal } from './modals/CashuReceiveModal';
 import { CashuSettingsModal } from './modals/CashuSettingsModal';
+import { CashuMintModal } from './modals/CashuMintModal';
+import { useCashu } from '@/hooks/useCashu';
 
 export default function Cashu() {
-  const [mints, setMints] = useState<any[]>([]);
-  const [activeMint, setActiveMint] = useState<string | undefined>();
-  const [activeUnit, setActiveUnit] = useState<string | undefined>();
-  const [balance, setBalance] = useState<number>(0);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const {
+    loading,
+    error,
+    mints,
+    activeMint,
+    activeUnit,
+    balance,
+    transactions,
+    addMint,
+    setActiveMint,
+    setActiveUnit,
+    getBalance,
+    createInvoice,
+    receiveToken,
+    createSendToken,
+    payLightningInvoice,
+  } = useCashu();
+
+  const [currentBalance, setCurrentBalance] = useState<number>(balance);
+  const [isBalanceLoading, setIsBalanceLoading] = useState<boolean>(false);
   const [isSendModalOpen, setIsSendModalOpen] = useState<boolean>(false);
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState<boolean>(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
+  const [isMintModalOpen, setIsMintModalOpen] = useState<boolean>(false);
+
+  // Fetch current balance
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (activeMint && activeUnit) {
+        setIsBalanceLoading(true);
+        try {
+          const currentBalance = await getBalance();
+          setCurrentBalance(currentBalance);
+        } catch (err) {
+          console.error('Error fetching balance:', err);
+        } finally {
+          setIsBalanceLoading(false);
+        }
+      }
+    };
+
+    fetchBalance();
+  }, [activeMint, activeUnit, getBalance]);
 
   // Open send modal
   const handleOpenSendModal = () => {
@@ -50,19 +87,102 @@ export default function Cashu() {
     setIsSettingsModalOpen(false);
   };
 
-  // Handle adding a new mint
-  const handleAddMint = (mintUrl: string, alias: string) => {
-    const newMint = {
-      url: mintUrl,
-      alias: alias,
-      units: ['sat'],
-    };
-    
-    setMints([...mints, newMint]);
-    setActiveMint(mintUrl);
-    setActiveUnit('sat');
-    handleCloseSettingsModal();
+  // Open mint selector modal
+  const handleOpenMintModal = () => {
+    setIsMintModalOpen(true);
   };
+
+  // Close mint selector modal
+  const handleCloseMintModal = () => {
+    setIsMintModalOpen(false);
+  };
+
+  // Handle sending a token
+  const handleSendToken = async (amount: number) => {
+    try {
+      await createSendToken(amount);
+      handleCloseSendModal();
+      // Update balance after sending
+      const updatedBalance = await getBalance();
+      setCurrentBalance(updatedBalance);
+    } catch (err) {
+      console.error('Error sending token:', err);
+      // Error handling will be done by the hook
+    }
+  };
+
+  // Handle paying a lightning invoice
+  const handlePayInvoice = async (invoice: string) => {
+    try {
+      await payLightningInvoice(invoice);
+      handleCloseSendModal();
+      // Update balance after paying
+      const updatedBalance = await getBalance();
+      setCurrentBalance(updatedBalance);
+    } catch (err) {
+      console.error('Error paying invoice:', err);
+      // Error handling will be done by the hook
+    }
+  };
+
+  // Handle receiving a token
+  const handleReceiveToken = async (token: string) => {
+    try {
+      await receiveToken(token);
+      handleCloseReceiveModal();
+      // Update balance after receiving
+      const updatedBalance = await getBalance();
+      setCurrentBalance(updatedBalance);
+    } catch (err) {
+      console.error('Error receiving token:', err);
+      // Error handling will be done by the hook
+    }
+  };
+
+  // Handle creating a lightning invoice
+  const handleCreateInvoice = async (amount: number) => {
+    if (!activeMint) return;
+    
+    try {
+      return await createInvoice(activeMint, amount);
+    } catch (err) {
+      console.error('Error creating invoice:', err);
+      // Error handling will be done by the hook
+      return null;
+    }
+  };
+
+  // Handle adding a mint
+  const handleAddMint = async (mintUrl: string, alias: string) => {
+    try {
+      await addMint(mintUrl, alias);
+      // Update balance after adding mint
+      const updatedBalance = await getBalance();
+      setCurrentBalance(updatedBalance);
+    } catch (err) {
+      console.error('Error adding mint:', err);
+    }
+  };
+
+  // Handle changing active mint
+  const handleChangeMint = async (mintUrl: string) => {
+    try {
+      setActiveMint(mintUrl);
+      // Update balance after changing mint
+      const updatedBalance = await getBalance();
+      setCurrentBalance(updatedBalance);
+    } catch (err) {
+      console.error('Error changing mint:', err);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading wallet...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading wallet: {error}</div>;
+  }
 
   return (
     <>
@@ -70,9 +190,10 @@ export default function Cashu() {
         {mints.length > 0 && activeMint ? (
           <>
             <CashuBalance 
-              balance={balance} 
+              balance={isBalanceLoading ? 0 : currentBalance} 
               unit={activeUnit || 'sat'} 
               mintAlias={mints.find(mint => mint.url === activeMint)?.alias || activeMint}
+              onChangeMint={handleOpenMintModal}
             />
             <CashuActions
               onSend={handleOpenSendModal}
@@ -89,8 +210,10 @@ export default function Cashu() {
       {isSendModalOpen && (
         <CashuSendModal
           onClose={handleCloseSendModal}
-          balance={balance}
+          balance={currentBalance}
           unit={activeUnit || 'sat'}
+          onSendToken={handleSendToken}
+          onPayInvoice={handlePayInvoice}
         />
       )}
 
@@ -99,6 +222,8 @@ export default function Cashu() {
           onClose={handleCloseReceiveModal}
           mint={activeMint || ''}
           unit={activeUnit || 'sat'}
+          onReceiveToken={handleReceiveToken}
+          onCreateInvoice={handleCreateInvoice}
         />
       )}
 
@@ -111,6 +236,17 @@ export default function Cashu() {
           onAddMint={handleAddMint}
           onChangeMint={setActiveMint}
           onChangeUnit={setActiveUnit}
+        />
+      )}
+
+      {isMintModalOpen && (
+        <CashuMintModal
+          onClose={handleCloseMintModal}
+          mints={mints}
+          activeMint={activeMint}
+          onChangeMint={handleChangeMint}
+          onOpenSettings={handleOpenSettingsModal}
+          onAddMint={handleAddMint}
         />
       )}
     </>

@@ -1,0 +1,177 @@
+/* Mint selector styles */
+.cashu-wallet__balance {
+  position: relative;
+  text-align: center;
+  padding: 1.5rem;
+  background-color: var(--card-bg);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.cashu-wallet__balance-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-right: 0.25rem;
+}
+
+.cashu-wallet__balance-unit {
+  font-size: 1.25rem;
+  color: var(--foreground-muted);
+}
+
+.cashu-wallet__balance-mint {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--foreground-muted);
+  border: none;
+  background: none;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.cashu-wallet__balance-mint:hover {
+  background-color: var(--hover-bg);
+  color: var(--foreground);
+}
+
+/* Modal styles */
+.cashu-wallet__modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.cashu-wallet__modal-content {
+  background-color: var(--background);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 30rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.cashu-wallet__modal-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cashu-wallet__modal-content-header-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.cashu-wallet__modal-content-header-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--foreground-muted);
+}
+
+.cashu-wallet__modal-content-body {
+  padding: 1rem;
+}
+
+.cashu-wallet__settings-mints {
+  margin-bottom: 1rem;
+}
+
+.cashu-wallet__settings-mint {
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.cashu-wallet__settings-mint:hover {
+  background-color: var(--hover-bg);
+}
+
+.cashu-wallet__settings-mint--active {
+  border-color: var(--primary-600) !important;
+}
+
+.cashu-wallet__button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cashu-wallet__button--primary {
+  background-color: var(--primary-600);
+  color: white;
+  border: none;
+}
+
+.cashu-wallet__button--primary:hover {
+  background-color: var(--primary-700);
+}
+
+.cashu-wallet__button--secondary {
+  background-color: var(--card-bg);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.cashu-wallet__button--secondary:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Form styles */
+.cashu-wallet__form-group {
+  margin-bottom: 1rem;
+}
+
+.cashu-wallet__form-group-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.cashu-wallet__form-group-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  background-color: var(--card-bg);
+  color: var(--foreground);
+}
+
+/* Form error */
+.cashu-wallet__form-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Add mint form */
+.cashu-wallet__add-mint-form {
+  background-color: var(--card-bg);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+}
+
+.cashu-wallet__add-mint-form h4 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+} 
