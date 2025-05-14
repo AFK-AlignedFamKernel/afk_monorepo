@@ -21,6 +21,7 @@ interface NostrFeedProps {
 const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const { data: profile } = useProfile({ publicKey: event.pubkey });
@@ -111,8 +112,8 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
         });
       },
       {
-        threshold: 0.8, // Video needs to be 80% visible to be considered "visible"
-        rootMargin: '-10% 0px' // Add some margin to prevent edge cases
+        threshold: 0.8,
+        rootMargin: '-10% 0px'
       }
     );
 
@@ -136,6 +137,7 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
         if (v !== video) {
           v.pause();
           v.currentTime = 0;
+          v.muted = true; // Ensure other videos are muted
         }
       });
     };
@@ -146,6 +148,13 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
       video.removeEventListener('play', handlePlay);
     };
   }, []);
+
+  const handleVideoClick = () => {
+    if (videoRef.current) {
+      setIsMuted(!isMuted);
+      videoRef.current.muted = !isMuted;
+    }
+  };
 
   const handleVideoLoad = () => {
     setIsLoading(false);
@@ -176,18 +185,27 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
           {error}
         </div>
       )}
-      <video
-        ref={videoRef}
-        src={mediaUrl}
-        className="nostr-short-feed__video"
-        controls
-        playsInline
-        loop
-        muted
-        preload="metadata"
-        onLoadedData={handleVideoLoad}
-        onError={handleVideoError}
-      />
+      <div className="nostr-short-feed__video-container" onClick={handleVideoClick}>
+        <video
+          ref={videoRef}
+          src={mediaUrl}
+          className="nostr-short-feed__video"
+          controls
+          playsInline
+          loop
+          muted={isMuted}
+          preload="metadata"
+          onLoadedData={handleVideoLoad}
+          onError={handleVideoError}
+        />
+        <div className="nostr-short-feed__audio-indicator">
+          {!isMuted && (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728-2.728" />
+            </svg>
+          )}
+        </div>
+      </div>
       
       {/* Right side interaction panel */}
       <div className="nostr-short-feed__interaction-panel">
