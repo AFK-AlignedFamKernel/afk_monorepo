@@ -85,10 +85,17 @@ export function useCashuStorage() {
         return prev;
       }
 
-      return {
+      const updatedData = {
         ...prev,
         activeMint: mintUrl,
       };
+      
+      // Immediately save to IndexDB
+      saveWalletData(updatedData).catch(err => {
+        setError(typeof err === 'string' ? err : 'Failed to save wallet data');
+      });
+      
+      return updatedData;
     });
   }, []);
 

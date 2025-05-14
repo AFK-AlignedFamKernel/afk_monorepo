@@ -139,15 +139,24 @@ export default function Cashu() {
     }
   };
 
+  // Helper function to ensure mint is connected before operations
+  const ensureMintConnected = async (mintUrl: string) => {
+    if (!mintUrl) {
+      throw new Error('No mint selected');
+    }
+    
+    // Don't try to auto-connect here as it's causing re-renders
+    // Just return the mint URL for the calling function to use
+    return mintUrl;
+  };
+
   // Handle creating a lightning invoice
   const handleCreateInvoice = async (amount: number) => {
-    if (!activeMint) return;
-    
     try {
+      // Simply call createInvoice with the amount and active mint
       return await createInvoice(activeMint, amount);
     } catch (err) {
       console.error('Error creating invoice:', err);
-      // Error handling will be done by the hook
       return null;
     }
   };
@@ -167,12 +176,18 @@ export default function Cashu() {
   // Handle changing active mint
   const handleChangeMint = async (mintUrl: string) => {
     try {
-      setActiveMint(mintUrl);
-      // Update balance after changing mint
-      const updatedBalance = await getBalance();
-      setCurrentBalance(updatedBalance);
+      setIsBalanceLoading(true);
+      const success = await setActiveMint(mintUrl);
+      
+      if (success) {
+        // Update balance after changing mint
+        const updatedBalance = await getBalance();
+        setCurrentBalance(updatedBalance);
+      }
     } catch (err) {
       console.error('Error changing mint:', err);
+    } finally {
+      setIsBalanceLoading(false);
     }
   };
 
@@ -180,9 +195,9 @@ export default function Cashu() {
     return <div>Loading wallet...</div>;
   }
 
-  if (error) {
-    return <div>Error loading wallet: {error}</div>;
-  }
+  // if (error) {
+  //   return <div>Error loading wallet: {error}</div>;
+  // }
 
   return (
     <>

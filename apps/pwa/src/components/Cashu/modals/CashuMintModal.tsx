@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Icon } from '../../small/icon-component';
+import { useUIStore } from '@/store/uiStore';
 
 interface MintData {
   url: string;
@@ -28,7 +29,7 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
   const [newMintUrl, setNewMintUrl] = useState('');
   const [newMintAlias, setNewMintAlias] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { showToast } = useUIStore();
 
   const handleSelectMint = (mintUrl: string) => {
     onChangeMint(mintUrl);
@@ -39,18 +40,25 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
     e.preventDefault();
     
     if (!newMintUrl) {
-      setError('Mint URL is required');
+      showToast({
+        message: 'Validation Error',
+        type: 'error',
+        description: 'Mint URL is required'
+      });
       return;
     }
     
     if (!newMintAlias) {
-      setError('Mint alias is required');
+      showToast({
+        message: 'Validation Error',
+        type: 'error',
+        description: 'Mint alias is required'
+      });
       return;
     }
     
     try {
       setIsSubmitting(true);
-      setError(null);
       
       // Add the new mint
       await onAddMint(newMintUrl, newMintAlias);
@@ -59,8 +67,20 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
       setNewMintUrl('');
       setNewMintAlias('');
       setShowAddForm(false);
+      
+      // Show success message
+      showToast({
+        message: 'Mint Added Successfully',
+        type: 'success',
+        description: `${newMintAlias} added to your wallet`
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add mint');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add mint';
+      showToast({
+        message: 'Error Adding Mint',
+        type: 'error',
+        description: errorMessage
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -130,11 +150,6 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
           {showAddForm ? (
             <div className="cashu-wallet__add-mint-form" style={{ marginTop: '16px' }}>
               <h4>Add New Mint</h4>
-              {error && (
-                <div className="cashu-wallet__form-error">
-                  {error}
-                </div>
-              )}
               <form onSubmit={handleAddMint}>
                 <div className="cashu-wallet__form-group">
                   <label className="cashu-wallet__form-group-label">Mint URL</label>

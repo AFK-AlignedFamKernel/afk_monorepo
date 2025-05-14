@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Icon } from '../../small/icon-component';
+import { useUIStore } from '@/store/uiStore';
 
 interface CashuSendModalProps {
   onClose: () => void;
@@ -16,26 +17,36 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
   onSendToken,
   onPayInvoice,
 }) => {
+  const { showToast } = useUIStore();
   const [activeTab, setActiveTab] = useState<'lightning' | 'ecash'>('ecash');
   const [amount, setAmount] = useState<string>('');
   const [invoice, setInvoice] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleTabChange = (tab: 'lightning' | 'ecash') => {
     setActiveTab(tab);
-    setError(null);
   };
 
   const handleSendEcash = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    setError(null);
     
     try {
       await onSendToken(Number(amount));
+      showToast({
+        message: 'Ecash token created',
+        type: 'success',
+        description: `${amount} ${unit}`
+      });
+      onClose(); // Close modal on success
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send ecash');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to send ecash';
+      showToast({
+        message: 'Error creating token',
+        type: 'error',
+        description: errorMessage
+      });
+      console.error('Error sending ecash:', err);
     } finally {
       setIsProcessing(false);
     }
@@ -44,12 +55,23 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
   const handlePayLightningInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    setError(null);
     
     try {
       await onPayInvoice(invoice);
+      showToast({
+        message: 'Payment successful',
+        type: 'success',
+        description: 'Lightning invoice paid'
+      });
+      onClose(); // Close modal on success
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to pay invoice');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to pay invoice';
+      showToast({
+        message: 'Payment failed',
+        type: 'error',
+        description: errorMessage
+      });
+      console.error('Error paying invoice:', err);
     } finally {
       setIsProcessing(false);
     }
@@ -85,12 +107,6 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
         </div>
         
         <div className="cashu-wallet__modal-content-body">
-          {error && (
-            <div style={{ color: '#EF4444', marginBottom: '1rem', fontSize: '0.875rem' }}>
-              {error}
-            </div>
-          )}
-          
           {activeTab === 'lightning' && (
             <form onSubmit={handlePayLightningInvoice}>
               <div className="cashu-wallet__form-group">

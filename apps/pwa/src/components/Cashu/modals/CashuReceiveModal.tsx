@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Icon } from '../../small/icon-component';
+import { useUIStore } from '@/store/uiStore';
 
 interface CashuReceiveModalProps {
   onClose: () => void;
@@ -16,32 +17,49 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
   onReceiveToken,
   onCreateInvoice,
 }) => {
+  const { showToast } = useUIStore();
   const [activeTab, setActiveTab] = useState<'lightning' | 'ecash'>('lightning');
   const [amount, setAmount] = useState<string>('');
   const [invoice, setInvoice] = useState<string>('');
   const [ecashToken, setEcashToken] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleTabChange = (tab: 'lightning' | 'ecash') => {
     setActiveTab(tab);
-    setError(null);
   };
 
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    setError(null);
     
     try {
       const invoiceData = await onCreateInvoice(Number(amount));
+      
       if (invoiceData && invoiceData.invoice) {
         setInvoice(invoiceData.invoice);
+        showToast({
+          message: `Invoice created`,
+          type: 'success',
+          description: `for ${amount} ${unit}`
+        });
       } else {
-        throw new Error('Failed to create invoice');
+        showToast({
+          message: 'Error creating invoice',
+          type: 'error',
+          description: 'No invoice was returned'
+        });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create invoice');
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : 'Failed to create invoice';
+        
+      showToast({
+        message: 'Error creating invoice',
+        type: 'error',
+        description: errorMessage
+      });
+      console.error('Error creating invoice:', err);
     } finally {
       setIsProcessing(false);
     }
@@ -50,12 +68,23 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
   const handleReceiveEcash = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    setError(null);
     
     try {
       await onReceiveToken(ecashToken);
+      showToast({
+        message: 'Token received successfully',
+        type: 'success'
+      });
+      setEcashToken('');
+      onClose(); // Close modal on success
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to receive token');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to receive token';
+      showToast({
+        message: 'Error receiving token',
+        type: 'error',
+        description: errorMessage
+      });
+      console.error('Error receiving token:', err);
     } finally {
       setIsProcessing(false);
     }
@@ -91,12 +120,6 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
         </div>
         
         <div className="cashu-wallet__modal-content-body">
-          {error && (
-            <div style={{ color: '#EF4444', marginBottom: '1rem', fontSize: '0.875rem' }}>
-              {error}
-            </div>
-          )}
-          
           {activeTab === 'lightning' && (
             <>
               {!invoice ? (
@@ -142,6 +165,11 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
                       className="cashu-wallet__button cashu-wallet__button--primary"
                       onClick={() => {
                         navigator.clipboard.writeText(invoice);
+                        showToast({
+                          message: 'Invoice copied',
+                          type: 'success',
+                          description: 'Lightning invoice copied to clipboard'
+                        });
                       }}
                     >
                       Copy Invoice

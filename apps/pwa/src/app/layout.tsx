@@ -14,8 +14,8 @@ import Layout from '../components/Layout';
 // const LayoutDynamic = dynamic(() => import('../components/Layout'), { ssr: false });
 
 export const metadata: Metadata = {
-  title: 'AFK community LFG',
-  description: 'AFK community LFG app. Have fun',
+  title: 'AFK community Aligned Fam Kernel',
+  description: 'AFK community app for your Digital Freedom, Privacy and Ownership with fun',
 };
 const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS; // Replace with your actual tracking ID
 
