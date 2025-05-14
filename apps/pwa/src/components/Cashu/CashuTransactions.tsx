@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Icon } from '../small/icon-component';
 import { Transaction } from '@/utils/storage';
+import { useUIStore } from '@/store/uiStore';
+import QRCode from 'react-qr-code';
 
 interface CashuTransactionsProps {
   transactions: Transaction[];
@@ -15,7 +17,9 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
   onCheckPayment,
   onTransactionClick,
 }) => {
+  const { showToast } = useUIStore();
   const [activeTab, setActiveTab] = useState<TabType>('all');
+  const [qrCodeTransaction, setQrCodeTransaction] = useState<Transaction | null>(null);
   
   // Get a human-readable status label
   const getStatusLabel = (status?: string) => {
@@ -71,12 +75,76 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
     return false;
   };
   
+  // Check if transaction is a receivable type (Lightning or Ecash)
+  const isReceivableTransaction = (transaction: Transaction) => {
+    return transaction.type === 'received' && 
+           (transaction.invoiceType === 'lightning' || transaction.token) &&
+           transaction.status !== 'paid';
+  };
+  
   // Get appropriate button text based on transaction type
   const getCheckButtonText = (transaction: Transaction) => {
     if (transaction.invoiceType === 'lightning') {
       return 'Check Payment';
     }
     return 'Check Quote';
+  };
+  
+  // Get content to copy based on transaction type
+  const getContentToCopy = (transaction: Transaction) => {
+    if (transaction.invoiceType === 'lightning') {
+      return transaction.invoice || '';
+    } else if (transaction.token) {
+      return transaction.token;
+    }
+    return '';
+  };
+
+  // Handle copying content to clipboard
+  const handleCopy = async (transaction: Transaction, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the onTransactionClick
+    
+    const content = getContentToCopy(transaction);
+    
+    if (!content) {
+      showToast({
+        message: 'Nothing to copy',
+        type: 'error',
+        description: 'No invoice or token data available'
+      });
+      return;
+    }
+    
+    try {
+      await navigator.clipboard.writeText(content);
+      showToast({
+        message: 'Copied to clipboard',
+        type: 'success'
+      });
+    } catch (err) {
+      console.error('Error copying to clipboard:', err);
+      showToast({
+        message: 'Copy failed',
+        type: 'error',
+        description: 'Could not copy to clipboard'
+      });
+    }
+  };
+
+  // Toggle QR code display
+  const toggleQRCode = (transaction: Transaction, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering the onTransactionClick
+    
+    if (qrCodeTransaction && qrCodeTransaction.id === transaction.id) {
+      setQrCodeTransaction(null); // Close if the same transaction
+    } else {
+      setQrCodeTransaction(transaction); // Open for this transaction
+    }
+  };
+
+  // Check if transaction has copyable content
+  const hasCopyableContent = (transaction: Transaction) => {
+    return transaction.invoice || transaction.token;
   };
   
   const filteredTransactions = getFilteredTransactions();
@@ -118,57 +186,149 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
       <div className="cashu-wallet__transactions-list">
         {filteredTransactions.length > 0 ? (
           filteredTransactions.map((transaction) => (
-            <div 
-              key={transaction.id} 
-              className="cashu-wallet__transactions-list-item"
-              onClick={() => onTransactionClick && onTransactionClick(transaction)}
-            >
-              <div className="cashu-wallet__transactions-list-item-icon">
-                <Icon 
-                  name={
-                    transaction.invoiceType === 'lightning' 
-                      ? 'LightningIcon' 
-                      : transaction.type === 'sent' 
-                        ? 'SendIcon' 
-                        : 'ReceiveIcon'
-                  } 
-                  size={16} 
-                />
-              </div>
-              <div className="cashu-wallet__transactions-list-item-details">
-                <div className="cashu-wallet__transactions-list-item-details-title">
-                  {transaction.type === 'sent' ? 'Sent' : 'Received'}
-                  {transaction.invoiceType === 'lightning' && ' (Lightning)'}
-                  {transaction.token && !transaction.invoiceType && ' (Ecash)'}
+            <React.Fragment key={transaction.id}>
+              <div 
+                className="cashu-wallet__transactions-list-item"
+                onClick={() => onTransactionClick && onTransactionClick(transaction)}
+              >
+                <div className="cashu-wallet__transactions-list-item-icon">
+                  <Icon 
+                    name={
+                      transaction.invoiceType === 'lightning' 
+                        ? 'LightningIcon' 
+                        : transaction.type === 'sent' 
+                          ? 'SendIcon' 
+                          : 'ReceiveIcon'
+                    } 
+                    size={16} 
+                  />
                 </div>
-                <div className="cashu-wallet__transactions-list-item-details-date">
-                  {transaction.date}
-                </div>
-                {transaction.memo && (
-                  <div className="cashu-wallet__transactions-list-item-details-memo">
-                    {transaction.memo}
+                <div className="cashu-wallet__transactions-list-item-details">
+                  <div className="cashu-wallet__transactions-list-item-details-title">
+                    {transaction.type === 'sent' ? 'Sent' : 'Received'}
+                    {transaction.invoiceType === 'lightning' && ' (Lightning)'}
+                    {transaction.token && !transaction.invoiceType && ' (Ecash)'}
                   </div>
-                )}
-                {getStatusLabel(transaction.status)}
-              </div>
-              <div className="cashu-wallet__transactions-list-item-actions">
-                <div className={`cashu-wallet__transactions-list-item-amount cashu-wallet__transactions-list-item-amount--${transaction.type}`}>
-                  {transaction.type === 'sent' ? '-' : '+'}{transaction.amount}
+                  <div className="cashu-wallet__transactions-list-item-details-date">
+                    {transaction.date}
+                  </div>
+                  {transaction.memo && (
+                    <div className="cashu-wallet__transactions-list-item-details-memo">
+                      {transaction.memo}
+                    </div>
+                  )}
+                  {getStatusLabel(transaction.status)}
                 </div>
-                
-                {shouldShowCheckButton(transaction) && onCheckPayment && (
-                  <button 
-                    className="cashu-wallet__transactions-list-item-check-btn"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent triggering the onTransactionClick
-                      onCheckPayment(transaction);
-                    }}
-                  >
-                    {getCheckButtonText(transaction)}
-                  </button>
-                )}
+                <div className="cashu-wallet__transactions-list-item-actions">
+                  <div className={`cashu-wallet__transactions-list-item-amount cashu-wallet__transactions-list-item-amount--${transaction.type}`}>
+                    {transaction.type === 'sent' ? '-' : '+'}{transaction.amount}
+                  </div>
+                  
+                  {/* Quick action buttons */}
+                  <div className="cashu-wallet__transactions-list-item-quick-actions">
+                    {hasCopyableContent(transaction) && (
+                      <button 
+                        className="cashu-wallet__transactions-list-item-icon-btn"
+                        onClick={(e) => handleCopy(transaction, e)}
+                        title="Copy Invoice/Token"
+                      >
+                        <Icon name="CopyIcon" size={16} />
+                      </button>
+                    )}
+                    
+                    {hasCopyableContent(transaction) && (
+                      <button 
+                        className="cashu-wallet__transactions-list-item-icon-btn"
+                        onClick={(e) => toggleQRCode(transaction, e)}
+                        title="Show QR Code"
+                      >
+                        <Icon name="ScanIcon" size={16} />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Receive button for receivable transactions */}
+                  {isReceivableTransaction(transaction) && (
+                    <button 
+                      className="cashu-wallet__transactions-list-item-receive-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleQRCode(transaction, e);
+                      }}
+                    >
+                      <Icon name="ReceiveIcon" size={14} style={{marginRight: '4px'}} />
+                      Receive
+                    </button>
+                  )}
+                  
+                  {/* Check payment button */}
+                  {shouldShowCheckButton(transaction) && onCheckPayment && (
+                    <button 
+                      className="cashu-wallet__transactions-list-item-check-btn"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the onTransactionClick
+                        onCheckPayment(transaction);
+                      }}
+                    >
+                      {getCheckButtonText(transaction)}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
+              
+              {/* QR Code Display */}
+              {qrCodeTransaction && qrCodeTransaction.id === transaction.id && (
+                <div className="cashu-wallet__transactions-list-item-qr-container">
+                  <div className="cashu-wallet__transactions-list-item-qr-content">
+                    <div className="cashu-wallet__transactions-list-item-qr-header">
+                      <div className="cashu-wallet__transactions-list-item-qr-title">
+                        <span className="cashu-wallet__transactions-list-item-qr-icon">
+                          {transaction.invoiceType === 'lightning' ? '⚡' : '💸'}
+                        </span>
+                        <span>
+                          {transaction.invoiceType === 'lightning' ? 'Lightning Invoice' : 'Ecash Token'}
+                        </span>
+                      </div>
+                      <button 
+                        className="cashu-wallet__transactions-list-item-qr-close"
+                        onClick={(e) => toggleQRCode(transaction, e)}
+                      >
+                        <Icon name="CloseIcon" size={16} />
+                      </button>
+                    </div>
+                    <div className="cashu-wallet__transactions-list-item-qr-code">
+                      <QRCode
+                        value={getContentToCopy(transaction)}
+                        size={180}
+                        bgColor="#FFFFFF"
+                        fgColor="#000000"
+                        level="M"
+                      />
+                    </div>
+                    <div className="cashu-wallet__transactions-list-item-qr-amount">
+                      {transaction.amount} {transaction.unit || 'sats'}
+                    </div>
+                    
+                    <div className="cashu-wallet__transactions-list-item-qr-actions">
+                      <button 
+                        className="cashu-wallet__button cashu-wallet__button--primary"
+                        onClick={(e) => handleCopy(transaction, e)}
+                        style={{ width: '100%', marginTop: '12px' }}
+                      >
+                        <Icon name="CopyIcon" size={16} style={{marginRight: '8px'}} />
+                        Copy to Clipboard
+                      </button>
+                      
+                      {isReceivableTransaction(transaction) && (
+                        <div className="cashu-wallet__transactions-list-item-qr-instruction">
+                          Scan this QR code or share the copied code to receive payment
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </React.Fragment>
           ))
         ) : (
           <div className="cashu-wallet__transactions-empty">

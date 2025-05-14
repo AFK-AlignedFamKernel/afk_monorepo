@@ -430,4 +430,128 @@
 /* Text sizes */
 .text-xs {
   font-size: 0.75rem;
+}
+
+/* Quick Action Buttons in Transaction List */
+.cashu-wallet__transactions-list-item-quick-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.cashu-wallet__transactions-list-item-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--primary-100);
+  color: var(--primary-600);
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.cashu-wallet__transactions-list-item-icon-btn:hover {
+  background-color: var(--primary-200);
+}
+
+/* QR Code Container in Transaction List */
+.cashu-wallet__transactions-list-item-qr-container {
+  padding: 0 16px 16px;
+  background-color: var(--hover-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.cashu-wallet__transactions-list-item-qr-content {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cashu-wallet__transactions-list-item-qr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.cashu-wallet__transactions-list-item-qr-title {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.cashu-wallet__transactions-list-item-qr-icon {
+  margin-right: 8px;
+}
+
+.cashu-wallet__transactions-list-item-qr-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--foreground-muted);
+  padding: 4px;
+}
+
+.cashu-wallet__transactions-list-item-qr-code {
+  background-color: #FFFFFF;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.cashu-wallet__transactions-list-item-qr-amount {
+  margin-top: 12px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* Receive Button */
+.cashu-wallet__transactions-list-item-receive-btn {
+  margin-top: 6px;
+  background-color: #22c55e; /* Green color for receive button */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cashu-wallet__transactions-list-item-receive-btn:hover {
+  background-color: #16a34a; /* Darker green on hover */
+}
+
+.cashu-wallet__transactions-list-item-receive-btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* QR Code Actions */
+.cashu-wallet__transactions-list-item-qr-actions {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.cashu-wallet__transactions-list-item-qr-instruction {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--foreground-muted);
+  padding: 8px;
+  background-color: rgba(80, 200, 120, 0.1);
+  border: 1px solid rgba(80, 200, 120, 0.3);
+  border-radius: 4px;
 } 
