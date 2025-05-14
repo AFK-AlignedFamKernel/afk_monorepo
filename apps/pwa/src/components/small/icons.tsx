@@ -662,3 +662,15 @@ export const GalleryIcon: IconComponent = forwardRef<SVGSVGElement, IconProps>((
     </svg>
   );
 });
+
+export const LightningIcon: React.FC<SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" {...props}>
+    <path
+      d="M13 3L4 14h7l-1 7 9-11h-7l1-7z"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);

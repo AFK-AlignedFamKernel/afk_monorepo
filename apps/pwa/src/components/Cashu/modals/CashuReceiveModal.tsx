@@ -61,10 +61,11 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
       } else {
         // Handle the case where no valid invoice was returned
         console.error('Invalid invoice data returned:', invoiceData);
+        
         showToast({
-          message: 'Error creating invoice',
+          message: 'Invoice Creation Failed',
           type: 'error',
-          description: 'Using fallback invoice. The mint is unable to generate invoices or is not responding.'
+          description: 'Could not generate a valid invoice. Please check mint connection.'
         });
       }
     } catch (err) {
@@ -85,13 +86,13 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
         } else if (errorMessage.includes('Wallet not initialized')) {
           errorMessage = 'The wallet connection to the mint failed. Please try selecting the mint again from settings.';
         } else if (errorMessage.includes('undefined')) {
-          errorMessage = 'There was a problem with the mint connection. Using a demonstration invoice instead.';
+          errorMessage = 'There was a problem with the mint connection.';
         }
       }
       
       showToast({
-        message: 'Invoice Creation Issue',
-        type: 'warning',
+        message: 'Invoice Creation Failed',
+        type: 'error',
         description: errorMessage
       });
     } finally {

@@ -12,6 +12,7 @@ import {
 } from 'afk_nostr_sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { useCashuStorage } from './useCashuStorage';
+import { saveWalletData } from '@/utils/storage';
 
 export function useCashu() {
   // SDK hooks
@@ -202,58 +203,69 @@ export function useCashu() {
     if (!amount || amount <= 0) throw new Error('Invalid amount');
 
     try {
-      // First check wallet readiness
+      console.log(`Starting invoice creation for ${amount} sats using mint: ${targetMint}`);
+      
+      // First get a verified wallet connection
       const readinessCheck = await checkWalletReadiness(targetMint);
       if (!readinessCheck.ready) {
         throw new Error(`Wallet not ready: ${readinessCheck.error}`);
       }
       
-      // Use the wallet and mint from readiness check
+      // We have a verified wallet connection, create the invoice directly
       const { wallet, mint } = readinessCheck;
-      let invoice = '';
-      let paymentHash = '';
       
-      console.log(`Requesting mint quote for ${amount} sats`);
-      
-      try {
-        // Try using the wallet instance directly  
-        const quote = await wallet.createMintQuote(amount);
-        if (quote) {
-          const mintRequest = quote as any;
-          invoice = mintRequest.request || mintRequest.pr || mintRequest.payment_request || '';
-          paymentHash = mintRequest.hash || mintRequest.payment_hash || '';
-          
-          if (invoice) {
-            console.log(`Got invoice from wallet: ${invoice.substring(0, 20)}...`);
-          } else {
-            throw new Error('No invoice in mint response');
-          }
-        } else {
-          throw new Error('Invalid quote response from mint');
-        }
-      } catch (directErr) {
-        console.error('Error creating quote directly:', directErr);
-        throw new Error(`Failed to create mint quote: ${directErr instanceof Error ? directErr.message : 'Unknown error'}`);
+      if (!wallet || !wallet.mint) {
+        throw new Error('Wallet not properly initialized');
       }
       
-      // If we still don't have an invoice after all attempts, throw an error
-      if (!invoice || !paymentHash) {
-        throw new Error('Failed to generate Lightning invoice');
+      console.log(`Creating mint quote with wallet instance`);
+      // Get the quote directly
+      const quote = await wallet.createMintQuote(amount);
+      
+      if (!quote) {
+        throw new Error('Mint returned empty quote');
       }
       
-      // Record a transaction for this invoice
-      addTransaction('received', amount, 'Created Lightning invoice', null);
+      // Extract invoice details from quote
+      const invoice = (quote as any).request || 
+                     (quote as any).pr || 
+                     (quote as any).bolt11 || 
+                     (quote as any).payment_request || 
+                     '';
+                     
+      const paymentHash = (quote as any).hash || 
+                         (quote as any).payment_hash || 
+                         (quote as any).id || 
+                         '';
+      
+      if (!invoice) {
+        throw new Error('No invoice in mint response');
+      }
+      
+      console.log(`Got Lightning invoice: ${invoice.substring(0, 20)}...`);
+      
+      // Record transaction
+      addTransaction(
+        'received', 
+        amount, 
+        'Created Lightning invoice', 
+        null, 
+        paymentHash,
+        targetMint,
+        'pending',
+        invoice.substring(0, 20) + '...',
+        'lightning'
+      );
       
       return {
         invoice,
         paymentHash,
         amount,
-        quote: { amount, hash: paymentHash },
+        quote,
       };
     } catch (err) {
       console.error('Error creating invoice:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create invoice');
-      throw err; // Re-throw for the UI to handle with toast
+      throw err;
     }
   };
 
@@ -460,8 +472,21 @@ export function useCashu() {
       
       // Try to connect to the mint
       console.log(`Checking wallet readiness for mint: ${mintUrl}`);
-      const mintResponse = await sdkCashu.connectCashMint(mintUrl).catch(err => {
-        console.error('Mint connection failed during readiness check:', err);
+      
+      // Use a single, reliable connection attempt with timeout
+      // Define type for the mint response
+      interface MintResponse {
+        mint: any;
+        keys: any[];
+      }
+      
+      const mintResponse = await Promise.race([
+        sdkCashu.connectCashMint(mintUrl) as Promise<MintResponse>,
+        new Promise<never>((_, reject) => setTimeout(
+          () => reject(new Error('Connection timeout (30s)')), 30000
+        ))
+      ]).catch(err => {
+        console.error('Mint connection failed:', err);
         throw new Error(`Cannot connect to mint: ${err instanceof Error ? err.message : 'Unknown error'}`);
       });
       
@@ -469,32 +494,153 @@ export function useCashu() {
         throw new Error('Could not retrieve mint information');
       }
       
-      // If we already have a wallet connected to this mint, we're ready
+      // If we already have a wallet connected to this mint, verify and use it
       const { walletConnected } = sdkCashu;
       if (walletConnected && walletConnected.mint.mintUrl === mintUrl) {
-        return { ready: true, wallet: walletConnected, mintUrl, mint: mintResponse.mint, keys: mintResponse.keys };
+        console.log('Using existing wallet connection');
+        // Test the wallet connection with a basic operation
+        try {
+          await walletConnected.mint.getInfo();
+          console.log('Existing wallet connection verified');
+          return { 
+            ready: true, 
+            wallet: walletConnected, 
+            mintUrl, 
+            mint: mintResponse.mint, 
+            keys: mintResponse.keys 
+          };
+        } catch (testErr) {
+          console.warn('Existing wallet connection failed verification, will create new connection');
+          // Continue to create a new wallet instance
+        }
       }
       
-      // We need to initialize a wallet
+      // Initialize a wallet with the appropriate method
+      console.log('Creating new wallet connection, nostrSeedAvailable:', nostrSeedAvailable);
+      
+      // Create a wallet with the appropriate seed method
       let wallet;
-      // Choose initialization method based on Nostr seed availability
       if (nostrSeedAvailable) {
+        console.log('Initializing wallet with Nostr seed');
         wallet = await sdkCashu.initializeWithNostrSeed(mintResponse.mint, mintResponse.keys);
       } else {
+        console.log('Initializing wallet with default method');
         wallet = await sdkCashu.connectCashWallet(mintResponse.mint, mintResponse.keys);
       }
       
       if (!wallet) {
-        throw new Error('Failed to initialize wallet');
+        throw new Error('Wallet initialization failed - null wallet returned');
       }
       
-      return { ready: true, wallet, mintUrl, mint: mintResponse.mint, keys: mintResponse.keys };
+      // Verify the new wallet works
+      try {
+        await wallet.mint.getInfo();
+        console.log('New wallet connection verified');
+      } catch (err) {
+        throw new Error(`Wallet initialization failed verification: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      }
+      
+      return { 
+        ready: true, 
+        wallet, 
+        mintUrl, 
+        mint: mintResponse.mint, 
+        keys: mintResponse.keys 
+      };
     } catch (err) {
       console.error('Wallet readiness check failed:', err);
       return { 
         ready: false, 
         error: err instanceof Error ? err.message : 'Unknown error during wallet readiness check' 
       };
+    }
+  };
+
+  // Check payment status for a specific transaction
+  const checkInvoicePaymentStatus = async (transaction: any) => {
+    if (!transaction || !transaction.paymentHash || !transaction.mintUrl) {
+      throw new Error('Invalid transaction data for checking payment');
+    }
+    
+    try {
+      console.log(`Checking payment status for hash: ${transaction.paymentHash}`);
+      
+      // Check readiness first
+      const readinessCheck = await checkWalletReadiness(transaction.mintUrl);
+      if (!readinessCheck.ready) {
+        throw new Error(`Wallet not ready: ${readinessCheck.error}`);
+      }
+      
+      // Get payment status from the mint
+      const status = await checkInvoiceStatus(transaction.mintUrl, transaction.paymentHash);
+      
+      if (status.paid) {
+        // Mark transaction as paid in storage
+        const updatedTransactions = walletData.transactions.map(tx => {
+          if (tx.id === transaction.id) {
+            return {
+              ...tx,
+              status: 'paid' as const,
+              description: 'Payment confirmed'
+            };
+          }
+          return tx;
+        });
+        
+        // Calculate new balance
+        const newBalance = walletData.balance + transaction.amount;
+        
+        // Save updated data
+        saveWalletData({
+          ...walletData,
+          transactions: updatedTransactions,
+          balance: newBalance
+        });
+        
+        return { paid: true, amount: status.amount };
+      } else {
+        // Mark transaction as still pending
+        const updatedTransactions = walletData.transactions.map(tx => {
+          if (tx.id === transaction.id) {
+            return {
+              ...tx,
+              status: 'pending' as const,
+              description: 'Payment not yet confirmed'
+            };
+          }
+          return tx;
+        });
+        
+        // Save updated data with no balance change
+        saveWalletData({
+          ...walletData,
+          transactions: updatedTransactions
+        });
+        
+        return { paid: false };
+      }
+    } catch (err) {
+      console.error('Error checking payment status:', err);
+      
+      // Mark transaction as failed
+      const updatedTransactions = walletData.transactions.map(tx => {
+        if (tx.id === transaction.id) {
+          return {
+            ...tx,
+            status: 'failed' as const,
+            description: err instanceof Error ? err.message : 'Failed to check payment status'
+          };
+        }
+        return tx;
+      });
+      
+      // Save updated data
+      saveWalletData({
+        ...walletData,
+        transactions: updatedTransactions
+      });
+      
+      throw err;
     }
   };
 
@@ -506,13 +652,14 @@ export function useCashu() {
     activeUnit: walletData.activeUnit,
     balance: walletData.balance,
     transactions: walletData.transactions,
+    tokens: walletData.tokens,
     addMint,
     setActiveMint,
     setActiveUnit,
     getBalance,
     createInvoice,
     checkInvoiceStatus,
-    mintTokens,
+    checkInvoicePaymentStatus,
     receiveToken,
     createSendToken,
     payLightningInvoice,

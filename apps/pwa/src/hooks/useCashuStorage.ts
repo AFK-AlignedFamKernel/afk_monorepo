@@ -137,7 +137,17 @@ export function useCashuStorage() {
   }, []);
 
   // Add a transaction
-  const addTransaction = useCallback((type: 'sent' | 'received', amount: number, memo?: string, token?: string) => {
+  const addTransaction = useCallback((
+    type: 'sent' | 'received', 
+    amount: number, 
+    memo?: string, 
+    token?: string,
+    paymentHash?: string,
+    mintUrl?: string,
+    status?: 'pending' | 'paid' | 'failed',
+    description?: string,
+    invoiceType?: 'lightning'
+  ) => {
     setWalletData(prev => {
       const newTransaction: Transaction = {
         id: uuidv4(),
@@ -146,10 +156,19 @@ export function useCashuStorage() {
         date: new Date().toISOString(),
         memo,
         token,
+        paymentHash,
+        mintUrl,
+        status,
+        description,
+        invoiceType
       };
 
-      // Update balance
-      const balanceChange = type === 'received' ? amount : -amount;
+      // Only update balance for paid transactions or non-lightning transactions
+      let balanceChange = 0;
+      if (invoiceType !== 'lightning' || status === 'paid') {
+        balanceChange = type === 'received' ? amount : -amount;
+      }
+      
       const newBalance = prev.balance + balanceChange;
 
       return {

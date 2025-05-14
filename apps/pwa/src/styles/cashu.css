@@ -281,4 +281,153 @@
     transform: translateX(0);
     opacity: 1;
   }
+}
+
+/* Transaction Status Badges */
+.cashu-wallet__status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.cashu-wallet__status-badge--pending {
+  background-color: #f3f0ff;
+  color: #7c3aed;
+  border: 1px solid #d8b4fe;
+}
+
+.cashu-wallet__status-badge--success {
+  background-color: #ecfdf5;
+  color: #10b981;
+  border: 1px solid #a7f3d0;
+}
+
+.cashu-wallet__status-badge--error {
+  background-color: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+
+/* Transaction Check Button */
+.cashu-wallet__transactions-list-item-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  margin-left: auto;
+}
+
+.cashu-wallet__transactions-list-item-check-btn {
+  margin-top: 6px;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cashu-wallet__transactions-list-item-check-btn:hover {
+  background-color: #4338ca;
+}
+
+.cashu-wallet__transactions-list-item-check-btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Update transaction item styles for the new layout */
+.cashu-wallet__transactions-list-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cashu-wallet__transactions-list-item-details-memo {
+  font-size: 0.7rem;
+  color: #6b7280;
+  margin-top: 2px;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Transaction details modal styles */
+.cashu-wallet__transaction-details {
+  padding: 1rem;
+  max-width: 100%;
+  width: 100%;
+}
+
+.cashu-wallet__transaction-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cashu-wallet__transaction-details-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.cashu-wallet__transaction-details-amount {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.cashu-wallet__transaction-details-info {
+  margin-bottom: 1.5rem;
+}
+
+.cashu-wallet__transaction-details-row {
+  display: flex;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cashu-wallet__transaction-details-label {
+  flex: 0 0 40%;
+  font-weight: 500;
+  color: var(--foreground-muted);
+}
+
+.cashu-wallet__transaction-details-value {
+  flex: 0 0 60%;
+  word-break: break-word;
+}
+
+.cashu-wallet__transaction-details-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+/* Make transaction items clickable */
+.cashu-wallet__transactions-list-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cashu-wallet__transactions-list-item:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Text sizes */
+.text-xs {
+  font-size: 0.75rem;
 } 

@@ -13,6 +13,7 @@ import { CashuMintModal } from './modals/CashuMintModal';
 import { useCashu } from '@/hooks/useCashu';
 import { useCashuStore } from 'afk_nostr_sdk';
 import { useUIStore } from '@/store/uiStore';
+import { Transaction } from '@/utils/storage';
 
 export default function Cashu() {
   const {
@@ -32,13 +33,14 @@ export default function Cashu() {
     createSendToken,
     payLightningInvoice,
     checkWalletReadiness,
+    checkInvoiceStatus
   } = useCashu();
   
   // Direct access to the Cashu store from SDK
   const { setMintUrl } = useCashuStore();
   
   // UI store for toast messages
-  const { showToast } = useUIStore();
+  const { showToast, showModal } = useUIStore();
 
   const [currentBalance, setCurrentBalance] = useState<number>(balance);
   const [isBalanceLoading, setIsBalanceLoading] = useState<boolean>(false);
@@ -46,6 +48,50 @@ export default function Cashu() {
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState<boolean>(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
   const [isMintModalOpen, setIsMintModalOpen] = useState<boolean>(false);
+  const [isCheckingPayment, setIsCheckingPayment] = useState<boolean>(false);
+  const [walletReady, setWalletReady] = useState<boolean>(false);
+
+  // Initialize wallet connection on mount or when active mint changes
+  useEffect(() => {
+    async function initializeWallet() {
+      if (!activeMint) return;
+      
+      try {
+        setIsBalanceLoading(true);
+        console.log('Initializing wallet connection to mint:', activeMint);
+        
+        // Check if wallet is ready
+        const readinessCheck = await checkWalletReadiness(activeMint);
+        setWalletReady(readinessCheck.ready);
+        
+        if (readinessCheck.ready) {
+          console.log('Wallet is ready for operations');
+          // Update balance
+          const currentBalance = await getBalance();
+          setCurrentBalance(currentBalance);
+        } else {
+          console.error('Wallet initialization failed:', readinessCheck.error);
+          showToast({
+            message: 'Wallet Connection Failed',
+            type: 'error',
+            description: 'Could not establish wallet connection. Please check your mint settings.'
+          });
+        }
+      } catch (err) {
+        console.error('Error initializing wallet:', err);
+        setWalletReady(false);
+        showToast({
+          message: 'Wallet Initialization Error',
+          type: 'error',
+          description: err instanceof Error ? err.message : 'Unknown error during wallet initialization'
+        });
+      } finally {
+        setIsBalanceLoading(false);
+      }
+    }
+    
+    initializeWallet();
+  }, [activeMint, checkWalletReadiness, getBalance, showToast]);
 
   // Fetch current balance
   useEffect(() => {
@@ -67,6 +113,11 @@ export default function Cashu() {
 
     fetchBalance();
   }, [activeMint, activeUnit, getBalance]);
+
+  // Update balance from wallet data
+  useEffect(() => {
+    setCurrentBalance(balance);
+  }, [balance]);
 
   // Open send modal
   const handleOpenSendModal = () => {
@@ -212,35 +263,38 @@ export default function Cashu() {
     }
     
     try {
+      // Verify wallet is ready before proceeding
+      if (!walletReady) {
+        console.log('Checking wallet readiness before invoice creation');
+        const readinessCheck = await checkWalletReadiness(activeMint);
+        if (!readinessCheck.ready) {
+          showToast({
+            message: 'Wallet not ready',
+            type: 'error',
+            description: 'Please check mint connection and try again'
+          });
+          return null;
+        }
+      }
+      
       if (!activeMint) {
         showToast({
           message: 'No mint selected',
           type: 'error',
           description: 'Please add and select a mint first'
         });
-        throw new Error('No mint selected');
-      }
-      
-      // First check if the wallet is ready
-      const readinessCheck = await checkWalletReadiness(activeMint);
-      if (!readinessCheck.ready) {
-        showToast({
-          message: 'Wallet not ready',
-          type: 'error',
-          description: readinessCheck.error || 'Please check mint connection'
-        });
         return null;
       }
       
-      // Wallet is ready, proceed with invoice creation
       console.log(`Creating invoice for ${amount} sats using mint: ${activeMint}`);
       
+      // Single attempt with proper error handling
       const invoiceResult = await createInvoice(activeMint, amount).catch(err => {
-        console.error('SDK error creating invoice:', err);
+        console.error('Error creating invoice:', err);
         showToast({
-          message: 'Failed to create invoice',
+          message: 'Invoice creation failed',
           type: 'error',
-          description: err instanceof Error ? err.message : 'Unknown error occurred'
+          description: err instanceof Error ? err.message : 'Could not generate Lightning invoice'
         });
         return null;
       });
@@ -262,17 +316,152 @@ export default function Cashu() {
         description: 'Lightning invoice generated successfully'
       });
       
-      console.log('Invoice created successfully');
       return invoiceResult;
     } catch (err) {
-      console.error('Error creating invoice:', err);
+      console.error('Invoice creation error:', err);
+      
       showToast({
-        message: 'Invoice creation error',
+        message: 'Invoice generation error',
         type: 'error',
         description: err instanceof Error ? err.message : 'Failed to create invoice'
       });
+      
       return null;
     }
+  };
+
+  // Handle checking transaction payment status
+  const handleCheckPayment = async (transaction: Transaction) => {
+    if (isCheckingPayment) return;
+    
+    try {
+      setIsCheckingPayment(true);
+      
+      showToast({
+        message: 'Checking payment',
+        type: 'info',
+        description: 'Verifying payment status...'
+      });
+      
+      const result = await checkInvoiceStatus(transaction.mintUrl || '', transaction.paymentHash || '');
+      
+      if (result.paid) {
+        showToast({
+          message: 'Payment confirmed',
+          type: 'success',
+          description: `Received ${transaction.amount} sats`
+        });
+        
+        // Update balance - no need to fetch, the hook has already updated it
+        setCurrentBalance(prev => prev + transaction.amount);
+      } else {
+        showToast({
+          message: 'Payment pending',
+          type: 'info',
+          description: 'Payment has not been received yet'
+        });
+      }
+    } catch (err) {
+      console.error('Error checking payment:', err);
+      showToast({
+        message: 'Payment check failed',
+        type: 'error',
+        description: err instanceof Error ? err.message : 'Failed to verify payment'
+      });
+    } finally {
+      setIsCheckingPayment(false);
+    }
+  };
+
+  // Show more details about a transaction, especially for MintQuotes
+  const handleShowTransactionDetails = (transaction: Transaction) => {
+    if (!transaction) return;
+    
+    let title = transaction.type === 'sent' ? 'Sent' : 'Received';
+    
+    if (transaction.invoiceType === 'lightning') {
+      title += ' (Lightning)';
+    } else if (transaction.token) {
+      title += ' (Ecash)';
+    }
+    
+    // Format the date to be more user-friendly
+    const date = new Date(transaction.date);
+    const formattedDate = date.toLocaleString();
+    
+    const MintQuoteDetails = () => (
+      <div className="cashu-wallet__transaction-details">
+        <div className="cashu-wallet__transaction-details-header">
+          <h3>{title}</h3>
+          <div className="cashu-wallet__transaction-details-amount">
+            {transaction.type === 'sent' ? '-' : '+'}{transaction.amount} sats
+          </div>
+        </div>
+        
+        <div className="cashu-wallet__transaction-details-info">
+          <div className="cashu-wallet__transaction-details-row">
+            <div className="cashu-wallet__transaction-details-label">Date:</div>
+            <div className="cashu-wallet__transaction-details-value">{formattedDate}</div>
+          </div>
+          
+          {transaction.mintUrl && (
+            <div className="cashu-wallet__transaction-details-row">
+              <div className="cashu-wallet__transaction-details-label">Mint:</div>
+              <div className="cashu-wallet__transaction-details-value">{
+                mints.find(mint => mint.url === transaction.mintUrl)?.alias || transaction.mintUrl
+              }</div>
+            </div>
+          )}
+          
+          {transaction.memo && (
+            <div className="cashu-wallet__transaction-details-row">
+              <div className="cashu-wallet__transaction-details-label">Memo:</div>
+              <div className="cashu-wallet__transaction-details-value">{transaction.memo}</div>
+            </div>
+          )}
+          
+          {transaction.status && (
+            <div className="cashu-wallet__transaction-details-row">
+              <div className="cashu-wallet__transaction-details-label">Status:</div>
+              <div className="cashu-wallet__transaction-details-value">
+                {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+              </div>
+            </div>
+          )}
+          
+          {transaction.invoiceType === 'lightning' && transaction.paymentHash && (
+            <div className="cashu-wallet__transaction-details-row">
+              <div className="cashu-wallet__transaction-details-label">Payment Hash:</div>
+              <div className="cashu-wallet__transaction-details-value text-xs">
+                {transaction.paymentHash.length > 15 
+                  ? `${transaction.paymentHash.substring(0, 15)}...` 
+                  : transaction.paymentHash}
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {transaction.type === 'received' && 
+         transaction.invoiceType === 'lightning' && 
+         transaction.status !== 'paid' && 
+         transaction.paymentHash && (
+          <div className="cashu-wallet__transaction-details-actions">
+            <button 
+              className="cashu-wallet__button cashu-wallet__button--primary"
+              onClick={() => {
+                handleCheckPayment(transaction);
+                showModal(null); // Close the modal after checking
+              }}
+              disabled={isCheckingPayment}
+            >
+              {isCheckingPayment ? 'Checking...' : 'Check Payment Status'}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+    
+    showModal(<MintQuoteDetails />);
   };
 
   // Handle adding a mint
@@ -357,7 +546,11 @@ export default function Cashu() {
               onSend={handleOpenSendModal}
               onReceive={handleOpenReceiveModal}
             />
-            <CashuTransactions transactions={transactions} />
+            <CashuTransactions 
+              transactions={transactions} 
+              onCheckPayment={handleCheckPayment}
+              onTransactionClick={handleShowTransactionDetails}
+            />
           </>
         ) : (
           <CashuNoMint onAddMint={handleAddMint} />

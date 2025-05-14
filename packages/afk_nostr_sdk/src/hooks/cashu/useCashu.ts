@@ -582,6 +582,130 @@ export const useCashu = (): ICashu => {
     return unitBalance;
   };
 
+  // Add a helper function to validate and parse mint responses
+  const parseAndValidateMintResponse = (response: any): { 
+    isValid: boolean; 
+    invoice?: string;
+    paymentHash?: string;
+    quoteId?: string;
+    quote?: string;
+    amount?: number;
+    error?: string;
+  } => {
+    // First check if we have a response
+    if (!response) {
+      return { isValid: false, error: 'Empty response from mint' };
+    }
+    
+    // Extract all possible invoice field names
+    const invoice = response.request || 
+                   response.pr || 
+                   response.bolt11 || 
+                   response.payment_request || 
+                   response.invoice || 
+                   '';
+                   
+    // Extract all possible payment hash fields
+    const paymentHash = response.hash || 
+                       response.payment_hash || 
+                       response.id || 
+                       response.paymentHash || 
+                       '';
+    
+    // Extract quote ID and amount if available
+    const quote = response.quote || '';
+    const quoteId = response.id || response.quote_id || '';
+    const amount = response.amount || response.value || 0;
+    
+    // Log the found fields
+    console.log('Parsed mint response:', {
+      hasInvoice: !!invoice,
+      hasPaymentHash: !!paymentHash,
+      hasQuote: !!quote,
+      hasQuoteId: !!quoteId,
+      amount
+    });
+    
+    // Determine validity - must have at least invoice or payment hash
+    const isValid = !!(invoice || paymentHash);
+    
+    return {
+      isValid,
+      invoice,
+      paymentHash,
+      quoteId,
+      quote,
+      amount,
+      error: isValid ? undefined : 'Invalid mint response format'
+    };
+  };
+
+  // New method with retry logic for generating mint quotes
+  const createMintQuoteWithRetry = async (amount: number, maxAttempts = 3): Promise<MintQuoteResponse> => {
+    let lastError: Error | null = null;
+    
+    // Get a wallet instance
+    const walletInstance = wallet || walletConnected;
+    if (!walletInstance) {
+      throw new Error('No wallet instance available');
+    }
+    
+    // Make multiple attempts
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        console.log(`Creating mint quote attempt ${attempt}/${maxAttempts} for ${amount} sats`);
+        
+        // Set timeout for this request
+        const timeoutMs = 5000 * attempt; // Increase timeout with each attempt
+        
+        // Create the quote with timeout
+        const quotePromise = walletInstance.createMintQuote(amount);
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error(`Quote request timeout (${timeoutMs}ms)`)), timeoutMs)
+        );
+        
+        // Race the promises
+        const response = await Promise.race([quotePromise, timeoutPromise]);
+        
+        // Use our enhanced validation
+        const parsed = parseAndValidateMintResponse(response);
+        
+        if (!parsed.isValid) {
+          console.warn(`Invalid response format (attempt ${attempt}):`, response);
+          throw new Error(parsed.error || 'Invalid mint response format');
+        }
+        
+        // If we got here, we have a valid response
+        console.log(`Successful quote generation on attempt ${attempt}`);
+        
+        // Ensure the response matches the expected MintQuoteResponse format as best as possible
+        const validatedResponse = {
+          ...response,
+          // Ensure the quote field exists
+          quote: (response as any).quote || (response as any).id || (response as any).hash || 'unknown',
+          // Add missing fields if needed
+          request: parsed.invoice || (response as any).request || '',
+          hash: parsed.paymentHash || (response as any).hash || ''
+        };
+        
+        return validatedResponse as MintQuoteResponse;
+      } catch (err) {
+        console.error(`Quote generation failed on attempt ${attempt}:`, err);
+        lastError = err instanceof Error ? err : new Error(String(err));
+        
+        // Don't wait after the final attempt
+        if (attempt < maxAttempts) {
+          const waitTime = 1000 * attempt;
+          console.log(`Waiting ${waitTime}ms before next attempt...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
+    }
+    
+    // All attempts failed
+    throw lastError || new Error('Failed to generate quote after multiple attempts');
+  };
+
   const requestMintQuote = async (nb: number) => {
     try {
       // Check if either wallet or walletConnected is available
@@ -594,29 +718,65 @@ export const useCashu = (): ICashu => {
 
       console.log('Creating mint quote with wallet instance:', walletInstance);
       
-      // Try to create the mint quote with error handling
+      // Validate the wallet instance has required methods
+      if (typeof walletInstance.createMintQuote !== 'function') {
+        console.error('Wallet instance missing createMintQuote method:', walletInstance);
+        throw new Error('Invalid wallet instance: missing createMintQuote method');
+      }
+      
+      // Verify mint connection in the wallet
+      if (!walletInstance.mint) {
+        console.error('Wallet instance has no mint connection');
+        throw new Error('Wallet has no mint connection');
+      }
+      
+      console.log('Using mint URL:', walletInstance.mint.mintUrl);
+      
+      // Try to test mint connection
       try {
-        const request = await walletInstance.createMintQuote(nb);
-        
-        if (!request || !request.quote) {
-          throw new Error('Invalid quote response from mint');
-        }
-        
-        // Try to check the mint quote but don't fail if this fails
-        try {
-          await walletInstance.checkMintQuote(request.quote);
-        } catch (checkErr) {
-          console.error('Error checking mint quote:', checkErr);
-          // Continue even if checking fails
-        }
-        
-        return {
-          request,
-        };
+        const mintInfo = await walletInstance.mint.getInfo();
+        console.log('Connected to mint successfully:', mintInfo);
+      } catch (mintErr) {
+        console.warn('Warning: Could not get mint info:', mintErr);
+        // Continue anyway - some operations may still work
+      }
+      
+      // Use the new retry function with enhanced validation
+      console.log(`Calling createMintQuoteWithRetry with amount: ${nb}`);
+      let request;
+      
+      try {
+        request = await createMintQuoteWithRetry(nb);
+        console.log('Raw quote response after validation:', request);
       } catch (quoteErr) {
-        console.error('Error in createMintQuote:', quoteErr);
+        console.error('Error in createMintQuoteWithRetry:', quoteErr);
         throw quoteErr;
       }
+      
+      // Perform a final validation check
+      const finalValidation = parseAndValidateMintResponse(request);
+      
+      if (!finalValidation.isValid) {
+        console.error('Final validation check failed:', finalValidation.error);
+        throw new Error(finalValidation.error || 'Invalid quote response from mint');
+      }
+      
+      // Try to check the mint quote but don't fail if this fails
+      try {
+        if (request.quote) {
+          await walletInstance.checkMintQuote(request.quote);
+          console.log('Mint quote check successful');
+        } else {
+          console.warn('Cannot check mint quote: missing quote field');
+        }
+      } catch (checkErr) {
+        console.error('Error checking mint quote:', checkErr);
+        // Continue even if checking fails
+      }
+      
+      return {
+        request,
+      };
     } catch (e) {
       console.error('MintQuote error:', e);
       throw e; // Re-throw to allow handling in the UI

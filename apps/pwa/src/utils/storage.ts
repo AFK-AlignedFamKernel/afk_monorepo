@@ -24,6 +24,11 @@ export interface Transaction {
   date: string;
   memo?: string;
   token?: string;
+  paymentHash?: string;
+  mintUrl?: string;
+  status?: 'pending' | 'paid' | 'failed';
+  description?: string;
+  invoiceType?: 'lightning';
 }
 
 export interface Token {
