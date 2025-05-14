@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, ReactNode } from 'react';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useAccount } from '@starknet-react/core';
 import { WalletConnectButton } from './WalletConnectButton';
@@ -14,9 +13,6 @@ import { useUIStore } from '@/store/uiStore';
 import Accordion from './small/accordion';
 import RightBarDesktop from './RightBarDesktop';
 
-// const ProfileManagement = dynamic(() => import('@/components/profile/profile-management'), {
-//   ssr: false
-// });
 import { ProfileManagement } from '@/components/profile/profile-management';
 
 interface LayoutProps {

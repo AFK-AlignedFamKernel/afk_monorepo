@@ -5,13 +5,13 @@ import '../styles/index.scss';
 import type { Metadata } from 'next';
 // import {useRouter} from 'next/router';
 import Script from 'next/script';
-import dynamic from 'next/dynamic';
+// import dynamic from 'next/dynamic';
 
 import Providers from './providers';
 import Layout from '../components/Layout';
 
 // Import Layout dynamically to avoid SSR issues
-const LayoutDynamic = dynamic(() => import('../components/Layout'), { ssr: false });
+// const LayoutDynamic = dynamic(() => import('../components/Layout'), { ssr: false });
 
 export const metadata: Metadata = {
   title: 'AFK community LFG',
