@@ -413,6 +413,26 @@ export class NostrKeyManager {
 
     return { secretKey: decryptedPrivateKey, mnemonic: decryptedMnemonic };
   }
+
+  /**
+   * Check if a Nostr account is connected with a seed available
+   * Returns the seed in hex format if available, or null if not
+   */
+  static async checkNostrSeedAvailable(): Promise<string | null> {
+    try {
+      const accountStr = localStorage?.getItem(NostrKeyManager.WALLET_CONNECTED);
+      if (!accountStr) return null;
+      
+      const account = JSON.parse(accountStr);
+      if (account && account.seed && typeof account.seed === 'string') {
+        return account.seed;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error checking Nostr seed availability:', error);
+      return null;
+    }
+  }
 }
 
 export const generateRandomKeys = async () => {

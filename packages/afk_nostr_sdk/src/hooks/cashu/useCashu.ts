@@ -37,6 +37,7 @@ export interface ICashu {
     keys: MintKeys[];
   }>;
   connectCashWallet: (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => Promise<CashuWallet>;
+  initializeWithNostrSeed: (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => Promise<CashuWallet>;
   requestMintQuote: (nb: number) => Promise<{
     request: MintQuoteResponse;
   }>;
@@ -839,6 +840,50 @@ export const useCashu = (): ICashu => {
     return mintData;
   };
 
+  /**
+   * Initialize a wallet with Nostr seed if available, otherwise use provided seed
+   */
+  const initializeWithNostrSeed = async (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => {
+    try {
+      // Check if NostrKeyManager is available
+      const NostrKeyManager = await import('../../utils/nostr-key-manager').then(
+        m => m.NostrKeyManager
+      ).catch(() => null);
+      
+      let walletSeed = seed; // Default to current seed
+      let usingNostrSeed = false;
+      
+      // Try to get Nostr seed if NostrKeyManager is available
+      if (NostrKeyManager) {
+        try {
+          // Use the new utility method
+          const nostrSeed = await NostrKeyManager.checkNostrSeedAvailable();
+          if (nostrSeed) {
+            console.log('Using Nostr seed for Cashu wallet');
+            // Convert seed to the format expected by CashuWallet (Uint8Array)
+            walletSeed = Buffer.from(nostrSeed, 'hex');
+            
+            // Update Cashu store with Nostr seed
+            if (walletSeed && walletSeed.length > 0) {
+              setSeed(walletSeed);
+              usingNostrSeed = true;
+            }
+          }
+        } catch (nostrErr) {
+          console.error('Error getting Nostr seed:', nostrErr);
+          // Continue with current seed if error occurs
+        }
+      }
+      
+      // Connect wallet with appropriate seed
+      return connectCashWallet(cashuMint, keys);
+    } catch (err) {
+      console.error('Error initializing with Nostr seed:', err);
+      // Fall back to regular connection
+      return connectCashWallet(cashuMint, keys);
+    }
+  };
+
   return {
     wallet,
     mint,
@@ -892,6 +937,7 @@ export const useCashu = (): ICashu => {
     walletConnected,
     getUnitBalanceWithProofsChecked,
     handleWebsocketProofs,
-    filteredProofsSpents
+    filteredProofsSpents,
+    initializeWithNostrSeed
   };
 };

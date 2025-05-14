@@ -7,7 +7,8 @@ import {
   useGetCashuTokenEvents,
   useCreateTokenEvent,
   useDeleteTokenEvents,
-  MintData
+  MintData,
+  NostrKeyManager
 } from 'afk_nostr_sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { useCashuStorage } from './useCashuStorage';
@@ -38,6 +39,34 @@ export function useCashu() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [nostrSeedAvailable, setNostrSeedAvailable] = useState(false);
+
+  // Check for Nostr account and seed on init and when checking connection status changes
+  useEffect(() => {
+    const checkNostrSeed = async () => {
+      try {
+        const nostrSeed = await NostrKeyManager.checkNostrSeedAvailable();
+        if (nostrSeed) {
+          console.log('Found Nostr seed, will use for Cashu wallet');
+          // Convert seed to the format expected by CashuWallet (Uint8Array)
+          const seedBuffer = Buffer.from(nostrSeed, 'hex');
+          // Update Cashu store with Nostr seed
+          setSeed(seedBuffer);
+          setNostrSeedAvailable(true);
+          return true;
+        }
+        console.log('No Nostr seed available');
+        setNostrSeedAvailable(false);
+        return false;
+      } catch (err) {
+        console.error('Error checking for Nostr seed:', err);
+        setNostrSeedAvailable(false);
+        return false;
+      }
+    };
+    
+    checkNostrSeed();
+  }, [setSeed]);
 
   // Wait for storage to be ready
   useEffect(() => {
@@ -82,9 +111,10 @@ export function useCashu() {
         
         const id = uuidv4();
         
-        // Create wallet event on Nostr if we have a seed
-        if (seed) {
+        // Create wallet event on Nostr if we have a seed (prioritize Nostr seed)
+        if (nostrSeedAvailable && seed) {
           try {
+            console.log('Creating wallet event with Nostr seed');
             await createWalletEvent({
               name: id,
               mints: [mintUrl],
@@ -108,7 +138,7 @@ export function useCashu() {
       setError(err instanceof Error ? err.message : 'Failed to add mint');
       throw err;
     }
-  }, [sdkCashu, addMintToStorage, walletData.mints.length, seed, createWalletEvent, setMintUrl]);
+  }, [sdkCashu, addMintToStorage, walletData.mints.length, seed, createWalletEvent, setMintUrl, nostrSeedAvailable]);
 
   // Set active mint
   const setActiveMint = async (mintUrl: string) => {
@@ -194,8 +224,15 @@ export function useCashu() {
             // First make sure the mint is set as active to help init the SDK state
             setMintUrl(targetMint);
             
-            // Initialize local wallet for this operation
-            const wallet = await sdkCashu.connectCashWallet(mintResponse.mint, mintResponse.keys);
+            // Initialize wallet with Nostr seed if available
+            let wallet;
+            if (nostrSeedAvailable) {
+              console.log('Initializing wallet with Nostr seed');
+              wallet = await sdkCashu.initializeWithNostrSeed(mintResponse.mint, mintResponse.keys);
+            } else {
+              console.log('Initializing wallet without Nostr seed');
+              wallet = await sdkCashu.connectCashWallet(mintResponse.mint, mintResponse.keys);
+            }
             
             if (wallet) {
               console.log(`Wallet initialized, requesting mint quote for ${amount} sats`);
@@ -503,5 +540,6 @@ export function useCashu() {
     receiveToken,
     createSendToken,
     payLightningInvoice,
+    nostrSeedAvailable,
   };
 } 
