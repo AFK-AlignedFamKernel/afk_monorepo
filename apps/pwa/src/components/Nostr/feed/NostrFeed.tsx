@@ -19,7 +19,7 @@ interface NostrFeedProps {
 }
 
 export const NostrFeed: React.FC<NostrFeedProps> = ({
-  kinds = [1, 30023], // Default to showing text posts and articles
+  kinds = [1], // Default to showing text posts and articles
   limit = 10,
   className = '',
   authors,
