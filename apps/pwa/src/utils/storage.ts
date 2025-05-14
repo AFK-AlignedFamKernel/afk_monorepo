@@ -18,18 +18,31 @@ export interface MintData {
 }
 
 export interface Transaction {
+  /** Unique identifier for the transaction */
   id: string;
+  /** Type of transaction */
   type: 'sent' | 'received';
+  /** Amount in sats */
   amount: number;
+  /** ISO date string */
   date: string;
+  /** Optional memo for the transaction */
   memo?: string;
+  /** Ecash token if applicable */
   token?: string;
+  /** Lightning payment hash for tracking invoice status */
   paymentHash?: string;
+  /** Mint URL associated with this transaction */
   mintUrl?: string;
+  /** Status of the transaction */
   status?: 'pending' | 'paid' | 'failed';
+  /** Human-readable description */
   description?: string;
+  /** Type of invoice if applicable */
   invoiceType?: 'lightning';
+  /** Full Lightning invoice if applicable */
   invoice?: string;
+  /** Unit of currency (default: sat) */
   unit?: string;
 }
 

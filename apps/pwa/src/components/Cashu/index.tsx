@@ -35,7 +35,8 @@ export default function Cashu() {
     createSendToken,
     payLightningInvoice,
     checkWalletReadiness,
-    checkInvoiceStatus
+    checkInvoiceStatus,
+    checkInvoicePaymentStatus
   } = useCashu();
   
   // Direct access to the Cashu store from SDK
@@ -178,11 +179,15 @@ export default function Cashu() {
         return null;
       }
       
+      // Log the payment hash information for debugging
+      console.log('Invoice payment hash:', invoiceResult.paymentHash);
+      console.log('Full invoice result:', invoiceResult);
+      
       // Success
       showToast({
         message: 'Invoice created',
         type: 'success',
-        description: 'Lightning invoice generated successfully'
+        description: `Share this invoice to receive ${amount} sats`
       });
       
       return invoiceResult;
@@ -370,6 +375,16 @@ export default function Cashu() {
       return;
     }
     
+    // Don't attempt to check fallback payment hashes
+    if (transaction.paymentHash?.startsWith('fallback-')) {
+      showToast({
+        message: 'Cannot verify payment',
+        type: 'warning',
+        description: 'This transaction uses a fallback ID which cannot be verified with the mint'
+      });
+      return { paid: false, error: 'Cannot verify fallback payment hash' };
+    }
+    
     setIsCheckingPayment(true);
     setSelectedTransaction(transaction);
     
@@ -386,8 +401,9 @@ export default function Cashu() {
       console.log('transaction', transaction);
       
       // Check if this is a Lightning invoice with a payment hash
-      if (transaction.invoiceType === 'lightning' && transaction.paymentHash) {
-        const result = await checkInvoiceStatus(transaction.paymentHash, transaction.mintUrl);
+      if (transaction.paymentHash || transaction?.invoice && transaction?.invoiceType === 'lightning') {
+        // Use the proper checkInvoicePaymentStatus function that handles all details
+        const result = await checkInvoicePaymentStatus(transaction);
         console.log('result', result);
         
         if (result.paid) {
@@ -395,6 +411,12 @@ export default function Cashu() {
             message: 'Payment confirmed',
             type: 'success',
             description: `${transaction.amount} ${activeUnit || 'sats'}`
+          });
+        } else if (result.error) {
+          showToast({
+            message: 'Error checking payment',
+            type: 'error',
+            description: result.error
           });
         } else {
           showToast({

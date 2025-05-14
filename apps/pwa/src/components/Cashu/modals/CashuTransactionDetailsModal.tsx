@@ -130,6 +130,11 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
 
   // Check if this transaction should show the quote check button
   const shouldShowQuoteCheck = () => {
+    // Don't show check button for fallback payment hashes
+    if (transaction.paymentHash?.startsWith('fallback-')) {
+      return false;
+    }
+    
     return (
       transaction.type === 'received' && 
       transaction.status !== 'paid' &&
@@ -199,12 +204,24 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
                 <div className="cashu-wallet__transaction-details-row">
                   <div className="cashu-wallet__transaction-details-label">Payment Hash:</div>
                   <div className="cashu-wallet__transaction-details-value text-xs">
-                    {transaction.paymentHash.length > 15 
-                      ? `${transaction.paymentHash.substring(0, 15)}...` 
-                      : transaction.paymentHash}
+                    {transaction.paymentHash.startsWith('fallback-') 
+                      ? `Temporary ID (cannot verify payment)` 
+                      : transaction.paymentHash.length > 15 
+                        ? `${transaction.paymentHash.substring(0, 15)}...` 
+                        : transaction.paymentHash}
                   </div>
-                  <button onClick={handleCopy}><Icon name='CopyIcon' size={16} /></button>
-
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(transaction.paymentHash || '');
+                      showToast({
+                        message: 'Payment hash copied',
+                        type: 'success'
+                      });
+                    }}
+                    aria-label="Copy payment hash"
+                  >
+                    <Icon name='CopyIcon' size={16} />
+                  </button>
                 </div>
               )}
               
@@ -312,7 +329,9 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
             {transaction.type === 'received' && 
              transaction.invoiceType === 'lightning' && 
              transaction.status !== 'paid' && 
-             transaction.paymentHash && onCheckPayment && (
+             transaction.paymentHash && 
+             !transaction.paymentHash.startsWith('fallback-') && 
+             onCheckPayment && (
               <button 
                 className="cashu-wallet__button cashu-wallet__button--primary"
                 onClick={handleCheckPayment}
@@ -324,7 +343,7 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
             
             {/* Quote Check Button for any received transaction */}
             {shouldShowQuoteCheck() && onCheckPayment && !(
-              transaction.invoiceType === 'lightning' && transaction.paymentHash
+              transaction.invoiceType === 'lightning' && transaction.paymentHash && !transaction.paymentHash.startsWith('fallback-')
             ) && (
               <button 
                 className="cashu-wallet__button cashu-wallet__button--primary"

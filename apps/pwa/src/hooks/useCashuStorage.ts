@@ -146,7 +146,8 @@ export function useCashuStorage() {
     mintUrl?: string,
     status?: 'pending' | 'paid' | 'failed',
     description?: string,
-    invoiceType?: 'lightning'
+    invoiceType?: 'lightning',
+    invoice?: string
   ) => {
     setWalletData(prev => {
       const newTransaction: Transaction = {
@@ -160,7 +161,8 @@ export function useCashuStorage() {
         mintUrl,
         status,
         description,
-        invoiceType
+        invoiceType,
+        invoice
       };
 
       // Only update balance for paid transactions or non-lightning transactions
