@@ -48,6 +48,8 @@ export default function Cashu() {
           setCurrentBalance(currentBalance);
         } catch (err) {
           console.error('Error fetching balance:', err);
+          // Don't crash the UI, use default value
+          setCurrentBalance(0);
         } finally {
           setIsBalanceLoading(false);
         }
@@ -99,43 +101,82 @@ export default function Cashu() {
 
   // Handle sending a token
   const handleSendToken = async (amount: number) => {
+    if (!amount || amount <= 0) {
+      console.error('Invalid amount for sending token');
+      return;
+    }
+    
     try {
+      setIsBalanceLoading(true);
       await createSendToken(amount);
       handleCloseSendModal();
+      
       // Update balance after sending
-      const updatedBalance = await getBalance();
-      setCurrentBalance(updatedBalance);
+      try {
+        const updatedBalance = await getBalance();
+        setCurrentBalance(updatedBalance);
+      } catch (balanceErr) {
+        console.error('Error updating balance after send:', balanceErr);
+      }
     } catch (err) {
       console.error('Error sending token:', err);
       // Error handling will be done by the hook
+    } finally {
+      setIsBalanceLoading(false);
     }
   };
 
   // Handle paying a lightning invoice
   const handlePayInvoice = async (invoice: string) => {
+    if (!invoice || typeof invoice !== 'string') {
+      console.error('Invalid invoice format');
+      return;
+    }
+    
     try {
+      setIsBalanceLoading(true);
       await payLightningInvoice(invoice);
       handleCloseSendModal();
+      
       // Update balance after paying
-      const updatedBalance = await getBalance();
-      setCurrentBalance(updatedBalance);
+      try {
+        const updatedBalance = await getBalance();
+        setCurrentBalance(updatedBalance);
+      } catch (balanceErr) {
+        console.error('Error updating balance after payment:', balanceErr);
+      }
     } catch (err) {
       console.error('Error paying invoice:', err);
       // Error handling will be done by the hook
+    } finally {
+      setIsBalanceLoading(false);
     }
   };
 
   // Handle receiving a token
   const handleReceiveToken = async (token: string) => {
+    if (!token || typeof token !== 'string') {
+      console.error('Invalid token format');
+      return;
+    }
+    
     try {
+      setIsBalanceLoading(true);
       await receiveToken(token);
       handleCloseReceiveModal();
+      
       // Update balance after receiving
-      const updatedBalance = await getBalance();
-      setCurrentBalance(updatedBalance);
+      try {
+        const updatedBalance = await getBalance();
+        setCurrentBalance(updatedBalance);
+      } catch (balanceErr) {
+        console.error('Error updating balance after receive:', balanceErr);
+      }
     } catch (err) {
       console.error('Error receiving token:', err);
       // Error handling will be done by the hook
+    } finally {
+      setIsBalanceLoading(false);
     }
   };
 
@@ -145,47 +186,100 @@ export default function Cashu() {
       throw new Error('No mint selected');
     }
     
-    // Don't try to auto-connect here as it's causing re-renders
-    // Just return the mint URL for the calling function to use
+    // Return the mint URL for the calling function to use
     return mintUrl;
   };
 
   // Handle creating a lightning invoice
   const handleCreateInvoice = async (amount: number) => {
+    if (!amount || amount <= 0) {
+      console.error('Invalid amount for invoice creation');
+      return null;
+    }
+    
     try {
-      // Simply call createInvoice with the amount and active mint
-      return await createInvoice(activeMint, amount);
+      if (!activeMint) {
+        throw new Error('No mint selected');
+      }
+      
+      // Verify mint is available
+      const mintUrl = await ensureMintConnected(activeMint);
+      
+      // Show loading state
+      setIsBalanceLoading(true);
+      
+      // Create real invoice using the SDK
+      console.log(`Creating invoice for ${amount} sats using mint: ${mintUrl}`);
+      const invoiceResult = await createInvoice(mintUrl, amount).catch(err => {
+        console.error('SDK error creating invoice:', err);
+        return null;
+      });
+      
+      if (!invoiceResult || !invoiceResult.invoice) {
+        console.error('No valid invoice returned from createInvoice');
+        return null;
+      }
+      
+      console.log('Invoice created successfully');
+      return invoiceResult;
     } catch (err) {
       console.error('Error creating invoice:', err);
       return null;
+    } finally {
+      // Hide loading state
+      setIsBalanceLoading(false);
     }
   };
 
   // Handle adding a mint
   const handleAddMint = async (mintUrl: string, alias: string) => {
+    if (!mintUrl || !alias) {
+      console.error('Missing required parameters for adding mint');
+      return;
+    }
+    
     try {
+      setIsBalanceLoading(true);
       await addMint(mintUrl, alias);
+      
       // Update balance after adding mint
-      const updatedBalance = await getBalance();
-      setCurrentBalance(updatedBalance);
+      try {
+        const updatedBalance = await getBalance();
+        setCurrentBalance(updatedBalance);
+      } catch (balanceErr) {
+        console.error('Error updating balance after adding mint:', balanceErr);
+      }
     } catch (err) {
       console.error('Error adding mint:', err);
+      // Don't crash UI on mint add error
+    } finally {
+      setIsBalanceLoading(false);
     }
   };
 
   // Handle changing active mint
   const handleChangeMint = async (mintUrl: string) => {
+    if (!mintUrl) {
+      console.error('Invalid mint URL');
+      return;
+    }
+    
     try {
       setIsBalanceLoading(true);
       const success = await setActiveMint(mintUrl);
       
       if (success) {
         // Update balance after changing mint
-        const updatedBalance = await getBalance();
-        setCurrentBalance(updatedBalance);
+        try {
+          const updatedBalance = await getBalance();
+          setCurrentBalance(updatedBalance);
+        } catch (balanceErr) {
+          console.error('Error updating balance after mint change:', balanceErr);
+        }
       }
     } catch (err) {
       console.error('Error changing mint:', err);
+      // Don't crash UI on mint change error
     } finally {
       setIsBalanceLoading(false);
     }

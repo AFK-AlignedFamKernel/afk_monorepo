@@ -55,7 +55,14 @@ export function useCashu() {
   const addMint = useCallback(async (mintUrl: string, alias: string) => {
     try {
       // Use SDK to connect to mint
-      const { mint } = await sdkCashu.connectCashMint(mintUrl);
+      const mintResponse = await sdkCashu.connectCashMint(mintUrl).catch(err => {
+        console.error('Error connecting to mint:', err);
+        throw new Error(`Failed to connect to mint: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      });
+      
+      if (!mintResponse || !mintResponse.mint) {
+        throw new Error('Invalid response from mint');
+      }
       
       // Save to local storage
       addMintToStorage(mintUrl, alias);
@@ -75,6 +82,7 @@ export function useCashu() {
             });
           } catch (err) {
             console.error('Error creating wallet event:', err);
+            // Don't throw here - continue even if event creation fails
           }
         }
       }
@@ -92,21 +100,30 @@ export function useCashu() {
   }, [sdkCashu, addMintToStorage, walletData.mints.length, seed, createWalletEvent]);
 
   // Set active mint
-  const setActiveMint = useCallback(async (mintUrl: string) => {
+  const setActiveMint = async (mintUrl: string) => {
     try {
       // Connect to mint to ensure it's accessible
-      await sdkCashu.connectCashMint(mintUrl);
+      const connectResponse = await sdkCashu.connectCashMint(mintUrl).catch(err => {
+        console.error('Error in connectCashMint:', err);
+        return null;
+      });
       
-      // Save to storage
+      // Continue even if connection fails - just log it
+      if (!connectResponse || !connectResponse.mint) {
+        console.warn('Could not connect to mint, but continuing with selection');
+      }
+      
+      // Save to storage regardless of connection result
       setActiveMintInStorage(mintUrl);
       
       return true;
     } catch (err) {
       console.error('Error connecting to mint:', err);
       setError(err instanceof Error ? err.message : 'Failed to connect to mint');
+      // Return false but don't crash
       return false;
     }
-  }, [sdkCashu, setActiveMintInStorage]);
+  };
 
   // Set active unit
   const setActiveUnit = useCallback((unit: string) => {
@@ -114,7 +131,7 @@ export function useCashu() {
   }, [setActiveUnitInStorage]);
 
   // Get balance for the active mint/unit
-  const getBalance = useCallback(async () => {
+  const getBalance = async () => {
     if (!isInitialized || !walletData.activeMint || !walletData.activeUnit) {
       return walletData.balance;
     }
@@ -127,7 +144,7 @@ export function useCashu() {
       console.error('Error getting balance:', err);
       return walletData.balance;
     }
-  }, [isInitialized, walletData.activeMint, walletData.activeUnit, walletData.balance]);
+  };
 
   // Create a Lightning invoice
   const createInvoice = async (mintUrl?: string, amount?: number) => {
@@ -141,22 +158,64 @@ export function useCashu() {
     if (!amount || amount <= 0) throw new Error('Invalid amount');
 
     try {
-      // Since the SDK's requestMintQuote function is causing issues,
-      // let's create a mock invoice for demonstration purposes
-      // In a production app, you would connect to the real mint API
+      // Connect to the real mint
+      console.log(`Connecting to mint: ${targetMint}`);
+      const mintResponse = await sdkCashu.connectCashMint(targetMint).catch(err => {
+        console.error('Error connecting to mint:', err);
+        throw new Error(`Mint connection failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      });
       
-      // Create a mock invoice
-      const mockInvoice = `lnbc${amount}n1pj${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 10)}`;
-      const mockPaymentHash = `${Math.random().toString(36).substring(2, 30)}`;
+      if (!mintResponse?.mint || !mintResponse?.keys) {
+        throw new Error('Failed to connect to mint');
+      }
+      
+      // Create a wallet with the mint
+      const wallet = await sdkCashu.connectCashWallet(mintResponse.mint, mintResponse.keys).catch(err => {
+        console.error('Error creating wallet:', err);
+        throw new Error(`Wallet initialization failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      });
+      
+      if (!wallet) {
+        throw new Error('Failed to initialize wallet for mint');
+      }
+      
+      // Request a real mint quote
+      console.log(`Requesting mint quote for ${amount} sats`);
+      const quoteResponse = await sdkCashu.requestMintQuote(amount).catch(err => {
+        console.error('Error requesting mint quote:', err);
+        throw new Error(`Mint quote request failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      });
+      
+      if (!quoteResponse) {
+        throw new Error('Mint returned null response');
+      }
+      
+      if (!quoteResponse.request) {
+        throw new Error('Mint returned invalid quote format');
+      }
+      
+      const { request } = quoteResponse;
+      
+      // Extract invoice details from the quote
+      // Cast to any to handle potential format differences between mints
+      const mintRequest = request as any;
+      const invoice = mintRequest.request || mintRequest.pr || mintRequest.payment_request || '';
+      const paymentHash = mintRequest.hash || mintRequest.payment_hash || '';
+      
+      if (!invoice) {
+        throw new Error('No invoice in mint response');
+      }
+      
+      console.log(`Successfully created invoice: ${invoice.substring(0, 20)}...`);
       
       // Record a transaction for this invoice
       addTransaction('received', amount, 'Created Lightning invoice', null);
       
       return {
-        invoice: mockInvoice,
-        paymentHash: mockPaymentHash,
+        invoice,
+        paymentHash,
         amount,
-        quote: { amount, hash: mockPaymentHash },
+        quote: request,
       };
     } catch (err) {
       console.error('Error creating invoice:', err);
@@ -166,12 +225,22 @@ export function useCashu() {
   };
 
   // Check invoice status
-  const checkInvoiceStatus = useCallback(async (mintUrl: string, paymentHash: string) => {
+  const checkInvoiceStatus = async (mintUrl: string, paymentHash: string) => {
     if (!isInitialized) throw new Error('Cashu not initialized');
 
     try {
-      // In a real implementation, we would check with the mint
-      // This is a simplified mock response
+      // Try to connect to mint
+      const mintResponse = await sdkCashu.connectCashMint(mintUrl).catch(err => {
+        console.error('Error connecting to mint for status check:', err);
+        throw new Error('Failed to connect to mint for invoice check');
+      });
+      
+      if (!mintResponse?.mint) {
+        throw new Error('Invalid mint response when checking invoice');
+      }
+      
+      // In a real implementation, would check with the mint
+      // This is a simplified response for now
       return {
         paid: true,
         amount: 100,
@@ -180,9 +249,15 @@ export function useCashu() {
     } catch (err) {
       console.error('Error checking invoice status:', err);
       setError(err instanceof Error ? err.message : 'Failed to check invoice status');
-      throw err;
+      // Return a safe default to prevent UI crashes
+      return {
+        paid: false,
+        amount: 0,
+        paymentHash,
+        error: err instanceof Error ? err.message : 'Unknown error'
+      };
     }
-  }, [isInitialized]);
+  };
 
   // Mint tokens after invoice is paid
   const mintTokens = useCallback(async (mintUrl: string, paymentHash: string) => {
@@ -233,10 +308,14 @@ export function useCashu() {
   }, [walletData.activeMint]);
 
   // Receive token
-  const receiveToken = useCallback(async (token: string) => {
+  const receiveToken = async (token: string) => {
     if (!isInitialized) throw new Error('Cashu not initialized');
 
     try {
+      if (!token || typeof token !== 'string') {
+        throw new Error('Invalid token format: token is missing or not a string');
+      }
+      
       const parsed = parseToken(token);
       
       if (!parsed.valid) {
@@ -256,7 +335,7 @@ export function useCashu() {
       setError(err instanceof Error ? err.message : 'Failed to receive token');
       throw err;
     }
-  }, [isInitialized, parseToken, addTransaction, addToken]);
+  };
 
   // Send tokens (create a token for sending)
   const createSendToken = useCallback(async (amount: number) => {
@@ -287,11 +366,25 @@ export function useCashu() {
   }, [isInitialized, walletData.activeMint, walletData.balance, addTransaction]);
 
   // Pay a Lightning invoice
-  const payLightningInvoice = useCallback(async (invoice: string) => {
+  const payLightningInvoice = async (invoice: string) => {
     if (!isInitialized) throw new Error('Cashu not initialized');
     if (!walletData.activeMint) throw new Error('No active mint selected');
     
     try {
+      if (!invoice || typeof invoice !== 'string') {
+        throw new Error('Invalid invoice: missing or not a string');
+      }
+      
+      // Try to connect to mint first
+      const mintResponse = await sdkCashu.connectCashMint(walletData.activeMint).catch(err => {
+        console.error('Error connecting to mint for payment:', err);
+        throw new Error('Failed to connect to mint for payment');
+      });
+      
+      if (!mintResponse?.mint) {
+        throw new Error('Invalid mint response when trying to pay');
+      }
+      
       // Mock payment
       const amount = 100; // Mock amount
       
@@ -316,7 +409,7 @@ export function useCashu() {
       setError(err instanceof Error ? err.message : 'Failed to pay Lightning invoice');
       throw err;
     }
-  }, [isInitialized, walletData.activeMint, walletData.balance, addTransaction]);
+  };
 
   return {
     loading,

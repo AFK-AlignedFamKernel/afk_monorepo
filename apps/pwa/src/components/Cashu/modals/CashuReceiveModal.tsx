@@ -32,6 +32,17 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
 
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input before processing
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+      showToast({
+        message: 'Invalid amount',
+        type: 'error',
+        description: 'Please enter a valid positive number'
+      });
+      return;
+    }
+    
     setIsProcessing(true);
     
     try {
@@ -48,14 +59,26 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
         showToast({
           message: 'Error creating invoice',
           type: 'error',
-          description: 'No invoice was returned'
+          description: 'No invoice was returned from mint'
         });
       }
     } catch (err) {
-      const errorMessage = err instanceof Error 
-        ? err.message 
-        : 'Failed to create invoice';
+      // Handle specific error types
+      let errorMessage = 'Failed to create invoice';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
         
+        // Map common mint errors to user-friendly messages
+        if (errorMessage.includes('connect')) {
+          errorMessage = 'Could not connect to the selected mint. Please try again or select a different mint.';
+        } else if (errorMessage.includes('timeout')) {
+          errorMessage = 'The connection to the mint timed out. Please try again.';
+        } else if (errorMessage.includes('quote')) {
+          errorMessage = 'The mint was unable to create an invoice. Please verify the mint is working correctly.';
+        }
+      }
+      
       showToast({
         message: 'Error creating invoice',
         type: 'error',
@@ -68,18 +91,47 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
   };
 
   const handleCopyInvoice = () => {
-    navigator.clipboard.writeText(invoice);
-    setIsCopied(true);
-    showToast({
-      message: 'Invoice copied',
-      type: 'success',
-      description: 'Lightning invoice copied to clipboard'
-    });
-    setTimeout(() => setIsCopied(false), 2000);
+    try {
+      if (!invoice) {
+        showToast({
+          message: 'No invoice to copy',
+          type: 'error',
+          description: 'Please create an invoice first'
+        });
+        return;
+      }
+      
+      navigator.clipboard.writeText(invoice);
+      setIsCopied(true);
+      showToast({
+        message: 'Invoice copied',
+        type: 'success',
+        description: 'Lightning invoice copied to clipboard'
+      });
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Error copying to clipboard:', err);
+      showToast({
+        message: 'Copy failed',
+        type: 'error',
+        description: 'Could not copy to clipboard'
+      });
+    }
   };
 
   const handleReceiveEcash = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate input before processing
+    if (!ecashToken || typeof ecashToken !== 'string' || !ecashToken.trim()) {
+      showToast({
+        message: 'Invalid token',
+        type: 'error',
+        description: 'Please enter a valid token'
+      });
+      return;
+    }
+    
     setIsProcessing(true);
     
     try {
@@ -92,10 +144,21 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
       onClose(); // Close modal on success
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to receive token';
+      
+      // Map common errors to user-friendly messages
+      let userMessage = errorMessage;
+      if (errorMessage.includes('invalid')) {
+        userMessage = 'The token format is invalid or corrupted';
+      } else if (errorMessage.includes('spent')) {
+        userMessage = 'This token has already been spent';
+      } else if (errorMessage.includes('mint')) {
+        userMessage = 'Could not connect to the mint to verify this token';
+      }
+      
       showToast({
         message: 'Error receiving token',
         type: 'error',
-        description: errorMessage
+        description: userMessage
       });
       console.error('Error receiving token:', err);
     } finally {
