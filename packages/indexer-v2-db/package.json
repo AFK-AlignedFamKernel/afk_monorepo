@@ -23,9 +23,11 @@
 
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "drizzle-kit": "^0.29.0",
+    "dotenv": "^16.4.5"
+  },
+  "peerDependencies": {
     "drizzle-orm": "^0.40.1",
+    "drizzle-kit": "^0.29.0",
     "pg": "^8.13.1"
   },
   "devDependencies": {
