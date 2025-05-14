@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '../../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
+import QRCode from 'react-qr-code';
 
 interface CashuReceiveModalProps {
   onClose: () => void;
@@ -9,107 +10,6 @@ interface CashuReceiveModalProps {
   onReceiveToken: (token: string) => Promise<void>;
   onCreateInvoice: (amount: number) => Promise<any>;
 }
-
-// Simple QR code component using HTML canvas
-const QRCode: React.FC<{ value: string, size?: number }> = ({ value, size = 200 }) => {
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
-  
-  useEffect(() => {
-    if (!canvasRef.current || !value) return;
-    
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Generate a more realistic QR code pattern
-    const modules = 25; // 25x25 grid
-    const cellSize = size / modules;
-    
-    // Fill background
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, size, size);
-    
-    // Create deterministic pattern based on the invoice string
-    ctx.fillStyle = '#000000';
-    
-    // Seed the pattern with the invoice hash
-    let hash = 0;
-    for (let i = 0; i < value.length; i++) {
-      hash = ((hash << 5) - hash) + value.charCodeAt(i);
-      hash |= 0; // Convert to 32bit integer
-    }
-    
-    // Create position detection patterns (the three large squares in corners)
-    const drawPositionSquare = (x: number, y: number) => {
-      // Outer square
-      ctx.fillRect(x * cellSize, y * cellSize, 7 * cellSize, 7 * cellSize);
-      
-      // Inner white square
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect((x + 1) * cellSize, (y + 1) * cellSize, 5 * cellSize, 5 * cellSize);
-      
-      // Inner black square
-      ctx.fillStyle = '#000000';
-      ctx.fillRect((x + 2) * cellSize, (y + 2) * cellSize, 3 * cellSize, 3 * cellSize);
-      
-      ctx.fillStyle = '#000000';
-    };
-    
-    // Draw position detection patterns
-    drawPositionSquare(0, 0); // Top-left
-    drawPositionSquare(modules - 7, 0); // Top-right
-    drawPositionSquare(0, modules - 7); // Bottom-left
-    
-    // Draw timing patterns (the dotted lines between position detection patterns)
-    for (let i = 8; i < modules - 8; i++) {
-      if (i % 2 === 0) {
-        ctx.fillRect(i * cellSize, 6 * cellSize, cellSize, cellSize); // Horizontal
-        ctx.fillRect(6 * cellSize, i * cellSize, cellSize, cellSize); // Vertical
-      }
-    }
-    
-    // Draw alignment pattern (small square in bottom-right for larger QR codes)
-    ctx.fillRect((modules - 9) * cellSize, (modules - 9) * cellSize, 5 * cellSize, 5 * cellSize);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect((modules - 8) * cellSize, (modules - 8) * cellSize, 3 * cellSize, 3 * cellSize);
-    ctx.fillStyle = '#000000';
-    ctx.fillRect((modules - 7) * cellSize, (modules - 7) * cellSize, cellSize, cellSize);
-    
-    // Draw data modules (using value's characters to seed the pattern)
-    for (let i = 0; i < modules; i++) {
-      for (let j = 0; j < modules; j++) {
-        // Skip the position detection patterns and timing patterns
-        if ((i < 7 && j < 7) || // Top-left
-            (i < 7 && j >= modules - 7) || // Top-right
-            (i >= modules - 7 && j < 7) || // Bottom-left
-            (i === 6) || (j === 6)) { // Timing patterns
-          continue;
-        }
-        
-        // Deterministic pattern based on the invoice
-        const charIndex = (i * modules + j) % value.length;
-        const charCode = value.charCodeAt(charIndex);
-        
-        if ((charCode + i + j + hash) % 3 === 0) {
-          ctx.fillStyle = '#000000';
-          ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
-        }
-      }
-    }
-  }, [value, size]);
-  
-  return (
-    <canvas
-      ref={canvasRef}
-      width={size}
-      height={size}
-      style={{ background: '#FFFFFF', borderRadius: '4px' }}
-    />
-  );
-};
 
 export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
   onClose,
@@ -291,7 +191,15 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
                       <span style={{ marginRight: '8px' }}>⚡</span>
                       <span>Lightning Invoice</span>
                     </div>
-                    <QRCode value={invoice} size={200} />
+                    <QRCode
+                      value={invoice}
+                      size={256}
+                      style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                      viewBox={`0 0 256 256`}
+                      bgColor="#FFFFFF"
+                      fgColor="#000000"
+                      level="M"
+                    />
                     <div style={{ 
                       fontSize: '14px', 
                       marginTop: '12px', 
