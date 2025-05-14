@@ -33,36 +33,33 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const queryClient = useQueryClient();
 
     const roomIds = useMemo(() => [publicKey, receiverPublicKey], [publicKey, receiverPublicKey]);
-
-    const { data: messagesSent, isLoading: isLoadingSent, isFetching: isFetchingSent, isFetched } = useMyMessagesSent({
+    
+    // 1. Fetch messages with proper filters
+    const { data: messagesSent, isLoading: isLoadingSent } = useMyMessagesSent({
         authors: roomIds,
-        limit: 20,
     });
 
-    const { data: incomingMessages, isLoading: isLoadingIncoming, isFetched: isFetchedIncoming } = useIncomingMessageUsers({
+    const { data: incomingMessages, isLoading: isLoadingIncoming } = useIncomingMessageUsers({
         authors: roomIds,
-        limit: 20,
     });
 
-    // const { data: giftMessages, isLoading: isLoadingGift, isFetched: isFetchedGift } = useMessageGifts({
-    //     authors: roomIds,
-    //     limit: 100,
-    // });
-    // console.log('giftMessages', giftMessages);
-
+    // 2. Combine and sort messages properly
     const allMessages = useMemo(() => {
         const sent = messagesSent?.pages.flat() || [];
         const received = incomingMessages?.pages.flat() || [];
-        return [...sent, ...received].sort((a, b) => a.created_at - b.created_at);
+        return [...sent, ...received]
+            .filter(Boolean)
+            .sort((a, b) => a.created_at - b.created_at);
     }, [messagesSent?.pages, incomingMessages?.pages]);
 
-    // Scroll to bottom when new messages arrive
+    // 3. Scroll to bottom when new messages arrive
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [allMessages]);
 
+    // 4. Handle message sending with proper invalidation
     const handleSendMessage = useCallback(() => {
         if (!message.trim()) return;
 
@@ -74,8 +71,9 @@ export const ChatConversation: React.FC<ChatProps> = ({
             {
                 onSuccess: () => {
                     setMessage('');
-                    queryClient.invalidateQueries({ queryKey: ['myMessagesSent'] });
-                    queryClient.invalidateQueries({ queryKey: ['messageUsers'] });
+                    // Invalidate both queries to refresh messages
+                    queryClient.invalidateQueries(['myMessagesSent']);
+                    queryClient.invalidateQueries(['messageUsers']);
                 },
                 onError: (error) => {
                     console.error('Error sending message:', error);
@@ -130,7 +128,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
                 <div className="space-y-4">
 
-                    {isFetchingSent && isFetchedIncoming ? <CryptoLoading></CryptoLoading>
+                    {isLoadingSent || isLoadingIncoming ? <CryptoLoading></CryptoLoading>
                         : allMessages.map((msg: any) => (
                             <div
                                 key={msg.id}
