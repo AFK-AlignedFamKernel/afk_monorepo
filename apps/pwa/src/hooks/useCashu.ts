@@ -428,23 +428,61 @@ export function useCashu() {
   }, [isInitialized, checkInvoiceStatus, addTransaction]);
 
   // Parse token
-  const parseToken = useCallback((token: string) => {
+  const parseToken = useCallback(async (token: string) => {
     try {
       if (!token.startsWith('cashu')) {
         throw new Error('Invalid token format');
       }
       
-      // Mock token parsing
+      // Try to parse the token with the SDK
+      console.log(`Parsing token: ${token.substring(0, 20)}...`);
+      
+      // Get access to a wallet
+      let mintUrl = walletData.activeMint;
+      if (!mintUrl) {
+        throw new Error('No mint selected to parse token');
+      }
+      
+      // Get wallet connection
+      const readinessCheck = await checkWalletReadiness(mintUrl);
+      if (!readinessCheck.ready) {
+        throw new Error(`Wallet not ready: ${readinessCheck.error}`);
+      }
+      
+      const { wallet } = readinessCheck;
+      
+      if (!wallet) {
+        throw new Error('Wallet not properly initialized');
+      }
+      
+      // Try to use the SDK to decode token
+      const decodedToken = wallet.decodeToken ? 
+        await wallet.decodeToken(token) : 
+        { amount: null, mintUrl: null };
+      
+      // Extract token info
+      const amount = decodedToken.amount || 0;
+      const tokenMintUrl = decodedToken.mintUrl || mintUrl;
+      
       return {
         valid: true,
-        amount: 100, // Mock amount
-        mintUrl: walletData.activeMint || '',
+        amount,
+        mintUrl: tokenMintUrl,
         token,
+        decodedData: decodedToken
       };
     } catch (err) {
       console.error('Error parsing token:', err);
       setError(err instanceof Error ? err.message : 'Failed to parse token');
-      throw err;
+      
+      // Return invalid token info
+      return {
+        valid: false,
+        amount: 0,
+        mintUrl: walletData.activeMint || '',
+        token,
+        error: err instanceof Error ? err.message : 'Unknown error'
+      };
     }
   }, [walletData.activeMint]);
 
@@ -457,19 +495,50 @@ export function useCashu() {
         throw new Error('Invalid token format: token is missing or not a string');
       }
       
-      const parsed = parseToken(token);
-      
-      if (!parsed.valid) {
-        throw new Error('Invalid token');
+      // Validate token format
+      if (!token.startsWith('cashu')) {
+        throw new Error('Invalid token format: token must start with "cashu"');
       }
       
+      console.log(`Receiving ecash token: ${token.substring(0, 20)}...`);
+      
+      // Get a wallet connection to the appropriate mint
+      // First try to determine the mint from the token if possible
+      let mintUrl = walletData.activeMint;
+      
+      // First get a verified wallet connection
+      const readinessCheck = await checkWalletReadiness(mintUrl);
+      if (!readinessCheck.ready) {
+        throw new Error(`Wallet not ready: ${readinessCheck.error}`);
+      }
+      
+      // We have a verified wallet connection, receive the token
+      const { wallet, mint } = readinessCheck;
+      
+      if (!wallet || !wallet.mint) {
+        throw new Error('Wallet not properly initialized');
+      }
+      
+      // Use the SDK to receive the token
+      const result = await wallet.receive(token);
+      
+      if (!result) {
+        throw new Error('Failed to process token');
+      }
+      
+      console.log('Received token result:', result);
+      
+      // Extract amount from the result
+      const amount = result.amount || result.value || 100;
+      
       // Record the transaction and token
-      addTransaction('received', parsed.amount, 'Ecash token', token);
-      addToken(token, parsed.amount, parsed.mintUrl);
+      addTransaction('received', amount, 'Received ecash token', token);
+      addToken(token, amount, mintUrl);
       
       return {
         success: true,
-        amount: parsed.amount,
+        amount,
+        result
       };
     } catch (err) {
       console.error('Error receiving token:', err);
@@ -488,15 +557,52 @@ export function useCashu() {
         throw new Error('Insufficient balance');
       }
       
-      // Mock token generation
-      const mockToken = `cashu${Math.random().toString(36).substring(2, 15)}`;
+      console.log(`Creating ecash token for ${amount} sats from mint: ${walletData.activeMint}`);
+      
+      // First get a verified wallet connection
+      const readinessCheck = await checkWalletReadiness(walletData.activeMint);
+      if (!readinessCheck.ready) {
+        throw new Error(`Wallet not ready: ${readinessCheck.error}`);
+      }
+      
+      // We have a verified wallet connection, create the token
+      const { wallet, mint } = readinessCheck;
+      
+      if (!wallet || !wallet.mint) {
+        throw new Error('Wallet not properly initialized');
+      }
+      
+      // Use the SDK to create a real token
+      const token = await wallet.send(amount);
+      
+      if (!token) {
+        throw new Error('Failed to generate token');
+      }
+      
+      console.log('Generated ecash token:', token);
+      
+      // Encode the token if it's not already a string
+      let encodedToken = token;
+      if (typeof token !== 'string') {
+        // If token is an object, encode it properly
+        try {
+          if (typeof token.encode === 'function') {
+            encodedToken = token.encode();
+          } else {
+            encodedToken = JSON.stringify(token);
+          }
+        } catch (encodeErr) {
+          console.error('Error encoding token:', encodeErr);
+          encodedToken = JSON.stringify(token);
+        }
+      }
       
       // Record the transaction
-      addTransaction('sent', amount, 'Created send token', mockToken);
+      addTransaction('sent', amount, 'Created send token', encodedToken);
       
       return {
         success: true,
-        token: mockToken,
+        token: encodedToken,
         amount,
       };
     } catch (err) {

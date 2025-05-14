@@ -145,13 +145,24 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
     setIsProcessing(true);
     
     try {
-      await onReceiveToken(ecashToken);
-      showToast({
-        message: 'Token received successfully',
-        type: 'success'
-      });
-      setEcashToken('');
-      onClose(); // Close modal on success
+      const result = await onReceiveToken(ecashToken);
+      
+      // If token was successfully received, show success message and close modal
+      if (result) {
+        showToast({
+          message: 'Token received successfully',
+          type: 'success'
+        });
+        setEcashToken('');
+        onClose(); // Close modal on success
+      } else {
+        // If result is falsy but no error was thrown, show a generic message
+        showToast({
+          message: 'Token processing issue',
+          type: 'warning',
+          description: 'The token was processed but could not be verified'
+        });
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to receive token';
       
@@ -182,6 +193,32 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
     if (invoice.length <= 30) return invoice;
     
     return `${invoice.substring(0, 15)}...${invoice.substring(invoice.length - 15)}`;
+  };
+
+  // Add downloadQRCode function
+  const downloadQRCode = () => {
+    if (!invoice) return;
+    
+    const svg = document.getElementById('lightning-invoice-qr');
+    if (!svg) return;
+    
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx?.drawImage(img, 0, 0);
+      const pngFile = canvas.toDataURL('image/png');
+      const downloadLink = document.createElement('a');
+      downloadLink.download = `lightning-invoice-${amount}-${unit}.png`;
+      downloadLink.href = pngFile;
+      downloadLink.click();
+    };
+    
+    img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
   };
 
   return (
@@ -265,6 +302,7 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
                       <span>Lightning Invoice</span>
                     </div>
                     <QRCode
+                      id="lightning-invoice-qr"
                       value={invoice}
                       size={256}
                       style={{ height: "auto", maxWidth: "100%", width: "100%" }}
@@ -281,6 +319,14 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
                     }}>
                       {amount} {unit}
                     </div>
+                    
+                    <button
+                      onClick={downloadQRCode}
+                      className="cashu-wallet__button cashu-wallet__button--secondary"
+                      style={{ marginTop: '12px' }}
+                    >
+                      Download QR Code
+                    </button>
                   </div>
                   
                   <div className="cashu-wallet__form-group">

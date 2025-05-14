@@ -183,7 +183,10 @@ export default function Cashu() {
       console.log('Invoice payment hash:', invoiceResult.paymentHash);
       console.log('Full invoice result:', invoiceResult);
       
-      // Success
+      // The modal will now handle displaying the created invoice
+      // We don't close it so the user can see and share the invoice
+      
+      // Success toast notification
       showToast({
         message: 'Invoice created',
         type: 'success',
@@ -276,7 +279,7 @@ export default function Cashu() {
     }
   };
   
-  // Continue with remaining handlers...
+  // Handle sending token
   const handleSendToken = async (amount: number) => {
     // Verify wallet is ready first
     if (!walletReady) {
@@ -294,13 +297,12 @@ export default function Cashu() {
     
     try {
       const token = await createSendToken(amount);
-      handleCloseSendModal();
-      showToast({
-        message: 'Token created',
-        type: 'success',
-        description: `for ${amount} ${activeUnit || 'sats'}`
-      });
-      return token;
+      console.log('Generated token:', token);
+      
+      // Don't close the modal - allow the modal to handle display
+      // The modal will stay open to display the token for user to copy
+      
+      return token; // Return token data to the modal
     } catch (err) {
       console.error('Error creating send token:', err);
       showToast({
