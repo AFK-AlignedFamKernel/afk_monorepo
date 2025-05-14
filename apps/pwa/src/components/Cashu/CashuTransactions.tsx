@@ -492,77 +492,44 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
             className="cashu-wallet__button cashu-wallet__button--secondary"
             onClick={async () => {
               try {
-                const { saveTokenDirectly, debugCheckStorage } = useCashuStorage();
-                
-                // Get current wallet data
-                const data = await getWalletData();
-                
-                // Create a special token for testing send functionality
-                const mockToken = {
-                  token: "cashu_test_token_" + Date.now(),
-                  mint: data.activeMint || "https://mint.cubabitcoin.org",
-                  amount: 100,
-                  unit: "sat",
-                  proofs: [{
-                    id: `forced_proof_${Date.now()}`,
-                    amount: 100,
-                    secret: `forced_secret_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-                    C: `forced_C_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
-                  }]
-                };
-                
-                // Save it directly
-                const tokenStr = JSON.stringify(mockToken);
-                const result = await saveTokenDirectly(
-                  tokenStr,
-                  100,
-                  data.activeMint || "https://mint.cubabitcoin.org"
-                );
-                
-                // Verify
-                await debugCheckStorage();
-                
-                alert(`Token created with result: ${result.success ? "Success" : "Failed"}
-                Token ID: ${result.tokenId || "unknown"}
-                
-                Refresh your wallet to see changes.`);
-              } catch (err) {
-                console.error("Error forcing token:", err);
-                alert("Error: " + (err instanceof Error ? err.message : String(err)));
-              }
-            }}
-            style={{ fontSize: '12px' }}
-          >
-            Force Create Test Token
-          </button>
-          
-          <button
-            className="cashu-wallet__button cashu-wallet__button--secondary"
-            onClick={async () => {
-              try {
                 // Get current wallet data
                 const data = await getWalletData();
                 console.log("Current wallet data:", data);
                 
                 // Update balance to match token total
                 const totalFromTokens = data.tokens.reduce((sum, token) => sum + token.amount, 0);
+                const totalFromTransactions = data.transactions
+                  .filter(tx => tx.status === 'paid' || (tx.type === 'received' && !tx.invoiceType))
+                  .reduce((sum, tx) => {
+                    if (tx.type === 'received') return sum + tx.amount;
+                    if (tx.type === 'sent') return sum - tx.amount;
+                    return sum;
+                  }, 0);
                 
-                if (totalFromTokens !== data.balance) {
-                  console.log(`Balance mismatch: ${data.balance} in state vs ${totalFromTokens} from tokens`);
+                console.log(`Balance info:
+                  Current balance: ${data.balance}
+                  Total from tokens: ${totalFromTokens}
+                  Total from transactions: ${totalFromTransactions}
+                `);
+                
+                if (data.balance !== totalFromTransactions) {
+                  console.log(`Balance mismatch between state (${data.balance}) and transactions (${totalFromTransactions})`);
                   
                   // Update balance
                   const updatedData = {
                     ...data,
-                    balance: totalFromTokens
+                    balance: totalFromTransactions
                   };
                   
                   // Save directly
                   await saveWalletData(updatedData);
-                  console.log("Balance synchronized with tokens");
+                  console.log("Balance synchronized with transactions");
                   
-                  alert(`Balance fixed! Previous: ${data.balance}, New: ${totalFromTokens}`);
+                  alert(`Balance fixed! Previous: ${data.balance}, New: ${totalFromTransactions}`);
                 } else {
-                  alert(`Balance already matches token total: ${data.balance}`);
+                  alert(`Balance (${data.balance}) already matches transaction history total (${totalFromTransactions}).
+                  
+Note: The current Cashu SDK implementation uses a balance-based approach rather than token-based.`);
                 }
               } catch (err) {
                 console.error("Error fixing balance:", err);
@@ -571,8 +538,12 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
             }}
             style={{ fontSize: '12px' }}
           >
-            Fix Balance
+            Verify & Fix Balance
           </button>
+          
+          <div style={{ fontSize: '10px', marginTop: '4px', color: '#888', padding: '4px', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+            Note: The current SDK implementation uses a balance-based approach. Lightning payments update your balance directly rather than creating tokens.
+          </div>
         </div>
       </div>
     </div>

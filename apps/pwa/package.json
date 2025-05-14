@@ -46,6 +46,8 @@
     "axios": "^1.7.2",
     "common": "workspace:*",
     "d3": "^7.9.0",
+    "dexie": "^4.0.11",
+    "dexie-react-hooks": "^1.1.7",
     "ethers": "^6.13.1",
     "formik": "^2.4.6",
     "framer-motion": "^11.3.28",
@@ -68,7 +70,6 @@
     "zustand": "^4.5.2",
     "@capacitor/core":"7.2.0",
     "classnames":"2.5.1"
-
   },
   "peerDependencies": {
     "next": "15.1.7",

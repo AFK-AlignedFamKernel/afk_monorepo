@@ -72,17 +72,25 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
       }
     } catch (err) {
       let errorMessage = err instanceof Error ? err.message : 'Failed to send ecash';
+      let messageTitle = 'Error creating token';
+      let messageType = 'error' as 'error' | 'warning' | 'info';
       
-      // Check for specific error messages and provide more user-friendly versions
-      if (errorMessage.includes('No tokens available') || 
+      // Handle Lightning-based balance error specifically
+      if (errorMessage.includes('Lightning-based balances cannot be directly sent')) {
+        messageTitle = 'Lightning Balance';
+        messageType = 'info';
+        errorMessage = 'Lightning-based balances cannot be sent directly as tokens. To send tokens, first receive some ecash tokens, or create a Lightning invoice to withdraw your balance.';
+      }
+      // Check for other specific error messages
+      else if (errorMessage.includes('No tokens available') || 
           errorMessage.includes('reduce') || 
           errorMessage.includes('Cannot read properties of undefined')) {
         errorMessage = 'You need to receive tokens first before you can send them. Please use the Receive tab to get some ecash tokens.';
       }
       
       showToast({
-        message: 'Error creating token',
-        type: 'error',
+        message: messageTitle,
+        type: messageType,
         description: errorMessage
       });
       console.error('Error sending ecash:', err);
