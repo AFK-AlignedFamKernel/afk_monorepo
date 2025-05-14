@@ -76,6 +76,14 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                         overflow: 'hidden',
                         textOverflow: 'ellipsis'
                     }}>Public Key connected: {publicKey}</p>
+
+                    <button className='btn btn-primary' onClick={() => {
+                        navigator.clipboard.writeText(publicKey);
+                        showToast({
+                            message: "Public key copied to clipboard",
+                            type: "success"
+                        });
+                    }}>Copy <Icon name="CopyIcon" size={16} /></button>
                 </div>
             )}
             {/* {isModalMode && isOpenProfile && (
@@ -188,6 +196,14 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                             <span>{publicKey?.slice(0, 3)}...{publicKey?.slice(-5)}</span>
                         )}
 
+                        {/* <div onClick={() => {
+                            navigator.clipboard.writeText(publicKey);
+                            showToast({
+                                message: "Public key copied to clipboard",
+                                type: "success"
+                            });
+                        }}>Copy <Icon name="CopyIcon" size={8} /></div> */}
+
                         <Icon name="ChevronDown" size={16} />
                     </button>
 
@@ -252,6 +268,17 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                                                 <button className='btn btn-primary'>Connect
                                                 </button>
                                             </div>
+                                        </div>
+
+                                        <div>
+
+                                            <div onClick={() => {
+                                                navigator.clipboard.writeText(item?.publicKey);
+                                                showToast({
+                                                    message: "Public key copied to clipboard",
+                                                    type: "success"
+                                                });
+                                            }}>Copy <Icon name="CopyIcon" size={16} /></div>
                                         </div>
                                     </div>
                                 </div>

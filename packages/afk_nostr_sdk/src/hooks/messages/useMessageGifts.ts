@@ -1,0 +1,161 @@
+import {NDKEvent, NDKKind, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
+import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
+
+import {useNostrContext} from '../../context';
+import {useAuth} from '../../store';
+import {deriveSharedKey, fixPubKey} from '../../utils/keypair';
+import {v2} from '../../utils/nip44';
+
+interface UseMyMessagesSentOptions {
+  authors?: string[];
+  limit?: number;
+  search?: string;
+}
+
+export const useMessageGifts = (options?: UseMyMessagesSentOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
+  const {ndk} = useNostrContext();
+  const {publicKey, privateKey} = useAuth();
+
+  return useInfiniteQuery({
+    queryKey: ['messageGifts', options?.authors],
+    // queryKey: ['messageUsers', options?.authors, publicKey],
+    initialPageParam: 0,
+    // enabled: !!publicKey,
+    getNextPageParam: (lastPage: any, allPages, lastPageParam) => {
+      if (!lastPage?.length) return undefined;
+      const pageParam = lastPage[lastPage.length - 1].created_at - 1;
+      if (!pageParam || pageParam === lastPageParam) return undefined;
+      return pageParam;
+    },
+    queryFn: async ({pageParam}) => {
+      const [incomingGiftWraps, outgoingGiftWraps] = await Promise.all([
+        ndk.fetchEvents({
+          kinds: [1059 as NDKKind],
+          '#p': [publicKey],
+          since: pageParam || undefined,
+          // until: pageParam + 1 || undefined,
+          limit: options?.limit || 30,
+        }),
+        ndk.fetchEvents({
+          kinds: [1059 as NDKKind],
+          // authors: [publicKey],
+          // '#p': [publicKey],
+          since: pageParam || undefined,
+          // until: pageParam + 1 || undefined,
+          limit: options?.limit || 20,
+        }),
+      ]);
+
+      console.log('incomingGiftWraps', incomingGiftWraps);
+
+      const decryptMessages = async (giftWraps: NDKEvent[]) => {
+        return Promise.all(
+          [...giftWraps].map(async (giftWrap: NDKEvent) => {
+            try {
+              const receiverPublicKey = giftWrap.tags.find((tag) => tag[0] === 'p')?.[1];
+              const senderName = giftWrap.tags.find((tag) => tag[0] === 'sender')?.[2];
+              const receiverName = giftWrap.tags.find((tag) => tag[0] === 'receiverName')?.[1];
+              const senderPublicKey = giftWrap.pubkey;
+
+              if (!receiverPublicKey) throw new Error('Receiver public key not found');
+
+              const isSender = publicKey === senderPublicKey;
+              const isRecipient = publicKey === receiverPublicKey;
+
+              const ndkSigner = new NDKPrivateKeySigner(privateKey);
+              const ndkUser = await ndk.getUser({pubkey: senderPublicKey});
+              const ndkUserProfile = await ndkUser.fetchProfile();
+              // const senderName = ndkUserProfile.name;
+              const decryptedSealedEvent = await ndkSigner.decrypt(ndkUser, giftWrap.content);
+              const sealedEventFirst = JSON.parse(decryptedSealedEvent);
+              console.log('decryptedSealedEvent', decryptedSealedEvent);
+              console.log('sealedEventFirst', sealedEventFirst);
+
+              if(sealedEventFirst.kind !== 13) {
+
+                // throw new Error('Invalid sealed event kind');
+              } else {
+                const decryptedSealedEventDirectMessage = await ndkSigner.decrypt(ndkUser, sealedEventFirst.content);
+                const sealedEventDirectMessage = JSON.parse(decryptedSealedEventDirectMessage);
+  
+                console.log('decryptedSealedEvent', decryptedSealedEvent);
+                console.log('sealedEventDirectMessage', sealedEventDirectMessage);
+  
+              }
+
+              if (!isSender && !isRecipient) {
+                throw new Error('User is neither sender nor recipient');
+              }
+
+              const conversationKey = isSender
+                ? deriveSharedKey(privateKey, fixPubKey(receiverPublicKey))
+                : deriveSharedKey(privateKey, fixPubKey(senderPublicKey));
+
+              const sealedEventJson = v2.decrypt(giftWrap.content, conversationKey);
+              const sealedEvent = JSON.parse(sealedEventJson);
+
+              if (sealedEvent.kind !== 13) {
+                throw new Error('Invalid sealed event kind');
+              }
+
+              const originalMessageJson = v2.decrypt(sealedEvent.content, conversationKey);
+              const originalMessage = JSON.parse(originalMessageJson);
+
+              if (originalMessage.kind !== 14) {
+                throw new Error('Invalid original message kind');
+              }
+
+              return {
+                senderPublicKey,
+                receiverPublicKey,
+                senderName,
+                receiverName,
+                name: publicKey === senderPublicKey ? receiverName : senderName,
+                created_at: giftWrap.created_at,
+                id: giftWrap.id,
+              };
+            } catch (error) {
+              console.error('Failed to decrypt message:', error);
+              return null;
+            }
+          }),
+        );
+      };
+
+      const [incomingMessages, outgoingMessages] = await Promise.all([
+        decryptMessages(incomingGiftWraps as any),
+        decryptMessages(outgoingGiftWraps as any),
+      ]);
+      console.log('incomingMessages', incomingMessages);
+
+      const userMap = new Map();
+
+      [...incomingMessages, ...outgoingMessages].forEach((message) => {
+        if (message) {
+          const otherUserPubkey =
+            message.senderPublicKey === publicKey
+              ? message.receiverPublicKey
+              : message.senderPublicKey;
+          const existingUser = userMap.get(otherUserPubkey);
+          if (!existingUser || message.created_at > existingUser.lastMessageAt) {
+            userMap.set(otherUserPubkey, {
+              id: message.id,
+              pubkey: otherUserPubkey,
+              name: message.name,
+              senderName: message.senderName,
+              receiverName: message.receiverName,
+              lastMessageAt: message.created_at,
+              senderPublicKey: message.senderPublicKey,
+              receiverPublicKey: message.receiverPublicKey,
+            });
+          }
+        }
+      });
+
+      const uniqueUsers = Array.from(userMap.values());
+      uniqueUsers.sort((a, b) => b.lastMessageAt - a.lastMessageAt);
+
+      return uniqueUsers;
+    },
+  });
+};

@@ -23,9 +23,9 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const {mutateAsync, mutate} = useSendPrivateMessage();
+  const { mutateAsync, mutate } = useSendPrivateMessage();
   const roomIds = [publicKey, recipient];
-  const {showToast} = useUIStore();
+  const { showToast } = useUIStore();
   const queryClient = useQueryClient();
 
   const handleSendMessage = async (message: string) => {
@@ -35,11 +35,11 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
 
 
     // TODO auto saved message
-    if(roomIds[0] === roomIds[1]){ 
+    if (roomIds[0] === roomIds[1]) {
       receiverPublicKey = roomIds[0] ?? publicKey;
     }
     if (!receiverPublicKey && roomIds.length > 1 && roomIds[0] != roomIds[1]) {
-      showToast({message: 'Invalid receiver', type: 'error'});
+      showToast({ message: 'Invalid receiver', type: 'error' });
       return;
     }
     console.log('receiverPublicKey', receiverPublicKey);
@@ -50,13 +50,13 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
       },
       {
         onSuccess: () => {
-          showToast({message: 'Message sent', type: 'success'});
-        //   queryClient.invalidateQueries({
-        //     queryKey: ['messagesSent'],
-        //   });
+          showToast({ message: 'Message sent', type: 'success' });
+          //   queryClient.invalidateQueries({
+          //     queryKey: ['messagesSent'],
+          //   });
         },
         onError() {
-          showToast({message: 'Error sending message', type: 'error'});
+          showToast({ message: 'Error sending message', type: 'error' });
         },
       },
     );
@@ -89,22 +89,22 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 card">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">New Message</h2>
         <button
           onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded"
+          className="p-2 rounded"
         >
           ×
         </button>
       </div>
 
-      <div 
-    //   onSubmit={handleSubmit} 
-      className="space-y-4">
+      <div
+        //   onSubmit={handleSubmit} 
+        className="space-y-4">
         <div>
-          <label htmlFor="recipient" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="recipient" className="block text-sm font-medium mb-1">
             Recipient (Public Key)
           </label>
           <input
@@ -114,12 +114,13 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
             onChange={(e) => setRecipient(e.target.value)}
             placeholder="Enter recipient's public key"
             className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            // className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             disabled={isLoading}
           />
         </div>
 
         <div>
-          <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="message" className="block text-sm font-medium mb-1">
             Message
           </label>
           <textarea
@@ -128,7 +129,7 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your message..."
             rows={4}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
             disabled={isLoading}
           />
         </div>

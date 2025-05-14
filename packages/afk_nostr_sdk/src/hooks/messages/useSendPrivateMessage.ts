@@ -1,5 +1,5 @@
 import NDK, { NDKEvent, NDKPrivateKeySigner, NDKUserProfile } from '@nostr-dev-kit/ndk';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useNostrContext } from '../../context/NostrContext';
 import { useAuth, useSettingsStore } from '../../store';
@@ -21,6 +21,7 @@ export const useSendPrivateMessage = () => {
   const { publicKey, privateKey } = useAuth();
 
   const { relays } = useSettingsStore();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ['sendPrivateMessage'],
     mutationFn: async (data: {
@@ -95,6 +96,16 @@ export const useSendPrivateMessage = () => {
         JSON.stringify(await sealedEvent.toNostrEvent()),
         conversationKey
       );
+      senderGift.tags = [
+        ['p', publicKey],
+        ['senderName', 'AFK ANON'], // You might want to fetch this from the user's profile
+      ];
+      await senderGift.publish();
+
+      // 4. Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['messageUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['myMessagesSent'] });
+
 
       return giftWrap;
     },

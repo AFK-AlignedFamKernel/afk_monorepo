@@ -132,6 +132,24 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     );
   };
 
+  const messages = [...(messagesSent?.pages.flat() || []), ...(incomingMessages?.pages.flat() || [])]
+    .filter(msg => {
+      // Only include messages where sender or receiver matches the room IDs
+      return roomIds.includes(msg.senderPublicKey) && roomIds.includes(msg.receiverPublicKey);
+    })
+    .sort((a, b) => b.created_at - a.created_at); // Sort by timestamp, newest first
+
+  const groupedMessages = messages.reduce((groups: any, message) => {
+    const date = new Date(message.created_at * 1000).toLocaleDateString();
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(message);
+    return groups;
+  }, {});
+
+  console.log('groupedMessages', groupedMessages);
+
 
   return (
     <div className="flex flex-col h-full">
@@ -282,10 +300,12 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                     </button>
                   ))}
 
-                  {messagesSent && messagesSent?.pages.flat().length > 0 && messagesSent?.pages.flat().map((item: any) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
+                  {messagesSent && messagesSent?.pages.flat().length > 0 && messagesSent?.pages.flat().map((item: any) => {
+                    console.log('item message sent', item);
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
                         setSelectedConversation(item);
                         setIsBack(false);
                       }}
@@ -298,19 +318,20 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                             {item.senderPublicKey.slice(0, 8)}
                           </p>
                           <p className="text-sm text-gray-500 truncate">
-                            {/* {ndkSigner?.decrypt(ndkUser, item?.content, "nip44")} */}
                           </p>
                         </div>
                       </div>
                     </button>
-                  ))}
+                  )})}
 
                   {/* Sent Messages */}
 
-                  {incomingMessages?.pages.flat()?.length > 0 && incomingMessages?.pages.flat()?.map((item: any) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
+                  {incomingMessages?.pages.flat()?.length > 0 && incomingMessages?.pages.flat()?.map((item: any) => {
+                    console.log('item', item);
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => {
                         setSelectedConversation({
                           senderPublicKey: item.receiverPublicKey,
                           receiverPublicKey: publicKey,
@@ -332,7 +353,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                         </div>
                       </div>
                     </button>
-                  ))}
+                  )})}
                 </div>
 
                 {/* New Message Button and Form */}
@@ -346,7 +367,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
                   {showNewMessageForm && (
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                      <div className="bg-white rounded-lg w-full max-w-md">
+                      <div className="rounded-lg w-full max-w-md">
                         <FormPrivateMessage
                           type={type}
                           setType={setType}

@@ -2,7 +2,7 @@
 // 'use client';
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { useAuth, useIncomingMessageUsers, useMyMessagesSent, useProfile, useRoomMessages } from 'afk_nostr_sdk';
+import { useAuth, useIncomingMessageUsers, useMessageGifts, useMyMessagesSent, useProfile, useRoomMessages } from 'afk_nostr_sdk';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
@@ -36,13 +36,19 @@ export const ChatConversation: React.FC<ChatProps> = ({
 
     const { data: messagesSent, isLoading: isLoadingSent, isFetching: isFetchingSent, isFetched } = useMyMessagesSent({
         authors: roomIds,
-        limit: 100,
+        limit: 20,
     });
 
     const { data: incomingMessages, isLoading: isLoadingIncoming, isFetched: isFetchedIncoming } = useIncomingMessageUsers({
         authors: roomIds,
-        limit: 100,
+        limit: 20,
     });
+
+    // const { data: giftMessages, isLoading: isLoadingGift, isFetched: isFetchedGift } = useMessageGifts({
+    //     authors: roomIds,
+    //     limit: 100,
+    // });
+    // console.log('giftMessages', giftMessages);
 
     const allMessages = useMemo(() => {
         const sent = messagesSent?.pages.flat() || [];

@@ -58,7 +58,7 @@ export const useMyMessagesSent = (options?: {
         authors: options?.authors,
         since: pageParam || undefined,
         limit: options?.limit || 20,
-        "#p": options?.authors,
+        "#p": options?.authors || [publicKey],
       });
 
       const decryptMessages = async (giftWraps: NDKEvent[]) => {
@@ -81,6 +81,13 @@ export const useMyMessagesSent = (options?: {
               const directMessage = JSON.parse(directMessageJson);
 
               if (directMessage.kind !== 14) return null;
+
+              console.log('directMessage', directMessage);
+
+              if(directMessage?.pubkey !== publicKey) {
+                console.log('not the same pubkey');
+                return null;
+              }
 
               return {
                 id: giftWrap.id,
