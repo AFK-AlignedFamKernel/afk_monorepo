@@ -22,6 +22,7 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const { data: profile } = useProfile({ publicKey: event.pubkey });
@@ -99,14 +100,18 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
           setIsVisible(entry.isIntersecting);
           if (entry.isIntersecting) {
             // Video is visible, play it
-            videoRef.current?.play().catch(() => {
+            videoRef.current?.play().then(() => {
+              setIsPlaying(true);
+            }).catch(() => {
               console.log('Autoplay prevented');
+              setIsPlaying(false);
             });
           } else {
             // Video is not visible, pause it and reset
             if (videoRef.current) {
               videoRef.current.pause();
               videoRef.current.currentTime = 0;
+              setIsPlaying(false);
             }
           }
         });
@@ -132,6 +137,7 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
     if (!video) return;
 
     const handlePlay = () => {
+      setIsPlaying(true);
       // Pause all other videos when this one starts playing
       document.querySelectorAll('video').forEach((v) => {
         if (v !== video) {
@@ -142,14 +148,38 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
       });
     };
 
+    const handlePause = () => {
+      setIsPlaying(false);
+    };
+
     video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
 
     return () => {
       video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
     };
   }, []);
 
-  const handleVideoClick = () => {
+  const handleVideoClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      try {
+        if (isPlaying) {
+          await videoRef.current.pause();
+          setIsPlaying(false);
+        } else {
+          await videoRef.current.play();
+          setIsPlaying(true);
+        }
+      } catch (error) {
+        console.error('Error toggling video playback:', error);
+      }
+    }
+  };
+
+  const handleAudioClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (videoRef.current) {
       setIsMuted(!isMuted);
       videoRef.current.muted = !isMuted;
@@ -198,7 +228,13 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
           onLoadedData={handleVideoLoad}
           onError={handleVideoError}
         />
-        <div className="nostr-short-feed__audio-indicator">
+        <div className={`nostr-short-feed__play-indicator ${isPlaying ? 'hidden' : ''}`}>
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div className="nostr-short-feed__audio-indicator" onClick={handleAudioClick}>
           {!isMuted && (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728-2.728" />
@@ -269,7 +305,7 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
 }) => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [containerHeight, setContainerHeight] = useState<number>(window.innerHeight);
+  const [containerHeight, setContainerHeight] = useState<number>(0);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastScrollTimeRef = useRef<number>(0);
@@ -277,6 +313,18 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLDivElement | null)[]>([]);
   const { ndk } = useNostrContext();
+
+  // Set container height on client-side
+  useEffect(() => {
+    setContainerHeight(window.innerHeight);
+    
+    const handleResize = () => {
+      setContainerHeight(window.innerHeight);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const {
     data: notesData,

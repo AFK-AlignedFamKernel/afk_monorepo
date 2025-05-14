@@ -457,4 +457,30 @@
       height: 24px;
     }
   }
-} 
+
+  &__play-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    padding: 1rem;
+    color: white;
+    z-index: 10;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    opacity: 1;
+
+    &.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    svg {
+      width: 64px;
+      height: 64px;
+      stroke-width: 1.5;
+    }
+  }
+}
