@@ -190,6 +190,8 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
                 <div className="cashu-wallet__transaction-details-row">
                   <div className="cashu-wallet__transaction-details-label">Description:</div>
                   <div className="cashu-wallet__transaction-details-value">{transaction.description}</div>
+                  <button onClick={handleCopy}><Icon name='CopyIcon' size={16} /></button>
+
                 </div>
               )}
               
@@ -201,6 +203,8 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
                       ? `${transaction.paymentHash.substring(0, 15)}...` 
                       : transaction.paymentHash}
                   </div>
+                  <button onClick={handleCopy}><Icon name='CopyIcon' size={16} /></button>
+
                 </div>
               )}
               

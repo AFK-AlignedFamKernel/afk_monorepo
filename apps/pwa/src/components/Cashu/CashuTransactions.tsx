@@ -146,6 +146,61 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
   const hasCopyableContent = (transaction: Transaction) => {
     return transaction.invoice || transaction.token;
   };
+
+  // Function to download QR code as image
+  const handleDownloadQR = (transaction: Transaction, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const qrCodeElement = document.getElementById(`qr-code-${transaction.id}`);
+    if (!qrCodeElement) {
+      showToast({
+        message: 'Could not download QR code',
+        type: 'error',
+        description: 'QR code element not found'
+      });
+      return;
+    }
+    
+    try {
+      // Create a canvas element
+      const canvas = document.createElement('canvas');
+      const svgData = new XMLSerializer().serializeToString(qrCodeElement.querySelector('svg')!);
+      
+      // Create an image from SVG
+      const img = new Image();
+      img.onload = () => {
+        // Set canvas dimensions
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        // Draw white background and image
+        const ctx = canvas.getContext('2d')!;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        
+        // Create download link
+        const link = document.createElement('a');
+        link.download = `qr-code-${transaction.amount}-${transaction.unit || 'sats'}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        showToast({
+          message: 'QR code downloaded',
+          type: 'success'
+        });
+      };
+      
+      img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+    } catch (err) {
+      console.error('Error downloading QR code:', err);
+      showToast({
+        message: 'Download failed',
+        type: 'error',
+        description: 'Could not download QR code image'
+      });
+    }
+  };
   
   const filteredTransactions = getFilteredTransactions();
   
@@ -296,28 +351,42 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                         <Icon name="CloseIcon" size={16} />
                       </button>
                     </div>
-                    <div className="cashu-wallet__transactions-list-item-qr-code">
-                      <QRCode
-                        value={getContentToCopy(transaction)}
-                        size={180}
-                        bgColor="#FFFFFF"
-                        fgColor="#000000"
-                        level="M"
-                      />
-                    </div>
-                    <div className="cashu-wallet__transactions-list-item-qr-amount">
-                      {transaction.amount} {transaction.unit || 'sats'}
+                    
+                    {/* Simplified QR Code approach */}
+                    <div className="cashu-wallet__transactions-list-item-qr-simple">
+                      <div className="cashu-wallet__transactions-list-item-qr-code-wrapper" id={`qr-code-${transaction.id}`}>
+                        <QRCode
+                          value={getContentToCopy(transaction) || 'No data available'}
+                          size={250}
+                          bgColor="#FFFFFF"
+                          fgColor="#000000" 
+                          level="L"
+                        />
+                      </div>
+                      
+                      <div className="cashu-wallet__transactions-list-item-qr-amount">
+                        {transaction.amount} {transaction.unit || 'sats'}
+                      </div>
                     </div>
                     
                     <div className="cashu-wallet__transactions-list-item-qr-actions">
-                      <button 
-                        className="cashu-wallet__button cashu-wallet__button--primary"
-                        onClick={(e) => handleCopy(transaction, e)}
-                        style={{ width: '100%', marginTop: '12px' }}
-                      >
-                        <Icon name="CopyIcon" size={16} style={{marginRight: '8px'}} />
-                        Copy to Clipboard
-                      </button>
+                      <div className="cashu-wallet__transactions-list-item-qr-buttons">
+                        <button 
+                          className="cashu-wallet__button cashu-wallet__button--primary"
+                          onClick={(e) => handleCopy(transaction, e)}
+                        >
+                          <Icon name="CopyIcon" size={16} style={{marginRight: '4px'}} />
+                          Copy
+                        </button>
+                        
+                        <button 
+                          className="cashu-wallet__button cashu-wallet__button--secondary"
+                          onClick={(e) => handleDownloadQR(transaction, e)}
+                        >
+                          <Icon name="SettingsIcon" size={16} style={{marginRight: '4px'}} />
+                          Save QR
+                        </button>
+                      </div>
                       
                       {isReceivableTransaction(transaction) && (
                         <div className="cashu-wallet__transactions-list-item-qr-instruction">

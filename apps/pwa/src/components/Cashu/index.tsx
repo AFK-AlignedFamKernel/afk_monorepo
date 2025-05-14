@@ -382,10 +382,13 @@ export default function Cashu() {
         }
         setWalletReady(true);
       }
+
+      console.log('transaction', transaction);
       
       // Check if this is a Lightning invoice with a payment hash
       if (transaction.invoiceType === 'lightning' && transaction.paymentHash) {
         const result = await checkInvoiceStatus(transaction.paymentHash, transaction.mintUrl);
+        console.log('result', result);
         
         if (result.paid) {
           showToast({
