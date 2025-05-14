@@ -252,6 +252,9 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [containerHeight, setContainerHeight] = useState<number>(window.innerHeight);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastScrollTimeRef = useRef<number>(0);
   const loaderRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -311,10 +314,19 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   // Handle smooth scrolling between videos
   const scrollToVideo = useCallback((index: number) => {
     if (index >= 0 && index < events.length && videoRefs.current[index]) {
+      // Pause all videos
+      document.querySelectorAll('video').forEach((video) => {
+        if (video instanceof HTMLVideoElement) {
+          video.pause();
+          video.currentTime = 0;
+        }
+      });
+
       videoRefs.current[index]?.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
       });
+      
       setCurrentVideoIndex(index);
     }
   }, [events.length]);
@@ -322,14 +334,21 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   // Handle wheel event for scrolling between videos
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
-    if (e.deltaY > 0) {
-      // Scroll down
-      scrollToVideo(currentVideoIndex + 1);
-    } else {
-      // Scroll up
-      scrollToVideo(currentVideoIndex - 1);
+    
+    const now = Date.now();
+    const timeSinceLastScroll = now - lastScrollTimeRef.current;
+    
+    // Only process scroll if enough time has passed since last scroll
+    if (timeSinceLastScroll < 300) return;
+
+    const direction = e.deltaY > 0 ? 1 : -1;
+    const newIndex = currentVideoIndex + direction;
+
+    if (newIndex >= 0 && newIndex < events.length) {
+      lastScrollTimeRef.current = now;
+      scrollToVideo(newIndex);
     }
-  }, [currentVideoIndex, scrollToVideo]);
+  }, [currentVideoIndex, events.length, scrollToVideo]);
 
   // Set up wheel event listener
   useEffect(() => {
@@ -340,6 +359,9 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
     return () => {
       if (container) {
         container.removeEventListener('wheel', handleWheel);
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
     };
   }, [handleWheel]);
