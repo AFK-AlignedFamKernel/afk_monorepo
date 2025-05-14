@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '../small/icon-component';
 import { Transaction } from '@/utils/storage';
 import { useUIStore } from '@/store/uiStore';
 import QRCode from 'react-qr-code';
+import { useCashuStorage } from '@/hooks/useCashuStorage';
+import { getWalletData, saveWalletData } from '@/utils/storage';
+import { v4 as uuidv4 } from 'uuid';
 
 interface CashuTransactionsProps {
   transactions: Transaction[];
@@ -20,6 +23,9 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
   const { showToast } = useUIStore();
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [qrCodeTransaction, setQrCodeTransaction] = useState<Transaction | null>(null);
+  const [expandedTransaction, setExpandedTransaction] = useState<string | null>(null);
+  const [checkingPayment, setCheckingPayment] = useState<boolean>(false);
+  const [checkingTransactionId, setCheckingTransactionId] = useState<string | null>(null);
   
   // Get a human-readable status label
   const getStatusLabel = (status?: string) => {
@@ -204,6 +210,66 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
   
   const filteredTransactions = getFilteredTransactions();
   
+  // Add debug storage handler
+  const { addToken } = useCashuStorage();
+  
+  const handleDebugStorage = async () => {
+    console.log('Debug: Checking IndexDB storage...');
+    
+    try {
+      // Get current wallet data
+      const data = await getWalletData();
+      console.log('Current wallet data:', data);
+      console.log('Tokens count:', data.tokens?.length || 0);
+      console.log('Transactions count:', data.transactions?.length || 0);
+      
+      // Check if we have tokens
+      if (!data.tokens || data.tokens.length === 0) {
+        console.log('No tokens found, creating a test token...');
+        
+        // Create a test token
+        const testToken = {
+          id: uuidv4(),
+          token: 'cashu_test_token_' + Date.now(),
+          amount: 100,
+          mintUrl: data.activeMint || 'https://mint.test.com',
+          spendable: true,
+          created: new Date().toISOString(),
+        };
+        
+        // Add token to data
+        const updatedData = {
+          ...data,
+          tokens: [...(data.tokens || []), testToken],
+        };
+        
+        // Save updated data
+        await saveWalletData(updatedData);
+        console.log('Test token saved to IndexDB');
+        console.log('Updated tokens count:', updatedData.tokens.length);
+        
+        // Also update through the hook
+        addToken(testToken.token, testToken.amount, testToken.mintUrl);
+        console.log('Test token also added through hook');
+      }
+      
+      // Refresh data to confirm
+      const refreshedData = await getWalletData();
+      console.log('Refreshed wallet data:', refreshedData);
+      console.log('Tokens count after refresh:', refreshedData.tokens?.length || 0);
+      
+      alert(`IndexDB Status:
+      - Tokens: ${refreshedData.tokens?.length || 0}
+      - Transactions: ${refreshedData.transactions?.length || 0}
+      - Active Mint: ${refreshedData.activeMint || 'None'}
+      
+      Check console for details`);
+    } catch (err) {
+      console.error('Debug: Error accessing IndexDB:', err);
+      alert('Error checking IndexDB: ' + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
   return (
     <div className="cashu-wallet__transactions">
       <div className="cashu-wallet__transactions-header">
@@ -409,6 +475,121 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
           </div>
         )}
       </div>
+      
+      {/* Add debug section at the bottom */}
+      <div className="cashu-wallet__debug-section" style={{ padding: '10px', marginTop: '10px', border: '1px dashed #666', borderRadius: '4px' }}>
+        <h4>Debug Tools</h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+          <button
+            className="cashu-wallet__button cashu-wallet__button--secondary"
+            onClick={handleDebugStorage}
+            style={{ fontSize: '12px' }}
+          >
+            Check IndexDB Storage
+          </button>
+          
+          <button
+            className="cashu-wallet__button cashu-wallet__button--secondary"
+            onClick={async () => {
+              try {
+                const { saveTokenDirectly, debugCheckStorage } = useCashuStorage();
+                
+                // Get current wallet data
+                const data = await getWalletData();
+                
+                // Create a special token for testing send functionality
+                const mockToken = {
+                  token: "cashu_test_token_" + Date.now(),
+                  mint: data.activeMint || "https://mint.cubabitcoin.org",
+                  amount: 100,
+                  unit: "sat",
+                  proofs: [{
+                    id: `forced_proof_${Date.now()}`,
+                    amount: 100,
+                    secret: `forced_secret_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+                    C: `forced_C_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+                  }]
+                };
+                
+                // Save it directly
+                const tokenStr = JSON.stringify(mockToken);
+                const result = await saveTokenDirectly(
+                  tokenStr,
+                  100,
+                  data.activeMint || "https://mint.cubabitcoin.org"
+                );
+                
+                // Verify
+                await debugCheckStorage();
+                
+                alert(`Token created with result: ${result.success ? "Success" : "Failed"}
+                Token ID: ${result.tokenId || "unknown"}
+                
+                Refresh your wallet to see changes.`);
+              } catch (err) {
+                console.error("Error forcing token:", err);
+                alert("Error: " + (err instanceof Error ? err.message : String(err)));
+              }
+            }}
+            style={{ fontSize: '12px' }}
+          >
+            Force Create Test Token
+          </button>
+          
+          <button
+            className="cashu-wallet__button cashu-wallet__button--secondary"
+            onClick={async () => {
+              try {
+                // Get current wallet data
+                const data = await getWalletData();
+                console.log("Current wallet data:", data);
+                
+                // Update balance to match token total
+                const totalFromTokens = data.tokens.reduce((sum, token) => sum + token.amount, 0);
+                
+                if (totalFromTokens !== data.balance) {
+                  console.log(`Balance mismatch: ${data.balance} in state vs ${totalFromTokens} from tokens`);
+                  
+                  // Update balance
+                  const updatedData = {
+                    ...data,
+                    balance: totalFromTokens
+                  };
+                  
+                  // Save directly
+                  await saveWalletData(updatedData);
+                  console.log("Balance synchronized with tokens");
+                  
+                  alert(`Balance fixed! Previous: ${data.balance}, New: ${totalFromTokens}`);
+                } else {
+                  alert(`Balance already matches token total: ${data.balance}`);
+                }
+              } catch (err) {
+                console.error("Error fixing balance:", err);
+                alert("Error: " + (err instanceof Error ? err.message : String(err)));
+              }
+            }}
+            style={{ fontSize: '12px' }}
+          >
+            Fix Balance
+          </button>
+        </div>
+      </div>
     </div>
   );
-}; 
+};
+
+export function DebugStorage({ onCheckStorage }: { onCheckStorage: () => void }) {
+  return (
+    <div className="cashu-wallet__debug-section" style={{ padding: '10px', marginTop: '10px', border: '1px dashed #666', borderRadius: '4px' }}>
+      <h4>Debug Tools</h4>
+      <button
+        className="cashu-wallet__button cashu-wallet__button--secondary"
+        onClick={onCheckStorage}
+        style={{ marginTop: '8px', fontSize: '12px' }}
+      >
+        Check IndexDB Storage
+      </button>
+    </div>
+  );
+} 

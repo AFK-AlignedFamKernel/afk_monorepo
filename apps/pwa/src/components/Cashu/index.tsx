@@ -58,8 +58,16 @@ export default function Cashu() {
 
   // Initialize wallet connection on mount or when active mint changes
   useEffect(() => {
+    // Don't re-initialize if already checking or if no mint is selected
+    if (!activeMint) return;
+    
+    // Store initialization status in ref to prevent multiple calls
+    let isInitializing = false;
+    
     async function initializeWallet() {
-      if (!activeMint) return;
+      // Prevent concurrent initialization calls
+      if (isInitializing) return;
+      isInitializing = true;
       
       try {
         setIsBalanceLoading(true);
@@ -94,11 +102,15 @@ export default function Cashu() {
       } finally {
         setIsBalanceLoading(false);
         setIsLoadingProofs(false);
+        isInitializing = false;
       }
     }
     
     initializeWallet();
-  }, [activeMint, checkWalletReadiness, getBalance, showToast]);
+    
+    // This effect should only run when the activeMint changes, not on every render
+    // or when related functions change their references
+  }, [activeMint]);
 
   // Fetch current balance
   useEffect(() => {
