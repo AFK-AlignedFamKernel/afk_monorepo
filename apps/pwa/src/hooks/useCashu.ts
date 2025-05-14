@@ -202,121 +202,43 @@ export function useCashu() {
     if (!amount || amount <= 0) throw new Error('Invalid amount');
 
     try {
-      // Fall back to a mock invoice if real mint integration fails
-      // This ensures the UI always has something to display
+      // First check wallet readiness
+      const readinessCheck = await checkWalletReadiness(targetMint);
+      if (!readinessCheck.ready) {
+        throw new Error(`Wallet not ready: ${readinessCheck.error}`);
+      }
       
-      // First try real mint if available
+      // Use the wallet and mint from readiness check
+      const { wallet, mint } = readinessCheck;
       let invoice = '';
       let paymentHash = '';
       
+      console.log(`Requesting mint quote for ${amount} sats`);
+      
       try {
-        console.log(`Connecting to mint: ${targetMint}`);
-        const mintResponse = await sdkCashu.connectCashMint(targetMint).catch(err => {
-          console.error('Error connecting to mint:', err);
-          return null;
-        });
-        
-        if (mintResponse?.mint && mintResponse?.keys) {
-          try {
-            // Initialize wallet with the mint and wait for it to be ready
-            console.log('Initializing wallet with mint for quote');
-            
-            // First make sure the mint is set as active to help init the SDK state
-            setMintUrl(targetMint);
-            
-            // Initialize wallet with Nostr seed if available
-            let wallet;
-            if (nostrSeedAvailable) {
-              console.log('Initializing wallet with Nostr seed');
-              wallet = await sdkCashu.initializeWithNostrSeed(mintResponse.mint, mintResponse.keys);
-            } else {
-              console.log('Initializing wallet without Nostr seed');
-              wallet = await sdkCashu.connectCashWallet(mintResponse.mint, mintResponse.keys);
-            }
-            
-            if (wallet) {
-              console.log(`Wallet initialized, requesting mint quote for ${amount} sats`);
-              
-              // Get the walletConnected instance from SDK
-              const { walletConnected } = sdkCashu;
-              
-              console.log('Using wallet instance:', walletConnected || wallet);
-              
-              // Try first with the walletConnected instance if available
-              if (walletConnected) {
-                try {
-                  // Try using the walletConnected instance directly  
-                  const quote = await walletConnected.createMintQuote(amount);
-                  if (quote) {
-                    const mintRequest = quote as any;
-                    invoice = mintRequest.request || mintRequest.pr || mintRequest.payment_request || '';
-                    paymentHash = mintRequest.hash || mintRequest.payment_hash || '';
-                    
-                    if (invoice) {
-                      console.log(`Got invoice directly from walletConnected: ${invoice.substring(0, 20)}...`);
-                    }
-                  }
-                } catch (directErr) {
-                  console.error('Error creating quote directly:', directErr);
-                  // Continue to try with SDK method
-                }
-              }
-              
-              // If we still don't have an invoice, try the SDK method
-              if (!invoice) {
-                const quoteResponse = await sdkCashu.requestMintQuote(amount).catch(err => {
-                  console.error('Error requesting mint quote:', err);
-                  return null;
-                });
-                
-                if (quoteResponse?.request) {
-                  const mintRequest = quoteResponse.request as any;
-                  invoice = mintRequest.request || mintRequest.pr || mintRequest.payment_request || '';
-                  paymentHash = mintRequest.hash || mintRequest.payment_hash || '';
-                  
-                  if (invoice) {
-                    console.log(`Got real invoice from mint: ${invoice.substring(0, 20)}...`);
-                  }
-                }
-              }
-            } else {
-              console.error('Failed to initialize wallet for mint quote');
-            }
-          } catch (quoteErr) {
-            console.error('Inner quote error:', quoteErr);
+        // Try using the wallet instance directly  
+        const quote = await wallet.createMintQuote(amount);
+        if (quote) {
+          const mintRequest = quote as any;
+          invoice = mintRequest.request || mintRequest.pr || mintRequest.payment_request || '';
+          paymentHash = mintRequest.hash || mintRequest.payment_hash || '';
+          
+          if (invoice) {
+            console.log(`Got invoice from wallet: ${invoice.substring(0, 20)}...`);
+          } else {
+            throw new Error('No invoice in mint response');
           }
+        } else {
+          throw new Error('Invalid quote response from mint');
         }
-      } catch (mintErr) {
-        console.error('Outer mint error:', mintErr);
+      } catch (directErr) {
+        console.error('Error creating quote directly:', directErr);
+        throw new Error(`Failed to create mint quote: ${directErr instanceof Error ? directErr.message : 'Unknown error'}`);
       }
       
-      // If we couldn't get a real invoice, create a mock one
-      if (!invoice) {
-        console.log('Creating mock invoice as fallback');
-        
-        // Format amount according to BOLT11 standard
-        let amountPart = '';
-        if (amount >= 1000000) {
-          amountPart = `${Math.floor(amount / 1000000)}m`;
-        } else if (amount >= 1000) {
-          amountPart = `${Math.floor(amount / 1000)}u`;
-        } else {
-          amountPart = `${amount}n`;
-        }
-        
-        // Create a BOLT11 format invoice
-        invoice = `lnbc${amountPart}1p${Array.from({ length: 12 }, () => 
-          "acdefghjklmnpqrstuvwxyz0123456789"[Math.floor(Math.random() * 33)]
-        ).join('')}sp${Array.from({ length: 12 }, () => 
-          "acdefghjklmnpqrstuvwxyz0123456789"[Math.floor(Math.random() * 33)]
-        ).join('')}0qqpp5qs${Array.from({ length: 100 }, () => 
-          "acdefghjklmnpqrstuvwxyz0123456789"[Math.floor(Math.random() * 33)]
-        ).join('')}`;
-        
-        // Create pseudo-random payment hash
-        paymentHash = Array.from({ length: 64 }, () => 
-          Math.floor(Math.random() * 16).toString(16)
-        ).join('');
+      // If we still don't have an invoice after all attempts, throw an error
+      if (!invoice || !paymentHash) {
+        throw new Error('Failed to generate Lightning invoice');
       }
       
       // Record a transaction for this invoice
@@ -331,7 +253,7 @@ export function useCashu() {
     } catch (err) {
       console.error('Error creating invoice:', err);
       setError(err instanceof Error ? err.message : 'Failed to create invoice');
-      throw err;
+      throw err; // Re-throw for the UI to handle with toast
     }
   };
 
@@ -522,6 +444,60 @@ export function useCashu() {
     }
   };
 
+  // Check if the wallet is ready for operations
+  const checkWalletReadiness = async (targetMint?: string) => {
+    try {
+      // Use the provided targetMint or fall back to the active mint
+      const mintUrl = targetMint || walletData.activeMint;
+      
+      if (!mintUrl) {
+        throw new Error('No mint selected');
+      }
+      
+      if (!isInitialized) {
+        throw new Error('Cashu wallet not initialized');
+      }
+      
+      // Try to connect to the mint
+      console.log(`Checking wallet readiness for mint: ${mintUrl}`);
+      const mintResponse = await sdkCashu.connectCashMint(mintUrl).catch(err => {
+        console.error('Mint connection failed during readiness check:', err);
+        throw new Error(`Cannot connect to mint: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      });
+      
+      if (!mintResponse?.mint || !mintResponse?.keys) {
+        throw new Error('Could not retrieve mint information');
+      }
+      
+      // If we already have a wallet connected to this mint, we're ready
+      const { walletConnected } = sdkCashu;
+      if (walletConnected && walletConnected.mint.mintUrl === mintUrl) {
+        return { ready: true, wallet: walletConnected, mintUrl, mint: mintResponse.mint, keys: mintResponse.keys };
+      }
+      
+      // We need to initialize a wallet
+      let wallet;
+      // Choose initialization method based on Nostr seed availability
+      if (nostrSeedAvailable) {
+        wallet = await sdkCashu.initializeWithNostrSeed(mintResponse.mint, mintResponse.keys);
+      } else {
+        wallet = await sdkCashu.connectCashWallet(mintResponse.mint, mintResponse.keys);
+      }
+      
+      if (!wallet) {
+        throw new Error('Failed to initialize wallet');
+      }
+      
+      return { ready: true, wallet, mintUrl, mint: mintResponse.mint, keys: mintResponse.keys };
+    } catch (err) {
+      console.error('Wallet readiness check failed:', err);
+      return { 
+        ready: false, 
+        error: err instanceof Error ? err.message : 'Unknown error during wallet readiness check' 
+      };
+    }
+  };
+
   return {
     loading,
     error,
@@ -541,5 +517,6 @@ export function useCashu() {
     createSendToken,
     payLightningInvoice,
     nostrSeedAvailable,
+    checkWalletReadiness,
   };
 } 

@@ -12,6 +12,7 @@ import { CashuSettingsModal } from './modals/CashuSettingsModal';
 import { CashuMintModal } from './modals/CashuMintModal';
 import { useCashu } from '@/hooks/useCashu';
 import { useCashuStore } from 'afk_nostr_sdk';
+import { useUIStore } from '@/store/uiStore';
 
 export default function Cashu() {
   const {
@@ -30,10 +31,14 @@ export default function Cashu() {
     receiveToken,
     createSendToken,
     payLightningInvoice,
+    checkWalletReadiness,
   } = useCashu();
   
   // Direct access to the Cashu store from SDK
   const { setMintUrl } = useCashuStore();
+  
+  // UI store for toast messages
+  const { showToast } = useUIStore();
 
   const [currentBalance, setCurrentBalance] = useState<number>(balance);
   const [isBalanceLoading, setIsBalanceLoading] = useState<boolean>(false);
@@ -198,34 +203,74 @@ export default function Cashu() {
   const handleCreateInvoice = async (amount: number) => {
     if (!amount || amount <= 0) {
       console.error('Invalid amount for invoice creation');
+      showToast({
+        message: 'Invalid amount',
+        type: 'error',
+        description: 'Please enter a valid amount greater than 0'
+      });
       return null;
     }
     
     try {
       if (!activeMint) {
+        showToast({
+          message: 'No mint selected',
+          type: 'error',
+          description: 'Please add and select a mint first'
+        });
         throw new Error('No mint selected');
       }
       
-      // Verify mint is available
-      const mintUrl = await ensureMintConnected(activeMint);
+      // First check if the wallet is ready
+      const readinessCheck = await checkWalletReadiness(activeMint);
+      if (!readinessCheck.ready) {
+        showToast({
+          message: 'Wallet not ready',
+          type: 'error',
+          description: readinessCheck.error || 'Please check mint connection'
+        });
+        return null;
+      }
       
-      // Don't show loading state - this causes re-renders
-      // Just call createInvoice directly
-      console.log(`Creating invoice for ${amount} sats using mint: ${mintUrl}`);
-      const invoiceResult = await createInvoice(mintUrl, amount).catch(err => {
+      // Wallet is ready, proceed with invoice creation
+      console.log(`Creating invoice for ${amount} sats using mint: ${activeMint}`);
+      
+      const invoiceResult = await createInvoice(activeMint, amount).catch(err => {
         console.error('SDK error creating invoice:', err);
+        showToast({
+          message: 'Failed to create invoice',
+          type: 'error',
+          description: err instanceof Error ? err.message : 'Unknown error occurred'
+        });
         return null;
       });
       
       if (!invoiceResult || !invoiceResult.invoice) {
         console.error('No valid invoice returned from createInvoice');
+        showToast({
+          message: 'Invoice generation failed',
+          type: 'error',
+          description: 'Could not generate a valid Lightning invoice'
+        });
         return null;
       }
+      
+      // Success
+      showToast({
+        message: 'Invoice created',
+        type: 'success',
+        description: 'Lightning invoice generated successfully'
+      });
       
       console.log('Invoice created successfully');
       return invoiceResult;
     } catch (err) {
       console.error('Error creating invoice:', err);
+      showToast({
+        message: 'Invoice creation error',
+        type: 'error',
+        description: err instanceof Error ? err.message : 'Failed to create invoice'
+      });
       return null;
     }
   };
