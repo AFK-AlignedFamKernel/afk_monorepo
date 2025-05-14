@@ -19,10 +19,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.18.0"
+    "@prisma/client": "^5.22.0"
   },
   "devDependencies": {
-    "prisma": "^5.18.0",
+    "prisma": "^5.22.0",
     "starknet": "^6.6.6",
     "tsup": "^8.0.2",
     "typescript": "~5.3.3"

@@ -102,7 +102,7 @@ export default function PumpComponent() {
         </a>
       </div>
 
-      <div className="card">
+      <div className="">
         <div className="flex flex-col gap-4">
           {/* Search */}
 
