@@ -33,7 +33,7 @@ export async function migrateFromLegacyStorage(): Promise<boolean> {
     
     // Check if we've already migrated
     const hasMigrated = await settingsApi.get('MIGRATION_COMPLETE', 'false');
-    if (hasMigrated === 'true') {
+    if (hasMigrated) {
       console.log('Migration already completed previously');
       return true;
     }

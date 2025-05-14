@@ -2,14 +2,14 @@
 // 'use client';
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { useAuth, useIncomingMessageUsers, useMessageGifts, useMyMessagesSent, useProfile, useRoomMessages } from 'afk_nostr_sdk';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
-import { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
-import { NDKUser } from '@nostr-dev-kit/ndk';
-import { useSendPrivateMessage } from 'afk_nostr_sdk';
+// importuseMyMessagesSent, useAuth, useProfile,  { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
+// import { NDKUser } from '@nostr-dev-kit/ndk';
+import { useAuth, useSendPrivateMessage, useProfile, useIncomingMessageUsers, useMyMessagesSent } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import CryptoLoading from '@/components/small/crypto-loading';
+
 interface ChatProps {
     item: any;
     publicKeyProps: string;
@@ -33,7 +33,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const queryClient = useQueryClient();
 
     const roomIds = useMemo(() => [publicKey, receiverPublicKey], [publicKey, receiverPublicKey]);
-    
+
     // 1. Fetch messages with proper filters
     const { data: messagesSent, isLoading: isLoadingSent } = useMyMessagesSent({
         authors: roomIds,

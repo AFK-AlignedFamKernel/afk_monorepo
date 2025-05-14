@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useAuth } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
-import { FormPrivateMessage } from './FormPrivateMessage';
 import { NostrConversationList } from './ConversationList';
 
 export const NostrMessagesComponent: React.FC = () => {
