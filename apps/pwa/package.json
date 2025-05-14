@@ -20,6 +20,7 @@
     "@atomiqlabs/chain-starknet": "^1.0.9",
     "@atomiqlabs/sdk": "^3.0.4",
     "@argent/tma-wallet": "1.19.3",
+    "react-qr-code": "^2.0.15",
     "@argent/x-sessions": "^6.7.4",
     "@avnu/avnu-sdk": "^2.0.0",
     "@cartridge/connector": "^0.7.13",
