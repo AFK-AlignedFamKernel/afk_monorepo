@@ -25,7 +25,7 @@ const RelayInitializer: React.FC<{children: React.ReactNode}> = ({ children }) =
 
 // Add NDK functionality to children components
 const NDKConnector: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const { ndk, setNDK } = useNostrContext();
+  const { ndk, setNdk } = useNostrContext();
   
   useEffect(() => {
     // When relay settings are already loaded, connect NDK
@@ -39,17 +39,17 @@ const NDKConnector: React.FC<{children: React.ReactNode}> = ({ children }) => {
       ndkInstance.connect().then(() => {
         console.log('Connected to relays!');
         // Set the NDK instance in the context
-        setNDK(ndkInstance);
+        setNdk(ndkInstance);
       }).catch(err => {
         console.error('Failed to connect to relays', err);
       });
     
       // Cleanup on unmount
     return () => {
-        ndkInstance.disconnect();
+        // ndkInstance.disconnect();
     };
     }
-  }, [ndk, setNDK]);
+  }, [ndk, setNdk]);
   
   return <>{children}</>;
 };

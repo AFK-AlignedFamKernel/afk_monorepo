@@ -55,7 +55,9 @@ export const NostrMessagesComponent: React.FC = () => {
       </div>
 
       {activeTab === "messages" && (
-        <NostrConversationList />
+        <NostrConversationList
+          type="NIP17"
+        />
       )}
     </div>
   );

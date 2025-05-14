@@ -16,6 +16,7 @@ export type NostrContextType = {
   nwcNdk?: NDKNWCWallet;
   ndkCashuWallet?: NDKCashuWallet;
   ndkWallet?: NDKWallet;
+  setNdk: (ndk: NDKInstance) => void;
 };
 
 export const NostrContext = createContext<NostrContextType | null>(null);
@@ -80,7 +81,9 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
   }, [nwcUrl, ndk]);
 
   return (
-    <NostrContext.Provider value={{ndk, nip07Signer, nwcNdk, ndkWallet, ndkCashuWallet}}>
+    <NostrContext.Provider value={{ndk, nip07Signer, nwcNdk, ndkWallet, ndkCashuWallet, setNdk(ndk) {
+      
+    },}}>
       {children}
     </NostrContext.Provider>
   );

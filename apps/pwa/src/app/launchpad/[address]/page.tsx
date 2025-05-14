@@ -19,8 +19,9 @@ interface LaunchpadDetailProps {
   };
 }
 
-export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
-  const { address } = params;
+export default function LaunchpadDetailPage() {
+  const { address } = useParams()
+
   const { account } = useAccount();
   const [selectedTab, setSelectedTab] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -77,7 +78,7 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
       setActionLoading(true);
       await handleBuyCoins(
         launchData?.account,
-        address,
+        address as string,
         amount,
         launchData?.quote_token,
       );
@@ -99,8 +100,8 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
     try {
       setActionLoading(true);
       await handleSellCoins(
-        account?.address  ,
-        address,
+        account?.address,
+        address as string,
         amount,
         launchData?.quote_token,
       );
@@ -135,13 +136,13 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ToastContainer 
+      <ToastContainer
         toasts={toasts.map(toast => ({
           id: toast.id || Date.now(),
           title: toast.title,
           type: toast.type,
-        }))} 
-        onRemove={removeToast} 
+        }))}
+        onRemove={removeToast}
       />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
@@ -149,15 +150,15 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
           <p className="text-gray-600">Address: {address}</p>
         </div>
         <div className="lg:col-span-1">
-            <LaunchActionsForm
-              launch={launchData}
-              onBuyPress={handleBuy}
-              onSellPress={handleSell}
-              userShare={userShare}
-              loading={actionLoading}
-              memecoinAddress={address}
-            />
-          </div>
+          <LaunchActionsForm
+            launch={launchData}
+            onBuyPress={handleBuy}
+            onSellPress={handleSell}
+            userShare={userShare}
+            loading={actionLoading}
+            memecoinAddress={address as string}
+          />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
@@ -186,7 +187,7 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
             </div>
           </div>
 
-       
+
         </div>
       </div>
     </div>

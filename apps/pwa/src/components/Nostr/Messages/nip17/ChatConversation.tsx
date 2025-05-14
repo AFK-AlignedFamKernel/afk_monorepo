@@ -72,8 +72,8 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 onSuccess: () => {
                     setMessage('');
                     // Invalidate both queries to refresh messages
-                    queryClient.invalidateQueries(['myMessagesSent']);
-                    queryClient.invalidateQueries(['messageUsers']);
+                    queryClient.invalidateQueries({ queryKey: ['myMessagesSent'] });
+                    queryClient.invalidateQueries({ queryKey: ['messageUsers'] });
                 },
                 onError: (error) => {
                     console.error('Error sending message:', error);
