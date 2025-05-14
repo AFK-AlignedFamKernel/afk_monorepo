@@ -48,7 +48,9 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
     try {
       const invoiceData = await onCreateInvoice(Number(amount));
       
-      if (invoiceData && invoiceData.invoice) {
+      // Handle null or invalid response gracefully
+      if (invoiceData && typeof invoiceData === 'object' && invoiceData.invoice) {
+        // Only update state with valid invoice data
         setInvoice(invoiceData.invoice);
         showToast({
           message: `Invoice created`,
@@ -56,10 +58,12 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
           description: `for ${amount} ${unit}`
         });
       } else {
+        // Handle the case where no valid invoice was returned
+        console.error('Invalid invoice data returned:', invoiceData);
         showToast({
           message: 'Error creating invoice',
           type: 'error',
-          description: 'No invoice was returned from mint'
+          description: 'Could not generate a valid invoice'
         });
       }
     } catch (err) {

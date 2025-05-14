@@ -205,10 +205,8 @@ export default function Cashu() {
       // Verify mint is available
       const mintUrl = await ensureMintConnected(activeMint);
       
-      // Show loading state
-      setIsBalanceLoading(true);
-      
-      // Create real invoice using the SDK
+      // Don't show loading state - this causes re-renders
+      // Just call createInvoice directly
       console.log(`Creating invoice for ${amount} sats using mint: ${mintUrl}`);
       const invoiceResult = await createInvoice(mintUrl, amount).catch(err => {
         console.error('SDK error creating invoice:', err);
@@ -225,9 +223,6 @@ export default function Cashu() {
     } catch (err) {
       console.error('Error creating invoice:', err);
       return null;
-    } finally {
-      // Hide loading state
-      setIsBalanceLoading(false);
     }
   };
 
