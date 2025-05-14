@@ -40,7 +40,7 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
       chains={chains}
       provider={publicProvider()}
       explorer={voyager}
-      connectors={connectors as Connector[]} // Type assertion to fix type error temporarily
+      // connectors={connectors as Connector[]} // Type assertion to fix type error temporarily
       autoConnect
     >
       {children}
