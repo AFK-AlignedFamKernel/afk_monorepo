@@ -24,6 +24,8 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   const { data: profile } = useProfile({ publicKey: event.pubkey });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const extractVideoUrl = () => {
@@ -75,7 +77,6 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
 
     const url = extractVideoUrl();
     if (url) {
-      // Verify if the URL is actually a video
       const isVideo = url.match(/\.(mp4|mov|avi|webm|mkv|gif)$/i);
       if (isVideo) {
         setMediaUrl(url);
@@ -87,6 +88,65 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
     }
   }, [event]);
 
+  // Handle video visibility and playback
+  useEffect(() => {
+    if (!videoRef.current || !containerRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          setIsVisible(entry.isIntersecting);
+          if (entry.isIntersecting) {
+            // Video is visible, play it
+            videoRef.current?.play().catch(() => {
+              console.log('Autoplay prevented');
+            });
+          } else {
+            // Video is not visible, pause it and reset
+            if (videoRef.current) {
+              videoRef.current.pause();
+              videoRef.current.currentTime = 0;
+            }
+          }
+        });
+      },
+      {
+        threshold: 0.8, // Video needs to be 80% visible to be considered "visible"
+        rootMargin: '-10% 0px' // Add some margin to prevent edge cases
+      }
+    );
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      if (containerRef.current) {
+        observer.unobserve(containerRef.current);
+      }
+    };
+  }, []);
+
+  // Handle video state changes
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handlePlay = () => {
+      // Pause all other videos when this one starts playing
+      document.querySelectorAll('video').forEach((v) => {
+        if (v !== video) {
+          v.pause();
+          v.currentTime = 0;
+        }
+      });
+    };
+
+    video.addEventListener('play', handlePlay);
+
+    return () => {
+      video.removeEventListener('play', handlePlay);
+    };
+  }, []);
+
   const handleVideoLoad = () => {
     setIsLoading(false);
     setError(null);
@@ -97,15 +157,15 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
     setError('Failed to load video');
   };
 
-  const displayName = profile?.displayName || profile?.name || event.pubkey.substring(0, 8);
-  const timestamp = new Date(event.created_at * 1000).toLocaleDateString();
-
   if (!mediaUrl) {
     return <div className="nostr-short-feed__error">{error || 'No video URL found'}</div>;
   }
 
+  const displayName = profile?.displayName || profile?.name || event.pubkey.substring(0, 8);
+  const timestamp = new Date(event.created_at * 1000).toLocaleDateString();
+
   return (
-    <div className="nostr-short-feed__video-wrapper">
+    <div className="nostr-short-feed__video-wrapper" ref={containerRef}>
       {isLoading && (
         <div className="nostr-short-feed__loading">
           <CryptoLoading />
@@ -123,6 +183,8 @@ const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
         controls
         playsInline
         loop
+        muted
+        preload="metadata"
         onLoadedData={handleVideoLoad}
         onError={handleVideoError}
       />
