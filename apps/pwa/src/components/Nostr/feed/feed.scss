@@ -277,4 +277,171 @@
     --primary-color: #93c5fd;
     --hover-bg: #374151;
   }
+}
+
+.nostr-short-feed {
+  &__container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    background-color: var(--background);
+    
+    // Hide scrollbar for Chrome, Safari and Opera
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    
+    // Hide scrollbar for IE, Edge and Firefox
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  &__video-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+  }
+
+  &__video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background-color: #000;
+  }
+
+  &__loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+  }
+
+  &__error {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    z-index: 1;
+  }
+
+  &__interaction-panel {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    z-index: 2;
+    color: #fff;
+  }
+
+  &__profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__profile-avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid #fff;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &__avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &__avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  &__profile-info {
+    text-align: center;
+  }
+
+  &__username {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+
+  &__timestamp {
+    font-size: 0.8rem;
+    opacity: 0.8;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  &__action-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: transform 0.2s ease;
+
+    svg {
+      width: 2rem;
+      height: 2rem;
+      stroke-width: 1.5;
+    }
+
+    span {
+      font-size: 0.8rem;
+      opacity: 0.9;
+    }
+
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
 } 

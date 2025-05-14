@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { NostrEventKind } from '@/types/nostr';
 import NostrFeed from './NostrFeed';
 import { NDKKind } from '@nostr-dev-kit/ndk';
+import NostrShortFeed from './NostrShortFeed';
 // import "./feed.scss"
 
 interface Tab {
@@ -122,12 +123,24 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
       </div>
 
       <div className="nostr-feed__content">
-        <NostrFeed
-          kinds={getActiveTabKinds()}
-          limit={limit}
-          authors={authors}
-          searchQuery={searchQuery}
-        />
+
+        {activeTab != 'shorts' && (
+          <NostrFeed
+            kinds={getActiveTabKinds()}
+            limit={limit}
+            authors={authors}
+            searchQuery={searchQuery}
+          />
+        )}
+
+        {activeTab === 'shorts' && (
+          <NostrShortFeed
+            kinds={getActiveTabKinds()}
+            limit={limit}
+            authors={authors}
+            searchQuery={searchQuery}
+          />
+        )}
       </div>
     </div>
   );
