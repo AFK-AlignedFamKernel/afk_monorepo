@@ -7,7 +7,7 @@ interface CashuReceiveModalProps {
   onClose: () => void;
   mint: string;
   unit: string;
-  onReceiveToken: (token: string) => Promise<void>;
+  onReceiveToken: (token: string) => Promise<any>;
   onCreateInvoice: (amount: number) => Promise<any>;
 }
 

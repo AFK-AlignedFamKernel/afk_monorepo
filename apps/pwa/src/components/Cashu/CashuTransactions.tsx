@@ -51,6 +51,34 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
     }
   };
   
+  // Determine if this transaction should show a check button
+  const shouldShowCheckButton = (transaction: Transaction) => {
+    // For lightning invoices
+    if (transaction.type === 'received' && 
+        transaction.invoiceType === 'lightning' && 
+        transaction.status !== 'paid' && 
+        transaction.paymentHash) {
+      return true;
+    }
+    
+    // For other types of quotes (tokens, etc.)
+    if (transaction.type === 'received' && 
+        transaction.status !== 'paid' && 
+        (transaction.token || transaction.invoiceType)) {
+      return true;
+    }
+    
+    return false;
+  };
+  
+  // Get appropriate button text based on transaction type
+  const getCheckButtonText = (transaction: Transaction) => {
+    if (transaction.invoiceType === 'lightning') {
+      return 'Check Payment';
+    }
+    return 'Check Quote';
+  };
+  
   const filteredTransactions = getFilteredTransactions();
   
   return (
@@ -128,11 +156,7 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                   {transaction.type === 'sent' ? '-' : '+'}{transaction.amount}
                 </div>
                 
-                {transaction.type === 'received' && 
-                 transaction.invoiceType === 'lightning' && 
-                 transaction.status !== 'paid' && 
-                 transaction.paymentHash && 
-                 onCheckPayment && (
+                {shouldShowCheckButton(transaction) && onCheckPayment && (
                   <button 
                     className="cashu-wallet__transactions-list-item-check-btn"
                     onClick={(e) => {
@@ -140,7 +164,7 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                       onCheckPayment(transaction);
                     }}
                   >
-                    Check Payment
+                    {getCheckButtonText(transaction)}
                   </button>
                 )}
               </div>

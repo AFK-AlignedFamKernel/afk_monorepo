@@ -29,6 +29,8 @@ export interface Transaction {
   status?: 'pending' | 'paid' | 'failed';
   description?: string;
   invoiceType?: 'lightning';
+  invoice?: string;
+  unit?: string;
 }
 
 export interface Token {

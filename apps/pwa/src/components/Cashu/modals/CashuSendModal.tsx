@@ -6,8 +6,8 @@ interface CashuSendModalProps {
   onClose: () => void;
   balance: number;
   unit: string;
-  onSendToken: (amount: number) => Promise<void>;
-  onPayInvoice: (invoice: string) => Promise<void>;
+  onSendToken: (amount: number) => Promise<any>;
+  onPayInvoice: (invoice: string) => Promise<any>;
 }
 
 export const CashuSendModal: React.FC<CashuSendModalProps> = ({
