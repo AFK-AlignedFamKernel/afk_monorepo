@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Icon } from '../../small/icon-component';
+import { useCashuStore } from 'afk_nostr_sdk';
 
 interface MintData {
   url: string;
@@ -27,17 +28,29 @@ export const CashuSettingsModal: React.FC<CashuSettingsModalProps> = ({
   onChangeUnit,
 }) => {
   const [showAddMint, setShowAddMint] = useState<boolean>(false);
-  const [mintUrl, setMintUrl] = useState<string>('');
+  const [newMintUrl, setNewMintUrl] = useState<string>('');
   const [mintAlias, setMintAlias] = useState<string>('');
+  
+  // Get setMintUrl from the SDK store
+  const { setMintUrl } = useCashuStore();
   
   const handleAddMint = (e: React.FormEvent) => {
     e.preventDefault();
-    if (mintUrl && mintAlias) {
-      onAddMint(mintUrl, mintAlias);
-      setMintUrl('');
+    if (newMintUrl && mintAlias) {
+      onAddMint(newMintUrl, mintAlias);
+      setNewMintUrl('');
       setMintAlias('');
       setShowAddMint(false);
     }
+  };
+
+  // Handle mint change with SDK store update
+  const handleChangeMint = (url: string) => {
+    // Update the mint URL in the SDK store
+    setMintUrl(url);
+    
+    // Then call the parent component's handler
+    onChangeMint(url);
   };
 
   return (
@@ -62,7 +75,7 @@ export const CashuSettingsModal: React.FC<CashuSettingsModalProps> = ({
                 <div 
                   key={mint.url} 
                   className={`cashu-wallet__settings-mint ${mint.url === activeMint ? 'cashu-wallet__settings-mint--active' : ''}`}
-                  onClick={() => onChangeMint(mint.url)}
+                  onClick={() => handleChangeMint(mint.url)}
                   style={{
                     padding: '10px',
                     borderRadius: '4px',
@@ -122,8 +135,8 @@ export const CashuSettingsModal: React.FC<CashuSettingsModalProps> = ({
                 <input
                   type="text"
                   className="cashu-wallet__form-group-input"
-                  value={mintUrl}
-                  onChange={(e) => setMintUrl(e.target.value)}
+                  value={newMintUrl}
+                  onChange={(e) => setNewMintUrl(e.target.value)}
                   placeholder="https://mint.example.com"
                   required
                 />

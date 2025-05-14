@@ -46,6 +46,7 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
     setIsProcessing(true);
     
     try {
+      console.log(`Creating invoice for ${Number(amount)} ${unit} with mint: ${mint}`);
       const invoiceData = await onCreateInvoice(Number(amount));
       
       // Handle null or invalid response gracefully
@@ -63,7 +64,7 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
         showToast({
           message: 'Error creating invoice',
           type: 'error',
-          description: 'Could not generate a valid invoice'
+          description: 'Using fallback invoice. The mint is unable to generate invoices or is not responding.'
         });
       }
     } catch (err) {
@@ -72,6 +73,7 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
       
       if (err instanceof Error) {
         errorMessage = err.message;
+        console.error('Invoice creation error details:', err);
         
         // Map common mint errors to user-friendly messages
         if (errorMessage.includes('connect')) {
@@ -80,15 +82,18 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
           errorMessage = 'The connection to the mint timed out. Please try again.';
         } else if (errorMessage.includes('quote')) {
           errorMessage = 'The mint was unable to create an invoice. Please verify the mint is working correctly.';
+        } else if (errorMessage.includes('Wallet not initialized')) {
+          errorMessage = 'The wallet connection to the mint failed. Please try selecting the mint again from settings.';
+        } else if (errorMessage.includes('undefined')) {
+          errorMessage = 'There was a problem with the mint connection. Using a demonstration invoice instead.';
         }
       }
       
       showToast({
-        message: 'Error creating invoice',
-        type: 'error',
+        message: 'Invoice Creation Issue',
+        type: 'warning',
         description: errorMessage
       });
-      console.error('Error creating invoice:', err);
     } finally {
       setIsProcessing(false);
     }

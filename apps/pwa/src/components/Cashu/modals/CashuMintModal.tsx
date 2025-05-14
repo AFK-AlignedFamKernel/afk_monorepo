@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Icon } from '../../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
+import { useCashuStore } from 'afk_nostr_sdk';
 
 interface MintData {
   url: string;
@@ -30,8 +31,15 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
   const [newMintAlias, setNewMintAlias] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useUIStore();
+  
+  // Get setMintUrl from the SDK store
+  const { setMintUrl } = useCashuStore();
 
   const handleSelectMint = (mintUrl: string) => {
+    // Update the mint URL in the SDK store
+    setMintUrl(mintUrl);
+    
+    // Then call the parent component's handler
     onChangeMint(mintUrl);
     onClose();
   };
@@ -62,6 +70,11 @@ export const CashuMintModal: React.FC<CashuMintModalProps> = ({
       
       // Add the new mint
       await onAddMint(newMintUrl, newMintAlias);
+      
+      // Also update the SDK store if this is the first mint
+      if (mints.length === 0) {
+        setMintUrl(newMintUrl);
+      }
       
       // Reset form
       setNewMintUrl('');

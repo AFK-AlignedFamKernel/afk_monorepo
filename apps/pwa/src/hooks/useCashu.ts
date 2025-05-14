@@ -15,7 +15,7 @@ import { useCashuStorage } from './useCashuStorage';
 export function useCashu() {
   // SDK hooks
   const sdkCashu = useSDKCashu();
-  const { seed, setSeed } = useCashuStore();
+  const { seed, setSeed, setMintUrl, mintUrl } = useCashuStore();
   const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
   const { mutateAsync: createToken } = useCreateTokenEvent();
   const { data: tokensEvents } = useGetCashuTokenEvents();
@@ -51,10 +51,19 @@ export function useCashu() {
     }
   }, [storageLoading, storageError]);
 
+  // Sync SDK mint URL with local storage when initialized
+  useEffect(() => {
+    if (isInitialized && walletData.activeMint) {
+      // Set the active mint URL in the Cashu store
+      setMintUrl(walletData.activeMint);
+    }
+  }, [isInitialized, walletData.activeMint, setMintUrl]);
+
   // Add a mint with the SDK
   const addMint = useCallback(async (mintUrl: string, alias: string) => {
     try {
       // Use SDK to connect to mint
+      console.log(`Connecting to mint: ${mintUrl}`);
       const mintResponse = await sdkCashu.connectCashMint(mintUrl).catch(err => {
         console.error('Error connecting to mint:', err);
         throw new Error(`Failed to connect to mint: ${err instanceof Error ? err.message : 'Unknown error'}`);
@@ -67,8 +76,10 @@ export function useCashu() {
       // Save to local storage
       addMintToStorage(mintUrl, alias);
       
-      // Initialize wallet if this is the first mint
+      // Update the SDK store mint URL if this is the first mint
       if (walletData.mints.length === 0) {
+        setMintUrl(mintUrl);
+        
         const id = uuidv4();
         
         // Create wallet event on Nostr if we have a seed
@@ -97,7 +108,7 @@ export function useCashu() {
       setError(err instanceof Error ? err.message : 'Failed to add mint');
       throw err;
     }
-  }, [sdkCashu, addMintToStorage, walletData.mints.length, seed, createWalletEvent]);
+  }, [sdkCashu, addMintToStorage, walletData.mints.length, seed, createWalletEvent, setMintUrl]);
 
   // Set active mint
   const setActiveMint = async (mintUrl: string) => {
@@ -115,6 +126,9 @@ export function useCashu() {
       
       // Save to storage regardless of connection result
       setActiveMintInStorage(mintUrl);
+      
+      // Also update the SDK store mint URL
+      setMintUrl(mintUrl);
       
       return true;
     } catch (err) {
@@ -174,20 +188,62 @@ export function useCashu() {
         
         if (mintResponse?.mint && mintResponse?.keys) {
           try {
-            console.log(`Requesting mint quote for ${amount} sats`);
-            const quoteResponse = await sdkCashu.requestMintQuote(amount).catch(err => {
-              console.error('Error requesting mint quote:', err);
-              return null;
-            });
+            // Initialize wallet with the mint and wait for it to be ready
+            console.log('Initializing wallet with mint for quote');
             
-            if (quoteResponse?.request) {
-              const mintRequest = quoteResponse.request as any;
-              invoice = mintRequest.request || mintRequest.pr || mintRequest.payment_request || '';
-              paymentHash = mintRequest.hash || mintRequest.payment_hash || '';
+            // First make sure the mint is set as active to help init the SDK state
+            setMintUrl(targetMint);
+            
+            // Initialize local wallet for this operation
+            const wallet = await sdkCashu.connectCashWallet(mintResponse.mint, mintResponse.keys);
+            
+            if (wallet) {
+              console.log(`Wallet initialized, requesting mint quote for ${amount} sats`);
               
-              if (invoice) {
-                console.log(`Got real invoice from mint: ${invoice.substring(0, 20)}...`);
+              // Get the walletConnected instance from SDK
+              const { walletConnected } = sdkCashu;
+              
+              console.log('Using wallet instance:', walletConnected || wallet);
+              
+              // Try first with the walletConnected instance if available
+              if (walletConnected) {
+                try {
+                  // Try using the walletConnected instance directly  
+                  const quote = await walletConnected.createMintQuote(amount);
+                  if (quote) {
+                    const mintRequest = quote as any;
+                    invoice = mintRequest.request || mintRequest.pr || mintRequest.payment_request || '';
+                    paymentHash = mintRequest.hash || mintRequest.payment_hash || '';
+                    
+                    if (invoice) {
+                      console.log(`Got invoice directly from walletConnected: ${invoice.substring(0, 20)}...`);
+                    }
+                  }
+                } catch (directErr) {
+                  console.error('Error creating quote directly:', directErr);
+                  // Continue to try with SDK method
+                }
               }
+              
+              // If we still don't have an invoice, try the SDK method
+              if (!invoice) {
+                const quoteResponse = await sdkCashu.requestMintQuote(amount).catch(err => {
+                  console.error('Error requesting mint quote:', err);
+                  return null;
+                });
+                
+                if (quoteResponse?.request) {
+                  const mintRequest = quoteResponse.request as any;
+                  invoice = mintRequest.request || mintRequest.pr || mintRequest.payment_request || '';
+                  paymentHash = mintRequest.hash || mintRequest.payment_hash || '';
+                  
+                  if (invoice) {
+                    console.log(`Got real invoice from mint: ${invoice.substring(0, 20)}...`);
+                  }
+                }
+              }
+            } else {
+              console.error('Failed to initialize wallet for mint quote');
             }
           } catch (quoteErr) {
             console.error('Inner quote error:', quoteErr);

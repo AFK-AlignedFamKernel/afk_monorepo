@@ -11,6 +11,7 @@ import { CashuReceiveModal } from './modals/CashuReceiveModal';
 import { CashuSettingsModal } from './modals/CashuSettingsModal';
 import { CashuMintModal } from './modals/CashuMintModal';
 import { useCashu } from '@/hooks/useCashu';
+import { useCashuStore } from 'afk_nostr_sdk';
 
 export default function Cashu() {
   const {
@@ -30,6 +31,9 @@ export default function Cashu() {
     createSendToken,
     payLightningInvoice,
   } = useCashu();
+  
+  // Direct access to the Cashu store from SDK
+  const { setMintUrl } = useCashuStore();
 
   const [currentBalance, setCurrentBalance] = useState<number>(balance);
   const [isBalanceLoading, setIsBalanceLoading] = useState<boolean>(false);
@@ -261,6 +265,11 @@ export default function Cashu() {
     
     try {
       setIsBalanceLoading(true);
+      
+      // Update the mint URL in the SDK store directly
+      setMintUrl(mintUrl);
+      
+      // Then update in our local storage
       const success = await setActiveMint(mintUrl);
       
       if (success) {

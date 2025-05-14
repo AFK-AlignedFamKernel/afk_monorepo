@@ -43,11 +43,11 @@ const NDKConnector: React.FC<{children: React.ReactNode}> = ({ children }) => {
       }).catch(err => {
         console.error('Failed to connect to relays', err);
       });
-      
+    
       // Cleanup on unmount
-      return () => {
+    return () => {
         ndkInstance.disconnect();
-      };
+    };
     }
   }, [ndk, setNDK]);
   
@@ -64,11 +64,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <RelayInitializer>
             <NostrProvider>
               <CashuProvider>
-                <UIProvider>
-                  <NDKConnector>
-                    {children}
-                  </NDKConnector>
-                </UIProvider>
+              <UIProvider>
+                <NDKConnector>
+                  {children}
+                </NDKConnector>
+              </UIProvider>
               </CashuProvider>
             </NostrProvider>
           </RelayInitializer>
