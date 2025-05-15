@@ -14,6 +14,7 @@ import Accordion from './small/accordion';
 import RightBarDesktop from './RightBarDesktop';
 
 import { ProfileManagement } from '@/components/profile/profile-management';
+import { AvatarIcon } from './small/icons';
 
 interface LayoutProps {
   children: ReactNode;
@@ -40,7 +41,7 @@ const Layout = ({ children }: LayoutProps) => {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     const readNostrStorage = () => {
       const nostrStorageStr = NostrKeyManager.getNostrWalletConnected()
       if (!nostrStorageStr) {
@@ -71,7 +72,7 @@ const Layout = ({ children }: LayoutProps) => {
   // Initialize dark mode from localStorage or system preference
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    
+
     // Now safe to use localStorage or document
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
@@ -169,7 +170,7 @@ const Layout = ({ children }: LayoutProps) => {
           </a>
         </div>
 
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
 
           <button
             className="theme-toggle"
@@ -198,25 +199,28 @@ const Layout = ({ children }: LayoutProps) => {
               </svg>
             )}
           </button>
+        </div> */}
+        <div className="flex items-center gap-4">
+          <button className="btn btn-blue" onClick={() => showModal(<ProfileManagement />)}>
+            <AvatarIcon width={20} height={20} />
+          </button>
+          <button
+            // className="sidebar-toggle"
+            onClick={toggleSidebar}
+            aria-label="Toggle navigation"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M3 12H21M3 6H21M3 18H21"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
-        <button className="btn btn-blue" onClick={() => showModal(<ProfileManagement />)}>
-          <Image src="/icons/user.svg" alt="User" width={20} height={20} />
-        </button>
-        <button
-          // className="sidebar-toggle"
-          onClick={toggleSidebar}
-          aria-label="Toggle navigation"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M3 12H21M3 6H21M3 18H21"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+
       </header>
 
       {/* Sidebar */}
@@ -280,7 +284,7 @@ const Layout = ({ children }: LayoutProps) => {
                 ]} />
             </div>
 
-             <Link href="/wallet" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Link href="/wallet" className="sidebar-nav-item" onClick={closeSidebar}>
               <Icon name="WalletIcon" size={24} />
               Wallet
             </Link>
