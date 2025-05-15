@@ -22,9 +22,9 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
     // }, [dimensions]);
 
     const { publicKey, setAuth } = useAuth();
-    const [isOpenProfile, setIsOpenProfile] = React.useState(true);
+    const [isOpenProfile, setIsOpenProfile] = React.useState(false);
     const nostrAccounts = NostrKeyManager.getAllNostrAccountsFromStorage();
-    const [isWalletSelectOpen, setIsWalletSelectOpen] = React.useState(true);
+    const [isWalletSelectOpen, setIsWalletSelectOpen] = React.useState(false);
     const { showToast } = useUIStore();
     const handleIsOpenProfile = () => {
         setIsOpenProfile(!isOpenProfile);
