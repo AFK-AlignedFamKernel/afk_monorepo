@@ -6,17 +6,14 @@ import { Icon } from '../small/icon-component';
 export default function MenuGameComponent() {
   return (
       <div className="shadow-lg p-4 rounded-lg px-4">
-        <h2 className="text-xl font-semibold">AFK is your gateway for your Freedom</h2>
-        <p>
-          AFK is a gateway for your Freedom.
-        </p>
+        <h2 className="font-semibold">AFK is your gateway for your Freedom</h2>
         <p>
           Own your digital content, data, money and identity.
           Get rewarded for you digital value share on Internet!
         </p>
-        <p>
+        {/* <p>
          Cross social media platform all-in-one that allows you to produced and get rewarded for your content.
-        </p>
+        </p> */}
 
         <div className="grid grid-cols-2 gap-4">
           <Link
