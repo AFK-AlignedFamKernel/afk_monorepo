@@ -5,7 +5,6 @@ import { NDKEvent, NDKKind as NDK } from '@nostr-dev-kit/ndk';
 import { useSearch, useProfile, useNostrContext } from 'afk_nostr_sdk';
 import { NostrEventCard } from '../EventCard';
 import { NostrEventKind } from '@/types/nostr';
-import './feed.scss';
 import CryptoLoading from '@/components/small/crypto-loading';
 
 interface NostrFeedProps {

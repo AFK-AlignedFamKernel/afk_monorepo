@@ -3,14 +3,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { NostrPostEventProps } from '@/types/nostr';
 import NostrEventCardBase from './NostrEventCardBase';
-import '../feed/feed.scss';
 import { useAuth, useNote, useProfile, useQuote, useReact, useReactions, useReplyNotes, useRepost, useSendNote } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
 import CommentContainer from './CommentContainer';
 import { QuoteRepostComponent } from './quote-repost-component';
 import { Icon } from '@/components/small/icon-component';
-import { theme } from '@chakra-ui/react';
 import { RepostIcon } from '@/components/small/icons';
 import { NDKKind } from '@nostr-dev-kit/ndk';
 import { useRouter } from 'next/navigation';

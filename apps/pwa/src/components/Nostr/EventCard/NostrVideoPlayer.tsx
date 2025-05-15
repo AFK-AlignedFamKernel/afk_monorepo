@@ -9,6 +9,7 @@ import { Icon } from '@/components/small/icon-component';
 import { useUIStore } from '@/store/uiStore';
 import CommentContainer from './CommentContainer';
 import { useQueryClient } from '@tanstack/react-query';
+import { ProfileCardOverview } from './ProfileCardOverview';
 
 export const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
   const { publicKey } = useAuth();
@@ -18,7 +19,7 @@ export const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
-  const { data: profile } = useProfile({ publicKey: event.pubkey });
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
@@ -273,7 +274,13 @@ export const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
       <div className="nostr-short-feed__interaction-panel">
         {/* Profile section */}
         <div className="nostr-short-feed__profile">
-          <div className="nostr-short-feed__profile-avatar">
+          <div className="nostr-short-feed__profile-avatar"
+            onClick={() => {
+              showModal(<>
+                <ProfileCardOverview event={event} profile={profile} />
+              </>)
+            }}
+          >
             {profile?.picture ? (
               <img
                 src={profile.picture}

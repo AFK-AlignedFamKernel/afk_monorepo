@@ -2,8 +2,9 @@
 
 import React, { ReactNode } from 'react';
 import { NostrEventBase, formatTimestamp, truncate } from '@/types/nostr';
-import '../feed/feed.scss';
 import { useRouter } from 'next/navigation';
+import { useUIStore } from '@/store/uiStore';
+import ProfileCardOverview from './ProfileCardOverview';
 interface NostrEventCardBaseProps extends NostrEventBase {
   children?: ReactNode;
 }
@@ -15,6 +16,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
   children,
 }) => {
   const router = useRouter();
+  const {showModal} = useUIStore()
 
   if (isLoading) {
     return (
@@ -39,19 +41,22 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
 
   return (
     <div className="event-card">
-      <div className="flex items-center mb-2"
+      <div className="flex items-center mb-8"
         onClick={() => {
-          router.push(`/nostr/profile/${event.pubkey}`)
+          showModal(<>
+            <ProfileCardOverview event={event} profile={profile} />
+          </>)
+          // router.push(`/nostr/profile/${event.pubkey}`)
         }}
       >
         {profile?.picture ? (
-          <div className="w-10 h-10 rounded-full overflow-hidden">
+          <div className="w-30 h-30 rounded-full overflow-hidden">
             <img
               src={profile.picture}
               alt={displayName}
-              width={40}
-              height={40}
-              className="object-cover w-10 h-10"
+              width={50}
+              height={50}
+              // className="object-cover w-10 h-10"
             />
           </div>
         ) : (
@@ -64,7 +69,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
         <div className="ml-2">
           <div className="font-medium text-gray-900 dark:text-white">{displayName}</div>
           <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-            <span>{timestamp}</span>
+            <span className="text-xs">{timestamp}</span>
             {profile?.nip05 && (
               <span className="ml-1 text-blue-500">✓</span>
             )}

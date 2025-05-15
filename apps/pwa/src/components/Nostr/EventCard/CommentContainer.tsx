@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { formatTimestamp, NostrPostEventProps, truncate } from '@/types/nostr';
 import NostrEventCardBase from './NostrEventCardBase';
-import '../feed/feed.scss';
 import { useNote, useReplyNotes, useSendNote } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';

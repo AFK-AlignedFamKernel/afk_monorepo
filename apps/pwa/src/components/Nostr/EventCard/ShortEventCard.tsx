@@ -3,9 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { NostrShortEventProps } from '@/types/nostr';
 import NostrEventCardBase from './NostrEventCardBase';
-import '../feed/feed.scss';
 import { NostrEvent, NDKUserProfile, NDKEvent } from '@nostr-dev-kit/ndk';
-
 
 interface ShortEventCardProps extends NostrShortEventProps {
   event: NDKEvent;

@@ -3,7 +3,6 @@
 import React, { useMemo, useState } from 'react';
 import { NostrArticleEventProps } from '@/types/nostr';
 import NostrEventCardBase from './NostrEventCardBase';
-import '../feed/feed.scss';
 import { authStore, useReact, useReactions } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';

@@ -40,6 +40,15 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
           limit: options?.limit ?? 20,
         });
 
+        // Filter out duplicate events based on their IDs
+        const uniqueNotes = Array.from(
+          new Set([...notes].map(note => note.id))
+        ).map(id => [...notes].find(note => note.id === id)!);
+        
+        // If we're filtering out replies
+        if (options?.isWithouthReply) {
+          return uniqueNotes.filter(note => !note.tags.some(tag => tag[0] === 'e'));
+        }
         return [...notes];
       } catch (error) {
         console.error('Error fetching events:', error);

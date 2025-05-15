@@ -1,3 +1,28 @@
+// Import variables from index.scss
+// Note: This is handled by the main SCSS import system
+// The variables are already available through the import chain:
+// main.scss -> index.scss -> nostr/feed.scss
+
+// Define feed-specific variables
+$feed-border-radius: 0.5rem;
+$feed-tab-spacing: 0.5rem;
+$feed-animation-speed: 0.2s;
+
+// Use theme colors from the root variables
+:root {
+  --feed-bg: var(--background);
+  --feed-text: var(--foreground);
+  --feed-border: var(--border);
+  --feed-tab-active: var(--primary-500);
+  --feed-tab-inactive: var(--primary-400);
+  --feed-hover: var(--shade-100);
+}
+
+// Dark mode adjustments
+.dark-mode {
+  --feed-hover: var(--shade-700);
+}
+
 // Feed SCSS Styles
 .nostr-feed {
   &__container {
@@ -15,10 +40,15 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     scrollbar-width: none; // Firefox
     -ms-overflow-style: none; // IE/Edge
+    font-size: 1rem;
     
     &::-webkit-scrollbar {
       display: none; // Chrome/Safari/Opera
     }
+
+    // span {
+    //   font-size: 16px;
+    // }
 
     &-button {
       display: flex;
@@ -28,21 +58,22 @@
       border-radius: 0.375rem;
       white-space: nowrap;
       transition: all 0.2s ease;
-      font-size: 0.875rem;
+      font-size: 1.75rem;
       border: none;
       background: transparent;
       cursor: pointer;
 
       &--active {
-        background-color: var(--primary-bg-light, #ebf5ff);
-        color: var(--primary-color, #3b82f6);
+        background-color: var(--primary-400, var(--primary-500));
+        // color: var(--primary-color, #3b82f6);
+        // color: var(--primary-color, var(--feed-hover));
       }
 
       &:not(.nostr-feed__tabs-button--active) {
-        color: var(--text-secondary, #6b7280);
+        // color: var(--text-secondary, #6b7280);
         
         &:hover {
-          background-color: var(--hover-bg, #f3f4f6);
+          // background-color: var(--hover-bg, var(--card-bg));
         }
       }
 

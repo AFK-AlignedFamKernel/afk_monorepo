@@ -200,7 +200,7 @@ const Layout = ({ children }: LayoutProps) => {
           </button>
         </div>
         <button className="btn btn-blue" onClick={() => showModal(<ProfileManagement />)}>
-          Connect
+          <Image src="/icons/user.svg" alt="User" width={20} height={20} />
         </button>
         <button
           // className="sidebar-toggle"

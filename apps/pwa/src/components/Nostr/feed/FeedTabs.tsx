@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { NostrEventKind } from '@/types/nostr';
 import NostrFeed from './NostrFeed';
 import { NDKKind } from '@nostr-dev-kit/ndk';
 import NostrShortFeed from './NostrShortFeed';
-// import "./feed.scss"
 
 interface Tab {
   id: string;
@@ -110,11 +108,11 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
           <button
             key={tab.id}
             className={`nostr-feed__tabs-button ${activeTab === tab.id ? 'nostr-feed__tabs-button--active' : ''
-              }`}
+              } text-xl`}
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.icon}
-            <span>
+            <span className="text-lg">
               {tab.label}
 
             </span>
