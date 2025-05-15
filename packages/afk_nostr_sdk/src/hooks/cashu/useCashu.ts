@@ -122,7 +122,8 @@ export interface ICashu {
   filteredProofsSpents: (proofs: Proof[]) => Promise<{ proofsFiltered: Proof[], proofsSpents: Proof[] }>;
 }
 
-export const useCashu = (): ICashu => {
+
+export const useCashu = () => {
   const { ndkCashuWallet } = useNostrContext();
   const { privateKey } = useAuth();
   const { setSeed, seed, setMnemonic } = useCashuStore();
@@ -132,7 +133,7 @@ export const useCashu = (): ICashu => {
 
   const [mintUrlSelected, setMintUrlSelected] = useState<string>("https://mint.cubabitcoin.org");
 
-  const [activeMint, setActiveMint] = useState<string>();
+  const [activeMint, setActiveMint] = useState<string>("https://mint.cubabitcoin.org");
   // const [activeMint, setActiveMint] = useState<string>("https://mint.minibits.cash/Bitcoin");
   const [activeMintIndex, setActiveMintIndex] = useState<number>(0);
   const [activeUnit, setActiveUnit] = useState<string>();
@@ -169,21 +170,31 @@ export const useCashu = (): ICashu => {
 
   // Initialize without immediate state update that triggers renders
   const [walletConnected, setWalletConnected] = useState<CashuWallet | undefined>(undefined);
-  
-    
+
+
   const initializeWallet = async () => {
     try {
       console.log('Initializing wallet with mint:', mint.mintUrl);
-      
+
+
+      let mintInstance = mint;
+
+      if (!mint) {
+        mintInstance = new CashuMint(activeMint);
+      }
+
+      if (!mintInstance) {
+        return;
+      }
       // Create new wallet instance
-      const newWallet = new CashuWallet(mint, {
+      const newWallet = new CashuWallet(mintInstance, {
         bip39seed: seed,
         unit: activeUnit || 'sat',
       });
-      
+
       console.log('Wallet created, setting as walletConnected');
       setWalletConnected(newWallet);
-      
+
       // Try to preload keys to ensure wallet is fully initialized
       try {
         console.log('Preloading mint keys and keysets');
@@ -214,11 +225,11 @@ export const useCashu = (): ICashu => {
 
   const [keysetsMint, setKeysetsMint] = useState<MintKeyset[]>([]);
   const [keysMint, setKeysMint] = useState<MintKeys[]>([]);
-  
+
   // Move state updates to useEffect
   useEffect(() => {
     if (!mint) return;
-    
+
     (async () => {
       try {
         console.log('Fetching keysets and keys for mint:', mint.mintUrl);
@@ -433,14 +444,14 @@ export const useCashu = (): ICashu => {
         console.error('Cannot connect wallet: No mint provided');
         return undefined;
       }
-      
+
       // Get the mint URL
       const mintUrl = cashuMint.mintUrl;
       console.log(`Connecting wallet to mint: ${mintUrl}`);
-      
+
       // Set as active mint
       setActiveMint(mintUrl);
-      
+
       // Get mint keysets if needed
       let mintKeyssets;
       try {
@@ -450,7 +461,7 @@ export const useCashu = (): ICashu => {
         console.error('Error getting keysets from mint:', err);
         // Continue without keysets - the wallet can still be created
       }
-      
+
       // Create wallet instance
       console.log('Creating wallet with seed, unit:', seed ? 'present' : 'not present', activeUnit || 'sat');
       const walletInstance = new CashuWallet(cashuMint, {
@@ -459,7 +470,7 @@ export const useCashu = (): ICashu => {
         // Use keys if provided
         keys: keys || undefined,
       });
-      
+
       // Verify the wallet works by testing a basic function
       try {
         console.log('Testing wallet initialization with a basic operation');
@@ -469,11 +480,11 @@ export const useCashu = (): ICashu => {
         console.error('Warning: Wallet initialization test failed:', testErr);
         // Continue anyway - some operations may still work
       }
-      
+
       // Store wallet instance globally for the SDK
       setWalletConnected(walletInstance);
       console.log('Wallet connected successfully');
-      
+
       return walletInstance;
     } catch (err) {
       console.error('Error connecting to wallet:', err);
@@ -584,8 +595,8 @@ export const useCashu = (): ICashu => {
   };
 
   // Add a helper function to validate and parse mint responses
-  const parseAndValidateMintResponse = (response: any): { 
-    isValid: boolean; 
+  const parseAndValidateMintResponse = (response: any): {
+    isValid: boolean;
     invoice?: string;
     paymentHash?: string;
     quoteId?: string;
@@ -597,27 +608,27 @@ export const useCashu = (): ICashu => {
     if (!response) {
       return { isValid: false, error: 'Empty response from mint' };
     }
-    
+
     // Extract all possible invoice field names
-    const invoice = response.request || 
-                   response.pr || 
-                   response.bolt11 || 
-                   response.payment_request || 
-                   response.invoice || 
-                   '';
-                   
+    const invoice = response.request ||
+      response.pr ||
+      response.bolt11 ||
+      response.payment_request ||
+      response.invoice ||
+      '';
+
     // Extract all possible payment hash fields
-    const paymentHash = response.hash || 
-                       response.payment_hash || 
-                       response.id || 
-                       response.paymentHash || 
-                       '';
-    
+    const paymentHash = response.hash ||
+      response.payment_hash ||
+      response.id ||
+      response.paymentHash ||
+      '';
+
     // Extract quote ID and amount if available
     const quote = response.quote || '';
     const quoteId = response.id || response.quote_id || '';
     const amount = response.amount || response.value || 0;
-    
+
     // Log the found fields
     console.log('Parsed mint response:', {
       hasInvoice: !!invoice,
@@ -626,10 +637,10 @@ export const useCashu = (): ICashu => {
       hasQuoteId: !!quoteId,
       amount
     });
-    
+
     // Determine validity - must have at least invoice or payment hash
     const isValid = !!(invoice || paymentHash);
-    
+
     return {
       isValid,
       invoice,
@@ -644,41 +655,41 @@ export const useCashu = (): ICashu => {
   // New method with retry logic for generating mint quotes
   const createMintQuoteWithRetry = async (amount: number, maxAttempts = 3): Promise<MintQuoteResponse> => {
     let lastError: Error | null = null;
-    
+
     // Get a wallet instance
     const walletInstance = wallet || walletConnected;
     if (!walletInstance) {
       throw new Error('No wallet instance available');
     }
-    
+
     // Make multiple attempts
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
         console.log(`Creating mint quote attempt ${attempt}/${maxAttempts} for ${amount} sats`);
-        
+
         // Set timeout for this request
         const timeoutMs = 5000 * attempt; // Increase timeout with each attempt
-        
+
         // Create the quote with timeout
         const quotePromise = walletInstance.createMintQuote(amount);
-        const timeoutPromise = new Promise<never>((_, reject) => 
+        const timeoutPromise = new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error(`Quote request timeout (${timeoutMs}ms)`)), timeoutMs)
         );
-        
+
         // Race the promises
         const response = await Promise.race([quotePromise, timeoutPromise]);
-        
+
         // Use our enhanced validation
         const parsed = parseAndValidateMintResponse(response);
-        
+
         if (!parsed.isValid) {
           console.warn(`Invalid response format (attempt ${attempt}):`, response);
           throw new Error(parsed.error || 'Invalid mint response format');
         }
-        
+
         // If we got here, we have a valid response
         console.log(`Successful quote generation on attempt ${attempt}`);
-        
+
         // Ensure the response matches the expected MintQuoteResponse format as best as possible
         const validatedResponse = {
           ...response,
@@ -688,12 +699,12 @@ export const useCashu = (): ICashu => {
           request: parsed.invoice || (response as any).request || '',
           hash: parsed.paymentHash || (response as any).hash || ''
         };
-        
+
         return validatedResponse as MintQuoteResponse;
       } catch (err) {
         console.error(`Quote generation failed on attempt ${attempt}:`, err);
         lastError = err instanceof Error ? err : new Error(String(err));
-        
+
         // Don't wait after the final attempt
         if (attempt < maxAttempts) {
           const waitTime = 1000 * attempt;
@@ -702,7 +713,7 @@ export const useCashu = (): ICashu => {
         }
       }
     }
-    
+
     // All attempts failed
     throw lastError || new Error('Failed to generate quote after multiple attempts');
   };
@@ -711,28 +722,28 @@ export const useCashu = (): ICashu => {
     try {
       // Check if either wallet or walletConnected is available
       const walletInstance = wallet || walletConnected;
-      
+
       if (!walletInstance) {
         console.error('No wallet instance available when attempting to create mint quote');
         throw new Error('Wallet not initialized');
       }
 
       console.log('Creating mint quote with wallet instance:', walletInstance);
-      
+
       // Validate the wallet instance has required methods
       if (typeof walletInstance.createMintQuote !== 'function') {
         console.error('Wallet instance missing createMintQuote method:', walletInstance);
         throw new Error('Invalid wallet instance: missing createMintQuote method');
       }
-      
+
       // Verify mint connection in the wallet
       if (!walletInstance.mint) {
         console.error('Wallet instance has no mint connection');
         throw new Error('Wallet has no mint connection');
       }
-      
+
       console.log('Using mint URL:', walletInstance.mint.mintUrl);
-      
+
       // Try to test mint connection
       try {
         const mintInfo = await walletInstance.mint.getInfo();
@@ -741,11 +752,11 @@ export const useCashu = (): ICashu => {
         console.warn('Warning: Could not get mint info:', mintErr);
         // Continue anyway - some operations may still work
       }
-      
+
       // Use the new retry function with enhanced validation
       console.log(`Calling createMintQuoteWithRetry with amount: ${nb}`);
       let request;
-      
+
       try {
         request = await createMintQuoteWithRetry(nb);
         console.log('Raw quote response after validation:', request);
@@ -753,15 +764,15 @@ export const useCashu = (): ICashu => {
         console.error('Error in createMintQuoteWithRetry:', quoteErr);
         throw quoteErr;
       }
-      
+
       // Perform a final validation check
       const finalValidation = parseAndValidateMintResponse(request);
-      
+
       if (!finalValidation.isValid) {
         console.error('Final validation check failed:', finalValidation.error);
         throw new Error(finalValidation.error || 'Invalid quote response from mint');
       }
-      
+
       // Try to check the mint quote but don't fail if this fails
       try {
         if (request.quote) {
@@ -774,7 +785,7 @@ export const useCashu = (): ICashu => {
         console.error('Error checking mint quote:', checkErr);
         // Continue even if checking fails
       }
-      
+
       return {
         request,
       };
@@ -805,7 +816,7 @@ export const useCashu = (): ICashu => {
         walletInstance = await initializeWallet();
       };
 
-      if(!walletInstance) {
+      if (!walletInstance) {
         console.log('No wallet instance available when attempting to melt tokens');
         throw new Error('Wallet not initialized');
       }
@@ -1018,10 +1029,10 @@ export const useCashu = (): ICashu => {
       const NostrKeyManager = await import('../../utils/nostr-key-manager').then(
         m => m.NostrKeyManager
       ).catch(() => null);
-      
+
       let walletSeed = seed; // Default to current seed
       let usingNostrSeed = false;
-      
+
       // Try to get Nostr seed if NostrKeyManager is available
       if (NostrKeyManager) {
         try {
@@ -1031,7 +1042,7 @@ export const useCashu = (): ICashu => {
             console.log('Using Nostr seed for Cashu wallet');
             // Convert seed to the format expected by CashuWallet (Uint8Array)
             walletSeed = Buffer.from(nostrSeed, 'hex');
-            
+
             // Update Cashu store with Nostr seed
             if (walletSeed && walletSeed.length > 0) {
               setSeed(walletSeed);
@@ -1043,7 +1054,7 @@ export const useCashu = (): ICashu => {
           // Continue with current seed if error occurs
         }
       }
-      
+
       // Connect wallet with appropriate seed
       return connectCashWallet(cashuMint, keys);
     } catch (err) {
