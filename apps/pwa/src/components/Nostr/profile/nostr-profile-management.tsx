@@ -70,101 +70,30 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
             )}
 
             {publicKey && (
-                <div>
+                <div className='flex flex-row gap-2'>
                     <p className='text-sm' style={{
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis'
-                    }}>Public Key connected: {publicKey}</p>
+                    }}>Connected: {publicKey?.slice(0, 5)}...{publicKey?.slice(-5)}</p>
 
-                    <button className='btn btn-primary' onClick={() => {
+
+                    <div onClick={() => {
                         navigator.clipboard.writeText(publicKey);
                         showToast({
                             message: "Public key copied to clipboard",
                             type: "success"
                         });
-                    }}>Copy <Icon name="CopyIcon" size={16} /></button>
+                    }}><Icon name="CopyIcon" size={16} /></div>
+
                 </div>
             )}
-            {/* {isModalMode && isOpenProfile && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}>
-                    <div style={{
-                        backgroundColor: 'white',
-                        padding: '20px',
-                        borderRadius: '8px',
-                        width: '90%',
-                        maxWidth: '500px'
-                    }}>
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'flex-end'
-                        }}>
-                            <button
-                                onClick={handleIsOpenProfile}
-                                style={{
-                                    border: 'none',
-                                    background: 'none',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                <span>{isOpenProfile ? 'Close' : 'Open'}</span>
-                            </button>
-                        </div>
-
-                        <div style={{ padding: '20px' }}>
-                            <h2 style={{
-                                fontSize: '1.5rem',
-                                marginBottom: '1rem'
-                            }}>Nostr Accounts</h2>
-
-                            <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: '10px'
-                            }}>
-                                {nostrProfiles.map((item: any, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => {
-                                            setAuth(item?.publicKey, item?.secretKey);
-                                            NostrKeyManager.setAccountConnected(item);
-                                            handleIsOpenProfile();
-                                        }}
-                                        style={{
-                                            padding: '10px',
-                                            border: '1px solid #ddd',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        <span>{item?.publicKey?.slice(0, 8)}...{item?.publicKey?.slice(-8)}</span>
-                                    </button>
-                                ))}
-                            </div>
-
-                            <h2 style={{
-                                fontSize: '1.5rem',
-                                margin: '1rem 0'
-                            }}>Wallets</h2>
-                        </div>
-                    </div>
-                </div>
-            )} */}
 
             <div style={{
                 display: 'flex',
                 justifyContent: 'flex-end',
-                padding: '10px'
+                padding: '10px',
+                gap: '10px'
             }}>
                 <div style={{ position: 'relative' }}>
                     <button
@@ -209,7 +138,16 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
 
                 </div>
 
+                {nostrProfiles.length > 1 && (
+                    <button className='btn btn-primary' onClick={() => {
+                        setIsOpenProfile(!isOpenProfile);
+                    }}>View more</button>
+                )}
+
             </div>
+
+
+
 
             {!isModalMode && isOpenProfile && (
                 <div>
@@ -232,14 +170,15 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                                         borderRadius: '4px',
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        gap: '10px'
+                                        gap: '10px',
+                                        cursor: 'pointer'
                                     }}
-                                    onClick={() => {
-                                        // setAuth(item?.publicKey, item?.secretKey);
-                                        // NostrKeyManager.setAccountConnected(item);
-                                        handleIsOpenProfile();
-                                        handleConnectWallet(item);
-                                    }}
+                                // onClick={() => {
+                                //     // setAuth(item?.publicKey, item?.secretKey);
+                                //     // NostrKeyManager.setAccountConnected(item);
+                                //     handleIsOpenProfile();
+                                //     handleConnectWallet(item);
+                                // }}
                                 >
 
                                     <div className='flex flex-row gap-2'>
@@ -250,35 +189,39 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                                                 textOverflow: 'ellipsis'
                                             }}
                                         >
-                                            <p className='text-sm overflow-hidden text-ellipsis'>{item?.publicKey}</p>
                                             <p className='text-sm'>{item?.name}</p>
                                             <p className='text-sm'>{item?.username}</p>
-
-
-                                            {publicKey == item?.publicKey &&
-                                                <div className='flex'>
-                                                    <p>
-                                                        Connected
-                                                    </p>
+                                            <div className='flex flex-row gap-2 align-baseline'>
+                                                <p className='text-sm overflow-hidden text-ellipsis'>{item?.publicKey}</p>
+                                                <div onClick={() => {
+                                                    navigator.clipboard.writeText(item?.publicKey);
+                                                    showToast({
+                                                        message: "Public key copied to clipboard",
+                                                        type: "success"
+                                                    });
+                                                }}>
+                                                    <Icon name="CopyIcon" size={16}
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(item?.publicKey);
+                                                            showToast({
+                                                                message: "Public key copied to clipboard",
+                                                                type: "success"
+                                                            });
+                                                        }}
+                                                    /></div>
+                                            </div>
+                                            <div className='flex flex-row gap-2 align-baseline'>
+                                                {publicKey == item?.publicKey &&
                                                     <Icon name="CheckIcon" size={16}></Icon>
-                                                </div>
-                                            }
+                                                }
+                                                <button
+                                                    onClick={() => {
+                                                        handleConnectWallet(item);
+                                                    }}
 
-                                            <div>
-                                                <button className='btn btn-primary'>Connect
+                                                    className={`btn btn-primary ${publicKey == item?.publicKey ? 'btn-success' : ''}`}>Connect
                                                 </button>
                                             </div>
-                                        </div>
-
-                                        <div>
-
-                                            <div onClick={() => {
-                                                navigator.clipboard.writeText(item?.publicKey);
-                                                showToast({
-                                                    message: "Public key copied to clipboard",
-                                                    type: "success"
-                                                });
-                                            }}>Copy <Icon name="CopyIcon" size={16} /></div>
                                         </div>
                                     </div>
                                 </div>

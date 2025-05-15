@@ -273,12 +273,12 @@ const Layout = ({ children }: LayoutProps) => {
                         Login
                       </Link>
 
-                      {publicKey && (
+                      {/* {publicKey && (
                         <Link href="/nostr/messages" className="sidebar-nav-item" onClick={closeSidebar}>
                           <Icon name="MessageIcon" size={24} />
                           Messages
                         </Link>
-                      )}
+                      )} */}
                     </>)
                 },
                 ]} />
