@@ -28,7 +28,25 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
     },
     queryFn: async ({ pageParam }) => {
       // Simplify timestamp logic
-      const sinceTimestamp = pageParam || Math.round(Date.now() / 1000) - (24 * 60 * 60); // Default to 24 hours ago
+
+      let basicTimestamp = (1 * 60 * 60);
+
+      // if (options?.sinceInterval) {
+      //   basicTimestamp = options?.sinceInterval;
+      // }
+
+      if (!options?.kinds?.includes(NDKKind.Text)) {
+        basicTimestamp = (24 * 60 * 60);
+      }
+      // const sinceTimestamp = pageParam - basicTimestamp || Math.round(Date.now() / 1000) - basicTimestamp; // Default to 24 hours ago
+      const sinceTimestamp = pageParam || Math.round(Date.now() / 1000) - basicTimestamp; // Default to 24 hours ago
+      // const sinceTimestamp = pageParam || Math.round(Date.now() / 1000) - (24 * 60 * 60); // Default to 24 hours ago
+      // const basicTimestamp = (24 * 60 * 60); // Default to 24 hours ago
+
+      // const sinceTimestamp = pageParam
+      //   ? pageParam - basicTimestamp :// Restart from pageParam minus 1 hour
+      //   // ? pageParam - 1 * 60 * 60 :// Restart from pageParam minus 1 hour
+      //   Math.round(Date.now() / 1000) - basicTimestamp; // Start from 1 hour ago
 
       try {
         const notes = await ndk.fetchEvents({
@@ -44,12 +62,18 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
         const uniqueNotes = Array.from(
           new Set([...notes].map(note => note.id))
         ).map(id => [...notes].find(note => note.id === id)!);
-        
+
         // If we're filtering out replies
         if (options?.isWithouthReply) {
           return uniqueNotes.filter(note => !note.tags.some(tag => tag[0] === 'e'));
         }
-        return [...notes];
+
+        // Sort notes by created_at timestamp in descending order (newest first)
+        uniqueNotes.sort((a, b) => {
+          return b.created_at - a.created_at;
+        });
+        // return [...notes];
+        return [...uniqueNotes];
       } catch (error) {
         console.error('Error fetching events:', error);
         return [];
