@@ -284,10 +284,10 @@ const Layout = ({ children }: LayoutProps) => {
                 ]} />
             </div>
 
-            <Link href="/wallet" className="sidebar-nav-item" onClick={closeSidebar}>
+            {/* <Link href="/wallet" className="sidebar-nav-item" onClick={closeSidebar}>
               <Icon name="WalletIcon" size={24} />
               Wallet
-            </Link>
+            </Link> */}
 
 
             <Link href="/profile" className="sidebar-nav-item" onClick={closeSidebar}>

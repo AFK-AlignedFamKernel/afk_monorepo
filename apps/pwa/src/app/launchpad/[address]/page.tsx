@@ -30,6 +30,7 @@ export default function LaunchpadDetailPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [userShare, setUserShare] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const { handleBuyCoins } = useBuyCoin();
   const { handleSellCoins } = useSellCoin();
@@ -135,7 +136,7 @@ export default function LaunchpadDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       <ToastContainer
         toasts={toasts.map(toast => ({
           id: toast.id || Date.now(),
@@ -147,7 +148,7 @@ export default function LaunchpadDetailPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-4">Launchpad Details</h1>
-          <p className="text-gray-600">Address: {address}</p>
+          <p className="">Address: {address}</p>
         </div>
         <div className="lg:col-span-1">
           <LaunchActionsForm
@@ -163,8 +164,7 @@ export default function LaunchpadDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="space-y-4">
-              {/* Custom Tab Navigation */}
-              <div className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
+              <div className="flex space-x-1 rounded-xl p-1">
                 {tabs.map((tab, index) => (
                   <button
                     key={tab.name}
@@ -180,8 +180,7 @@ export default function LaunchpadDetailPage() {
                 ))}
               </div>
 
-              {/* Tab Content */}
-              <div className="rounded-xl bg-white p-3 shadow-lg">
+              <div className="rounded-xl p-3 shadow-lg">
                 {tabs[selectedTab].component}
               </div>
             </div>

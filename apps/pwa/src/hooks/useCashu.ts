@@ -1043,6 +1043,7 @@ export function useCashu() {
 
     try {
       console.log("amount",amount)
+      console.log("walletData.balance",walletData.balance)
       if (amount > walletData.balance) {
         throw new Error('Insufficient balance');
       }
@@ -1261,8 +1262,10 @@ export function useCashu() {
       let fees = await sdkCashu?.wallet?.getFeesForKeyset(amount, sdkCashu.activeUnit);
       console.log("fees", fees);
       
-      const totalAmount = amount + (fees > 0 ? fees : 2); // Include fees in total amount
+      const totalAmount = amount + (fees > 0 ? fees : 1); // Include fees in total amount
       
+      console.log("totalAmount",totalAmount)
+      console.log("walletData.balance",walletData.balance)
       if (totalAmount > walletData.balance) {
         throw new Error('Insufficient balance');
       }
@@ -1283,6 +1286,8 @@ export function useCashu() {
       const proofsToSend = res.send;
       const proofsToKeep = res.change || []; // Using change property from SDK response
       
+      console.log("proofsToSend", proofsToSend)
+      console.log("proofsToKeep", proofsToKeep)
       console.log('Proofs selected for payment:', proofsToSend.length);
       console.log('Change proofs:', proofsToKeep.length);
 

@@ -170,40 +170,41 @@ export const useCashu = (): ICashu => {
   // Initialize without immediate state update that triggers renders
   const [walletConnected, setWalletConnected] = useState<CashuWallet | undefined>(undefined);
   
+    
+  const initializeWallet = async () => {
+    try {
+      console.log('Initializing wallet with mint:', mint.mintUrl);
+      
+      // Create new wallet instance
+      const newWallet = new CashuWallet(mint, {
+        bip39seed: seed,
+        unit: activeUnit || 'sat',
+      });
+      
+      console.log('Wallet created, setting as walletConnected');
+      setWalletConnected(newWallet);
+      
+      // Try to preload keys to ensure wallet is fully initialized
+      try {
+        console.log('Preloading mint keys and keysets');
+        const keysets = await mint.getKeys();
+        const keys = await mint.getKeySets();
+      } catch (keysErr) {
+        console.error('Error preloading keys (non-critical):', keysErr);
+        // Continue anyway - wallet can still work
+      }
+      return newWallet;
+    } catch (err) {
+      console.error('Error initializing wallet:', err);
+      return undefined;
+    }
+  };
   // Initialize wallet in useEffect instead
   useEffect(() => {
     if (!mint) {
       console.log('No mint available for wallet initialization');
       return;
     }
-    
-    const initializeWallet = async () => {
-      try {
-        console.log('Initializing wallet with mint:', mint.mintUrl);
-        
-        // Create new wallet instance
-        const newWallet = new CashuWallet(mint, {
-          bip39seed: seed,
-          unit: activeUnit || 'sat',
-        });
-        
-        console.log('Wallet created, setting as walletConnected');
-        setWalletConnected(newWallet);
-        
-        // Try to preload keys to ensure wallet is fully initialized
-        try {
-          console.log('Preloading mint keys and keysets');
-          await mint.getKeys();
-          await mint.getKeySets();
-        } catch (keysErr) {
-          console.error('Error preloading keys (non-critical):', keysErr);
-          // Continue anyway - wallet can still work
-        }
-      } catch (err) {
-        console.error('Error initializing wallet:', err);
-      }
-    };
-    
     // Only initialize if we don't already have a wallet or if mint has changed
     if (!walletConnected || (walletConnected && walletConnected.mint.mintUrl !== mint.mintUrl)) {
       initializeWallet();
@@ -799,10 +800,18 @@ export const useCashu = (): ICashu => {
     try {
       console.log('meltTokens');
       console.log('wallet', wallet);
-      if (!wallet) return;
+      let walletInstance = wallet;
+      if (!wallet) {
+        walletInstance = await initializeWallet();
+      };
+
+      if(!walletInstance) {
+        console.log('No wallet instance available when attempting to melt tokens');
+        throw new Error('Wallet not initialized');
+      }
 
       // let walletToUse = wallet;
-      const meltQuote = await wallet?.createMeltQuote(invoice);
+      const meltQuote = await walletInstance?.createMeltQuote(invoice);
 
       console.log('meltQuote', meltQuote);
       const amountToSend = meltQuote.amount + meltQuote.fee_reserve;
@@ -828,7 +837,7 @@ export const useCashu = (): ICashu => {
 
       // in a real wallet, we would coin select the correct amount of proofs from the wallet's storage
       // instead of that, here we swap `proofs` with the mint to get the correct amount of proofs
-      const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(
+      const { keep: proofsToKeep, send: proofsToSend } = await walletInstance.send(
         amountToSend,
         selectedProofs,
         // {
@@ -836,7 +845,7 @@ export const useCashu = (): ICashu => {
         //   // keysetId: (await keysets).keysets[0].id,
         // }
       );
-      const meltResponse = await wallet.meltProofs(meltQuote, proofsToSend);
+      const meltResponse = await walletInstance.meltProofs(meltQuote, proofsToSend);
 
       return { meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs };
     } catch (e) {

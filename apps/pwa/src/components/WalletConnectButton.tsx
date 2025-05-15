@@ -1,10 +1,12 @@
 'use client';
 
 import React from 'react';
-import { useAccount, useConnect, useDisconnect, useInjectedConnectors } from '@starknet-react/core';
-import { connect, getSelectedConnectorWallet, disconnect } from "starknetkit"
+import { useAccount, useConnect, useDisconnect, useInjectedConnectors, Connector } from '@starknet-react/core';
+import { connect, getSelectedConnectorWallet, disconnect, Connector as StarknetkitConnector } from "starknetkit"
 import { argent, braavos } from '@starknet-react/core';
-import { StarknetkitConnector } from "starknetkit"
+import { ArgentMobileConnector } from "starknetkit/argentMobile"
+import { InjectedConnector } from 'starknetkit/injected';
+import { WebWalletConnector } from 'starknetkit/webwallet';
 
 export const WalletConnectButton: React.FC = () => {
   const { address, isConnected } = useAccount();
@@ -18,19 +20,24 @@ export const WalletConnectButton: React.FC = () => {
   const { connect: connectStarknet } = useConnect();
   const handleConnect = async () => {
     try {
+      const connectors = [
+        new InjectedConnector({
+          options: { id: "argentX", name: "Argent X" },
+        }),
+        new InjectedConnector({
+          options: { id: "braavos", name: "Braavos" },
+        }),
+        new WebWalletConnector({ url: "https://web.argent.xyz" }),
+        new ArgentMobileConnector(),
+      ]
+
       await connectStarknet({ connector: connectors[0] });
       // Using starknetkit's connect function to show all available connectors
       const result = await connect({
         modalMode: "alwaysAsk",
         dappName: "AFK",
         modalTheme: "dark",
-        // connectors: [
-        //   new StarknetkitConnector({
-        //     options: {
-        //       projectId: process.env.NEXT_PUBLIC_STARKNETKIT_PROJECT_ID,
-        //     },
-        //   }),
-        // ],
+        connectors: connectors as Connector[]
       });
 
       if (result && result.wallet) {

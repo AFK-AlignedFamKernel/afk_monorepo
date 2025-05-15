@@ -18,29 +18,29 @@ import { WebWalletConnector } from 'starknetkit/webwallet';
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
   const chains = [mainnet, sepolia];
-  const connectors = [
-    new InjectedConnector({
-      options: { id: "argentX", name: "Argent X" },
-    }),
-    new InjectedConnector({
-      options: { id: "braavos", name: "Braavos" },
-    }),
-    new WebWalletConnector({ url: "https://web.argent.xyz" }),
-    new ArgentMobileConnector(),
-  ]
+  // const connectors = [
+  //   new InjectedConnector({
+  //     options: { id: "argentX", name: "Argent X" },
+  //   }),
+  //   new InjectedConnector({
+  //     options: { id: "braavos", name: "Braavos" },
+  //   }),
+  //   new WebWalletConnector({ url: "https://web.argent.xyz" }),
+  //   new ArgentMobileConnector(),
+  // ]
 
-  // const { connectors } = useInjectedConnectors({
-  //   recommended: [argent(), braavos()],
-  //   includeRecommended: 'onlyIfNoConnectors',
-  //   order: 'random',
-  // });
+  const { connectors } = useInjectedConnectors({
+    recommended: [argent(), braavos()],
+    includeRecommended: 'onlyIfNoConnectors',
+    order: 'random',
+  });
 
   return (
     <StarknetConfig
       chains={chains}
       provider={publicProvider()}
       explorer={voyager}
-      // connectors={connectors as Connector[]} // Type assertion to fix type error temporarily
+      connectors={connectors as Connector[]} // Type assertion to fix type error temporarily
       autoConnect
     >
       {children}

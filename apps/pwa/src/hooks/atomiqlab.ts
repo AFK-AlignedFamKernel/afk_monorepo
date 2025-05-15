@@ -6,10 +6,15 @@ import {
     StarknetTokens
 } from "@atomiqlabs/chain-starknet";
 import { BitcoinNetwork, ChainInitializer, ISwap, LNURLPay, LNURLWithdraw, Swapper, SwapperFactory, SwapperWithSigner, ToBTCLNSwap } from '@atomiqlabs/sdk';
-import { useAccount, useConnect, useProvider } from '@starknet-react/core';
+import { useAccount, useConnect, useProvider, Connector } from '@starknet-react/core';
 import { useEffect, useState } from 'react';
 import { Account, Provider, RpcProvider, WalletAccount } from 'starknet';
 import { connect } from "starknetkit"
+
+import { ArgentMobileConnector } from "starknetkit/argentMobile"
+import { InjectedConnector } from 'starknetkit/injected';
+import { WebWalletConnector } from 'starknetkit/webwallet';
+
 
 const Factory = new SwapperFactory<[StarknetInitializerType]>([StarknetInitializer] as const);
 const Tokens = Factory.Tokens; //Get the supported tokens for all the specified chains.
@@ -17,6 +22,16 @@ const starknetRpc = "https://starknet-mainnet.public.blastapi.io/rpc/v0_7"
 const rpcProvider = new RpcProvider({
     nodeUrl: starknetRpc
 });
+  const connectors = [
+        new InjectedConnector({
+          options: { id: "argentX", name: "Argent X" },
+        }),
+        new InjectedConnector({
+          options: { id: "braavos", name: "Braavos" },
+        }),
+        new WebWalletConnector({ url: "https://web.argent.xyz" }),
+        new ArgentMobileConnector(),
+      ]
 
 export const useAtomiqLab = () => {
 
@@ -31,7 +46,8 @@ export const useAtomiqLab = () => {
     const handleConnect = async () => {
         //Browser, using get-starknet
         const swo = await connect({
-            modalMode: "alwaysAsk"
+            modalMode: "alwaysAsk",
+            connectors: connectors as Connector[]
         });
         let wallet: StarknetSigner | null = null;
 

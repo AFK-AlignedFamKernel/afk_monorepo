@@ -18,7 +18,7 @@ export function WalletConnectorModal() {
   if (!address) {
     return (
       <button
-        // onClick={connectWallet}
+        onClick={() => connect()}
         className=" text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors p-4"
       >
         Connect Wallet
