@@ -41,13 +41,15 @@ export const useGetVideos = (options?: UseRootNotesOptions):UseInfiniteQueryResu
 
 
       const notes = await ndk.fetchEvents({
-        kinds: options?.kinds ?? [NDKKind.HorizontalVideo, NDKKind.VerticalVideo],
+        kinds: options?.kinds ?? [NDKKind.HorizontalVideo, NDKKind.VerticalVideo, NDKKind.ShortVideo, NDKKind.Video],
         authors: options?.authors,
         search: options?.search,
         since: sinceTimestamp,
         until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit ?? 20,
       });
+
+      // console.log('notes', notes);
 
       return [...notes];
     },
