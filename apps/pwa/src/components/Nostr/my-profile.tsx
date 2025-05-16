@@ -15,7 +15,7 @@ export default function MyNostrProfileComponent() {
   })
   const [isEditOpen, setIsEditOpen] = useState(false)
   const { showToast, showModal } = useUIStore()
-  
+
 
   // console.log('profile', profile)
 
@@ -74,12 +74,12 @@ export default function MyNostrProfileComponent() {
             setIsEditOpen(!isEditOpen)
             showModal(<NostrProfileEditForm />)
           }}>{isEditOpen ? 'Close' : 'Edit'} Profile</button>
-          {isEditOpen && <NostrProfileEditForm />}
+          {/* {isEditOpen && <NostrProfileEditForm />} */}
         </>
       }
-      {profile &&
-        <FeedTabs authors={[publicKey as string]}></FeedTabs>
-      }
+      {profile && (
+        <FeedTabs authors={[publicKey as string]} />
+      )}
     </div>
   )
 }
@@ -111,13 +111,35 @@ export const ProfileHeader = (props?: any) => {
       <h1 className="text-2xl font-bold mb-4">
         {profile?.displayName || profile?.name || 'Anonymous'}
       </h1>
-      {profile.picture && (
+      {profile.banner && (
         <img
-          src={profile.picture}
-          alt="Profile"
-          className="w-32 h-32 rounded-full mb-4"
+          src={profile.banner}
+          alt="Profile Banner"
+          className="w-full h-32 md:h-48 object-cover rounded-t-lg mb-4"
         />
       )}
+
+      <div className="flex  items-center">
+        {profile.picture && (
+          <img
+            src={profile.picture}
+            alt="Profile"
+            className="w-32 h-32 rounded-full mb-4"
+          />
+        )}
+        <div>
+
+          <p className="text-2xl font-bold mb-4">
+            {profile?.displayName || profile?.name || profile?.username || 'Anonymous'}
+          </p>
+
+          <p className="text-2xl font-bold mb-4">
+            {profile?.lud06 || profile?.lud16 || 'Anonymous'}
+          </p>
+        </div>
+
+      </div>
+
       {profile.about && (
         <div>
           <p className="text-gray-600 mb-4">

@@ -11,10 +11,13 @@ export const NostrProfileEditForm = () => {
         publicKey: publicKey as string,
     })
     const fileUpload = useFileUpload();
+    const [pictureFile, setPictureFile] = useState<File | null>(null);
+    const [bannerFile, setBannerFile] = useState<File | null>(null);
 
     const [formData, setFormData] = useState({
-        username: profile?.username ? String(profile?.username) : '',
+        username: profile?.username ? String(profile?.display_name) : '',
         name: profile?.name ? String(profile?.name) : '',
+        displayName: profile?.display_name ? String(profile?.display_name) : '',
         about: profile?.about ? String(profile?.about) : '',
         picture: profile?.picture ? String(profile?.picture) : '',
         banner: profile?.banner ? String(profile?.banner) : '',
@@ -42,14 +45,17 @@ export const NostrProfileEditForm = () => {
             const values = formData;
             const { picture, banner } = values;
 
+            console.log("pictureFile", pictureFile);
+            console.log("bannerFile", bannerFile);
+
             let bannerUrl = banner;
             let pictureUrl = picture;
-            if (picture) {
-                const result = await fileUpload.mutateAsync(picture);
+            if (pictureFile) {
+                const result = await fileUpload.mutateAsync(pictureFile);
                 if (result.data.url) pictureUrl = result.data.url;
             }
-            if (banner) {
-                const result = await fileUpload.mutateAsync(banner);
+            if (bannerFile) {
+                const result = await fileUpload.mutateAsync(bannerFile);
                 if (result.data.url) bannerUrl = result.data.url;
             }
 
@@ -117,10 +123,10 @@ export const NostrProfileEditForm = () => {
                 <textarea
                     id="about"
                     name="about"
-                    value={formData.about}
+                    value={formData.about ?? ''}
                     onChange={handleChange}
                     rows={3}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg dark:bg-gray-800 dark:border-gray-600 dark:text-black dark:focus:border-blue-400 dark:focus:ring-blue-400 text-black"
                 />
             </div>
 
@@ -190,10 +196,11 @@ export const NostrProfileEditForm = () => {
                                 reader.onloadend = () => {
                                     const event = new Event('change', { bubbles: true });
                                     const target = Object.assign(event.target ?? {}, {
-                                        name: 'picture',
+                                        name: 'banner',
                                         value: reader.result as string
                                     }) as HTMLInputElement;
                                     handleChange({ target } as React.ChangeEvent<HTMLInputElement>);
+                                    setBannerFile(file);
                                 };
                                 reader.readAsDataURL(file);
                             }

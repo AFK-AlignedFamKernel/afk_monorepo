@@ -68,14 +68,13 @@ export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
 
     return (
 
-        <div>
+        <div className="mb-2">
             <p>Quote or Repost</p>
 
-            <input type="text-area"
+            <textarea
                 className="input-text"
                 placeholder="Write your comment or just repost"
                 value={quoteContent} onChange={(e) => setQuoteContent(e.target.value)} />
-
             <div className="
             flex gap-2 justify-center items-center space-x-2" >
                 <button
