@@ -23,8 +23,8 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   className = '',
   authors,
   searchQuery,
-  since,
-  until:untilProps
+  sinceProps,
+  until
 }) => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -44,83 +44,33 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   //     console.error('NDK connection error:', err);
   //   });
   // }, [ndk]);
-
-  const [notesData, setNotesData] = useState<NDKEvent[]>([]);
-  const [oldNotesData, setOldNotesData] = useState<NDKEvent[]>([]);
-
-  const [uniqueNotesData, setUniqueNotesData] = useState<NDKEvent[]>([]);
-  const [until, setUntil] = useState<number>(untilProps || Math.round(Date.now() / 1000));
+  const [since, setSince] = useState<number>(sinceProps || 0);
 
   const [lastCreatedAt, setLastCreatedAt] = useState<number>(0);
   // Use the useNotesFilter hook from afk_nostr_sdk
   const {
-    data: notesDataOld,
+    data: notesData,
     isLoading,
     isFetching,
     isError,
     error,
     fetchNextPage,
     hasNextPage,
-    refetch
+    refetch,
+    
   } = useSearch({
     // Convert number[] to NDKKind[]
     kinds: kinds.map(k => k as unknown as NDK),
     limit,
     authors,
+    since,
+    // until,
     // search: searchQuery
   });
-  console.log("notesDataOld", notesDataOld);
   console.log("notesData", notesData);
   // console.log("isLoading", isLoading);
   // console.log("isError", isError);
   console.log("error", error);
-
-  const fetchEvents = async () => {
-
-    try {
-      console.log("fetching events");
-      console.log("kinds", kinds);
-      const notes = await ndk.fetchEvents({
-        kinds: [...kinds],
-        authors: authors,
-        // search: searchQuery,
-        // since: since,
-        until: lastCreatedAt || Math.round(Date.now() / 1000),
-        limit: limit ?? 10,
-      });
-      console.log("notes", notes);
-      console.log("notesFetch", notes);
-      // Filter out duplicate events based on their IDs
-      const uniqueNotes = Array.from(
-        new Set([...notes].map(note => note.id))
-      ).map(id => [...notes].find(note => note.id === id)!);
-
-      // // If we're filtering out replies
-      // if (isWithouthReply) {
-      //   return uniqueNotes.filter(note => !note.tags.some(tag => tag[0] === 'e'));
-      // }
-
-      // Sort notes by created_at timestamp in descending order (newest first)
-      uniqueNotes.sort((a, b) => {
-        return b.created_at - a.created_at;
-      });
-      console.log("uniqueNotes", uniqueNotes);
-
-      setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
-      setUniqueNotesData(uniqueNotes);
-      // return [...notes];
-      setNotesData([...uniqueNotes, ...uniqueNotesData]);
-      return [...uniqueNotes];
-    } catch (error) {
-      console.error("Error fetching events:", error);
-      return [];
-    }
-  }
-
-  useEffect(() => {
-    fetchEvents().then(setNotesData);
-  }, [kinds, limit, authors, searchQuery, since, until]);
-
   // console.log("hasNextPage", hasNextPage);
   // console.log("refetch", refetch);
 
@@ -140,25 +90,33 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
 
   // Extract events from the paginated data
-  // const events = notesDataOld?.pages?.flat() || [];
-  const events = notesData || [];
+  const events = notesData?.pages?.flat() || [];
 
   // Function to handle event selection
   const handleEventClick = (eventId: string) => {
     setSelectedEvent(eventId === selectedEvent ? null : eventId);
   };
 
+
+  useEffect(() => {
+ 
+  }, [hasNextPage]);
+
   // Intersection Observer for infinite scrolling
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const [entry] = entries;
-    if (entry.isIntersecting && hasNextPage && !isFetching) {
+    // if (entry.isIntersecting && hasNextPage && !isFetching) {
+    if (entry.isIntersecting && !isFetching) {
+      console.log("fetching next page");
       fetchNextPage();
+      refetch()
     }
 
+    if (!hasNextPage) {
+      console.log("no more pages");
 
-    if (entry.isIntersecting) {
-      console.log("fetching events");
-      fetchEvents();
+      setLastCreatedAt(notesData?.pages?.[0]?.[0]?.created_at);
+      setSince(lastCreatedAt / 1000 * 60 * 60 * 3);
     }
   }, [fetchNextPage, hasNextPage, isFetching]);
 
@@ -179,7 +137,32 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     };
   }, [handleObserver]);
 
+  // // Fetch manually if hook isn't returning data
+  // const [manualEvents, setManualEvents] = useState<NDKEvent[]>([]);
 
+  // useEffect(() => {
+  //   if (!isLoading && events.length === 0) {
+  //     // Try to fetch manually if the hook isn't returning data
+  //     const fetchEventsManually = async () => {
+  //       try {
+  //         console.log('Fetching events manually');
+  //         await ndk.connect();
+
+  //         const notes = await ndk.fetchEvents({
+  //           kinds: kinds.map(k => k as unknown as NDK),
+  //           limit: 20
+  //         });
+
+  //         console.log('Manually fetched notes:', notes);
+  //         setManualEvents(Array.from(notes));
+  //       } catch (e) {
+  //         console.error('Manual fetch error:', e);
+  //       }
+  //     };
+
+  //     fetchEventsManually();
+  //   }
+  // }, [ndk, events.length, isLoading, kinds]);
 
   // Show loading state
   if (isLoading && events.length === 0 && events.length === 0) {
@@ -242,36 +225,38 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
           </div>
         </div>
       ) : (
-        <div className="nostr-feed__content overflow-y-auto max-h-[80vh]">
-          {allEvents.map((event, index) => {
+        <>
+          {allEvents.map((event) => {
             // Skip events without an id
             if (!event?.id) return null;
 
-            // Add ref to the last item to trigger loading more when it becomes visible
-            const isLastItem = index === allEvents.length - 1;
-
             return (
-              <div key={event.id}>
+
+              <>
                 <div
+                  key={event.id}
                   className="nostr-feed__card"
                   onClick={() => handleEventClick(event.id)}
-                  ref={isLastItem ? loaderRef : null}
                 >
                   <NostrEventCard
                     event={event}
                   />
                 </div>
                 {/* <div className="border-b border-gray-100 dark:border-gray-800 my-4"></div> */}
-              </div>
+              </>
+
             );
           })}
 
-          {isFetching && (
-            <div className="nostr-feed__loading-more py-4 text-center">
-              <CryptoLoading />
-            </div>
-          )}
-        </div>
+          <div ref={loaderRef} className="nostr-feed__loader">
+            {isFetching && (
+              <div className="nostr-feed__loading-more">
+                {/* <p>Loading more events...</p> */}
+                <CryptoLoading />
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
   );

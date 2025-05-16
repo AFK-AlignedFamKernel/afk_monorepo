@@ -40,8 +40,7 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
       // if (!options?.kinds?.includes(NDKKind.Text)) {
       //   basicTimestamp = (24 * 60 * 60);
       // }
-      const sinceTimestamp =  pageParam > 0 ? pageParam : Math.round(Date.now() / 1000) - basicTimestamp; // Default to 24 hours ago
-      // const sinceTimestamp = options?.since || pageParam || Math.round(Date.now() / 1000) - basicTimestamp; // Default to 24 hours ago
+      const sinceTimestamp = options?.since || pageParam || Math.round(Date.now() / 1000) - basicTimestamp; // Default to 24 hours ago
       // const sinceTimestamp = pageParam || Math.round(Date.now() / 1000) - basicTimestamp; // Default to 24 hours ago
       // const sinceTimestamp = pageParam || Math.round(Date.now() / 1000) - (24 * 60 * 60); // Default to 24 hours ago
       // const basicTimestamp = (24 * 60 * 60); // Default to 24 hours ago
@@ -58,8 +57,8 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
           kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
           authors: options?.authors,
           search: options?.search,
-          since: sinceTimestamp,
-          until: options?.until || pageParam > 0 ? pageParam : Math.round(Date.now() / 1000),
+          // since: sinceTimestamp,
+          // until: options?.until || options?.pageParamProps || pageParam || Math.round(Date.now() / 1000),
           limit: options?.limit ?? 10,
         });
 
