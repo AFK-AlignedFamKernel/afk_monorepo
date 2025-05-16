@@ -24,6 +24,7 @@ interface TokenDeployInterface {
   threshold_liquidity?: string;
   bonding_type?: string;
   total_token_holded?: string | null;
+  url?: string;
 }
 
 export default function PumpComponent() {
@@ -151,7 +152,7 @@ export default function PumpComponent() {
               className={`sidebar-nav-item ${tokenOrLaunch === 'MY_LAUNCH_TOKEN' ? 'active' : ''}`}
               onClick={() => setTokenOrLaunch('MY_LAUNCH_TOKEN')}
             >
-              My Launched Tokens
+              My Launches
             </button>
           </div>
 
@@ -185,7 +186,9 @@ export default function PumpComponent() {
                     description: item.description,
                     block_timestamp: item.block_timestamp,
                     liquidity_raised: Number(item.liquidity_raised) || 0,
-                    is_liquidity_added: item.is_liquidity_added
+                    is_liquidity_added: item.is_liquidity_added,
+                    threshold_liquidity: Number(item.threshold_liquidity) || 0,
+                    url: item.url,
                   }}
                   type={isLaunchView ? 'LAUNCH' : 'TOKEN'}
                 />

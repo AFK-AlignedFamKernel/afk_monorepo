@@ -28,7 +28,7 @@ async function uploadFile(fastify: FastifyInstance) {
         },
       });
 
-      const gatewayUrl = process.env.IPFS_GATEWAY || 'https://ipfs.io/';
+      const gatewayUrl = process.env.IPFS_GATEWAY || 'https://ipfs.io';
 
       return reply.code(200).send({
         hash: IpfsHash,

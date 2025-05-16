@@ -71,6 +71,7 @@ export class TokenLaunchService {
           market_cap: '0',
           token_deploy: {
             connect: {
+              memecoin_address: deployToken.memecoin_address,
               transaction_hash: deployToken.transaction_hash,
             },
           },

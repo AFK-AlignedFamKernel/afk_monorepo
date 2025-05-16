@@ -49,6 +49,12 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
                 {data?.created_at ? new Date(data.created_at).toLocaleDateString() : 'N/A'}
               </span>
             </div>
+            <div className="flex justify-between">
+              <span >Bonding Type</span>
+              <span className="font-medium">
+                {data?.bonding_type ? data?.bonding_type : 'N/A'}
+              </span>
+            </div>
           </div>
         </div>
       </div>

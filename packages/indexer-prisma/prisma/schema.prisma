@@ -15,7 +15,7 @@ model token_deploy {
   block_hash        String?
   block_number      BigInt?
   block_timestamp   DateTime? @db.Timestamp(6)
-  memecoin_address  String?
+  memecoin_address  String?   @unique
   owner_address     String?
   name              String?
   symbol            String?
@@ -38,7 +38,7 @@ model token_deploy {
   twitter           String?
   website           String?
   token_launch token_launch?
-  token_metadata token_metadata?
+  token_metadata token_metadata? @relation("TokenMetadataToDeploy")
 }
 
 model token_launch {
@@ -48,7 +48,7 @@ model token_launch {
   owner_address           String?
   block_number            BigInt?
   block_timestamp         DateTime? @db.Timestamp(6)
-  memecoin_address        String?
+  memecoin_address        String?   @unique
   quote_token             String?
   exchange_name           String?
   total_supply            String?
@@ -80,7 +80,7 @@ model token_launch {
   symbol                  String?
   token_deploy_tx_hash    String? @unique
   token_deploy            token_deploy? @relation(fields: [token_deploy_tx_hash], references: [transaction_hash])
-  token_metadata token_metadata?
+  token_metadata token_metadata? @relation("TokenMetadataToLaunch")
 }
 
 
@@ -91,7 +91,7 @@ model token_metadata {
   block_number     BigInt?
   contract_address String?
   block_timestamp  DateTime? @db.Timestamp(6)
-  memecoin_address String?
+  memecoin_address String?  @unique
   url              String?
   nostr_id         String?
   name             String?
@@ -103,8 +103,8 @@ model token_metadata {
   nostr_event_id   String?
 
   // One-to-one relation with token_launch
-  token_launch    token_launch? @relation(fields: [memecoin_address], references: [memecoin_address])
-  token_deploy    token_deploy? @relation(fields: [memecoin_address], references: [memecoin_address])
+  token_launch    token_launch? @relation("TokenMetadataToLaunch", fields: [memecoin_address], references: [memecoin_address], map: "token_metadata_to_launch_fkey")
+  token_deploy    token_deploy? @relation("TokenMetadataToDeploy", fields: [memecoin_address], references: [memecoin_address], map: "token_metadata_to_deploy_fkey")
 }
 
 model unrugmeme_deploy {
