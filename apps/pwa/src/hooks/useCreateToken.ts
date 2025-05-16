@@ -117,11 +117,12 @@ export const useCreateToken = () => {
       const githubByteArray = byteArray.byteArrayFromString(metadata?.github ?? '');
       const telegramByteArray = byteArray.byteArrayFromString(metadata?.telegram ?? '');
       const websiteByteArray = byteArray.byteArrayFromString(metadata?.website ?? '');
-
+      const nostrEventIdUint = metadata?.nostr_event_id ? uint256.bnToUint256(`0x${metadata?.nostr_event_id}`) : cairo.uint256(0); // Recipient nostr pubkey
       const metadataLaunch = {
         token_address: address,
         url: urlMetadata,
         twitter: twitterByteArray,
+        nostr_event_id: nostrEventIdUint,
         github: githubByteArray,
         telegram: telegramByteArray,
         website: websiteByteArray,
@@ -193,7 +194,7 @@ export const useCreateToken = () => {
   };
 
 
-  const deployTokenAndLaunchWithMetadata = async (account: AccountInterface, data: DeployTokenFormValues, metadata?: MetadataOnchain) => {
+  const deployTokenAndLaunchWithMetadata = async (data: DeployTokenFormValues, metadata?: MetadataOnchain) => {
     try {
       // const CONTRACT_ADDRESS_SALT_DEFAULT =
       //   data?.contract_address_salt ??
@@ -245,7 +246,7 @@ export const useCreateToken = () => {
       const githubByteArray = byteArray.byteArrayFromString(metadata?.github ? metadata.github : 'LFG');
       const telegramByteArray = byteArray.byteArrayFromString(metadata?.telegram ? metadata.telegram : 'LFG');
       const websiteByteArray = byteArray.byteArrayFromString(metadata?.website ? metadata.website : 'LFG');
-      const nostrEventIdUint = uint256.bnToUint256(`0x${metadata?.nostr_event_id}`); // Recipient nostr pubkey
+      const nostrEventIdUint = metadata?.nostr_event_id ? uint256.bnToUint256(`0x${metadata?.nostr_event_id}`) : cairo.uint256(0); // Recipient nostr pubkey
       const metadataLaunch = {
         token_address: metadata?.token_address ?? address,
         url: urlMetadata,
@@ -272,7 +273,8 @@ export const useCreateToken = () => {
           // is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           bonding_type: bondingEnum,
           creator_fee_percent: creator_fee_percent,
-          creator_fee_destination: creator_fee_destination,
+          // creator_fee_destination: creator_fee_destination,
+          creator_fee_destination: defaultAddress,
           metadata: metadataLaunch
         }),
       };

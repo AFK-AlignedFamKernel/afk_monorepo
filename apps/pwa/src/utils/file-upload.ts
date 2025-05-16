@@ -9,14 +9,24 @@ export const ApiInstance = axios.create({
   },
 });
 
-// export const ApiIndexerInstance = axios.create({
-//   baseURL: INDEXER_BACKEND_URL,
-//   timeout: 10_000,
-//   headers: {
-//     'Content-Type': 'application/json',
-//     // 'Access-Control-Allow-Origin':'*'
-//   },
-// });
+export const ApiIndexerInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL,
+  timeout: 10_000,
+  headers: {
+    'Content-Type': 'application/json',
+    // 'Access-Control-Allow-Origin':'*'
+  },
+});
+
+export const ApiBackendInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+  timeout: 10_000,
+  headers: {
+    'Content-Type': 'application/json',
+    // 'Access-Control-Allow-Origin':'*'
+  },
+});
+
 
 
 export function createAxiosInstanceWithInterceptor(baseURL: string): AxiosInstance {

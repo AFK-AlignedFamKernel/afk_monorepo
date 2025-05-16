@@ -3,7 +3,7 @@ import axios from 'axios';
 // import { Platform } from 'react-native';
 import { useApiMutation } from './useApiMutation';
 import { dataURLToBlob } from '@/utils/helpers';
-import { ApiInstance } from '@/utils/file-upload';
+import { ApiInstance, ApiBackendInstance } from '@/utils/file-upload';
 //ENVS
 const PINATA_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || 'https://ipfs.io/';
 
@@ -55,7 +55,7 @@ export const useFileUpload = () => {
                 formData.append('file', file);
             }
 
-            return ApiInstance.post('/file', formData, {
+            return ApiBackendInstance.post('/file', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

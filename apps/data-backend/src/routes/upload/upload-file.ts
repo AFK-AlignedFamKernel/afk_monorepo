@@ -28,9 +28,11 @@ async function uploadFile(fastify: FastifyInstance) {
         },
       });
 
+      const gatewayUrl = process.env.IPFS_GATEWAY || 'https://ipfs.io/';
+
       return reply.code(200).send({
         hash: IpfsHash,
-        url: `${process.env.IPFS_GATEWAY}/ipfs/${IpfsHash}`,
+        url: `${gatewayUrl}/ipfs/${IpfsHash}`,
       });
     } catch (error) {
       fastify.log.error(error);

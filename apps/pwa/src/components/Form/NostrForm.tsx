@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import classNames from 'classnames';
-import '../../styles/components/_nostr-form.scss';
-
+import { useFileUpload } from '@/hooks/useFileUpload';
 export type NostrEventType = 'note' | 'article';
 
 interface NostrFormProps {
@@ -33,6 +32,9 @@ export const NostrForm: React.FC<NostrFormProps> = ({
     tags: initialData?.tags || [],
     type: type,
   });
+
+  const [file, setFile] = useState<File | null>(null);
+  const fileUpload = useFileUpload();
 
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState<Partial<Record<keyof NostrFormData, string>>>({});
@@ -128,6 +130,14 @@ export const NostrForm: React.FC<NostrFormProps> = ({
         {errors.content && (
           <span className="nostr-form__error">{errors.content}</span>
         )}
+      </div>
+
+
+      <div className="nostr-form__field w-100">
+        <label htmlFor="file" className="nostr-form__label">
+          File
+        </label>
+        <input type="file" id="file" className="nostr-form__input w-100" onChange={(e) => setFile(e.target.files?.[0] || null)} />
       </div>
 
       <div className="nostr-form__field">

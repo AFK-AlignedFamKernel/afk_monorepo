@@ -27,9 +27,17 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           total_token_holded:true,
           block_timestamp:true,
           is_liquidity_added:true,
-          name:true,
-          symbol:true,
+          token_deploy: {
+            select: {
+              name: true,
+              symbol: true,
+            },
+          },
+          // name:true,
+          // symbol:true,
+       
         },
+       
       });
 
       reply.status(HTTPStatus.OK).send({
