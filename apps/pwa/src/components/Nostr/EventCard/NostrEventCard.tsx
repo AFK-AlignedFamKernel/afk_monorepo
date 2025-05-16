@@ -27,6 +27,9 @@ export const NostrEventCard: React.FC<NostrEventCardProps> = ({ event, isLoading
     picture: profileData.image || profileData.picture,
     about: profileData.about,
     nip05: profileData.nip05,
+    lud16: profileData.lud16,
+    lud06: profileData.lud06,
+    banner: profileData.banner,
   } : undefined;
 
   // Create the props needed for all card types

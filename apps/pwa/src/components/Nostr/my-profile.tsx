@@ -19,24 +19,20 @@ export default function MyNostrProfileComponent() {
 
   // console.log('profile', profile)
 
-  console.log('publicKey', publicKey)
 
   useEffect(() => {
 
     const readNostrStorage = () => {
       const nostrStorageStr = NostrKeyManager.getNostrWalletConnected()
-      console.log('nostrStorageStr', nostrStorageStr)
 
       if (!nostrStorageStr) {
         return
       }
 
       const nostrStorage = JSON.parse(nostrStorageStr)
-      console.log('nostrStorage', nostrStorage)
 
       if (nostrStorage && nostrStorage?.publicKey) {
         setAuth(nostrStorage?.publicKey, nostrStorage?.secretKey)
-        console.log('nostrStorage', nostrStorage)
       }
     }
     if (!publicKey) {
@@ -68,14 +64,16 @@ export default function MyNostrProfileComponent() {
         </div>
       }
       {profile &&
-        <>
+        <div className='gap-4 mb-2'>
           <ProfileHeader profile={profile} />
           <button onClick={() => {
             setIsEditOpen(!isEditOpen)
             showModal(<NostrProfileEditForm />)
-          }}>{isEditOpen ? 'Close' : 'Edit'} Profile</button>
+          }}
+          className='bg-blue-500 text-white px-4 py-2 rounded-md'
+          >{isEditOpen ? 'Edit' : 'Edit'}</button>
           {/* {isEditOpen && <NostrProfileEditForm />} */}
-        </>
+        </div>
       }
       {profile && (
         <FeedTabs authors={[publicKey as string]} />
@@ -101,16 +99,12 @@ export const ProfileHeader = (props?: any) => {
   const { profile } = props
 
   const [showMore, setShowMore] = useState(false)
-  console.log('profile', profile)
   if (!profile) {
     return null
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">
-        {profile?.displayName || profile?.name || 'Anonymous'}
-      </h1>
       {profile.banner && (
         <img
           src={profile.banner}

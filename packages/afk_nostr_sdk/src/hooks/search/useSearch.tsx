@@ -29,7 +29,7 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
     queryFn: async ({ pageParam }) => {
       // Simplify timestamp logic
 
-      let basicTimestamp = (1 * 60 * 60);
+      let basicTimestamp = (3 * 60 * 60);
 
       // if (options?.sinceInterval) {
       //   basicTimestamp = options?.sinceInterval;
@@ -53,7 +53,7 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
           kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
           authors: options?.authors,
           search: options?.search,
-          // since: sinceTimestamp,
+          since: sinceTimestamp,
           until: pageParam || Math.round(Date.now() / 1000),
           limit: options?.limit ?? 10,
         });

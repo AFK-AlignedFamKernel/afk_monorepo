@@ -44,7 +44,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
       <div className="flex items-center mb-8"
         onClick={() => {
           showModal(<>
-            <ProfileCardOverview event={event} profile={profile} />
+            <ProfileCardOverview event={event} profile={profile} profilePubkey={event.pubkey} isLinkToProfile={true} />
           </>)
           // router.push(`/nostr/profile/${event.pubkey}`)
         }}

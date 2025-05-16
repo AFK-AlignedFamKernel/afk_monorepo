@@ -102,14 +102,23 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
         <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
           <p>{profile?.nip05}</p>
         </div>
-        <button onClick={() => {
+    
+      </div>
+
+      {profile?.lud16 && (
+        <div className="text-xs text-gray-500 dark:text-gray-400 items-center">
+          <p>{profile?.lud16}</p>
+          <button 
+          className='ml-2 btn btn-sm btn-primary'
+          onClick={() => {
           showModal(<TipNostrUser profile={profile} pubkey={profilePubkey} />);
           // router.push(`/nostr/profile/${profilePubkey}`)
         }}>
           {/* <Icon name="UserIcon" size={16} /> */}
           Tips
         </button>
-      </div>
+        </div>
+      )}
 
       <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
         {profile?.about && (
@@ -147,7 +156,7 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
         )}
       </div>
 
-      {isLinkToProfile && (
+      {isLinkToProfile && profilePubkey && (
         <div className="flex items-center mb-8">
           <Link href={`/nostr/profile/${profilePubkey}`}>
             <Icon name="UserIcon" size={16} />

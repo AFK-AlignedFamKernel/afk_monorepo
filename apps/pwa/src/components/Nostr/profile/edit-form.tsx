@@ -45,9 +45,6 @@ export const NostrProfileEditForm = () => {
             const values = formData;
             const { picture, banner } = values;
 
-            console.log("pictureFile", pictureFile);
-            console.log("bannerFile", bannerFile);
-
             let bannerUrl = banner;
             let pictureUrl = picture;
             if (pictureFile) {
@@ -94,9 +91,9 @@ export const NostrProfileEditForm = () => {
                 </label>
                 <input
                     type="text"
-                    id="username"
-                    name="username"
-                    value={formData.username ?? ''}
+                    id="displayName"
+                    name="displayName"
+                    value={formData.displayName ?? ''}
                     onChange={handleChange}
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:border-blue-400 dark:focus:ring-blue-400"
                 />

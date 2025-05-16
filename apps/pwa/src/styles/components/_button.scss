@@ -1,3 +1,5 @@
+@import '../variables';
+
 // Base button styles
 .btn {
   padding: 0.75rem 1rem;
@@ -19,18 +21,18 @@
 
 // Primary button
 .btn-primary {
-  background-color: var(--primary-color, #3b82f6);
+  // background-color: var(--button-primary-color, #64748b);
   color: white;
   
   &:hover {
-    background-color: darken(#3b82f6, 10%);
+    // background-color: darken(var(--button-primary-color, #64748b), 10%);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
   }
 }
 
 // Secondary button
 .btn-secondary {
-  background-color: var(--secondary-color, #64748b);
+  background-color: var(--button-secondary-color, #64748b);
   color: white;
 
   &:hover {

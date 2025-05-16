@@ -46,7 +46,6 @@ const ProfileHeader = (props?: any) => {
   const { profile } = props
 
   const [showMore, setShowMore] = useState(false)
-  console.log('profile', profile)
   if (!profile) {
     return null
   }

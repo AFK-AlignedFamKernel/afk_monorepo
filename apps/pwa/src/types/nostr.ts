@@ -35,6 +35,9 @@ export interface NostrEventBase {
     picture?: string;
     about?: string;
     nip05?: string;
+    lud16?: string;
+    lud06?: string;
+    banner?: string;
   };
   isLoading?: boolean;
 }
