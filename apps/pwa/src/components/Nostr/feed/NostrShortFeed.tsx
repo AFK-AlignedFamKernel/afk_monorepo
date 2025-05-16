@@ -229,7 +229,7 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
                   position: 'relative'
                 }}
               >
-                <VideoPlayer event={event} />
+                <VideoPlayer event={event} isAutoPlay={index === currentVideoIndex} />
               </div>
             );
           })}

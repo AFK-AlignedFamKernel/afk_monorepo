@@ -11,7 +11,7 @@ import CommentContainer from './CommentContainer';
 import { useQueryClient } from '@tanstack/react-query';
 import { ProfileCardOverview } from './ProfileCardOverview';
 
-export const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
+export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = ({ event, isAutoPlay = false }) => {
   const { publicKey } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -184,6 +184,23 @@ export const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
     }
   };
 
+
+  const handleVideoPlay = async () => {
+    if (videoRef.current) {
+      try {
+        if (isPlaying) {
+          await videoRef.current.pause();
+          setIsPlaying(false);
+        } else {
+          await videoRef.current.play();
+          setIsPlaying(true);
+        }
+      } catch (error) {
+        console.error('Error toggling video playback:', error);
+      }
+    }
+  };
+
   const handleAudioClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (videoRef.current) {
@@ -249,9 +266,20 @@ export const VideoPlayer: React.FC<{ event: NDKEvent }> = ({ event }) => {
           playsInline
           loop
           muted={isMuted}
+          autoPlay={isAutoPlay}
           preload="metadata"
           onLoadedData={handleVideoLoad}
           onError={handleVideoError}
+          // onClick={handleVideoClick}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleVideoPlay();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            handleVideoPlay();
+          }}
+        
         />
         {/* {!isPlaying && (
           <div className="nostr-short-feed__play-indicator">

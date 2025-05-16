@@ -80,9 +80,6 @@ export default function NostrShortsPage() {
                         <NostrShortFeed 
                         limit={10}
                             kinds={[
-                                31000, // VerticalVideo
-                                31001, // HorizontalVideo
-                                34236,
                                 NDKKind.ShortVideo,
                                 // NDKKind.Image,
                                 NDKKind.VerticalVideo,
