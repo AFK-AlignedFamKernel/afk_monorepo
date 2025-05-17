@@ -73,6 +73,8 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
     [userReaction.data],
   );
 
+ 
+
   const toggleLike = async () => {
     if (!event?.id) return;
 
@@ -175,6 +177,10 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   // }, [event?.content, event]);
 
 
+  const handleHashtagPress = (tag: string) => {
+    router.push(`/nostr/tags/${tag}`);
+  }
+
   return (
     <div className="post-event-card">
       {isReplyView &&
@@ -240,7 +246,18 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
             )}
           </div>
 
-          {hashtags.length > 0 && (
+
+          {props?.isClickableHashtags && (
+            <div className="mt-3">
+              <ContentWithClickableHashtags content={content}
+                // tagsHash={tagsHash}
+                tags={event?.tags}
+                onHashtagPress={handleHashtagPress}
+                // hashtagsRender={hashtags}
+              />
+            </div>
+          )}
+          {/* {hashtags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {hashtags.map((tag, index) => (
                 <span
@@ -254,7 +271,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
                 </span>
               ))}
             </div>
-          )}
+          )} */}
 
           <div className="mt-6 mb-2 flex items-center text-gray-500 dark:text-gray-400 text-sm space-x-4">
             <button className="flex items-center hover:text-blue-500 gap-1"
@@ -305,11 +322,6 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
 
       </NostrEventCardBase>
 
-      {/* {props?.isClickableHashtags && (
-        <div className="mt-3">
-          <ContentWithClickableHashtags content={content} onHashtagPress={() => {}} />
-        </div>
-      )} */}
 
     </div>
   );

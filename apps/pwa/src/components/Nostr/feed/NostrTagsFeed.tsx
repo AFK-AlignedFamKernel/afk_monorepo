@@ -41,7 +41,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
 
   const [tags, setTags] = useState<string[]>(tagsProps || TAGS_DEFAULT);
 
-  console.log("tags", tags);
+  // console.log("tags", tags);
 
   const [notesData, setNotesData] = useState<NDKEvent[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -258,6 +258,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
                 >
                   <NostrEventCard
                     event={event}
+                    isClickableHashtags={true}
                   />
                 </div>
               </div>
