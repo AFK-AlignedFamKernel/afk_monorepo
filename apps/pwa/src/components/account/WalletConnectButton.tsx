@@ -29,7 +29,8 @@ export const WalletConnectButton: React.FC = () => {
   //   ],
   // })
   const cartridgeConnector = new ControllerConnector({
-    url: cartridgeProvider().nodeUrl,
+    // url: cartridgeProvider()?.nodeUrl ?? 'https://api.cartridge.gg/x/starknet/sepolia',
+    url: 'https://api.cartridge.gg/x/starknet/sepolia',
     defaultChainId: constants.StarknetChainId.SN_SEPOLIA,
     chains: [
       {
