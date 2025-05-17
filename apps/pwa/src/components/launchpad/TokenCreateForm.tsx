@@ -6,8 +6,10 @@ import * as Yup from 'yup';
 import { useCreateToken, DeployTokenFormValues } from '../../hooks/useCreateToken';
 import { useStarknet } from '../../hooks/useStarknet';
 import { BondingType } from '../../types/token';
-import { WalletConnectButton } from '../WalletConnectButton';
+import { WalletConnectButton } from '../account/WalletConnectButton';
 import { useAccount } from '@starknet-react/core';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import { useUIStore } from '@/store/uiStore';
 
 interface TokenCreateFormProps {
   onSuccess?: () => void;
@@ -25,7 +27,7 @@ const validationSchema = Yup.object().shape({
     .min(0, 'Fee must be positive')
     .max(100, 'Fee cannot exceed 100%'),
   metadata: Yup.object().shape({
-    url: Yup.string().url('Must be a valid URL'),
+    // url: Yup.string().url('Must be a valid URL'),
     twitter: Yup.string(),
     github: Yup.string(),
     telegram: Yup.string(),
@@ -38,7 +40,10 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
   onError,
 }) => {
   const [showMetadata, setShowMetadata] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const fileUpload = useFileUpload()
   const { address } = useStarknet();
+  const { showToast } = useUIStore();
   const { deployTokenAndLaunch, isLoading, error, deployToken, deployTokenAndLaunchWithMetadata } = useCreateToken();
   const { account } = useAccount();
   const initialValues: DeployTokenFormValues = {
@@ -47,6 +52,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
     initialSupply: undefined,
     bonding_type: BondingType.Linear,
     creator_fee_percent: 0,
+    contract_address_salt: '',
     metadata: {
       url: '',
       twitter: '',
@@ -57,21 +63,57 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
   };
 
   const handleSubmit = async (values: DeployTokenFormValues) => {
-    if (!address) {
-      onError?.(new Error('Please connect your wallet first'));
-      return;
-    }
+    // if (!address) {
+    //   onError?.(new Error('Please connect your wallet first'));
+    //   return;
+    // }
 
     try {
-      const result = await deployTokenAndLaunch(values);
-      onSuccess?.();
+
+
+      let imageUrl = '';
+      let urlHash = '';
+
+      if (file) {
+        const result = await fileUpload.mutateAsync(file);
+        console.log("result file upload", result);
+        if (result.data.url) {
+          imageUrl = result.data.url
+          urlHash = result.data?.hash
+        }
+      }
+
+      console.log('imageUrl', imageUrl);
+      values.metadata.url = imageUrl;
+      console.log('values', values);
+
+      const metadata = {
+        url: values.metadata.url,
+        twitter: values.metadata.twitter,
+        github: values.metadata.github,
+        telegram: values.metadata.telegram,
+        website: values.metadata.website,
+        nostr_event_id: values.metadata.nostr_event_id,
+      }
+      // return;
+      const result = await deployTokenAndLaunch(values, metadata);
+      // const result = await deployTokenAndLaunchWithMetadata(values, metadata);
+      // const result = await deployTokenAndLaunch(values);
+      if (result) {
+        onSuccess?.();
+      }
+
+      showToast({
+        message: 'Token created',
+        type: 'success',
+      });
     } catch (err) {
       onError?.(err as Error);
     }
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+    <div className="w-full max-w-2xl mx-auto p-6 rounded-lg shadow-lg">
       <div className="mb-6">
         <WalletConnectButton />
       </div>
@@ -81,10 +123,10 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
       >
-        {({ errors, touched }) => (
+        {({ errors, touched, handleChange }) => (
           <Form className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-medium">
                 Token Name
               </label>
               <Field
@@ -98,7 +140,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="block text-sm font-medium">
                 Token Symbol
               </label>
               <Field
@@ -133,10 +175,15 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
               <Field
                 as="select"
                 name="bonding_type"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                // className="mt-1 block w-full text-black rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-black"
               >
-                <option value={BondingType.Linear}>Linear</option>
-                <option value={BondingType.Exponential}>Exponential</option>
+                <option value={BondingType.Linear}>
+                  <span>Linear</span>
+                </option>
+                <option value={BondingType.Exponential}>
+                  <span>Exponential</span>
+                </option>
               </Field>
               {errors.bonding_type && touched.bonding_type && (
                 <p className="mt-1 text-sm text-red-600">{errors.bonding_type}</p>
@@ -169,15 +216,14 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
 
               {showMetadata && (
                 <div className="mt-4 space-y-4">
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      URL
+                      Image/GIF
                     </label>
-                    <Field
-                      type="url"
-                      name="metadata.url"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
-                    />
+                    <input type="file" id="file" className="nostr-form__input w-100" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+
+
                     {errors.metadata?.url && touched.metadata?.url && (
                       <p className="mt-1 text-sm text-red-600">{errors.metadata.url}</p>
                     )}
@@ -225,8 +271,8 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
                       name="metadata.website"
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                     />
-                    {errors.metadata?.website && touched.metadata?.website && (
-                      <p className="mt-1 text-sm text-red-600">{errors.metadata.website}</p>
+                    {errors?.metadata?.website && touched.metadata?.website && (
+                      <p className="mt-1 text-sm text-red-600">{errors?.metadata?.website}</p>
                     )}
                   </div>
                 </div>
@@ -254,7 +300,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
                 deployToken(initialValues);
               }}
             >
-              Create token  
+              Create token
             </button>
           </Form>
         )}

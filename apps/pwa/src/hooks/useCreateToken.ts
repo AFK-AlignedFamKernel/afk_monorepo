@@ -35,11 +35,14 @@ export const useCreateToken = () => {
       //     ? '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6'
       //     : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
 
+
+      if (!data?.recipient || !account?.address) {
+        throw new Error('Wallet not connected');
+      }
       console.log('deployCall');
 
       let initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
       console.log('initial supply', initial_supply);
-    ;
       // if(Number.isNaN(initial_supply) && Number.isInteger(data?.initialSupply)){
       //   initial_supply = cairo.uint256(data?.initialSupply)
       // }
@@ -53,7 +56,7 @@ export const useCreateToken = () => {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         entrypoint: 'create_token',
         calldata: CallData.compile({
-          owner: data?.recipient ?? account?.address,
+          owner: data?.recipient || account?.address,
           name: nameByteArray,
           symbol: symbolByteArray,
           // symbol: data.symbol ?? 'LFG',
@@ -114,11 +117,12 @@ export const useCreateToken = () => {
       const githubByteArray = byteArray.byteArrayFromString(metadata?.github ?? '');
       const telegramByteArray = byteArray.byteArrayFromString(metadata?.telegram ?? '');
       const websiteByteArray = byteArray.byteArrayFromString(metadata?.website ?? '');
-
+      const nostrEventIdUint = metadata?.nostr_event_id ? uint256.bnToUint256(`0x${metadata?.nostr_event_id}`) : cairo.uint256(0); // Recipient nostr pubkey
       const metadataLaunch = {
         token_address: address,
         url: urlMetadata,
         twitter: twitterByteArray,
+        nostr_event_id: nostrEventIdUint,
         github: githubByteArray,
         telegram: telegramByteArray,
         website: websiteByteArray,
@@ -141,7 +145,7 @@ export const useCreateToken = () => {
 
       const tx = await account?.execute(deployCall);
       console.log('tx', tx);
-      const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+      const wait_tx = await account?.waitForTransaction(tx?.transaction_hash ?? '');
       return wait_tx;
       // const response = await fetch('/api/tokens/deploy', {
       //   method: 'POST',
@@ -190,7 +194,7 @@ export const useCreateToken = () => {
   };
 
 
-  const deployTokenAndLaunchWithMetadata = async (account: AccountInterface, data: DeployTokenFormValues, metadata?: MetadataOnchain) => {
+  const deployTokenAndLaunchWithMetadata = async (data: DeployTokenFormValues, metadata?: MetadataOnchain) => {
     try {
       // const CONTRACT_ADDRESS_SALT_DEFAULT =
       //   data?.contract_address_salt ??
@@ -198,6 +202,11 @@ export const useCreateToken = () => {
       //     ? '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6'
       //     : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
 
+      
+      const defaultAddress = data?.creator_fee_destination ?? address;
+      if (!defaultAddress) {
+        throw new Error('Wallet not connected');
+      }
       const initial_supply = formatFloatToUint256(data?.initialSupply ?? 100_000_000);
 
       // let bondingEnum = new CairoCustomEnum({Exponential: 1});
@@ -224,7 +233,7 @@ export const useCreateToken = () => {
       let creator_fee_percent = formatFloatToUint256(data?.creator_fee_percent ?? 0);
       console.log('creator fee percent', creator_fee_percent);
 
-      let creator_fee_destination = cairo.felt(data?.creator_fee_destination ?? address);
+      let creator_fee_destination = cairo.felt(defaultAddress);
 
       const nameByteArray = byteArray.byteArrayFromString(data.name ?? 'LFG')
       const symbolByteArray = byteArray.byteArrayFromString(data.symbol ?? 'LFG')
@@ -237,7 +246,7 @@ export const useCreateToken = () => {
       const githubByteArray = byteArray.byteArrayFromString(metadata?.github ? metadata.github : 'LFG');
       const telegramByteArray = byteArray.byteArrayFromString(metadata?.telegram ? metadata.telegram : 'LFG');
       const websiteByteArray = byteArray.byteArrayFromString(metadata?.website ? metadata.website : 'LFG');
-      const nostrEventIdUint = uint256.bnToUint256(`0x${metadata?.nostr_event_id}`); // Recipient nostr pubkey
+      const nostrEventIdUint = metadata?.nostr_event_id ? uint256.bnToUint256(`0x${metadata?.nostr_event_id}`) : cairo.uint256(0); // Recipient nostr pubkey
       const metadataLaunch = {
         token_address: metadata?.token_address ?? address,
         url: urlMetadata,
@@ -264,7 +273,8 @@ export const useCreateToken = () => {
           // is_unruggable: cairo.felt(String(data?.is_unruggable ?? false)),
           bonding_type: bondingEnum,
           creator_fee_percent: creator_fee_percent,
-          creator_fee_destination: creator_fee_destination,
+          // creator_fee_destination: creator_fee_destination,
+          creator_fee_destination: defaultAddress,
           metadata: metadataLaunch
         }),
       };

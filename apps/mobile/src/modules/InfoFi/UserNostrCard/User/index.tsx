@@ -29,15 +29,15 @@ import { CommentIcon, LikeFillIcon, LikeIcon, RepostIcon } from 'src/assets/icon
 import { Avatar, Icon, IconButton, Menu, Text } from 'src/components';
 import Badge from 'src/components/Badge';
 import { useNostrAuth, useStyles, useTheme } from 'src/hooks';
-import { useTipModal, useToast } from 'src/hooks/modals';
-import { MainStackNavigationProps } from 'src/types';
-import { getImageRatio, removeHashFn, shortenPubkey } from 'src/utils/helpers';
-import { getElapsedTimeStringFull } from 'src/utils/timestamp';
+import { useTipModal, useToast } from '@/hooks/modals';
+import { MainStackNavigationProps } from '@/types';
+import { getImageRatio, removeHashFn, shortenPubkey } from '@/utils/helpers';
+import { getElapsedTimeStringFull } from '@/utils/timestamp';
 
 import stylesheet from './styles';
 import { SliderImages } from './SliderImages';
-import MiniVideoPlayer from 'src/components/VideoPlayer/MiniVideoPlayer';
-import { useQuoteNoteModal } from 'src/hooks/modals/useQuoteNoteModal';
+import MiniVideoPlayer from '@/components/VideoPlayer/MiniVideoPlayer';
+import { useQuoteNoteModal } from '@/hooks/modals/useQuoteNoteModal';
 
 import Markdown, { MarkdownIt } from 'react-native-markdown-display';
 import WebView from 'react-native-webview';

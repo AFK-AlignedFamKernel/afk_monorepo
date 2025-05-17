@@ -1,5 +1,5 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
 import {useAuth} from '../../../store';
@@ -16,7 +16,7 @@ interface UseGetGroupListOptions {
   groupId: string;
 }
 
-export const useGetGroupMemberList = (options: UseGetGroupListOptions) => {
+export const useGetGroupMemberList = (options: UseGetGroupListOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
   const {ndk} = useNostrContext();
 
   return useInfiniteQuery({

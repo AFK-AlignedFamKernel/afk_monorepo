@@ -9,7 +9,7 @@ export const useBuyCoin = () => {
   const handleBuyCoins = useCallback(
     async (
       accountAddress: string | undefined,
-      memecoinAddress: string,
+      memecoinAddress: string | undefined,
       amount: number,
       quoteToken: string | undefined,
     ) => {
@@ -19,6 +19,9 @@ export const useBuyCoin = () => {
       const addressContract = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
       const quoteTokenAddress = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
 
+      if(!memecoinAddress) {
+        throw new Error('Missing required parameters');
+      }
 
       if(!account?.address) {
         throw new Error('No account connected');

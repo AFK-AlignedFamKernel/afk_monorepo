@@ -42,7 +42,7 @@ export const useCashuBalance = () => {
     if (proofsLocal) {
       /** TODO clean proofs */
       let proofs: ProofInvoice[] = JSON.parse(proofsLocal);
-      const proofsSpent = await wallet?.checkProofsStates(proofs);
+      const proofsSpent = await wallet?.checkProofsStates(proofs as Proof[]);
       const mintUrl = mintUrls?.[activeMintIndex]?.url;
       const {mint, keys} = await connectCashMint(mintUrlStore ?? mintUrl);
       const keyssets = await mint?.getKeySets();

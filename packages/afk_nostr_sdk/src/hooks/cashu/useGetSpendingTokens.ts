@@ -1,9 +1,9 @@
 import {NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
-
+import { v2 } from '../../utils/nip44';
 export interface UseTokenEventsOptions {
   authors?: string[];
   walletId?: string;
@@ -21,7 +21,7 @@ interface TokenEventContent {
   }>;
 }
 
-export const useGetSpendingTokens = (options?: UseTokenEventsOptions) => {
+export const useGetSpendingTokens = (options?: UseTokenEventsOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
   const {ndk} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 
@@ -86,7 +86,9 @@ export const useGetSpendingTokens = (options?: UseTokenEventsOptions) => {
         [...tokenEvents].map(async (event) => {
           try {
             // Decrypt the event content
-            const decryptedContent = await signer.nip44Decrypt(user, event.content);
+            const conversationKey = await v2.utils.getConversationKey(publicKey, options?.walletId);
+            // const decryptedContent = await v2.decrypt(event.content, conversationKey);
+            const decryptedContent = await signer.decrypt(user, event.content, "nip44");
             const content: TokenEventContent = JSON.parse(decryptedContent);
 
             // Check if any of the proofs match the filter

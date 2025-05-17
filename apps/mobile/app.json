@@ -41,8 +41,7 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "deepLinking": true,
-      "bundler": "metro",
-      "output": "static"
+      "bundler": "metro"
     },
     "plugins": [
       [
@@ -97,12 +96,11 @@
         }
       ]
     ],
-    "sdkVersion": "51.0.0",
+    "sdkVersion": "52.0.0",
     "extra": {
       "eas": {
         "projectId": "f68a6dce-559a-48e0-9376-e5c870bdfc22"
       }
-    },
-    "entryPoint": "./index.js"
+    }
   }
 }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAccount } from '@starknet-react/core';
 import { feltToAddress } from 'common';
-import { WalletConnectButton } from '../WalletConnectButton';
+import { WalletConnectButton } from '../account/WalletConnectButton';
 import { useBuyCoin } from '@/hooks/launchpad/useBuyCoin';
 import { useSellCoin } from '@/hooks/launchpad/useSellCoin';
 
@@ -66,16 +66,20 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
     if (typeAction === 'SELL' && userShare?.amount_owned) {
       setAmount(userShare.amount_owned.toString());
     }
+
+    if (typeAction === 'BUY') {
+      setAmount(launch?.quote_token?.amount_available.toString());
+    }
   };
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-sm">
+    <div className="rounded-lg p-6 shadow-sm">
       <div className="flex space-x-4 mb-6">
         <button
           onClick={() => setTypeAction('BUY')}
           className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${typeAction === 'BUY'
-              ? 'bg-green-500 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-green-500 text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
         >
           Buy
@@ -83,8 +87,8 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
         <button
           onClick={() => setTypeAction('SELL')}
           className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${typeAction === 'SELL'
-              ? 'bg-red-500 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            ? 'bg-red-500 text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
         >
           Sell
@@ -112,6 +116,14 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
                 MAX
               </button>
             )}
+            {typeAction === 'SELL' && userShare?.amount_owned && (
+              <button
+                onClick={handleMaxAmount}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-blue-500 hover:text-blue-600"
+              >
+                MAX
+              </button>
+            )}
           </div>
         </div>
 
@@ -125,10 +137,10 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
           onClick={handleAction}
           disabled={loading || !amount || !account}
           className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${loading || !amount || !account
-              ? 'bg-gray-400 cursor-not-allowed'
-              : typeAction === 'BUY'
-                ? 'bg-green-500 hover:bg-green-600'
-                : 'bg-red-500 hover:bg-red-600'
+            ? 'bg-gray-400 cursor-not-allowed'
+            : typeAction === 'BUY'
+              ? 'bg-green-500 hover:bg-green-600'
+              : 'bg-red-500 hover:bg-red-600'
             }`}
         >
           {loading ? (

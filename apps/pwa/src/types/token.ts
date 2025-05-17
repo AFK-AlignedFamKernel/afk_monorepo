@@ -9,6 +9,10 @@ export interface MetadataOnchain {
   github?: string;
   telegram?: string;
   website?: string;
+  discord?: string;
+  nostr_event_id?: string;
+  token_address?: string;
+  creator_fee_destination?: string;
 }
 
 export interface DeployTokenFormValues {

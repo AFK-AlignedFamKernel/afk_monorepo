@@ -5,26 +5,46 @@ import { mainnet, sepolia } from '@starknet-react/chains';
 import {
   argent,
   braavos,
+  Connector,
   publicProvider,
   StarknetConfig,
   useInjectedConnectors,
   voyager,
 } from '@starknet-react/core';
+import { InjectedConnector } from 'starknetkit/injected';
+import { ArgentMobileConnector } from 'starknetkit/argentMobile';
+import { WebWalletConnector } from 'starknetkit/webwallet';
+import { ControllerConnector } from '@cartridge/connector';
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
   const chains = [mainnet, sepolia];
-  const { connectors } = useInjectedConnectors({
-    recommended: [argent(), braavos()],
-    includeRecommended: 'onlyIfNoConnectors',
-    order: 'random',
-  });
+  // const cartridgeConnector = new ControllerConnector({
+  //   rpc: 'https://api.cartridge.gg/x/starknet/sepolia',
+  // })
+  const connectors = [
+    // cartridgeConnector,
+    new InjectedConnector({
+      options: { id: "argentX", name: "Argent X" },
+    }),
+    new InjectedConnector({
+      options: { id: "braavos", name: "Braavos" },
+    }),
+    new WebWalletConnector({ url: "https://web.argent.xyz" }),
+    new ArgentMobileConnector(),
+  ]
+
+  // const { connectors } = useInjectedConnectors({
+  //   recommended: [argent(), braavos()],
+  //   includeRecommended: 'onlyIfNoConnectors',
+  //   order: 'random',
+  // });
 
   return (
     <StarknetConfig
       chains={chains}
       provider={publicProvider()}
       explorer={voyager}
-      connectors={connectors}
+      connectors={connectors as Connector[]} // Type assertion to fix type error temporarily
       autoConnect
     >
       {children}

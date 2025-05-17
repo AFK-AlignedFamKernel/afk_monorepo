@@ -1,10 +1,10 @@
-import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useMutation} from '@tanstack/react-query';
+import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
+import { useMutation, UseMutationResult } from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context/NostrContext';
+import { useNostrContext } from '../../context/NostrContext';
 
-export const useSendVideo = () => {
-  const {ndk} = useNostrContext();
+export const useSendVideo = (): UseMutationResult<any> => {
+  const { ndk } = useNostrContext();
 
   return useMutation({
     mutationKey: ['sendVideo', ndk],

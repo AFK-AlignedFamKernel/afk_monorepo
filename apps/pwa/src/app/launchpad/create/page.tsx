@@ -21,7 +21,7 @@ export default function CreateTokenPage() {
         <h1 className="text-2xl font-bold text-shade-900 dark:text-shade-100 mb-8">
           Create New Token
         </h1>
-        <div className="bg-white dark:bg-shade-800 rounded-lg shadow p-6">
+        <div className="rounded-lg shadow p-6">
           <TokenCreateForm
             onSuccess={handleSuccess}
             onError={handleError}

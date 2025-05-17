@@ -1,5 +1,5 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, UseMutationResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context/NostrContext';
 
@@ -8,7 +8,7 @@ import {useNostrContext} from '../../context/NostrContext';
  * https://github.com/nostr-protocol/nips/blob/master/32.md
  * @returns 
  */
-export const useSendLabel = () => {
+export const useSendLabel = ():UseMutationResult<any, Error, any, any> => {
   const {ndk} = useNostrContext();
 
   return useMutation({

@@ -25,6 +25,11 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
           url: true,
           nostr_id: true,
           description: true,
+          // token_metadata:{
+          //   select:{
+          //     url:true,
+          //   }
+          // },
 
         },
         // orderBy: {

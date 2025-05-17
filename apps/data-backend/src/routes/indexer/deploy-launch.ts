@@ -27,10 +27,29 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           total_token_holded:true,
           block_timestamp:true,
           is_liquidity_added:true,
+          // name:true,
+          // symbol:true,
+          // token_metadata:{
+          //   select:{
+          //     url:true,
+          //   }
+          // },
           name:true,
           symbol:true,
+          url:true,
+          token_deploy: {
+            select: {
+              name: true,
+              symbol: true,
+            },
+          },
+          // name:true,
+          // symbol:true,
+       
         },
       });
+
+      console.log("launches",launches)
 
       reply.status(HTTPStatus.OK).send({
         data: launches,
@@ -114,6 +133,20 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           total_token_holded:true,
           block_timestamp:true,
           is_liquidity_added:true,
+          name:true,
+          symbol:true,
+          url:true,
+          token_deploy: {
+            select: {
+              name: true,
+              symbol: true,
+            },
+          },
+          token_metadata: {
+            select: {
+              url: true,
+            },
+          },
         },
       });
 

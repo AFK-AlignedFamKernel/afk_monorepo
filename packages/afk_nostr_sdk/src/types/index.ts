@@ -33,7 +33,7 @@ export interface Notification {
 }
 
 export interface ICashuInvoice {
-  id?:string;
+  id:string;
   bolt11?: string;
   quote?: string;
   amount: number;
@@ -49,9 +49,4 @@ export interface ICashuInvoice {
   expiry?:number;
 }
 
-export interface ProofInvoice extends Omit<Proof, 'id'>, ICashuInvoice {}
-
-// Export all type declarations
-export * from './global.d';
-
-// Add any other type exports here
+export interface ProofInvoice extends  ICashuInvoice {}

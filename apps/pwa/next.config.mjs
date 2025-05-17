@@ -2,10 +2,32 @@
 const nextConfig = {
   webpack: (config) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
+    
+    // Add resolver for @noble/hashes/legacy
+    config.resolve = {
+      ...config.resolve,
+      fallback: {
+        ...config.resolve.fallback,
+        "@noble/hashes/legacy": false // Disable the import
+      },
+      alias: {
+        ...config.resolve.alias,
+        "@noble/hashes/legacy": "@noble/hashes/ripemd160"
+      }
+    };
+    
     return config;
   },
   experimental: {
     optimizePackageImports: ['@chakra-ui/react'],
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**', 
+      },
+    ],
   },
   eslint: {
     // Warning: This allows production builds to successfully complete even if

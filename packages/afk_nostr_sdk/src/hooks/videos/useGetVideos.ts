@@ -1,5 +1,5 @@
 import { NDKKind } from '@nostr-dev-kit/ndk';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, UseInfiniteQueryResult } from '@tanstack/react-query';
 
 import { useNostrContext } from '../../context/NostrContext';
 
@@ -10,7 +10,7 @@ export type UseRootNotesOptions = {
   limit?: number;
 };
 
-export const useGetVideos = (options?: UseRootNotesOptions) => {
+export const useGetVideos = (options?: UseRootNotesOptions):UseInfiniteQueryResult<any> => {
   const { ndk } = useNostrContext();
 
   return useInfiniteQuery({
@@ -41,13 +41,15 @@ export const useGetVideos = (options?: UseRootNotesOptions) => {
 
 
       const notes = await ndk.fetchEvents({
-        kinds: options?.kinds ?? [NDKKind.HorizontalVideo, NDKKind.VerticalVideo],
+        kinds: options?.kinds ?? [NDKKind.HorizontalVideo, NDKKind.VerticalVideo, NDKKind.ShortVideo, NDKKind.Video],
         authors: options?.authors,
         search: options?.search,
         since: sinceTimestamp,
         until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit ?? 20,
       });
+
+      // console.log('notes', notes);
 
       return [...notes];
     },

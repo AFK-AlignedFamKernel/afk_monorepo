@@ -3,6 +3,8 @@ import { useMutation } from '@tanstack/react-query';
 
 import { useNostrContext } from '../../context';
 import { useAuth } from '../../store';
+import { v2 } from '../../utils/nip44';
+import { generateRandomBytes } from '../../utils/keypair';
 
 /**
  * NIP-60: https://nips.nostr.com/60
@@ -43,15 +45,37 @@ export const useCreateWalletEvent = () => {
     }) => {
       const signer = new NDKPrivateKeySigner(privateKey);
       const user = new NDKUser({ pubkey: publicKey });
-      const content = await signer.nip44Encrypt(
+      const walletId = '123';
+      const conversationKey = await v2.utils.getConversationKey(publicKey, walletId);
+      const nonce = await generateRandomBytes();
+      const content = await signer.encrypt(
         user,
         JSON.stringify([
           ['balance', balance || '0', unit],
           ['privkey', privkey || privateKey],
           ...mints.map((mint) => ['mint', mint]),
-
         ]),
+        "nip44"
       );
+      // const content = await v2.encrypt(
+
+      //   JSON.stringify([
+      //     ['balance', balance || '0', unit],
+      //     ['privkey', privkey || privateKey],
+      //     ...mints.map((mint) => ['mint', mint]),
+      //   ]),
+      //      conversationKey,
+      //   nonce,
+      // );
+      // const content = await signer.nip44Encrypt(
+      //   user,
+      //   JSON.stringify([
+      //     ['balance', balance || '0', unit],
+      //     ['privkey', privkey || privateKey],
+      //     ...mints.map((mint) => ['mint', mint]),
+
+      //   ]),
+      // );
 
       const event = new NDKEvent(ndk);
 

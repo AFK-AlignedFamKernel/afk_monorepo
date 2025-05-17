@@ -1145,3 +1145,4 @@ export function LabelTopicIcon(props: SvgProps) {
     </Svg>
   );
 }
+

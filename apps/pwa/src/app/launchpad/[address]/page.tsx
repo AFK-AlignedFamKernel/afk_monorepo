@@ -19,8 +19,9 @@ interface LaunchpadDetailProps {
   };
 }
 
-export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
-  const { address } = params;
+export default function LaunchpadDetailPage() {
+  const { address } = useParams()
+
   const { account } = useAccount();
   const [selectedTab, setSelectedTab] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -29,6 +30,7 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [userShare, setUserShare] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const { handleBuyCoins } = useBuyCoin();
   const { handleSellCoins } = useSellCoin();
@@ -77,7 +79,7 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
       setActionLoading(true);
       await handleBuyCoins(
         launchData?.account,
-        address,
+        address as string,
         amount,
         launchData?.quote_token,
       );
@@ -99,8 +101,8 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
     try {
       setActionLoading(true);
       await handleSellCoins(
-        account?.address  ,
-        address,
+        account?.address,
+        address as string,
         amount,
         launchData?.quote_token,
       );
@@ -134,36 +136,35 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ToastContainer 
+    <div className="min-h-screen">
+      <ToastContainer
         toasts={toasts.map(toast => ({
           id: toast.id || Date.now(),
           title: toast.title,
           type: toast.type,
-        }))} 
-        onRemove={removeToast} 
+        }))}
+        onRemove={removeToast}
       />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-4">Launchpad Details</h1>
-          <p className="text-gray-600">Address: {address}</p>
+          <p className="">Address: {address}</p>
         </div>
         <div className="lg:col-span-1">
-            <LaunchActionsForm
-              launch={launchData}
-              onBuyPress={handleBuy}
-              onSellPress={handleSell}
-              userShare={userShare}
-              loading={actionLoading}
-              memecoinAddress={address}
-            />
-          </div>
+          <LaunchActionsForm
+            launch={launchData}
+            onBuyPress={handleBuy}
+            onSellPress={handleSell}
+            userShare={userShare}
+            loading={actionLoading}
+            memecoinAddress={address as string}
+          />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="space-y-4">
-              {/* Custom Tab Navigation */}
-              <div className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
+              <div className="flex space-x-1 rounded-xl p-1">
                 {tabs.map((tab, index) => (
                   <button
                     key={tab.name}
@@ -179,14 +180,13 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
                 ))}
               </div>
 
-              {/* Tab Content */}
-              <div className="rounded-xl bg-white p-3 shadow-lg">
+              <div className="rounded-xl p-3 shadow-lg">
                 {tabs[selectedTab].component}
               </div>
             </div>
           </div>
 
-       
+
         </div>
       </div>
     </div>
