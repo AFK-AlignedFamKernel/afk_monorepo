@@ -6,8 +6,9 @@ import { useSearch, useProfile, useNostrContext } from 'afk_nostr_sdk';
 import { NostrEventCard } from '../EventCard';
 import { NostrEventKind } from '@/types/nostr';
 import CryptoLoading from '@/components/small/crypto-loading';
+import { TAGS_DEFAULT } from 'common';
 
-interface NostrFeedProps {
+interface NostrTagsFeedProps {
   kinds?: number[];
   limit?: number;
   className?: string;
@@ -15,35 +16,26 @@ interface NostrFeedProps {
   searchQuery?: string;
   since?: number;
   until?: number;
+  tagsProps?: string[];
 }
 
-export const NostrFeed: React.FC<NostrFeedProps> = ({
+export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   kinds = [1], // Default to showing text posts and articles
   limit = 10,
   className = '',
   authors,
   searchQuery,
   since,
-  until: untilProps
+  until: untilProps,
+  tagsProps
 }) => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
   const { ndk } = useNostrContext();
 
-  // Debug log the NDK instance and relays
-  // useEffect(() => {
-  //   console.log('NDK instance:', ndk);
-  //   console.log('Connected relays count:', ndk.pool?.relays?.size || 0);
-  //   const relayUrls = ndk.pool?.relays ? Array.from(ndk.pool.relays.keys()) : [];
-  //   console.log('Relay URLs:', relayUrls);
+  const [tags, setTags] = useState<string[]>(tagsProps || TAGS_DEFAULT);
 
-  //   // Force connection to relays
-  //   ndk.connect().then(() => {
-  //     console.log('NDK connected!');
-  //   }).catch(err => {
-  //     console.error('NDK connection error:', err);
-  //   });
-  // }, [ndk]);
+  console.log("tags", tags);
 
   const [notesData, setNotesData] = useState<NDKEvent[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -54,6 +46,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   const [error, setError] = useState<Error | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [openFilters, setOpenFilters] = useState(false);
 
   const fetchEvents = async () => {
@@ -67,6 +60,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
         authors: authors,
         until: lastCreatedAt || Math.round(Date.now() / 1000),
         limit: limit ?? 10,
+        '#t': [selectedTag || ''],
       });
 
       console.log("notes", notes);
@@ -123,7 +117,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     };
 
     // loadInitialData();
-  }, [kinds, limit, authors, searchQuery, since, until]);
+  }, [kinds, limit, authors, searchQuery, since, until, selectedTag]);
 
 
   const fetchEventsNostr = async () => {
@@ -142,7 +136,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     if (!isInitialLoading) {
       fetchEventsNostr();
     };
-  }, [kinds, limit, authors, searchQuery, since, until]);
+  }, [kinds, limit, authors, searchQuery, since, until, selectedTag]);
 
   // Intersection Observer for infinite scrolling
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
@@ -190,7 +184,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     return (
       <div className={`nostr-feed__content ${className}`}>
         <div className="nostr-feed__error">
-          <p>Error loading eventstag: {error?.message || 'Unknown error'}</p>
+          <p>Error loading events: {error?.message || 'Unknown error'}</p>
           <button
             className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
             onClick={() => fetchEvents()}
@@ -204,105 +198,16 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   return (
     <div className={`nostr-feed__content ${className}`}>
-
-
-
-      {/* Filter Controls */}
-
-      {openFilters && (
-        <div className="nostr-feed__filters mb-4 p-3 rounded-lg">
-          <div className="flex flex-wrap gap-2 justify-between items-center">
-            <h3 className="text-sm font-medium">Feed Filters</h3>
-            <button
-              className="px-3 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition"
-              onClick={() => fetchEvents()}
-            >
-              Refresh
-            </button>
+      <div className='flex flex-wrap gap-2 overflow-x-auto'>
+        {tags.map((tag, index) => (
+          <div
+            className={`px-2 py-1 rounded-md cursor-pointer ${selectedTag === tag ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+            key={index} onClick={() => setSelectedTag(tag)}>
+            <p>{tag}</p>
           </div>
+        ))}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-            <div>
-              <label className="block text-xs mb-1">Date Range</label>
-              <div className="flex gap-2">
-                <input
-                  type="datetime-local"
-                  value={until ? new Date(until * 1000).toISOString().slice(0, 16) : ''}
-                  className="flex-1 px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
-                  onChange={(e) => {
-                    const timestamp = Math.floor(new Date(e.target.value).getTime() / 1000);
-                    if (!isNaN(timestamp)) {
-                      // Set since timestamp
-                    }
-                  }}
-                />
-                <span className="self-center text-xs">to</span>
-                <input
-                  value={since ? new Date(since * 1000).toISOString().slice(0, 16) : ''}
-                  type="datetime-local"
-                  className="flex-1 px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
-                  onChange={(e) => {
-                    const timestamp = Math.floor(new Date(e.target.value).getTime() / 1000);
-                    if (!isNaN(timestamp)) {
-                      setUntil(timestamp);
-                    }
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs mb-1">Search Tags</label>
-              <input
-                type="text"
-                placeholder="Enter tags (comma separated)"
-                className="w-full px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs mb-1">Author Pubkeys</label>
-              <input
-                type="text"
-                placeholder="Enter pubkeys (comma separated)"
-                className="w-full px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs mb-1">Event Kinds</label>
-              <select
-                className="w-full px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
-                multiple={false}
-                value={kinds[0]}
-                onChange={(e) => {
-                  // Update kinds filter
-                }}
-              >
-                <option value="1">Text Notes (1)</option>
-                <option value="30023">Long-form Content (30023)</option>
-                <option value="6">Reposts (6)</option>
-                <option value="7">Reactions (7)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex justify-end mt-3">
-            <button
-              className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 transition"
-              onClick={() => {
-                setIsInitialLoading(true);
-                setNotesData([]);
-                setLastCreatedAt(0);
-                setHasMoreContent(true);
-                fetchEvents().finally(() => setIsInitialLoading(false));
-              }}
-            >
-              Apply Filters
-            </button>
-          </div>
-        </div>
-      )}
+      </div>
       {notesData.length === 0 && !isLoadingMore ? (
         <div className="nostr-feed__empty-state">
           <p>No events found. Try following more users or changing filters.</p>
@@ -320,6 +225,17 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
         </div>
       ) : (
         <div className="nostr-feed__content overflow-y-auto max-h-[80vh] ">
+
+          <div className='flex flex-wrap gap-2 overflow-x-auto'>
+            {tags.map((tag, index) => (
+              <div
+                className={`px-2 py-1 rounded-md cursor-pointer ${selectedTag === tag ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                key={index} onClick={() => setSelectedTag(tag)}>
+                <p>{tag}</p>
+              </div>
+            ))}
+
+          </div>
           {notesData.map((event, index) => {
             if (!event?.id) return null;
             const isLastItem = index === notesData.length - 1;
@@ -359,4 +275,4 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   );
 };
 
-export default NostrFeed; 
+export default NostrTagsFeed; 
