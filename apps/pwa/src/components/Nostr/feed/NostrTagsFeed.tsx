@@ -17,6 +17,9 @@ interface NostrTagsFeedProps {
   since?: number;
   until?: number;
   tagsProps?: string[];
+  selectedTagProps?: string;
+  selectedTagsProps?: string[];
+  setSelectedTagProps?: (tag: string) => void;
 }
 
 export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
@@ -27,7 +30,10 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   searchQuery,
   since,
   until: untilProps,
-  tagsProps
+  tagsProps,
+  selectedTagProps,
+  selectedTagsProps,
+  setSelectedTagProps
 }) => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -91,7 +97,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       setError(error as Error);
     } finally {
       setIsLoadingMore(false);
-      setIsInitialLoading(false);
+      // setIsInitialLoading(false);
     }
   }
 
@@ -106,6 +112,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
     setIsError(false);
     setError(null);
     await fetchEvents();
+    setIsInitialLoading(false);
   };
 
   // Initial data load
@@ -117,7 +124,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
     };
 
     // loadInitialData();
-  }, [kinds, limit, authors, searchQuery, since, until, selectedTag]);
+  }, [kinds, limit, authors, searchQuery, since, until, selectedTag, isInitialLoading]);
 
 
   const fetchEventsNostr = async () => {
@@ -134,9 +141,11 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   };
   useEffect(() => {
     if (!isInitialLoading) {
-      fetchEventsNostr();
+      fetchEvents();
     };
-  }, [kinds, limit, authors, searchQuery, since, until, selectedTag]);
+    fetchEvents();
+
+  }, [kinds, limit, authors, searchQuery, since, until, selectedTag, isInitialLoading]);
 
   // Intersection Observer for infinite scrolling
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
@@ -198,15 +207,22 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
 
   return (
     <div className={`nostr-feed__content ${className}`}>
-      <div className='flex flex-wrap gap-2 overflow-x-auto'>
-        {tags.map((tag, index) => (
-          <div
-            className={`px-2 py-1 rounded-md cursor-pointer ${selectedTag === tag ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-            key={index} onClick={() => setSelectedTag(tag)}>
-            <p>{tag}</p>
-          </div>
-        ))}
-
+      <div className="relative w-full">
+        <div className="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-transparent hover:scrollbar-thumb-indigo-400 pb-2">
+          {tags.map((tag, index) => (
+            <div
+              className={`px-3 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-200 shadow-md border border-indigo-600 ${
+                selectedTag === tag 
+                  ? 'bg-indigo-600 shadow-lg' 
+                  : 'hover:bg-indigo-100 hover:shadow-lg'
+              }`}
+              key={index} 
+              onClick={() => setSelectedTag(tag)}
+            >
+              <p className="text-sm font-medium">{tag}</p>
+            </div>
+          ))}
+        </div>
       </div>
       {notesData.length === 0 && !isLoadingMore ? (
         <div className="nostr-feed__empty-state">
@@ -226,16 +242,6 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       ) : (
         <div className="nostr-feed__content overflow-y-auto max-h-[80vh] ">
 
-          <div className='flex flex-wrap gap-2 overflow-x-auto'>
-            {tags.map((tag, index) => (
-              <div
-                className={`px-2 py-1 rounded-md cursor-pointer ${selectedTag === tag ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                key={index} onClick={() => setSelectedTag(tag)}>
-                <p>{tag}</p>
-              </div>
-            ))}
-
-          </div>
           {notesData.map((event, index) => {
             if (!event?.id) return null;
             const isLastItem = index === notesData.length - 1;

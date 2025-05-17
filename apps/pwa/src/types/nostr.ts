@@ -40,6 +40,7 @@ export interface NostrEventBase {
     banner?: string;
   };
   isLoading?: boolean;
+  isClickableHashtags?: boolean;
 }
 
 export interface NostrPostEventProps extends NostrEventBase {}

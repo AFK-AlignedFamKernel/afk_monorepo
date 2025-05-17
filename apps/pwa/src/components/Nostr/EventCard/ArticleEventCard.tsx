@@ -13,13 +13,15 @@ import { TipNostr } from '../tips';
 import { Icon } from '@/components/small/icon-component';
 import CommentContainer from './CommentContainer';
 import { QuoteRepostComponent } from './quote-repost-component';
+import { ContentWithClickableHashtags } from './ClickableHashtags';
 interface ArticleEventCardProps extends NostrArticleEventProps {
   profile?: NDKUserProfile;
   event: NDKEvent;
   isReadMore?: boolean;
+  isClickableHashtags?: boolean;
 }
 
-export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profile, isReadMore = true }) => {
+export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profile, isReadMore = true, isClickableHashtags = true }) => {
   const { publicKey } = authStore.getState();
   const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
   const react = useReact();
@@ -192,6 +194,12 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
           )}
         </div>
       </NostrEventCardBase>
+
+      {isClickableHashtags && (
+        <div className="mt-3">
+          <ContentWithClickableHashtags content={event.content} onHashtagPress={() => {}} />
+        </div>
+      )}
     </div>
   );
 };

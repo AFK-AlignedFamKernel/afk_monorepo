@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import { SliderImages } from '@/components/small/slider-image';
 import Image from 'next/image';
 import { TipNostr } from '../tips';
+import { ContentWithClickableHashtags } from './ClickableHashtags';
 
 export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const { event } = props;
@@ -243,8 +244,11 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
             <div className="mt-2 flex flex-wrap gap-1">
               {hashtags.map((tag, index) => (
                 <span
+                  onClick={() => {
+                    router.push(`/nostr/tags/${tag}`);
+                  }}
                   key={index}
-                  className="hashtag inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full text-xs"
+                  className="cursor-pointer hashtag inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full text-xs"
                 >
                   {tag}
                 </span>
@@ -300,6 +304,13 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
         )}
 
       </NostrEventCardBase>
+
+      {/* {props?.isClickableHashtags && (
+        <div className="mt-3">
+          <ContentWithClickableHashtags content={content} onHashtagPress={() => {}} />
+        </div>
+      )} */}
+
     </div>
   );
 };

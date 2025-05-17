@@ -12,9 +12,10 @@ import { NumberToBytesErrorType } from 'viem';
 export interface NostrEventCardProps {
   event: NDKEvent;
   isLoading?: boolean;
+  isClickableHashtags?: boolean;
 }
 
-export const NostrEventCard: React.FC<NostrEventCardProps> = ({ event, isLoading = false }) => {
+export const NostrEventCard: React.FC<NostrEventCardProps> = ({ event, isLoading = false, isClickableHashtags = true }) => {
   // Fetch profile data using the useProfile hook
   const { data: profileData } = useProfile({
     publicKey: event?.pubkey,
@@ -49,7 +50,7 @@ export const NostrEventCard: React.FC<NostrEventCardProps> = ({ event, isLoading
 
   switch (kind as number) {
     case NostrEventKind.Article:
-      return <ArticleEventCard {...props} />;
+      return <ArticleEventCard {...props} isClickableHashtags={isClickableHashtags} />;
     case NostrEventKind.ShortForm:
       return <ShortEventCard {...props} />;
     case NostrEventKind.VerticalVideo:
@@ -60,7 +61,7 @@ export const NostrEventCard: React.FC<NostrEventCardProps> = ({ event, isLoading
       return <ShortEventCard {...props} />;
     case NostrEventKind.Text:
     default:
-      return <PostEventCard {...props} />;
+      return <PostEventCard {...props} isClickableHashtags={isClickableHashtags} />;
   }
 };
 

@@ -112,6 +112,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     setIsError(false);
     setError(null);
     await fetchEvents();
+    setIsInitialLoading(false);
   };
 
   // Initial data load
@@ -123,26 +124,20 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     };
 
     // loadInitialData();
-  }, [kinds, limit, authors, searchQuery, since, until]);
+  }, [kinds, limit, authors, searchQuery, since, until, isInitialLoading]);
 
 
   const fetchEventsNostr = async () => {
     console.log("loading initial data");
     setNotesData([]);
     await fetchEvents();
-
-    setIsInitialLoading(true);
-    setLastCreatedAt(0);
-    setHasMoreContent(true);
-    setIsError(false);
-    setError(null);
-    await fetchEvents();
+    setIsInitialLoading(false);
   };
   useEffect(() => {
     if (!isInitialLoading) {
       fetchEventsNostr();
     };
-  }, [kinds, limit, authors, searchQuery, since, until]);
+  }, [kinds, limit, authors, searchQuery, since, until, isInitialLoading]);
 
   // Intersection Observer for infinite scrolling
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
@@ -336,6 +331,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
                 >
                   <NostrEventCard
                     event={event}
+                    isClickableHashtags={true}
                   />
                 </div>
               </div>

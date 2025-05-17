@@ -65,12 +65,12 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
       label: 'Tags',
       kinds: [
         NDKKind.Text,
-        // NDKKind.Repost,
-        // NDKKind.GenericRepost,
-        // NDKKind.Article,
-        // NDKKind.ShortVideo,
-        // NDKKind.VerticalVideo,
-        // NDKKind.HorizontalVideo,
+        NDKKind.Repost,
+        NDKKind.GenericRepost,
+        NDKKind.Article,
+        NDKKind.ShortVideo,
+        NDKKind.VerticalVideo,
+        NDKKind.HorizontalVideo,
       ],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
