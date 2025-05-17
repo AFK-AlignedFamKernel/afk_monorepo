@@ -10,7 +10,7 @@ import { Avatar } from '@chakra-ui/react';
 import { useUIStore } from '@/store/uiStore';
 import { Icon } from '@/components/small/icon-component';
 import { NostrProfileManagement } from '../Nostr/profile/nostr-profile-management';
-import { WalletConnectButton } from '../WalletConnectButton';
+import { WalletConnectButton } from '../account/WalletConnectButton';
 interface CustomHeaderInterface {
     title?: string;
     showLogo?: boolean;

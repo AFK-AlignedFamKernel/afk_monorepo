@@ -6,7 +6,7 @@ import * as Yup from 'yup';
 import { useCreateToken, DeployTokenFormValues } from '../../hooks/useCreateToken';
 import { useStarknet } from '../../hooks/useStarknet';
 import { BondingType } from '../../types/token';
-import { WalletConnectButton } from '../WalletConnectButton';
+import { WalletConnectButton } from '../account/WalletConnectButton';
 import { useAccount } from '@starknet-react/core';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useUIStore } from '@/store/uiStore';

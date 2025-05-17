@@ -3,7 +3,7 @@
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import { useAccount } from '@starknet-react/core';
-import { WalletConnectButton } from './WalletConnectButton';
+import { WalletConnectButton } from './account/WalletConnectButton';
 import { NostrKeyManager, useAuth } from 'afk_nostr_sdk';
 import { Icon } from './small/icon-component';
 import { useRouter } from 'next/navigation';

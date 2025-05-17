@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAccount } from '@starknet-react/core';
 import { feltToAddress } from 'common';
-import { WalletConnectButton } from '../WalletConnectButton';
+import { WalletConnectButton } from '../account/WalletConnectButton';
 import { useBuyCoin } from '@/hooks/launchpad/useBuyCoin';
 import { useSellCoin } from '@/hooks/launchpad/useSellCoin';
 
