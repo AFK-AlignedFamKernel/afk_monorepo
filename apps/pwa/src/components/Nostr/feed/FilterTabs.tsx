@@ -16,7 +16,7 @@ interface Tab {
   icon?: React.ReactNode;
 }
 
-interface FeedTabsProps {
+interface FilterTabsProps {
   className?: string;
   limit?: number;
   authors?: string[];
@@ -29,7 +29,7 @@ interface FeedTabsProps {
   setSelectedTagProps?: (tag: string) => void;
 }
 
-export const FeedTabs: React.FC<FeedTabsProps> = ({
+export const FilterTabs: React.FC<FilterTabsProps> = ({
   className = '',
   limit = 10,
   authors,
@@ -282,41 +282,8 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
         )}
       </div>
 
-      <div className="nostr-feed__content">
-
-        {activeTab != 'shorts' && activeTab != 'tags' && (
-          <NostrFeed
-            kinds={getActiveTabKinds()}
-            limit={limit}
-            authors={authors}
-            searchQuery={searchQuery}
-          />
-        )}
-
-        {activeTab === 'tags' && (
-          <NostrTagsFeed
-            kinds={getActiveTabKinds()}
-            limit={limit}
-            authors={authors}
-            searchQuery={searchQuery}
-            tagsProps={tags}
-            selectedTagProps={selectedTagProps}
-            setSelectedTagProps={setSelectedTagProps}
-            selectedTagsProps={selectedTagsProps}
-          />
-        )}
-
-        {activeTab === 'shorts' && (
-          <NostrShortFeed
-            kinds={getActiveTabKinds()}
-            limit={limit}
-            authors={authors}
-            searchQuery={searchQuery}
-          />
-        )}
-      </div>
     </div>
   );
 };
 
-export default FeedTabs; 
+export default FilterTabs; 

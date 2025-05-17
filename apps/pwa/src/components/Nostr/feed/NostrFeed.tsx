@@ -23,8 +23,8 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   className = '',
   authors,
   searchQuery,
-  since,
-  until: untilProps
+  since:sinceProps,
+  until:untilProps
 }) => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -48,7 +48,8 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   const [notesData, setNotesData] = useState<NDKEvent[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMoreContent, setHasMoreContent] = useState(true);
-  const [lastCreatedAt, setLastCreatedAt] = useState<number>(0);
+  const [lastCreatedAt, setLastCreatedAt] = useState<number>(new Date().getTime());
+  const [since, setSince] = useState<number>(sinceProps || Math.round(Date.now() / 1000) - 60 * 60 * 24 * 30);
   const [until, setUntil] = useState<number>(untilProps || Math.round(Date.now() / 1000));
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -65,6 +66,10 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       const notes = await ndk.fetchEvents({
         kinds: [...kinds],
         authors: authors,
+        // searchQuery: searchQuery,
+        // since: since,
+        // until: until,
+        // tags: tags,
         until: lastCreatedAt || Math.round(Date.now() / 1000),
         limit: limit ?? 10,
       });
@@ -121,22 +126,18 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
     if (isInitialLoading) {
       loadInitialData();
+      setIsInitialLoading(false);
     };
 
     // loadInitialData();
   }, [kinds, limit, authors, searchQuery, since, until, isInitialLoading]);
 
 
-  const fetchEventsNostr = async () => {
-    console.log("loading initial data");
-    setNotesData([]);
-    await fetchEvents();
-    setIsInitialLoading(false);
-  };
   useEffect(() => {
     if (!isInitialLoading) {
-      fetchEventsNostr();
     };
+    fetchEvents();
+
   }, [kinds, limit, authors, searchQuery, since, until, isInitialLoading]);
 
   // Intersection Observer for infinite scrolling
@@ -170,7 +171,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   };
 
   // Show loading state
-  if (isInitialLoading) {
+  if (isInitialLoading && notesData.length === 0) {
     return (
       <div className={`nostr-feed__content ${className}`}>
         <div className="flex justify-center items-center py-8">
