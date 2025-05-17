@@ -67,7 +67,8 @@ export const WalletConnectButton: React.FC = () => {
         modalMode: "alwaysAsk",
         dappName: "AFK",
         modalTheme: "dark",
-        connectors: connectors as Connector[]
+        connectors: connectors as any[]
+        // connectors: connectors as Connector[]
       });
 
       if (result && result.wallet) {

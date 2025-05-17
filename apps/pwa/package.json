@@ -37,6 +37,7 @@
     "@pinata/sdk": "^2.1.0",
     "@rainbow-me/rainbowkit": "^2.1.5",
     "@scure/bip32": "^1.7.0",
+    "@solana/web3.js": "^1.98.2",
     "@starknet-io/get-starknet-core": "^4.0.7",
     "@starknet-react/chains": "^0.1.7",
     "@starknet-react/core": "3.7.4",

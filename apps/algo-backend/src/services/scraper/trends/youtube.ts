@@ -1,9 +1,16 @@
-// src/googleTrends.ts
-import axios from 'axios';
+// src/youtube.ts
+import puppeteer from 'puppeteer';
 
-export async function fetchGoogleTrends(keyword: string) {
-  const url = `https://trends.google.com/trends/api/explore`;
-  // You can use an unofficial wrapper or scrape `trends.google.com` using puppeteer
-  const response = await axios.get(`https://trends.google.com/trends/api/widgetdata/multiline?hl=en-US&q=${keyword}`);
-  return response.data;
+export async function getYoutubeSearchSuggestions(query: string): Promise<string[]> {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto(`https://www.youtube.com/results?search_query=${query}`);
+
+  const suggestions = await page.evaluate(() => {
+    const titles = Array.from(document.querySelectorAll('#video-title'));
+    return titles.map(el => el.textContent?.trim() ?? '').slice(0, 10);
+  });
+
+  await browser.close();
+  return suggestions;
 }

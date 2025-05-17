@@ -47,7 +47,8 @@ export const useAtomiqLab = () => {
         //Browser, using get-starknet
         const swo = await connect({
             modalMode: "alwaysAsk",
-            connectors: connectors as Connector[]
+            // connectors: connectors as Connector[]
+            connectors: connectors as any[]
         });
         let wallet: StarknetSigner | null = null;
 
