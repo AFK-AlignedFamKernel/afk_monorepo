@@ -46,125 +46,78 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   // }, [ndk]);
 
   const [notesData, setNotesData] = useState<NDKEvent[]>([]);
-  const [oldNotesData, setOldNotesData] = useState<NDKEvent[]>([]);
-
-  const [uniqueNotesData, setUniqueNotesData] = useState<NDKEvent[]>([]);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreContent, setHasMoreContent] = useState(true);
+  const [lastCreatedAt, setLastCreatedAt] = useState<number>(0);
   const [until, setUntil] = useState<number>(untilProps || Math.round(Date.now() / 1000));
 
-  const [lastCreatedAt, setLastCreatedAt] = useState<number>(0);
-  // Use the useNotesFilter hook from afk_nostr_sdk
-  const {
-    data: notesDataOld,
-    isLoading,
-    isFetching,
-    isError,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    refetch
-  } = useSearch({
-    // Convert number[] to NDKKind[]
-    kinds: kinds.map(k => k as unknown as NDK),
-    limit,
-    authors,
-    // search: searchQuery
-  });
-  console.log("notesDataOld", notesDataOld);
-  console.log("notesData", notesData);
-  // console.log("isLoading", isLoading);
-  // console.log("isError", isError);
-  console.log("error", error);
+  const [isError, setIsError] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const fetchEvents = async () => {
+    if (isLoadingMore || !hasMoreContent) return;
 
     try {
+      setIsLoadingMore(true);
       console.log("fetching events");
-      console.log("kinds", kinds);
       const notes = await ndk.fetchEvents({
         kinds: [...kinds],
         authors: authors,
-        // search: searchQuery,
-        // since: since,
         until: lastCreatedAt || Math.round(Date.now() / 1000),
         limit: limit ?? 10,
       });
-      console.log("notes", notes);
-      console.log("notesFetch", notes);
+
+      if (notes.size === 0) {
+        setHasMoreContent(false);
+        return;
+      }
+
       // Filter out duplicate events based on their IDs
       const uniqueNotes = Array.from(
         new Set([...notes].map(note => note.id))
       ).map(id => [...notes].find(note => note.id === id)!);
 
-      // // If we're filtering out replies
-      // if (isWithouthReply) {
-      //   return uniqueNotes.filter(note => !note.tags.some(tag => tag[0] === 'e'));
-      // }
-
       // Sort notes by created_at timestamp in descending order (newest first)
       uniqueNotes.sort((a, b) => {
         return b.created_at - a.created_at;
       });
-      console.log("uniqueNotes", uniqueNotes);
 
-      setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
-      setUniqueNotesData(uniqueNotes);
-      // return [...notes];
-      setNotesData([...uniqueNotes, ...uniqueNotesData]);
-      return [...uniqueNotes];
+      if (uniqueNotes.length > 0) {
+        setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
+        setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
+      } else {
+        setHasMoreContent(false);
+      }
     } catch (error) {
       console.error("Error fetching events:", error);
-      return [];
+    } finally {
+      setIsLoadingMore(false);
     }
   }
 
+  // Initial data load
   useEffect(() => {
-    fetchEvents().then(setNotesData);
+    const loadInitialData = async () => {
+      setNotesData([]);
+      setLastCreatedAt(0);
+      setHasMoreContent(true);
+      await fetchEvents();
+    };
+    
+    loadInitialData();
   }, [kinds, limit, authors, searchQuery, since, until]);
-
-  // console.log("hasNextPage", hasNextPage);
-  // console.log("refetch", refetch);
-
-  // Force refetch when parameters change
-  // useEffect(() => {
-  //   refetch();
-  // }, [kinds, limit, authors, searchQuery]);
-
-  // Log query parameters and results
-  useEffect(() => {
-    // console.log('Query parameters:', { kinds, limit, authors, searchQuery, since, until });
-    // console.log('Notes data:', notesData);
-    // console.log('isLoading:', isLoading);
-    // console.log('isError:', isError);
-    // console.log('error:', error);
-  }, [notesData, isLoading, isError, error, kinds, limit, authors, searchQuery, since, until]);
-
-
-  // Extract events from the paginated data
-  // const events = notesDataOld?.pages?.flat() || [];
-  const events = notesData || [];
-
-  // Function to handle event selection
-  const handleEventClick = (eventId: string) => {
-    setSelectedEvent(eventId === selectedEvent ? null : eventId);
-  };
 
   // Intersection Observer for infinite scrolling
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const [entry] = entries;
-    if (entry.isIntersecting && hasNextPage && !isFetching) {
-      fetchNextPage();
-    }
-
-
-    if (entry.isIntersecting) {
-      console.log("fetching events");
+    if (entry.isIntersecting && hasMoreContent && !isLoadingMore) {
       fetchEvents();
     }
-  }, [fetchNextPage, hasNextPage, isFetching]);
+  }, [hasMoreContent, isLoadingMore]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(handleObserver, {
-      rootMargin: '0px 0px 400px 0px',
+      rootMargin: '0px 0px 200px 0px',
       threshold: 0.1,
     });
 
@@ -179,34 +132,29 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     };
   }, [handleObserver]);
 
+  // Function to handle event selection
+  const handleEventClick = (eventId: string) => {
+    setSelectedEvent(eventId === selectedEvent ? null : eventId);
+  };
 
-
-  // Show loading state
-  if (isLoading && events.length === 0 && events.length === 0) {
-    return (
-      <div className={`nostr-feed__content ${className}`}>
-        {[...Array(3)].map((_, index) => (
-          <div key={`skeleton-${index}`} className="nostr-feed__card nostr-feed__card--skeleton">
-            <NostrEventCard
-              key={`skeleton-${index}`}
-              event={{} as NDKEvent}
-              isLoading={true}
-            />
-          </div>
-        ))}
-      </div>
-    );
-  }
+  // // Show loading state
+  // if (notesData.length === 0 && isLoadingMore) {
+  //   return (
+  //     <div className={`nostr-feed__content ${className}`}>
+  //      <CryptoLoading />
+  //     </div>
+  //   );
+  // }
 
   // Show error state
-  if (isError && events.length === 0) {
+  if (isError && notesData.length === 0) {
     return (
       <div className={`nostr-feed__content ${className}`}>
         <div className="nostr-feed__error">
           <p>Error loading events: {error?.message || 'Unknown error'}</p>
           <button
             className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-            onClick={() => refetch()}
+            onClick={() => fetchEvents()}
           >
             Try Again
           </button>
@@ -215,27 +163,18 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     );
   }
 
-  // Combine events from hook and manual fetch
-  const allEvents = events.length > 0 ? events : [];
-  // const allEvents = events.length > 0 ? events : manualEvents;
-
-  // Get number of connected relays
-  const relayCount = ndk.pool?.relays ? ndk.pool.relays.size : 0;
-
   return (
     <div className={`nostr-feed__content ${className}`}>
-
-      {allEvents.length === 0 && !isLoading && !isFetching ? (
+      {notesData.length === 0 && !isLoadingMore ? (
         <div className="nostr-feed__empty-state">
           <p>No events found. Try following more users or changing filters.</p>
           <div className="mt-4 text-sm text-gray-500">
             <p>Debug info:</p>
-            <p>- Connected to {relayCount} relays</p>
+            <p>- Connected to {ndk.pool?.relays?.size || 0} relays</p>
             <p>- Kinds: {kinds?.join(', ')}</p>
-            <p>- Query status: {isLoading ? 'Loading' : (isError ? 'Error' : 'No Results')}</p>
             <button
               className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={() => refetch()}
+              onClick={() => fetchEvents()}
             >
               Refresh Feed
             </button>
@@ -243,15 +182,12 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
         </div>
       ) : (
         <div className="nostr-feed__content overflow-y-auto max-h-[80vh]">
-          {allEvents.map((event, index) => {
-            // Skip events without an id
+          {notesData.map((event, index) => {
             if (!event?.id) return null;
-
-            // Add ref to the last item to trigger loading more when it becomes visible
-            const isLastItem = index === allEvents.length - 1;
+            const isLastItem = index === notesData.length - 1;
 
             return (
-              <div key={event.id}>
+              <div key={index}>
                 <div
                   className="nostr-feed__card"
                   onClick={() => handleEventClick(event.id)}
@@ -261,14 +197,17 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
                     event={event}
                   />
                 </div>
-                {/* <div className="border-b border-gray-100 dark:border-gray-800 my-4"></div> */}
               </div>
             );
           })}
 
-          {isFetching && (
-            <div className="nostr-feed__loading-more py-4 text-center">
+          {isLoadingMore && (
               <CryptoLoading />
+          )}
+
+          {!hasMoreContent && notesData.length > 0 && (
+            <div className="nostr-feed__end py-4 text-center text-gray-500">
+              No more content to load
             </div>
           )}
         </div>

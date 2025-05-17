@@ -26,5 +26,5 @@ export const AFK_RELAYS =
     ]
     : [
       ...RELAYS_TEST,
-      'wss://nostr-relay-nestjs-production.up.railway.app',
+      // 'wss://nostr-relay-nestjs-production.up.railway.app',
     ];
