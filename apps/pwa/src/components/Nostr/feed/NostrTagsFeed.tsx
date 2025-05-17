@@ -52,7 +52,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   const [error, setError] = useState<Error | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(selectedTagProps ?? tags[0]);
   const [openFilters, setOpenFilters] = useState(false);
 
   const fetchEvents = async () => {
@@ -61,6 +61,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
     try {
       setIsLoadingMore(true);
       console.log("fetching events");
+      console.log("selectedTag", selectedTag);
       const notes = await ndk.fetchEvents({
         kinds: [...kinds],
         authors: authors,
@@ -140,12 +141,14 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
     await fetchEvents();
   };
   useEffect(() => {
+    console.log("selectedTag", selectedTag);
     if (!isInitialLoading) {
+      setNotesData([]);
       fetchEvents();
     };
     fetchEvents();
 
-  }, [kinds, limit, authors, searchQuery, since, until, selectedTag, isInitialLoading]);
+  }, [kinds, limit, authors, searchQuery, since, until, selectedTag, isInitialLoading, setSelectedTag]);
 
   // Intersection Observer for infinite scrolling
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {

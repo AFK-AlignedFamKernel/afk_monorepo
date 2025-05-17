@@ -19,10 +19,12 @@ export const ContentWithClickableHashtags = ({ content, onHashtagPress, hashtags
   const tagsEvent = useMemo(() => {
     return tags?.filter((tag) => tag[0] === 't').map((tag) => tag[1]) || [];
   }, [tags],);
-  hashtags = [...(matches || []), ...(tagsHash || []), ...(tagsEvent || [])];
+  const matchesCleaned = matches?.map(tag => tag?.slice(1));
+  hashtags = [...(matchesCleaned || []), ...(tagsHash || []), ...(tagsEvent || [])];
 
   hashtags = hashtags.filter(tag => tag && tag.length > 0);
-
+  // Remove duplicate hashtags by converting to Set and back to array
+  hashtags = [...new Set(hashtags)];
   return (
     <div
       className="mt-2 flex flex-wrap gap-1">
