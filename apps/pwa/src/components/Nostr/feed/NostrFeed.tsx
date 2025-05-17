@@ -50,9 +50,9 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   const [hasMoreContent, setHasMoreContent] = useState(true);
   const [lastCreatedAt, setLastCreatedAt] = useState<number>(0);
   const [until, setUntil] = useState<number>(untilProps || Math.round(Date.now() / 1000));
-
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const fetchEvents = async () => {
     if (isLoadingMore || !hasMoreContent) return;
@@ -90,17 +90,23 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       }
     } catch (error) {
       console.error("Error fetching events:", error);
+      setIsError(true);
+      setError(error as Error);
     } finally {
       setIsLoadingMore(false);
+      setIsInitialLoading(false);
     }
   }
 
   // Initial data load
   useEffect(() => {
     const loadInitialData = async () => {
+      setIsInitialLoading(true);
       setNotesData([]);
       setLastCreatedAt(0);
       setHasMoreContent(true);
+      setIsError(false);
+      setError(null);
       await fetchEvents();
     };
     
@@ -137,14 +143,16 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     setSelectedEvent(eventId === selectedEvent ? null : eventId);
   };
 
-  // // Show loading state
-  // if (notesData.length === 0 && isLoadingMore) {
-  //   return (
-  //     <div className={`nostr-feed__content ${className}`}>
-  //      <CryptoLoading />
-  //     </div>
-  //   );
-  // }
+  // Show loading state
+  if (isInitialLoading) {
+    return (
+      <div className={`nostr-feed__content ${className}`}>
+        <div className="flex justify-center items-center py-8">
+          <CryptoLoading />
+        </div>
+      </div>
+    );
+  }
 
   // Show error state
   if (isError && notesData.length === 0) {
@@ -181,13 +189,13 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
           </div>
         </div>
       ) : (
-        <div className="nostr-feed__content overflow-y-auto max-h-[80vh]">
+        <div className="nostr-feed__content overflow-y-auto max-h-[80vh] ">
           {notesData.map((event, index) => {
             if (!event?.id) return null;
             const isLastItem = index === notesData.length - 1;
 
             return (
-              <div key={index}>
+              <div key={event.id}>
                 <div
                   className="nostr-feed__card"
                   onClick={() => handleEventClick(event.id)}
@@ -202,7 +210,9 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
           })}
 
           {isLoadingMore && (
+            <div className="flex justify-center items-center py-4">
               <CryptoLoading />
+            </div>
           )}
 
           {!hasMoreContent && notesData.length > 0 && (
