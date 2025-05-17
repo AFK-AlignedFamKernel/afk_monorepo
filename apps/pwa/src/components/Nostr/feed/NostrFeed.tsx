@@ -55,6 +55,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   const [error, setError] = useState<Error | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
+  console.log("notesData", notesData);
   const [openFilters, setOpenFilters] = useState(false);
 
   const fetchEvents = async () => {
@@ -81,21 +82,23 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       }
 
       // Filter out duplicate events based on their IDs
-      const uniqueNotes = Array.from(
+      let uniqueNotes = Array.from(
         new Set([...notes].map(note => note.id))
       ).map(id => [...notes].find(note => note.id === id)!);
-
+      uniqueNotes = Array.from(new Set([...uniqueNotes].map(note => note)))
       // Sort notes by created_at timestamp in descending order (newest first)
       uniqueNotes.sort((a, b) => {
         return b.created_at - a.created_at;
       });
 
       if (uniqueNotes.length > 0) {
-        setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
-        setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
+        // setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
+        setNotesData(uniqueNotes);
+        // setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
       } else {
         setHasMoreContent(false);
       }
+      return uniqueNotes;
     } catch (error) {
       console.error("Error fetching events:", error);
       setIsError(true);

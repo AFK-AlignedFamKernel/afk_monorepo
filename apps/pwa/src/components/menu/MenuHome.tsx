@@ -3,7 +3,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Icon } from '../small/icon-component';
 
-export default function MenuGameComponent() {
+export default function MenuHomeComponent() {
   return (
     <div className="shadow-lg p-4 rounded-lg px-4">
       <h2 className="font-semibold">AFK is your gateway for your Freedom</h2>
@@ -12,12 +12,13 @@ export default function MenuGameComponent() {
       </p>
       <p>
         Get rewarded for your digital data on Internet!
+
       </p>
       {/* <p>
          Cross social media platform all-in-one that allows you to produced and get rewarded for your content.
         </p> */}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <Link
           href="/nostr/feed"
           className="game-launcher-item bg-gradient-to-br from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"

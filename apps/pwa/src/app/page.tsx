@@ -3,13 +3,13 @@
 import { FeedNostr } from '@/components/Nostr/feed';
 import React from 'react';
 import Link from 'next/link';
-import MenuGameComponent from '@/components/menu/MenuGame';
+import MenuHomeComponent from '@/components/menu/MenuHome';
 
 // Use inline Layout to avoid type issues
 export default function HomePage() {
   return (
     <div className="content">
-      <MenuGameComponent></MenuGameComponent>
+      <MenuHomeComponent></MenuHomeComponent>
     </div>
   );
 }

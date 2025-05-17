@@ -58,6 +58,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   const fetchEvents = async () => {
     // if (isLoadingMore || !hasMoreContent) return;
 
+    if(selectedTag === null) return;
     try {
       setIsLoadingMore(true);
       console.log("fetching events");
@@ -87,7 +88,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       });
 
       if (uniqueNotes.length > 0) {
-        setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
+        // setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
         setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
       } else {
         setHasMoreContent(false);
@@ -105,10 +106,9 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   const loadInitialData = async () => {
     console.log("loading initial data");
     setNotesData([]);
-    await fetchEvents();
 
     setIsInitialLoading(true);
-    setLastCreatedAt(0);
+    // setLastCreatedAt(0);
     setHasMoreContent(true);
     setIsError(false);
     setError(null);
@@ -118,7 +118,6 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
 
   // Initial data load
   useEffect(() => {
-
 
     if (isInitialLoading) {
       loadInitialData();
@@ -140,15 +139,14 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
     setError(null);
     await fetchEvents();
   };
-  useEffect(() => {
-    console.log("selectedTag", selectedTag);
-    if (!isInitialLoading) {
-      setNotesData([]);
-      fetchEvents();
-    };
-    fetchEvents();
+  // useEffect(() => {
+  //   console.log("selectedTag", selectedTag);
+  //   if (!isInitialLoading) {
+  //     setNotesData([]);
+  //     fetchEvents();
+  //   };
 
-  }, [kinds, limit, authors, searchQuery, since, until, selectedTag, isInitialLoading, setSelectedTag]);
+  // }, [kinds, limit, authors, searchQuery, since, until, selectedTag, isInitialLoading,]);
 
   // Intersection Observer for infinite scrolling
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
@@ -220,7 +218,11 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
                   : 'hover:bg-indigo-100 hover:shadow-lg'
               }`}
               key={index} 
-              onClick={() => setSelectedTag(tag)}
+              onClick={() => {
+                setSelectedTag(tag);
+                setNotesData([]);
+                fetchEvents();
+              }}
             >
               <p className="text-sm font-medium">{tag}</p>
             </div>
