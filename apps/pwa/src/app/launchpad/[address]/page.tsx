@@ -132,21 +132,21 @@ export default function LaunchpadDetailPage() {
 
   const tabs = [
     { name: 'Overview', component: <Overview data={launchData} /> },
-    { name: 'Holders', component: <Holders holders={holders} loading={loading} /> },
+    { name: 'Holders', component: <Holders holders={holders} loading={loading} total_supply={launchData?.total_supply} /> },
     { name: 'Transactions', component: <Transactions transactions={transactions} loading={loading} /> },
     // { name: 'Chart', component: <Chart data={chartData} loading={loading} /> },
   ];
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <ToastContainer
         toasts={toasts.map(toast => ({
           id: toast.id || Date.now(),
@@ -155,12 +155,8 @@ export default function LaunchpadDetailPage() {
         }))}
         onRemove={removeToast}
       />
-      <div className="container mx-auto px-4">
-        {/* <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">Launchpad Details</h1>
-          <p className="">Address: {address}</p>
-        </div> */}
-        <div className="lg:col-span-1">
+      <div className="container mx-auto px-4 py-8">
+        <div className="lg:col-span-1 mb-8">
           <LaunchActionsForm
             launch={launchData}
             onBuyPress={handleBuy}
@@ -173,16 +169,16 @@ export default function LaunchpadDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <div className="space-y-4">
-              <div className="flex space-x-1 rounded-xl p-1">
+            <div className="space-y-6">
+              <div className="flex space-x-2 rounded-xl p-1.5 bg-gray-100 dark:bg-gray-800 shadow-sm">
                 {tabs.map((tab, index) => (
                   <button
                     key={tab.name}
                     onClick={() => setSelectedTab(index)}
-                    className={`w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-colors
+                    className={`w-full rounded-lg py-3 px-4 text-sm font-medium leading-5 transition-all duration-200
                       ${selectedTab === index
-                        ? 'bg-white text-blue-700 shadow'
-                        : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
+                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50'
                       }`}
                   >
                     {tab.name}
@@ -190,13 +186,11 @@ export default function LaunchpadDetailPage() {
                 ))}
               </div>
 
-              <div className="rounded-xl p-3 shadow-lg">
+              <div className="rounded-xl p-6 bg-white dark:bg-gray-800 shadow-lg transition-colors duration-200 border border-gray-200 dark:border-gray-700">
                 {tabs[selectedTab].component}
               </div>
             </div>
           </div>
-
-
         </div>
       </div>
     </div>

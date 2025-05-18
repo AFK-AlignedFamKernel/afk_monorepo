@@ -19,7 +19,7 @@ export function WalletConnector() {
     return (
       <button
         onClick={() => connect({
-          connector: connectors[0] as Connector
+          connector : connectors[0] as Connector
         })}
         className=" text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors p-4"
       >
