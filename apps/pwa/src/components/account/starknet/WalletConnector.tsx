@@ -8,7 +8,7 @@ import {
 } from '@starknet-react/core';
 import { StarknetkitConnector, Connector, useStarknetkitConnectModal } from 'starknetkit';
  
-export function WalletConnectorModal() {
+export function WalletConnector() {
   const { disconnect } = useDisconnect();
  
   const { connect, connectors } = useConnect();
@@ -18,7 +18,9 @@ export function WalletConnectorModal() {
   if (!address) {
     return (
       <button
-        onClick={() => connect()}
+        onClick={() => connect({
+          connector: connectors[0] as Connector
+        })}
         className=" text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors p-4"
       >
         Connect Wallet

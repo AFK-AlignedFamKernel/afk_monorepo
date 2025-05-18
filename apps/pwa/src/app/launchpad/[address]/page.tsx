@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Overview } from '@/components/launchpad/Overview';
 import { Holders } from '@/components/launchpad/Holders';
@@ -35,6 +35,16 @@ export default function LaunchpadDetailPage() {
   const { handleBuyCoins } = useBuyCoin();
   const { handleSellCoins } = useSellCoin();
   const { toasts, showToast, removeToast } = useToast();
+
+
+  const [shareUserState, setShareUserState] = useState<any>(null);
+  useMemo(() => {
+    if (holders) {
+      let userShare = holders?.find((holder: any) => holder?.owner === account?.address)
+      setShareUserState(userShare);
+      setUserShare(userShare);
+    }
+  }, [holders]);
 
   useEffect(() => {
     const fetchData = async () => {
