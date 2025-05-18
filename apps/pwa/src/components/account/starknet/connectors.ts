@@ -1,3 +1,4 @@
+"use client"
 import { ARGENT_WEBWALLET_URL, CHAIN_ID } from "@/constants/index"
 import {
   isInArgentMobileAppBrowser,

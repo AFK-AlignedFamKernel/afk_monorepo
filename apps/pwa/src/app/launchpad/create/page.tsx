@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 
 const TokenCreateForm = dynamic(() => import('@/components/launchpad/TokenCreateForm').then(mod => mod.TokenCreateForm), {
   ssr: false,
+  loading: () => <div>Loading...</div>
 });
 
 export default function CreateTokenPage() {

@@ -15,14 +15,22 @@ import { InjectedConnector } from 'starknetkit/injected';
 import { ArgentMobileConnector } from 'starknetkit/argentMobile';
 import { WebWalletConnector } from 'starknetkit/webwallet';
 import { ControllerConnector } from '@cartridge/connector';
+import { RpcProvider } from 'starknet';
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
   const chains = [mainnet, sepolia];
-  // const cartridgeConnector = new ControllerConnector({
-  //   rpc: 'https://api.cartridge.gg/x/starknet/sepolia',
-  // })
+  
+  // Create a custom provider with API key
+  const provider = () => {
+    return new RpcProvider({
+      nodeUrl: process.env.NEXT_PUBLIC_STARKNET_RPC_URL || 'https://starknet-sepolia.infura.io/v3/',
+      headers: {
+        'x-api-key': process.env.NEXT_PUBLIC_STARKNET_API_KEY || '',
+      },
+    });
+  };
+
   const connectors = [
-    // cartridgeConnector,
     new InjectedConnector({
       options: { id: "argentX", name: "Argent X" },
     }),
@@ -33,18 +41,12 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
     new ArgentMobileConnector(),
   ]
 
-  // const { connectors } = useInjectedConnectors({
-  //   recommended: [argent(), braavos()],
-  //   includeRecommended: 'onlyIfNoConnectors',
-  //   order: 'random',
-  // });
-
   return (
     <StarknetConfig
       chains={chains}
-      provider={publicProvider()}
+      provider={provider}
       explorer={voyager}
-      connectors={connectors as Connector[]} // Type assertion to fix type error temporarily
+      connectors={connectors as Connector[]}
       autoConnect
     >
       {children}
