@@ -20,9 +20,9 @@ export const Filter: React.FC<FilterProps> = ({
   isLaunchView,
 }) => {
   return (
-    <div className="card">
+    <div className="w-full">
       <button
-        className="sidebar-nav-item w-full flex justify-between items-center"
+        className="w-full flex justify-between items-center"
         onClick={() => setShowFilters(!showFilters)}
       >
         <span>Filter & Sort</span>
@@ -30,9 +30,9 @@ export const Filter: React.FC<FilterProps> = ({
       </button>
 
       {showFilters && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
           <button
-            className={`sidebar-nav-item ${sortBy === 'recent' ? 'active' : ''}`}
+            className={`sidebar-nav-item min-w-[120px] h-10 flex items-center justify-center ${sortBy === 'recent' ? 'active' : ''}`}
             onClick={() => setSortBy('recent')}
           >
             Most Recent
@@ -40,7 +40,7 @@ export const Filter: React.FC<FilterProps> = ({
 
           {isLaunchView && (
             <button
-              className={`sidebar-nav-item ${sortBy === 'liquidity' ? 'active' : ''}`}
+              className={`sidebar-nav-item min-w-[120px] h-10 flex items-center justify-center ${sortBy === 'liquidity' ? 'active' : ''}`}
               onClick={() => setSortBy('liquidity')}
             >
               Liquidity
@@ -48,7 +48,7 @@ export const Filter: React.FC<FilterProps> = ({
           )}
 
           <button
-            className={`sidebar-nav-item ${sortBy === 'oldest' ? 'active' : ''}`}
+            className={`sidebar-nav-item min-w-[120px] h-10 flex items-center justify-center ${sortBy === 'oldest' ? 'active' : ''}`}
             onClick={() => setSortBy('oldest')}
           >
             Oldest First
@@ -56,7 +56,7 @@ export const Filter: React.FC<FilterProps> = ({
 
           {isLaunchView && (
             <button
-              className={`sidebar-nav-item ${sortBy === 'graduated' ? 'active' : ''}`}
+              className={`sidebar-nav-item min-w-[120px] h-10 flex items-center justify-center ${sortBy === 'graduated' ? 'active' : ''}`}
               onClick={() => setSortBy('graduated')}
             >
               Graduated

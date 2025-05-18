@@ -31,8 +31,8 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
   const formatLiquidity = (amount?: number) => {
     if (!amount) return '0';
     return amount.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: 5,
+      maximumFractionDigits: 5,
     });
   };
 
@@ -42,7 +42,15 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
 
   return (
     <div className="card hover:shadow-lg transition-shadow duration-200">
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-4 gap-2">
+        <div className="flex justify-between items-center text-sm">
+
+          {token?.url && (token?.url !== "" && token?.url !== null && token?.url !== undefined) && (
+            <Image src={token?.url} alt={token.name} width={50} height={50}
+              className="rounded-lg"
+            />
+          )}
+        </div>
         <div>
           <h3 className="text-lg font-semibold">{token.name}</h3>
           <p className="text-sm text-shade-500">{token.symbol}</p>
@@ -70,44 +78,64 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
         {type === 'LAUNCH' && token.threshold_liquidity && (
           <div className="mt-2 w-full">
             <div className="text-shade-700">
-              Raised: {token.liquidity_raised?.toFixed(2)}
-              {/* Liquidity: ${formatLiquidity(token.liquidity_raised)} */}
+              Raised: {token.liquidity_raised?.toFixed(5)}
             </div>
             <div className="relative pt-1">
               <div className="flex mb-2 items-center justify-between">
                 <div className="text-xs font-semibold text-shade-600">
-                  Progress: {((Number(token.liquidity_raised ?? 0) / Number(token.threshold_liquidity)) * 100).toFixed(0)}%
+                  Progress: {((Number(token.liquidity_raised ?? 0) / Number(token.threshold_liquidity)) * 100).toFixed(1)}%
                 </div>
               </div>
-              <div className="overflow-hidden h-2 mb-1 text-xs flex rounded bg-shade-200">
+              <div className="relative w-full h-3 bg-shade-100 rounded-full overflow-hidden border border-shade-200 shadow-sm">
                 <div
-                  style={{ width: `${Math.min(100, (Number(token.liquidity_raised ?? 0) / Number(token.threshold_liquidity)) * 100)}%` }}
-                  className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-primary-500"
-                ></div>
+                  className={`absolute h-full transition-all duration-300 ease-in-out ${
+                    Number(token.liquidity_raised) <= Number(token.threshold_liquidity) - Number(token.threshold_liquidity) * 0.02
+                      ? 'bg-yellow-500'
+                      : 'bg-primary-500'
+                  }`}
+                  style={{
+                    width: `${Math.min(100, (Number(token.liquidity_raised ?? 0) / Number(token.threshold_liquidity)) * 100)}%`,
+                    animation: 'slideProgress 1s ease-in-out'
+                  }}
+                />
               </div>
-              <div className="text-xs text-shade-500">
+              <style jsx>{`
+                @keyframes slideProgress {
+                  from {
+                    width: 0%;
+                  }
+                  to {
+                    width: ${Math.min(100, (Number(token.liquidity_raised ?? 0) / Number(token.threshold_liquidity)) * 100)}%;
+                  }
+                }
+              `}</style>
+
+              <div className="text-xs text-shade-500 mt-1">
                 {formatLiquidity(Number(token.liquidity_raised))} / {formatLiquidity(Number(token.threshold_liquidity))}
               </div>
             </div>
             {token?.bonding_type && (
-              <div className="text-xs text-shade-500">
+              <div className="text-xs text-shade-500 mt-1">
                 {token?.bonding_type}
               </div>
             )}
           </div>
         )}
       </div>
-      <div className="flex justify-between items-center text-sm">
-
-        {token?.url && (token?.url !== ""  && token?.url !== null  && token?.url !== undefined) && (
+      {/* <div className="flex justify-between items-center text-sm">
+        {token?.url && (token?.url !== "" && token?.url !== null && token?.url !== undefined) && (
           <Image src={token?.url} alt={token.name} width={100} height={100} />
         )}
-      </div>
+      </div> */}
 
-      <div className="mt-4 pt-4 border-t border-shade-200">
+      <div className="mt-4 pt-4 flex">
+
+
         <Link href={`/launchpad/${token.token_address}`} className="sidebar-nav-item w-full">
           View Details
         </Link>
+
+        {/* <button></button> */}
       </div>
     </div>
   );

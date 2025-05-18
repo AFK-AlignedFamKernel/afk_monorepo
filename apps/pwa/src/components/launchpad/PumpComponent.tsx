@@ -72,6 +72,7 @@ export default function PumpComponent() {
         break;
       case 'graduated':
         filtered.sort((a, b) => (b.is_liquidity_added ? 1 : 0) - (a.is_liquidity_added ? 1 : 0));
+        filtered = filtered.filter(item => item.is_liquidity_added);
         break;
     }
 
@@ -108,26 +109,26 @@ export default function PumpComponent() {
           {/* Search */}
 
           <div className="flex justify-between items-center mb-6">
-            <Search onSearch={handleSearch} placeholder="Search tokens or launches..." />
-            {/* <Filter
+            {/* <Search onSearch={handleSearch} placeholder="Search tokens or launches..." /> */}
+            <Filter
               showFilters={showFilters}
               setShowFilters={setShowFilters}
               sortBy={sortBy}
               setSortBy={setSortBy}
               isLaunchView={isLaunchView}
-            /> */}
+            />
           </div>
 
           {/* Action Toggle */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex items-baseline gap-3 overflow-x-auto pb-2">
             <button
-              className={`sidebar-nav-item ${tokenOrLaunch === 'LAUNCH' ? 'active' : ''}`}
+              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'LAUNCH' ? 'active' : ''}`}
               onClick={() => setTokenOrLaunch('LAUNCH')}
             >
               Launches
             </button>
             <button
-              className={`sidebar-nav-item ${tokenOrLaunch === 'TOKEN' ? 'active' : ''}`}
+              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'TOKEN' ? 'active' : ''}`}
               onClick={() => {
                 setTokenOrLaunch('TOKEN');
                 if (sortBy === 'liquidity' || sortBy === 'graduated') {
@@ -138,7 +139,7 @@ export default function PumpComponent() {
               Tokens
             </button>
             <button
-              className={`sidebar-nav-item ${tokenOrLaunch === 'MY_DASHBOARD' ? 'active' : ''}`}
+              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'MY_DASHBOARD' ? 'active' : ''}`}
               onClick={() => {
                 setTokenOrLaunch('MY_DASHBOARD');
                 if (sortBy === 'liquidity' || sortBy === 'graduated') {
@@ -149,7 +150,7 @@ export default function PumpComponent() {
               My Tokens
             </button>
             <button
-              className={`sidebar-nav-item ${tokenOrLaunch === 'MY_LAUNCH_TOKEN' ? 'active' : ''}`}
+              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'MY_LAUNCH_TOKEN' ? 'active' : ''}`}
               onClick={() => setTokenOrLaunch('MY_LAUNCH_TOKEN')}
             >
               My Launches

@@ -291,7 +291,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
               className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 transition"
               onClick={() => {
                 setIsInitialLoading(true);
-                setNotesData([]);
+                // setNotesData([]);
                 setLastCreatedAt(0);
                 setHasMoreContent(true);
                 fetchEvents().finally(() => setIsInitialLoading(false));
