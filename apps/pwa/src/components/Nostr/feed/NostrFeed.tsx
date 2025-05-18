@@ -92,7 +92,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       });
 
       if (uniqueNotes.length > 0) {
-        // setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
+        setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
         setNotesData(uniqueNotes);
         // setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
       } else {

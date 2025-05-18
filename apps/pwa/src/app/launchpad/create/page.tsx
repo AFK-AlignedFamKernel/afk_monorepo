@@ -1,17 +1,23 @@
 'use client';
-
 import React from 'react';
-import { useRouter } from 'next/navigation';
-import { TokenCreateForm } from '@/components/launchpad/TokenCreateForm';
+// import { TokenCreateForm } from '@/components/launchpad/TokenCreateForm';
+import { useUIStore } from '@/store/uiStore';
+import dynamic from 'next/dynamic';
+
+const TokenCreateForm = dynamic(() => import('@/components/launchpad/TokenCreateForm').then(mod => mod.TokenCreateForm), {
+  ssr: false,
+});
 
 export default function CreateTokenPage() {
-  const router = useRouter();
 
+  const {showToast} = useUIStore();
+ 
   const handleSuccess = () => {
-    router.push('/launchpad');
+    console.log('Token created successfully');
+    showToast({message: 'Token created successfully', type: 'success'});
   };
-
   const handleError = (error: Error) => {
+    showToast({message: 'Error creating token', type: 'error'});
     console.error('Error creating token:', error);
   };
 

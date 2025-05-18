@@ -88,7 +88,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       });
 
       if (uniqueNotes.length > 0) {
-        // setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
+        setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
         setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
       } else {
         setHasMoreContent(false);
@@ -220,6 +220,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
               key={index} 
               onClick={() => {
                 setSelectedTag(tag);
+                setLastCreatedAt(new Date().getTime() / 1000);
                 setNotesData([]);
                 fetchEvents();
               }}
