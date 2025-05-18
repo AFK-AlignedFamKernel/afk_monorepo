@@ -95,7 +95,7 @@ export default function PumpComponent() {
   return (
     <div className="content">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Launchpad</h1>
+        {/* <h1 className="text-2xl font-bold">Launchpad</h1> */}
         <a
           href="/launchpad/create"
           className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -121,7 +121,7 @@ export default function PumpComponent() {
 
           {/* Action Toggle */}
           <div className="flex items-baseline gap-3 overflow-x-auto pb-2">
-            <button
+                                                                                                                                                                                                                                                                                                        <button
               className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'LAUNCH' ? 'active' : ''}`}
               onClick={() => setTokenOrLaunch('LAUNCH')}
             >

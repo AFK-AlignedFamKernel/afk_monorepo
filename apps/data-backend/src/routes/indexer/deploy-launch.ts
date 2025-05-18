@@ -157,6 +157,8 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           owner: true,
           token_address: true,
           amount_owned: true,
+          amount_claimed: true,
+          // updated_at: true,
           // created_at: true,
         },
       });

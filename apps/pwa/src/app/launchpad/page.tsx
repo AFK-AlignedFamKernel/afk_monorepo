@@ -5,6 +5,8 @@ import React, { useState, useMemo } from 'react';
 export default function LaunchpadPage() {
 
   return (
-    <PumpComponent />
+    <div className="p-4">
+      <PumpComponent />
+    </div>
   );
 } 
