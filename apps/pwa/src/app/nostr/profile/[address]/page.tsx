@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useNostrContext, useProfile } from 'afk_nostr_sdk'
 import { NDKUserProfile } from '@nostr-dev-kit/ndk'
-import { FeedTabs } from '@/components/Nostr/feed'
+import { FeedTabsProfile } from '@/components/Nostr/feed/FeedTabsProfile'
 
 export default function ProfilePage() {
   const { address } = useParams()
@@ -35,7 +35,7 @@ export default function ProfilePage() {
         <ProfileHeader profile={profile} />
       }
       {profile &&
-        <FeedTabs authors={[address as string]}></FeedTabs>
+        <FeedTabsProfile authors={[address as string]}></FeedTabsProfile>
       }
     </div>
   )
@@ -52,16 +52,23 @@ const ProfileHeader = (props?: any) => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">
-        {profile?.displayName || profile?.name || 'Anonymous'}
-      </h1>
-      {profile.picture && (
-        <img
-          src={profile.picture}
-          alt="Profile"
-          className="w-32 h-32 rounded-full mb-4"
-        />
-      )}
+      <div className="flex items-center">
+        {profile.picture && (
+          <img
+            src={profile.picture}
+            alt="Profile"
+            className="w-32 h-32 rounded-full mb-4"
+          />
+        )}
+        <p className="text-2xl font-bold mb-4">
+          {profile?.displayName || profile?.name || 'Anonymous'}
+        </p>
+        <p className="text-2xl font-bold mb-4">
+          {profile?.lud06 || profile?.lud16 || 'Anonymous'}
+        </p>
+
+      </div>
+
       {profile.about && (
         <div>
           <p className="text-gray-600 mb-4">

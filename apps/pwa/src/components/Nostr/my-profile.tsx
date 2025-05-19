@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useNostrContext, useProfile } from 'afk_nostr_sdk'
-import { FeedTabs } from '@/components/Nostr/feed'
 import { useAuth } from 'afk_nostr_sdk'
 import { NostrKeyManager } from 'afk_nostr_sdk'
 import { NostrProfileEditForm } from '@/components/Nostr/profile/edit-form'
 import { useUIStore } from '@/store/uiStore'
+import { FeedTabsProfile } from '@/components/Nostr/feed/FeedTabsProfile'
 export default function MyNostrProfileComponent() {
   const { publicKey, setAuth } = useAuth()
   const { ndk } = useNostrContext()
@@ -76,7 +76,7 @@ export default function MyNostrProfileComponent() {
         </div>
       }
       {profile && (
-        <FeedTabs authors={[publicKey as string]} />
+        <FeedTabsProfile authors={[publicKey as string]} />
       )}
     </div>
   )
