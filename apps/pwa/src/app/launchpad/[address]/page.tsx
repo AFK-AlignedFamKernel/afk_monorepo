@@ -38,11 +38,12 @@ export default function LaunchpadDetailPage() {
 
 
   const [shareUserState, setShareUserState] = useState<any>(null);
-  useMemo(() => {
+  const userShareMemo = useMemo(() => {
     if (holders) {
       let userShare = holders?.find((holder: any) => holder?.owner === account?.address)
       setShareUserState(userShare);
       setUserShare(userShare);
+      return userShare;
     }
   }, [holders]);
 
@@ -161,7 +162,7 @@ export default function LaunchpadDetailPage() {
             launch={launchData}
             onBuyPress={handleBuy}
             onSellPress={handleSell}
-            userShare={userShare}
+            userShare={userShareMemo}
             loading={actionLoading}
             memecoinAddress={address as string}
           />
