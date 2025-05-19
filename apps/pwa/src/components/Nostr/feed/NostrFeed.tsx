@@ -23,8 +23,8 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   className = '',
   authors,
   searchQuery,
-  since:sinceProps,
-  until:untilProps
+  since: sinceProps,
+  until: untilProps
 }) => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -55,11 +55,12 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   const [error, setError] = useState<Error | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  console.log("notesData", notesData);
   const [openFilters, setOpenFilters] = useState(false);
 
   const fetchEvents = async () => {
     // if (isLoadingMore || !hasMoreContent) return;
+    console.log("isLoadingMore")
+    if (isLoadingMore) return;
 
     try {
       setIsLoadingMore(true);
@@ -71,7 +72,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
         // since: since,
         // until: until,
         // tags: tags,
-        until: lastCreatedAt || Math.round(Date.now() / 1000),
+        // until: lastCreatedAt || Math.round(Date.now() / 1000),
         limit: limit ?? 10,
       });
 
@@ -93,8 +94,8 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
       if (uniqueNotes.length > 0) {
         setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
-        setNotesData(uniqueNotes);
-        // setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
+        // setNotesData(uniqueNotes);
+        setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
       } else {
         setHasMoreContent(false);
       }
@@ -112,10 +113,11 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   const loadInitialData = async () => {
     console.log("loading initial data");
     setNotesData([]);
+    setIsLoadingMore(true)
     await fetchEvents();
 
     setIsInitialLoading(true);
-    setLastCreatedAt(0);
+    // setLastCreatedAt(0);
     setHasMoreContent(true);
     setIsError(false);
     setError(null);
@@ -125,21 +127,18 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   // Initial data load
   useEffect(() => {
-
-
     if (isInitialLoading) {
       loadInitialData();
       setIsInitialLoading(false);
     };
-
     // loadInitialData();
   }, [kinds, limit, authors, searchQuery, since, until, isInitialLoading]);
 
 
   useEffect(() => {
     if (!isInitialLoading) {
+      fetchEvents()
     };
-    fetchEvents();
 
   }, [kinds, limit, authors, searchQuery, since, until, isInitialLoading]);
 
@@ -202,7 +201,10 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   }
 
   return (
-    <div className={`nostr-feed__content ${className}`}>
+    <div 
+    // className={`nostr-feed__content ${className}`}
+    className={`${className}`}
+    >
 
 
 

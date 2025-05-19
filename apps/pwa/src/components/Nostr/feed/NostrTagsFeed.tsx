@@ -58,17 +58,17 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   const fetchEvents = async () => {
     // if (isLoadingMore || !hasMoreContent) return;
 
-    if(selectedTag === null) return;
+    if(selectedTag === null || !selectedTag) return;
     try {
       setIsLoadingMore(true);
       console.log("fetching events");
       console.log("selectedTag", selectedTag);
       const notes = await ndk.fetchEvents({
         kinds: [...kinds],
-        authors: authors,
+        // authors: authors,
         until: lastCreatedAt || Math.round(Date.now() / 1000),
         limit: limit ?? 10,
-        '#t': [selectedTag || ''],
+        '#t': [selectedTag],
       });
 
       console.log("notes", notes);
@@ -107,12 +107,12 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
     console.log("loading initial data");
     setNotesData([]);
 
-    setIsInitialLoading(true);
+
+    await fetchEvents();
     // setLastCreatedAt(0);
     setHasMoreContent(true);
     setIsError(false);
     setError(null);
-    await fetchEvents();
     setIsInitialLoading(false);
   };
 
