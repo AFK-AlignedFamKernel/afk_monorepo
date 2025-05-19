@@ -30,6 +30,15 @@ $feed-animation-speed: 0.2s;
     margin: 0 auto;
     // max-width: 1200px;
   }
+  
+  &__tags-container {
+    scrollbar-width: none; // Firefox
+    -ms-overflow-style: none; // IE/Edge
+
+    &::-webkit-scrollbar {
+      display: none; // Chrome/Safari/Opera
+    }
+  }
 
   &__tabs {
     display: flex;

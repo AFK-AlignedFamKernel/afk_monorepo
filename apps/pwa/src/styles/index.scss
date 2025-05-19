@@ -595,3 +595,15 @@ button.sidebar-nav-footer-item {
     margin-top: 1rem;
   }
 }
+
+
+.horizontal-container {
+  overflow-x: auto;
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // IE/Edge
+
+  &::-webkit-scrollbar {
+    display: none; // Chrome/Safari/Opera
+  }
+}
+

@@ -208,8 +208,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
 
   return (
     <div className={`nostr-feed__content ${className}`}>
-      <div className="relative w-full">
-        <div className="flex gap-2 overflow-x-auto scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-transparent hover:scrollbar-thumb-indigo-400 pb-2">
+        <div className="nostr-feed__tags-container flex gap-2 overflow-x-auto scrollbar-hide pb-2" >
           {tags.map((tag, index) => (
             <div
               className={`px-3 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-200 shadow-md border border-indigo-600 ${
@@ -229,7 +228,6 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
             </div>
           ))}
         </div>
-      </div>
       {notesData.length === 0 && !isLoadingMore ? (
         <div className="nostr-feed__empty-state">
           <p>No events found. Try following more users or changing filters.</p>

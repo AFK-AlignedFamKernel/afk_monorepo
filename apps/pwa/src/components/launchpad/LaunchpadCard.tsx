@@ -15,6 +15,12 @@ interface LaunchpadCardProps {
     url?: string | null;
     threshold_liquidity?: number;
     bonding_type?: string;
+    total_token_holded?: string;
+    price?: string;
+    total_supply?: string;
+    network?: string;
+    created_at?: string;
+    market_cap?: string;
   };
   type: 'TOKEN' | 'LAUNCH';
 }
@@ -60,7 +66,7 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
             Graduated
           </span>
         )}
-        <div className="text-shade-500">
+        <div className="text-shade-500 text-xs">
           Created: {formatDate(token.block_timestamp)}
         </div>
 

@@ -27,6 +27,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           total_token_holded:true,
           block_timestamp:true,
           is_liquidity_added:true,
+          market_cap:true,
           // name:true,
           // symbol:true,
           // token_metadata:{
@@ -90,7 +91,10 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           total_token_holded:true,
           block_timestamp:true,
           is_liquidity_added:true,
-
+          market_cap:true,
+          url:true,
+          name:true,
+          symbol:true
         },
       });
 
@@ -133,6 +137,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           total_token_holded:true,
           block_timestamp:true,
           is_liquidity_added:true,
+          market_cap:true,
           name:true,
           symbol:true,
           url:true,
@@ -179,6 +184,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           transaction_type: true,
           created_at: true,
           quote_amount: true,
+          transaction_hash: true,
           time_stamp: true,
         },
       });

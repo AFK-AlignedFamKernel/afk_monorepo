@@ -190,6 +190,13 @@ export default function PumpComponent() {
                     is_liquidity_added: item.is_liquidity_added,
                     threshold_liquidity: Number(item.threshold_liquidity) || 0,
                     url: item.url,
+                    price: item.price,
+                    total_supply: item.total_supply,
+                    network: item.network,
+                    created_at: item.created_at,
+                    bonding_type: item.bonding_type,
+                    total_token_holded: item.total_token_holded,
+                    
                   }}
                   type={isLaunchView ? 'LAUNCH' : 'TOKEN'}
                 />

@@ -30,7 +30,7 @@ export const Filter: React.FC<FilterProps> = ({
       </button>
 
       {showFilters && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 flex gap-2 horizontal-container">
           <button
             className={`sidebar-nav-item min-w-[120px] h-10 flex items-center justify-center ${sortBy === 'recent' ? 'active' : ''}`}
             onClick={() => setSortBy('recent')}

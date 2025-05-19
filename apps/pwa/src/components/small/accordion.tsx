@@ -29,13 +29,20 @@ const Accordion: React.FC<AccordionProps> = ({ items, title }) => {
 
           <div className="flex items-center">
             {item?.icon && item?.icon}
-            {item.title && <label
-              htmlFor={`accordion-${index}`}
-            className="flex justify-between items-center p-4 w-full cursor-pointer"
-          >
-            <span>{item.title}</span>
-              <span className="transition-transform duration-200 group-[.peer:checked+&]:rotate-180">▼</span>
-            </label>
+            {item.title &&
+              <label
+                htmlFor={`accordion-${index}`}
+                className="flex justify-between items-center p-4 w-full cursor-pointer text-sm"
+              >
+                <p 
+                // className="font-size-8"
+                
+                style={{
+                  fontSize: '12px',
+                }}
+                >{item.title}</p>
+                <span className="transition-transform duration-200 group-[.peer:checked+&]:rotate-180">▼</span>
+              </label>
             }
           </div>
 
