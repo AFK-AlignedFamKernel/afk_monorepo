@@ -58,6 +58,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   const fetchEvents = async () => {
     // if (isLoadingMore || !hasMoreContent) return;
 
+    console.log("lastCreatedAt", lastCreatedAt);
     if(selectedTag === null || !selectedTag) return;
     try {
       setIsLoadingMore(true);
@@ -66,7 +67,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       const notes = await ndk.fetchEvents({
         kinds: [...kinds],
         authors: authors,
-        until: lastCreatedAt || Math.round(Date.now() / 1000),
+        // until: lastCreatedAt || Math.round(Date.now() / 1000),
         limit: limit ?? 10,
         '#t': [selectedTag],
       });

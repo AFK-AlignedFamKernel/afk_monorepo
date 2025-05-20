@@ -21,57 +21,56 @@
 
 // Primary button
 .btn-primary {
-  // background-color: var(--button-primary-color, #64748b);
-  color: white;
+  background-color: var(--button-primary-color);
+  color: var(--contrast-50);
   
   &:hover {
-    // background-color: darken(var(--button-primary-color, #64748b), 10%);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    background-color: var(--blue-700);
+    box-shadow: 0 4px 12px rgba(var(--blue-500), 0.3);
   }
 }
 
 // Secondary button
 .btn-secondary {
-  background-color: var(--button-secondary-color, #64748b);
-  color: white;
+  background-color: var(--button-secondary-color);
+  color: var(--contrast-50);
 
   &:hover {
-    background-color: darken(#64748b, 10%);
-    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+    background-color: var(--primary-600);
+    box-shadow: 0 4px 12px rgba(var(--primary-500), 0.3);
   }
 }
 
 // Gradient buttons
 .btn-gradient-blue {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 100%);
+  color: var(--contrast-50);
   
   &:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+    background: linear-gradient(135deg, var(--blue-600) 0%, var(--blue-700) 100%);
+    box-shadow: 0 4px 15px rgba(var(--blue-500), 0.4);
   }
 }
 
 .btn-gradient-purple {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--purple-500) 0%, var(--purple-600) 100%);
+  color: var(--contrast-50);
   
   &:hover {
-    background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%);
-    box-shadow: 0 4px 15px rgba(109, 40, 217, 0.4);
+    background: linear-gradient(135deg, var(--purple-600) 0%, var(--purple-700) 100%);
+    box-shadow: 0 4px 15px rgba(var(--purple-500), 0.4);
   }
 }
 
-// Gradient buttons
 .btn-gradient-green {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    
-    &:hover {
-      background: linear-gradient(135deg, #059669 0%, #047857 100%);
-      box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
-    }
+  background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
+  color: var(--contrast-50);
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--green-600) 0%, var(--green-700) 100%);
+    box-shadow: 0 4px 15px rgba(var(--green-500), 0.4);
   }
+}
 
 // Animated button
 .btn-animated {
@@ -88,7 +87,7 @@
     background: linear-gradient(
       120deg,
       transparent,
-      rgba(255, 255, 255, 0.2),
+      rgba(var(--contrast-50), 0.2),
       transparent
     );
     transition: all 0.6s;

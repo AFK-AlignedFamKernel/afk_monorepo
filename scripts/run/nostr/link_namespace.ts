@@ -12,8 +12,8 @@ dotenv.config();
 
 // let sk = "ebbc14b03f042a4a0c9583b9e6c6c2aa177884bb6a739dbf1d7c2fdeb04c73cf";
 let sk = "59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35";
-const SK= "59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35"
-const PK= "5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc"
+const SK = "59a772c0e643e4e2be5b8bac31b2ab5c5582b03a84444c81d6e2eec34a5e6c35"
+const PK = "5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc"
 // console.log("private key", bytesToHex(sk as any));
 const ndk = new NDK({
     // explicitRelayUrls: AFK_RELAYS,
@@ -35,7 +35,10 @@ const getNostrEvent = async (strkAddressUsed: string) => {
 export const linkedToSecond = async (starknet_address: string) => {
     // let sk = generateSecretKey() // `sk` is a Uint8Array
     // let pk = getPublicKey(sk) // `pk` is a hex string
-
+    const namespace_address = NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+    const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
+    const privateKey0 = process.env.DEV_PK as string;
+    const account = new Account(provider, accountAddress0, privateKey0, "1");
     // @TODO find a way to convert the contract address to a hex string
     let starknet_user_recipient = cairo.felt(starknet_address);
     // let strkAddressUsed  = "123";
@@ -58,18 +61,21 @@ export const linkedToSecond = async (starknet_address: string) => {
 
     console.log(sk);
     console.log(pk);
+
+    // Use exactly 123 as the starknet address like in the test
+    const starknetAddress = accountAddress0; // This matches sender_address in the test
     // let content = `link ${uint_nostr_user_recipient} to ${starknet_user_recipient}`;
     // let content = `link ${uint_nostr_user_recipient} to ${pk}`;
     //   let content = `link to ${cairo.felt(starknet_address)}`;
     let content = `link ${starknet_address}`;
     //   let content = `link ${cairo.felt(starknet_address)}`;
     //   let content = `link ${cairo.felt(starknet_address)}`;
-
+    let timestamp = 1716285235;
     let event = finalizeEvent(
         {
             kind: 1,
             // created_at: new Date().getTime(),
-            created_at: 1716285235,
+            created_at: timestamp,
             tags: [],
             content: content,
             //   content: `link ${starknet_address}`,
@@ -86,10 +92,47 @@ export const linkedToSecond = async (starknet_address: string) => {
     // const transferredS = `0x${transferred.slice(transferred.length / 2)}`;
     // console.log(transferredR);
     // console.log(transferredS);
+    // This should generate the exact same signature as in the test:
+
+    const signature = event.sig;
+    const signatureR = "0x" + signature.slice(0, signature.length / 2);
+    const signatureS = "0x" + signature.slice(signature.length / 2);
 
     let isGood = verifyEvent(event);
     console.log("isGood", isGood);
+    // Format calldata exactly as the test expects
+    const linkedArrayCalldata = CallData.compile([
+        // recipient_public_key from test
+        cairo.uint256(`0x${event?.pubkey}`),
+        // uint256.bnToUint256(BigInt(`0x${event?.pubkey}`)),
+        // cairo.uint256("0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc"),
+        timestamp,
+        1, // kind
+        byteArray.byteArrayFromString("[]"),
+        {
+            starknet_address: starknet_user_recipient,
+        },
+        {
+            r: cairo.uint256(signatureR),
+            s: cairo.uint256(signatureS),
+        }
+    ]);
 
+    // Debug logs
+    console.log("Debug Info:");
+    console.log("Content:", content);
+    console.log("Starknet Address:", starknetAddress);
+    console.log("Public Key:", event.pubkey);
+    console.log("Signature R:", signatureR);
+    console.log("Signature S:", signatureS);
+
+    const tx = await account.execute({
+        contractAddress: namespace_address,
+        entrypoint: 'linked_nostr_profile',
+        calldata: linkedArrayCalldata
+    });
+
+    await account.waitForTransaction(tx.transaction_hash);
     return {
         event,
         isGood,
@@ -132,8 +175,8 @@ export const linkedNostrProfile = async () => {
     // s: 0x3dd921a2ef0cae5fa9906e1575aeb23aba9cef613627578b655f3bf1b0aa6585
 
     const signature = event.sig;
-    const signatureR = "0x" + signature.slice(0, signature.length/2);
-    const signatureS = "0x" + signature.slice(signature.length/2);
+    const signatureR = "0x" + signature.slice(0, signature.length / 2);
+    const signatureS = "0x" + signature.slice(signature.length / 2);
 
     // Format calldata exactly as the test expects
     const linkedArrayCalldata = CallData.compile([
@@ -174,3 +217,5 @@ export const linkedNostrProfile = async () => {
 
 
 linkedNostrProfile()
+
+linkedToSecond(process.env.DEV_PUBLIC_KEY as string)

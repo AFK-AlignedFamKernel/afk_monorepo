@@ -44,6 +44,7 @@ export class TokenLaunchService {
         where: { memecoin_address: data.memecoinAddress },
       });
 
+      console.log('deployToken', deployToken);
       if (!deployToken) {
         this.logger.error(
           `Deploy token with address ${data.memecoinAddress} not found`,
