@@ -1,4 +1,4 @@
-import { bigint, boolean, decimal, integer, pgTable, primaryKey, text, timestamp, uuid, uniqueIndex, foreignKey } from 'drizzle-orm/pg-core';
+import { bigint, boolean, decimal, integer, pgTable, primaryKey, text, timestamp, uuid, uniqueIndex, foreignKey, json } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { InferModel } from 'drizzle-orm';
 
@@ -151,6 +151,120 @@ export const indexerCursor = pgTable('indexer_cursor', {
   last_tx_hash: text('last_tx_hash'),
 });
 
+export const tokenDeploy = pgTable('token_deploy', {
+  transaction_hash: text('transaction_hash').primaryKey(),
+  network: text('network'),
+  block_hash: text('block_hash'),
+  block_number: bigint('block_number', { mode: 'bigint' }),
+  block_timestamp: timestamp('block_timestamp'),
+  memecoin_address: text('memecoin_address').unique(),
+  owner_address: text('owner_address'),
+  name: text('name'),
+  symbol: text('symbol'),
+  initial_supply: text('initial_supply'),
+  total_supply: text('total_supply'),
+  cursor: bigint('_cursor', { mode: 'bigint' }),
+  time_stamp: timestamp('time_stamp'),
+  created_at: timestamp('created_at').defaultNow(),
+  is_launched: boolean('is_launched'),
+  description: text('description'),
+  ipfs_hash: text('ipfs_hash'),
+  ipfs_metadata_url: text('ipfs_metadata_url'),
+  nostr_id: text('nostr_id'),
+  url: text('url'),
+  github: text('github'),
+  image_url: text('image_url'),
+  metadata: json('metadata'),
+  nostr_event_id: text('nostr_event_id'),
+  telegram: text('telegram'),
+  twitter: text('twitter'),
+  website: text('website'),
+});
+
+export const tokenLaunch = pgTable('token_launch', {
+  transaction_hash: text('transaction_hash').primaryKey(),
+  network: text('network'),
+  block_hash: text('block_hash'),
+  owner_address: text('owner_address'),
+  block_number: bigint('block_number', { mode: 'bigint' }),
+  block_timestamp: timestamp('block_timestamp'),
+  memecoin_address: text('memecoin_address').unique(),
+  quote_token: text('quote_token'),
+  exchange_name: text('exchange_name'),
+  total_supply: text('total_supply'),
+  threshold_liquidity: text('threshold_liquidity'),
+  current_supply: text('current_supply'),
+  liquidity_raised: text('liquidity_raised'),
+  is_liquidity_added: boolean('is_liquidity_added'),
+  total_token_holded: text('total_token_holded'),
+  price: text('price'),
+  bonding_type: text('bonding_type'),
+  cursor: bigint('_cursor', { mode: 'bigint' }),
+  time_stamp: timestamp('time_stamp'),
+  created_at: timestamp('created_at').defaultNow(),
+  initial_pool_supply_dex: text('initial_pool_supply_dex'),
+  market_cap: text('market_cap'),
+  description: text('description'),
+  github: text('github'),
+  image_url: text('image_url'),
+  ipfs_hash: text('ipfs_hash'),
+  ipfs_metadata_url: text('ipfs_metadata_url'),
+  metadata: json('metadata'),
+  nostr_event_id: text('nostr_event_id'),
+  nostr_id: text('nostr_id'),
+  telegram: text('telegram'),
+  twitter: text('twitter'),
+  url: text('url'),
+  website: text('website'),
+  name: text('name'),
+  symbol: text('symbol'),
+  token_deploy_tx_hash: text('token_deploy_tx_hash').unique(),
+});
+
+export const tokenMetadata = pgTable('token_metadata', {
+  transaction_hash: text('transaction_hash').primaryKey(),
+  network: text('network'),
+  block_hash: text('block_hash'),
+  block_number: bigint('block_number', { mode: 'bigint' }),
+  contract_address: text('contract_address'),
+  block_timestamp: timestamp('block_timestamp'),
+  memecoin_address: text('memecoin_address').unique(),
+  url: text('url'),
+  nostr_id: text('nostr_id'),
+  name: text('name'),
+  symbol: text('symbol'),
+  cursor: bigint('_cursor', { mode: 'bigint' }),
+  time_stamp: timestamp('time_stamp'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+  nostr_event_id: text('nostr_event_id'),
+});
+
+export const tokenTransactions = pgTable('token_transactions', {
+  transfer_id: text('transfer_id').primaryKey(),
+  network: text('network'),
+  block_hash: text('block_hash'),
+  block_number: bigint('block_number', { mode: 'bigint' }),
+  block_timestamp: timestamp('block_timestamp'),
+  transaction_hash: text('transaction_hash'),
+  memecoin_address: text('memecoin_address'),
+  owner_address: text('owner_address'),
+  last_price: text('last_price'),
+  quote_amount: text('quote_amount'),
+  coin_received: text('coin_received'),
+  initial_supply: text('initial_supply'),
+  created_at: timestamp('created_at').defaultNow(),
+  total_supply: text('total_supply'),
+  current_supply: text('current_supply'),
+  liquidity_raised: text('liquidity_raised'),
+  price: text('price'),
+  protocol_fee: text('protocol_fee'),
+  amount: decimal('amount', { precision: 30, scale: 18 }),
+  cursor: bigint('_cursor', { mode: 'bigint' }),
+  transaction_type: text('transaction_type'),
+  time_stamp: timestamp('time_stamp'),
+});
+
 // Relations
 export const contractStateRelations = relations(contractState, ({ many }) => ({
   epochs: many(epochState),
@@ -201,6 +315,40 @@ export const daoProposalVoteRelations = relations(daoProposalVote, ({ one }) => 
   }),
 }));
 
+// Add relations
+export const tokenDeployRelations = relations(tokenDeploy, ({ one }) => ({
+  launch: one(tokenLaunch, {
+    fields: [tokenDeploy.transaction_hash],
+    references: [tokenLaunch.token_deploy_tx_hash],
+  }),
+  metadata: one(tokenMetadata, {
+    fields: [tokenDeploy.memecoin_address],
+    references: [tokenMetadata.memecoin_address],
+  }),
+}));
+
+export const tokenLaunchRelations = relations(tokenLaunch, ({ one }) => ({
+  deploy: one(tokenDeploy, {
+    fields: [tokenLaunch.token_deploy_tx_hash],
+    references: [tokenDeploy.transaction_hash],
+  }),
+  metadata: one(tokenMetadata, {
+    fields: [tokenLaunch.memecoin_address],
+    references: [tokenMetadata.memecoin_address],
+  }),
+}));
+
+export const tokenMetadataRelations = relations(tokenMetadata, ({ one }) => ({
+  deploy: one(tokenDeploy, {
+    fields: [tokenMetadata.memecoin_address],
+    references: [tokenDeploy.memecoin_address],
+  }),
+  launch: one(tokenLaunch, {
+    fields: [tokenMetadata.memecoin_address],
+    references: [tokenLaunch.memecoin_address],
+  }),
+}));
+
 // Add proper type exports
 export type ContractState = typeof contractState.$inferSelect;
 export type NewContractState = typeof contractState.$inferInsert;
@@ -222,5 +370,17 @@ export type NewDaoProposal = typeof daoProposal.$inferInsert;
 
 export type DaoProposalVote = typeof daoProposalVote.$inferSelect;
 export type NewDaoProposalVote = typeof daoProposalVote.$inferInsert;
+
+export type TokenDeploy = typeof tokenDeploy.$inferSelect;
+export type NewTokenDeploy = typeof tokenDeploy.$inferInsert;
+
+export type TokenLaunch = typeof tokenLaunch.$inferSelect;
+export type NewTokenLaunch = typeof tokenLaunch.$inferInsert;
+
+export type TokenMetadata = typeof tokenMetadata.$inferSelect;
+export type NewTokenMetadata = typeof tokenMetadata.$inferInsert;
+
+export type TokenTransaction = typeof tokenTransactions.$inferSelect;
+export type NewTokenTransaction = typeof tokenTransactions.$inferInsert;
 
 
