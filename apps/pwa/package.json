@@ -70,7 +70,7 @@
     "@starknet-io/get-starknet-core": "4.0.4",
     "@starknet-react/chains": "^3.1.2",
     "@starknet-react/core": "^3.7.2",
-    "starknet": "^6.21.1"
+    "starknet": "6.21.1"
   },
   "peerDependencies": {
     "next": "15.1.7",

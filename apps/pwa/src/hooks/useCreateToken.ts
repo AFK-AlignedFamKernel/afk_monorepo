@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { LAUNCHPAD_ADDRESS } from 'common';
-import { AccountInterface, cairo, CairoCustomEnum, CairoOption, CairoOptionVariant, CallData, constants, uint256 } from 'starknet';
-
+import { AccountInterface, cairo, CairoCustomEnum, CairoOption, CairoOptionVariant, CallData, constants, uint256, shortString } from 'starknet';
 // import { LAUNCHPAD_ADDRESS, UNRUGGABLE_FACTORY_ADDRESS } from "../../constants/contracts";
 import { formatFloatToUint256 } from '../utils/format';
 import { BondingType, MetadataOnchain } from '../types/token';
@@ -112,21 +111,25 @@ export const useCreateToken = () => {
       const nameByteArray = byteArray.byteArrayFromString(data.name ?? 'LFG');
       const symbolByteArray = byteArray.byteArrayFromString(data.symbol ?? 'LFG');
 
-      const urlMetadata = byteArray.byteArrayFromString(metadata?.url ?? '');
-      const twitterByteArray = byteArray.byteArrayFromString(metadata?.twitter ?? '');
-      const githubByteArray = byteArray.byteArrayFromString(metadata?.github ?? '');
-      const telegramByteArray = byteArray.byteArrayFromString(metadata?.telegram ?? '');
-      const websiteByteArray = byteArray.byteArrayFromString(metadata?.website ?? '');
+      // const nameByteArray = byteArray.byteArrayFromString('');
+      // const symbolByteArray = byteArray.byteArrayFromString('');
+      const urlMetadata = byteArray.byteArrayFromString(metadata?.url ?? "");
+      const twitterByteArray = metadata?.twitter ? byteArray.byteArrayFromString(metadata?.twitter) : byteArray.byteArrayFromString('');
+      const githubByteArray = metadata?.github ? byteArray.byteArrayFromString(metadata?.github) : byteArray.byteArrayFromString('');
+      const telegramByteArray = metadata?.telegram ? byteArray.byteArrayFromString(metadata?.telegram) : byteArray.byteArrayFromString('');
+      const websiteByteArray = metadata?.website ? byteArray.byteArrayFromString(metadata?.website) : byteArray.byteArrayFromString('');
       const nostrEventIdUint = metadata?.nostr_event_id ? uint256.bnToUint256(`0x${metadata?.nostr_event_id}`) : cairo.uint256(0); // Recipient nostr pubkey
       const metadataLaunch = {
         token_address: address,
         url: urlMetadata,
-        twitter: twitterByteArray,
         nostr_event_id: nostrEventIdUint,
+        twitter: twitterByteArray,
         github: githubByteArray,
         telegram: telegramByteArray,
         website: websiteByteArray,
       };
+
+      console.log("metadataLaunch", metadataLaunch);
 
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
@@ -140,13 +143,14 @@ export const useCreateToken = () => {
           creator_fee_percent: creator_fee_percent,
           creator_fee_destination: address,
           metadata: metadata ? new CairoOption(CairoOptionVariant.Some, metadataLaunch) : new CairoOption(CairoOptionVariant.None)
+          // metadata: new CairoOption(CairoOptionVariant.None)
         }),
       };
 
       const tx = await account?.execute(deployCall);
       console.log('tx', tx);
-      const wait_tx = await account?.waitForTransaction(tx?.transaction_hash ?? '');
-      return wait_tx;
+      // const wait_tx = await account?.waitForTransaction(tx?.transaction_hash ?? '');
+      return tx;
       // const response = await fetch('/api/tokens/deploy', {
       //   method: 'POST',
       //   headers: {
@@ -202,7 +206,7 @@ export const useCreateToken = () => {
       //     ? '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6'
       //     : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
 
-      
+
       const defaultAddress = data?.creator_fee_destination ?? address;
       if (!defaultAddress) {
         throw new Error('Wallet not connected');

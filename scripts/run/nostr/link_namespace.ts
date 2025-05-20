@@ -110,7 +110,7 @@ export const linkedToSecond = async (starknet_address: string) => {
         1, // kind
         byteArray.byteArrayFromString("[]"),
         {
-            starknet_address: starknet_user_recipient,
+            starknet_address: starknet_address,
         },
         {
             r: cairo.uint256(signatureR),
@@ -216,6 +216,6 @@ export const linkedNostrProfile = async () => {
 };
 
 
-linkedNostrProfile()
+// linkedNostrProfile()
 
 linkedToSecond(process.env.DEV_PUBLIC_KEY as string)
