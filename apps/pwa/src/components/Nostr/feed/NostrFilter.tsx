@@ -8,9 +8,15 @@ import { Modal } from '@/components/Modal/Modal';
 import { useAuth, useContacts } from 'afk_nostr_sdk';
 import NostrTagsFeed from './NostrTagsFeed';
 import { TAGS_DEFAULT } from 'common';
-import { NostrFilter, Tab } from './NostrFilter';
 
-interface FeedTabsProps {
+export interface Tab {
+  id: string;
+  label: string;
+  kinds: number[];
+  icon?: React.ReactNode;
+}
+
+interface FilterTabsProps {
   className?: string;
   limit?: number;
   authors?: string[];
@@ -21,9 +27,13 @@ interface FeedTabsProps {
   selectedTagProps?: string;
   selectedTagsProps?: string[];
   setSelectedTagProps?: (tag: string) => void;
+  setActiveTabProps?: (tab: string) => void;
+  activeTabProps?: Tab;
+  isForYouProps?: boolean;
+  setIsForYouProps?: (isForYou: boolean) => void;
 }
 
-export const FeedTabs: React.FC<FeedTabsProps> = ({
+export const NostrFilter: React.FC<FilterTabsProps> = ({
   className = '',
   limit = 10,
   authors,
@@ -33,38 +43,42 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
   tagsProps,
   selectedTagProps,
   selectedTagsProps,
-  setSelectedTagProps
+  setSelectedTagProps,
+  setActiveTabProps,
+  activeTabProps,
+  isForYouProps,
+  setIsForYouProps
 }) => {
   const tabs: Tab[] = [
-    // {
-    //   id: 'all',
-    //   label: 'All',
-    //   kinds: [
-    //     NDKKind.Text,
-    //     NDKKind.Repost,
-    //     NDKKind.GenericRepost,
-    //     NDKKind.Article,
-    //     NDKKind.ShortVideo,
-    //     NDKKind.VerticalVideo,
-    //     NDKKind.HorizontalVideo,
-    //   ],
-    //   icon: (
-    //     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-    //       <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-    //     </svg>
-    //   )
-    // },
+    {
+      id: 'all',
+      label: 'All',
+      kinds: [
+        NDKKind.Text,
+        NDKKind.Repost,
+        NDKKind.GenericRepost,
+        NDKKind.Article,
+        NDKKind.ShortVideo,
+        NDKKind.VerticalVideo,
+        NDKKind.HorizontalVideo,
+      ],
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+        </svg>
+      )
+    },
     {
       id: 'tags',
       label: 'Tags',
       kinds: [
         NDKKind.Text,
-        // NDKKind.Repost,
-        // NDKKind.GenericRepost,
-        // NDKKind.Article,
-        // NDKKind.ShortVideo,
-        // NDKKind.VerticalVideo,
-        // NDKKind.HorizontalVideo,
+        NDKKind.Repost,
+        NDKKind.GenericRepost,
+        NDKKind.Article,
+        NDKKind.ShortVideo,
+        NDKKind.VerticalVideo,
+        NDKKind.HorizontalVideo,
       ],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -122,7 +136,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
     },
   ];
 
-  const [activeTab, setActiveTab] = useState<string>(tabs[0].id);
+  const [activeTab, setActiveTab] = useState<string>(activeTabProps?.id || tabs[0].id);
 
   const getActiveTabKinds = (): number[] => {
     const tab = tabs.find(tab => tab.id === activeTab);
@@ -145,40 +159,14 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
   const [selectedTag, setSelectedTag] = useState<string | null>(tagsProps?.[0] || null);
   const [selectedTags, setSelectedTags] = useState<string[]>(tagsProps || TAGS_DEFAULT);
 
-  // const contacts = useContacts({authors: [publicKey || '']})
+  const contacts = useContacts({ authors: [publicKey || ''] })
 
   return (
     <div className={`nostr-feed__container ${className}`}>
       <div className="nostr-feed__tabs">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            className={`nostr-feed__tabs-button ${activeTab === tab.id ? 'nostr-feed__tabs-button--active' : ''
-              } text-xl`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.icon}
-            <span className="text-lg">
-              {tab.label}
 
-            </span>
-          </button>
-        ))}
 
-        <NostrFilter
-          limit={limit}
-          authors={authors}
-          searchQuery={searchQuery}
-          sinceProps={sinceProps}
-          untilProps={untilProps}
-          tagsProps={tagsProps}
-          selectedTagProps={selectedTagProps}
-          setActiveTabProps={setActiveTab}
-          activeTabProps={tabs.find(tab => tab.id === activeTab)}
-          isForYouProps={isForYou}
-          setIsForYouProps={setIsForYou}
-        ></NostrFilter>
-        {/* <button
+        <button
           className="px-3 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition"
           onClick={() => setOpenFilters(!openFilters)}
         >
@@ -200,7 +188,8 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
               <div>
                 <button
                   onClick={() => {
-                    setActiveTab('tags');
+                    setIsForYou(!isForYou)
+                    setIsForYouProps(!isForYouProps)
                   }}
                   className="px-3 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition"
                 >
@@ -224,6 +213,10 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
                       }}
                     />
                     <span className="self-center text-xs">to</span>
+                  </div>
+                  <div className="flex gap-2">
+
+                    <span className="self-center text-xs">to</span>
                     <input
                       value={since ? new Date(since * 1000).toISOString().slice(0, 16) : ''}
                       type="datetime-local"
@@ -238,6 +231,11 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
                   </div>
                 </div>
 
+
+              </div>
+
+
+              <div>
                 <div>
                   <label className="block text-xs mb-1">Search Tags</label>
                   <input
@@ -273,6 +271,28 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
                 </div>
               </div>
 
+              <div className="nostr-feed__tabs">
+
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    className={`nostr-feed__tabs-button ${activeTab === tab.id ? 'nostr-feed__tabs-button--active' : ''
+                      } text-xl`}
+                    onClick={() => {
+                      setActiveTab(tab.id)
+                      // setOpenFilters(false)
+                      setKinds(tab.kinds)
+                      setActiveTabProps(tab.id)
+                    }}
+                  >
+                    {tab.icon}
+                    <span className="text-lg">
+                      {tab.label}
+
+                    </span>
+                  </button>
+                ))}
+              </div>
               <div className="flex justify-end mt-3">
                 <button
                   className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 transition"
@@ -286,44 +306,11 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
             </div>
           </Modal>
 
-        )} */}
-      </div>
-
-      <div className="nostr-feed__content">
-
-        {activeTab != 'shorts' && activeTab != 'tags' && (
-          <NostrFeed
-            kinds={getActiveTabKinds()}
-            limit={limit}
-            authors={authors}
-            searchQuery={searchQuery}
-          />
-        )}
-
-        {activeTab === 'tags' && (
-          <NostrTagsFeed
-            kinds={getActiveTabKinds()}
-            limit={limit}
-            authors={authors}
-            searchQuery={searchQuery}
-            tagsProps={tags}
-            selectedTagProps={selectedTagProps}
-            setSelectedTagProps={setSelectedTagProps}
-            selectedTagsProps={selectedTagsProps}
-          />
-        )}
-
-        {activeTab === 'shorts' && (
-          <NostrShortFeed
-            kinds={getActiveTabKinds()}
-            limit={limit}
-            authors={authors}
-            searchQuery={searchQuery}
-          />
         )}
       </div>
+
     </div>
   );
 };
 
-export default FeedTabs; 
+export default NostrFilter; 
