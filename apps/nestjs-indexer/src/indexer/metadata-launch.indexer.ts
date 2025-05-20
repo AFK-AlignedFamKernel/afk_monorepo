@@ -2,7 +2,7 @@ import { FieldElement, v1alpha2 as starknet } from '@apibara/starknet';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { formatUnits } from 'viem';
 import constants from 'src/common/constants';
-import { cairo, hash, shortString, uint256, validateAndParseAddress } from 'starknet';
+import { ByteArray, byteArray, cairo, hash, shortString, uint256, validateAndParseAddress } from 'starknet';
 import { BuyTokenService } from 'src/services/buy-token/buy-token.service';
 import { IndexerService } from './indexer.service';
 import { ContractAddress } from 'src/common/types';
@@ -102,11 +102,12 @@ export class MetadataLaunchIndexer {
       urlFelt,
       nostrEventIdLow,
       nostrEventIdHigh,
-      timestampFelt,
+      // timestampFelt,
       twitterFelt,
       telegramFelt,
       githubFelt,
       websiteFelt,
+      descriptionFelt,
     ] = event.data;
 
     console.log("event.data", event.data);
@@ -150,9 +151,9 @@ export class MetadataLaunchIndexer {
       
     }
     console.log("nostrEventId", nostrEventId);
-    const timestamp = new Date(
-      Number(FieldElement.toBigInt(timestampFelt)) * 1000,
-    );
+    // const timestamp = new Date(
+    //   Number(FieldElement.toBigInt(timestampFelt)) * 1000,
+    // );
 
     /** TODO: 
      * ADD Twitter, Telegram, Github, Website */
@@ -162,9 +163,10 @@ export class MetadataLaunchIndexer {
     let website = '';
 
     try {
-      twitter = shortString.decodeShortString(
-        FieldElement.toBigInt(twitterFelt).toString(),
-      );
+      twitter = byteArray.stringFromByteArray(twitterFelt as ByteArray);
+      // twitter = byteArray(
+      //   FieldElement.toBigInt(twitterFelt).toString(),
+      // );
       telegram = shortString.decodeShortString(
         FieldElement.toBigInt(telegramFelt).toString(),
       );
@@ -191,7 +193,7 @@ export class MetadataLaunchIndexer {
       memecoinAddress: tokenAddress,
       nostrEventId,
       url: url,
-      timestamp,
+      timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
       transactionType: 'buy',
       twitter,
       telegram,

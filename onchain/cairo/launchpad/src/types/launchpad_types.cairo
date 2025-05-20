@@ -140,6 +140,7 @@ pub struct MetadataLaunch {
     pub github: ByteArray,
     pub telegram: ByteArray,
     pub website: ByteArray,
+    pub description: ByteArray,
 }
 
 
@@ -434,6 +435,7 @@ pub struct MetadataCoinAdded {
     pub website: ByteArray,
     pub telegram: ByteArray,
     pub github: ByteArray,
+    pub description: ByteArray,
 }
 
 

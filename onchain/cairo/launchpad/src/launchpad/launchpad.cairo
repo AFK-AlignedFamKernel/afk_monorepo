@@ -1209,6 +1209,7 @@ pub mod LaunchpadMarketplace {
                         website: metadata.website,
                         telegram: metadata.telegram,
                         github: metadata.github,
+                        description: metadata.description,
                     },
                 );
         }

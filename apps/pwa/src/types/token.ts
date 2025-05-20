@@ -13,6 +13,7 @@ export interface MetadataOnchain {
   nostr_event_id?: string;
   token_address?: string;
   creator_fee_destination?: string;
+  description?: string;
 }
 
 export interface DeployTokenFormValues {
