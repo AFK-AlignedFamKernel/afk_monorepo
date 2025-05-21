@@ -178,8 +178,6 @@ export default function (config: ApibaraRuntimeConfig & {
         blockHash: blockHashFelt,
         timestamp: blockTimestamp,
       } = header;
-      console.log("handleCreateTokenEvent",)
-      console.log("decodedEvent", event)
 
       const blockHash = encode.sanitizeHex(
         `0x${BigInt(blockHashFelt).toString(16)}`,
@@ -190,13 +188,13 @@ export default function (config: ApibaraRuntimeConfig & {
       );
 
       const [, callerFelt, tokenAddressFelt] = rawEvent.keys;
-
-      let symbol = cleanString(event?.symbol || '');
-      let name = cleanString(event?.name || '');
-      let tokenAddress = event?.memecoin_address;
-      let ownerAddress = event?.owner;
-      let initialSupply = formatTokenAmount(event?.initial_supply || '0');
-      let totalSupply = formatTokenAmount(event?.total_supply || '0');
+      
+      let symbol = cleanString(event?.args?.symbol || '');
+      let name = cleanString(event?.args?.name || '');
+      let tokenAddress = event?.args?.memecoin_address;
+      let ownerAddress = event?.args?.owner;
+      let initialSupply = formatTokenAmount(event?.args?.initial_supply?.toString() || '0');
+      let totalSupply = formatTokenAmount(event?.args?.total_supply?.toString() || '0');
 
       await db.insert(tokenDeploy).values({
         transaction_hash: transactionHash,
@@ -226,9 +224,6 @@ export default function (config: ApibaraRuntimeConfig & {
         timestamp: blockTimestamp,
       } = header;
 
-      console.log("handleCreateLaunch",)
-      console.log("decodedEvent", event)
-
       const blockHash = encode.sanitizeHex(
         `0x${BigInt(blockHashFelt).toString(16)}`,
       );
@@ -243,27 +238,27 @@ export default function (config: ApibaraRuntimeConfig & {
         block_number: BigInt(blockNumber),
         block_hash: blockHash,
         block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
-        memecoin_address: event?.memecoin_address,
-        owner_address: event?.owner,
-        quote_token: event?.quote_token,
-        total_supply: formatTokenAmount(event?.total_supply || '0'),
-        threshold_liquidity: formatTokenAmount(event?.threshold_liquidity || '0'),
-        current_supply: formatTokenAmount(event?.current_supply || '0'),
-        liquidity_raised: formatTokenAmount(event?.liquidity_raised || '0'),
-        is_liquidity_added: event?.is_liquidity_added || false,
-        total_token_holded: formatTokenAmount(event?.total_token_holded || '0'),
-        price: formatTokenAmount(event?.price || '0'),
-        bonding_type: event?.bonding_type,
+        memecoin_address: event?.args?.memecoin_address,
+        owner_address: event?.args?.owner,
+        quote_token: event?.args?.quote_token,
+        total_supply: formatTokenAmount(event?.args?.total_supply?.toString() || '0'),
+        threshold_liquidity: formatTokenAmount(event?.args?.threshold_liquidity?.toString() || '0'),
+        current_supply: formatTokenAmount(event?.args?.current_supply?.toString() || '0'),
+        liquidity_raised: formatTokenAmount(event?.args?.liquidity_raised?.toString() || '0'),
+        is_liquidity_added: event?.args?.is_liquidity_added || false,
+        total_token_holded: formatTokenAmount(event?.args?.total_token_holded?.toString() || '0'),
+        price: formatTokenAmount(event?.args?.price?.toString() || '0'),
+        bonding_type: event?.args?.bonding_type,
         created_at: new Date(),
-        initial_pool_supply_dex: formatTokenAmount(event?.initial_pool_supply_dex || '0'),
-        market_cap: formatTokenAmount(event?.market_cap || '0'),
-        token_deploy_tx_hash: event?.token_deploy_tx_hash,
+        initial_pool_supply_dex: formatTokenAmount(event?.args?.initial_pool_supply_dex?.toString() || '0'),
+        market_cap: formatTokenAmount(event?.args?.market_cap?.toString() || '0'),
+        token_deploy_tx_hash: event?.args?.token_deploy_tx_hash,
       });
 
       // Update token deploy to mark as launched
       await db.update(tokenDeploy)
         .set({ is_launched: true })
-        .where(eq(tokenDeploy.transaction_hash, event?.token_deploy_tx_hash));
+        .where(eq(tokenDeploy.transaction_hash, event?.args?.token_deploy_tx_hash));
     } catch (error) {
       console.error("Error in handleCreateLaunch:", error);
     }
@@ -277,8 +272,6 @@ export default function (config: ApibaraRuntimeConfig & {
         timestamp: blockTimestamp,
       } = header;
 
-      console.log("handleMetadataEvent")
-      console.log("decodedEvent metadata", event)
       const blockHash = encode.sanitizeHex(
         `0x${BigInt(blockHashFelt).toString(16)}`,
       );
@@ -293,14 +286,14 @@ export default function (config: ApibaraRuntimeConfig & {
         block_number: BigInt(blockNumber),
         block_hash: blockHash,
         block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
-        memecoin_address: event?.token_address,
-        url: event?.url,
-        nostr_id: event?.nostr_id,
-        nostr_event_id: event?.nostr_event_id,
-        twitter: event?.twitter,
-        telegram: event?.telegram,
-        github: event?.github,
-        website: event?.website,
+        memecoin_address: event?.args?.token_address,
+        url: event?.args?.url,
+        nostr_id: event?.args?.nostr_id,
+        nostr_event_id: event?.args?.nostr_event_id,
+        twitter: event?.args?.twitter,
+        telegram: event?.args?.telegram,
+        github: event?.args?.github,
+        website: event?.args?.website,
         created_at: new Date(),
       });
     } catch (error) {
@@ -315,8 +308,6 @@ export default function (config: ApibaraRuntimeConfig & {
         blockHash: blockHashFelt,
         timestamp: blockTimestamp,
       } = header;
-      console.log("handleBuyToken")
-      console.log("decodedEvent buy", event)
 
       const blockHash = encode.sanitizeHex(
         `0x${BigInt(blockHashFelt).toString(16)}`,
@@ -328,38 +319,16 @@ export default function (config: ApibaraRuntimeConfig & {
 
       const transferId = `${transactionHash}_${rawEvent.index}`;
 
-      const [, callerFelt, tokenAddressFelt] = rawEvent.keys;
+      const ownerAddress = event?.args?.caller;
+      const tokenAddress = event?.args?.key_user;
 
-      const ownerAddress = encode.sanitizeHex(
-        `0x${BigInt(callerFelt).toString(16)}`,
-      );
-
-      const tokenAddress = encode.sanitizeHex(
-        `0x${BigInt(tokenAddressFelt).toString(16)}`,
-      );
-
-      const [
-        amountLow,
-        amountHigh,
-        priceLow,
-        priceHigh,
-        protocolFeeLow,
-        protocolFeeHigh,
-        lastPriceLow,
-        lastPriceHigh,
-        timestampFelt,
-        quoteAmountLow,
-        quoteAmountHigh,
-      ] = event.data;
-
-      // Convert u256 values to BigInt and then to string
-      const amount = ((BigInt(amountHigh) << BigInt(128)) | BigInt(amountLow)).toString();
-      const price = ((BigInt(priceHigh) << BigInt(128)) | BigInt(priceLow)).toString();
-      const protocolFee = ((BigInt(protocolFeeHigh) << BigInt(128)) | BigInt(protocolFeeLow)).toString();
-      const lastPrice = ((BigInt(lastPriceHigh) << BigInt(128)) | BigInt(lastPriceLow)).toString();
-      const quoteAmount = ((BigInt(quoteAmountHigh) << BigInt(128)) | BigInt(quoteAmountLow)).toString();
-
-      const timestamp = new Date(Number(BigInt(timestampFelt)) * 1000);
+      // Get values from args
+      const amount = event?.args?.amount?.toString() || '0';
+      const price = event?.args?.price?.toString() || '0';
+      const protocolFee = event?.args?.protocol_fee?.toString() || '0';
+      const lastPrice = event?.args?.last_price?.toString() || '0';
+      const quoteAmount = event?.args?.coin_amount?.toString() || '0';
+      const timestamp = new Date(Number(event?.args?.timestamp || 0) * 1000);
 
       // Get the launch record to update
       const launchRecord = await db
@@ -370,7 +339,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
       if (launchRecord && launchRecord.length > 0) {
         const currentLaunch = launchRecord[0];
-
+        
         // Calculate new values
         const newSupply = (BigInt(currentLaunch.current_supply || '0') - BigInt(amount)).toString();
         const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
@@ -378,7 +347,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
         // Calculate new price based on liquidity and token supply
         const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-        const priceBuy = initPoolSupply > BigInt(0)
+        const priceBuy = initPoolSupply > BigInt(0) 
           ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
           : '0';
 
@@ -469,9 +438,6 @@ export default function (config: ApibaraRuntimeConfig & {
         timestamp: blockTimestamp,
       } = header;
 
-      console.log("handleSellTokenEvent")
-      console.log("decodedEvent sell", event)
-
       const blockHash = encode.sanitizeHex(
         `0x${BigInt(blockHashFelt).toString(16)}`,
       );
@@ -482,38 +448,16 @@ export default function (config: ApibaraRuntimeConfig & {
 
       const transferId = `${transactionHash}_${rawEvent.index}`;
 
-      const [, callerFelt, tokenAddressFelt] = rawEvent.keys;
+      const ownerAddress = event?.args?.caller;
+      const tokenAddress = event?.args?.key_user;
 
-      const ownerAddress = encode.sanitizeHex(
-        `0x${BigInt(callerFelt).toString(16)}`,
-      );
-
-      const tokenAddress = encode.sanitizeHex(
-        `0x${BigInt(tokenAddressFelt).toString(16)}`,
-      );
-
-      const [
-        amountLow,
-        amountHigh,
-        priceLow,
-        priceHigh,
-        protocolFeeLow,
-        protocolFeeHigh,
-        lastPriceLow,
-        lastPriceHigh,
-        timestampFelt,
-        quoteAmountLow,
-        quoteAmountHigh,
-      ] = event.data;
-
-      // Convert u256 values to BigInt and then to string
-      const amount = ((BigInt(amountHigh) << BigInt(128)) | BigInt(amountLow)).toString();
-      const price = ((BigInt(priceHigh) << BigInt(128)) | BigInt(priceLow)).toString();
-      const protocolFee = ((BigInt(protocolFeeHigh) << BigInt(128)) | BigInt(protocolFeeLow)).toString();
-      const lastPrice = ((BigInt(lastPriceHigh) << BigInt(128)) | BigInt(lastPriceLow)).toString();
-      const quoteAmount = ((BigInt(quoteAmountHigh) << BigInt(128)) | BigInt(quoteAmountLow)).toString();
-
-      const timestamp = new Date(Number(BigInt(timestampFelt)) * 1000);
+      // Get values from args
+      const amount = event?.args?.amount?.toString() || '0';
+      const price = event?.args?.price?.toString() || '0';
+      const protocolFee = event?.args?.protocol_fee?.toString() || '0';
+      const lastPrice = event?.args?.last_price?.toString() || '0';
+      const quoteAmount = event?.args?.coin_amount?.toString() || '0';
+      const timestamp = new Date(Number(event?.args?.timestamp || 0) * 1000);
 
       // Get the launch record to update
       const launchRecord = await db
@@ -524,7 +468,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
       if (launchRecord && launchRecord.length > 0) {
         const currentLaunch = launchRecord[0];
-
+        
         // Calculate new values
         const newSupply = (BigInt(currentLaunch.current_supply || '0') + BigInt(amount)).toString();
         const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') - BigInt(quoteAmount)).toString();
@@ -532,7 +476,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
         // Calculate new price based on liquidity and token supply
         const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-        const priceSell = initPoolSupply > BigInt(0)
+        const priceSell = initPoolSupply > BigInt(0) 
           ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
           : '0';
 
