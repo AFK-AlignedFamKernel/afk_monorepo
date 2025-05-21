@@ -29,6 +29,20 @@
       "when": 1747786448496,
       "tag": "0003_nappy_shard",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1747794288380,
+      "tag": "0004_dark_clea",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1747795238102,
+      "tag": "0005_groovy_multiple_man",
+      "breakpoints": true
     }
   ]
 }

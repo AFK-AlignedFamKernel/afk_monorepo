@@ -154,8 +154,6 @@ export const indexerCursor = pgTable('indexer_cursor', {
 export const tokenDeploy = pgTable('token_deploy', {
   transaction_hash: text('transaction_hash').primaryKey(),
   network: text('network'),
-  block_hash: text('block_hash'),
-  block_number: bigint('block_number', { mode: 'bigint' }),
   block_timestamp: timestamp('block_timestamp'),
   memecoin_address: text('memecoin_address').unique(),
   owner_address: text('owner_address'),
@@ -170,11 +168,11 @@ export const tokenDeploy = pgTable('token_deploy', {
 export const tokenLaunch = pgTable('token_launch', {
   transaction_hash: text('transaction_hash').primaryKey(),
   network: text('network'),
-  block_hash: text('block_hash'),
-  block_number: bigint('block_number', { mode: 'bigint' }),
   block_timestamp: timestamp('block_timestamp'),
   memecoin_address: text('memecoin_address').unique(),
   owner_address: text('owner_address'),
+  name: text('name'),
+  symbol: text('symbol'),
   quote_token: text('quote_token'),
   total_supply: text('total_supply'),
   threshold_liquidity: text('threshold_liquidity'),
@@ -193,8 +191,6 @@ export const tokenLaunch = pgTable('token_launch', {
 export const tokenMetadata = pgTable('token_metadata', {
   transaction_hash: text('transaction_hash').primaryKey(),
   network: text('network'),
-  block_hash: text('block_hash'),
-  block_number: bigint('block_number', { mode: 'bigint' }),
   block_timestamp: timestamp('block_timestamp'),
   memecoin_address: text('memecoin_address').unique(),
   url: text('url'),
@@ -210,8 +206,6 @@ export const tokenMetadata = pgTable('token_metadata', {
 export const tokenTransactions = pgTable('token_transactions', {
   transfer_id: text('transfer_id').primaryKey(),
   network: text('network'),
-  block_hash: text('block_hash'),
-  block_number: bigint('block_number', { mode: 'bigint' }),
   block_timestamp: timestamp('block_timestamp'),
   transaction_hash: text('transaction_hash'),
   memecoin_address: text('memecoin_address'),
