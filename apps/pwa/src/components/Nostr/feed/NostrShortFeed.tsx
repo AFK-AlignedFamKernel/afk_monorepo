@@ -29,6 +29,8 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [containerHeight, setContainerHeight] = useState<number>(0);
   const [isScrolling, setIsScrolling] = useState(false);
+  const [fetchAttempts, setFetchAttempts] = useState(0);
+  const [lastFetchTime, setLastFetchTime] = useState(0);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastScrollTimeRef = useRef<number>(0);
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -70,15 +72,15 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
     fetchEvents,
     isInitialLoading,
     isInitialFetching,
-    loadInitialData
+    loadInitialData,
+    hasMoreContent
   } = useFetchEvents({
     kinds: kinds.map(k => k as unknown as NDK),
     limit,
     authors,
   })
 
-  console.log("notesData", notesData);
-  console.log("error", error);
+  // console.log("notesData", notesData);
 
   // Extract events from the paginated data
   // const events = notesDatad?.pages?.flat() || [];
@@ -98,14 +100,37 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   // Intersection Observer for infinite scrolling
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const [entry] = entries;
-    if (entry.isIntersecting && hasNextPage && !isFetching) {
-      fetchNextPage();
+    if (entry.isIntersecting) {
+      const now = Date.now();
+      // Only attempt to fetch if enough time has passed since last fetch (2 seconds)
+      if (now - lastFetchTime < 2000) return;
+
+      if (hasMoreContent && !isLoading) {
+        console.log("fetching more events");
+        setLastFetchTime(now);
+        fetchEvents();
+      } else if (!hasMoreContent && fetchAttempts < 2) {
+        console.log("reached end of list, attempting reinitialize");
+        setLastFetchTime(now);
+        setFetchAttempts(prev => prev + 1);
+        // Only scroll to top when we're actually refetching at the end
+        if (containerRef.current) {
+          containerRef.current.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        }
+        loadInitialData();
+      }
     }
-    if (entry?.isIntersecting) {
-      console.log("fetching more events")
-      fetchEvents()
+  }, [fetchEvents, hasMoreContent, isLoading, loadInitialData, lastFetchTime, fetchAttempts]);
+
+  // Reset fetch attempts when new content is loaded
+  useEffect(() => {
+    if (notesData.length > 0) {
+      setFetchAttempts(0);
     }
-  }, [fetchNextPage, hasNextPage, isFetching]);
+  }, [notesData]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(handleObserver, {
@@ -120,6 +145,9 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
     return () => {
       if (loaderRef.current) {
         observer.unobserve(loaderRef.current);
+      }
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
       }
     };
   }, [handleObserver]);
@@ -231,7 +259,7 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
             <p>- Query status: {isLoading ? 'Loading' : (isError ? 'Error' : 'No Results')}</p>
             <button
               className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={() => refetch()}
+              onClick={() => loadInitialData()}
             >
               Refresh Feed
             </button>
@@ -241,11 +269,17 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
         <>
           {events.map((event, index) => {
             if (!event?.id) return null;
+            const isLastItem = index === events.length - 1;
 
             return (
               <div
                 key={index}
-                ref={(el) => { videoRefs.current[index] = el; }}
+                ref={(el) => { 
+                  videoRefs.current[index] = el;
+                  if (isLastItem) {
+                    loaderRef.current = el;
+                  }
+                }}
                 className="nostr-short-feed__video-container"
                 style={{
                   height: `${containerHeight}px`,
@@ -259,13 +293,17 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
             );
           })}
 
-          <div ref={loaderRef} className="nostr-feed__loader">
-            {isFetching && (
-              <div className="nostr-feed__loading-more">
-                <CryptoLoading />
-              </div>
-            )}
-          </div>
+          {isLoading && (
+            <div className="nostr-feed__loading-more">
+              <CryptoLoading />
+            </div>
+          )}
+
+          {!hasMoreContent && events.length > 0 && (
+            <div className="nostr-feed__end py-4 text-center text-gray-500">
+              No more content to load
+            </div>
+          )}
         </>
       )}
     </div>

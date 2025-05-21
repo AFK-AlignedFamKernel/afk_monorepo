@@ -56,10 +56,15 @@ export const useFetchEvents = (options?: UseSearch) => {
       }
 
       // Filter out duplicate events based on their IDs
-      const uniqueNotes = Array.from(
+      let uniqueNotes = Array.from(
         new Set([...notes].map(note => note.id))
       ).map(id => [...notes].find(note => note.id === id)!);
 
+
+      // Use Set to ensure unique notes by ID
+      const uniqueNoteSet = new Set(uniqueNotes.map(note => note.id));
+      const filteredNotes = uniqueNotes.filter(note => uniqueNoteSet.has(note.id));
+      uniqueNotes = filteredNotes;
       // Sort notes by created_at timestamp in descending order (newest first)
       uniqueNotes.sort((a, b) => {
         return b.created_at - a.created_at;
@@ -67,8 +72,8 @@ export const useFetchEvents = (options?: UseSearch) => {
 
       if (uniqueNotes.length > 0) {
         setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
-        // setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
-        setNotesData(uniqueNotes);
+        setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
+        // setNotesData(uniqueNotes);
       } else {
         setHasMoreContent(false);
       }
