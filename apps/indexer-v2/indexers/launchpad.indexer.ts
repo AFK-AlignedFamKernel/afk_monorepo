@@ -173,6 +173,9 @@ export default function (config: ApibaraRuntimeConfig & {
 
   async function handleCreateTokenEvent(event: any, contractAddress: string, header: any, rawEvent: any) {
     try {
+      console.log('=== CreateToken Event ===');
+      console.log('Raw Event:', JSON.stringify(rawEvent, null, 2));
+
       const {
         blockNumber,
         blockHash: blockHashFelt,
@@ -196,6 +199,17 @@ export default function (config: ApibaraRuntimeConfig & {
       let initialSupply = formatTokenAmount(event?.args?.initial_supply?.toString() || '0');
       let totalSupply = formatTokenAmount(event?.args?.total_supply?.toString() || '0');
 
+      console.log('Processed Values:', {
+        symbol,
+        name,
+        tokenAddress,
+        ownerAddress,
+        initialSupply,
+        totalSupply,
+        blockHash,
+        transactionHash
+      });
+
       await db.insert(tokenDeploy).values({
         transaction_hash: transactionHash,
         network: 'starknet-sepolia',
@@ -211,6 +225,8 @@ export default function (config: ApibaraRuntimeConfig & {
         created_at: new Date(),
         is_launched: false,
       });
+
+      console.log('Token Deploy Record Created');
     } catch (error) {
       console.error("Error in handleCreateTokenEvent:", error);
     }
@@ -218,6 +234,9 @@ export default function (config: ApibaraRuntimeConfig & {
 
   async function handleCreateLaunch(event: any, header: any, rawEvent: any) {
     try {
+      console.log('=== CreateLaunch Event ===');
+      console.log('Raw Event:', JSON.stringify(rawEvent, null, 2));
+
       const {
         blockNumber,
         blockHash: blockHashFelt,
@@ -232,12 +251,7 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      await db.insert(tokenLaunch).values({
-        transaction_hash: transactionHash,
-        network: 'starknet-sepolia',
-        block_number: BigInt(blockNumber),
-        block_hash: blockHash,
-        block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+      const launchData = {
         memecoin_address: event?.args?.memecoin_address,
         owner_address: event?.args?.owner,
         quote_token: event?.args?.quote_token,
@@ -249,16 +263,31 @@ export default function (config: ApibaraRuntimeConfig & {
         total_token_holded: formatTokenAmount(event?.args?.total_token_holded?.toString() || '0'),
         price: formatTokenAmount(event?.args?.price?.toString() || '0'),
         bonding_type: event?.args?.bonding_type,
-        created_at: new Date(),
         initial_pool_supply_dex: formatTokenAmount(event?.args?.initial_pool_supply_dex?.toString() || '0'),
         market_cap: formatTokenAmount(event?.args?.market_cap?.toString() || '0'),
         token_deploy_tx_hash: event?.args?.token_deploy_tx_hash,
+      };
+
+      console.log('Processed Launch Data:', launchData);
+
+      await db.insert(tokenLaunch).values({
+        transaction_hash: transactionHash,
+        network: 'starknet-sepolia',
+        block_number: BigInt(blockNumber),
+        block_hash: blockHash,
+        block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+        ...launchData,
+        created_at: new Date(),
       });
+
+      console.log('Token Launch Record Created');
 
       // Update token deploy to mark as launched
       await db.update(tokenDeploy)
         .set({ is_launched: true })
         .where(eq(tokenDeploy.transaction_hash, event?.args?.token_deploy_tx_hash));
+
+      console.log('Token Deploy Updated to Launched');
     } catch (error) {
       console.error("Error in handleCreateLaunch:", error);
     }
@@ -266,6 +295,9 @@ export default function (config: ApibaraRuntimeConfig & {
 
   async function handleMetadataEvent(event: any, header: any, rawEvent: any) {
     try {
+      console.log('=== Metadata Event ===');
+      console.log('Raw Event:', JSON.stringify(rawEvent, null, 2));
+
       const {
         blockNumber,
         blockHash: blockHashFelt,
@@ -280,12 +312,7 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      await db.insert(tokenMetadata).values({
-        transaction_hash: transactionHash,
-        network: 'starknet-sepolia',
-        block_number: BigInt(blockNumber),
-        block_hash: blockHash,
-        block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+      const metadataData = {
         memecoin_address: event?.args?.token_address,
         url: event?.args?.url,
         nostr_id: event?.args?.nostr_id,
@@ -294,8 +321,21 @@ export default function (config: ApibaraRuntimeConfig & {
         telegram: event?.args?.telegram,
         github: event?.args?.github,
         website: event?.args?.website,
+      };
+
+      console.log('Processed Metadata:', metadataData);
+
+      await db.insert(tokenMetadata).values({
+        transaction_hash: transactionHash,
+        network: 'starknet-sepolia',
+        block_number: BigInt(blockNumber),
+        block_hash: blockHash,
+        block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+        ...metadataData,
         created_at: new Date(),
       });
+
+      console.log('Token Metadata Record Created');
     } catch (error) {
       console.error("Error in handleMetadataEvent:", error);
     }
@@ -303,6 +343,9 @@ export default function (config: ApibaraRuntimeConfig & {
 
   async function handleBuyTokenEvent(event: any, header: any, rawEvent: any) {
     try {
+      console.log('=== BuyToken Event ===');
+      console.log('Raw Event:', JSON.stringify(rawEvent, null, 2));
+
       const {
         blockNumber,
         blockHash: blockHashFelt,
@@ -317,7 +360,8 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      const transferId = `${transactionHash}_${rawEvent.index}`;
+      // Generate a unique transfer ID using transaction hash and event index
+      const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
       const ownerAddress = event?.args?.caller;
       const tokenAddress = event?.args?.key_user;
@@ -328,7 +372,23 @@ export default function (config: ApibaraRuntimeConfig & {
       const protocolFee = event?.args?.protocol_fee?.toString() || '0';
       const lastPrice = event?.args?.last_price?.toString() || '0';
       const quoteAmount = event?.args?.coin_amount?.toString() || '0';
-      const timestamp = new Date(Number(event?.args?.timestamp || 0) * 1000);
+      
+      // Handle timestamp properly - use block timestamp if event timestamp is invalid
+      const eventTimestamp = event?.args?.timestamp ? Number(event.args.timestamp) : Number(blockTimestamp.seconds);
+      const timestamp = new Date(eventTimestamp * 1000);
+
+      console.log('Processed Buy Values:', {
+        transferId,
+        ownerAddress,
+        tokenAddress,
+        amount,
+        price,
+        protocolFee,
+        lastPrice,
+        quoteAmount,
+        eventTimestamp,
+        timestamp: timestamp.toISOString()
+      });
 
       // Get the launch record to update
       const launchRecord = await db
@@ -336,6 +396,8 @@ export default function (config: ApibaraRuntimeConfig & {
         .from(tokenLaunch)
         .where(eq(tokenLaunch.memecoin_address, tokenAddress))
         .limit(1);
+
+      console.log('Current Launch Record:', launchRecord[0]);
 
       if (launchRecord && launchRecord.length > 0) {
         const currentLaunch = launchRecord[0];
@@ -354,6 +416,16 @@ export default function (config: ApibaraRuntimeConfig & {
         // Calculate market cap
         const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
 
+        console.log('Calculated Values:', {
+          newSupply,
+          newLiquidityRaised,
+          newTotalTokenHolded,
+          priceBuy,
+          marketCap
+        });
+
+        console.log("try update launch record")
+
         // Update launch record
         await db.update(tokenLaunch)
           .set({
@@ -365,6 +437,8 @@ export default function (config: ApibaraRuntimeConfig & {
           })
           .where(eq(tokenLaunch.memecoin_address, tokenAddress));
 
+        console.log('Launch Record Updated');
+
         // Update or create shareholder record
         const shareholderId = `${ownerAddress}_${tokenAddress}`;
         const existingShareholder = await db
@@ -372,6 +446,8 @@ export default function (config: ApibaraRuntimeConfig & {
           .from(sharesTokenUser)
           .where(eq(sharesTokenUser.id, shareholderId))
           .limit(1);
+
+        console.log('Existing Shareholder:', existingShareholder[0]);
 
         const newAmountOwned = existingShareholder.length > 0
           ? (BigInt(existingShareholder[0].amount_owned || '0') + BigInt(amount)).toString()
@@ -384,6 +460,12 @@ export default function (config: ApibaraRuntimeConfig & {
         const newTotalPaid = existingShareholder.length > 0
           ? (BigInt(existingShareholder[0].total_paid || '0') + BigInt(quoteAmount)).toString()
           : quoteAmount;
+
+        console.log('New Shareholder Values:', {
+          newAmountOwned,
+          newAmountBuy,
+          newTotalPaid
+        });
 
         await db.insert(sharesTokenUser)
           .values({
@@ -404,6 +486,8 @@ export default function (config: ApibaraRuntimeConfig & {
               is_claimable: true,
             },
           });
+
+        console.log('Shareholder Record Updated');
       }
 
       // Create transaction record
@@ -425,6 +509,8 @@ export default function (config: ApibaraRuntimeConfig & {
         transaction_type: 'buy',
         created_at: new Date(),
       });
+
+      console.log('Transaction Record Created');
     } catch (error) {
       console.error("Error in handleBuyTokenEvent:", error);
     }
@@ -432,6 +518,9 @@ export default function (config: ApibaraRuntimeConfig & {
 
   async function handleSellTokenEvent(event: any, header: any, rawEvent: any) {
     try {
+      console.log('=== SellToken Event ===');
+      console.log('Raw Event:', JSON.stringify(rawEvent, null, 2));
+
       const {
         blockNumber,
         blockHash: blockHashFelt,
@@ -446,7 +535,8 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      const transferId = `${transactionHash}_${rawEvent.index}`;
+      // Generate a unique transfer ID using transaction hash and event index
+      const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
       const ownerAddress = event?.args?.caller;
       const tokenAddress = event?.args?.key_user;
@@ -457,7 +547,23 @@ export default function (config: ApibaraRuntimeConfig & {
       const protocolFee = event?.args?.protocol_fee?.toString() || '0';
       const lastPrice = event?.args?.last_price?.toString() || '0';
       const quoteAmount = event?.args?.coin_amount?.toString() || '0';
-      const timestamp = new Date(Number(event?.args?.timestamp || 0) * 1000);
+      
+      // Handle timestamp properly - use block timestamp if event timestamp is invalid
+      const eventTimestamp = event?.args?.timestamp ? Number(event.args.timestamp) : Number(blockTimestamp.seconds);
+      const timestamp = new Date(eventTimestamp * 1000);
+
+      console.log('Processed Sell Values:', {
+        transferId,
+        ownerAddress,
+        tokenAddress,
+        amount,
+        price,
+        protocolFee,
+        lastPrice,
+        quoteAmount,
+        eventTimestamp,
+        timestamp: timestamp.toISOString()
+      });
 
       // Get the launch record to update
       const launchRecord = await db
@@ -465,6 +571,8 @@ export default function (config: ApibaraRuntimeConfig & {
         .from(tokenLaunch)
         .where(eq(tokenLaunch.memecoin_address, tokenAddress))
         .limit(1);
+
+      console.log('Current Launch Record:', launchRecord[0]);
 
       if (launchRecord && launchRecord.length > 0) {
         const currentLaunch = launchRecord[0];
@@ -483,6 +591,14 @@ export default function (config: ApibaraRuntimeConfig & {
         // Calculate market cap
         const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceSell)).toString();
 
+        console.log('Calculated Values:', {
+          newSupply,
+          newLiquidityRaised,
+          newTotalTokenHolded,
+          priceSell,
+          marketCap
+        });
+
         // Update launch record
         await db.update(tokenLaunch)
           .set({
@@ -494,6 +610,8 @@ export default function (config: ApibaraRuntimeConfig & {
           })
           .where(eq(tokenLaunch.memecoin_address, tokenAddress));
 
+        console.log('Launch Record Updated');
+
         // Update shareholder record
         const shareholderId = `${ownerAddress}_${tokenAddress}`;
         const existingShareholder = await db
@@ -502,10 +620,18 @@ export default function (config: ApibaraRuntimeConfig & {
           .where(eq(sharesTokenUser.id, shareholderId))
           .limit(1);
 
+        console.log('Existing Shareholder:', existingShareholder[0]);
+
         if (existingShareholder.length > 0) {
           const newAmountOwned = (BigInt(existingShareholder[0].amount_owned || '0') - BigInt(amount)).toString();
           const newAmountSell = (BigInt(existingShareholder[0].amount_sell || '0') + BigInt(amount)).toString();
           const newTotalPaid = (BigInt(existingShareholder[0].total_paid || '0') - BigInt(quoteAmount)).toString();
+
+          console.log('New Shareholder Values:', {
+            newAmountOwned,
+            newAmountSell,
+            newTotalPaid
+          });
 
           await db.update(sharesTokenUser)
             .set({
@@ -515,6 +641,8 @@ export default function (config: ApibaraRuntimeConfig & {
               is_claimable: newAmountOwned !== '0',
             })
             .where(eq(sharesTokenUser.id, shareholderId));
+
+          console.log('Shareholder Record Updated');
         }
       }
 
@@ -537,6 +665,8 @@ export default function (config: ApibaraRuntimeConfig & {
         transaction_type: 'sell',
         created_at: new Date(),
       });
+
+      console.log('Transaction Record Created');
     } catch (error) {
       console.error("Error in handleSellTokenEvent:", error);
     }

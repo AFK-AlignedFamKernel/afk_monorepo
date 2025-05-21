@@ -58,7 +58,8 @@ export const useSellCoin = () => {
           // calldata: [buyKeysParams.user_address, buyKeysParams.amount]
         };
 
-        const tx = await account?.execute([approveCall,
+        const tx = await account?.execute([
+          // approveCall,
           sellCoinCall
         ], undefined, {});
         console.log('tx hash', tx.transaction_hash);
