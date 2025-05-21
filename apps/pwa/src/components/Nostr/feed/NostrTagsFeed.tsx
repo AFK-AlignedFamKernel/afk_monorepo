@@ -67,7 +67,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       const notes = await ndk.fetchEvents({
         kinds: [...kinds],
         authors: authors,
-        // until: lastCreatedAt || Math.round(Date.now() / 1000),
+        until: lastCreatedAt || Math.round(Date.now() / 1000),
         limit: limit ?? 10,
         '#t': [selectedTag],
       });

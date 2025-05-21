@@ -22,7 +22,10 @@ interface FilterTabsProps {
   authors?: string[];
   searchQuery?: string;
   sinceProps?: number;
+  setSinceProps?: (since: number) => void;
   untilProps?: number;
+  setUntilProps?: (since: number) => void;
+
   tagsProps?: string[];
   selectedTagProps?: string;
   selectedTagsProps?: string[];
@@ -47,7 +50,9 @@ export const NostrFilter: React.FC<FilterTabsProps> = ({
   setActiveTabProps,
   activeTabProps,
   isForYouProps,
-  setIsForYouProps
+  setIsForYouProps,
+  setSinceProps,
+  setUntilProps
 }) => {
   const tabs: Tab[] = [
     {
@@ -144,8 +149,6 @@ export const NostrFilter: React.FC<FilterTabsProps> = ({
   };
 
   const { publicKey } = useAuth()
-
-
   const [kinds, setKinds] = useState<number[]>(tabs[0].kinds);
 
   const [openFilters, setOpenFilters] = useState(false);
@@ -153,13 +156,9 @@ export const NostrFilter: React.FC<FilterTabsProps> = ({
   const [until, setUntil] = useState<number>(untilProps || Math.round(Date.now() / 1000));
 
   const [isForYou, setIsForYou] = useState(false);
-
   const [tags, setTags] = useState<string[]>(TAGS_DEFAULT);
-
   const [selectedTag, setSelectedTag] = useState<string | null>(tagsProps?.[0] || null);
   const [selectedTags, setSelectedTags] = useState<string[]>(tagsProps || TAGS_DEFAULT);
-
-  const contacts = useContacts({ authors: [publicKey || ''] })
 
   return (
     <div className={`nostr-feed__container ${className}`}>
@@ -176,47 +175,28 @@ export const NostrFilter: React.FC<FilterTabsProps> = ({
         {openFilters && (
           <Modal isOpen={openFilters} onClose={() => setOpenFilters(false)}>
             <div className="nostr-feed__filters mb-4 p-3 rounded-lg">
-              <div className="flex flex-wrap gap-2 justify-between items-center">
-                <h3 className="text-sm font-medium">Feed Filters</h3>
-                <button
-                  className="px-3 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition"
-                >
-                  Refresh
-                </button>
-              </div>
 
-              <div>
+
+              <div className='flex gap-4'>
+                <button>
+
+                </button>
                 <button
                   onClick={() => {
                     setIsForYou(!isForYou)
                     setIsForYouProps(!isForYouProps)
                   }}
-                  className="px-3 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition"
+                  className={`px-3 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition`}
                 >
-                  For you
+                  {isForYouProps ? "All" : "For you"}
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                 <div>
                   <label className="block text-xs mb-1">Date Range</label>
                   <div className="flex gap-2">
-                    <input
-                      type="datetime-local"
-                      value={until ? new Date(until * 1000).toISOString().slice(0, 16) : ''}
-                      className="flex-1 px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
-                      onChange={(e) => {
-                        const timestamp = Math.floor(new Date(e.target.value).getTime() / 1000);
-                        if (!isNaN(timestamp)) {
-                          // Set since timestamp
-                        }
-                      }}
-                    />
-                    <span className="self-center text-xs">to</span>
-                  </div>
-                  <div className="flex gap-2">
-
-                    <span className="self-center text-xs">to</span>
+                    <span className="self-center text-xs">Since</span>
                     <input
                       value={since ? new Date(since * 1000).toISOString().slice(0, 16) : ''}
                       type="datetime-local"
@@ -225,54 +205,32 @@ export const NostrFilter: React.FC<FilterTabsProps> = ({
                         const timestamp = Math.floor(new Date(e.target.value).getTime() / 1000);
                         if (!isNaN(timestamp)) {
                           setUntil(timestamp);
+                          setUntilProps(timestamp)
                         }
                       }}
                     />
                   </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="date"
+                      value={until ? new Date(until).toISOString() : ''}
+                      className="flex-1 px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
+                      onChange={(e) => {
+                        const timestamp = Math.floor(new Date(e.target.value).getTime() / 1000);
+                        if (!isNaN(timestamp)) {
+                          setSince(timestamp)
+                          setSinceProps(timestamp)
+                        }
+                      }}
+                    />
+                    <span className="self-center text-xs">to</span>
+                  </div>
+
                 </div>
 
 
-              </div>
-
-
-              <div>
-                <div>
-                  <label className="block text-xs mb-1">Search Tags</label>
-                  <input
-                    type="text"
-                    placeholder="Enter tags (comma separated)"
-                    className="w-full px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs mb-1">Author Pubkeys</label>
-                  <input
-                    type="text"
-                    placeholder="Enter pubkeys (comma separated)"
-                    className="w-full px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs mb-1">Event Kinds</label>
-                  <select
-                    className="w-full px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
-                    multiple={false}
-                    onChange={(e) => {
-                      // Update kinds filter
-                    }}
-                  >
-                    <option value="1">Text Notes (1)</option>
-                    <option value="30023">Long-form Content (30023)</option>
-                    <option value="6">Reposts (6)</option>
-                    <option value="7">Reactions (7)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="nostr-feed__tabs">
-
+              </div> */}
+              <div className="nostr-feed__tabs my-4">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -293,6 +251,42 @@ export const NostrFilter: React.FC<FilterTabsProps> = ({
                   </button>
                 ))}
               </div>
+              <div>
+                <div>
+                  <label className="block text-xs mb-1">Search Tags</label>
+                  <input
+                    type="text"
+                    placeholder="Enter tags (comma separated)"
+                    className="w-full px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs mb-1">Author Pubkeys</label>
+                  <input
+                    type="text"
+                    placeholder="Enter pubkeys (comma separated)"
+                    className="w-full px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
+                  />
+                </div>
+                {/* 
+                <div>
+                  <label className="block text-xs mb-1">Event Kinds</label>
+                  <select
+                    className="w-full px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
+                    multiple={false}
+                    onChange={(e) => {
+                      // Update kinds filter
+                    }}
+                  >
+                    <option value="1">Text Notes (1)</option>
+                    <option value="30023">Long-form Content (30023)</option>
+                    <option value="6">Reposts (6)</option>
+                    <option value="7">Reactions (7)</option>
+                  </select>
+                </div> */}
+              </div>
+
               <div className="flex justify-end mt-3">
                 <button
                   className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 transition"

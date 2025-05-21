@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import {  NDKKind as NDK } from '@nostr-dev-kit/ndk';
-import { useSearch, useNostrContext } from 'afk_nostr_sdk';
+import { NDKKind as NDK } from '@nostr-dev-kit/ndk';
+import { useSearch, useNostrContext, useFetchEvents } from 'afk_nostr_sdk';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { VideoPlayer } from '../EventCard/NostrVideoPlayer';
 
@@ -39,7 +39,7 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   // Set container height on client-side
   useEffect(() => {
     setContainerHeight(window.innerHeight);
-    
+
     const handleResize = () => {
       setContainerHeight(window.innerHeight);
     };
@@ -49,8 +49,8 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   }, []);
 
   const {
-    data: notesData,
-    isLoading,
+    // data: notesData,
+    // isLoading,
     isFetching,
     isError,
     error,
@@ -62,12 +62,33 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
     limit,
     authors,
   });
-  
+
+
+  const {
+    isLoadingMore: isLoading,
+    notesData,
+    fetchEvents,
+    isInitialLoading,
+    isInitialFetching,
+    loadInitialData
+  } = useFetchEvents({
+    kinds: kinds.map(k => k as unknown as NDK),
+    limit,
+    authors,
+  })
+
   console.log("notesData", notesData);
   console.log("error", error);
 
   // Extract events from the paginated data
-  const events = notesData?.pages?.flat() || [];
+  // const events = notesDatad?.pages?.flat() || [];
+  const events = notesData?.flat() || [];
+
+  useEffect(() => {
+    if (!isInitialFetching) {
+      loadInitialData()
+    }
+  }, [isInitialFetching])
 
   // Function to handle event selection
   const handleEventClick = (eventId: string) => {
@@ -79,6 +100,10 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
     const [entry] = entries;
     if (entry.isIntersecting && hasNextPage && !isFetching) {
       fetchNextPage();
+    }
+    if (entry?.isIntersecting) {
+      console.log("fetching more events")
+      fetchEvents()
     }
   }, [fetchNextPage, hasNextPage, isFetching]);
 
@@ -114,7 +139,7 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
         behavior: 'smooth',
         block: 'start',
       });
-      
+
       setCurrentVideoIndex(index);
     }
   }, [events.length]);
@@ -122,10 +147,10 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   // Handle wheel event for scrolling between videos
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
-    
+
     const now = Date.now();
     const timeSinceLastScroll = now - lastScrollTimeRef.current;
-    
+
     // Only process scroll if enough time has passed since last scroll
     if (timeSinceLastScroll < 300) return;
 
@@ -191,7 +216,7 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   const relayCount = ndk.pool?.relays ? ndk.pool.relays.size : 0;
 
   return (
-    <div 
+    <div
       ref={containerRef}
       className={`nostr-short-feed__container ${className}`}
       style={{ height: `${containerHeight}px`, overflow: 'hidden' }}
@@ -219,11 +244,11 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
 
             return (
               <div
-                key={event.id}
+                key={index}
                 ref={(el) => { videoRefs.current[index] = el; }}
                 className="nostr-short-feed__video-container"
-                style={{ 
-                  height: `${containerHeight}px`, 
+                style={{
+                  height: `${containerHeight}px`,
                   width: '100%',
                   scrollSnapAlign: 'start',
                   position: 'relative'

@@ -72,7 +72,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
         // since: since,
         // until: until,
         // tags: tags,
-        // until: lastCreatedAt || Math.round(Date.now() / 1000),
+        until: lastCreatedAt || Math.round(Date.now() / 1000),
         limit: limit ?? 10,
       });
 

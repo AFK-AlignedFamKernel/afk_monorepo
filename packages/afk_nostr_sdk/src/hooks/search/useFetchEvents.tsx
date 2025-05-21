@@ -23,11 +23,12 @@ export const useFetchEvents = (options?: UseSearch) => {
   const [notesData, setNotesData] = useState<NDKEvent[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMoreContent, setHasMoreContent] = useState(true);
-  const [lastCreatedAt, setLastCreatedAt] = useState<number>(0);
+  const [lastCreatedAt, setLastCreatedAt] = useState<number|undefined>();
   const [until, setUntil] = useState<number>(options?.until || Math.round(Date.now() / 1000));
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isInitialFetching, setIsInitialFetching] = useState(true);
 
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [openFilters, setOpenFilters] = useState(false);
@@ -42,9 +43,10 @@ export const useFetchEvents = (options?: UseSearch) => {
       const notes = await ndk.fetchEvents({
         kinds: [...options?.kinds ?? [options?.kind ?? NDKKind.Text]],
         authors: options?.authors,
+        // until,
         until: lastCreatedAt || Math.round(Date.now() / 1000),
         limit: options?.limit ?? 10,
-        '#t': [selectedTag || ''],
+        // '#t': [selectedTag || ''],
       });
 
       console.log("notes", notes);
@@ -65,7 +67,8 @@ export const useFetchEvents = (options?: UseSearch) => {
 
       if (uniqueNotes.length > 0) {
         setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
-        setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
+        // setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
+        setNotesData(uniqueNotes);
       } else {
         setHasMoreContent(false);
       }
@@ -93,6 +96,7 @@ export const useFetchEvents = (options?: UseSearch) => {
     setError(null);
     await fetchEvents();
     setIsInitialLoading(false);
+    setIsInitialFetching(true)
   };
 
   // const queryInfinite = () => {
@@ -173,6 +177,8 @@ export const useFetchEvents = (options?: UseSearch) => {
     hasMoreContent,
     lastCreatedAt,
     until,
+    isInitialLoading,
+    isInitialFetching
   }
 };
 

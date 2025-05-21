@@ -58,8 +58,8 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
           kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
           authors: options?.authors,
           search: options?.search,
-          since: sinceTimestamp,
-          until: options?.until || pageParam > 0 ? pageParam : Math.round(Date.now() / 1000),
+          // since: sinceTimestamp,
+          // until: options?.until || pageParam > 0 ? pageParam : Math.round(Date.now() / 1000),
           limit: options?.limit ?? 10,
         });
 

@@ -61,7 +61,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
         NDKKind.Text,
         // NDKKind.Repost,
         // NDKKind.GenericRepost,
-        // NDKKind.Article,
+        NDKKind.Article,
         // NDKKind.ShortVideo,
         // NDKKind.VerticalVideo,
         // NDKKind.HorizontalVideo,
@@ -165,11 +165,13 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
           </button>
         ))}
 
-        <NostrFilter
+        {/* <NostrFilter
           limit={limit}
           authors={authors}
           searchQuery={searchQuery}
           sinceProps={sinceProps}
+          setSinceProps={setSince}
+          setUntilProps={setUntil}
           untilProps={untilProps}
           tagsProps={tagsProps}
           selectedTagProps={selectedTagProps}
@@ -177,7 +179,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
           activeTabProps={tabs.find(tab => tab.id === activeTab)}
           isForYouProps={isForYou}
           setIsForYouProps={setIsForYou}
-        ></NostrFilter>
+        ></NostrFilter> */}
         {/* <button
           className="px-3 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition"
           onClick={() => setOpenFilters(!openFilters)}

@@ -133,21 +133,20 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
             </button>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex space-x-3 text-gray-500 dark:text-gray-400 text-sm">
+          <div className="flex items-center space-x-4 my-2 gap-4">
+            <div className="flex space-x-3 text-gray-500 dark:text-gray-400 text-s gap-2 space-x-4">
               <button className="flex items-center hover:text-blue-500 gap-1"
                 onClick={() => setIsOpenComment(!isOpenComment)}
               >
 
                 <Icon name="CommentIcon" size={16}
                 />
-                Reply
               </button>
               <button className={`flex items-center hover:text-blue-500 ${isLiked ? 'text-blue-500' : ''}`} onClick={toggleLike}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <Icon name="LikeIcon" size={16}></Icon>
+                {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                Like
+                </svg> */}
               </button>
               <button className="flex items-center hover:text-green-500 gap-1"
                 onClick={() => showModal(
@@ -160,20 +159,21 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
               >
                 <Icon name="RepostIcon" size={16} ></Icon>
 
-                Repost
+                {/* Repost */}
               </button>
               <button className="flex items-center hover:text-green-500">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <Icon name="ShareIcon" size={16} />
+                {/* <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
-                Share
+                Share */}
               </button>
 
               <button className={`flex items-center hover:text-purple-500 gap-1 ${isLiked ? 'text-red-500' : ''}`} onClick={handleTipsModal}>
 
                 <Icon name="GiftIcon" size={16} ></Icon>
 
-                Tips
+                {/* Tips */}
               </button>
             </div>
 
@@ -197,7 +197,7 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
 
       {isClickableHashtags && (
         <div className="mt-3">
-          <ContentWithClickableHashtags content={event.content} onHashtagPress={() => {}} />
+          <ContentWithClickableHashtags content={event.content} onHashtagPress={() => { }} />
         </div>
       )}
     </div>

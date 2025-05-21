@@ -110,7 +110,7 @@ export default function (config: ApibaraRuntimeConfig & {
                 event,
                 eventName: 'afk_launchpad::types::launchpad_types::CreateToken',
               });
-              console.log("decodeEvent",decodeEvent)
+              console.log("decodeEvent", decodeEvent)
               await handleCreateTokenEvent(decodedEvent, event.address, header, event);
             }
             if (event?.keys[0] == encode.sanitizeHex(CREATE_LAUNCH)) {
@@ -135,8 +135,8 @@ export default function (config: ApibaraRuntimeConfig & {
                 console.error("Error processing metadata event:", error);
                 // Don't throw here to allow processing to continue
               }
-            } 
-             if (event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)) {
+            }
+            if (event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)) {
               console.log("event Buy")
               const decodedEvent = decodeEvent({
                 abi: launchpadABI as Abi,
@@ -161,7 +161,6 @@ export default function (config: ApibaraRuntimeConfig & {
                 eventName: 'afk_launchpad::types::launchpad_types::CreateToken',
               });
               await handleCreateTokenEvent(decodedEvent, event.address, header, event);
-
             }
           } catch (error: any) {
             logger.error(`Error processing event: ${error.message}`);
@@ -190,7 +189,7 @@ export default function (config: ApibaraRuntimeConfig & {
       const initialSupply = formatTokenAmount(event?.args?.initial_supply?.toString() || '0');
       const totalSupply = formatTokenAmount(event?.args?.total_supply?.toString() || '0');
 
-      const symbol = byteArray.stringFromByteArray( event?.args?.symbol);
+      const symbol = byteArray.stringFromByteArray(event?.args?.symbol);
       const name = byteArray.stringFromByteArray(event?.args?.name);
       console.log('Processed Values:', {
         tokenAddress,
@@ -209,7 +208,7 @@ export default function (config: ApibaraRuntimeConfig & {
         memecoin_address: tokenAddress,
         owner_address: ownerAddress,
         name: name,
-        symbol:symbol,
+        symbol: symbol,
         initial_supply: initialSupply,
         total_supply: totalSupply,
         created_at: new Date(),
@@ -240,7 +239,7 @@ export default function (config: ApibaraRuntimeConfig & {
       const tokenDeployInfo = await db
         .select()
         .from(tokenDeploy)
-        .where(eq(tokenDeploy.transaction_hash, event?.args?.token_deploy_tx_hash))
+        .where(eq(tokenDeploy.memecoin_address, event?.args?.memecoin_address))
         .limit(1);
 
       const launchData = {
@@ -580,7 +579,7 @@ export default function (config: ApibaraRuntimeConfig & {
       const protocolFee = event?.args?.protocol_fee?.toString() || '0';
       const lastPrice = event?.args?.last_price?.toString() || '0';
       const quoteAmount = event?.args?.coin_amount?.toString() || '0';
-      
+
       // Handle timestamp properly
       const blockTimestampMs = Number(blockTimestamp) * 1000;
       const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestampMs;
@@ -613,7 +612,7 @@ export default function (config: ApibaraRuntimeConfig & {
       }
 
       const currentLaunch = launchRecord[0];
-      
+
       // Calculate new values
       const newSupply = (BigInt(currentLaunch.current_supply || '0') + BigInt(amount)).toString();
       const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') - BigInt(quoteAmount)).toString();
@@ -621,7 +620,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
       // Calculate new price based on liquidity and token supply
       const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-      const priceSell = initPoolSupply > BigInt(0) 
+      const priceSell = initPoolSupply > BigInt(0)
         ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
         : '0';
 

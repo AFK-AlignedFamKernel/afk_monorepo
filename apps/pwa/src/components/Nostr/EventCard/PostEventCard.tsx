@@ -273,14 +273,14 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
             </div>
           )} */}
 
-          <div className="mt-6 mb-2 flex items-center text-gray-500 dark:text-gray-400 text-sm space-x-4">
+          <div className="mt-6 mb-2 flex items-center text-gray-500 dark:text-gray-400 text-sm space-x-4 gap-4">
             <button className="flex items-center hover:text-blue-500 gap-1"
               onClick={() => setIsOpenComment(!isOpenComment)}
             >
 
               <Icon name="CommentIcon" size={16}
               />
-              Reply
+              {/* Reply */}
             </button>
             <button className="flex items-center hover:text-green-500 gap-1"
               onClick={() => showModal(
@@ -292,15 +292,15 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
               )}
             >
               <Icon name="RepostIcon" size={16} ></Icon>
-              Repost
+              {/* Repost */}
             </button>
             <button className={`flex items-center hover:text-red-500 gap-1 ${isLiked ? 'text-red-500' : ''}`} onClick={toggleLike}>
               <Icon name="LikeIcon" size={16} ></Icon>
-              Like
+              {/* Like */}
             </button>
             <button className={`flex items-center hover:text-purple-500 gap-1 ${isLiked ? 'text-red-500' : ''}`} onClick={handleTipsModal}>
               <Icon name="GiftIcon" size={16} ></Icon>
-              Tips
+              {/* Tips */}
             </button>
             <button className="flex items-center hover:text-green-500 gap-1"
               onClick={() => {
@@ -309,7 +309,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
               }}
             >
               <Icon name="ShareIcon" size={16} ></Icon>
-              Share
+              {/* Share */}
             </button>
           </div>
         </div>
