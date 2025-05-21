@@ -9,6 +9,8 @@ import { ABI as namespaceABI } from './abi/afkNamespace.abi';
 import { formatUnits } from 'viem';
 import { randomUUID } from 'crypto';
 import { upsertTokenDeploy, upsertTokenLaunch, upsertTokenMetadata, upsertTokenTransaction } from './db/token.db';
+import { eq } from 'drizzle-orm';
+import { tokenLaunch, tokenTransactions, sharesTokenUser } from 'indexer-v2-db/schema';
 
 const CREATE_TOKEN = hash.getSelectorFromName('CreateToken') as `0x${string}`;
 const CREATE_LAUNCH = hash.getSelectorFromName('CreateLaunch') as `0x${string}`;
@@ -71,12 +73,31 @@ export default function (config: ApibaraRuntimeConfig & {
       events: [
         {
           address: "0x07607c8A50b83938ea3f9DA25DC1b7024814C0E5bF4B40bF6D6FF9Bc7387aa7d" as `0x${string}`,
-          keys: KNOWN_EVENT_KEYS,
+          keys: [CREATE_TOKEN],
+        },
+        {
+          address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
+          keys: [CREATE_LAUNCH],
+        },
+        {
+          address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
+          keys: [BUY_TOKEN],
+        },
+        {
+          address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
+          keys: [METADATA_COIN_ADDED],
         },
       ],
     },
     plugins: [drizzleStorage({
       db,
+      idColumn: {
+        token_deploy: 'transaction_hash',
+        token_launch: 'transaction_hash',
+        token_metadata: 'transaction_hash',
+        token_transactions: 'transfer_id',
+        shares_token_user: 'id'
+      }
     })],
     async transform({ endCursor, block, context, finality }) {
       const logger = useLogger();
@@ -307,24 +328,92 @@ export default function (config: ApibaraRuntimeConfig & {
         quoteAmountHigh,
       ] = event.data;
 
-      const amount = formatTokenAmount(
-        (BigInt(amountHigh) << BigInt(128)) | BigInt(amountLow)
-      );
-      const price = formatTokenAmount(
-        (BigInt(priceHigh) << BigInt(128)) | BigInt(priceLow)
-      );
-      const protocolFee = formatTokenAmount(
-        (BigInt(protocolFeeHigh) << BigInt(128)) | BigInt(protocolFeeLow)
-      );
-      const lastPrice = formatTokenAmount(
-        (BigInt(lastPriceHigh) << BigInt(128)) | BigInt(lastPriceLow)
-      );
-      const quoteAmount = formatTokenAmount(
-        (BigInt(quoteAmountHigh) << BigInt(128)) | BigInt(quoteAmountLow)
-      );
+      // Convert u256 values to BigInt and then to string
+      const amount = ((BigInt(amountHigh) << BigInt(128)) | BigInt(amountLow)).toString();
+      const price = ((BigInt(priceHigh) << BigInt(128)) | BigInt(priceLow)).toString();
+      const protocolFee = ((BigInt(protocolFeeHigh) << BigInt(128)) | BigInt(protocolFeeLow)).toString();
+      const lastPrice = ((BigInt(lastPriceHigh) << BigInt(128)) | BigInt(lastPriceLow)).toString();
+      const quoteAmount = ((BigInt(quoteAmountHigh) << BigInt(128)) | BigInt(quoteAmountLow)).toString();
 
       const timestamp = new Date(Number(BigInt(timestampFelt)) * 1000);
 
+      // Get the launch record to update
+      const launchRecord = await db
+        .select()
+        .from(tokenLaunch)
+        .where(eq(tokenLaunch.memecoin_address, tokenAddress))
+        .limit(1);
+
+      if (launchRecord && launchRecord.length > 0) {
+        const currentLaunch = launchRecord[0];
+        
+        // Calculate new values
+        const newSupply = (BigInt(currentLaunch.current_supply || '0') - BigInt(amount)).toString();
+        const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
+        const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount)).toString();
+
+        // Calculate new price based on liquidity and token supply
+        const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
+        const priceBuy = initPoolSupply > BigInt(0) 
+          ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
+          : '0';
+
+        // Calculate market cap
+        const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
+
+        // Update launch record
+        await db.update(tokenLaunch)
+          .set({
+            current_supply: newSupply,
+            liquidity_raised: newLiquidityRaised,
+            total_token_holded: newTotalTokenHolded,
+            price: priceBuy,
+            market_cap: marketCap,
+          })
+          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+
+        // Update or create shareholder record
+        const shareholderId = `${ownerAddress}_${tokenAddress}`;
+        const existingShareholder = await db
+          .select()
+          .from(sharesTokenUser)
+          .where(eq(sharesTokenUser.id, shareholderId))
+          .limit(1);
+
+        const newAmountOwned = existingShareholder.length > 0
+          ? (BigInt(existingShareholder[0].amount_owned || '0') + BigInt(amount)).toString()
+          : amount;
+
+        const newAmountBuy = existingShareholder.length > 0
+          ? (BigInt(existingShareholder[0].amount_buy || '0') + BigInt(amount)).toString()
+          : amount;
+
+        const newTotalPaid = existingShareholder.length > 0
+          ? (BigInt(existingShareholder[0].total_paid || '0') + BigInt(quoteAmount)).toString()
+          : quoteAmount;
+
+        await db.insert(sharesTokenUser)
+          .values({
+            id: shareholderId,
+            owner: ownerAddress,
+            token_address: tokenAddress,
+            amount_owned: newAmountOwned,
+            amount_buy: newAmountBuy,
+            total_paid: newTotalPaid,
+            is_claimable: true,
+          })
+          .onConflictDoUpdate({
+            target: sharesTokenUser.id,
+            set: {
+              amount_owned: newAmountOwned,
+              amount_buy: newAmountBuy,
+              total_paid: newTotalPaid,
+              is_claimable: true,
+            },
+          });
+      }
+
+      // Create transaction record
       const data = {
         transfer_id: transferId,
         network: 'starknet-sepolia',
@@ -343,7 +432,7 @@ export default function (config: ApibaraRuntimeConfig & {
         transaction_type: 'buy',
       };
 
-      await upsertTokenTransaction(data);
+      await db.insert(tokenTransactions).values(data);
     } catch (error) {
       console.error("Error in handleBuyTokenEvent:", error);
     }
