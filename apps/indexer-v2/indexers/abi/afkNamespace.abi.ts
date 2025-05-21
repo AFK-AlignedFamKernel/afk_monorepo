@@ -20,6 +20,16 @@ export const ABI = [
   },
   {
     "type": "struct",
+    "name": "core::bytes_31::bytes31",
+    "members": [
+      {
+        "name": "data",
+        "type": "core::felt252"
+      }
+    ]
+  },
+  {
+    "type": "struct",
     "name": "afk::social::namespace::NostrAccountScoring",
     "members": [
       {
