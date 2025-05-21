@@ -265,6 +265,18 @@ export const tokenTransactions = pgTable('token_transactions', {
   time_stamp: timestamp('time_stamp'),
 });
 
+export const sharesTokenUser = pgTable('shares_token_user', {
+  id: text('id').primaryKey(),
+  owner: text('owner').notNull(),
+  token_address: text('token_address').notNull(),
+  amount_owned: decimal('amount_owned', { precision: 30, scale: 18 }).default('0'),
+  amount_buy: decimal('amount_buy', { precision: 30, scale: 18 }).default('0'),
+  amount_sell: decimal('amount_sell', { precision: 30, scale: 18 }).default('0'),
+  total_paid: decimal('total_paid', { precision: 30, scale: 18 }).default('0'),
+  is_claimable: boolean('is_claimable').default(false),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
 // Relations
 export const contractStateRelations = relations(contractState, ({ many }) => ({
   epochs: many(epochState),
@@ -349,6 +361,14 @@ export const tokenMetadataRelations = relations(tokenMetadata, ({ one }) => ({
   }),
 }));
 
+// Add relations
+export const sharesTokenUserRelations = relations(sharesTokenUser, ({ one }) => ({
+  token: one(tokenLaunch, {
+    fields: [sharesTokenUser.token_address],
+    references: [tokenLaunch.memecoin_address],
+  }),
+}));
+
 // Add proper type exports
 export type ContractState = typeof contractState.$inferSelect;
 export type NewContractState = typeof contractState.$inferInsert;
@@ -382,5 +402,8 @@ export type NewTokenMetadata = typeof tokenMetadata.$inferInsert;
 
 export type TokenTransaction = typeof tokenTransactions.$inferSelect;
 export type NewTokenTransaction = typeof tokenTransactions.$inferInsert;
+
+export type SharesTokenUser = typeof sharesTokenUser.$inferSelect;
+export type NewSharesTokenUser = typeof sharesTokenUser.$inferInsert;
 
 

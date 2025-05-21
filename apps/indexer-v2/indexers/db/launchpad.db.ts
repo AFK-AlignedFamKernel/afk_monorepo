@@ -1,365 +1,363 @@
-import { contractState, epochState, userProfile, userEpochState } from 'indexer-v2-db/schema';
+import { tokenDeploy, tokenLaunch, tokenMetadata, tokenTransactions, sharesTokenUser } from 'indexer-v2-db/schema';
 import { and, eq, sql } from 'drizzle-orm';
 import { useDrizzleStorage } from '@apibara/plugin-drizzle';
-import { randomUUID } from 'crypto';
 
-interface ContractStateData {
-  contract_address: string;
+interface TokenDeployData {
+  transaction_hash: string;
   network?: string;
-  current_epoch_index?: string;
-  total_ai_score?: string;
-  total_vote_score?: string;
-  total_tips?: string;
-  total_amount_deposit?: string;
-  total_to_claimed?: string;
-  percentage_algo_distribution?: number;
-  quote_address?: string;
-  main_token_address?: string;
-  current_epoch_duration?: number;
-  current_epoch_start?: Date;
-  current_epoch_end?: Date;
-  topic_metadata?: any;
-  nostr_metadata?: any;
+  block_hash?: string;
+  block_number?: bigint;
+  block_timestamp?: Date;
+  memecoin_address: string;
+  owner_address?: string;
   name?: string;
-  about?: string;
-  main_tag?: string;
-  keyword?: string;
-  keywords?: string[];
-  event_id_nip_29?: string;
-  event_id_nip_72?: string;
+  symbol?: string;
+  initial_supply?: string;
+  total_supply?: string;
+  created_at?: Date;
+  is_launched?: boolean;
+  description?: string;
+  ipfs_hash?: string;
+  ipfs_metadata_url?: string;
+  nostr_id?: string;
+  url?: string;
+  github?: string;
+  image_url?: string;
+  metadata?: any;
+  nostr_event_id?: string;
+  telegram?: string;
+  twitter?: string;
+  website?: string;
 }
 
-interface EpochStateData {
-  epoch_index: string;
-  contract_address: string;
-  total_ai_score?: string;
-  total_vote_score?: string;
-  total_amount_deposit?: string;
-  total_tip?: string;
-  amount_claimed?: string;
-  amount_vote?: string;
-  amount_algo?: string;
-  epoch_duration?: number;
-  start_time?: Date;
-  end_time?: Date;
+interface TokenLaunchData {
+  transaction_hash: string;
+  network?: string;
+  block_hash?: string;
+  owner_address?: string;
+  block_number?: bigint;
+  block_timestamp?: Date;
+  memecoin_address: string;
+  quote_token?: string;
+  exchange_name?: string;
+  total_supply?: string;
+  threshold_liquidity?: string;
+  current_supply?: string;
+  liquidity_raised?: string;
+  is_liquidity_added?: boolean;
+  total_token_holded?: string;
+  price?: string;
+  bonding_type?: string;
+  created_at?: Date;
+  initial_pool_supply_dex?: string;
+  market_cap?: string;
+  description?: string;
+  github?: string;
+  image_url?: string;
+  ipfs_hash?: string;
+  ipfs_metadata_url?: string;
+  metadata?: any;
+  nostr_event_id?: string;
+  nostr_id?: string;
+  telegram?: string;
+  twitter?: string;
+  url?: string;
+  website?: string;
+  name?: string;
+  symbol?: string;
+  token_deploy_tx_hash?: string;
 }
 
-interface UserProfileData {
-  nostr_id: string;
-  starknet_address?: string;
-  total_ai_score?: string;
-  total_tip?: string;
-  total_vote_score?: string;
-  amount_claimed?: string;
-  is_add_by_admin?: boolean;
+interface TokenMetadataData {
+  transaction_hash: string;
+  network?: string;
+  block_hash?: string;
+  block_number?: bigint;
+  contract_address?: string;
+  block_timestamp?: Date;
+  memecoin_address: string;
+  url?: string;
+  nostr_id?: string;
+  name?: string;
+  symbol?: string;
+  created_at?: Date;
+  nostr_event_id?: string;
+  twitter?: string;
+  telegram?: string;
+  github?: string;
+  website?: string;
 }
 
-interface UserEpochStateData {
-  nostr_id: string;
-  epoch_index: string;
-  contract_address: string;
-  total_tip?: string;
-  total_ai_score?: string;
-  total_vote_score?: string;
-  amount_claimed?: string;
+interface TokenTransactionData {
+  transfer_id: string;
+  network?: string;
+  block_hash?: string;
+  block_number?: bigint;
+  block_timestamp?: Date;
+  transaction_hash?: string;
+  memecoin_address?: string;
+  owner_address?: string;
+  last_price?: string;
+  quote_amount?: string;
+  coin_received?: string;
+  initial_supply?: string;
+  created_at?: Date;
+  total_supply?: string;
+  current_supply?: string;
+  liquidity_raised?: string;
+  price?: string;
+  protocol_fee?: string;
+  amount?: string;
+  transaction_type?: string;
+  time_stamp?: Date;
 }
 
-// In nostr-fi.db.ts
-export async function insertSubState(subStates: ContractStateData[]) {
+export async function upsertTokenDeploy(data: TokenDeployData) {
+  const { db } = useDrizzleStorage();
   try {
-    const { db } = useDrizzleStorage();
+    return db.insert(tokenDeploy).values(data).onConflictDoUpdate({
+      target: tokenDeploy.transaction_hash,
+      set: data,
+    });
+  } catch (error) {
+    console.error("Error in upsertTokenDeploy:", error);
+    return null;
+  }
+}
 
-    // Validate input data
-    if (!Array.isArray(subStates) || subStates.length === 0) {
-      throw new Error('Invalid input: subStates must be a non-empty array');
-    }
+export async function upsertTokenLaunch(data: TokenLaunchData) {
+  const { db } = useDrizzleStorage();
+  try {
+    return db.insert(tokenLaunch).values(data).onConflictDoUpdate({
+      target: tokenLaunch.transaction_hash,
+      set: data,
+    });
+  } catch (error) {
+    console.error("Error in upsertTokenLaunch:", error);
+    return null;
+  }
+}
 
-    // Validate required fields
-    subStates.forEach((state, index) => {
-      if (!state.contract_address) {
-        throw new Error(`Missing contract_address in item ${index}`);
-      }
+export async function upsertTokenMetadata(data: TokenMetadataData) {
+  const { db } = useDrizzleStorage();
+  try {
+    // First upsert the metadata
+    const result = await db.insert(tokenMetadata).values(data).onConflictDoUpdate({
+      target: tokenMetadata.transaction_hash,
+      set: data,
     });
 
-    // // First try to remove existing trigger if it exists
-    // await db.execute(
-    //   'DROP TRIGGER IF EXISTS dao_creation_reorg_indexer_dao_factory_default ON dao_creation'
-    // );
+    // Then update the token deploy and launch records with the metadata
+    await db.update(tokenDeploy)
+      .set({
+        url: data.url,
+        nostr_id: data.nostr_id,
+        nostr_event_id: data.nostr_event_id,
+        twitter: data.twitter,
+        telegram: data.telegram,
+        github: data.github,
+        website: data.website,
+      })
+      .where(eq(tokenDeploy.memecoin_address, data.memecoin_address));
 
-    // Then perform the insert
-    const result = await db.insert(contractState)
-      .values(subStates)
-      .onConflictDoNothing();
+    await db.update(tokenLaunch)
+      .set({
+        url: data.url,
+        nostr_id: data.nostr_id,
+        nostr_event_id: data.nostr_event_id,
+        twitter: data.twitter,
+        telegram: data.telegram,
+        github: data.github,
+        website: data.website,
+      })
+      .where(eq(tokenLaunch.memecoin_address, data.memecoin_address));
 
     return result;
   } catch (error) {
-    // Structured error logging
-    const errorInfo = {
-      operation: 'insertSubState',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString(),
-      data: subStates.map(s => s.contract_address) // Log only necessary info
-    };
-    console.error('Database operation failed:', errorInfo);
-
-    // Rethrow with context but don't crash
-    throw new Error(`Failed to insert contract states: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
-}
-
-// export async function insertSubState(subStates  : ContractStateData[]) {
-//   try {
-//     const { db } = useDrizzleStorage();
-//     return db.insert(contractState).values(subStates as any).onConflictDoNothing();
-//   } catch (error) {
-//     console.log("error insertSubState", error);
-//   }
-// }
-
-
-// Add this to nostr-fi.db.ts
-export async function getLastProcessedCursor() {
-  try {
-    const { db } = useDrizzleStorage();
-    // const result = await db.execute(
-    //   sql`SELECT MAX(block_number) as last_block FROM contract_state`
-    // );
-    const last_block = await db.execute(sql`SELECT MAX(block_number) as last_block FROM contract_state`);
-    return last_block;
-  } catch (error) {
-    console.error('Error getting last processed cursor:', error);
+    console.error("Error in upsertTokenMetadata:", error);
     return null;
   }
 }
 
-export async function saveCursor(blockNumber: string, blockHash: string) {
-  try {
-    const { db } = useDrizzleStorage();
-    await db.execute(
-      sql`INSERT INTO indexer_cursor (block_number, block_hash, updated_at) VALUES (${blockNumber}, ${blockHash}, NOW())`
-    );
-  } catch (error) {
-    console.error('Error saving cursor:', error);
-  }
-}
-
-
-export async function upsertContractState(data: ContractStateData) {
+export async function upsertTokenTransaction(data: TokenTransactionData) {
   const { db } = useDrizzleStorage();
   try {
-    console.log("upsertContractState", data);
-    return db.insert(contractState).values(data).
-      // .onConflictDoNothing();
-      onConflictDoUpdate({
-        target: contractState.contract_address,
-        set: {
-          ...data,
-          updated_at: new Date(),
-        },
-      });
-    // const tx = await db.transaction(async (tx) => {
-    //   const result = await tx
-    //     .insert(contractState)
-    //     .values({
-    //       ...data,
-    //       created_at: new Date(),
-    //       updated_at: new Date(),
-    //       id: randomUUID(),
-    //     })
-    //     .onConflictDoUpdate({
-    //       target: contractState.contract_address,
-    //       set: {
-    //         ...data,
-    //         updated_at: new Date(),
-    //       },
-    //     });
-    //   return result;
-    // });
-    // return tx;
-  } catch (error) {
-    console.error("Error in upsertContractState:", error);
-    return null; // Return null instead of crashing
-  }
-}
+    // First upsert the transaction
+    const result = await db.insert(tokenTransactions).values(data).onConflictDoUpdate({
+      target: tokenTransactions.transfer_id,
+      set: data,
+    });
 
-export async function upsertEpochState(data: EpochStateData) {
-  const { db } = useDrizzleStorage();
-  try {
-    console.log("upsertEpochState", data);
-    return db.insert(epochState)
-      .values({
-        id: randomUUID(),
-        epoch_index: data.epoch_index,
-        contract_address: data.contract_address,
-        total_ai_score: data.total_ai_score,
-        total_vote_score: data.total_vote_score,
-        total_amount_deposit: data.total_amount_deposit,
-        total_tip: data.total_tip,
-        amount_claimed: data.amount_claimed,
-        amount_vote: data.amount_vote,
-        amount_algo: data.amount_algo,
-        epoch_duration: data.epoch_duration,
-        start_time: data.start_time,
-        end_time: data.end_time,
-        created_at: new Date(),
-        updated_at: new Date(),
-      })
-      // .onConflictDoUpdate({
-      //   target: [data.epoch_index, data.contract_address],
-      //   set: {
-      //     total_ai_score: data.total_ai_score,
-      //     total_vote_score: data.total_vote_score,
-      //     total_amount_deposit: data.total_amount_deposit,
-      //     total_tip: data.total_tip,
-      //     amount_claimed: data.amount_claimed,
-      //     amount_vote: data.amount_vote,
-      //     amount_algo: data.amount_algo,
-      //     epoch_duration: data.epoch_duration,
-      //     start_time: data.start_time,
-      //     end_time: data.end_time,
-      //     updated_at: new Date(),
-      //   },
-      // })
-      .onConflictDoNothing();
+    // Then update the launch record with new liquidity and supply
+    if (data.memecoin_address) {
+      const launchRecord = await db
+        .select()
+        .from(tokenLaunch)
+        .where(eq(tokenLaunch.memecoin_address, data.memecoin_address))
+        .limit(1);
+
+      if (launchRecord && launchRecord.length > 0) {
+        const currentLaunch = launchRecord[0];
+        const newSupply = BigInt(currentLaunch.current_supply || '0') - BigInt(data.amount || '0');
+        const newLiquidityRaised = BigInt(currentLaunch.liquidity_raised || '0') + BigInt(data.quote_amount || '0');
+        const newTotalTokenHolded = BigInt(currentLaunch.total_token_holded || '0') + BigInt(data.amount || '0');
+
+        // Calculate new price based on liquidity and token supply
+        const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
+        const price = initPoolSupply > BigInt(0) ? newLiquidityRaised / initPoolSupply : BigInt(0);
+
+        // Calculate market cap
+        const marketCap = (BigInt(currentLaunch.total_supply || '0') * price).toString();
+
+        await db.update(tokenLaunch)
+          .set({
+            current_supply: newSupply.toString(),
+            liquidity_raised: newLiquidityRaised.toString(),
+            total_token_holded: newTotalTokenHolded.toString(),
+            price: price.toString(),
+            market_cap: marketCap,
+          })
+          .where(eq(tokenLaunch.memecoin_address, data.memecoin_address));
+
+        // Update or create shareholder record
+        if (data.owner_address) {
+          const shareholderId = `${data.owner_address}_${data.memecoin_address}`;
+          const existingShareholder = await db
+            .select()
+            .from(sharesTokenUser)
+            .where(eq(sharesTokenUser.id, shareholderId))
+            .limit(1);
+
+          const newAmountOwned = existingShareholder.length > 0
+            ? BigInt(existingShareholder[0].amount_owned || '0') + BigInt(data.amount || '0')
+            : BigInt(data.amount || '0');
+
+          const newAmountBuy = existingShareholder.length > 0
+            ? BigInt(existingShareholder[0].amount_buy || '0') + BigInt(data.amount || '0')
+            : BigInt(data.amount || '0');
+
+          const newTotalPaid = existingShareholder.length > 0
+            ? BigInt(existingShareholder[0].total_paid || '0') + BigInt(data.quote_amount || '0')
+            : BigInt(data.quote_amount || '0');
+
+          await db.insert(sharesTokenUser)
+            .values({
+              id: shareholderId,
+              owner: data.owner_address,
+              token_address: data.memecoin_address,
+              amount_owned: newAmountOwned.toString(),
+              amount_buy: newAmountBuy.toString(),
+              total_paid: newTotalPaid.toString(),
+              is_claimable: true,
+            })
+            .onConflictDoUpdate({
+              target: sharesTokenUser.id,
+              set: {
+                amount_owned: newAmountOwned.toString(),
+                amount_buy: newAmountBuy.toString(),
+                total_paid: newTotalPaid.toString(),
+                is_claimable: true,
+              },
+            });
+        }
+      }
+    }
+
+    return result;
   } catch (error) {
-    console.error("Error in upsertEpochState:", error);
+    console.error("Error in upsertTokenTransaction:", error);
     return null;
   }
 }
 
-export async function upsertUserProfile(data: UserProfileData) {
-  const { db } = useDrizzleStorage();
-  try {
-    return db.insert(userProfile).values(data).onConflictDoNothing();
-    // const tx = await db.transaction(async (tx) => {
-    //   const result = await tx
-    //     .insert(userProfile)
-    //     .values({
-    //       ...data,
-    //       created_at: new Date(),
-    //       updated_at: new Date(),
-    //       id: randomUUID(),
-    //     })
-    //     .onConflictDoUpdate({
-    //       target: userProfile.nostr_id,
-    //       set: {
-    //         ...data,
-    //         updated_at: new Date(),
-    //       },
-    //     });
-    //   return result;
-    // });
-    // return tx;
-  } catch (error) {
-    console.error("Error in upsertUserProfile:", error);
-    return null; // Return null instead of crashing
-  }
-}
-
-export async function upsertUserEpochState(data: UserEpochStateData) {
-  const { db } = useDrizzleStorage();
-  try {
-    return db.insert(userEpochState).values(data).
-      // onConflictDoNothing();
-      onConflictDoUpdate({
-        target: [userEpochState.nostr_id, userEpochState.epoch_index, userEpochState.contract_address],
-        set: {
-          ...data,
-          updated_at: new Date(),
-        },
-      });
-    // const tx = await db.transaction(async (tx) => {
-    //   const result = await tx
-    //     .insert(userEpochState)
-    //     .values({
-    //       nostr_id: data.nostr_id,
-    //       epoch_index: data.epoch_index,
-    //       contract_address: data.contract_address,
-    //       total_tip: data.total_tip,
-    //       total_ai_score: data.total_ai_score,
-    //       total_vote_score: data.total_vote_score,
-    //       amount_claimed: data.amount_claimed,
-    //       created_at: new Date(),
-    //       updated_at: new Date(),
-    //     })
-    //     .onConflictDoUpdate({
-    //       target: [userEpochState.nostr_id, userEpochState.epoch_index, userEpochState.contract_address],
-    //       set: {
-    //         total_tip: data.total_tip,
-    //         total_ai_score: data.total_ai_score,
-    //         total_vote_score: data.total_vote_score,
-    //         amount_claimed: data.amount_claimed,
-    //         updated_at: new Date(),
-    //       },
-    //     });
-    //   return result;
-    // });
-    // return tx;
-  } catch (error) {
-    console.error("Error in upsertUserEpochState:", error);
-    return null;
-  }
-}
-
-export async function getContractState(contractAddress: string) {
+export async function getTokenDeploy(transactionHash: string) {
   try {
     const { db } = useDrizzleStorage();
     return db
       .select()
-      .from(contractState)
-      .where(eq(contractState.contract_address, contractAddress))
+      .from(tokenDeploy)
+      .where(eq(tokenDeploy.transaction_hash, transactionHash))
       .limit(1);
   } catch (error) {
-    console.log("error getContractState", error);
+    console.log("error getTokenDeploy", error);
   }
 }
 
-export async function getEpochState(contractAddress: string, epochIndex: string) {
+export async function getTokenLaunch(transactionHash: string) {
   try {
     const { db } = useDrizzleStorage();
     return db
       .select()
-      .from(epochState)
-      .where(
-        and(
-          eq(epochState.contract_address, contractAddress),
-          eq(epochState.epoch_index, epochIndex),
-        ),
-      )
+      .from(tokenLaunch)
+      .where(eq(tokenLaunch.transaction_hash, transactionHash))
       .limit(1);
   } catch (error) {
-    console.log("error getEpochState", error);
+    console.log("error getTokenLaunch", error);
   }
 }
 
-export async function getUserProfile(nostrId: string) {
+export async function getTokenMetadata(transactionHash: string) {
   try {
     const { db } = useDrizzleStorage();
     return db
       .select()
-      .from(userProfile)
-      .where(eq(userProfile.nostr_id, nostrId))
+      .from(tokenMetadata)
+      .where(eq(tokenMetadata.transaction_hash, transactionHash))
       .limit(1);
   } catch (error) {
-    console.log("error getUserProfile", error);
+    console.log("error getTokenMetadata", error);
   }
 }
 
-export async function getUserEpochState(nostrId: string, contractAddress: string, epochIndex: string) {
+export async function getTokenTransaction(transferId: string) {
   try {
     const { db } = useDrizzleStorage();
     return db
       .select()
-      .from(userEpochState)
-      .where(
-        and(
-          eq(userEpochState.nostr_id, nostrId),
-          eq(userEpochState.contract_address, contractAddress),
-          eq(userEpochState.epoch_index, epochIndex),
-        ),
-      )
+      .from(tokenTransactions)
+      .where(eq(tokenTransactions.transfer_id, transferId))
       .limit(1);
   } catch (error) {
-    console.log("error getUserEpochState", error);
+    console.log("error getTokenTransaction", error);
+  }
+}
+
+// New helper functions to get metadata from token or launch models
+export async function getTokenDeployWithMetadata(memecoinAddress: string) {
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .select()
+      .from(tokenDeploy)
+      .where(eq(tokenDeploy.memecoin_address, memecoinAddress))
+      .limit(1);
+  } catch (error) {
+    console.log("error getTokenDeployWithMetadata", error);
+  }
+}
+
+export async function getTokenLaunchWithMetadata(memecoinAddress: string) {
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .select()
+      .from(tokenLaunch)
+      .where(eq(tokenLaunch.memecoin_address, memecoinAddress))
+      .limit(1);
+  } catch (error) {
+    console.log("error getTokenLaunchWithMetadata", error);
+  }
+}
+
+export async function getMetadataByMemecoinAddress(memecoinAddress: string) {
+  try {
+    const { db } = useDrizzleStorage();
+    return db
+      .select()
+      .from(tokenMetadata)
+      .where(eq(tokenMetadata.memecoin_address, memecoinAddress))
+      .limit(1);
+  } catch (error) {
+    console.log("error getMetadataByMemecoinAddress", error);
   }
 } 
