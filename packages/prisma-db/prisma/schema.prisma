@@ -35,18 +35,20 @@ model User {
 }
 
 model SocialAccount {
-  id           String    @id @default(cuid())
-  userId       String
-  platform     String
-  accountId    String
-  username     String?
-  picture      String?
-  accessToken  String?
-  refreshToken String?
-  expiresAt    DateTime? @db.Timestamp(6)
-  createdAt    DateTime? @default(now()) @db.Timestamp(6)
-  updatedAt    DateTime? @default(now()) @db.Timestamp(6)
-  users        User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
+  id               String    @id @default(cuid())
+  userId           String
+  platform         String
+  accountId        String
+  username         String?
+  picture          String?
+  accessToken      String?
+  refreshToken     String?
+  expiresAt        DateTime? @db.Timestamp(6)
+  createdAt        DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt        DateTime? @default(now()) @db.Timestamp(6)
+  verificationCode String?
+  status           String    @default("pending")
+  users            User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user")
 
   @@unique([userId, platform])
   @@map("social_accounts")

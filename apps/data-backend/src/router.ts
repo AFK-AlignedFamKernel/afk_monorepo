@@ -21,6 +21,7 @@ import routesShareUserRoutes from './routes/indexer/share-user';
 import tipServiceRoute from './routes/indexer/tip';
 import uploadFile from './routes/upload/upload-file';
 import mainInfoFiRoute from './routes/indexer/infofi/infofi-main-contract';
+import {profileRoutes} from './routes/profile';
 // import daoServiceRoute from './routes/indexer/dao';
 // import subScoreFactoryRoute from './routes/indexer/infofi/score-factory.routes';
 // import getOtp from "./routes/otp/getOtp";
@@ -56,6 +57,7 @@ function declareRoutes(
   fastify.register(routesShareUserRoutes);
   fastify.register(uploadFile);
   fastify.register(mainInfoFiRoute);
+  fastify.register(profileRoutes);
   // fastify.register(daoServiceRoute);
   // fastify.register(subScoreFactoryRoute);
   // fastify.register(getOtp, twilio_services?.verifications);

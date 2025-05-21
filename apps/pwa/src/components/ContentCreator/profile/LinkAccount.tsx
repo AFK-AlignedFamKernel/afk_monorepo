@@ -1,6 +1,7 @@
 "use client"
 import { useUIStore } from '@/store/uiStore';
 import { useState } from 'react';
+import LinkAccountModal from './LinkAccountModal';
 
 interface SocialAccount {
     id: string;
@@ -16,10 +17,45 @@ export default function LinkAccount() {
         { id: '2', platform: 'Youtube', username: 'channel', status: 'pending' },
         { id: '3', platform: 'Tiktok', username: '@tiktok', status: 'unlinked' },
     ]);
+    const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
 
-    const handleLinkAccount = (id: string) => {
-        console.log(`Linking account ${id}`);
-    }
+    const handleLinkAccount = async (platform: string) => {
+        setSelectedPlatform(platform);
+        // showModal(<LinkAccountModal platform={platform} onClose={() => setSelectedPlatform(null)} onSubmit={handleModalSubmit} />
+        // );
+    };
+
+    const handleModalSubmit = async (handle: string) => {
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/profile/link-account`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    platform: selectedPlatform,
+                    handle,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate verification code');
+            }
+
+            const data = await response.json();
+            showToast({ message: `Verification code generated: ${data.verificationCode}`, type: 'success' });
+            setSelectedPlatform(null);
+
+            // Update account status to pending
+            setAccounts(accounts.map(acc =>
+                acc.platform === selectedPlatform
+                    ? { ...acc, status: 'pending', username: handle }
+                    : acc
+            ));
+        } catch (error) {
+            showToast({ message: 'Failed to generate verification code', type: 'error' });
+        }
+    };
 
     return (
         <div className="container mx-auto p-4">
@@ -38,6 +74,7 @@ export default function LinkAccount() {
                                     ? 'bg-yellow-500 text-white'
                                     : 'bg-blue-500 text-white'
                                 }`}
+                            onClick={() => handleLinkAccount(account.platform)}
                         >
                             {account.status === 'linked'
                                 ? 'Linked'
@@ -45,8 +82,6 @@ export default function LinkAccount() {
                                     ? 'Pending'
                                     : 'Link Account'}
                         </button>
-                        <button className="mt-2 px-4 py-2 rounded"
-                            onClick={() => handleLinkAccount(account.id)}>   LInk</button>
                     </div>
                 ))}
             </div>
@@ -65,6 +100,14 @@ export default function LinkAccount() {
                         ))}
                 </ul>
             </div>
+
+            {selectedPlatform && (
+                <LinkAccountModal
+                    platform={selectedPlatform}
+                    onClose={() => setSelectedPlatform(null)}
+                    onSubmit={handleModalSubmit}
+                />
+            )}
         </div>
     );
 }
