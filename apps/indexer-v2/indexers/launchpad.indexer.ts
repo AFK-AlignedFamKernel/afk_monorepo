@@ -5,29 +5,24 @@ import { Abi, decodeEvent, StarknetStream } from '@apibara/starknet';
 import { constants, encode, hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
-import { ABI as namespaceABI } from './abi/afkNamespace.abi';
+import { ABI as launchpadABI } from './abi/launchpad.abi';
 import { formatUnits } from 'viem';
 import { randomUUID } from 'crypto';
-import { upsertTokenDeploy, upsertTokenLaunch, upsertTokenMetadata, upsertTokenTransaction } from './db/token.db';
+import { tokenDeploy, tokenLaunch, tokenMetadata, tokenTransactions, sharesTokenUser } from 'indexer-v2-db/schema';
 import { eq } from 'drizzle-orm';
-import { tokenLaunch, tokenTransactions, sharesTokenUser } from 'indexer-v2-db/schema';
 
 const CREATE_TOKEN = hash.getSelectorFromName('CreateToken') as `0x${string}`;
 const CREATE_LAUNCH = hash.getSelectorFromName('CreateLaunch') as `0x${string}`;
-const LINKED_DEFAULT_STARKNET_ADDRESS = hash.getSelectorFromName('LinkedDefaultStarknetAddressEvent') as `0x${string}`;
-const ADMIN_ADD_NOSTR_PROFILE = hash.getSelectorFromName('AdminAddNostrProfile') as `0x${string}`;
-const PUSH_ALGO_SCORE_EVENT = hash.getSelectorFromName('PushAlgoScoreEvent') as `0x${string}`;
-const METADATA_COIN_ADDED = hash.getSelectorFromName('MetadataCoinAdded') as `0x${string}`;
 const BUY_TOKEN = hash.getSelectorFromName('BuyToken') as `0x${string}`;
+const SELL_TOKEN = hash.getSelectorFromName('SellToken') as `0x${string}`;
+const METADATA_COIN_ADDED = hash.getSelectorFromName('MetadataCoinAdded') as `0x${string}`;
 
 const KNOWN_EVENT_KEYS = [
   CREATE_TOKEN,
   CREATE_LAUNCH,
-  LINKED_DEFAULT_STARKNET_ADDRESS,
-  ADMIN_ADD_NOSTR_PROFILE,
-  PUSH_ALGO_SCORE_EVENT,
-  METADATA_COIN_ADDED,
   BUY_TOKEN,
+  SELL_TOKEN,
+  METADATA_COIN_ADDED,
 ];
 
 // Utility functions
@@ -72,7 +67,7 @@ export default function (config: ApibaraRuntimeConfig & {
     filter: {
       events: [
         {
-          address: "0x07607c8A50b83938ea3f9DA25DC1b7024814C0E5bF4B40bF6D6FF9Bc7387aa7d" as `0x${string}`,
+          address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
           keys: [CREATE_TOKEN],
         },
         {
@@ -82,6 +77,10 @@ export default function (config: ApibaraRuntimeConfig & {
         {
           address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
           keys: [BUY_TOKEN],
+        },
+        {
+          address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
+          keys: [SELL_TOKEN],
         },
         {
           address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
@@ -118,33 +117,51 @@ export default function (config: ApibaraRuntimeConfig & {
             let sanitizedEventKey = encode.sanitizeHex(event.keys[0]);
 
             if (event.keys[0] == encode.sanitizeHex(CREATE_TOKEN)) {
+              console.log("event createToken")
               const decodedEvent = decodeEvent({
-                abi: namespaceABI as Abi,
+                abi: launchpadABI as Abi,
                 event,
                 eventName: 'afk_launchpad::types::launchpad_types::CreateToken',
               });
               await handleCreateTokenEvent(decodedEvent, event.address, header, event);
-            } else if(event?.keys[0] == encode.sanitizeHex(CREATE_LAUNCH)) {
+            } 
+            if (event?.keys[0] == encode.sanitizeHex(CREATE_LAUNCH)) {
+              
+              console.log("event CreateLaunch")
               const decodedEvent = decodeEvent({
-                abi: namespaceABI as Abi,
+                abi: launchpadABI as Abi,
                 event,
                 eventName: 'afk_launchpad::types::launchpad_types::CreateLaunch',
               });
               await handleCreateLaunch(decodedEvent, header, event);
-            } else if(event?.keys[0] == encode.sanitizeHex(METADATA_COIN_ADDED)) {
+            } 
+            if (event?.keys[0] == encode.sanitizeHex(METADATA_COIN_ADDED)) {
+              console.log("event Metadata")
+             
               const decodedEvent = decodeEvent({
-                abi: namespaceABI as Abi,
+                abi: launchpadABI as Abi,
                 event,
-                eventName: 'afk_launchpad::types::launchpad_types::MetadataCoinAdded',
+                eventName: 'afk_launchpad::types::launchpad_types::MetadataLaunch',
               });
               await handleMetadataEvent(decodedEvent, header, event);
-            } else if(event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)) {
+            } else if (event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)) {
+              console.log("event Buy")
+             
               const decodedEvent = decodeEvent({
-                abi: namespaceABI as Abi,
+                abi: launchpadABI as Abi,
                 event,
                 eventName: 'afk_launchpad::types::launchpad_types::BuyToken',
               });
               await handleBuyTokenEvent(decodedEvent, header, event);
+            } else if (event?.keys[0] == encode.sanitizeHex(SELL_TOKEN)) {
+              console.log("event Sell")
+           
+              const decodedEvent = decodeEvent({
+                abi: launchpadABI as Abi,
+                event,
+                eventName: 'afk_launchpad::types::launchpad_types::SellToken',
+              });
+              await handleSellTokenEvent(decodedEvent, header, event);
             }
           } catch (error: any) {
             logger.error(`Error processing event: ${error.message}`);
@@ -161,6 +178,8 @@ export default function (config: ApibaraRuntimeConfig & {
         blockHash: blockHashFelt,
         timestamp: blockTimestamp,
       } = header;
+      console.log("handleCreateTokenEvent",)
+      console.log("decodedEvent", event)
 
       const blockHash = encode.sanitizeHex(
         `0x${BigInt(blockHashFelt).toString(16)}`,
@@ -171,7 +190,7 @@ export default function (config: ApibaraRuntimeConfig & {
       );
 
       const [, callerFelt, tokenAddressFelt] = rawEvent.keys;
-      
+
       let symbol = cleanString(event?.symbol || '');
       let name = cleanString(event?.name || '');
       let tokenAddress = event?.memecoin_address;
@@ -179,7 +198,7 @@ export default function (config: ApibaraRuntimeConfig & {
       let initialSupply = formatTokenAmount(event?.initial_supply || '0');
       let totalSupply = formatTokenAmount(event?.total_supply || '0');
 
-      const data = {
+      await db.insert(tokenDeploy).values({
         transaction_hash: transactionHash,
         network: 'starknet-sepolia',
         block_number: BigInt(blockNumber),
@@ -192,9 +211,8 @@ export default function (config: ApibaraRuntimeConfig & {
         initial_supply: initialSupply,
         total_supply: totalSupply,
         created_at: new Date(),
-      };
-
-      await upsertTokenDeploy(data);
+        is_launched: false,
+      });
     } catch (error) {
       console.error("Error in handleCreateTokenEvent:", error);
     }
@@ -208,6 +226,9 @@ export default function (config: ApibaraRuntimeConfig & {
         timestamp: blockTimestamp,
       } = header;
 
+      console.log("handleCreateLaunch",)
+      console.log("decodedEvent", event)
+
       const blockHash = encode.sanitizeHex(
         `0x${BigInt(blockHashFelt).toString(16)}`,
       );
@@ -216,7 +237,7 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      const data = {
+      await db.insert(tokenLaunch).values({
         transaction_hash: transactionHash,
         network: 'starknet-sepolia',
         block_number: BigInt(blockNumber),
@@ -225,7 +246,6 @@ export default function (config: ApibaraRuntimeConfig & {
         memecoin_address: event?.memecoin_address,
         owner_address: event?.owner,
         quote_token: event?.quote_token,
-        exchange_name: event?.exchange_name,
         total_supply: formatTokenAmount(event?.total_supply || '0'),
         threshold_liquidity: formatTokenAmount(event?.threshold_liquidity || '0'),
         current_supply: formatTokenAmount(event?.current_supply || '0'),
@@ -237,12 +257,13 @@ export default function (config: ApibaraRuntimeConfig & {
         created_at: new Date(),
         initial_pool_supply_dex: formatTokenAmount(event?.initial_pool_supply_dex || '0'),
         market_cap: formatTokenAmount(event?.market_cap || '0'),
-        name: cleanString(event?.name || ''),
-        symbol: cleanString(event?.symbol || ''),
         token_deploy_tx_hash: event?.token_deploy_tx_hash,
-      };
+      });
 
-      await upsertTokenLaunch(data);
+      // Update token deploy to mark as launched
+      await db.update(tokenDeploy)
+        .set({ is_launched: true })
+        .where(eq(tokenDeploy.transaction_hash, event?.token_deploy_tx_hash));
     } catch (error) {
       console.error("Error in handleCreateLaunch:", error);
     }
@@ -256,6 +277,8 @@ export default function (config: ApibaraRuntimeConfig & {
         timestamp: blockTimestamp,
       } = header;
 
+      console.log("handleMetadataEvent")
+      console.log("decodedEvent metadata", event)
       const blockHash = encode.sanitizeHex(
         `0x${BigInt(blockHashFelt).toString(16)}`,
       );
@@ -264,7 +287,7 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      const data = {
+      await db.insert(tokenMetadata).values({
         transaction_hash: transactionHash,
         network: 'starknet-sepolia',
         block_number: BigInt(blockNumber),
@@ -272,15 +295,14 @@ export default function (config: ApibaraRuntimeConfig & {
         block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
         memecoin_address: event?.token_address,
         url: event?.url,
+        nostr_id: event?.nostr_id,
         nostr_event_id: event?.nostr_event_id,
         twitter: event?.twitter,
         telegram: event?.telegram,
         github: event?.github,
         website: event?.website,
         created_at: new Date(),
-      };
-
-      await upsertTokenMetadata(data);
+      });
     } catch (error) {
       console.error("Error in handleMetadataEvent:", error);
     }
@@ -293,6 +315,8 @@ export default function (config: ApibaraRuntimeConfig & {
         blockHash: blockHashFelt,
         timestamp: blockTimestamp,
       } = header;
+      console.log("handleBuyToken")
+      console.log("decodedEvent buy", event)
 
       const blockHash = encode.sanitizeHex(
         `0x${BigInt(blockHashFelt).toString(16)}`,
@@ -346,7 +370,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
       if (launchRecord && launchRecord.length > 0) {
         const currentLaunch = launchRecord[0];
-        
+
         // Calculate new values
         const newSupply = (BigInt(currentLaunch.current_supply || '0') - BigInt(amount)).toString();
         const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
@@ -354,7 +378,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
         // Calculate new price based on liquidity and token supply
         const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-        const priceBuy = initPoolSupply > BigInt(0) 
+        const priceBuy = initPoolSupply > BigInt(0)
           ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
           : '0';
 
@@ -414,7 +438,7 @@ export default function (config: ApibaraRuntimeConfig & {
       }
 
       // Create transaction record
-      const data = {
+      await db.insert(tokenTransactions).values({
         transfer_id: transferId,
         network: 'starknet-sepolia',
         block_hash: blockHash,
@@ -430,11 +454,147 @@ export default function (config: ApibaraRuntimeConfig & {
         protocol_fee: protocolFee,
         time_stamp: timestamp,
         transaction_type: 'buy',
-      };
-
-      await db.insert(tokenTransactions).values(data);
+        created_at: new Date(),
+      });
     } catch (error) {
       console.error("Error in handleBuyTokenEvent:", error);
+    }
+  }
+
+  async function handleSellTokenEvent(event: any, header: any, rawEvent: any) {
+    try {
+      const {
+        blockNumber,
+        blockHash: blockHashFelt,
+        timestamp: blockTimestamp,
+      } = header;
+
+      console.log("handleSellTokenEvent")
+      console.log("decodedEvent sell", event)
+
+      const blockHash = encode.sanitizeHex(
+        `0x${BigInt(blockHashFelt).toString(16)}`,
+      );
+
+      const transactionHash = encode.sanitizeHex(
+        `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
+      );
+
+      const transferId = `${transactionHash}_${rawEvent.index}`;
+
+      const [, callerFelt, tokenAddressFelt] = rawEvent.keys;
+
+      const ownerAddress = encode.sanitizeHex(
+        `0x${BigInt(callerFelt).toString(16)}`,
+      );
+
+      const tokenAddress = encode.sanitizeHex(
+        `0x${BigInt(tokenAddressFelt).toString(16)}`,
+      );
+
+      const [
+        amountLow,
+        amountHigh,
+        priceLow,
+        priceHigh,
+        protocolFeeLow,
+        protocolFeeHigh,
+        lastPriceLow,
+        lastPriceHigh,
+        timestampFelt,
+        quoteAmountLow,
+        quoteAmountHigh,
+      ] = event.data;
+
+      // Convert u256 values to BigInt and then to string
+      const amount = ((BigInt(amountHigh) << BigInt(128)) | BigInt(amountLow)).toString();
+      const price = ((BigInt(priceHigh) << BigInt(128)) | BigInt(priceLow)).toString();
+      const protocolFee = ((BigInt(protocolFeeHigh) << BigInt(128)) | BigInt(protocolFeeLow)).toString();
+      const lastPrice = ((BigInt(lastPriceHigh) << BigInt(128)) | BigInt(lastPriceLow)).toString();
+      const quoteAmount = ((BigInt(quoteAmountHigh) << BigInt(128)) | BigInt(quoteAmountLow)).toString();
+
+      const timestamp = new Date(Number(BigInt(timestampFelt)) * 1000);
+
+      // Get the launch record to update
+      const launchRecord = await db
+        .select()
+        .from(tokenLaunch)
+        .where(eq(tokenLaunch.memecoin_address, tokenAddress))
+        .limit(1);
+
+      if (launchRecord && launchRecord.length > 0) {
+        const currentLaunch = launchRecord[0];
+
+        // Calculate new values
+        const newSupply = (BigInt(currentLaunch.current_supply || '0') + BigInt(amount)).toString();
+        const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') - BigInt(quoteAmount)).toString();
+        const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') - BigInt(amount)).toString();
+
+        // Calculate new price based on liquidity and token supply
+        const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
+        const priceSell = initPoolSupply > BigInt(0)
+          ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
+          : '0';
+
+        // Calculate market cap
+        const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceSell)).toString();
+
+        // Update launch record
+        await db.update(tokenLaunch)
+          .set({
+            current_supply: newSupply,
+            liquidity_raised: newLiquidityRaised,
+            total_token_holded: newTotalTokenHolded,
+            price: priceSell,
+            market_cap: marketCap,
+          })
+          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+
+        // Update shareholder record
+        const shareholderId = `${ownerAddress}_${tokenAddress}`;
+        const existingShareholder = await db
+          .select()
+          .from(sharesTokenUser)
+          .where(eq(sharesTokenUser.id, shareholderId))
+          .limit(1);
+
+        if (existingShareholder.length > 0) {
+          const newAmountOwned = (BigInt(existingShareholder[0].amount_owned || '0') - BigInt(amount)).toString();
+          const newAmountSell = (BigInt(existingShareholder[0].amount_sell || '0') + BigInt(amount)).toString();
+          const newTotalPaid = (BigInt(existingShareholder[0].total_paid || '0') - BigInt(quoteAmount)).toString();
+
+          await db.update(sharesTokenUser)
+            .set({
+              amount_owned: newAmountOwned,
+              amount_sell: newAmountSell,
+              total_paid: newTotalPaid,
+              is_claimable: newAmountOwned !== '0',
+            })
+            .where(eq(sharesTokenUser.id, shareholderId));
+        }
+      }
+
+      // Create transaction record
+      await db.insert(tokenTransactions).values({
+        transfer_id: transferId,
+        network: 'starknet-sepolia',
+        block_hash: blockHash,
+        block_number: BigInt(blockNumber),
+        block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+        transaction_hash: transactionHash,
+        memecoin_address: tokenAddress,
+        owner_address: ownerAddress,
+        last_price: lastPrice,
+        quote_amount: quoteAmount,
+        price: price,
+        amount: amount,
+        protocol_fee: protocolFee,
+        time_stamp: timestamp,
+        transaction_type: 'sell',
+        created_at: new Date(),
+      });
+    } catch (error) {
+      console.error("Error in handleSellTokenEvent:", error);
     }
   }
 } 
