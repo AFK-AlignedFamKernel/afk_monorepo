@@ -11,6 +11,7 @@ import { useUIStore } from '@/store/uiStore';
 import { Icon } from '@/components/small/icon-component';
 import { NostrProfileManagement } from '../Nostr/profile/nostr-profile-management';
 import { WalletConnectButton } from '../account/WalletConnectButton';
+import { Oauth } from './Oauth';
 interface CustomHeaderInterface {
     title?: string;
     showLogo?: boolean;
@@ -75,6 +76,15 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                     <p>Starknet account</p>
                     <WalletConnectButton></WalletConnectButton>
                 </div>
+            </div>
+
+            <div className='card shadow'>
+                <p>Socials</p>
+                <div>
+                    <p>Twitter</p>
+                    <p>X</p>
+                </div>
+                <Oauth></Oauth>
             </div>
 
         </div>
