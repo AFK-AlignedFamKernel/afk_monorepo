@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import dotenv from 'dotenv';
 import { scrapeGoogleSearch, scrapeGoogleTrends, getOverallTrends } from '../../services/scraper/trends/googleTrends';
+import { searchTikTok, getTikTokAnalytics } from '../../services/scraper/tiktok';
 dotenv.config();
 
 async function trendsRoutes(fastify: FastifyInstance) {
@@ -34,6 +35,27 @@ async function trendsRoutes(fastify: FastifyInstance) {
         } catch (error) {
             console.error('Error fetching overall trends:', error);
             return reply.code(500).send({ error: 'Failed to fetch trends data' });
+        }
+    });
+
+    fastify.get('/analytics/tiktok', async (req, reply) => {
+        const keyword = (req.query as any).keyword;
+        if (!keyword) return reply.code(400).send({ error: 'Keyword is required' });
+
+        try {
+            const [videos, analytics] = await Promise.all([
+                searchTikTok(keyword),
+                getTikTokAnalytics(keyword)
+            ]);
+
+            return {
+                keyword,
+                videos,
+                analytics
+            };
+        } catch (error) {
+            console.error('Error fetching TikTok data:', error);
+            return reply.code(500).send({ error: 'Failed to fetch TikTok data' });
         }
     });
 }

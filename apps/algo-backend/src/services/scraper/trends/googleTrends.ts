@@ -65,12 +65,12 @@ export async function scrapeGoogleTrends(keyword: string): Promise<TrendData> {
             //   }
         );
 
-        // Get related queries
+        // Get related queries                                                                                                                                                                                                                                                                                                                                                                                  
         const relatedResponse = await axios.get(
             `https://trends.google.com/trends/explore?q=${keyword}`,
 
             //   `https://trends.google.com/trends/api/widgetdata/relatedsearches?hl=en-US&tz=-120&req={"restriction":{"geo":{},"time":"today 12-m","complexKeywordsRestriction":{"keyword":[{"type":"BROAD","value":${JSON.stringify(keyword)}}]}},"keywordType":"QUERY","metric":["TOP","RISING"],"trendinessSettings":{"compareTime":"today 12-m"},"language":"en","searchTerms":[${JSON.stringify(keyword)}]}&token=${token}&tz=-120`,
-            //   {
+            //   {                                                                                      
             //     headers: {
             //       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             //       'Accept': 'application/json, text/plain, */*',
