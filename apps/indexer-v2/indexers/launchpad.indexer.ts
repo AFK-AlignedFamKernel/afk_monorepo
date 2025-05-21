@@ -81,9 +81,9 @@ export default function (config: ApibaraRuntimeConfig & {
         shares_token_user: 'id'
       }
     })],
-    async transform({ endCursor, block, context, finality,  }) {
+    async transform({ endCursor, block, context, finality, }) {
       const logger = useLogger();
-      const { events, header,  } = block;
+      const { events, header, } = block;
 
       logger.info(
         "Transforming block | orderKey: ",
@@ -111,7 +111,7 @@ export default function (config: ApibaraRuntimeConfig & {
                 eventName: 'afk_launchpad::types::launchpad_types::CreateToken',
               });
               await handleCreateTokenEvent(decodedEvent, event.address, header, event);
-            } 
+            }
             if (event?.keys[0] == encode.sanitizeHex(CREATE_LAUNCH)) {
               console.log("event CreateLaunch")
               const decodedEvent = decodeEvent({
@@ -120,7 +120,7 @@ export default function (config: ApibaraRuntimeConfig & {
                 eventName: 'afk_launchpad::types::launchpad_types::CreateLaunch',
               });
               await handleCreateLaunch(decodedEvent, header, event);
-            } 
+            }
             if (event?.keys[0] == encode.sanitizeHex(METADATA_COIN_ADDED)) {
               console.log("event Metadata")
               const decodedEvent = decodeEvent({
@@ -146,7 +146,7 @@ export default function (config: ApibaraRuntimeConfig & {
               });
               await handleSellTokenEvent(decodedEvent, header, event);
             }
-            else if(event?.keys[0] === "0x00cb205b7506d21e6fe528cd4ae2ce69ae63eb6fc10a2d0234dd39ef3d349797") {
+            else if (event?.keys[0] === "0x00cb205b7506d21e6fe528cd4ae2ce69ae63eb6fc10a2d0234dd39ef3d349797") {
               console.log("event createToken")
               const decodedEvent = decodeEvent({
                 abi: launchpadABI as Abi,
@@ -154,7 +154,7 @@ export default function (config: ApibaraRuntimeConfig & {
                 eventName: 'afk_launchpad::types::launchpad_types::CreateToken',
               });
               await handleCreateTokenEvent(decodedEvent, event.address, header, event);
-          
+
             }
           } catch (error: any) {
             logger.error(`Error processing event: ${error.message}`);
@@ -184,7 +184,7 @@ export default function (config: ApibaraRuntimeConfig & {
       );
 
       const [, callerFelt, tokenAddressFelt] = rawEvent.keys;
-      
+
       const tokenAddress = event?.args?.memecoin_address;
       const ownerAddress = event?.args?.owner;
       const initialSupply = formatTokenAmount(event?.args?.initial_supply?.toString() || '0');
@@ -364,7 +364,7 @@ export default function (config: ApibaraRuntimeConfig & {
       const protocolFee = event?.args?.protocol_fee?.toString() || '0';
       const lastPrice = event?.args?.last_price?.toString() || '0';
       const quoteAmount = event?.args?.coin_amount?.toString() || '0';
-      
+
       // Handle timestamp properly - use block timestamp if event timestamp is invalid
       const blockTimestampMs = blockTimestamp;
       const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestampMs;
@@ -401,14 +401,14 @@ export default function (config: ApibaraRuntimeConfig & {
         initial_pool_supply_dex: '0',
         total_supply: '0'
       };
-      
+
       const newSupply = (BigInt(currentLaunch.current_supply || '0') - BigInt(amount)).toString();
       const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
       const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount)).toString();
 
       // Calculate new price based on liquidity and token supply
       const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-      const priceBuy = initPoolSupply > BigInt(0) 
+      const priceBuy = initPoolSupply > BigInt(0)
         ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
         : '0';
 
@@ -562,8 +562,8 @@ export default function (config: ApibaraRuntimeConfig & {
       const protocolFee = event?.args?.protocol_fee?.toString() || '0';
       const lastPrice = event?.args?.last_price?.toString() || '0';
       const quoteAmount = event?.args?.coin_amount?.toString() || '0';
-      
-      // Handle timestamp properly - use block timestamp if event timestamp is invalid
+
+      // Handle timestamp properly
       const blockTimestampMs = Number(blockTimestamp) * 1000;
       const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestampMs;
       const timestamp = new Date(Math.max(0, eventTimestampMs));
@@ -578,7 +578,7 @@ export default function (config: ApibaraRuntimeConfig & {
         lastPrice,
         quoteAmount,
         eventTimestamp: eventTimestampMs,
-        blockTimestamp: blockTimestamp,
+        blockTimestamp,
         timestamp: timestamp.toISOString()
       });
 
@@ -599,14 +599,14 @@ export default function (config: ApibaraRuntimeConfig & {
         initial_pool_supply_dex: '0',
         total_supply: '0'
       };
-      
+
       const newSupply = (BigInt(currentLaunch.current_supply || '0') + BigInt(amount)).toString();
       const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') - BigInt(quoteAmount)).toString();
       const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') - BigInt(amount)).toString();
 
       // Calculate new price based on liquidity and token supply
       const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-      const priceSell = initPoolSupply > BigInt(0) 
+      const priceSell = initPoolSupply > BigInt(0)
         ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
         : '0';
 
@@ -621,37 +621,40 @@ export default function (config: ApibaraRuntimeConfig & {
         marketCap
       });
 
-      console.log("try upsert launch record");
+      console.log("launchRecord", launchRecord)
 
-      // Upsert launch record
-      await db.insert(tokenLaunch)
-        .values({
-          transaction_hash: transactionHash,
-          network: 'starknet-sepolia',
-          block_number: BigInt(blockNumber),
-          block_hash: blockHash,
-          block_timestamp: blockTimestamp,
-          memecoin_address: tokenAddress,
-          owner_address: ownerAddress,
-          current_supply: newSupply,
-          liquidity_raised: newLiquidityRaised,
-          total_token_holded: newTotalTokenHolded,
-          price: priceSell,
-          market_cap: marketCap,
-          created_at: new Date(),
-        })
-        .onConflictDoUpdate({
-          target: tokenLaunch.memecoin_address,
-          set: {
+      // Update launch record directly if it exists, otherwise create new
+      if (launchRecord.length > 0) {
+        await db.update(tokenLaunch)
+          .set({
             current_supply: newSupply,
             liquidity_raised: newLiquidityRaised,
             total_token_holded: newTotalTokenHolded,
             price: priceSell,
             market_cap: marketCap,
-          },
-        });
-
-      console.log('Launch Record Upserted');
+          })
+          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+        console.log('Launch Record Updated');
+      } else {
+        console.log("try insert")
+        await db.insert(tokenLaunch)
+            .values({
+              transaction_hash: transactionHash,
+              network: 'starknet-sepolia',
+              block_number: BigInt(blockNumber),
+              block_hash: blockHash,
+              block_timestamp: blockTimestamp,
+              memecoin_address: tokenAddress,
+              owner_address: ownerAddress,
+              current_supply: newSupply,
+              liquidity_raised: newLiquidityRaised,
+              total_token_holded: newTotalTokenHolded,
+              price: priceSell,
+              market_cap: marketCap,
+              created_at: new Date(),
+            });
+        console.log('New Launch Record Created');
+      }
 
       // Update shareholder record
       const shareholderId = `${ownerAddress}_${tokenAddress}`;
