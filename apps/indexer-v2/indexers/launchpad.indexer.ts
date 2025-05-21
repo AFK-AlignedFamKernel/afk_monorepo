@@ -25,23 +25,6 @@ const KNOWN_EVENT_KEYS = [
   METADATA_COIN_ADDED,
 ];
 
-// Utility functions
-const isNumeric = (str: string): boolean => {
-  return /^\d+$/.test(str);
-};
-
-const isValidChar = (char: string): boolean => {
-  return /^[a-zA-Z0-9\s\-_.!@#$%^&*()]+$/.test(char);
-};
-
-const cleanString = (str: string): string => {
-  return str
-    .split('')
-    .filter((char) => isValidChar(char))
-    .join('')
-    .trim();
-};
-
 const formatTokenAmount = (amount: string, decimals: number = 18): string => {
   try {
     return formatUnits(BigInt(amount), decimals).toString();
@@ -98,9 +81,9 @@ export default function (config: ApibaraRuntimeConfig & {
         shares_token_user: 'id'
       }
     })],
-    async transform({ endCursor, block, context, finality }) {
+    async transform({ endCursor, block, context, finality,  }) {
       const logger = useLogger();
-      const { events, header } = block;
+      const { events, header,  } = block;
 
       logger.info(
         "Transforming block | orderKey: ",
@@ -108,6 +91,10 @@ export default function (config: ApibaraRuntimeConfig & {
         " | finality: ",
         finality,
       );
+
+      console.log("timestamp", header.timestamp)
+
+
 
       for (const event of events) {
         if (event.transactionHash) {
@@ -126,7 +113,6 @@ export default function (config: ApibaraRuntimeConfig & {
               await handleCreateTokenEvent(decodedEvent, event.address, header, event);
             } 
             if (event?.keys[0] == encode.sanitizeHex(CREATE_LAUNCH)) {
-              
               console.log("event CreateLaunch")
               const decodedEvent = decodeEvent({
                 abi: launchpadABI as Abi,
@@ -137,7 +123,6 @@ export default function (config: ApibaraRuntimeConfig & {
             } 
             if (event?.keys[0] == encode.sanitizeHex(METADATA_COIN_ADDED)) {
               console.log("event Metadata")
-             
               const decodedEvent = decodeEvent({
                 abi: launchpadABI as Abi,
                 event,
@@ -146,7 +131,6 @@ export default function (config: ApibaraRuntimeConfig & {
               await handleMetadataEvent(decodedEvent, header, event);
             } else if (event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)) {
               console.log("event Buy")
-             
               const decodedEvent = decodeEvent({
                 abi: launchpadABI as Abi,
                 event,
@@ -155,13 +139,22 @@ export default function (config: ApibaraRuntimeConfig & {
               await handleBuyTokenEvent(decodedEvent, header, event);
             } else if (event?.keys[0] == encode.sanitizeHex(SELL_TOKEN)) {
               console.log("event Sell")
-           
               const decodedEvent = decodeEvent({
                 abi: launchpadABI as Abi,
                 event,
                 eventName: 'afk_launchpad::types::launchpad_types::SellToken',
               });
               await handleSellTokenEvent(decodedEvent, header, event);
+            }
+            else if(event?.keys[0] === "0x00cb205b7506d21e6fe528cd4ae2ce69ae63eb6fc10a2d0234dd39ef3d349797") {
+              console.log("event createToken")
+              const decodedEvent = decodeEvent({
+                abi: launchpadABI as Abi,
+                event,
+                eventName: 'afk_launchpad::types::launchpad_types::CreateToken',
+              });
+              await handleCreateTokenEvent(decodedEvent, event.address, header, event);
+          
             }
           } catch (error: any) {
             logger.error(`Error processing event: ${error.message}`);
@@ -192,16 +185,12 @@ export default function (config: ApibaraRuntimeConfig & {
 
       const [, callerFelt, tokenAddressFelt] = rawEvent.keys;
       
-      let symbol = cleanString(event?.args?.symbol || '');
-      let name = cleanString(event?.args?.name || '');
-      let tokenAddress = event?.args?.memecoin_address;
-      let ownerAddress = event?.args?.owner;
-      let initialSupply = formatTokenAmount(event?.args?.initial_supply?.toString() || '0');
-      let totalSupply = formatTokenAmount(event?.args?.total_supply?.toString() || '0');
+      const tokenAddress = event?.args?.memecoin_address;
+      const ownerAddress = event?.args?.owner;
+      const initialSupply = formatTokenAmount(event?.args?.initial_supply?.toString() || '0');
+      const totalSupply = formatTokenAmount(event?.args?.total_supply?.toString() || '0');
 
       console.log('Processed Values:', {
-        symbol,
-        name,
         tokenAddress,
         ownerAddress,
         initialSupply,
@@ -215,11 +204,12 @@ export default function (config: ApibaraRuntimeConfig & {
         network: 'starknet-sepolia',
         block_number: BigInt(blockNumber),
         block_hash: blockHash,
-        block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+        // block_timestamp: new Date(Number(blockTimestamp) * 1000),
+        block_timestamp: blockTimestamp,
         memecoin_address: tokenAddress,
         owner_address: ownerAddress,
-        name,
-        symbol,
+        name: event?.args?.name,
+        symbol: event?.args?.symbol,
         initial_supply: initialSupply,
         total_supply: totalSupply,
         created_at: new Date(),
@@ -275,7 +265,8 @@ export default function (config: ApibaraRuntimeConfig & {
         network: 'starknet-sepolia',
         block_number: BigInt(blockNumber),
         block_hash: blockHash,
-        block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+        // block_timestamp: new Date(Number(blockTimestamp) * 1000),
+        block_timestamp: blockTimestamp,
         ...launchData,
         created_at: new Date(),
       });
@@ -330,7 +321,8 @@ export default function (config: ApibaraRuntimeConfig & {
         network: 'starknet-sepolia',
         block_number: BigInt(blockNumber),
         block_hash: blockHash,
-        block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+        // block_timestamp: new Date(Number(blockTimestamp) * 1000),
+        block_timestamp: blockTimestamp,
         ...metadataData,
         created_at: new Date(),
       });
@@ -374,8 +366,9 @@ export default function (config: ApibaraRuntimeConfig & {
       const quoteAmount = event?.args?.coin_amount?.toString() || '0';
       
       // Handle timestamp properly - use block timestamp if event timestamp is invalid
-      const eventTimestamp = event?.args?.timestamp ? Number(event.args.timestamp) : Number(blockTimestamp.seconds);
-      const timestamp = new Date(eventTimestamp * 1000);
+      const blockTimestampMs = blockTimestamp;
+      const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestampMs;
+      const timestamp = new Date(Math.max(0, eventTimestampMs));
 
       console.log('Processed Buy Values:', {
         transferId,
@@ -386,7 +379,8 @@ export default function (config: ApibaraRuntimeConfig & {
         protocolFee,
         lastPrice,
         quoteAmount,
-        eventTimestamp,
+        eventTimestamp: eventTimestampMs,
+        blockTimestamp: blockTimestampMs,
         timestamp: timestamp.toISOString()
       });
 
@@ -399,96 +393,117 @@ export default function (config: ApibaraRuntimeConfig & {
 
       console.log('Current Launch Record:', launchRecord[0]);
 
-      if (launchRecord && launchRecord.length > 0) {
-        const currentLaunch = launchRecord[0];
-        
-        // Calculate new values
-        const newSupply = (BigInt(currentLaunch.current_supply || '0') - BigInt(amount)).toString();
-        const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
-        const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount)).toString();
+      // Calculate new values
+      const currentLaunch = launchRecord[0] || {
+        current_supply: '0',
+        liquidity_raised: '0',
+        total_token_holded: '0',
+        initial_pool_supply_dex: '0',
+        total_supply: '0'
+      };
+      
+      const newSupply = (BigInt(currentLaunch.current_supply || '0') - BigInt(amount)).toString();
+      const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
+      const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount)).toString();
 
-        // Calculate new price based on liquidity and token supply
-        const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-        const priceBuy = initPoolSupply > BigInt(0) 
-          ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
-          : '0';
+      // Calculate new price based on liquidity and token supply
+      const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
+      const priceBuy = initPoolSupply > BigInt(0) 
+        ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
+        : '0';
 
-        // Calculate market cap
-        const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
+      // Calculate market cap
+      const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
 
-        console.log('Calculated Values:', {
-          newSupply,
-          newLiquidityRaised,
-          newTotalTokenHolded,
-          priceBuy,
-          marketCap
-        });
+      console.log('Calculated Values:', {
+        newSupply,
+        newLiquidityRaised,
+        newTotalTokenHolded,
+        priceBuy,
+        marketCap
+      });
 
-        console.log("try update launch record")
+      console.log("try upsert launch record");
 
-        // Update launch record
-        await db.update(tokenLaunch)
-          .set({
+      // Upsert launch record
+      await db.insert(tokenLaunch)
+        .values({
+          transaction_hash: transactionHash,
+          network: 'starknet-sepolia',
+          block_number: BigInt(blockNumber),
+          block_hash: blockHash,
+          block_timestamp: blockTimestampMs,
+          memecoin_address: tokenAddress,
+          owner_address: ownerAddress,
+          current_supply: newSupply,
+          liquidity_raised: newLiquidityRaised,
+          total_token_holded: newTotalTokenHolded,
+          price: priceBuy,
+          market_cap: marketCap,
+          created_at: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: tokenLaunch.memecoin_address,
+          set: {
             current_supply: newSupply,
             liquidity_raised: newLiquidityRaised,
             total_token_holded: newTotalTokenHolded,
             price: priceBuy,
             market_cap: marketCap,
-          })
-          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
-
-        console.log('Launch Record Updated');
-
-        // Update or create shareholder record
-        const shareholderId = `${ownerAddress}_${tokenAddress}`;
-        const existingShareholder = await db
-          .select()
-          .from(sharesTokenUser)
-          .where(eq(sharesTokenUser.id, shareholderId))
-          .limit(1);
-
-        console.log('Existing Shareholder:', existingShareholder[0]);
-
-        const newAmountOwned = existingShareholder.length > 0
-          ? (BigInt(existingShareholder[0].amount_owned || '0') + BigInt(amount)).toString()
-          : amount;
-
-        const newAmountBuy = existingShareholder.length > 0
-          ? (BigInt(existingShareholder[0].amount_buy || '0') + BigInt(amount)).toString()
-          : amount;
-
-        const newTotalPaid = existingShareholder.length > 0
-          ? (BigInt(existingShareholder[0].total_paid || '0') + BigInt(quoteAmount)).toString()
-          : quoteAmount;
-
-        console.log('New Shareholder Values:', {
-          newAmountOwned,
-          newAmountBuy,
-          newTotalPaid
+          },
         });
 
-        await db.insert(sharesTokenUser)
-          .values({
-            id: shareholderId,
-            owner: ownerAddress,
-            token_address: tokenAddress,
+      console.log('Launch Record Upserted');
+
+      // Update or create shareholder record
+      const shareholderId = `${ownerAddress}_${tokenAddress}`;
+      const existingShareholder = await db
+        .select()
+        .from(sharesTokenUser)
+        .where(eq(sharesTokenUser.id, shareholderId))
+        .limit(1);
+
+      console.log('Existing Shareholder:', existingShareholder[0]);
+
+      const newAmountOwned = existingShareholder.length > 0
+        ? (BigInt(existingShareholder[0].amount_owned || '0') + BigInt(amount)).toString()
+        : amount;
+
+      const newAmountBuy = existingShareholder.length > 0
+        ? (BigInt(existingShareholder[0].amount_buy || '0') + BigInt(amount)).toString()
+        : amount;
+
+      const newTotalPaid = existingShareholder.length > 0
+        ? (BigInt(existingShareholder[0].total_paid || '0') + BigInt(quoteAmount)).toString()
+        : quoteAmount;
+
+      console.log('New Shareholder Values:', {
+        newAmountOwned,
+        newAmountBuy,
+        newTotalPaid
+      });
+
+      await db.insert(sharesTokenUser)
+        .values({
+          id: shareholderId,
+          owner: ownerAddress,
+          token_address: tokenAddress,
+          amount_owned: newAmountOwned,
+          amount_buy: newAmountBuy,
+          total_paid: newTotalPaid,
+          is_claimable: true,
+        })
+        .onConflictDoUpdate({
+          target: sharesTokenUser.id,
+          set: {
             amount_owned: newAmountOwned,
             amount_buy: newAmountBuy,
             total_paid: newTotalPaid,
             is_claimable: true,
-          })
-          .onConflictDoUpdate({
-            target: sharesTokenUser.id,
-            set: {
-              amount_owned: newAmountOwned,
-              amount_buy: newAmountBuy,
-              total_paid: newTotalPaid,
-              is_claimable: true,
-            },
-          });
+          },
+        });
 
-        console.log('Shareholder Record Updated');
-      }
+      console.log('Shareholder Record Updated');
 
       // Create transaction record
       await db.insert(tokenTransactions).values({
@@ -496,7 +511,7 @@ export default function (config: ApibaraRuntimeConfig & {
         network: 'starknet-sepolia',
         block_hash: blockHash,
         block_number: BigInt(blockNumber),
-        block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+        block_timestamp: new Date(blockTimestampMs),
         transaction_hash: transactionHash,
         memecoin_address: tokenAddress,
         owner_address: ownerAddress,
@@ -549,8 +564,9 @@ export default function (config: ApibaraRuntimeConfig & {
       const quoteAmount = event?.args?.coin_amount?.toString() || '0';
       
       // Handle timestamp properly - use block timestamp if event timestamp is invalid
-      const eventTimestamp = event?.args?.timestamp ? Number(event.args.timestamp) : Number(blockTimestamp.seconds);
-      const timestamp = new Date(eventTimestamp * 1000);
+      const blockTimestampMs = Number(blockTimestamp) * 1000;
+      const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestampMs;
+      const timestamp = new Date(Math.max(0, eventTimestampMs));
 
       console.log('Processed Sell Values:', {
         transferId,
@@ -561,7 +577,8 @@ export default function (config: ApibaraRuntimeConfig & {
         protocolFee,
         lastPrice,
         quoteAmount,
-        eventTimestamp,
+        eventTimestamp: eventTimestampMs,
+        blockTimestamp: blockTimestamp,
         timestamp: timestamp.toISOString()
       });
 
@@ -574,76 +591,99 @@ export default function (config: ApibaraRuntimeConfig & {
 
       console.log('Current Launch Record:', launchRecord[0]);
 
-      if (launchRecord && launchRecord.length > 0) {
-        const currentLaunch = launchRecord[0];
-        
-        // Calculate new values
-        const newSupply = (BigInt(currentLaunch.current_supply || '0') + BigInt(amount)).toString();
-        const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') - BigInt(quoteAmount)).toString();
-        const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') - BigInt(amount)).toString();
+      // Calculate new values
+      const currentLaunch = launchRecord[0] || {
+        current_supply: '0',
+        liquidity_raised: '0',
+        total_token_holded: '0',
+        initial_pool_supply_dex: '0',
+        total_supply: '0'
+      };
+      
+      const newSupply = (BigInt(currentLaunch.current_supply || '0') + BigInt(amount)).toString();
+      const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') - BigInt(quoteAmount)).toString();
+      const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') - BigInt(amount)).toString();
 
-        // Calculate new price based on liquidity and token supply
-        const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-        const priceSell = initPoolSupply > BigInt(0) 
-          ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
-          : '0';
+      // Calculate new price based on liquidity and token supply
+      const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
+      const priceSell = initPoolSupply > BigInt(0) 
+        ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
+        : '0';
 
-        // Calculate market cap
-        const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceSell)).toString();
+      // Calculate market cap
+      const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceSell)).toString();
 
-        console.log('Calculated Values:', {
-          newSupply,
-          newLiquidityRaised,
-          newTotalTokenHolded,
-          priceSell,
-          marketCap
-        });
+      console.log('Calculated Values:', {
+        newSupply,
+        newLiquidityRaised,
+        newTotalTokenHolded,
+        priceSell,
+        marketCap
+      });
 
-        // Update launch record
-        await db.update(tokenLaunch)
-          .set({
+      console.log("try upsert launch record");
+
+      // Upsert launch record
+      await db.insert(tokenLaunch)
+        .values({
+          transaction_hash: transactionHash,
+          network: 'starknet-sepolia',
+          block_number: BigInt(blockNumber),
+          block_hash: blockHash,
+          block_timestamp: blockTimestamp,
+          memecoin_address: tokenAddress,
+          owner_address: ownerAddress,
+          current_supply: newSupply,
+          liquidity_raised: newLiquidityRaised,
+          total_token_holded: newTotalTokenHolded,
+          price: priceSell,
+          market_cap: marketCap,
+          created_at: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: tokenLaunch.memecoin_address,
+          set: {
             current_supply: newSupply,
             liquidity_raised: newLiquidityRaised,
             total_token_holded: newTotalTokenHolded,
             price: priceSell,
             market_cap: marketCap,
+          },
+        });
+
+      console.log('Launch Record Upserted');
+
+      // Update shareholder record
+      const shareholderId = `${ownerAddress}_${tokenAddress}`;
+      const existingShareholder = await db
+        .select()
+        .from(sharesTokenUser)
+        .where(eq(sharesTokenUser.id, shareholderId))
+        .limit(1);
+
+      console.log('Existing Shareholder:', existingShareholder[0]);
+
+      if (existingShareholder.length > 0) {
+        const newAmountOwned = (BigInt(existingShareholder[0].amount_owned || '0') - BigInt(amount)).toString();
+        const newAmountSell = (BigInt(existingShareholder[0].amount_sell || '0') + BigInt(amount)).toString();
+        const newTotalPaid = (BigInt(existingShareholder[0].total_paid || '0') - BigInt(quoteAmount)).toString();
+
+        console.log('New Shareholder Values:', {
+          newAmountOwned,
+          newAmountSell,
+          newTotalPaid
+        });
+
+        await db.update(sharesTokenUser)
+          .set({
+            amount_owned: newAmountOwned,
+            amount_sell: newAmountSell,
+            total_paid: newTotalPaid,
+            is_claimable: newAmountOwned !== '0',
           })
-          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+          .where(eq(sharesTokenUser.id, shareholderId));
 
-        console.log('Launch Record Updated');
-
-        // Update shareholder record
-        const shareholderId = `${ownerAddress}_${tokenAddress}`;
-        const existingShareholder = await db
-          .select()
-          .from(sharesTokenUser)
-          .where(eq(sharesTokenUser.id, shareholderId))
-          .limit(1);
-
-        console.log('Existing Shareholder:', existingShareholder[0]);
-
-        if (existingShareholder.length > 0) {
-          const newAmountOwned = (BigInt(existingShareholder[0].amount_owned || '0') - BigInt(amount)).toString();
-          const newAmountSell = (BigInt(existingShareholder[0].amount_sell || '0') + BigInt(amount)).toString();
-          const newTotalPaid = (BigInt(existingShareholder[0].total_paid || '0') - BigInt(quoteAmount)).toString();
-
-          console.log('New Shareholder Values:', {
-            newAmountOwned,
-            newAmountSell,
-            newTotalPaid
-          });
-
-          await db.update(sharesTokenUser)
-            .set({
-              amount_owned: newAmountOwned,
-              amount_sell: newAmountSell,
-              total_paid: newTotalPaid,
-              is_claimable: newAmountOwned !== '0',
-            })
-            .where(eq(sharesTokenUser.id, shareholderId));
-
-          console.log('Shareholder Record Updated');
-        }
+        console.log('Shareholder Record Updated');
       }
 
       // Create transaction record
@@ -652,7 +692,7 @@ export default function (config: ApibaraRuntimeConfig & {
         network: 'starknet-sepolia',
         block_hash: blockHash,
         block_number: BigInt(blockNumber),
-        block_timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
+        block_timestamp: blockTimestamp,
         transaction_hash: transactionHash,
         memecoin_address: tokenAddress,
         owner_address: ownerAddress,
