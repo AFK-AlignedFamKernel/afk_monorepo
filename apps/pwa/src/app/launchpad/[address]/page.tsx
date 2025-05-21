@@ -147,7 +147,7 @@ export default function LaunchpadDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <main className="min-h-screen transition-colors duration-200">
       <ToastContainer
         toasts={toasts.map(toast => ({
           id: toast.id || Date.now(),
@@ -171,7 +171,7 @@ export default function LaunchpadDetailPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="space-y-6">
-              <div className="flex space-x-2 rounded-xl p-1.5 bg-gray-100 dark:bg-gray-800 shadow-sm">
+              <div className="flex space-x-2 rounded-xl p-1.5 dark:bg-gray-800 shadow-sm">
                 {tabs.map((tab, index) => (
                   <button
                     key={tab.name}
@@ -187,13 +187,13 @@ export default function LaunchpadDetailPage() {
                 ))}
               </div>
 
-              <div className="rounded-xl p-6 bg-white dark:bg-gray-800 shadow-lg transition-colors duration-200 border border-gray-200 dark:border-gray-700">
+              <div className="rounded-xl p-6 dark:bg-gray-800 shadow-lg transition-colors duration-200 border border-gray-200 dark:border-gray-700">
                 {tabs[selectedTab].component}
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 } 
