@@ -4,12 +4,11 @@ import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { Session } from "@supabase/supabase-js";
 import Image from "next/image";
+import { useAppStore } from "@/store/app";
 export const Oauth = () => {
+    const { user, session, setUser, setSession, isInitialFetchUser, setIsInitialFetchUser } = useAppStore();
     const { showToast } = useUIStore();
     const [isLoading, setIsLoading] = useState(true);
-    const [isInitialFetch, setIsInitialFetch] = useState(false);
-    const [session, setSession] = useState<Session | null>(null);
-    const [user, setUser] = useState<User | null>(null);
     useEffect(() => {
         const fetchSession = async () => {
             const { data: session } = await supabase.auth.getSession();
@@ -17,12 +16,12 @@ export const Oauth = () => {
             setSession(session?.session);
             setUser(user?.user);
             setIsLoading(false);
-            setIsInitialFetch(true);
+            setIsInitialFetchUser(true);
         }
-        if (!isInitialFetch) {
+        if (!isInitialFetchUser && !user && !session) {
             fetchSession();
         }
-    }, [isInitialFetch]);
+    }, [isInitialFetchUser, user, session]);
     return (
         <div>
             <p>{user?.email}</p>
