@@ -28,7 +28,7 @@ export const useFetchEvents = (options?: UseSearch) => {
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [isInitialFetching, setIsInitialFetching] = useState(true);
+  const [isInitialFetching, setIsInitialFetching] = useState(false);
 
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [openFilters, setOpenFilters] = useState(false);

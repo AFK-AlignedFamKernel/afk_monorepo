@@ -165,21 +165,21 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
           </button>
         ))}
 
-        {/* <NostrFilter
+        <NostrFilter
           limit={limit}
           authors={authors}
           searchQuery={searchQuery}
-          sinceProps={sinceProps}
+          sinceProps={since}
           setSinceProps={setSince}
           setUntilProps={setUntil}
-          untilProps={untilProps}
+          untilProps={until}
           tagsProps={tagsProps}
           selectedTagProps={selectedTagProps}
           setActiveTabProps={setActiveTab}
           activeTabProps={tabs.find(tab => tab.id === activeTab)}
           isForYouProps={isForYou}
           setIsForYouProps={setIsForYou}
-        ></NostrFilter> */}
+          ></NostrFilter>
         {/* <button
           className="px-3 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition"
           onClick={() => setOpenFilters(!openFilters)}
@@ -312,6 +312,9 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
             selectedTagProps={selectedTagProps}
             setSelectedTagProps={setSelectedTagProps}
             selectedTagsProps={selectedTagsProps}
+            sinceProps={since}
+            setUntilProps={setUntil}
+            setSinceProps={setSince}
           />
         )}
 

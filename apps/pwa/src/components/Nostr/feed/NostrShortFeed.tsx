@@ -88,6 +88,7 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
 
   useEffect(() => {
     if (!isInitialFetching) {
+      console.log("loading initial data");
       loadInitialData()
     }
   }, [isInitialFetching])

@@ -152,8 +152,8 @@ export const NostrFilter: React.FC<FilterTabsProps> = ({
   const [kinds, setKinds] = useState<number[]>(tabs[0].kinds);
 
   const [openFilters, setOpenFilters] = useState(false);
-  const [since, setSince] = useState<number>(sinceProps || Math.round(Date.now() / 1000) - 60 * 60 * 3);
-  const [until, setUntil] = useState<number>(untilProps || Math.round(Date.now() / 1000));
+  // const [since, setSince] = useState<number>(sinceProps || Math.round(Date.now() / 1000) - 60 * 60 * 3);
+  // const [until, setUntil] = useState<number>(untilProps || Math.round(Date.now() / 1000));
 
   const [isForYou, setIsForYou] = useState(false);
   const [tags, setTags] = useState<string[]>(TAGS_DEFAULT);
@@ -163,7 +163,6 @@ export const NostrFilter: React.FC<FilterTabsProps> = ({
   return (
     <div className={`nostr-feed__container ${className}`}>
       <div className="nostr-feed__tabs">
-
 
         <button
           className="px-3 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition"
@@ -192,44 +191,43 @@ export const NostrFilter: React.FC<FilterTabsProps> = ({
                 </button>
               </div>
 
-              {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
                 <div>
                   <label className="block text-xs mb-1">Date Range</label>
                   <div className="flex gap-2">
-                    <span className="self-center text-xs">Since</span>
+                    <span className="self-center text-xs">Start</span>
                     <input
-                      value={since ? new Date(since * 1000).toISOString().slice(0, 16) : ''}
+                      value={untilProps ? new Date(untilProps * 1000).toISOString().slice(0, 16) : ''}
                       type="datetime-local"
                       className="flex-1 px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
                       onChange={(e) => {
                         const timestamp = Math.floor(new Date(e.target.value).getTime() / 1000);
                         if (!isNaN(timestamp)) {
-                          setUntil(timestamp);
+                          // setUntil(timestamp);
                           setUntilProps(timestamp)
                         }
                       }}
                     />
                   </div>
-                  <div className="flex gap-2">
+                  {/* <div className="flex gap-2">
                     <input
                       type="date"
-                      value={until ? new Date(until).toISOString() : ''}
+                      value={sinceProps ? new Date(sinceProps).toISOString() : ''}
                       className="flex-1 px-2 py-1 text-xs rounded border dark:bg-gray-700 dark:border-gray-600"
                       onChange={(e) => {
                         const timestamp = Math.floor(new Date(e.target.value).getTime() / 1000);
                         if (!isNaN(timestamp)) {
-                          setSince(timestamp)
                           setSinceProps(timestamp)
                         }
                       }}
                     />
                     <span className="self-center text-xs">to</span>
-                  </div>
+                  </div> */}
 
                 </div>
 
 
-              </div> */}
+              </div>
               <div className="nostr-feed__tabs my-4">
                 {tabs.map((tab) => (
                   <button

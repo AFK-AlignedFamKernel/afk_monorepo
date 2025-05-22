@@ -128,7 +128,7 @@ export const useCreateToken = () => {
         github: githubByteArray,
         telegram: telegramByteArray,
         website: websiteByteArray,
-        // description: descriptionByteArray,
+        description: descriptionByteArray,
       };
 
       // console.log("metadataLaunch", metadataLaunch);
