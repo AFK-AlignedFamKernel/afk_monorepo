@@ -113,7 +113,7 @@ export class MetadataLaunchIndexer {
     console.log("event.data", event.data);
 
     let i = 1;
-    
+
     let url = '';
     try {
       while (i < event.data.length) {
@@ -121,22 +121,22 @@ export class MetadataLaunchIndexer {
         const decodedPart = shortString.decodeShortString(
           FieldElement.toBigInt(part).toString(),
         );
-  
+
         if (this.isNumeric(decodedPart)) {
           i++;
           break;
         }
-  
-        url+= decodedPart;
+
+        url += decodedPart;
         i++;
       }
-  
+
       url = this.cleanString(url);
-      console.log("url", url);     
+      console.log("url", url);
     } catch (error) {
       console.log("error bytearray", error);
     }
- 
+
 
     // const nostrEventId = uint256.uint256ToBN({
     //   low: FieldElement.toBigInt(nostrEventIdLow),
@@ -146,9 +146,9 @@ export class MetadataLaunchIndexer {
 
     try {
       nostrEventId = cairo.felt(FieldElement.toBigInt(nostrEventIdLow)) + cairo.felt(FieldElement.toBigInt(nostrEventIdHigh));
-      
+
     } catch (error) {
-      
+
     }
     console.log("nostrEventId", nostrEventId);
     // const timestamp = new Date(
@@ -157,28 +157,131 @@ export class MetadataLaunchIndexer {
 
     /** TODO: 
      * ADD Twitter, Telegram, Github, Website */
+
     let twitter = '';
+    try {
+      while (i < event.data.length) {
+        const part = event.data[i];
+        const decodedPart = shortString.decodeShortString(
+          FieldElement.toBigInt(part).toString(),
+        );
+
+        if (this.isNumeric(decodedPart)) {
+          i++;
+          break;
+        }
+
+        twitter += decodedPart;
+        i++;
+      }
+      twitter = this.cleanString(twitter);
+    } catch (error) {
+      console.log("error decoding metadata twitter bytearray : ", error);
+    }
+
     let telegram = '';
+    try {
+      while (i < event.data.length) {
+        const part = event.data[i];
+        const decodedPart = shortString.decodeShortString(
+          FieldElement.toBigInt(part).toString(),
+        );
+
+        if (this.isNumeric(decodedPart)) {
+          i++;
+          break;
+        }
+
+        telegram += decodedPart;
+        i++;
+      }
+      telegram = this.cleanString(telegram);
+    } catch (error) {
+      console.log("error decoding metadata telegram bytearray : ", error);
+    }
+
     let github = '';
+    try {
+      while (i < event.data.length) {
+        const part = event.data[i];
+        const decodedPart = shortString.decodeShortString(
+          FieldElement.toBigInt(part).toString(),
+        );
+
+        if (this.isNumeric(decodedPart)) {
+          i++;
+          break;
+        }
+
+        github += decodedPart;
+        i++;
+      }
+      github = this.cleanString(github);
+    } catch (error) {
+      console.log("error decoding metadata github bytearray : ", error);
+    }
+
     let website = '';
+    try {
+      while (i < event.data.length) {
+        const part = event.data[i];
+        const decodedPart = shortString.decodeShortString(
+          FieldElement.toBigInt(part).toString(),
+        );
+
+        if (this.isNumeric(decodedPart)) {
+          i++;
+          break;
+        }
+
+        website += decodedPart;
+        i++;
+      }
+      website = this.cleanString(website);
+    } catch (error) {
+      console.log("error decoding metadata website bytearray : ", error);
+    }
+
+
+    let description = '';
 
     try {
-      twitter = byteArray.stringFromByteArray(twitterFelt as ByteArray);
-      // twitter = byteArray(
-      //   FieldElement.toBigInt(twitterFelt).toString(),
-      // );
-      telegram = shortString.decodeShortString(
-        FieldElement.toBigInt(telegramFelt).toString(),
-      );
-      github = shortString.decodeShortString(
-        FieldElement.toBigInt(githubFelt).toString(),
-      );
-      website = shortString.decodeShortString(
-        FieldElement.toBigInt(websiteFelt).toString(),
-      );
-    } catch(e) {
-      console.log("error decoding metadata bytearray : ", e);
+      while (i < event.data.length) {
+        const part = event.data[i];
+        const decodedPart = shortString.decodeShortString(
+          FieldElement.toBigInt(part).toString(),
+        );
+
+        if (this.isNumeric(decodedPart)) {
+          i++;
+          break;
+        }
+
+        description += decodedPart;
+        i++;
+      }
+      description = this.cleanString(description);
+    } catch (error) {
+      console.log("error decoding metadata description bytearray : ", error);
     }
+
+    // try {
+    //   twitter = byteArray.stringFromByteArray(twitterFelt as ByteArray);
+    //   // twitter = byteArray(
+    //   //   FieldElement.toBigInt(twitterFelt).toString(),
+    //   // );
+    //   telegram = shortString.decodeShortString(
+    //     FieldElement.toBigInt(telegramFelt).toString(),
+    //   );
+    //   github = shortString.decodeShortString(
+    //     FieldElement.toBigInt(githubFelt).toString(),
+    //   );
+    //   website = shortString.decodeShortString(
+    //     FieldElement.toBigInt(websiteFelt).toString(),
+    //   );
+    // } catch(e) {
+    //   console.log("error decoding metadata bytearray : ", e);
+    // }
     console.log("twitter", twitter);
     console.log("telegram", telegram);
     console.log("github", github);

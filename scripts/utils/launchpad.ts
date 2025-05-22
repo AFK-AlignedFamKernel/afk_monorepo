@@ -37,8 +37,6 @@ const PATH_TOKEN_COMPILED = path.resolve(
 /** @TODO spec need to be discuss. This function serve as an example */
 export const createLaunchpad = async (
   tokenAddress: string,
-  initial_key_price: Uint256,
-  step_increase_linear: Uint256,
   coin_class_hash: string,
   threshold_liquidity: Uint256,
   threshold_marketcap: Uint256,
@@ -55,8 +53,6 @@ export const createLaunchpad = async (
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
 
     console.log("tokenAddress", tokenAddress);
-    console.log("initial_key_price", initial_key_price);
-    console.log("step_increase_linear", step_increase_linear);
     console.log("coin_class_hash", coin_class_hash);
     console.log("threshold_liquidity", threshold_liquidity);
     console.log("threshold_marketcap", threshold_marketcap);
@@ -153,37 +149,11 @@ export const createLaunchpad = async (
       classHash: LaunchpadClassHash,
       constructorCalldata: [
         accountAddress0,
-        initial_key_price,
         tokenAddress,
-        step_increase_linear,
         coin_class_hash_memecoin_last,
         threshold_liquidity,
         threshold_marketcap,
-        // factory_address,
-        // ekubo_registry,
-        // core,
-        // positions,
-        // ekubo_exchange_address,
         unrug_liquidity_address
-        // {
-        //   Calldata.compile({
-        //     accountAddress0,
-        //     initial_key_price,
-        //     tokenAddress,
-        //     step_increase_linear,
-        //     coin_class_hash_memecoin_last,
-        //     threshold_liquidity,
-        //     threshold_marketcap,
-        //     factory_address,
-        //     ekubo_registry,
-        //     core,
-        //     positions,
-        //     ekubo_exchange_address,
-        //     unrug_liquidity_address
-        //   })
-
-        // }
-       
       ],
     });
 

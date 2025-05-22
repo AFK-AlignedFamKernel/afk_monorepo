@@ -154,10 +154,6 @@ export const ABI = [
         "type": "core::starknet::contract_address::ContractAddress"
       },
       {
-        "name": "price",
-        "type": "core::integer::u256"
-      },
-      {
         "name": "is_enable",
         "type": "core::bool"
       }
@@ -1174,16 +1170,8 @@ export const ABI = [
         "type": "core::starknet::contract_address::ContractAddress"
       },
       {
-        "name": "starting_price",
-        "type": "core::integer::u256"
-      },
-      {
         "name": "token_address",
         "type": "core::starknet::contract_address::ContractAddress"
-      },
-      {
-        "name": "step_increase_linear",
-        "type": "core::integer::u256"
       },
       {
         "name": "coin_class_hash",
@@ -1241,17 +1229,7 @@ export const ABI = [
         "kind": "data"
       },
       {
-        "name": "price",
-        "type": "core::integer::u256",
-        "kind": "data"
-      },
-      {
         "name": "protocol_fee",
-        "type": "core::integer::u256",
-        "kind": "data"
-      },
-      {
-        "name": "last_price",
         "type": "core::integer::u256",
         "kind": "data"
       },
@@ -1288,11 +1266,6 @@ export const ABI = [
         "kind": "data"
       },
       {
-        "name": "price",
-        "type": "core::integer::u256",
-        "kind": "data"
-      },
-      {
         "name": "protocol_fee",
         "type": "core::integer::u256",
         "kind": "data"
@@ -1305,11 +1278,6 @@ export const ABI = [
       {
         "name": "timestamp",
         "type": "core::integer::u64",
-        "kind": "data"
-      },
-      {
-        "name": "last_price",
-        "type": "core::integer::u256",
         "kind": "data"
       },
       {
