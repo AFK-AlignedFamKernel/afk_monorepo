@@ -51,17 +51,17 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   const [notesData, setNotesData] = useState<NDKEvent[]>([]);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMoreContent, setHasMoreContent] = useState(true);
-  const [lastCreatedAt, setLastCreatedAt] = useState<number>(0);
+  const [lastCreatedAt, setLastCreatedAt] = useState<number>(Math.round(Date.now() / 1000));
   const [until, setUntil] = useState<number>(untilProps || Math.round(Date.now() / 1000));
   const [isError, setIsError] = useState(false);
-  const [isUsedUntil, setIsUsedUntil] = useState(false);
+  const [isUsedUntil, setIsUsedUntil] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const [selectedTag, setSelectedTag] = useState<string | null>(selectedTagProps ?? tags[0]);
   const [openFilters, setOpenFilters] = useState(false);
 
-  const fetchEvents = async (tag?: string) => {
+  const fetchEvents = async (tag?: string, _until?: number) => {
     // if (isLoadingMore || !hasMoreContent) return;
 
     console.log("lastCreatedAt", lastCreatedAt);
@@ -70,11 +70,16 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       setIsLoadingMore(true);
       console.log("fetching events");
       console.log("selectedTag", selectedTag);
+      console.log("isUsedUntil", isUsedUntil);
+      console.log("lastCreatedAt", lastCreatedAt);
+      console.log("until", _until);
+      console.log("tag", tag);
       const notes = await ndk.fetchEvents({
         kinds: [...kinds],
         authors: authors,
         // until: isUsedUntil ? lastCreatedAt : Math.round(Date.now() / 1000),
-        until: isUsedUntil ? untilProps : Math.round(Date.now() / 1000),
+        // until: _until || isUsedUntil ? lastCreatedAt : Math.round(Date.now() / 1000),
+        until: _until ? Math.round(_until / 1000) : isUsedUntil ? lastCreatedAt : Math.round(Date.now() / 1000),
         limit: limit ?? 10,
         '#t': [tag || selectedTag],
       });
@@ -208,7 +213,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
           <p>Error loading events: {error?.message || 'Unknown error'}</p>
           <button
             className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-            onClick={() => fetchEvents(selectedTag)}
+            onClick={() => fetchEvents(selectedTag, Math.round(Date.now() / 1000))}
           >
             Try Again
           </button>
@@ -233,7 +238,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
                 setSelectedTag(tag);
                 setLastCreatedAt(new Date().getTime() / 1000);
                 setNotesData([]);
-                fetchEvents(tag);
+                fetchEvents(tag, Math.round(Date.now()));
               }}
             >
               <p className="text-sm font-medium">{tag}</p>

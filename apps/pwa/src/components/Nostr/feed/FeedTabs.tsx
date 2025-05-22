@@ -164,7 +164,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
             </span>
           </button>
         ))}
-
+        {/* 
         <NostrFilter
           limit={limit}
           authors={authors}
@@ -179,7 +179,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
           activeTabProps={tabs.find(tab => tab.id === activeTab)}
           isForYouProps={isForYou}
           setIsForYouProps={setIsForYou}
-          ></NostrFilter>
+          ></NostrFilter> */}
         {/* <button
           className="px-3 py-1 text-xs bg-blue-500 rounded hover:bg-blue-600 transition"
           onClick={() => setOpenFilters(!openFilters)}
