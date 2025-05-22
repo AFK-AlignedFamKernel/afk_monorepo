@@ -213,7 +213,7 @@ pub mod UnrugLiquidity {
 
         let init_token = TokenQuoteBuyCoin {
             token_address: token_address, // starting_price,
-            price: 0_256, is_enable: true,
+            is_enable: true,
             // step_increase_linear,
         };
         self.is_custom_launch_enable.write(false);
@@ -437,6 +437,7 @@ pub mod UnrugLiquidity {
                         telegram: metadata.telegram,
                         github: metadata.github,
                         website: metadata.website,
+                        description: metadata.description,
                     },
                 );
         }

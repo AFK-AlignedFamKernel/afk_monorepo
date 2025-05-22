@@ -48,10 +48,15 @@ pub struct AdminsFeesParams {
 #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
 pub struct TokenQuoteBuyCoin {
     pub token_address: ContractAddress,
-    // pub starting_price: u256,
-    pub price: u256,
-    // pub step_increase_linear: u256,
     pub is_enable: bool,
+}
+
+
+#[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
+pub struct TokenICOQuoteBuyCoin {
+    pub token_address: ContractAddress,
+    pub is_enable: bool,
+    pub price: u256,
 }
 
 
@@ -73,7 +78,6 @@ pub struct TokenLaunch {
     pub owner: ContractAddress, // Can be the launchpad at one time and reset to the creator after launch on DEX
     pub creator: ContractAddress,
     pub token_address: ContractAddress,
-    pub price: u256, // Last price of the token. In TODO
     pub available_supply: u256, // Available to buy
     pub initial_pool_supply: u256, // Liquidity token to add in the DEX
     pub initial_available_supply: u256, // Init available to buy
@@ -84,10 +88,8 @@ pub struct TokenLaunch {
     pub liquidity_raised: u256, // Amount of quote raised. Need to be below threshold
     pub total_token_holded: u256, // Number of token holded and buy
     pub is_liquidity_launch: bool, // Liquidity launch through Ekubo or Unrug
-    pub slope: u256,
     pub threshold_liquidity: u256, // Amount of maximal quote token to paid the coin launched
     pub liquidity_type: Option<LiquidityType>,
-    pub starting_price: u256,
     pub protocol_fee_percent: u256,
     pub creator_fee_percent: u256,
     // TODO V2
@@ -313,9 +315,7 @@ pub struct BuyToken {
     #[key]
     pub token_address: ContractAddress,
     pub amount: u256,
-    pub price: u256,
     pub protocol_fee: u256,
-    pub last_price: u256,
     pub timestamp: u64,
     pub quote_amount: u256,
 }
@@ -327,11 +327,9 @@ pub struct SellToken {
     #[key]
     pub key_user: ContractAddress,
     pub amount: u256,
-    pub price: u256,
     pub protocol_fee: u256,
     pub creator_fee: u256,
     pub timestamp: u64,
-    pub last_price: u256,
     pub coin_amount: u256,
 }
 
@@ -356,9 +354,7 @@ pub struct CreateLaunch {
     #[key]
     pub quote_token_address: ContractAddress,
     pub amount: u256,
-    pub price: u256,
     pub total_supply: u256,
-    pub slope: u256,
     pub threshold_liquidity: u256,
     pub bonding_type: BondingType,
 }

@@ -1,7 +1,7 @@
 use alexandria_math::fast_power::fast_power;
 use starknet::storage::Map;
 use starknet::{ClassHash, ContractAddress, get_block_timestamp};
-use crate::types::launchpad_types::{BondingType, LiquidityType, TokenQuoteBuyCoin};
+use crate::types::launchpad_types::{BondingType, LiquidityType, TokenQuoteBuyCoin, TokenICOQuoteBuyCoin};
 
 #[starknet::interface]
 pub trait IICO<TContractState> {
@@ -240,7 +240,7 @@ pub struct PresaleFinalized {
 #[derive(Drop, Copy, starknet::Store)]
 pub struct LaunchParams {
     pub bonding_type: BondingType,
-    pub token_quote: TokenQuoteBuyCoin,
+    pub token_quote: TokenICOQuoteBuyCoin,
     pub liquidity_type: Option<LiquidityType>,
     pub starting_price: u256,
     pub launched_at: u64,
@@ -257,7 +257,7 @@ pub struct TokenLaunch {
     pub total_supply: u256, // Total supply to buy
     pub bonding_curve_type: BondingType,
     pub created_at: u64,
-    pub token_quote: TokenQuoteBuyCoin, // Token launched
+    pub token_quote: TokenICOQuoteBuyCoin, // Token launched
     pub liquidity_raised: u256, // Amount of quote raised. Need to be below threshold
     pub total_token_holded: u256, // Number of token holded and buy
     pub is_liquidity_launch: bool, // Liquidity launch through Ekubo or Unrug
