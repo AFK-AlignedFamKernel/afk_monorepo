@@ -39,6 +39,46 @@ async function uploadFile(fastify: FastifyInstance) {
       return reply.code(500).send({ message: 'Internal Server Error' });
     }
   });
+
+  fastify.post('/file/metadata', async (request, reply) => {
+    try {
+
+      console.log("request body",request?.body)
+      
+      const jsonContent = request.body as Record<string, unknown>;
+      
+      console.log("jsonContent",jsonContent)
+      if (!jsonContent) {
+        return reply.code(400).send({ message: 'No JSON data provided' });
+      }
+
+      // Pin JSON to IPFS with metadata
+      const { IpfsHash } = await pinata.pinFileToIPFS(Buffer.from(JSON.stringify(jsonContent)), {
+        pinataMetadata: {
+          name: 'metadata.json',
+          type: 'application/json'
+        }
+      });
+
+      const gatewayUrl = process.env.IPFS_GATEWAY || 'https://ipfs.io';
+
+      return reply.code(200).send({
+        hash: IpfsHash,
+        url: `${gatewayUrl}/ipfs/${IpfsHash}`,
+        metadata: {
+          name: 'metadata.json',
+          type: 'application/json',
+          timestamp: Date.now()
+        }
+      });
+    } catch (error) {
+      fastify.log.error("Error METADATA JSON");
+      return reply.code(500).send({ 
+        message: 'Internal Server Error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
 }
 
 export default uploadFile;

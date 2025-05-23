@@ -119,6 +119,8 @@ export const useCreateToken = () => {
       const telegramByteArray = metadata?.telegram ? byteArray.byteArrayFromString(metadata?.telegram) : byteArray.byteArrayFromString('');
       const websiteByteArray = metadata?.website ? byteArray.byteArrayFromString(metadata?.website) : byteArray.byteArrayFromString('');
       const descriptionByteArray = metadata?.description ? byteArray.byteArrayFromString(metadata?.description) : byteArray.byteArrayFromString('');
+
+      const ipfsHash = metadata?.ipfs_hash ?  byteArray.byteArrayFromString(metadata?.ipfs_hash) : byteArray.byteArrayFromString("")
       const nostrEventIdUint = metadata?.nostr_event_id ? uint256.bnToUint256(`0x${metadata?.nostr_event_id}`) : cairo.uint256(0); // Recipient nostr pubkey
       const metadataLaunch = {
         token_address: address,
@@ -129,6 +131,7 @@ export const useCreateToken = () => {
         telegram: telegramByteArray,
         website: websiteByteArray,
         description: descriptionByteArray,
+        // ipfs_hash:ipfsHash
       };
 
       // console.log("metadataLaunch", metadataLaunch);

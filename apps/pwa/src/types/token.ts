@@ -14,6 +14,7 @@ export interface MetadataOnchain {
   token_address?: string;
   creator_fee_destination?: string;
   description?: string;
+  ipfs_hash?:string;
 }
 
 export interface DeployTokenFormValues {

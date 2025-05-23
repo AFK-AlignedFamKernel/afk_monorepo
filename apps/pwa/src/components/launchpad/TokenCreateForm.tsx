@@ -11,6 +11,7 @@ import { useAccount } from '@starknet-react/core';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useUIStore } from '@/store/uiStore';
 import dynamic from 'next/dynamic';
+import { useFileJsonUpload } from '@/hooks/useFileJsonUpload';
 
 const WalletConnectButton = dynamic(() => import('@/components/account/starknet/WalletConnectButton').then(mod => mod.WalletConnectButtonController), {
   ssr: false,
@@ -48,6 +49,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
   const [showMetadata, setShowMetadata] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const fileUpload = useFileUpload()
+  const fileJsonUpload = useFileJsonUpload()
   const { address } = useStarknet();
   const { showToast } = useUIStore();
   const { deployTokenAndLaunch, isLoading, error, deployToken, deployTokenAndLaunchWithMetadata } = useCreateToken();
@@ -95,18 +97,35 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
      
       }
 
+      let res;
+
+
       console.log('imageUrl', imageUrl);
       values.metadata.url = imageUrl;
       console.log('values', values);
 
-      const metadata = {
+      let metadata = {
         url: values.metadata.url,
         twitter: values.metadata.twitter,
         github: values.metadata.github,
         telegram: values.metadata.telegram,
         website: values.metadata.website,
+        description:values?.metadata?.description,
         nostr_event_id: values.metadata.nostr_event_id,
+        ipfs_hash:undefined
       }
+
+      try {
+        
+        
+        const result = await fileJsonUpload.mutateAsync(file);
+        
+        metadata.ipfs_hash= result?.data?.hash
+      } catch (error) {
+        console.log("res json issue")
+        
+      }
+
       // return;
       const result = await deployTokenAndLaunch(values, metadata);
       // const result = await deployTokenAndLaunchWithMetadata(values, metadata);

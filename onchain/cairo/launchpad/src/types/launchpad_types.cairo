@@ -135,9 +135,9 @@ pub struct SharesTokenUser {
 #[derive(Drop, Serde, Clone, starknet::Store, PartialEq)]
 pub struct MetadataLaunch {
     pub token_address: ContractAddress,
-    pub url: ByteArray,
-    // pub ipfs_hash: ByteArray,
     pub nostr_event_id: u256,
+    pub url: ByteArray,
+    pub ipfs_hash: ByteArray,
     pub twitter: ByteArray,
     pub github: ByteArray,
     pub telegram: ByteArray,
@@ -420,20 +420,32 @@ pub struct TokenClaimed {
     pub timestamp: u64,
 }
 
+// #[derive(Drop, starknet::Event)]
+// pub struct MetadataCoinAdded {
+//     #[key]
+//     pub token_address: ContractAddress,
+//     pub url: ByteArray,
+//     pub nostr_event_id: u256,
+//     pub timestamp: u64,
+//     pub twitter: ByteArray,
+//     pub website: ByteArray,
+//     pub telegram: ByteArray,
+//     pub github: ByteArray,
+//     pub description: ByteArray,
+// }
 #[derive(Drop, starknet::Event)]
 pub struct MetadataCoinAdded {
     #[key]
     pub token_address: ContractAddress,
-    pub url: ByteArray,
     pub nostr_event_id: u256,
-    pub timestamp: u64,
+    pub url: ByteArray,
+    pub ipfs_hash: ByteArray,
     pub twitter: ByteArray,
     pub website: ByteArray,
     pub telegram: ByteArray,
     pub github: ByteArray,
     pub description: ByteArray,
 }
-
 
 #[derive(Copy, Drop, starknet::Store, Serde)]
 pub struct JediswapLiquidityParameters {
