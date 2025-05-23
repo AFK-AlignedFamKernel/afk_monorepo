@@ -81,12 +81,18 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
       let urlHash = '';
 
       if (file) {
-        const result = await fileUpload.mutateAsync(file);
-        console.log("result file upload", result);
-        if (result.data.url) {
-          imageUrl = result.data.url
-          urlHash = result.data?.hash
+        try {
+          const result = await fileUpload.mutateAsync(file);
+          console.log("result file upload", result);
+          if (result.data.url) {
+            imageUrl = result.data.url
+            urlHash = result.data?.hash
+          }
+        } catch (error) {
+          console.log("error",error)
+          
         }
+     
       }
 
       console.log('imageUrl', imageUrl);

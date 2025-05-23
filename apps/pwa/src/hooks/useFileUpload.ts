@@ -33,33 +33,39 @@ export const useFileUpload = () => {
     return useApiMutation<FileUploadResult, FileUploadResult, File | string | Blob>({
         mutationKey: ['fileUpload'],
         mutationFn: async (file: File | string | Blob) => {
-            const formData = new FormData();
+            try {
+                const formData = new FormData();
 
-            // Handle web file uploads
-            if (typeof file === 'string') {
-                // Handle data URL strings (base64 encoded images)
-                if (file.startsWith('data:')) {
-                    const blob = dataURLToBlob(file);
-                    formData.append('file', blob);
-                } else {
-                    // Handle file paths or URLs
-                    const response = await fetch(file);
-                    const blob = await response.blob();
-                    formData.append('file', blob);
+                // Handle web file uploads
+                if (typeof file === 'string') {
+                    // Handle data URL strings (base64 encoded images)
+                    if (file.startsWith('data:')) {
+                        const blob = dataURLToBlob(file);
+                        formData.append('file', blob);
+                    } else {
+                        // Handle file paths or URLs
+                        const response = await fetch(file);
+                        const blob = await response.blob();
+                        formData.append('file', blob);
+                    }
+                } else if (file instanceof File) {
+                    // Handle File objects from input elements
+                    formData.append('file', file);
+                } else if (file instanceof Blob) {
+                    // Handle Blob objects
+                    formData.append('file', file);
                 }
-            } else if (file instanceof File) {
-                // Handle File objects from input elements
-                formData.append('file', file);
-            } else if (file instanceof Blob) {
-                // Handle Blob objects
-                formData.append('file', file);
+    
+                return ApiBackendInstance.post('/file', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+            } catch (error) {
+                console.log("error", error)
+                
             }
-
-            return ApiBackendInstance.post('/file', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+        
         },
     });
 };
