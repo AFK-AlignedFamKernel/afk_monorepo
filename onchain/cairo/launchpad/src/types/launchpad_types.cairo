@@ -143,8 +143,8 @@ pub struct SharesTokenUser {
 pub struct MetadataLaunchParams {
     pub token_address: ContractAddress,
     pub nostr_event_id: u256,
-    pub url: ByteArray,
     pub ipfs_hash: ByteArray,
+    pub url: ByteArray,
     pub twitter: ByteArray,
     pub github: ByteArray,
     pub telegram: ByteArray,
@@ -156,13 +156,13 @@ pub struct MetadataLaunchParams {
 pub struct MetadataLaunch {
     pub token_address: ContractAddress,
     pub nostr_event_id: u256,
-    pub url: ByteArray,
     pub ipfs_hash: ByteArray,
-    pub twitter: ByteArray,
-    pub github: ByteArray,
-    pub telegram: ByteArray,
-    pub website: ByteArray,
-    pub description: ByteArray,
+    pub url: ByteArray,
+    // pub twitter: ByteArray,
+    // pub github: ByteArray,
+    // pub telegram: ByteArray,
+    // pub website: ByteArray,
+    // pub description: ByteArray,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -170,8 +170,8 @@ pub struct MetadataCoinAdded {
     #[key]
     pub token_address: ContractAddress,
     pub nostr_event_id: u256,
-    pub url: ByteArray,
     pub ipfs_hash: ByteArray,
+    pub url: ByteArray,
     pub twitter: ByteArray,
     pub website: ByteArray,
     pub telegram: ByteArray,

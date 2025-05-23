@@ -141,6 +141,12 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           name:true,
           symbol:true,
           url:true,
+          description:true,
+          twitter:true,
+          telegram:true,
+          github:true,
+          website:true,
+          ipfs_hash:true,
           token_deploy: {
             select: {
               name: true,

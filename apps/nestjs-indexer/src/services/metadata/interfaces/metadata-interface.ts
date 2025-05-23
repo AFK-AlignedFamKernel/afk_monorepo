@@ -17,4 +17,5 @@ export interface MetadataLaunch {
   website?: string;
   description?: string;
   image_url?: string;
+  ipfsHash?: string;
 }

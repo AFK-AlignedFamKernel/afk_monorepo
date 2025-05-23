@@ -78,7 +78,7 @@ export class MetadataLaunchIndexer {
       blockHash: blockHashFelt,
       timestamp: blockTimestamp,
     } = header;
-    console.log("handleMetadataEvent", event);
+    console.log("handleMetadataEvent");
 
     const blockHash = validateAndParseAddress(
       `0x${FieldElement.toBigInt(blockHashFelt).toString(16)}`,
@@ -98,21 +98,40 @@ export class MetadataLaunchIndexer {
     ) as ContractAddress;
 
     const [
-      urlFelt,
       nostrEventIdLow,
       nostrEventIdHigh,
-      timestampFelt,
-      twitterFelt,
-      telegramFelt,
-      githubFelt,
-      websiteFelt,
-      descriptionFelt,
+      ipfsHashFelt,
+      urlFelt,
+      // twitterFelt,
+      // telegramFelt,
+      // githubFelt,
+      // websiteFelt,
+      // descriptionFelt,
     ] = event.data;
 
-    console.log("event.data", event.data);
+    console.log("event.data", event.data.length);
 
-    let i = 1;
 
+    // const nostrEventId = uint256.uint256ToBN({
+    //   low: FieldElement.toBigInt(nostrEventIdLow),
+    //   high: FieldElement.toBigInt(nostrEventIdHigh),
+    // });
+    // let nostrEventId = cairo.felt(0);
+
+
+    const nostrEventIdRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(nostrEventIdLow),
+      high: FieldElement.toBigInt(nostrEventIdHigh),
+    });
+    const nostrEventId = formatUnits(
+      nostrEventIdRaw,
+      constants.DECIMALS,
+    ).toString();
+
+    console.log("nostrEventId", nostrEventId);
+    // let i = 2;
+    let i = 3;
+    let ipfsHash = '';
     let url = '';
     try {
       while (i < event.data.length) {
@@ -136,35 +155,118 @@ export class MetadataLaunchIndexer {
       console.log("error bytearray", error);
     }
 
+    try {
+      while (i < event.data.length) {
+        const part = event.data[i];
+        const decodedPart = shortString.decodeShortString(
+          FieldElement.toBigInt(part).toString(),
+        );
 
-    // const nostrEventId = uint256.uint256ToBN({
-    //   low: FieldElement.toBigInt(nostrEventIdLow),
-    //   high: FieldElement.toBigInt(nostrEventIdHigh),
-    // });
-    // let nostrEventId = cairo.felt(0);
+        if (this.isNumeric(decodedPart)) {
+          i++;
+          break;
+        }
 
-         
-    const nostrEventIdLowFelt = event.data[i++];
-    const nostrEventIdHighFelt = event.data[i++];
-    const nostrEventIdRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(nostrEventIdLowFelt),
-      high: FieldElement.toBigInt(nostrEventIdHighFelt),
-    });
-    const nostrEventId = formatUnits(
-      nostrEventIdRaw,
-      constants.DECIMALS,
-    ).toString();
+        ipfsHash += decodedPart;
+        i++;
+      }
+      console.log("ipfsHash", ipfsHash);
 
-    console.log("nostrEventId", nostrEventId);
-    const timestamp = new Date(
-      Number(FieldElement.toBigInt(timestampFelt)) * 1000,
-    );
+      ipfsHash = this.cleanString(ipfsHash);
+      console.log("ipfsHash", ipfsHash);
+    } catch (error) {
+      console.log("error bytearray", error);
+    }
+
+    let bodyMetadata: any | undefined;
+    try {
+
+      if (ipfsHash) {
+        const response = await fetch(`https://ipfs.io/ipfs/${ipfsHash}`);
+        const data = await response.json();
+        console.log("data", data);
+        bodyMetadata = data;
+      }
+
+    } catch (error) {
+      console.log("error fetching ipfs hash", error);
+    }
+
+
+
+
 
     /** TODO: 
      * ADD Twitter, Telegram, Github, Website */
 
     // i += 2;
-    i += 3;
+    // i += 3;
+
+
+    let ipfsUrl = '';
+    try {
+      while (i < event.data.length) {
+        const part = event.data[i];
+        // const part = twitterFelt[i];
+        const decodedPart = shortString.decodeShortString(
+          FieldElement.toBigInt(part).toString(),
+        );
+
+        if (this.isNumeric(decodedPart)) {
+          i++;
+          break;
+        }
+
+        ipfsUrl += decodedPart;
+        i++;
+      }
+      console.log("ipfsUrl", ipfsUrl);
+      ipfsUrl = this.cleanString(ipfsUrl);
+    } catch (error) {
+      console.log("error decoding metadata ipfsUrl bytearray : ", error);
+    }
+
+    try {
+
+      
+      if (ipfsUrl ) {
+        const response = await fetch(`${ipfsUrl}`);
+        const data = await response.json();
+        console.log("data", data);
+        bodyMetadata = data;
+      
+      }
+
+    } catch (error) {
+      console.log("error fetching website", error);
+      if (!bodyMetadata) {
+        let retryCount = 0;
+        const maxRetries = 3;
+        const timeout = 1000; // 1 second timeout
+
+        while (retryCount < maxRetries) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+            const response = await fetch(`${ipfsUrl}`, {
+              signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            const data = await response.json();
+            bodyMetadata = data;
+            break;
+          } catch (error) {
+            retryCount++;
+            if (retryCount === maxRetries) {
+              console.log(`Failed to fetch twitter after ${maxRetries} retries:`, error);
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between retries
+          }
+        }
+      }
+    }
 
 
     let twitter = '';
@@ -192,6 +294,7 @@ export class MetadataLaunchIndexer {
 
 
     let website = '';
+
     try {
       while (i < event.data.length) {
         const part = event.data[i];
@@ -213,6 +316,8 @@ export class MetadataLaunchIndexer {
     } catch (error) {
       console.log("error decoding metadata website bytearray : ", error);
     }
+
+
 
     let telegram = '';
     try {
@@ -321,11 +426,12 @@ export class MetadataLaunchIndexer {
       url: url,
       timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
       transactionType: 'buy',
-      twitter,
-      telegram,
-      github,
-      website,
-      description,
+      twitter:bodyMetadata?.twitter ?? twitter ?? '',
+      telegram:bodyMetadata?.telegram ?? telegram,
+      github:bodyMetadata?.github ?? github ?? '',
+      website:bodyMetadata?.website ?? website ?? '',
+      description:bodyMetadata?.description ?? description ?? '',
+      ipfsHash:bodyMetadata?.ipfsHash ?? ipfsHash ?? ipfsUrl,
     };
 
 

@@ -20,6 +20,7 @@ pub mod LaunchpadMarketplace {
         LiquidityCanBeAdded, LiquidityCreated, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch,
         SellToken, SetJediswapNFTRouterV2, SetJediswapV2Factory, SharesTokenUser, StoredName,
         SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin,
+        MetadataLaunchParams,   
         // MemecoinCreated, MemecoinLaunched
     };
     use core::num::traits::Zero;
@@ -555,8 +556,8 @@ pub mod LaunchpadMarketplace {
             bonding_type: BondingType,
             creator_fee_percent: u256,
             creator_fee_destination: ContractAddress,
-            metadata: Option<MetadataLaunch>,
-        ) -> ContractAddress {
+            metadata: Option<MetadataLaunchParams>,
+        ) -> ContractAddress {  
             let contract_address = get_contract_address();
             let caller = get_caller_address();
             let token_address = self
@@ -1111,7 +1112,7 @@ pub mod LaunchpadMarketplace {
         }
         // TODO finish add Metadata for Token and Launched and also updated it
         fn add_metadata(
-            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch,
+            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunchParams,
         ) {
             let caller = get_contract_address();
             // Verify if caller is owner
@@ -1122,14 +1123,25 @@ pub mod LaunchpadMarketplace {
                 errors::CALLER_NOT_OWNER,
             );
             // Add or update metadata
-            self.metadata_coins.entry(coin_address).write(metadata.clone());
+            let metadata_launch = MetadataLaunch{
+                token_address: coin_address,
+                nostr_event_id: metadata.nostr_event_id,
+                url: metadata.url.clone(),
+                ipfs_hash:metadata.ipfs_hash.clone(),
+                // twitter: metadata.twitter.clone(),
+                // website: metadata.website.clone(),
+                // telegram: metadata.telegram.clone(),
+                // github: metadata.github.clone(),
+                // description: metadata.description.clone(),
+            };
+            self.metadata_coins.entry(coin_address).write(metadata_launch.clone());
             self
                 .emit(
                     MetadataCoinAdded {
                         token_address: coin_address,
                         nostr_event_id: metadata.nostr_event_id,
-                        url: metadata.url,
                         ipfs_hash:metadata.ipfs_hash,
+                        url: metadata.url,
                         twitter: metadata.twitter,
                         website: metadata.website,
                         telegram: metadata.telegram,

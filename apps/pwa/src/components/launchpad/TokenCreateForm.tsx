@@ -129,7 +129,8 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
         console.log("result", result)
         ipfs_hash = result?.hash
         ipfs_url = result?.url
-        metadata.ipfs_hash = result?.hash;
+        // metadata.ipfs_hash = result?.hash;
+        metadata.ipfs_hash = result?.url;
         metadata.ipfs_url = result.url;
       } catch (error) {
         console.log("res json issue")

@@ -11,6 +11,7 @@ import { useSellCoin } from '@/hooks/launchpad/useSellCoin';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useAccount } from '@starknet-react/core';
+import { Icon } from '@/components/small/icon-component';
 // import { Chart } from '@/components/launchpad/Chart';
 
 interface LaunchpadDetailProps {
@@ -31,11 +32,10 @@ export default function LaunchpadDetailPage() {
   const [userShare, setUserShare] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-
+  const [chartData, setChartData] = useState<any>(null);
   const { handleBuyCoins } = useBuyCoin();
   const { handleSellCoins } = useSellCoin();
   const { toasts, showToast, removeToast } = useToast();
-
 
   const [shareUserState, setShareUserState] = useState<any>(null);
   const userShareMemo = useMemo(() => {
@@ -46,42 +46,27 @@ export default function LaunchpadDetailPage() {
       return userShare;
     }
   }, [holders]);
-
+  const fetchData = async () => {
+    try {
+      const launchResponse = await fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy-launch/stats/${address}`);
+      const launchData = await launchResponse.json();
+      console.log("launchData", launchData);
+      setLaunchData(launchData?.data?.launch);
+      setHolders(launchData?.data?.holders);
+      setTransactions(launchData?.data?.transactions);
+      setChartData(launchData?.data?.chart);
+    } catch (error) {
+      console.error('Error fetching launchpad data:', error);
+      showToast({ title: 'Error loading data', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        const launchResponse = await fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy-launch/stats/${address}`);
-        const launchData = await launchResponse.json();
-        console.log("launchData", launchData);
-        // TODO: Replace with your actual API calls
-        // const [launchResponse, holdersResponse, txResponse, chartResponse] = await Promise.all([
-        //   fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy-launch/${address}`),
-        //   fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/token-distribution-holders/${address}`),
-        //   fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/transactions/${address}`),
-        //   fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/chart/${address}`),
-        // ]);
-        // const [launchData, holdersData, txData, chartData] = await Promise.all([
-        //   launchResponse.json(),
-        //   holdersResponse.json(),
-        //   txResponse.json(),
-        //   chartResponse.json(),
-        // ]);
-        setLaunchData(launchData?.data?.launch);
-        setHolders(launchData?.data?.holders);
-        setTransactions(launchData?.data?.transactions);
-        // setChartData(chartData);
-      } catch (error) {
-        console.error('Error fetching launchpad data:', error);
-        showToast({ title: 'Error loading data', type: 'error' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (address) {
+      setLoading(true);
       fetchData();
+      setLoading(false);
     }
   }, [address, showToast]);
 
@@ -140,7 +125,7 @@ export default function LaunchpadDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
       </div>
     );
@@ -157,6 +142,14 @@ export default function LaunchpadDetailPage() {
         onRemove={removeToast}
       />
       <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-end">
+          <button onClick={() => {
+            fetchData();
+          }}>
+            <Icon name="RefreshIcon" size={16} className="ml-1" />
+            Refresh
+          </button>
+        </div>
         <div className="lg:col-span-1 mb-8">
           <LaunchActionsForm
             launch={launchData}

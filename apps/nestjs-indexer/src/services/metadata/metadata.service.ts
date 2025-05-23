@@ -38,6 +38,7 @@ export class MetadataLaunchService {
             website: data.website,
             telegram: data.telegram,
             github: data.github,
+            ipfs_hash: data.ipfsHash,
           },
         });
 
