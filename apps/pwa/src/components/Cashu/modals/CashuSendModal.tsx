@@ -3,6 +3,7 @@ import { Icon } from '../../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
 import QRCode from 'react-qr-code';
 import { useAtomiqLab } from '@/hooks/atomiqlab';
+import { useCashu } from '@/hooks/useCashu';
 interface CashuSendModalProps {
   onClose: () => void;
   balance: number;
@@ -28,6 +29,8 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
   const [tokenAmount, setTokenAmount] = useState<number>(0);
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const [type, setType] = useState<"CASHU" | "STRK">("CASHU")
+
+  const { decodeInvoiceAmount } = useCashu();
 
   const { handlePayInvoice: handlePayInvoiceAtomiq } = useAtomiqLab();
 
@@ -107,7 +110,6 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
     setIsProcessing(true);
 
     try {
-
       if (type == "STRK") {
         await handlePayInvoiceAtomiq(invoice);
         showToast({
@@ -116,15 +118,44 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
           description: 'Lightning invoice paid'
         });
       } else {
-        await onPayInvoice(invoice);
-        showToast({
-          message: 'Payment successful',
-          type: 'success',
-          description: 'Lightning invoice paid'
-        });
+        try {
+          const res = await onPayInvoice(invoice);
+          console.log(res);
+          if (res.status === "success") {
+            onClose(); // Close modal on success for payments
+            showToast({
+              message: 'Payment successful',
+              type: 'success',
+              description: 'Lightning invoice paid'
+            });
+            onClose(); // Close modal on success for payments
+          } else {
+            showToast({
+              message: 'Payment failed',
+              type: 'error',
+              description: res.message
+            });
+          }
+        } catch (err) {
+          // Check if this is a "Token already spent" error
+          if (err instanceof Error && err.message.includes('Token was already spent')) {
+            showToast({
+              message: 'Token already spent',
+              type: 'warning',
+              description: 'The balance has been updated to reflect spent tokens'
+            });
+            onClose(); // Close modal since we've handled the error
+          } else {
+            // Handle other errors
+            const errorMessage = err instanceof Error ? err.message : 'Failed to pay invoice';
+            showToast({
+              message: 'Payment failed',
+              type: 'error',
+              description: errorMessage
+            });
+          }
+        }
       }
-
-      onClose(); // Close modal on success for payments
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to pay invoice';
       showToast({
@@ -266,6 +297,23 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
                   required
                 />
               </div>
+
+              <div className="cashu-wallet__form-group">
+                <small className="cashu-wallet__form-group-label">
+                  Amount ({unit})
+                </small>
+                <small>Available balance: {balance} {unit}</small>
+              </div>
+
+
+              {invoice && (
+                <div className="cashu-wallet__form-group">
+                  <label className="cashu-wallet__form-group-label">
+                    Amount
+                  </label>
+                  {decodeInvoiceAmount(invoice)}
+                </div>
+              )}
 
               <button
                 type="submit"

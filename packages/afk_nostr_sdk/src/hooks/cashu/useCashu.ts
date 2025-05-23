@@ -846,22 +846,47 @@ export const useCashu = () => {
         }
       }
 
-      // in a real wallet, we would coin select the correct amount of proofs from the wallet's storage
-      // instead of that, here we swap `proofs` with the mint to get the correct amount of proofs
-      const { keep: proofsToKeep, send: proofsToSend } = await walletInstance.send(
-        amountToSend,
-        selectedProofs,
-        // {
-        //   includeFees:true,
-        //   // keysetId: (await keysets).keysets[0].id,
-        // }
-      );
-      const meltResponse = await walletInstance.meltProofs(meltQuote, proofsToSend);
+      try {
+        // in a real wallet, we would coin select the correct amount of proofs from the wallet's storage
+        // instead of that, here we swap `proofs` with the mint to get the correct amount of proofs
+        const { keep: proofsToKeep, send: proofsToSend } = await walletInstance.send(
+          amountToSend,
+          selectedProofs,
+        );
+        const meltResponse = await walletInstance.meltProofs(meltQuote, proofsToSend);
 
-      return { meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs };
+        return { meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs };
+      } catch (err) {
+        // Check if this is a "Token already spent" error
+        if (err instanceof Error && err.message.includes('Token was already spent')) {
+          console.log('Token already spent, updating proofs and balance');
+          
+          // Check which proofs are spent
+          const proofsStates = await walletInstance.checkProofsStates(selectedProofs);
+          const spentProofs = proofsStates.filter(p => p.state === CheckStateEnum.SPENT);
+          
+          // Remove spent proofs from storage
+          const proofsStr = getProofsStorage();
+          const allProofs = JSON.parse(proofsStr);
+          const updatedProofs = allProofs.filter((p: Proof) => 
+            !spentProofs.some(spent => spent.Y === p.C)
+          );
+          
+          // Store updated proofs
+          storeProofsStorage(updatedProofs);
+          
+          // Update balance
+          const newBalance = updatedProofs.reduce((sum: number, p: Proof) => sum + p.amount, 0);
+          setProofs(updatedProofs); // This will trigger a balance update through the useCashuBalance hook
+          
+          // Re-throw the error to be handled by the UI
+          throw err;
+        }
+        throw err;
+      }
     } catch (e) {
       console.log('Error meltTokens', e);
-      return undefined;
+      throw e; // Re-throw to be handled by the UI
     }
   };
 

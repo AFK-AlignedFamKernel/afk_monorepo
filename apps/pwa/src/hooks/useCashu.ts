@@ -40,7 +40,7 @@ export function useCashu() {
   const { mutateAsync: createToken } = useCreateTokenEvent();
   const { data: tokensEvents } = useGetCashuTokenEvents();
   const { mutateAsync: deleteTokens } = useDeleteTokenEvents();
-  const { meltTokens,} = useCashuContext();
+  const { meltTokens, } = useCashuContext();
 
   // Local storage
   const {
@@ -1042,8 +1042,8 @@ export function useCashu() {
     if (!walletData.activeMint) throw new Error('No active mint selected');
 
     try {
-      console.log("amount",amount)
-      console.log("walletData.balance",walletData.balance)
+      console.log("amount", amount)
+      console.log("walletData.balance", walletData.balance)
       if (amount > walletData.balance) {
         throw new Error('Insufficient balance');
       }
@@ -1107,7 +1107,7 @@ export function useCashu() {
         }
         console.log('Fee:', fee);
         const totalAmount = amount + fee;
-  
+
         // Select proofs to send the requested amount
         const { send: proofsToSend, returnChange: changeProofs } = await wallet.selectProofsToSend(validProofs, totalAmount);
         console.log('Proofs to send:', proofsToSend);
@@ -1233,6 +1233,17 @@ export function useCashu() {
     }
   }, [isInitialized, walletData.activeMint, walletData.balance, checkWalletReadiness, addTransaction]);
 
+  const decodeInvoiceAmount = (invoice: string) => {
+
+    // Get invoice amount from the Lightning invoice
+    // Decode the Lightning invoice to get the amount
+    const decodedInvoice = invoice.match(/lnbc(\d+)n/);
+    const amount = decodedInvoice ? Number(decodedInvoice[1]) / 10 : 0;
+    console.log(`Decoded invoice amount: ${amount} sats`);
+
+    return amount;
+  }
+
   // Pay a Lightning invoice
   const payLightningInvoice = async (invoice: string) => {
     if (!isInitialized) throw new Error('Cashu not initialized');
@@ -1261,18 +1272,18 @@ export function useCashu() {
 
       let fees = await sdkCashu?.wallet?.getFeesForKeyset(amount, sdkCashu.activeUnit);
       console.log("fees", fees);
-      
+
       const totalAmount = amount + (fees > 0 ? fees : 1); // Include fees in total amount
-      
-      console.log("totalAmount",totalAmount)
-      console.log("walletData.balance",walletData.balance)
+
+      console.log("totalAmount", totalAmount)
+      console.log("walletData.balance", walletData.balance)
       if (totalAmount > walletData.balance) {
         throw new Error('Insufficient balance');
       }
 
       const wallet = sdkCashu?.wallet;
       const proofs = await proofsByMintApi.getByMintUrl(walletData.activeMint);
-      
+
       if (!proofs || proofs.length === 0) {
         throw new Error('No proofs available for payment');
       }
@@ -1285,70 +1296,124 @@ export function useCashu() {
 
       const proofsToSend = res.send;
       const proofsToKeep = res.change || []; // Using change property from SDK response
-      
+
       console.log("proofsToSend", proofsToSend)
       console.log("proofsToKeep", proofsToKeep)
       console.log('Proofs selected for payment:', proofsToSend.length);
       console.log('Change proofs:', proofsToKeep.length);
 
-      // Attempt to melt the tokens
-      const response = await meltTokens(invoice, proofsToSend);
-      if (!response) {
-        throw new Error('Failed to melt tokens for payment');
-      }
-
-      // Payment successful - update storage
       try {
-        // 1. Move spent proofs to spent proofs collection
-        await proofsSpentsApi.updateMany(proofsToSend);
-        await proofsSpentsByMintApi.addProofsForMint(proofsToSend, walletData.activeMint);
-
-        // 2. Remove spent proofs from active proofs
-        const spentIds = proofsToSend.map(p => p.C);
-        for (const id of spentIds) {
-          await proofsApi.delete(id);
+        // Attempt to melt the tokens
+        const response = await meltTokens(invoice, proofsToSend);
+        if (!response) {
+          throw new Error('Failed to melt tokens for payment');
         }
 
-        // 3. Update active proofs with change proofs if any
-        if (proofsToKeep.length > 0) {
-          await proofsApi.setAll(proofsToKeep);
-          await proofsByMintApi.setAllForMint(proofsToKeep, walletData.activeMint);
+        // Payment successful - update storage
+        try {
+          // 1. Move spent proofs to spent proofs collection
+          await proofsSpentsApi.updateMany(proofsToSend);
+          await proofsSpentsByMintApi.addProofsForMint(proofsToSend, walletData.activeMint);
+
+          // 2. Remove spent proofs from active proofs
+          const spentIds = proofsToSend.map(p => p.C);
+          for (const id of spentIds) {
+            await proofsApi.delete(id);
+          }
+
+          // 3. Update active proofs with change proofs if any
+          if (proofsToKeep.length > 0) {
+            await proofsApi.setAll(proofsToKeep);
+            await proofsByMintApi.setAllForMint(proofsToKeep, walletData.activeMint);
+          }
+
+          // 4. Update balance
+          const newBalance = walletData.balance - totalAmount;
+          saveWalletData({
+            ...walletData,
+            balance: newBalance
+          });
+
+          // 5. Record transaction
+          addTransaction(
+            'sent',
+            amount,
+            `Lightning invoice: ${invoice.substring(0, 10)}...`,
+            null,
+            null,
+            walletData.activeMint,
+            'paid',
+            'Lightning payment sent'
+          );
+
+          return {
+            success: true,
+            amount,
+            response
+          };
+        } catch (storageErr) {
+          console.error('Error updating storage after payment:', storageErr);
+          // Even if storage update fails, payment was successful
+          // We should still return success but log the error
+          return {
+            success: true,
+            amount,
+            response,
+            storageError: storageErr instanceof Error ? storageErr.message : 'Failed to update storage'
+          };
         }
+      } catch (meltError) {
+        // Check if this is a "Token already spent" error
+        if (meltError instanceof Error && meltError.message.includes('Token already spent')) {
+          console.log('Detected spent token error, cleaning up proofs...');
 
-        // 4. Update balance
-        const newBalance = walletData.balance - totalAmount;
-        saveWalletData({
-          ...walletData,
-          balance: newBalance
-        });
+          try {
+            // 1. Move the spent proofs to spent proofs collection
+            await proofsSpentsApi.updateMany(proofsToSend);
+            await proofsSpentsByMintApi.addProofsForMint(proofsToSend, walletData.activeMint);
 
-        // 5. Record transaction
-        addTransaction(
-          'sent',
-          amount,
-          `Lightning invoice: ${invoice.substring(0, 10)}...`,
-          null,
-          null,
-          walletData.activeMint,
-          'paid',
-          'Lightning payment sent'
-        );
+            // 2. Remove the spent proofs from active proofs
+            const spentIds = proofsToSend.map(p => p.C);
+            for (const id of spentIds) {
+              await proofsApi.delete(id);
+            }
 
-        return {
-          success: true,
-          amount,
-          response
-        };
-      } catch (storageErr) {
-        console.error('Error updating storage after payment:', storageErr);
-        // Even if storage update fails, payment was successful
-        // We should still return success but log the error
-        return {
-          success: true,
-          amount,
-          response,
-          storageError: storageErr instanceof Error ? storageErr.message : 'Failed to update storage'
-        };
+            // 3. Update active proofs with change proofs if any
+            if (proofsToKeep.length > 0) {
+              await proofsApi.setAll(proofsToKeep);
+              await proofsByMintApi.setAllForMint(proofsToKeep, walletData.activeMint);
+            }
+
+            // 4. Recalculate balance based on remaining proofs
+            const remainingProofs = await proofsByMintApi.getByMintUrl(walletData.activeMint);
+            const newBalance = remainingProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
+
+            // 5. Update wallet data with new balance
+            saveWalletData({
+              ...walletData,
+              balance: newBalance
+            });
+
+            // 6. Record the error transaction
+            addTransaction(
+              'sent',
+              amount,
+              `Failed payment - Token already spent`,
+              null,
+              null,
+              walletData.activeMint,
+              'failed',
+              'Token was already spent'
+            );
+
+            throw new Error('Token was already spent. Balance has been updated.');
+          } catch (cleanupError) {
+            console.error('Error cleaning up spent proofs:', cleanupError);
+            throw new Error('Failed to clean up spent proofs. Please try again.');
+          }
+        }
+        // If it's not a spent token error, rethrow the original error
+        throw meltError;
       }
     } catch (err) {
       console.error('Error paying Lightning invoice:', err);
@@ -1449,5 +1514,6 @@ export function useCashu() {
     payLightningInvoice,
     nostrSeedAvailable,
     checkWalletReadiness,
+    decodeInvoiceAmount
   };
 } 

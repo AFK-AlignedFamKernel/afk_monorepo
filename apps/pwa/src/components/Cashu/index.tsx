@@ -45,6 +45,7 @@ export default function Cashu() {
   // UI store for toast messages
   const { showToast, showModal } = useUIStore();
 
+  const [activeTab, setActiveTab] = useState<'mints' | 'cashu' | 'transactions'>('transactions');
   const [currentBalance, setCurrentBalance] = useState<number>(balance);
   const [isBalanceLoading, setIsBalanceLoading] = useState<boolean>(false);
   const [isSendModalOpen, setIsSendModalOpen] = useState<boolean>(false);
@@ -414,6 +415,13 @@ export default function Cashu() {
       return false;
     } catch (err) {
       console.error('Error paying invoice:', err);
+      
+      // Check if this is a "Token already spent" error
+      if (err instanceof Error && err.message.includes('Token was already spent')) {
+        // Let the modal handle this specific error
+        throw err;
+      }
+      
       showToast({
         message: 'Failed to pay invoice',
         type: 'error',
@@ -547,11 +555,25 @@ export default function Cashu() {
                 </button>
               </div>
             )} */}
-            <CashuTransactions
-              transactions={transactions}
-              onCheckPayment={handleCheckPayment}
-              onTransactionClick={handleShowTransactionDetails}
-            />
+  
+            <div className="cashu-wallet__tabs gap-2">
+              <button className={`cashu-wallet__tab ${activeTab === 'transactions' ? 'cashu-wallet__tab--active' : ''}`} onClick={() => setActiveTab('transactions')}>
+                Transactions
+              </button>
+              <button className={`cashu-wallet__tab ${activeTab === 'cashu' ? 'cashu-wallet__tab--active' : ''}`} onClick={() => setActiveTab('cashu')}>
+                Cashu
+              </button>
+              <button className={`cashu-wallet__tab ${activeTab === 'mints' ? 'cashu-wallet__tab--active' : ''}`} onClick={() => setActiveTab('mints')}>
+                Mints
+              </button>
+            </div>
+            {activeTab === 'transactions' && (
+              <CashuTransactions
+                transactions={transactions}
+                onCheckPayment={handleCheckPayment}
+                onTransactionClick={handleShowTransactionDetails}
+              />
+            )}
           </>
         ) : loading ? (
           <div className="cashu-wallet__loading">Loading wallet...</div>
@@ -657,6 +679,7 @@ export default function Cashu() {
       )}
 
       {/* Transaction Details Modal */}
+
       {selectedTransaction && (
         <CashuTransactionDetailsModal
           transaction={selectedTransaction}
