@@ -10,6 +10,7 @@ import { formatUnits } from 'viem';
 import { randomUUID } from 'crypto';
 import { tokenDeploy, tokenLaunch, tokenMetadata, tokenTransactions, sharesTokenUser } from 'indexer-v2-db/schema';
 import { eq, and, or } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 const CREATE_TOKEN = hash.getSelectorFromName('CreateToken') as `0x${string}`;
 const CREATE_LAUNCH = hash.getSelectorFromName('CreateLaunch') as `0x${string}`;
@@ -74,9 +75,9 @@ export default function (config: ApibaraRuntimeConfig & {
     plugins: [drizzleStorage({
       db,
       idColumn: {
-        token_deploy: 'transaction_hash',
-        token_launch: 'transaction_hash',
-        token_metadata: 'transaction_hash',
+        token_deploy: 'id',
+        token_launch: 'id',
+        token_metadata: 'id',
         token_transactions: 'transfer_id',
         shares_token_user: 'owner'
       }
@@ -155,11 +156,11 @@ export default function (config: ApibaraRuntimeConfig & {
             }
             else if (event?.keys[0] === "574011777754438778741091000026813809688738065270168948370966127226855794970" as `0x${string}`
 
-|| event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)
-|| event?.keys[0] == "0x00cb205b7506d21e6fe528cd4ae2ce69ae63eb6fc10a2d0234dd39ef3d349797" as `0x${string}`
+              || event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)
+              || event?.keys[0] == "0x00cb205b7506d21e6fe528cd4ae2ce69ae63eb6fc10a2d0234dd39ef3d349797" as `0x${string}`
 
             ) {
-           
+
               console.log("event Buy")
               const decodedEvent = decodeEvent({
                 abi: launchpadABI as Abi,
@@ -226,8 +227,8 @@ export default function (config: ApibaraRuntimeConfig & {
 
         // Insert new token
         await db.insert(tokenDeploy).values({
-          
-          id:randomUUID(),
+
+          id: randomUUID(),
           transaction_hash: transactionHash,
           network: 'starknet-sepolia',
           block_timestamp: blockTimestamp,
@@ -473,17 +474,38 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
+      console.log("event", event)
+
       // Generate a unique transfer ID using transaction hash and event index
       const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
       try {
         // Check if transaction already exists
         console.log("transferId", transferId)
-        const existingTransaction = await db.query.tokenTransactions.findFirst({
-          where: eq(tokenTransactions.transfer_id, transferId)
-        });
+        // const existingTransaction = await db.query.tokenTransactions.findFirst({
+        //   where: eq(tokenTransactions.transfer_id, transferId)
+        // });
 
-        if (existingTransaction) {
+          // Try using raw query first to avoid id column issues
+          const existingTransaction = await db.execute<{
+            current_supply: string;
+            liquidity_raised: string;
+            total_token_holded: string;
+            initial_pool_supply_dex: string;
+            total_supply: string;
+          }>(sql`
+            SELECT 
+              transfer_id,
+              transaction_hash,
+              transaction_type
+            FROM token_transactions 
+            WHERE transfer_id = ${transferId}
+            LIMIT 1
+          `);
+
+        console.log("existingTransaction", existingTransaction)
+
+        if (existingTransaction?.rows.length > 0) {
           console.log('Transaction already exists, skipping:', {
             transfer_id: transferId,
             transaction_hash: transactionHash
@@ -492,55 +514,213 @@ export default function (config: ApibaraRuntimeConfig & {
         }
 
         const ownerAddress = event?.args?.caller;
-        const tokenAddress = event?.args?.key_user;
+        const tokenAddress = event?.args?.token_address;
 
         // Get values from args
         const amount = event?.args?.amount?.toString() || '0';
         const price = event?.args?.price?.toString() || '0';
         const protocolFee = event?.args?.protocol_fee?.toString() || '0';
         const lastPrice = event?.args?.last_price?.toString() || '0';
-        const quoteAmount = event?.args?.coin_amount?.toString() || '0';
+        const quoteAmount = event?.args?.quote_amount?.toString() || '0';
 
         // Handle timestamp properly
         const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
         const timestamp = new Date(Math.max(0, eventTimestampMs));
 
         // Get the launch record to update
-        const launchRecord = await db.query.tokenLaunch.findFirst({
-          where: eq(tokenLaunch.memecoin_address, tokenAddress)
+        console.log("Getting launch record for token:", {
+          tokenAddress,
+          memecoin_address: tokenAddress
         });
 
-        if (!launchRecord) {
-          console.log('Launch record not found for token:', tokenAddress);
-          return;
+        try {
+          // Try using raw query first to avoid id column issues
+          const launchRecord = await db.execute<{
+            current_supply: string;
+            liquidity_raised: string;
+            total_token_holded: string;
+            initial_pool_supply_dex: string;
+            total_supply: string;
+          }>(sql`
+            SELECT 
+              current_supply,
+              liquidity_raised,
+              total_token_holded,
+              initial_pool_supply_dex,
+              total_supply
+            FROM token_launch 
+            WHERE memecoin_address = ${tokenAddress}
+            LIMIT 1
+          `);
+
+          console.log("Launch record query result:", launchRecord);
+          let currentLaunch = launchRecord.rows[0];
+
+          if (!launchRecord || launchRecord.rows.length === 0) {
+            console.log('Launch record not found for token:', tokenAddress);
+
+            // Initialize default launch record
+            const defaultLaunch = {
+              memecoin_address: tokenAddress,
+              owner_address: ownerAddress,
+              current_supply: '0',
+              liquidity_raised: '0',
+              total_token_holded: '0',
+              initial_pool_supply_dex: '0',
+              total_supply: '0',
+              price: '0',
+              market_cap: '0',
+              network: 'starknet-sepolia',
+              block_timestamp: new Date(blockTimestamp),
+              transaction_hash: transactionHash,
+              created_at: new Date()
+            };
+
+            try {
+              const insertLaunch = await db.execute(sql`
+                INSERT INTO token_launch (
+                  memecoin_address,
+                  owner_address,
+                  current_supply,
+                  liquidity_raised,
+                  total_token_holded,
+                  initial_pool_supply_dex,
+                  total_supply,
+                  price,
+                  market_cap,
+                  network,
+                  block_timestamp,
+                  transaction_hash,
+                  created_at
+                ) VALUES (
+                  ${defaultLaunch.memecoin_address},
+                  ${defaultLaunch.owner_address},
+                  ${defaultLaunch.current_supply},
+                  ${defaultLaunch.liquidity_raised},
+                  ${defaultLaunch.total_token_holded},
+                  ${defaultLaunch.initial_pool_supply_dex},
+                  ${defaultLaunch.total_supply},
+                  ${defaultLaunch.price},
+                  ${defaultLaunch.market_cap},
+                  ${defaultLaunch.network},
+                  ${defaultLaunch.block_timestamp},
+                  ${defaultLaunch.transaction_hash},
+                  ${defaultLaunch.created_at}
+                )
+                ON CONFLICT (memecoin_address) DO NOTHING
+                RETURNING *
+              `);
+              
+              console.log("insertResult", insertLaunch);
+              
+              if (!insertLaunch || insertLaunch.rows.length === 0) {
+                console.error('Insert operation returned no result:', {
+                  tokenAddress,
+                  defaultLaunch
+                });
+                return;
+              }
+
+              console.log('Created default launch record for token:', tokenAddress);
+              currentLaunch = insertLaunch.rows[0] as {
+                current_supply: string;
+                liquidity_raised: string;
+                total_token_holded: string;
+                initial_pool_supply_dex: string;
+                total_supply: string;
+              };
+            } catch (error) {
+              console.error('Failed to create default launch record:', {
+                error,
+                tokenAddress,
+                defaultLaunch
+              });
+              return;
+            }
+          }
+
+          if (!currentLaunch) {
+            console.log("currentLaunch not found")
+            return;
+          }
+
+
+          // Calculate new values
+          const newSupply = (BigInt(currentLaunch.current_supply || '0') - BigInt(amount)).toString();
+          const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
+          const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount)).toString();
+
+          // Calculate new price based on liquidity and token supply
+          const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
+          const priceBuy = initPoolSupply > BigInt(0)
+            ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
+            : '0';
+
+          // Calculate market cap
+          const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
+
+          console.log("Calculated values for launch update:", {
+            newSupply,
+            newLiquidityRaised,
+            newTotalTokenHolded,
+            priceBuy,
+            marketCap,
+            current_supply: currentLaunch.current_supply,
+            liquidity_raised: currentLaunch.liquidity_raised,
+            total_token_holded: currentLaunch.total_token_holded,
+            initial_pool_supply_dex: currentLaunch.initial_pool_supply_dex,
+            total_supply: currentLaunch.total_supply
+          });
+
+          // Update launch record using raw query
+          try {
+            const updateResult = await db.execute(sql`
+              UPDATE token_launch 
+              SET 
+                current_supply = ${newSupply},
+                liquidity_raised = ${newLiquidityRaised},
+                total_token_holded = ${newTotalTokenHolded},
+                price = ${priceBuy},
+                market_cap = ${marketCap}
+              WHERE memecoin_address = ${tokenAddress}
+              RETURNING *
+            `);
+
+            if (!updateResult || updateResult.rows.length === 0) {
+              console.error('Update operation returned no result:', {
+                tokenAddress,
+                newSupply,
+                newLiquidityRaised,
+                newTotalTokenHolded,
+                priceBuy,
+                marketCap
+              });
+              return;
+            }
+          } catch (updateError) {
+            console.error('Failed to update launch record:', {
+              error: updateError,
+              tokenAddress,
+              newSupply,
+              newLiquidityRaised,
+              newTotalTokenHolded,
+              priceBuy,
+              marketCap
+            });
+            return;
+          }
+
+          console.log('Launch Record Updated');
+        } catch (launchError: any) {
+          console.error('Error fetching/updating launch record:', {
+            error: launchError,
+            code: launchError.code,
+            message: launchError.message,
+            detail: launchError.detail,
+            tokenAddress
+          });
+          return; // Exit the function if we can't update the launch record
         }
-
-        // Calculate new values
-        const newSupply = (BigInt(launchRecord.current_supply || '0') - BigInt(amount)).toString();
-        const newLiquidityRaised = (BigInt(launchRecord.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
-        const newTotalTokenHolded = (BigInt(launchRecord.total_token_holded || '0') + BigInt(amount)).toString();
-
-        // Calculate new price based on liquidity and token supply
-        const initPoolSupply = BigInt(launchRecord.initial_pool_supply_dex || '0');
-        const priceBuy = initPoolSupply > BigInt(0)
-          ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
-          : '0';
-
-        // Calculate market cap
-        const marketCap = (BigInt(launchRecord.total_supply || '0') * BigInt(priceBuy)).toString();
-
-        // Update launch record
-        await db.update(tokenLaunch)
-          .set({
-            current_supply: newSupply,
-            liquidity_raised: newLiquidityRaised,
-            total_token_holded: newTotalTokenHolded,
-            price: priceBuy,
-            market_cap: marketCap,
-          })
-          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
-
-        console.log('Launch Record Updated');
 
         // Update or create shareholder record
         const existingShareholder = await db.query.sharesTokenUser.findFirst({
@@ -556,6 +736,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
         await db.insert(sharesTokenUser)
           .values({
+            id: randomUUID(),
             owner: ownerAddress,
             token_address: tokenAddress,
             amount_owned: newAmountOwned,
@@ -575,25 +756,51 @@ export default function (config: ApibaraRuntimeConfig & {
 
         console.log('Shareholder Record Updated');
 
-        // Create transaction record
-        await db.insert(tokenTransactions).values({
-          transfer_id: transferId,
-          network: 'starknet-sepolia',
-          block_timestamp: blockTimestamp,
-          transaction_hash: transactionHash,
-          memecoin_address: tokenAddress,
-          owner_address: ownerAddress,
-          last_price: lastPrice,
-          quote_amount: quoteAmount,
-          price: price,
-          amount: amount,
-          protocol_fee: protocolFee,
-          time_stamp: timestamp,
-          transaction_type: 'buy',
-          created_at: new Date(),
-        });
+        try {
+          // Create transaction record
+          console.log("create transferId", transferId)
+          await db.insert(tokenTransactions).values({
+            transfer_id: transferId,
+            network: 'starknet-sepolia',
+            block_timestamp: blockTimestamp,
+            transaction_hash: transactionHash,
+            memecoin_address: tokenAddress,
+            owner_address: ownerAddress,
+            last_price: lastPrice,
+            quote_amount: quoteAmount,
+            price: price,
+            amount: amount,
+            protocol_fee: protocolFee,
+            time_stamp: timestamp,
+            transaction_type: 'buy',
+            created_at: new Date(),
+          });
 
-        console.log('Transaction Record Created');
+          console.log('Transaction Record Created');
+        } catch (insertError: any) {
+          if (insertError.code === '42703') { // Column does not exist
+            // Try inserting without the id field
+            await db.insert(tokenTransactions).values({
+              transfer_id: transferId,
+              network: 'starknet-sepolia',
+              block_timestamp: blockTimestamp,
+              transaction_hash: transactionHash,
+              memecoin_address: tokenAddress,
+              owner_address: ownerAddress,
+              last_price: lastPrice,
+              quote_amount: quoteAmount,
+              price: price,
+              amount: amount,
+              protocol_fee: protocolFee,
+              time_stamp: timestamp,
+              transaction_type: 'buy',
+              created_at: new Date(),
+            });
+            console.log('Transaction Record Created (without id)');
+          } else {
+            throw insertError; // Re-throw other errors
+          }
+        }
       } catch (dbError: any) {
         if (dbError.code === '23505') { // Unique violation
           console.log('Transaction already exists (unique constraint violation):', {
