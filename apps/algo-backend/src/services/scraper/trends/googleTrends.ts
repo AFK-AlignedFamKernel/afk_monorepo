@@ -1,11 +1,22 @@
 import axios from 'axios';
 import cheerio from 'cheerio';
+import { load } from 'cheerio';
+
+interface TrendValue {
+    date: string;
+    value: number;
+}
+
+interface GeographicalData {
+    country: string;
+    value: number;
+}
 
 interface TrendData {
-    keyword: string;
-    trendValues: number[];
+    trendValues: TrendValue[];
     relatedQueries: string[];
     overallTrend: number;
+    geographicalData: GeographicalData[];
 }
 
 interface OverallTrends {
@@ -48,210 +59,124 @@ async function getTrendsToken(): Promise<string> {
         return 'APP6_UEAAAAAX7QZQzQYwQzQYwQzQYwQzQYwQzQYwQz';
     }
 }
+
 export async function scrapeGoogleTrends(keyword: string): Promise<TrendData> {
     try {
-        const token = await getTrendsToken();
-
-        // Get interest over time
-        const interestResponse = await axios.get(
-            `https://trends.google.com/trends/explore?q=${keyword}`,
-            //   {
-            //     headers: {
-            //       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            //       'Accept': 'application/json, text/plain, */*',
-            //       'Accept-Language': 'en-US,en;q=0.9',
-            //       'Referer': 'https://trends.google.com/',
-            //     }
-            //   }
+        const response = await axios.get(
+            `https://trends.google.com/trends/explore?q=${encodeURIComponent(keyword)}&date=today%201-m&geo=`,
+            {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                }
+            }
         );
 
-        // Get related queries                                                                                                                                                                                                                                                                                                                                                                                  
-        const relatedResponse = await axios.get(
-            `https://trends.google.com/trends/explore?q=${keyword}`,
+        const $ = load(response.data);
+        const trendValues: TrendValue[] = [];
+        const relatedQueries: string[] = [];
+        const geographicalData: GeographicalData[] = [];
 
-            //   `https://trends.google.com/trends/api/widgetdata/relatedsearches?hl=en-US&tz=-120&req={"restriction":{"geo":{},"time":"today 12-m","complexKeywordsRestriction":{"keyword":[{"type":"BROAD","value":${JSON.stringify(keyword)}}]}},"keywordType":"QUERY","metric":["TOP","RISING"],"trendinessSettings":{"compareTime":"today 12-m"},"language":"en","searchTerms":[${JSON.stringify(keyword)}]}&token=${token}&tz=-120`,
-            //   {                                                                                      
-            //     headers: {
-            //       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            //       'Accept': 'application/json, text/plain, */*',
-            //       'Accept-Language': 'en-US,en;q=0.9',
-            //       'Referer': 'https://trends.google.com/',
-            //     }
-            //   }
-        );
-
-        let trendValues: number[] = [];
-        let relatedQueries: string[] = [];
-
-        // Process interest over time data if response is successful
-        if (interestResponse.status === 200 && interestResponse.data) {
-            try {
-                const interestJsonStr = interestResponse.data.replace(')]}\',', '');
-                const interestData = JSON.parse(interestJsonStr);
-
-                if (interestData?.widgets?.[0]?.timeSeriesData?.[0]?.value) {
-                    trendValues = interestData.widgets[0].timeSeriesData[0].value.map((value: number) => Math.round(value));
-                }
-            } catch (e) {
-                console.error('Error processing interest data:', e);
+        // Parse trend values
+        $('div[data-testid="trends-chart"]').find('path').each((_, element) => {
+            const date = $(element).attr('data-date');
+            const value = parseInt($(element).attr('data-value') || '0');
+            if (date && value) {
+                trendValues.push({ date, value });
             }
-        }
+        });
 
-        // Process related queries data if response is successful
-        if (relatedResponse.status === 200 && relatedResponse.data) {
-            try {
-                const relatedJsonStr = relatedResponse.data.replace(')]}\',', '');
-                const relatedData = JSON.parse(relatedJsonStr);
-
-                if (relatedData?.widgets?.[0]?.rankedList?.[0]?.rankedKeyword) {
-                    relatedQueries = relatedData.widgets[0].rankedList[0].rankedKeyword
-                        .map((item: any) => item.query)
-                        .slice(0, 5);
-                }
-            } catch (e) {
-                console.error('Error processing related queries data:', e);
+        // Parse related queries
+        $('div[data-testid="related-queries"]').find('a').each((_, element) => {
+            const query = $(element).text().trim();
+            if (query) {
+                relatedQueries.push(query);
             }
-        }
+        });
 
-        // Calculate overall trend if we have trend values
-        const overallTrend = trendValues.length > 0
-            ? Math.round(trendValues.reduce((sum: number, value: number) => sum + value, 0) / trendValues.length)
-            : 0;
+        // Parse geographical data
+        $('div[data-testid="geo-chart"]').find('path').each((_, element) => {
+            const country = $(element).attr('data-country');
+            const value = parseInt($(element).attr('data-value') || '0');
+            if (country && value) {
+                geographicalData.push({ country, value });
+            }
+        });
+
+        // Calculate overall trend
+        const overallTrend = trendValues.reduce((sum, trend) => sum + trend.value, 0) / trendValues.length;
 
         return {
-            keyword,
-            trendValues: trendValues.length > 0 ? trendValues : [0],
-            relatedQueries: relatedQueries.length > 0 ? relatedQueries : ['No related queries found'],
-            overallTrend
+            trendValues,
+            relatedQueries,
+            overallTrend,
+            geographicalData
         };
     } catch (error) {
-        console.error('Error fetching Google Trends data:', error);
+        console.error('Error scraping Google Trends:', error);
         return {
-            keyword,
-            trendValues: [0],
-            relatedQueries: ['No related queries found'],
-            overallTrend: 0
+            trendValues: [],
+            relatedQueries: [],
+            overallTrend: 0,
+            geographicalData: []
         };
     }
 }
 
-export async function scrapeGoogleSearch(keyword: string): Promise<string[]> {
+export async function scrapeGoogleSearch(keyword: string): Promise<any[]> {
     try {
         const response = await axios.get(
-            `https://www.google.com/search?q=${encodeURIComponent(keyword)}&hl=en`,
+            `https://www.google.com/search?q=${encodeURIComponent(keyword)}`,
             {
                 headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                    'Accept-Language': 'en-US,en;q=0.9',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
                 }
             }
         );
 
-        const $ = cheerio.load(response.data);
-        const links = $('a')
-            .map((_, el) => $(el).attr('href'))
-            .get()
-            .filter(href =>
-                href &&
-                href.startsWith('http') &&
-                !href.includes('google') &&
-                !href.includes('/search')
-            );
+        const $ = load(response.data);
+        const results: any[] = [];
 
-        return [...new Set(links)].slice(0, 10); // Top 10 deduplicated
+        $('div.g').each((_, element) => {
+            const title = $(element).find('h3').text();
+            const link = $(element).find('a').attr('href');
+            const snippet = $(element).find('div.VwiC3b').text();
+
+            if (title && link) {
+                results.push({ title, link, snippet });
+            }
+        });
+
+        return results;
     } catch (error) {
-        console.error('Error fetching Google Search results:', error);
+        console.error('Error scraping Google Search:', error);
         return [];
     }
 }
 
-export async function getOverallTrends(): Promise<OverallTrends> {
+export async function getOverallTrends(): Promise<any> {
     try {
-        const token = await getTrendsToken();
-
-        // Get daily trends
-        const dailyResponse = await axios.get(
-            `https://trends.google.com/trends/api/dailytrends?hl=en-US&tz=-120&geo=US&ns=15&token=${token}`,
-            {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                    'Accept': 'application/json, text/plain, */*',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Referer': 'https://trends.google.com/',
-                }
+        const response = await axios.get('https://trends.google.com/trends/trendingsearches/daily', {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
             }
-        );
+        });
 
-        // Get realtime trends
-        const realtimeResponse = await axios.get(
-            `https://trends.google.com/trends/api/realtimetrends?hl=en-US&tz=-120&geo=US&ns=15&token=${token}`,
-            {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                    'Accept': 'application/json, text/plain, */*',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                    'Referer': 'https://trends.google.com/',
-                }
+        const $ = load(response.data);
+        const trends: any[] = [];
+
+        $('div[data-testid="trending-item"]').each((_, element) => {
+            const title = $(element).find('h3').text();
+            const volume = $(element).find('div[data-testid="trending-volume"]').text();
+            const related = $(element).find('div[data-testid="related-queries"]').text();
+
+            if (title) {
+                trends.push({ title, volume, related });
             }
-        );
+        });
 
-        // Process daily trends
-        const dailyJsonStr = dailyResponse.data.replace(')]}\',', '');
-        const dailyData = JSON.parse(dailyJsonStr);
-        const dailyTrends = dailyData.default.trendingSearchesDays[0].trendingSearches.map((item: any) => ({
-            title: item.title.query,
-            traffic: item.formattedTraffic,
-            articles: item.articles.map((article: any) => ({
-                title: article.title,
-                url: article.url,
-                source: article.source
-            }))
-        }));
-
-        // Process realtime trends
-        const realtimeJsonStr = realtimeResponse.data.replace(')]}\',', '');
-        const realtimeData = JSON.parse(realtimeJsonStr);
-        const realtimeTrends = realtimeData.storySummaries.trendingStories.map((item: any) => ({
-            title: item.title,
-            traffic: item.formattedTraffic,
-            articles: item.articles.map((article: any) => ({
-                title: article.title,
-                url: article.url,
-                source: article.source
-            }))
-        }));
-
-        return {
-            dailyTrends: dailyTrends.slice(0, 10), // Top 10 daily trends
-            realtimeTrends: realtimeTrends.slice(0, 10) // Top 10 realtime trends
-        };
+        return trends;
     } catch (error) {
-        console.error('Error fetching overall trends:', error);
-        // Return placeholder data in case of error
-        return {
-            dailyTrends: [
-                {
-                    title: 'Sample Daily Trend',
-                    traffic: '100K+',
-                    articles: [{
-                        title: 'Sample Article',
-                        url: 'https://example.com',
-                        source: 'Example News'
-                    }]
-                }
-            ],
-            realtimeTrends: [
-                {
-                    title: 'Sample Realtime Trend',
-                    traffic: '50K+',
-                    articles: [{
-                        title: 'Sample Article',
-                        url: 'https://example.com',
-                        source: 'Example News'
-                    }]
-                }
-            ]
-        };
+        console.error('Error getting overall trends:', error);
+        return [];
     }
 }
