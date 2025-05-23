@@ -97,7 +97,9 @@ $header-height: 60px;
   --purple-900: #581c87;
 
   // Semantic colors
-  --primary-color: var(--blue-600);
+  // --primary-color: var(--blue-600);
+  --primary-color: var(--green-600);
+  --primary-color-hover: var(--green-700);
   --secondary-color: var(--primary-500);
   --success-color: var(--green-500);
   --danger-color: var(--red-500);
@@ -106,6 +108,7 @@ $header-height: 60px;
 
   // Button colors
   --button-primary-color: var(--primary-color);
+  --button-primary-color-hover: var(--primary-color-hover);
   --button-secondary-color: var(--secondary-color);
   --button-success-color: var(--success-color);
   --button-danger-color: var(--danger-color);

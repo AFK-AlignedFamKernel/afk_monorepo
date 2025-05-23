@@ -224,7 +224,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
 
   return (
     <div className={`nostr-feed__content ${className}`}>
-        <div className="nostr-feed__tags-container flex gap-2 overflow-x-auto scrollbar-hide pb-2" >
+        <div className="nostr-feed__tags-container flex gap-2 overflow-x-auto scrollbar-hide pb-2 px-2" >
           {tags.map((tag, index) => (
             <div
               className={`px-3 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-200 shadow-md border border-indigo-600 ${

@@ -57,6 +57,7 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
         <div style={{
             width: '100%',
             padding: 8,
+            textAlign:"left"
         }}>
 
             {nostrProfiles.length > 0 ? (
@@ -91,8 +92,8 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
 
             <div style={{
                 display: 'flex',
-                justifyContent: 'flex-end',
-                padding: '10px',
+                justifyContent: 'flex-start',
+                // padding: '10px',
                 gap: '10px'
             }}>
                 <div style={{ position: 'relative' }}>

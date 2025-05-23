@@ -10,14 +10,13 @@ type AccordionProps = {
     title?: string;
     content: React.ReactNode;
     icon?: React.ReactNode;
-   
+
   }[];
   isOpenProps?: boolean;
 };
 
-const AccordionListMenu: React.FC<AccordionProps> = ({ items, title, isOpenProps = false }) => {
+const AccordionMenu: React.FC<AccordionProps> = ({ items, title, isOpenProps = false }) => {
   const [isOpen, setIsOpen] = useState(isOpenProps);
-  console.log('isOpen', isOpen);
   return (
     <div className="w-full flex-start">
       {/* <div>
@@ -53,7 +52,13 @@ const AccordionListMenu: React.FC<AccordionProps> = ({ items, title, isOpenProps
               }
             </div>
             {isOpen && (
-              <div className="p-4">
+              <div className="p-4"
+                style={{
+                  width: '100%',
+                  transition: 'all 0.3s ease-in-out',
+                  animation: isOpen ? 'slideDown 0.3s ease-in-out' : 'slideUp 0.3s ease-in-out',
+                }}
+              >
                 {item.content}
               </div>
             )}
@@ -64,4 +69,4 @@ const AccordionListMenu: React.FC<AccordionProps> = ({ items, title, isOpenProps
   );
 };
 
-export default AccordionListMenu;
+export default AccordionMenu;

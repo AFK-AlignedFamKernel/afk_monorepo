@@ -12,6 +12,9 @@ import { Icon } from '@/components/small/icon-component';
 import { NostrProfileManagement } from '../Nostr/profile/nostr-profile-management';
 import { WalletConnectButton } from '../account/WalletConnectButton';
 import { Oauth } from './Oauth';
+import Divider from '../small/Divider';
+import Accordion from '../small/accordion';
+import AccordionMenu from '../small/AccordionMenu';
 interface CustomHeaderInterface {
     title?: string;
     showLogo?: boolean;
@@ -26,7 +29,7 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
 
     const { publicKey, setAuth } = useAuth();
     const [isOpenProfile, setIsOpenProfile] = React.useState(false);
-    const [activeTab, setActiveTab] = React.useState<'all' | 'nostr' | 'onchain'>('all');
+    const [activeTab, setActiveTab] = React.useState<'all' | 'nostr' | 'onchain' | 'oauth'>('all');
     const nostrAccounts = NostrKeyManager.getAllNostrAccountsFromStorage();
     const [isWalletSelectOpen, setIsWalletSelectOpen] = React.useState(false);
     const { showToast } = useUIStore();
@@ -62,30 +65,57 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
             width: '100%',
             padding: 8,
         }}>
-
-
-            <div className="card shadow p-4">
-
-                <NostrProfileManagement></NostrProfileManagement>
+            <div style={{
+                display: 'flex',
+                gap: 8,
+                marginBottom: 8,
+            }}>   
+                <button className={`btn btn-secondary ${activeTab == 'all' ? 'btn-active' : ''}`} onClick={() => setActiveTab('all')}>All</button>    
+                <button className={`btn btn-secondary ${activeTab == 'nostr' ? 'btn-active' : ''}`} onClick={() => setActiveTab('nostr')}>Nostr</button>    
+                <button className={`btn btn-secondary ${activeTab == 'onchain' ? 'btn-active' : ''}`} onClick={() => setActiveTab('onchain')}>Onchain</button>    
+                <button className={`btn btn-secondary ${activeTab == 'oauth' ? 'btn-active' : ''}`} onClick={() => setActiveTab('oauth')}>Oauth</button>    
             </div>
+            {activeTab === 'oauth' && (
+                <div className='card shadow'>
+                    <Oauth></Oauth>
+                </div>
+            )}
 
-            <div className='card shadow'>
-                <p>Onchain wallet</p>
+            {activeTab === 'all' && (
+                <div className='shadow'>
+                    <div>
+                        <p>Socials</p>
+                        <AccordionMenu items={[{
+                            title: 'Nostr',
+                            content: <NostrProfileManagement></NostrProfileManagement>
+                        }]}></AccordionMenu>
 
-                <div>
-                    <p>Starknet account</p>
+                    </div>
+                    <Divider></Divider>
+                    <div>
+                        <p>Wallet</p>
+                        <WalletConnectButton></WalletConnectButton>
+                    </div>
+                    <Divider></Divider>
+                    <div>
+                        <p>Oauth</p>
+                        <Oauth></Oauth> 
+                    </div>
+                    {/* <Divider></Divider> */}
+                </div>
+            )}
+
+            {activeTab === 'nostr' && (
+                <div className="card shadow p-4">
+                    <NostrProfileManagement></NostrProfileManagement>
+                </div>
+            )}
+
+            {activeTab === 'onchain' && (
+                <div className="card shadow p-4">
                     <WalletConnectButton></WalletConnectButton>
                 </div>
-            </div>
-
-            <div className='card shadow'>
-                <p>Socials</p>
-                <div>
-                    <p>Twitter</p>
-                    <p>X</p>
-                </div>
-                <Oauth></Oauth>
-            </div>
+            )}
 
         </div>
     );

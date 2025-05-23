@@ -149,7 +149,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
 
   return (
     <div className={`nostr-feed__container ${className}`}>
-      <div className="nostr-feed__tabs">
+      <div className="nostr-feed__tabs px-2">
         {tabs.map((tab) => (
           <button
             key={tab.id}

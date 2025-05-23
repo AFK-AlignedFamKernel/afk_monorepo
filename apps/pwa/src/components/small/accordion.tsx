@@ -9,14 +9,14 @@ type AccordionProps = {
     content: React.ReactNode;
     icon?: React.ReactNode;
   }[];
+  isOpen?: boolean;
 };
 
-const Accordion: React.FC<AccordionProps> = ({ items, title }) => {
+const Accordion: React.FC<AccordionProps> = ({ items, title, isOpen = false }) => {
   return (
     <div className="w-full flex-start">
       {/* <div>
         {title && <p className="text-1xl font-bold">{title}</p>}
-
       </div> */}
       {items.map((item, index) => (
         <div key={index} className="group">
@@ -25,6 +25,7 @@ const Accordion: React.FC<AccordionProps> = ({ items, title }) => {
             type="checkbox"
             id={`accordion-${index}`}
             className="absolute opacity-0 peer"
+            // checked={isOpen}
           />
 
           <div className="flex items-center">
