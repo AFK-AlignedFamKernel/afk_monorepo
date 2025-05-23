@@ -37,6 +37,10 @@ model token_deploy {
   telegram          String?
   twitter           String?
   website           String?
+
+  is_verified Boolean? default(false)
+  project_type String?
+
   token_launch token_launch?
   token_metadata token_metadata? @relation("TokenMetadataToDeploy")
 }
@@ -81,6 +85,9 @@ model token_launch {
   token_deploy_tx_hash    String? @unique
   token_deploy            token_deploy? @relation(fields: [token_deploy_tx_hash], references: [transaction_hash])
   token_metadata token_metadata? @relation("TokenMetadataToLaunch")
+
+  is_verified Boolean default(false)
+  project_type String?
 }
 
 

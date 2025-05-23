@@ -1,9 +1,10 @@
 import { useMutation } from '@tanstack/react-query';
 import axios from 'axios';
-// import { Platform } from 'react-native';
 import { useApiMutation } from './useApiMutation';
 import { dataURLToBlob } from '@/utils/helpers';
 import { ApiInstance, ApiBackendInstance } from '@/utils/file-upload';
+import { MetadataOnchain } from '@/types/token';
+
 //ENVS
 const PINATA_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || 'https://ipfs.io/';
 
@@ -29,26 +30,24 @@ interface ImagePickerAsset {
     type?: string;
 }
 
-export const useFileJsonUpload = () => {
-    return useApiMutation<FileUploadResult, FileUploadResult, File | string | Blob>({
-        mutationKey: ['fileJsonUpload'],
-        mutationFn: async (data: any) => {
-            try {
 
-                return ApiBackendInstance.post('/file/metadata', data,
-                    {
-                        headers: {
-                            type: 'application/json',
-                        },
-                    });
-            } catch (error) {
-                console.log("error", error)
+export const uploadJsonIpfs = async (data:any) => {
+    try {
+        const response = await ApiBackendInstance.post('/file/metadata', data, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.message || 'JSON upload failed');
+        }
+        // throw error;
+        return undefined;
+    }
+}
 
-            }
-
-        },
-    });
-};
 
 export const usePinataVideoUpload = () => {
     return useMutation<IVideoType, Error, ImagePickerAsset>({

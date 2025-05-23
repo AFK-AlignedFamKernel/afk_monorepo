@@ -11,7 +11,8 @@ import { useAccount } from '@starknet-react/core';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useUIStore } from '@/store/uiStore';
 import dynamic from 'next/dynamic';
-import { useFileJsonUpload } from '@/hooks/useFileJsonUpload';
+import { uploadJsonIpfs } from '@/hooks/useFileJsonUpload';
+import Image from "next/image";
 
 const WalletConnectButton = dynamic(() => import('@/components/account/starknet/WalletConnectButton').then(mod => mod.WalletConnectButtonController), {
   ssr: false,
@@ -49,7 +50,6 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
   const [showMetadata, setShowMetadata] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const fileUpload = useFileUpload()
-  const fileJsonUpload = useFileJsonUpload()
   const { address } = useStarknet();
   const { showToast } = useUIStore();
   const { deployTokenAndLaunch, isLoading, error, deployToken, deployTokenAndLaunchWithMetadata } = useCreateToken();
@@ -67,6 +67,9 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
       github: '',
       telegram: '',
       website: '',
+      description: '',
+      discord: '',
+      ipfs_hash: ""
     },
   };
 
@@ -91,10 +94,10 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
             urlHash = result.data?.hash
           }
         } catch (error) {
-          console.log("error",error)
-          
+          console.log("error", error)
+
         }
-     
+
       }
 
       let res;
@@ -110,23 +113,30 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
         github: values.metadata.github,
         telegram: values.metadata.telegram,
         website: values.metadata.website,
-        description:values?.metadata?.description,
+        description: values?.metadata?.description,
         nostr_event_id: values.metadata.nostr_event_id,
-        ipfs_hash:undefined
+        ipfs_hash: undefined,
+        ipfs_url: undefined
       }
 
+
+      let ipfs_hash = ""
+      let ipfs_url = ""
       try {
-        
-        
-        const result = await fileJsonUpload.mutateAsync(file);
-        
-        metadata.ipfs_hash= result?.data?.hash
+        console.log("try upload metatada  ")
+        // const result = await fileJsonUpload.mutateAsync(metadata);
+        const result = await uploadJsonIpfs(metadata);
+        console.log("result", result)
+        ipfs_hash = result?.hash
+        ipfs_url = result?.url
+        metadata.ipfs_hash = result?.hash;
+        metadata.ipfs_url = result.url;
       } catch (error) {
         console.log("res json issue")
-        
-      }
 
+      }
       // return;
+      console.log("metadata", metadata)
       const result = await deployTokenAndLaunch(values, metadata);
       // const result = await deployTokenAndLaunchWithMetadata(values, metadata);
       // const result = await deployTokenAndLaunch(values);
@@ -262,22 +272,54 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Twitter
+                      Description
                     </label>
                     <Field
                       type="text"
+                      name="metadata.description"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
+                    />
+                    {errors?.metadata?.description && touched.metadata?.description && (
+                      <p className="mt-1 text-sm text-red-600">{errors?.metadata?.description}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <div className='flex'>
+                      <Image src="/assets/icons/twitter.svg"
+                        width={50}
+                        height={50}
+                        alt="Twitter"
+                      ></Image>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Twitter
+                      </label>
+                    </div>
+
+                    <Field
+                      type="text"
                       name="metadata.twitter"
+                      placeholder="https://x.com/AFK_AlignedFamK"
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      GitHub
-                    </label>
+                    <div>
+                      <Image src="/assets/icons/github.svg"
+                        alt="Github"
+                        width={50}
+                        height={50}
+                      ></Image>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        GitHub
+                      </label>
+                    </div>
+
                     <Field
                       type="text"
                       name="metadata.github"
+                      placeholder="https://github.com/AFK-AlignedFamKernel/afk_monorepo"
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                     />
                   </div>
@@ -289,17 +331,20 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
                     <Field
                       type="text"
                       name="metadata.telegram"
+                      placeholder="https://t.me/afk_aligned_fam_kernel/1"
+
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-500">
                       Website
                     </label>
                     <Field
                       type="url"
                       name="metadata.website"
+                      placeholder="https://linktr.ee/afk_aligned_fam_kernel"
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                     />
                     {errors?.metadata?.website && touched.metadata?.website && (

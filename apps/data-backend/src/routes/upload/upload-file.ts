@@ -40,14 +40,37 @@ async function uploadFile(fastify: FastifyInstance) {
     }
   });
 
-  fastify.post('/file/metadata', async (request, reply) => {
+  fastify.post('/file/metadata', {
+    schema: {
+      body: {
+        type: 'object',
+        properties: {
+          url: { type: 'string' },
+          twitter: { type: 'string' },
+          github: { type: 'string' },
+          telegram: { type: 'string' },
+          website: { type: 'string' },
+          description: { type: 'string' },
+          nostr_event_id: { type: 'string' },
+          token_address: { type: 'string' },
+          creator_fee_destination: { type: 'string' },
+          ipfs_hash: { type: 'string' }
+        }
+      }
+    },
+    preHandler: async (request, reply) => {
+      // Add CORS headers
+      reply.header('Access-Control-Allow-Origin', '*');
+      reply.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
+      reply.header('Access-Control-Allow-Headers', 'Content-Type');
+    }
+  }, async (request, reply) => {
     try {
-
-      console.log("request body",request?.body)
+      console.log("request body", request?.body);
       
       const jsonContent = request.body as Record<string, unknown>;
       
-      console.log("jsonContent",jsonContent)
+      console.log("jsonContent", jsonContent);
       if (!jsonContent) {
         return reply.code(400).send({ message: 'No JSON data provided' });
       }
