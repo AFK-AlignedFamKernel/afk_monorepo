@@ -9,7 +9,7 @@ import { ABI as launchpadABI } from './abi/launchpad.abi';
 import { formatUnits } from 'viem';
 import { randomUUID } from 'crypto';
 import { tokenDeploy, tokenLaunch, tokenMetadata, tokenTransactions, sharesTokenUser } from 'indexer-v2-db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 
 const CREATE_TOKEN = hash.getSelectorFromName('CreateToken') as `0x${string}`;
 const CREATE_LAUNCH = hash.getSelectorFromName('CreateLaunch') as `0x${string}`;
@@ -50,23 +50,23 @@ export default function (config: ApibaraRuntimeConfig & {
     filter: {
       events: [
         {
-          address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
+          address: "0x438dffae04864ab04c3e7cd679f9c57329a8317d4d80802486a2b2f6658a634" as `0x${string}`,
           keys: [CREATE_TOKEN],
         },
         {
-          address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
+          address: "0x438dffae04864ab04c3e7cd679f9c57329a8317d4d80802486a2b2f6658a634" as `0x${string}`,
           keys: [CREATE_LAUNCH],
         },
         {
-          address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
+          address: "0x438dffae04864ab04c3e7cd679f9c57329a8317d4d80802486a2b2f6658a634" as `0x${string}`,
           keys: [BUY_TOKEN],
         },
         {
-          address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
+          address: "0x438dffae04864ab04c3e7cd679f9c57329a8317d4d80802486a2b2f6658a634" as `0x${string}`,
           keys: [SELL_TOKEN],
         },
         {
-          address: "0x711392008ddacbe090c87a8cee79275f58a12b853dcc6fdb23bf8dd74c2899d" as `0x${string}`,
+          address: "0x438dffae04864ab04c3e7cd679f9c57329a8317d4d80802486a2b2f6658a634" as `0x${string}`,
           keys: [METADATA_COIN_ADDED],
         },
       ],
@@ -78,7 +78,7 @@ export default function (config: ApibaraRuntimeConfig & {
         token_launch: 'transaction_hash',
         token_metadata: 'transaction_hash',
         token_transactions: 'transfer_id',
-        shares_token_user: 'id'
+        shares_token_user: 'owner'
       }
     })],
     async transform({ endCursor, block, context, finality, }) {
@@ -130,7 +130,7 @@ export default function (config: ApibaraRuntimeConfig & {
                   event,
                   eventName: 'afk_launchpad::types::launchpad_types::MetadataCoinAdded',
                 });
-                // await handleMetadataEvent(decodedEvent, header, event);
+                await handleMetadataEvent(decodedEvent, header, event);
               } catch (error) {
                 console.error("Error processing metadata event:", error);
                 // Don't throw here to allow processing to continue
@@ -151,16 +151,22 @@ export default function (config: ApibaraRuntimeConfig & {
                 event,
                 eventName: 'afk_launchpad::types::launchpad_types::SellToken',
               });
-              // await handleSellTokenEvent(decodedEvent, header, event);
+              await handleSellTokenEvent(decodedEvent, header, event);
             }
-            else if (event?.keys[0] === "0x00cb205b7506d21e6fe528cd4ae2ce69ae63eb6fc10a2d0234dd39ef3d349797") {
-              console.log("event createToken")
+            else if (event?.keys[0] === "574011777754438778741091000026813809688738065270168948370966127226855794970" as `0x${string}`
+
+|| event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)
+|| event?.keys[0] == "0x00cb205b7506d21e6fe528cd4ae2ce69ae63eb6fc10a2d0234dd39ef3d349797" as `0x${string}`
+
+            ) {
+           
+              console.log("event Buy")
               const decodedEvent = decodeEvent({
                 abi: launchpadABI as Abi,
                 event,
-                eventName: 'afk_launchpad::types::launchpad_types::CreateToken',
+                eventName: 'afk_launchpad::types::launchpad_types::BuyToken',
               });
-              await handleCreateTokenEvent(decodedEvent, event.address, header, event);
+              await handleBuyTokenEvent(decodedEvent, header, event);
             }
           } catch (error: any) {
             logger.error(`Error processing event: ${error.message}`);
@@ -201,24 +207,61 @@ export default function (config: ApibaraRuntimeConfig & {
         symbol
       });
 
-      await db.insert(tokenDeploy).values({
-        transaction_hash: transactionHash,
-        network: 'starknet-sepolia',
-        block_timestamp: blockTimestamp,
-        memecoin_address: tokenAddress,
-        owner_address: ownerAddress,
-        name: name,
-        symbol: symbol,
-        initial_supply: initialSupply,
-        total_supply: totalSupply,
-        created_at: new Date(),
-        is_launched: false,
-      });
+      try {
+        // Check if token already exists
+        const existingToken = await db.query.tokenDeploy.findFirst({
+          where: or(
+            eq(tokenDeploy.memecoin_address, tokenAddress),
+            eq(tokenDeploy.transaction_hash, transactionHash)
+          )
+        });
 
-      console.log('Token Deploy Record Created');
+        if (existingToken) {
+          console.log('Token already exists, skipping creation:', {
+            memecoin_address: existingToken.memecoin_address,
+            transaction_hash: existingToken.transaction_hash
+          });
+          return;
+        }
+
+        // Insert new token
+        await db.insert(tokenDeploy).values({
+          
+          id:randomUUID(),
+          transaction_hash: transactionHash,
+          network: 'starknet-sepolia',
+          block_timestamp: blockTimestamp,
+          memecoin_address: tokenAddress,
+          owner_address: ownerAddress,
+          name: name,
+          symbol: symbol,
+          initial_supply: initialSupply,
+          total_supply: totalSupply,
+          created_at: new Date(),
+          is_launched: false,
+        });
+
+        console.log('Token Deploy Record Created');
+      } catch (dbError: any) {
+        // Handle specific database errors
+        if (dbError.code === '23505') { // Unique violation
+          console.log('Token already exists (unique constraint violation):', {
+            tokenAddress,
+            transactionHash
+          });
+        } else {
+          console.error('Database error in handleCreateTokenEvent:', {
+            error: dbError,
+            code: dbError.code,
+            message: dbError.message,
+            detail: dbError.detail
+          });
+        }
+        // Continue execution without throwing
+      }
     } catch (error) {
       console.error("Error in handleCreateTokenEvent:", error);
-      throw error;
+      // Don't throw to allow processing to continue
     }
   }
 
@@ -235,53 +278,86 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      // Get token deploy info for name and symbol
-      const tokenDeployInfo = await db
-        .select()
-        .from(tokenDeploy)
-        .where(eq(tokenDeploy.memecoin_address, event?.args?.memecoin_address))
-        .limit(1);
+      try {
+        // Check if launch already exists
+        const existingLaunch = await db.query.tokenLaunch.findFirst({
+          where: or(
+            eq(tokenLaunch.transaction_hash, transactionHash),
+            eq(tokenLaunch.memecoin_address, event?.args?.memecoin_address)
+          )
+        });
 
-      const launchData = {
-        memecoin_address: event?.args?.memecoin_address,
-        owner_address: event?.args?.owner,
-        name: tokenDeployInfo[0]?.name || null,
-        symbol: tokenDeployInfo[0]?.symbol || null,
-        quote_token: event?.args?.quote_token,
-        total_supply: formatTokenAmount(event?.args?.total_supply?.toString() || '0'),
-        threshold_liquidity: formatTokenAmount(event?.args?.threshold_liquidity?.toString() || '0'),
-        current_supply: formatTokenAmount(event?.args?.current_supply?.toString() || '0'),
-        liquidity_raised: formatTokenAmount(event?.args?.liquidity_raised?.toString() || '0'),
-        is_liquidity_added: event?.args?.is_liquidity_added || false,
-        total_token_holded: formatTokenAmount(event?.args?.total_token_holded?.toString() || '0'),
-        price: formatTokenAmount(event?.args?.price?.toString() || '0'),
-        bonding_type: event?.args?.bonding_type,
-        initial_pool_supply_dex: formatTokenAmount(event?.args?.initial_pool_supply_dex?.toString() || '0'),
-        market_cap: formatTokenAmount(event?.args?.market_cap?.toString() || '0'),
-        token_deploy_tx_hash: event?.args?.token_deploy_tx_hash,
-      };
+        if (existingLaunch) {
+          console.log('Launch already exists, skipping creation:', {
+            memecoin_address: existingLaunch.memecoin_address,
+            transaction_hash: existingLaunch.transaction_hash
+          });
+          return;
+        }
 
-      console.log('Processed Launch Data:', launchData);
+        // Get token deploy info for name and symbol
+        const tokenDeployInfo = await db.query.tokenDeploy.findFirst({
+          where: eq(tokenDeploy.memecoin_address, event?.args?.memecoin_address)
+        });
 
-      await db.insert(tokenLaunch).values({
-        transaction_hash: transactionHash,
-        network: 'starknet-sepolia',
-        block_timestamp: blockTimestamp,
-        ...launchData,
-        created_at: new Date(),
-      });
+        if (!tokenDeployInfo) {
+          console.log('Token deploy not found for launch:', {
+            memecoin_address: event?.args?.memecoin_address
+          });
+          return;
+        }
 
-      console.log('Token Launch Record Created');
+        const launchData = {
+          transaction_hash: transactionHash,
+          network: 'starknet-sepolia',
+          block_timestamp: blockTimestamp,
+          memecoin_address: event?.args?.memecoin_address,
+          owner_address: event?.args?.owner,
+          name: tokenDeployInfo.name || null,
+          symbol: tokenDeployInfo.symbol || null,
+          quote_token: event?.args?.quote_token,
+          total_supply: formatTokenAmount(event?.args?.total_supply?.toString() || '0'),
+          threshold_liquidity: formatTokenAmount(event?.args?.threshold_liquidity?.toString() || '0'),
+          current_supply: formatTokenAmount(event?.args?.current_supply?.toString() || '0'),
+          liquidity_raised: formatTokenAmount(event?.args?.liquidity_raised?.toString() || '0'),
+          is_liquidity_added: event?.args?.is_liquidity_added || false,
+          total_token_holded: formatTokenAmount(event?.args?.total_token_holded?.toString() || '0'),
+          price: formatTokenAmount(event?.args?.price?.toString() || '0'),
+          bonding_type: event?.args?.bonding_type,
+          initial_pool_supply_dex: formatTokenAmount(event?.args?.initial_pool_supply_dex?.toString() || '0'),
+          market_cap: formatTokenAmount(event?.args?.market_cap?.toString() || '0'),
+          token_deploy_tx_hash: event?.args?.token_deploy_tx_hash,
+          created_at: new Date(),
+        };
 
-      // Update token deploy to mark as launched
-      await db.update(tokenDeploy)
-        .set({ is_launched: true })
-        .where(eq(tokenDeploy.transaction_hash, event?.args?.token_deploy_tx_hash));
+        console.log('Processed Launch Data:', launchData);
 
-      console.log('Token Deploy Updated to Launched');
+        await db.insert(tokenLaunch).values(launchData);
+        console.log('Token Launch Record Created');
+
+        // Update token deploy to mark as launched
+        await db.update(tokenDeploy)
+          .set({ is_launched: true })
+          .where(eq(tokenDeploy.transaction_hash, event?.args?.token_deploy_tx_hash));
+
+        console.log('Token Deploy Updated to Launched');
+      } catch (dbError: any) {
+        if (dbError.code === '23505') { // Unique violation
+          console.log('Launch already exists (unique constraint violation):', {
+            memecoin_address: event?.args?.memecoin_address,
+            transaction_hash: transactionHash
+          });
+        } else {
+          console.error('Database error in handleCreateLaunch:', {
+            error: dbError,
+            code: dbError.code,
+            message: dbError.message,
+            detail: dbError.detail
+          });
+        }
+      }
     } catch (error) {
       console.error("Error in handleCreateLaunch:", error);
-      throw error;
     }
   }
 
@@ -298,66 +374,89 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      const metadataData = {
-        memecoin_address: event?.args?.token_address || null,
-        url: event?.args?.url || null,
-        nostr_id: event?.args?.nostr_id || null,
-        nostr_event_id: event?.args?.nostr_event_id || null,
-        twitter: event?.args?.twitter || null,
-        telegram: event?.args?.telegram || null,
-        github: event?.args?.github || null,
-        website: event?.args?.website || null,
-      };
+      try {
+        // Check if metadata already exists
+        const existingMetadata = await db.query.tokenMetadata.findFirst({
+          where: or(
+            eq(tokenMetadata.transaction_hash, transactionHash),
+            eq(tokenMetadata.memecoin_address, event?.args?.token_address)
+          )
+        });
 
-      console.log('Processed Metadata:', metadataData);
+        if (existingMetadata) {
+          console.log('Metadata already exists, skipping creation:', {
+            memecoin_address: existingMetadata.memecoin_address,
+            transaction_hash: existingMetadata.transaction_hash
+          });
+          return;
+        }
 
-      await db.insert(tokenMetadata).values({
-        transaction_hash: transactionHash,
-        network: 'starknet-sepolia',
-        block_timestamp: blockTimestamp,
-        ...metadataData,
-        created_at: new Date(),
-      });
+        const metadataData = {
+          transaction_hash: transactionHash,
+          network: 'starknet-sepolia',
+          block_timestamp: blockTimestamp,
+          memecoin_address: event?.args?.token_address || null,
+          url: event?.args?.url || null,
+          nostr_id: event?.args?.nostr_id || null,
+          nostr_event_id: event?.args?.nostr_event_id || null,
+          twitter: event?.args?.twitter || null,
+          telegram: event?.args?.telegram || null,
+          github: event?.args?.github || null,
+          website: event?.args?.website || null,
+          created_at: new Date(),
+        };
 
-      console.log('Token Metadata Record Created');
+        console.log('Processed Metadata:', metadataData);
 
-      // Update token deploy record if it exists
-      const existingDeploy = await db
-        .select()
-        .from(tokenDeploy)
-        .where(eq(tokenDeploy.memecoin_address, metadataData.memecoin_address))
-        .limit(1);
+        await db.insert(tokenMetadata).values(metadataData);
+        console.log('Token Metadata Record Created');
 
-      if (existingDeploy.length > 0) {
-        await db.update(tokenDeploy)
-          .set({
-            name: event?.args?.name || existingDeploy[0].name,
-            symbol: event?.args?.symbol || existingDeploy[0].symbol,
-          })
-          .where(eq(tokenDeploy.memecoin_address, metadataData.memecoin_address));
-        console.log('Token Deploy Record Updated with Metadata');
+        // Update token deploy record if it exists
+        const existingDeploy = await db.query.tokenDeploy.findFirst({
+          where: eq(tokenDeploy.memecoin_address, metadataData.memecoin_address)
+        });
+
+        if (existingDeploy) {
+          await db.update(tokenDeploy)
+            .set({
+              name: event?.args?.name || existingDeploy.name,
+              symbol: event?.args?.symbol || existingDeploy.symbol,
+            })
+            .where(eq(tokenDeploy.memecoin_address, metadataData.memecoin_address));
+          console.log('Token Deploy Record Updated with Metadata');
+        }
+
+        // Update token launch record if it exists
+        const existingLaunch = await db.query.tokenLaunch.findFirst({
+          where: eq(tokenLaunch.memecoin_address, metadataData.memecoin_address)
+        });
+
+        if (existingLaunch) {
+          await db.update(tokenLaunch)
+            .set({
+              name: event?.args?.name || existingLaunch.name,
+              symbol: event?.args?.symbol || existingLaunch.symbol,
+            })
+            .where(eq(tokenLaunch.memecoin_address, metadataData.memecoin_address));
+          console.log('Token Launch Record Updated with Metadata');
+        }
+      } catch (dbError: any) {
+        if (dbError.code === '23505') { // Unique violation
+          console.log('Metadata already exists (unique constraint violation):', {
+            memecoin_address: event?.args?.token_address,
+            transaction_hash: transactionHash
+          });
+        } else {
+          console.error('Database error in handleMetadataEvent:', {
+            error: dbError,
+            code: dbError.code,
+            message: dbError.message,
+            detail: dbError.detail
+          });
+        }
       }
-
-      // Update token launch record if it exists
-      const existingLaunch = await db
-        .select()
-        .from(tokenLaunch)
-        .where(eq(tokenLaunch.memecoin_address, metadataData.memecoin_address))
-        .limit(1);
-
-      if (existingLaunch.length > 0) {
-        await db.update(tokenLaunch)
-          .set({
-            name: event?.args?.name || existingLaunch[0].name,
-            symbol: event?.args?.symbol || existingLaunch[0].symbol,
-          })
-          .where(eq(tokenLaunch.memecoin_address, metadataData.memecoin_address));
-        console.log('Token Launch Record Updated with Metadata');
-      }
-
     } catch (error) {
       console.error("Error in handleMetadataEvent:", error);
-      // Don't re-throw to allow processing to continue
     }
   }
 
@@ -377,172 +476,139 @@ export default function (config: ApibaraRuntimeConfig & {
       // Generate a unique transfer ID using transaction hash and event index
       const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
-      const ownerAddress = event?.args?.caller;
-      const tokenAddress = event?.args?.key_user;
+      try {
+        // Check if transaction already exists
+        console.log("transferId", transferId)
+        const existingTransaction = await db.query.tokenTransactions.findFirst({
+          where: eq(tokenTransactions.transfer_id, transferId)
+        });
 
-      // Get values from args
-      const amount = event?.args?.amount?.toString() || '0';
-      const price = event?.args?.price?.toString() || '0';
-      const protocolFee = event?.args?.protocol_fee?.toString() || '0';
-      const lastPrice = event?.args?.last_price?.toString() || '0';
-      const quoteAmount = event?.args?.coin_amount?.toString() || '0';
+        if (existingTransaction) {
+          console.log('Transaction already exists, skipping:', {
+            transfer_id: transferId,
+            transaction_hash: transactionHash
+          });
+          return;
+        }
 
-      // Handle timestamp properly - use block timestamp if event timestamp is invalid
-      const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
-      const timestamp = new Date(Math.max(0, eventTimestampMs));
+        const ownerAddress = event?.args?.caller;
+        const tokenAddress = event?.args?.key_user;
 
-      console.log('Processed Buy Values:', {
-        transferId,
-        ownerAddress,
-        tokenAddress,
-        amount,
-        price,
-        protocolFee,
-        lastPrice,
-        quoteAmount,
-        eventTimestamp: eventTimestampMs,
-        blockTimestamp,
-        timestamp: timestamp.toISOString()
-      });
+        // Get values from args
+        const amount = event?.args?.amount?.toString() || '0';
+        const price = event?.args?.price?.toString() || '0';
+        const protocolFee = event?.args?.protocol_fee?.toString() || '0';
+        const lastPrice = event?.args?.last_price?.toString() || '0';
+        const quoteAmount = event?.args?.coin_amount?.toString() || '0';
 
-      // Get the launch record to update
-      const launchRecord = await db
-        .select()
-        .from(tokenLaunch)
-        .where(eq(tokenLaunch.memecoin_address, tokenAddress))
-        .limit(1);
+        // Handle timestamp properly
+        const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
+        const timestamp = new Date(Math.max(0, eventTimestampMs));
 
-      console.log('Current Launch Record:', launchRecord[0]);
+        // Get the launch record to update
+        const launchRecord = await db.query.tokenLaunch.findFirst({
+          where: eq(tokenLaunch.memecoin_address, tokenAddress)
+        });
 
-      // Calculate new values
-      const currentLaunch = launchRecord[0] || {
-        current_supply: '0',
-        liquidity_raised: '0',
-        total_token_holded: '0',
-        initial_pool_supply_dex: '0',
-        total_supply: '0'
-      };
+        if (!launchRecord) {
+          console.log('Launch record not found for token:', tokenAddress);
+          return;
+        }
 
-      const newSupply = (BigInt(currentLaunch.current_supply || '0') - BigInt(amount)).toString();
-      const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
-      const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount)).toString();
+        // Calculate new values
+        const newSupply = (BigInt(launchRecord.current_supply || '0') - BigInt(amount)).toString();
+        const newLiquidityRaised = (BigInt(launchRecord.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
+        const newTotalTokenHolded = (BigInt(launchRecord.total_token_holded || '0') + BigInt(amount)).toString();
 
-      // Calculate new price based on liquidity and token supply
-      const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-      const priceBuy = initPoolSupply > BigInt(0)
-        ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
-        : '0';
+        // Calculate new price based on liquidity and token supply
+        const initPoolSupply = BigInt(launchRecord.initial_pool_supply_dex || '0');
+        const priceBuy = initPoolSupply > BigInt(0)
+          ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
+          : '0';
 
-      // Calculate market cap
-      const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
+        // Calculate market cap
+        const marketCap = (BigInt(launchRecord.total_supply || '0') * BigInt(priceBuy)).toString();
 
-      console.log('Calculated Values:', {
-        newSupply,
-        newLiquidityRaised,
-        newTotalTokenHolded,
-        priceBuy,
-        marketCap
-      });
-
-      console.log("try upsert launch record");
-
-      // Upsert launch record
-      await db.insert(tokenLaunch)
-        .values({
-          transaction_hash: transactionHash,
-          network: 'starknet-sepolia',
-          block_timestamp: blockTimestamp,
-          memecoin_address: tokenAddress,
-          owner_address: ownerAddress,
-          current_supply: newSupply,
-          liquidity_raised: newLiquidityRaised,
-          total_token_holded: newTotalTokenHolded,
-          price: priceBuy,
-          market_cap: marketCap,
-          created_at: new Date(),
-        })
-        .onConflictDoUpdate({
-          target: tokenLaunch.memecoin_address,
-          set: {
+        // Update launch record
+        await db.update(tokenLaunch)
+          .set({
             current_supply: newSupply,
             liquidity_raised: newLiquidityRaised,
             total_token_holded: newTotalTokenHolded,
             price: priceBuy,
             market_cap: marketCap,
-          },
+          })
+          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+
+        console.log('Launch Record Updated');
+
+        // Update or create shareholder record
+        const existingShareholder = await db.query.sharesTokenUser.findFirst({
+          where: and(
+            eq(sharesTokenUser.owner, ownerAddress),
+            eq(sharesTokenUser.token_address, tokenAddress)
+          )
         });
 
-      console.log('Launch Record Upserted');
+        const newAmountOwned = existingShareholder ? (BigInt(existingShareholder.amount_owned || '0') + BigInt(amount)).toString() : amount;
+        const newAmountBuy = existingShareholder ? (BigInt(existingShareholder.amount_buy || '0') + BigInt(amount)).toString() : amount;
+        const newTotalPaid = existingShareholder ? (BigInt(existingShareholder.total_paid || '0') + BigInt(quoteAmount)).toString() : quoteAmount;
 
-      // Update or create shareholder record
-      const shareholderId = `${ownerAddress}_${tokenAddress}`;
-      const existingShareholder = await db
-        .select()
-        .from(sharesTokenUser)
-        .where(eq(sharesTokenUser.id, shareholderId))
-        .limit(1);
-
-      console.log('Existing Shareholder:', existingShareholder[0]);
-
-      const newAmountOwned = existingShareholder.length > 0
-        ? (BigInt(existingShareholder[0].amount_owned || '0') + BigInt(amount)).toString()
-        : amount;
-
-      const newAmountBuy = existingShareholder.length > 0
-        ? (BigInt(existingShareholder[0].amount_buy || '0') + BigInt(amount)).toString()
-        : amount;
-
-      const newTotalPaid = existingShareholder.length > 0
-        ? (BigInt(existingShareholder[0].total_paid || '0') + BigInt(quoteAmount)).toString()
-        : quoteAmount;
-
-      console.log('New Shareholder Values:', {
-        newAmountOwned,
-        newAmountBuy,
-        newTotalPaid
-      });
-
-      await db.insert(sharesTokenUser)
-        .values({
-          id: shareholderId,
-          owner: ownerAddress,
-          token_address: tokenAddress,
-          amount_owned: newAmountOwned,
-          amount_buy: newAmountBuy,
-          total_paid: newTotalPaid,
-          is_claimable: true,
-        })
-        .onConflictDoUpdate({
-          target: sharesTokenUser.id,
-          set: {
+        await db.insert(sharesTokenUser)
+          .values({
+            owner: ownerAddress,
+            token_address: tokenAddress,
             amount_owned: newAmountOwned,
             amount_buy: newAmountBuy,
             total_paid: newTotalPaid,
             is_claimable: true,
-          },
+          })
+          .onConflictDoUpdate({
+            target: [sharesTokenUser.owner, sharesTokenUser.token_address],
+            set: {
+              amount_owned: newAmountOwned,
+              amount_buy: newAmountBuy,
+              total_paid: newTotalPaid,
+              is_claimable: true,
+            },
+          });
+
+        console.log('Shareholder Record Updated');
+
+        // Create transaction record
+        await db.insert(tokenTransactions).values({
+          transfer_id: transferId,
+          network: 'starknet-sepolia',
+          block_timestamp: blockTimestamp,
+          transaction_hash: transactionHash,
+          memecoin_address: tokenAddress,
+          owner_address: ownerAddress,
+          last_price: lastPrice,
+          quote_amount: quoteAmount,
+          price: price,
+          amount: amount,
+          protocol_fee: protocolFee,
+          time_stamp: timestamp,
+          transaction_type: 'buy',
+          created_at: new Date(),
         });
 
-      console.log('Shareholder Record Updated');
-
-      // Create transaction record
-      await db.insert(tokenTransactions).values({
-        transfer_id: transferId,
-        network: 'starknet-sepolia',
-        block_timestamp: blockTimestamp,
-        transaction_hash: transactionHash,
-        memecoin_address: tokenAddress,
-        owner_address: ownerAddress,
-        last_price: lastPrice,
-        quote_amount: quoteAmount,
-        price: price,
-        amount: amount,
-        protocol_fee: protocolFee,
-        time_stamp: timestamp,
-        transaction_type: 'buy',
-        created_at: new Date(),
-      });
-
-      console.log('Transaction Record Created');
+        console.log('Transaction Record Created');
+      } catch (dbError: any) {
+        if (dbError.code === '23505') { // Unique violation
+          console.log('Transaction already exists (unique constraint violation):', {
+            transfer_id: transferId,
+            transaction_hash: transactionHash
+          });
+        } else {
+          console.error('Database error in handleBuyTokenEvent:', {
+            error: dbError,
+            code: dbError.code,
+            message: dbError.message,
+            detail: dbError.detail
+          });
+        }
+      }
     } catch (error) {
       console.error("Error in handleBuyTokenEvent:", error);
     }
@@ -554,14 +620,8 @@ export default function (config: ApibaraRuntimeConfig & {
       console.log('Raw Event:', JSON.stringify(rawEvent, null, 2));
 
       const {
-        blockNumber,
-        blockHash: blockHashFelt,
         timestamp: blockTimestamp,
       } = header;
-
-      const blockHash = encode.sanitizeHex(
-        `0x${BigInt(blockHashFelt).toString(16)}`,
-      );
 
       const transactionHash = encode.sanitizeHex(
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
@@ -581,120 +641,113 @@ export default function (config: ApibaraRuntimeConfig & {
       const quoteAmount = event?.args?.coin_amount?.toString() || '0';
 
       // Handle timestamp properly
-      const blockTimestampMs = Number(blockTimestamp) * 1000;
-      const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestampMs;
+      const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
       const timestamp = new Date(Math.max(0, eventTimestampMs));
 
-      console.log('Processed Sell Values:', {
-        transferId,
-        ownerAddress,
-        tokenAddress,
-        amount,
-        price,
-        protocolFee,
-        lastPrice,
-        quoteAmount,
-        eventTimestamp: eventTimestampMs,
-        blockTimestamp,
-        timestamp: timestamp.toISOString()
-      });
+      try {
+        // Get the launch record to update
+        const launchRecord = await db
+          .select()
+          .from(tokenLaunch)
+          .where(eq(tokenLaunch.memecoin_address, tokenAddress))
+          .limit(1);
 
-      // Get the launch record to update
-      const launchRecord = await db
-        .select()
-        .from(tokenLaunch)
-        .where(eq(tokenLaunch.memecoin_address, tokenAddress))
-        .limit(1);
+        if (!launchRecord || launchRecord.length === 0) {
+          console.log('No launch record found for token:', tokenAddress);
+          return;
+        }
 
-      if (!launchRecord || launchRecord.length === 0) {
-        console.log('No launch record found for token:', tokenAddress);
-        return;
-      }
+        const currentLaunch = launchRecord[0];
 
-      const currentLaunch = launchRecord[0];
+        // Calculate new values
+        const newSupply = (BigInt(currentLaunch.current_supply || '0') + BigInt(amount)).toString();
+        const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') - BigInt(quoteAmount)).toString();
+        const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') - BigInt(amount)).toString();
 
-      // Calculate new values
-      const newSupply = (BigInt(currentLaunch.current_supply || '0') + BigInt(amount)).toString();
-      const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') - BigInt(quoteAmount)).toString();
-      const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') - BigInt(amount)).toString();
+        // Calculate new price based on liquidity and token supply
+        const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
+        const priceSell = initPoolSupply > BigInt(0)
+          ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
+          : '0';
 
-      // Calculate new price based on liquidity and token supply
-      const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-      const priceSell = initPoolSupply > BigInt(0)
-        ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
-        : '0';
+        // Calculate market cap
+        const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceSell)).toString();
 
-      // Calculate market cap
-      const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceSell)).toString();
+        console.log('Calculated Values:', {
+          newSupply,
+          newLiquidityRaised,
+          newTotalTokenHolded,
+          priceSell,
+          marketCap
+        });
 
-      console.log('Calculated Values:', {
-        newSupply,
-        newLiquidityRaised,
-        newTotalTokenHolded,
-        priceSell,
-        marketCap
-      });
-
-      // Update launch record
-      await db.update(tokenLaunch)
-        .set({
-          current_supply: newSupply,
-          liquidity_raised: newLiquidityRaised,
-          total_token_holded: newTotalTokenHolded,
-          price: priceSell,
-          market_cap: marketCap,
-        })
-        .where(eq(tokenLaunch.memecoin_address, tokenAddress));
-
-      console.log('Launch Record Updated');
-
-      // Update shareholder record
-      const shareholderId = `${ownerAddress}_${tokenAddress}`;
-      const existingShareholder = await db
-        .select()
-        .from(sharesTokenUser)
-        .where(eq(sharesTokenUser.id, shareholderId))
-        .limit(1);
-
-      if (existingShareholder.length > 0) {
-        const newAmountOwned = (BigInt(existingShareholder[0].amount_owned || '0') - BigInt(amount)).toString();
-        const newAmountSell = (BigInt(existingShareholder[0].amount_sell || '0') + BigInt(amount)).toString();
-        const newTotalPaid = (BigInt(existingShareholder[0].total_paid || '0') - BigInt(quoteAmount)).toString();
-
-        await db.update(sharesTokenUser)
+        // Update launch record
+        await db.update(tokenLaunch)
           .set({
-            amount_owned: newAmountOwned,
-            amount_sell: newAmountSell,
-            total_paid: newTotalPaid,
-            is_claimable: newAmountOwned !== '0',
+            current_supply: newSupply,
+            liquidity_raised: newLiquidityRaised,
+            total_token_holded: newTotalTokenHolded,
+            price: priceSell,
+            market_cap: marketCap,
           })
-          .where(eq(sharesTokenUser.id, shareholderId));
+          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
 
-        console.log('Shareholder Record Updated');
+        console.log('Launch Record Updated');
+
+        // Update shareholder record
+        const existingShareholder = await db.query.sharesTokenUser.findFirst({
+          where: and(
+            eq(sharesTokenUser.owner, ownerAddress),
+            eq(sharesTokenUser.token_address, tokenAddress)
+          )
+        });
+
+        if (existingShareholder) {
+          const updatedAmountOwned = (BigInt(existingShareholder.amount_owned || '0') - BigInt(amount)).toString();
+          const updatedAmountSell = (BigInt(existingShareholder.amount_sell || '0') + BigInt(amount)).toString();
+          const updatedTotalPaid = (BigInt(existingShareholder.total_paid || '0') - BigInt(quoteAmount)).toString();
+
+          await db.update(sharesTokenUser)
+            .set({
+              amount_owned: updatedAmountOwned,
+              amount_sell: updatedAmountSell,
+              total_paid: updatedTotalPaid,
+              is_claimable: updatedAmountOwned !== '0',
+            })
+            .where(and(
+              eq(sharesTokenUser.owner, ownerAddress),
+              eq(sharesTokenUser.token_address, tokenAddress)
+            ));
+
+          console.log('Shareholder Record Updated');
+        }
+
+        // Create transaction record
+        await db.insert(tokenTransactions).values({
+          transfer_id: transferId,
+          network: 'starknet-sepolia',
+          block_timestamp: blockTimestamp,
+          transaction_hash: transactionHash,
+          memecoin_address: tokenAddress,
+          owner_address: ownerAddress,
+          last_price: lastPrice,
+          quote_amount: quoteAmount,
+          price: price,
+          amount: amount,
+          protocol_fee: protocolFee,
+          time_stamp: timestamp,
+          transaction_type: 'sell',
+          created_at: new Date(),
+        });
+
+        console.log('Transaction Record Created');
+      } catch (dbError) {
+        console.error('Database error in handleSellTokenEvent:', dbError);
+        // Continue execution without throwing
       }
-
-      // Create transaction record
-      await db.insert(tokenTransactions).values({
-        transfer_id: transferId,
-        network: 'starknet-sepolia',
-        block_timestamp: blockTimestamp,
-        transaction_hash: transactionHash,
-        memecoin_address: tokenAddress,
-        owner_address: ownerAddress,
-        last_price: lastPrice,
-        quote_amount: quoteAmount,
-        price: price,
-        amount: amount,
-        protocol_fee: protocolFee,
-        time_stamp: timestamp,
-        transaction_type: 'sell',
-        created_at: new Date(),
-      });
-
-      console.log('Transaction Record Created');
     } catch (error) {
       console.error("Error in handleSellTokenEvent:", error);
-      throw error; // Re-throw to ensure the error is properly handled
+      // Don't throw to allow processing to continue
     }
   }
 } 

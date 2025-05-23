@@ -93,6 +93,11 @@ model token_metadata {
   block_timestamp  DateTime? @db.Timestamp(6)
   memecoin_address String?  @unique
   url              String?
+  website String?
+  twitter String?
+  telegram String?
+  github String?
+  description String?
   nostr_id         String?
   name             String?
   symbol           String?

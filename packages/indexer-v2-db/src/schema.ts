@@ -1,4 +1,4 @@
-import { bigint, boolean, decimal, integer, pgTable, primaryKey, text, timestamp, uuid, uniqueIndex, foreignKey, json } from 'drizzle-orm/pg-core';
+import { bigint, boolean, decimal, integer, pgTable, primaryKey, text, timestamp, uuid, uniqueIndex, foreignKey } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import type { InferModel } from 'drizzle-orm';
 
@@ -152,7 +152,8 @@ export const indexerCursor = pgTable('indexer_cursor', {
 });
 
 export const tokenDeploy = pgTable('token_deploy', {
-  transaction_hash: text('transaction_hash').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
+  transaction_hash: text('transaction_hash').unique(),
   network: text('network'),
   block_timestamp: timestamp('block_timestamp'),
   memecoin_address: text('memecoin_address').unique(),
@@ -166,7 +167,8 @@ export const tokenDeploy = pgTable('token_deploy', {
 });
 
 export const tokenLaunch = pgTable('token_launch', {
-  transaction_hash: text('transaction_hash').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
+  transaction_hash: text('transaction_hash').unique(),
   network: text('network'),
   block_timestamp: timestamp('block_timestamp'),
   memecoin_address: text('memecoin_address').unique(),
@@ -189,7 +191,8 @@ export const tokenLaunch = pgTable('token_launch', {
 });
 
 export const tokenMetadata = pgTable('token_metadata', {
-  transaction_hash: text('transaction_hash').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
+  transaction_hash: text('transaction_hash').unique(),
   network: text('network'),
   block_timestamp: timestamp('block_timestamp'),
   memecoin_address: text('memecoin_address').unique(),
@@ -204,7 +207,8 @@ export const tokenMetadata = pgTable('token_metadata', {
 });
 
 export const tokenTransactions = pgTable('token_transactions', {
-  transfer_id: text('transfer_id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
+  transfer_id: text('transfer_id').unique(),
   network: text('network'),
   block_timestamp: timestamp('block_timestamp'),
   transaction_hash: text('transaction_hash'),
@@ -221,7 +225,7 @@ export const tokenTransactions = pgTable('token_transactions', {
 });
 
 export const sharesTokenUser = pgTable('shares_token_user', {
-  id: text('id').primaryKey(),
+  id: uuid('id').primaryKey().defaultRandom(),
   owner: text('owner').notNull(),
   token_address: text('token_address').notNull(),
   amount_owned: text('amount_owned').default('0'),
@@ -230,7 +234,9 @@ export const sharesTokenUser = pgTable('shares_token_user', {
   total_paid: text('total_paid').default('0'),
   is_claimable: boolean('is_claimable').default(false),
   created_at: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  uniqueOwnerToken: uniqueIndex('shares_token_user_owner_token_idx').on(table.owner, table.token_address)
+}));
 
 // Relations
 export const contractStateRelations = relations(contractState, ({ many }) => ({

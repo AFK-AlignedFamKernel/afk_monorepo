@@ -36,7 +36,6 @@ export class MetadataLaunchIndexer {
   };
 
   private cleanString = (str: string): string => {
-    console.log("str", str);
     return str
       .split('')
       .filter((char) => this.isValidChar(char))
@@ -174,6 +173,7 @@ export class MetadataLaunchIndexer {
         twitter += decodedPart;
         i++;
       }
+      console.log("twitter", twitter);
       twitter = this.cleanString(twitter);
     } catch (error) {
       console.log("error decoding metadata twitter bytearray : ", error);
@@ -195,7 +195,9 @@ export class MetadataLaunchIndexer {
         telegram += decodedPart;
         i++;
       }
+      console.log("telegram", telegram);
       telegram = this.cleanString(telegram);
+      console.log("telegram", telegram);
     } catch (error) {
       console.log("error decoding metadata telegram bytearray : ", error);
     }
@@ -216,7 +218,9 @@ export class MetadataLaunchIndexer {
         github += decodedPart;
         i++;
       }
+      console.log("github", github);
       github = this.cleanString(github);
+      console.log("github", github);
     } catch (error) {
       console.log("error decoding metadata github bytearray : ", error);
     }
@@ -237,6 +241,7 @@ export class MetadataLaunchIndexer {
         website += decodedPart;
         i++;
       }
+      console.log("website", website);
       website = this.cleanString(website);
     } catch (error) {
       console.log("error decoding metadata website bytearray : ", error);
@@ -258,6 +263,8 @@ export class MetadataLaunchIndexer {
         }
 
         description += decodedPart;
+        console.log("description", description);
+
         i++;
       }
       description = this.cleanString(description);
@@ -286,6 +293,7 @@ export class MetadataLaunchIndexer {
     console.log("telegram", telegram);
     console.log("github", github);
     console.log("website", website);
+    console.log("description", description);
     const data = {
       transferId,
       network: 'starknet-sepolia',
@@ -302,6 +310,7 @@ export class MetadataLaunchIndexer {
       telegram,
       github,
       website,
+      description,
     };
 
 
