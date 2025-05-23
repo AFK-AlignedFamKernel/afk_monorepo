@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useAccount } from '@starknet-react/core';
 import { Icon } from '@/components/small/icon-component';
+import { useUIStore } from '@/store/uiStore';
 // import { Chart } from '@/components/launchpad/Chart';
 
 interface LaunchpadDetailProps {
@@ -22,6 +23,7 @@ interface LaunchpadDetailProps {
 
 export default function LaunchpadDetailPage() {
   const { address } = useParams()
+  const { showModal } = useUIStore()
 
   const { account } = useAccount();
   const [selectedTab, setSelectedTab] = useState(0);
@@ -180,12 +182,31 @@ export default function LaunchpadDetailPage() {
                 ))}
               </div>
 
-              <div className="rounded-xl p-6 dark:bg-gray-800 shadow-lg transition-colors duration-200 border border-gray-200 dark:border-gray-700">
+              <div className="rounded-xl p-6 shadow-lg transition-colors duration-200">
                 {tabs[selectedTab].component}
               </div>
             </div>
           </div>
         </div>
+
+        <div className="fixed bottom-4 right-4">
+          <button
+            onClick={() => {
+              showModal(<LaunchActionsForm
+                launch={launchData}
+                onBuyPress={handleBuy}
+                onSellPress={handleSell}
+                userShare={userShareMemo}
+                loading={actionLoading}
+                memecoinAddress={address as string}
+              />)
+            }}
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-primary-500 text-white shadow-lg hover:bg-primary-600 transition-colors duration-200"
+          >
+            <Icon name="RocketIcon" size={24} color="green-500" />
+          </button>
+        </div>
+
       </div>
     </main>
   );
