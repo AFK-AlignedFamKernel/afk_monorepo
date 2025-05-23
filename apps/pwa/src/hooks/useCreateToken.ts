@@ -124,14 +124,14 @@ export const useCreateToken = () => {
       const nostrEventIdUint = metadata?.nostr_event_id ? uint256.bnToUint256(`0x${metadata?.nostr_event_id}`) : cairo.uint256(0); // Recipient nostr pubkey
       const metadataLaunch = {
         token_address: address,
-        url: urlMetadata,
         nostr_event_id: nostrEventIdUint,
+        url: urlMetadata,
+        ipfs_hash:ipfsHash,
         twitter: twitterByteArray,
         github: githubByteArray,
         telegram: telegramByteArray,
         website: websiteByteArray,
         description: descriptionByteArray,
-        // ipfs_hash:ipfsHash
       };
 
       // console.log("metadataLaunch", metadataLaunch);
