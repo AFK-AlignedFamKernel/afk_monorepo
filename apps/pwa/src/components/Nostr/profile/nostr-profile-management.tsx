@@ -140,7 +140,7 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                 </div>
 
                 {nostrProfiles.length > 1 && (
-                    <button className='btn btn-primary' onClick={() => {
+                    <button className='btn btn-secondary' onClick={() => {
                         setIsOpenProfile(!isOpenProfile);
                     }}>View more</button>
                 )}
@@ -220,7 +220,7 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                                                         handleConnectWallet(item);
                                                     }}
 
-                                                    className={`btn btn-primary ${publicKey == item?.publicKey ? 'btn-success' : ''}`}>Connect
+                                                    className={`btn btn-secondary ${publicKey == item?.publicKey ? 'btn-success' : ''}`}>Connect
                                                 </button>
                                             </div>
                                         </div>

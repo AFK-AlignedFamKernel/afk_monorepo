@@ -69,11 +69,11 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                 display: 'flex',
                 gap: 8,
                 marginBottom: 8,
-            }}>   
-                <button className={`btn btn-secondary ${activeTab == 'all' ? 'btn-active' : ''}`} onClick={() => setActiveTab('all')}>All</button>    
-                <button className={`btn btn-secondary ${activeTab == 'nostr' ? 'btn-active' : ''}`} onClick={() => setActiveTab('nostr')}>Nostr</button>    
-                <button className={`btn btn-secondary ${activeTab == 'onchain' ? 'btn-active' : ''}`} onClick={() => setActiveTab('onchain')}>Onchain</button>    
-                <button className={`btn btn-secondary ${activeTab == 'oauth' ? 'btn-active' : ''}`} onClick={() => setActiveTab('oauth')}>Oauth</button>    
+            }}>
+                <button className={`btn btn-secondary ${activeTab == 'all' ? 'btn-active' : ''}`} onClick={() => setActiveTab('all')}>All</button>
+                <button className={`btn btn-secondary ${activeTab == 'nostr' ? 'btn-active' : ''}`} onClick={() => setActiveTab('nostr')}>Nostr</button>
+                <button className={`btn btn-secondary ${activeTab == 'onchain' ? 'btn-active' : ''}`} onClick={() => setActiveTab('onchain')}>Onchain</button>
+                <button className={`btn btn-secondary ${activeTab == 'oauth' ? 'btn-active' : ''}`} onClick={() => setActiveTab('oauth')}>Oauth</button>
             </div>
             {activeTab === 'oauth' && (
                 <div className='card shadow'>
@@ -85,10 +85,12 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                 <div className='shadow'>
                     <div>
                         <p>Socials</p>
-                        <AccordionMenu items={[{
-                            title: 'Nostr',
-                            content: <NostrProfileManagement></NostrProfileManagement>
-                        }]}></AccordionMenu>
+                        <AccordionMenu
+                            isOpenProps={true}
+                            items={[{
+                                title: 'Nostr',
+                                content: <NostrProfileManagement></NostrProfileManagement>
+                            }]}></AccordionMenu>
 
                     </div>
                     <Divider></Divider>
@@ -98,8 +100,12 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                     </div>
                     <Divider></Divider>
                     <div>
-                        <p>Oauth</p>
-                        <Oauth></Oauth> 
+                        <AccordionMenu 
+                        
+                        items={[{
+                            title: 'Oauth',
+                            content: <Oauth></Oauth>
+                        }]}></AccordionMenu>
                     </div>
                     {/* <Divider></Divider> */}
                 </div>

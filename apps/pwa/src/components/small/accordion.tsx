@@ -47,7 +47,11 @@ const Accordion: React.FC<AccordionProps> = ({ items, title, isOpen = false }) =
             }
           </div>
 
-          <div className="max-h-0 overflow-hidden transition-all duration-200 peer-checked:max-h-screen">
+          <div className="max-h-0 overflow-hidden transition-all duration-200 peer-checked:max-h-screen"
+          style={{
+            animation: isOpen ? 'slideDown 0.3s ease-in-out' : 'slideUp 0.3s ease-in-out',
+          }}
+          >
             <div className="p-4">
               {item.content}
             </div>

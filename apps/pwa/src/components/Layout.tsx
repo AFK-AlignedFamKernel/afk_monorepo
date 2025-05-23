@@ -15,6 +15,7 @@ import RightBarDesktop from './RightBarDesktop';
 
 import { ProfileManagement } from '@/components/profile/profile-management';
 import { AvatarIcon } from './small/icons';
+import AccordionMenu from './small/AccordionMenu';
 
 interface LayoutProps {
   children: ReactNode;
@@ -252,7 +253,7 @@ const Layout = ({ children }: LayoutProps) => {
             </a>
 
             <div className='sidebar-nav-item'>
-              <Accordion title="Nostr"
+              <AccordionMenu title="Nostr"
                 items={[{
                   title: "Social Nostr",
                   icon: (<Icon name="SocialNostr" size={24}></Icon>),

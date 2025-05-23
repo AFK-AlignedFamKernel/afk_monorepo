@@ -102,10 +102,6 @@ export const WalletConnectButtonController: React.FC = () => {
     return (
       <div className="flex flex-col gap-2">
         <button
-          onClick={() => {
-            disconnectStarknet();
-            disconnect();
-          }}
           className="wallet-button wallet-button--connected"
         >
           <span className="status-dot status-dot--connected"></span>

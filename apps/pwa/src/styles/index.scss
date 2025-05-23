@@ -335,9 +335,13 @@ button.sidebar-nav-footer-item {
   color: var(--shade-800);
   margin-bottom: 1rem;
 
-  &:hover,
+  // &:hover {
+  //   // background-color: var(--shade-500);
+  // }
+
+
   &.active {
-    background-color: var(--shade-200);
+    background-color: var(--shade-300);
   }
 
   .icon {
@@ -424,7 +428,6 @@ button.sidebar-nav-footer-item {
 
   &--connect {
     background-color: var(--primary-600);
-    color: white;
 
     &:hover {
       background-color: var(--primary-700);
