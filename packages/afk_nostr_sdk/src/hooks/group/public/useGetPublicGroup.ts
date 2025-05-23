@@ -1,5 +1,5 @@
 import {NDKKind} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../../context/NostrContext';
 
@@ -8,7 +8,7 @@ export type UseRootProfilesOptions = {
   search?: string;
 };
 
-export const useGetPublicGroup = (options?: UseRootProfilesOptions) => {
+export const useGetPublicGroup = (options?: UseRootProfilesOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
   const {ndk} = useNostrContext();
 
   return useInfiniteQuery({

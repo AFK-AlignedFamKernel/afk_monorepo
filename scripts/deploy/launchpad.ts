@@ -82,8 +82,6 @@ export const deployLaunchpad = async () => {
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
     let launchpadContract = await createLaunchpad(
       TOKEN_QUOTE_ADDRESS,
-      initial_key_price,
-      step_increase_linear,
       TOKEN_CLASS_HASH,
       threshold_liquidity,
       threshold_marketcap,

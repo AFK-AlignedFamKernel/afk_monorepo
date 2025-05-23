@@ -97,8 +97,10 @@ export class SellTokenService {
         const tokensInPool = Number(initPoolSupply);
         // Avoid division by zero
         // Memecoin per ETH
+        // Calculate price as quote token (ETH/STRK) per memecoin token
+        // Example: If pool has 10 ETH and 1000 memecoin tokens, price = 10/1000 = 0.01 ETH per memecoin
         const priceAfterSell =
-          tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0; // Price in memecoin per ETH
+        tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0; // Price in memecoin per ETH
         // ETH per Memecoin
         // let priceAfterSell = liquidityInQuoteToken > 0 && tokensInPool > 0 ? liquidityInQuoteToken / tokensInPool : 0;
 

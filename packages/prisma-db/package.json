@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx prisma generate && npx prisma db pull && tsc",
+    "build": "npx prisma generate && npx prisma db push && tsc",
     "build:push": "npx prisma generate && npx prisma db push && tsc",
     "generate": "npx prisma generate",
     "pull": "npx prisma db pull",
@@ -15,10 +15,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "^5.18.0"
+    "@prisma/client": "^5.22.0"
+
   },
   "devDependencies": {
-    "prisma": "^5.18.0",
+    "prisma": "^5.22.0",
     "starknet": "^6.6.6",
     "tsup": "^8.0.2",
     "typescript": "~5.3.3"

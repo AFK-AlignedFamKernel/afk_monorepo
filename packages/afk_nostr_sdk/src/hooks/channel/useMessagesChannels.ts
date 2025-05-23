@@ -1,5 +1,5 @@
 import {NDKKind} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context/NostrContext';
 
@@ -10,7 +10,7 @@ export type UseReplyNotesOptions = {
   search?: string;
 };
 
-export const useMessagesChannels = (options?: UseReplyNotesOptions) => {
+export const useMessagesChannels = (options?: UseReplyNotesOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
   const {ndk} = useNostrContext();
 
   return useInfiniteQuery({

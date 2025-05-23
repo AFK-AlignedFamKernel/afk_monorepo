@@ -40,6 +40,17 @@ export class TokenLaunchService {
         priceBuy = 0;
       }
 
+      let deployToken = await this.prismaService.token_deploy.findFirst({
+        where: { memecoin_address: data.memecoinAddress },
+      });
+
+      console.log('deployToken', deployToken);
+      if (!deployToken) {
+        this.logger.error(
+          `Deploy token with address ${data.memecoinAddress} not found`,
+        );
+        return;
+      }
       await this.prismaService.token_launch.create({
         data: {
           network: data.network,
@@ -59,6 +70,18 @@ export class TokenLaunchService {
           bonding_type: bondingType,
           initial_pool_supply_dex: initPoolSupply?.toString(),
           market_cap: '0',
+          token_deploy: {
+            connect: {
+              memecoin_address: deployToken.memecoin_address,
+              transaction_hash: deployToken.transaction_hash,
+            },
+          },
+          name: deployToken.name,
+          description: deployToken.description,
+          url: deployToken.url,
+          image_url: deployToken.image_url,
+          symbol: deployToken.symbol,
+          total_token_holded: '0',
         },
       });
 

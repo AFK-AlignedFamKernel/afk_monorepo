@@ -27,10 +27,30 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           total_token_holded:true,
           block_timestamp:true,
           is_liquidity_added:true,
+          market_cap:true,
+          // name:true,
+          // symbol:true,
+          // token_metadata:{
+          //   select:{
+          //     url:true,
+          //   }
+          // },
           name:true,
           symbol:true,
+          url:true,
+          token_deploy: {
+            select: {
+              name: true,
+              symbol: true,
+            },
+          },
+          // name:true,
+          // symbol:true,
+       
         },
       });
+
+      console.log("launches",launches)
 
       reply.status(HTTPStatus.OK).send({
         data: launches,
@@ -71,7 +91,10 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           total_token_holded:true,
           block_timestamp:true,
           is_liquidity_added:true,
-
+          market_cap:true,
+          url:true,
+          name:true,
+          symbol:true
         },
       });
 
@@ -114,6 +137,27 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           total_token_holded:true,
           block_timestamp:true,
           is_liquidity_added:true,
+          market_cap:true,
+          name:true,
+          symbol:true,
+          url:true,
+          description:true,
+          twitter:true,
+          telegram:true,
+          github:true,
+          website:true,
+          ipfs_hash:true,
+          token_deploy: {
+            select: {
+              name: true,
+              symbol: true,
+            },
+          },
+          token_metadata: {
+            select: {
+              url: true,
+            },
+          },
         },
       });
 
@@ -124,6 +168,8 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           owner: true,
           token_address: true,
           amount_owned: true,
+          amount_claimed: true,
+          // updated_at: true,
           // created_at: true,
         },
       });
@@ -144,6 +190,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           transaction_type: true,
           created_at: true,
           quote_amount: true,
+          transaction_hash: true,
           time_stamp: true,
         },
       });

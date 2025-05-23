@@ -3,11 +3,10 @@ import {Box, Button, Text, useToast} from '@chakra-ui/react';
 import {useAccount as useAccountStarknet} from '@starknet-react/core';
 import {useState} from 'react';
 import {useAccount} from 'wagmi';
-
-import {CustomConnectButtonWallet} from '../button/CustomConnectButtonWallet';
 // import ConnectWithOtpView from '../dynamic/ConnectWithOtpView';
 import CustomModal from '../modal';
 import Account from './starknet/AccountStarknet';
+import { NostrProfileManagement } from '../Nostr/profile/nostr-profile-management';
 
 const AccountManagement: React.FC = () => {
   const toast = useToast();
@@ -20,13 +19,13 @@ const AccountManagement: React.FC = () => {
 
   return (
     <Box maxWidth="400px" mx="auto" p={5} borderWidth="1px" borderRadius="md" boxShadow="md">
+      <NostrProfileManagement></NostrProfileManagement>
       {!account?.address && !accountStarknet?.address && (
         <Box>
           <Text>Connect you</Text>
           <Box display="flex">
             <Box>
               <Text>EVM</Text>
-              <CustomConnectButtonWallet></CustomConnectButtonWallet>
             </Box>
 
             <Box>
@@ -44,7 +43,7 @@ const AccountManagement: React.FC = () => {
             <CustomModal
               isOpen={isModalOpen}
               onClose={closeModal}
-              title="Sample Modal"
+              title="Connect to Starknet"
               footerContent={
                 <Button colorScheme="green" onClick={closeModal}>
                   Confirm

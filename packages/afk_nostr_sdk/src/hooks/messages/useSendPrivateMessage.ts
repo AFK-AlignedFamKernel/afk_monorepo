@@ -1,5 +1,5 @@
 import NDK, { NDKEvent, NDKPrivateKeySigner, NDKUserProfile } from '@nostr-dev-kit/ndk';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useNostrContext } from '../../context/NostrContext';
 import { useAuth, useSettingsStore } from '../../store';
@@ -21,167 +21,93 @@ export const useSendPrivateMessage = () => {
   const { publicKey, privateKey } = useAuth();
 
   const { relays } = useSettingsStore();
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: ['sendPrivateMessage', ndk],
+    mutationKey: ['sendPrivateMessage'],
     mutationFn: async (data: {
       content: string;
+      receiverPublicKeyProps: string;
       relayUrl?: string;
-      receiverPublicKeyProps?: string;
       tags?: string[][];
-      isEncrypted?: boolean;
-      encryptedMessage?: string;
-      conversationTitle?: string;
     }) => {
-      const senderName = (await getUser(ndk, publicKey))?.nip05 || 'AFK ANON';
-      const receiverName = (await getUser(ndk, data.receiverPublicKeyProps))?.nip05 || 'AFK ANON';
+      if (!privateKey || !publicKey) {
+        throw new Error('Private key or public key not available');
+      }
 
-      const { relayUrl, receiverPublicKeyProps, isEncrypted, tags, encryptedMessage, content } = data;
-
-      console.log('receiverPublicKeyProps', receiverPublicKeyProps);
-      // let receiverPublicKey = fixPubKey(stringToHex(receiverPublicKeyProps))
-      const receiverPublicKey = fixPubKey(receiverPublicKeyProps);
-      console.log('receiverPublicKey', receiverPublicKey);
-      /** NIP-4 - Encrypted Direct private message  */
-
-      const eventDirectMessage = new NDKEvent(ndk);
-      eventDirectMessage.kind = 14;
-      // eventDirectMessage.created_at = randomTimeUpTo2DaysInThePast().getTime()
-      eventDirectMessage.created_at = new Date().getTime();
-      eventDirectMessage.content = data.content;
-
-      //   // ["p", "<receiver-1-pubkey>", "<relay-url>"],
-      // ["p", "<receiver-2-pubkey>", "<relay-url>"],
-      // ["e", "<kind-14-id>", "<relay-url>", "reply"] // if this is a reply
-      // ["subject", "<conversation-title>"],
-      eventDirectMessage.tags = data.tags ?? [
-        // ["p", "<receiver-1-pubkey>", "<relay-url>"],
-        ["p", receiverPublicKeyProps ?? '', relayUrl ?? ''],
-        ["e", eventDirectMessage.id, relayUrl ?? '', "reply"], // if this is a reply
-        ["subject", data.conversationTitle ?? ''],
-      ];
-      // console.log('eventDirectMessage', eventDirectMessage)
-
-      // const eventDirectMessage = {
-      //   kind: 14,
-      //   created_at: new Date().getTime(),
-      //   content: content,
-      //   tags:tags,
-      //   pubkey:publicKey
-      // }
-      // Generate random private key and conversion key
-      const { publicKey: randomPublicKey, privateKey: randomPrivateKeyStr } = generateRandomKeypair();
+      const receiverPublicKey = fixPubKey(data.receiverPublicKeyProps);
       const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
-      console.log('conversationKey', conversationKey);
-      // Generate a random IV (initialization vector)
-      const nonce = generateRandomBytes();
-      /** Sealed event 13
-       *
-       * TO used in the Gift wrap content in a encrypted way
-       */
-      const eventSealed = new NDKEvent(ndk);
-      // generate public key random
-      eventSealed.pubkey = publicKey;
-      eventSealed.kind = 13;
-      // eventSealed.created_at = new Date().getTime()
-      eventSealed.created_at = randomTimeUpTo2DaysInThePast().getTime();
-      // const encryptedMessageSealed: string | undefined = v2.encrypt(
-      //   JSON.stringify(data?.content),
-      //   conversationKey,
-      //   nonce,
-      // );
-      // Already encrypted
-      // if (data?.isEncrypted && data?.encryptedMessage) {
-      //   eventSealed.content = v2.encrypt(JSON.stringify(eventDirectMessage), conversationKey, nonce);
-      // } else {
-      //   eventSealed.content = v2.encrypt(JSON.stringify(eventDirectMessage), conversationKey, nonce);
-      // }
+      // 1. Create the direct message event (kind 14)
+      const directMessage = new NDKEvent(ndk);
+      directMessage.kind = 14;
+      directMessage.created_at = randomTimeUpTo2DaysInThePast().getTime();
+      directMessage.content = data.content;
+      directMessage.tags = [
+        ['p', receiverPublicKey],
+        ['e', directMessage.id, data.relayUrl || '', 'reply'],
+      ];
 
-      const encryptedEventToNostr = await eventDirectMessage.toNostrEvent();
-
-      // eventSealed.content = v2.encrypt(JSON.stringify(eventDirectMessage), conversationKey, nonce);
-      eventSealed.content = v2.encrypt(
-        JSON.stringify(encryptedEventToNostr),
-        conversationKey,
-        // nonce,
+      // 2. Create the sealed event (kind 13)
+      const sealedEvent = new NDKEvent(ndk);
+      sealedEvent.kind = 13;
+      sealedEvent.created_at = Math.floor(Date.now() / 1000);
+      sealedEvent.content = v2.encrypt(
+        JSON.stringify(await directMessage.toNostrEvent()),
+        conversationKey
       );
 
-      await eventSealed.sign();
-      // console.log('eventSealed', eventSealed)
-      const sealedEvent = await eventSealed.toNostrEvent();
-      // console.log('sealedEvent', sealedEvent)
-
-      /** Fetch dm relay */
-      // const eventsDMRelays = await ndk.fetchEvents({
-      //   kinds: [10050 as number]
-      // })
-
-      // let tagsRelayDM = []
-      // for (let e of eventsDMRelays.values()) {
-      //   for (let t of e?.tags) {
-      //     tagsRelayDM.push(t[1])
-      //   }
-      // }
-      // console.log("tagsRelayDm")
-      /** Gift Wrap*/
-
-      const ndkRandomSigner = new NDKPrivateKeySigner(randomPrivateKeyStr);
+      // 3. Create the gift wrap event (kind 1059)
+      const { privateKey: randomPrivateKey } = generateRandomKeypair();
+      const randomSigner = new NDKPrivateKeySigner(randomPrivateKey);
 
       const ndkRandom = new NDK({
-        explicitRelayUrls:
-          // tagsRelayDM ??
-          // relays ??
-          AFK_RELAYS,
-        signer: ndkRandomSigner,
+        explicitRelayUrls: [...AFK_RELAYS],
+        signer: new NDKPrivateKeySigner(randomPrivateKey),
+      });
+      await ndkRandom.connect();
+      const giftWrap = new NDKEvent(ndkRandom);
+      giftWrap.kind = 1059;
+      giftWrap.created_at = Math.floor(Date.now() / 1000);
+      giftWrap.content = v2.encrypt(
+        JSON.stringify(await sealedEvent.toNostrEvent()),
+        conversationKey
+      );
+      giftWrap.tags = [
+        ['p', receiverPublicKey],
+        ['receiverName', 'AFK ANON'], // You might want to fetch this from the user's profile
+      ];
+
+      // 4. Publish the gift wrap
+      await giftWrap.publish();
+
+      // 5. Publish the sender gif t xrap
+      const { privateKey: randomPrivateKeySecond } = generateRandomKeypair();
+
+      const ndkRandomSecond = new NDK({
+        explicitRelayUrls: [...AFK_RELAYS],
+        signer: new NDKPrivateKeySigner(randomPrivateKeySecond),
       });
 
-      console.log('AFK_RELAYS', AFK_RELAYS);
-      // TODO generate public key random
-      // Used random private
-      // How to retrieve it easily as a sender?
-      const eventGiftReceiver = new NDKEvent(ndk);
-      eventGiftReceiver.pubkey = publicKey;
-      // TODO Fix the random sender and the way to retrieve it
+      await ndkRandomSecond.connect();
 
-      // eventGift.pubkey = randomPublicKey;
-      // let eventGift = new NDKEvent(ndkRandom);
-      eventGiftReceiver.kind = 1059;
-      eventGiftReceiver.created_at = new Date().getTime();
-      /** Used encryption of the sealed event */
-      // eventGift.content = v2.encrypt(JSON.stringify(sealedEvent), conversationKey, nonce);
-      // eventGift.content = "gm";
-      eventGiftReceiver.content = v2.encrypt(JSON.stringify(sealedEvent), conversationKey, nonce);
-      eventGiftReceiver.tags = [
-        ['p', receiverPublicKeyProps ?? '', relayUrl ?? ''],
-        // ['sender', publicKey, senderName],
-        ['receiverName', receiverName],
-      ] as string[][];
+      const senderGift = new NDKEvent(ndkRandomSecond);
+      senderGift.kind = 1059;
+      senderGift.created_at = Math.floor(Date.now() / 1000);
+      senderGift.content = v2.encrypt(
+        JSON.stringify(await sealedEvent.toNostrEvent()),
+        conversationKey
+      );
+      senderGift.tags = [
+        ['p', publicKey],
+        ['senderName', 'AFK ANON'], // You might want to fetch this from the user's profile
+      ];
+      await senderGift.publish();
 
-      // await eventGift.sign()
-      const eventPublishReceiver = await eventGiftReceiver?.publish();
+      // 4. Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['messageUsers'] });
+      queryClient.invalidateQueries({ queryKey: ['myMessagesSent'] });
 
-      // TODO generate public key random
-      // Used random private
-      // How to retrieve it easily as a sender?
-      const eventGiftSender = new NDKEvent(ndk);
-      eventGiftSender.pubkey = publicKey;
-      // TODO Fix the random sender and the way to retrieve it
 
-      // eventGift.pubkey = randomPublicKey;
-      // let eventGift = new NDKEvent(ndkRandom);
-      eventGiftSender.kind = 1059;
-      eventGiftSender.created_at = new Date().getTime();
-      /** Used encryption of the sealed event */
-      // eventGift.content = v2.encrypt(JSON.stringify(sealedEvent), conversationKey, nonce);
-      // eventGift.content = "gm";
-      eventGiftSender.content = v2.encrypt(JSON.stringify(sealedEvent), conversationKey, nonce);
-      eventGiftSender.tags = [
-        ['p', publicKey ?? '', relayUrl ?? ''],
-        ['receiverName', receiverName],
-      ] as string[][];
-
-      // await eventGift.sign()
-      const eventPublishSender = await eventGiftSender?.publish();
-      return { eventPublishSender, eventPublishReceiver };
+      return giftWrap;
     },
   });
 };

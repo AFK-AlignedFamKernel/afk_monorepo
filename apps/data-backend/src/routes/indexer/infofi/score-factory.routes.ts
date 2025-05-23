@@ -1,7 +1,7 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
 import { HTTPStatus } from '../../../utils/http';
 import { isValidStarknetAddress } from '../../../utils/starknet';
-import { eq , and, or} from 'drizzle-orm';
+import { eq, and, or } from 'indexer-v2-db/node_modules/drizzle-orm';
 import { db } from 'indexer-v2-db/dist';
 import { contractState, epochState, userEpochState } from 'indexer-v2-db/dist/schema';
 interface ScoreFactoryParams {
@@ -114,115 +114,115 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
     }
   });
 
-    // Get one sub by address
-    fastify.get<{
-      Params: ScoreFactoryParams;
-    }>('/score-factory/sub/basic/:sub_address', async (request, reply) => {
-      try {
-        const { sub_address } = request.params;
-        if (!isValidStarknetAddress(sub_address)) {
-          reply.status(HTTPStatus.BadRequest).send({
-            code: HTTPStatus.BadRequest,
-            message: 'Invalid sub address',
-          });
-          return;
-        }
+  //   // Get one sub by address
+  //   fastify.get<{
+  //     Params: ScoreFactoryParams;
+  //   }>('/score-factory/sub/basic/:sub_address', async (request, reply) => {
+  //     try {
+  //       const { sub_address } = request.params;
+  //       if (!isValidStarknetAddress(sub_address)) {
+  //         reply.status(HTTPStatus.BadRequest).send({
+  //           code: HTTPStatus.BadRequest,
+  //           message: 'Invalid sub address',
+  //         });
+  //         return;
+  //       }
   
-        const sub = await db
-          .select({
-            contract_address: contractState.contract_address,
-          })
-          .from(contractState)
-          .where(eq(contractState.contract_address, sub_address))
-          .limit(1);
+  //       const sub = await db
+  //         .select({
+  //           contract_address: contractState.contract_address,
+  //         })
+  //         .from(contractState)
+  //         .where(eq(contractState.contract_address, sub_address))
+  //         .limit(1);
   
-        if (sub.length > 0) {
-          reply.status(HTTPStatus.OK).send(sub[0]);
-        } else {
-          reply.status(HTTPStatus.NotFound).send();
-        }
-      } catch (error) {
-        console.error('Error fetching sub:', error);
-        reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
-      }
-    });
+  //       if (sub.length > 0) {
+  //         reply.status(HTTPStatus.OK).send(sub[0]);
+  //       } else {
+  //         reply.status(HTTPStatus.NotFound).send();
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching sub:', error);
+  //       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
+  //     }
+  //   });
 
-  // Get all proposals for a sub
-  fastify.get<{
-    Params: ScoreFactoryParams;
-  }>('/score-factory/sub/:sub_address/profile', async (request, reply) => {
-    try {
-      const { sub_address } = request.params;
-      if (!isValidStarknetAddress(sub_address)) {
-        reply.status(HTTPStatus.BadRequest).send({
-          code: HTTPStatus.BadRequest,
-          message: 'Invalid sub address',
-        });
-        return;
-      }
+  // // Get all proposals for a sub
+  // fastify.get<{
+  //   Params: ScoreFactoryParams;
+  // }>('/score-factory/sub/:sub_address/profile', async (request, reply) => {
+  //   try {
+  //     const { sub_address } = request.params;
+  //     if (!isValidStarknetAddress(sub_address)) {
+  //       reply.status(HTTPStatus.BadRequest).send({
+  //         code: HTTPStatus.BadRequest,
+  //         message: 'Invalid sub address',
+  //       });
+  //       return;
+  //     }
 
-      const usersProfile = await db
-        .select({
-          nostr_id: userEpochState.nostr_id,
-          epoch_index: userEpochState.epoch_index,
-          contract_address: userEpochState.contract_address,
-          total_tip: userEpochState.total_tip,
-          total_ai_score: userEpochState.total_ai_score,
-          total_vote_score: userEpochState.total_vote_score,
-          amount_claimed: userEpochState.amount_claimed,
-          created_at: userEpochState.created_at,
-          updated_at: userEpochState.updated_at,
-        })
-        .from(userEpochState)
-        .where(eq(userEpochState.contract_address, sub_address));
+  //     const usersProfile = await db
+  //       .select({
+  //         nostr_id: userEpochState.nostr_id,
+  //         epoch_index: userEpochState.epoch_index,
+  //         contract_address: userEpochState.contract_address,
+  //         total_tip: userEpochState.total_tip,
+  //         total_ai_score: userEpochState.total_ai_score,
+  //         total_vote_score: userEpochState.total_vote_score,
+  //         amount_claimed: userEpochState.amount_claimed,
+  //         created_at: userEpochState.created_at,
+  //         updated_at: userEpochState.updated_at,
+  //       })
+  //       .from(userEpochState)
+  //       .where(eq(userEpochState.contract_address, sub_address));
 
-      reply.status(HTTPStatus.OK).send(usersProfile);
-    } catch (error) {
-      console.error('Error fetching sub proposals', error);
-      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
-    }
-  });
+  //     reply.status(HTTPStatus.OK).send(usersProfile);
+  //   } catch (error) {
+  //     console.error('Error fetching sub proposals', error);
+  //     reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
+  //   }
+  // });
 
-  // Get all proposals for a sub by epoch
-  fastify.get<{
-    Params: ScoreFactoryParamsPerEpoch;
-  }>('/score-factory/sub/:sub_address/:epoch_index', async (request, reply) => {
-    try {
-      const { sub_address, epoch_index } = request.params;
-      if (!isValidStarknetAddress(sub_address)) {
-        reply.status(HTTPStatus.BadRequest).send({
-          code: HTTPStatus.BadRequest,
-          message: 'Invalid sub address',
-        });
-        return;
-      }
+  // // Get all proposals for a sub by epoch
+  // fastify.get<{
+  //   Params: ScoreFactoryParamsPerEpoch;
+  // }>('/score-factory/sub/:sub_address/:epoch_index', async (request, reply) => {
+  //   try {
+  //     const { sub_address, epoch_index } = request.params;
+  //     if (!isValidStarknetAddress(sub_address)) {
+  //       reply.status(HTTPStatus.BadRequest).send({
+  //         code: HTTPStatus.BadRequest,
+  //         message: 'Invalid sub address',
+  //       });
+  //       return;
+  //     }
 
-      const usersProfile = await db
-        .select({
-          nostr_id: userEpochState.nostr_id,
-          epoch_index: userEpochState.epoch_index,
-          contract_address: userEpochState.contract_address,
-          total_tip: userEpochState.total_tip,
-          total_ai_score: userEpochState.total_ai_score,
-          total_vote_score: userEpochState.total_vote_score,
-          amount_claimed: userEpochState.amount_claimed,
-          created_at: userEpochState.created_at,
-          updated_at: userEpochState.updated_at,
-        })
-        .from(userEpochState)
-        .where(
-          and(
-            eq(userEpochState.contract_address, sub_address),
-            eq(userEpochState.epoch_index, epoch_index)
-          )
-        );
+  //     const usersProfile = await db
+  //       .select({
+  //         nostr_id: userEpochState.nostr_id,
+  //         epoch_index: userEpochState.epoch_index,
+  //         contract_address: userEpochState.contract_address,
+  //         total_tip: userEpochState.total_tip,
+  //         total_ai_score: userEpochState.total_ai_score,
+  //         total_vote_score: userEpochState.total_vote_score,
+  //         amount_claimed: userEpochState.amount_claimed,
+  //         created_at: userEpochState.created_at,
+  //         updated_at: userEpochState.updated_at,
+  //       })
+  //       .from(userEpochState)
+  //       .where(
+  //         and(
+  //           eq(userEpochState.contract_address, sub_address),
+  //           eq(userEpochState.epoch_index, epoch_index)
+  //         )
+  //       );
 
-      reply.status(HTTPStatus.OK).send(usersProfile);
-    } catch (error) {
-      console.error('Error fetching sub proposals', error);
-      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
-    }
-  });
+  //     reply.status(HTTPStatus.OK).send(usersProfile);
+  //   } catch (error) {
+  //     console.error('Error fetching sub proposals', error);
+  //     reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
+  //   }
+  // });
 }
 
 export default subScoreFactoryServiceRoute;

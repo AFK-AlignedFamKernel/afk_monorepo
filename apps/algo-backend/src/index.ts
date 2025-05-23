@@ -110,7 +110,7 @@ async function buildServer() {
 
   console.log('Initializing all cron jobs');
 
-  await initAllCronJobs();
+  // await initAllCronJobs();
   // Initialize WebSocket handlers
   fastify.ready((err) => {
     if (err) throw err;

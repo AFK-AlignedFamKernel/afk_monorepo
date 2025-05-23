@@ -1,5 +1,5 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
 
@@ -36,7 +36,7 @@ export const countMintRecommenderMapping = (mintList: NDKEvent[] | any[]) => {
 };
 /** Cashu Mint List recommender
  */
-export const useCashuMintList = (options?: UseCashuMintList) => {
+export const useCashuMintList = (options?: UseCashuMintList):UseInfiniteQueryResult<InfiniteData<any, any>, Error>=> {
   const {ndk} = useNostrContext();
 
   return useInfiniteQuery({

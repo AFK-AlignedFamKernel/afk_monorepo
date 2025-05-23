@@ -42,3 +42,10 @@ export const ERROR_MESSAGES = {
     message: "The pay request content on the event note is not correct",
   },
 };
+
+
+
+export enum TokenSymbol {
+  ETH = 'ETH',
+  STRK = 'STRK',
+}

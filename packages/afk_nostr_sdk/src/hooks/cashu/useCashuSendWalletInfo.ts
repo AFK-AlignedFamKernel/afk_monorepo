@@ -1,5 +1,5 @@
 import {NDKEvent, NDKKind} from '@nostr-dev-kit/ndk';
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, UseMutationResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
@@ -37,7 +37,7 @@ import {v2} from '../../utils/nip44';
 }
  */
 
-export const useCreateCashuSendWalletInfo = () => {
+export const useCreateCashuSendWalletInfo = ():UseMutationResult<any, Error, any, any> => {
   const {ndk, ndkCashuWallet, ndkWallet} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 
@@ -46,6 +46,7 @@ export const useCreateCashuSendWalletInfo = () => {
     mutationFn: async (data: {
       content: string;
       nameWallet: string;
+      mint?: string;
       amount?: string;
       symbol?: string;
       relayUrl?: string;
@@ -54,19 +55,20 @@ export const useCreateCashuSendWalletInfo = () => {
       isEncrypted?: boolean;
       encryptedMessage?: string;
     }) => {
-      const {nameWallet, amount, symbol} = data;
+      const {nameWallet, amount, symbol, mint} = data;
 
-      const wallet = ndkWallet.createCashuWallet();
-      wallet.name = nameWallet;
-      wallet.relays = ['wss://relay1', 'wss://relay2'];
+      const wallet = await ndkWallet.getCashuWallet(mint ?? 'https://mint1');
+      // wallet.name = nameWallet;
+      // wallet.relays = ['wss://relay1', 'wss://relay2'];
 
-      const eventPublish = await wallet?.publish();
-      return eventPublish;
+      // const eventPublish = await wallet.publish();
+      return wallet;
+      // return eventPublish;
     },
   });
 };
 
-export const useCashuSendWalletInfo = () => {
+export const useCashuSendWalletInfo = ():UseMutationResult<any, Error, any, any> => {
   const {ndk, ndkCashuWallet, ndkWallet} = useNostrContext();
   const {publicKey, privateKey} = useAuth();
 
@@ -82,15 +84,16 @@ export const useCashuSendWalletInfo = () => {
       tags?: string[][];
       isEncrypted?: boolean;
       encryptedMessage?: string;
+      mint?: string;
     }) => {
-      const {nameWallet, amount, symbol} = data;
+      const {nameWallet, amount, symbol, mint} = data;
 
-      const wallet = ndkWallet.createCashuWallet();
-      wallet.name = nameWallet;
-      wallet.relays = ['wss://relay1', 'wss://relay2'];
+      const wallet = await ndkWallet.getCashuWallet(mint ?? 'https://mint1');
+      // wallet.name = nameWallet;
+      // wallet.relays = ['wss://relay1', 'wss://relay2'];
 
-      const eventPublish = await wallet?.publish();
-      return eventPublish;
+      // const eventPublish = await wallet?.publish();
+      return wallet;
     },
   });
 };
@@ -151,7 +154,7 @@ export const useCashuSendWalletInfoManual = () => {
       const {publicKey: randomPublicKey, privateKey: randomPrivateKeyStr} = generateRandomKeypair();
       const conversationKey = deriveSharedKey(privateKey, receiverPublicKey);
       // Generate a random IV (initialization vector)
-      const nonce = generateRandomBytes();
+      const nonce = await generateRandomBytes();
 
       /** TODO verify NIP-44 */
       event.content = v2.encrypt(

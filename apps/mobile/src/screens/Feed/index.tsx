@@ -99,7 +99,7 @@ export const Feed: React.FC<FeedScreenProps> = ({ navigation }) => {
 
   { viewFeed === 'STREAM' && <StudioModule></StudioModule> }
 
-  { viewFeed === 'ARTICLES' && <ArticlesFeed></ArticlesFeed> }
+  {/* { viewFeed === 'ARTICLES' && <ArticlesFeed></ArticlesFeed> } */}
 
   { viewFeed === 'LABELS' && <LabelFeed></LabelFeed> }
 

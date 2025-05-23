@@ -23,6 +23,7 @@ export class NostrKeyManager {
   private static IS_CASHU_WALLET_SETUP = 'is_cashu_wallet_setup';
   private static NOSTR_WALLET_CONNECTED = 'nostr_wallet_connected';
   private static WALLET_CONNECTED = 'wallet_connected';
+  private static ALL_NOSTR_ACCOUNTS = 'all_nostr_accounts';
 
 
   private static NOSTR_WALLETS: {
@@ -55,7 +56,7 @@ export class NostrKeyManager {
     // Add multi account
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const rawId = Array.from(new Uint8Array(salt));
-    NostrKeyManager.NOSTR_WALLETS[nostrWallet.publicKey] = {
+    const nostrWalletStorage = {
       secretKey: nostrWallet.secretKey,
       publicKey: nostrWallet.publicKey,
       mnemonic: nostrWallet.mnemonic,
@@ -65,10 +66,21 @@ export class NostrKeyManager {
       nostrProfile: nostrProfileMetadata,
       ...nostrProfileMetadata,
     };
+    NostrKeyManager.NOSTR_WALLETS[nostrWallet.publicKey] = nostrWalletStorage;
     localStorage.setItem(
       `${NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX}`,
       JSON.stringify(nostrWallet),
     );
+
+
+    const allNostrAccounts = NostrKeyManager.getNostrAccountsFromStorage();
+    allNostrAccounts.push(nostrWalletStorage);
+    localStorage.setItem(NostrKeyManager.ALL_NOSTR_ACCOUNTS, JSON.stringify(allNostrAccounts));
+  }
+
+  static getAllNostrAccountsFromStorage() {
+    const allNostrAccounts = localStorage.getItem(NostrKeyManager.ALL_NOSTR_ACCOUNTS);
+    return JSON.parse(allNostrAccounts);
   }
 
   static getNostrAccountsFromStorage() {

@@ -1,7 +1,7 @@
-import {NDKKind} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import { NDKKind } from '@nostr-dev-kit/ndk';
+import { InfiniteData, useInfiniteQuery, UseInfiniteQueryResult } from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context/NostrContext';
+import { useNostrContext } from '../../context/NostrContext';
 import { useNostrStore } from '../../store';
 
 export type UseSearchSubscription = {
@@ -13,10 +13,10 @@ export type UseSearchSubscription = {
   limit?: number;
 };
 
-export const useSubscriptionEvents = (options?: UseSearchSubscription) => {
-  const {ndk} = useNostrContext();
+export const useSubscriptionEvents = (options?: UseSearchSubscription): UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
+  const { ndk } = useNostrContext();
 
-  const {setNotes} = useNostrStore();
+  const { setNotes } = useNostrStore();
 
   return useInfiniteQuery({
     initialPageParam: 0,
@@ -29,7 +29,7 @@ export const useSubscriptionEvents = (options?: UseSearchSubscription) => {
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
-    queryFn: async ({pageParam}) => {
+    queryFn: async ({ pageParam }) => {
       console.log('search query', options?.search);
       const subscription = await ndk.subscribe({
         kinds: options?.kinds ?? [options?.kind ?? NDKKind.Text],
@@ -39,7 +39,7 @@ export const useSubscriptionEvents = (options?: UseSearchSubscription) => {
       });
 
       // Collect events from subscription
-      const events:any[] = [];
+      const events: any[] = [];
       subscription.on('event', event => {
         events.push(event);
       });
@@ -47,7 +47,7 @@ export const useSubscriptionEvents = (options?: UseSearchSubscription) => {
       setNotes(events);
       return events;
     },
-    placeholderData: {pages: [], pageParams: []},
+    placeholderData: { pages: [], pageParams: [] },
   });
 };
 

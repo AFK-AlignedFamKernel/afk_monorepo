@@ -5,7 +5,10 @@ import * as Bip39 from 'bip39';
 import { generateRandomKeypair } from './keypair';
 import { NDKUserProfile } from '@nostr-dev-kit/ndk';
 
-type NostrWallet = {
+
+const localStorage = typeof window !== 'undefined' ? window.localStorage : null;
+
+export type NostrWallet = {
   secretKey: string;
   privateKey?: string;
   publicKey: string;
@@ -23,6 +26,7 @@ export class NostrKeyManager {
   private static IS_CASHU_WALLET_SETUP = 'is_cashu_wallet_setup';
   private static NOSTR_WALLET_CONNECTED = 'nostr_wallet_connected';
   private static WALLET_CONNECTED = 'wallet_connected';
+  private static ALL_NOSTR_ACCOUNTS = 'all_nostr_accounts';
 
 
   private static NOSTR_WALLETS: {
@@ -69,33 +73,51 @@ export class NostrKeyManager {
       `${NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX}`,
       JSON.stringify(nostrWallet),
     );
+
+    const allNostrAccounts = NostrKeyManager.getAllNostrAccountsFromStorage();
+    allNostrAccounts.push(nostrWallet);
+    console.log("allNostrAccounts", allNostrAccounts);
+    localStorage.setItem(NostrKeyManager.ALL_NOSTR_ACCOUNTS, JSON.stringify(allNostrAccounts));
+  }
+
+  static getAllNostrAccountsFromStorage() {
+    // if (!localStorage) return undefined;
+    const allNostrAccounts = localStorage?.getItem(NostrKeyManager.ALL_NOSTR_ACCOUNTS);
+    if (!allNostrAccounts) return [];
+    return JSON.parse(allNostrAccounts);
   }
 
   static getNostrAccountsFromStorage() {
 
-    if (!localStorage) return undefined;
-    const storedPubKey = localStorage.getItem(NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX);
+    // if (!localStorage) return undefined;
+    const storedPubKey = localStorage?.getItem(NostrKeyManager.NOSTR_WALLETS_ACCOUNT_UNENCRYPTED_PREFIX);
     if (!storedPubKey) return undefined;
     return JSON.parse(storedPubKey);
   }
 
   static getNostrWalletConnected() {
-    const storedPubKey = localStorage.getItem(NostrKeyManager.NOSTR_WALLET_CONNECTED);
+    // if (!localStorage) return undefined;
+    const storedPubKey = localStorage?.getItem(NostrKeyManager.NOSTR_WALLET_CONNECTED);
     return storedPubKey;
   }
 
   static setNostrWalletConnected(nostrWallet: NostrWallet) {
-    localStorage.setItem(NostrKeyManager.NOSTR_WALLET_CONNECTED, JSON.stringify(nostrWallet));
+    // if (!localStorage) return undefined;
+    localStorage?.setItem(NostrKeyManager.NOSTR_WALLET_CONNECTED, JSON.stringify(nostrWallet));
   }
 
 
   static getAccountConnected() {
-    const storedPubKey = localStorage.getItem(NostrKeyManager.WALLET_CONNECTED);
+    // if (!localStorage) return undefined;
+
+    const storedPubKey = localStorage?.getItem(NostrKeyManager.WALLET_CONNECTED);
     return storedPubKey;
   }
 
   static setAccountConnected(account: any) {
-    localStorage.setItem(NostrKeyManager.WALLET_CONNECTED, JSON.stringify(account));
+    // if (!localStorage) return undefined;
+
+    localStorage?.setItem(NostrKeyManager.WALLET_CONNECTED, JSON.stringify(account));
   }
 
   static async getOrCreateKeyPair(credential?: Credential | null, isCreatedBlocked?: boolean, nostrProfileMetadata?: NDKUserProfile): Promise<{
@@ -105,6 +127,8 @@ export class NostrKeyManager {
     credential?: Credential | null;
   } | undefined> {
     try {
+      // if (!localStorage) return undefined;
+
       const storedPubKey = localStorage.getItem(NostrKeyManager.STORAGE_KEY);
       console.log('storedPubKey', storedPubKey);
 
@@ -388,6 +412,26 @@ export class NostrKeyManager {
     const decryptedMnemonic = await this.decryptSecretKey(mnemonic, rawId, salt);
 
     return { secretKey: decryptedPrivateKey, mnemonic: decryptedMnemonic };
+  }
+
+  /**
+   * Check if a Nostr account is connected with a seed available
+   * Returns the seed in hex format if available, or null if not
+   */
+  static async checkNostrSeedAvailable(): Promise<string | null> {
+    try {
+      const accountStr = localStorage?.getItem(NostrKeyManager.WALLET_CONNECTED);
+      if (!accountStr) return null;
+      
+      const account = JSON.parse(accountStr);
+      if (account && account.seed && typeof account.seed === 'string') {
+        return account.seed;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error checking Nostr seed availability:', error);
+      return null;
+    }
   }
 }
 

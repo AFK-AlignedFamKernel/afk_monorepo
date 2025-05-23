@@ -1,0 +1,685 @@
+/* Mint selector styles */
+.cashu-wallet__balance {
+  position: relative;
+  text-align: center;
+  padding: 1.5rem;
+  background-color: var(--card-bg);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.cashu-wallet__balance-amount {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-right: 0.25rem;
+}
+
+.cashu-wallet__balance-unit {
+  font-size: 1.25rem;
+  color: var(--foreground-muted);
+}
+
+.cashu-wallet__balance-mint {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--foreground-muted);
+  border: none;
+  background: none;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.cashu-wallet__balance-mint:hover {
+  background-color: var(--hover-bg);
+  color: var(--foreground);
+}
+
+/* Modal styles */
+.cashu-wallet__modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.cashu-wallet__modal-content {
+  background-color: var(--background);
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  width: 90%;
+  max-width: 30rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.cashu-wallet__modal-content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cashu-wallet__modal-content-header-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.cashu-wallet__modal-content-header-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--foreground-muted);
+}
+
+.cashu-wallet__modal-content-body {
+  padding: 1rem;
+}
+
+.cashu-wallet__settings-mints {
+  margin-bottom: 1rem;
+}
+
+.cashu-wallet__settings-mint {
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.cashu-wallet__settings-mint:hover {
+  background-color: var(--hover-bg);
+}
+
+.cashu-wallet__settings-mint--active {
+  border-color: var(--primary-600) !important;
+}
+
+.cashu-wallet__button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cashu-wallet__button--primary {
+  background-color: var(--primary-600);
+  color: white;
+  border: none;
+}
+
+.cashu-wallet__button--primary:hover {
+  background-color: var(--primary-700);
+}
+
+.cashu-wallet__button--secondary {
+  background-color: var(--card-bg);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.cashu-wallet__button--secondary:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Form styles */
+.cashu-wallet__form-group {
+  margin-bottom: 1rem;
+}
+
+.cashu-wallet__form-group-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.cashu-wallet__form-group-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  background-color: var(--card-bg);
+  color: var(--foreground);
+}
+
+/* Form error */
+.cashu-wallet__form-error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Add mint form */
+.cashu-wallet__add-mint-form {
+  background-color: var(--card-bg);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+}
+
+.cashu-wallet__add-mint-form h4 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Tabs */
+.cashu-wallet__tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.cashu-wallet__tabs-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.cashu-wallet__tabs-item:hover {
+  color: var(--primary-600);
+}
+
+.cashu-wallet__tabs-item--active {
+  border-bottom-color: var(--primary-600);
+  color: var(--primary-600);
+}
+
+/* Textarea */
+.cashu-wallet__form-group-textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.25rem;
+  background-color: var(--card-bg);
+  color: var(--foreground);
+  min-height: 6rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+/* Toast */
+.cashu-wallet__toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 350px;
+}
+
+.cashu-wallet__toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 15px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: cashu-toast-slide-in 0.3s;
+  color: #fff;
+}
+
+.cashu-wallet__toast--error {
+  background-color: #dc3545;
+}
+
+.cashu-wallet__toast--success {
+  background-color: #28a745;
+}
+
+.cashu-wallet__toast--info {
+  background-color: #007bff;
+}
+
+.cashu-wallet__toast-content {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.cashu-wallet__toast-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+}
+
+.cashu-wallet__toast-close:hover {
+  opacity: 1;
+}
+
+@keyframes cashu-toast-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Transaction Status Badges */
+.cashu-wallet__status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.cashu-wallet__status-badge--pending {
+  background-color: #f3f0ff;
+  color: #7c3aed;
+  border: 1px solid #d8b4fe;
+}
+
+.cashu-wallet__status-badge--success {
+  background-color: #ecfdf5;
+  color: #10b981;
+  border: 1px solid #a7f3d0;
+}
+
+.cashu-wallet__status-badge--error {
+  background-color: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+
+/* Transaction Check Button */
+.cashu-wallet__transactions-list-item-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  margin-left: auto;
+}
+
+.cashu-wallet__transactions-list-item-check-btn {
+  margin-top: 6px;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cashu-wallet__transactions-list-item-check-btn:hover {
+  background-color: #4338ca;
+}
+
+.cashu-wallet__transactions-list-item-check-btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Update transaction item styles for the new layout */
+.cashu-wallet__transactions-list-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.cashu-wallet__transactions-list-item-details-memo {
+  font-size: 0.7rem;
+  color: #6b7280;
+  margin-top: 2px;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Transaction details modal styles */
+.cashu-wallet__transaction-details {
+  padding: 1rem;
+  max-width: 100%;
+  width: 100%;
+}
+
+.cashu-wallet__transaction-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cashu-wallet__transaction-details-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.cashu-wallet__transaction-details-amount {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.cashu-wallet__transaction-details-info {
+  margin-bottom: 1.5rem;
+}
+
+.cashu-wallet__transaction-details-row {
+  display: flex;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.cashu-wallet__transaction-details-label {
+  flex: 0 0 40%;
+  font-weight: 500;
+  color: var(--foreground-muted);
+}
+
+.cashu-wallet__transaction-details-value {
+  flex: 0 0 60%;
+  word-break: break-word;
+}
+
+.cashu-wallet__transaction-details-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+/* Make transaction items clickable */
+.cashu-wallet__transactions-list-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cashu-wallet__transactions-list-item:hover {
+  background-color: var(--hover-bg);
+}
+
+/* Text sizes */
+.text-xs {
+  font-size: 0.75rem;
+}
+
+/* Quick Action Buttons in Transaction List */
+.cashu-wallet__transactions-list-item-quick-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.cashu-wallet__transactions-list-item-icon-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background-color: var(--primary-100);
+  color: var(--primary-600);
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.cashu-wallet__transactions-list-item-icon-btn:hover {
+  background-color: var(--primary-200);
+}
+
+/* QR Code Container in Transaction List */
+.cashu-wallet__transactions-list-item-qr-container {
+  padding: 0 16px 16px;
+  background-color: var(--hover-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.cashu-wallet__transactions-list-item-qr-content {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.cashu-wallet__transactions-list-item-qr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.cashu-wallet__transactions-list-item-qr-title {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.cashu-wallet__transactions-list-item-qr-icon {
+  margin-right: 8px;
+}
+
+.cashu-wallet__transactions-list-item-qr-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--foreground-muted);
+  padding: 4px;
+}
+
+.cashu-wallet__transactions-list-item-qr-code {
+  background-color: #FFFFFF;
+  padding: 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.cashu-wallet__transactions-list-item-qr-amount {
+  margin-top: 16px;
+  font-weight: 500;
+  color: var(--foreground);
+  font-size: 1rem;
+}
+
+/* Receive Button */
+.cashu-wallet__transactions-list-item-receive-btn {
+  margin-top: 6px;
+  background-color: #22c55e; /* Green color for receive button */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cashu-wallet__transactions-list-item-receive-btn:hover {
+  background-color: #16a34a; /* Darker green on hover */
+}
+
+.cashu-wallet__transactions-list-item-receive-btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* QR Code Actions */
+.cashu-wallet__transactions-list-item-qr-actions {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.cashu-wallet__transactions-list-item-qr-instruction {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--foreground-muted);
+  padding: 8px;
+  background-color: rgba(80, 200, 120, 0.1);
+  border: 1px solid rgba(80, 200, 120, 0.3);
+  border-radius: 4px;
+}
+
+.cashu-wallet__transactions-list-item-qr-error {
+  padding: 16px;
+  color: #ef4444;
+  text-align: center;
+  font-size: 0.875rem;
+  border: 1px dashed #ef4444;
+  border-radius: 4px;
+  margin: 12px 0;
+}
+
+.cashu-wallet__transactions-list-item-qr-code svg {
+  display: block;
+  border: 6px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Simple QR Code Display */
+.cashu-wallet__transactions-list-item-qr-simple {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  margin: 10px 0;
+  width: 100%;
+}
+
+.cashu-wallet__transactions-list-item-qr-code-wrapper {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cashu-wallet__transactions-list-item-qr-code-wrapper svg {
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+
+.cashu-wallet__transactions-list-item-qr-buttons {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.cashu-wallet__transactions-list-item-qr-buttons button {
+  flex: 1;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+}
+
+/* Loading proofs */
+.cashu-wallet__loading-proofs {
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: var(--card-bg);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cashu-wallet__loading-proofs p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--foreground-muted);
+}
+
+.cashu-wallet__loading-spinner {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(var(--primary-rgb), 0.2);
+  border-top: 2px solid var(--primary-600);
+  border-radius: 50%;
+  animation: cashu-spinner 1s linear infinite;
+}
+
+@keyframes cashu-spinner {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Guidance message for empty wallets */
+.cashu-wallet__guidance-message {
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: var(--card-bg);
+  border-radius: 0.5rem;
+  border-left: 3px solid var(--primary-600);
+}
+
+.cashu-wallet__guidance-message p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.875rem;
+  color: var(--foreground-muted);
+}
+
+.cashu-wallet__button--text {
+  background: none;
+  border: none;
+  color: var(--primary-600);
+  padding: 0.25rem 0;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.cashu-wallet__button--text:hover {
+  color: var(--primary-700);
+  text-decoration: underline;
+} 

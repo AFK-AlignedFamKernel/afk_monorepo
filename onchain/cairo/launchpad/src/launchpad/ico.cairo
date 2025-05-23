@@ -26,7 +26,7 @@ pub mod ICO {
     use crate::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
     use crate::types::launchpad_types::{
         BondingType, EkuboLP, EkuboPoolParameters, EkuboUnrugLaunchParameters, LiquidityCreated,
-        SupportedExchanges, TokenQuoteBuyCoin,
+        SupportedExchanges, TokenICOQuoteBuyCoin,
     };
 
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
@@ -583,7 +583,7 @@ pub mod ICO {
 
             // Check price
             // The price is never used, by the way
-            let token_quote = TokenQuoteBuyCoin {
+            let token_quote = TokenICOQuoteBuyCoin {
                 token_address: details.buy_token, price: details.presale_rate, is_enable: true,
             };
 

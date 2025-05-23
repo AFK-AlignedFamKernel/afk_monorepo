@@ -84,15 +84,11 @@ export class SellTokenIndexer {
     const [
       amountLow,
       amountHigh,
-      priceLow,
-      priceHigh,
       protocolFeeLow,
       protocolFeeHigh,
       creatorFeeLow,
       creatorFeeHigh,
       timestampFelt,
-      lastPriceLow,
-      lastPriceHigh,
       coinAmountLow,
       coinAmountHigh,
     ] = event.data;
@@ -103,11 +99,6 @@ export class SellTokenIndexer {
     });
     const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
 
-    const priceRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(priceLow),
-      high: FieldElement.toBigInt(priceHigh),
-    });
-    const price = formatUnits(priceRaw, constants.DECIMALS);
 
     const protocolFeeRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(protocolFeeLow),
@@ -118,11 +109,6 @@ export class SellTokenIndexer {
       constants.DECIMALS,
     ).toString();
 
-    const lastPriceRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(lastPriceLow),
-      high: FieldElement.toBigInt(lastPriceHigh),
-    });
-    const lastPrice = formatUnits(lastPriceRaw, constants.DECIMALS).toString();
 
     const quoteAmountRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(amountLow),
@@ -161,9 +147,9 @@ export class SellTokenIndexer {
       ownerAddress,
       memecoinAddress: tokenAddress,
       amount: Number(amount),
-      price,
+      price:"0",
       protocolFee,
-      lastPrice,
+      lastPrice:"0",
       quoteAmount:Number(amount).toString(),
       timestamp,
       transactionType: 'sell',

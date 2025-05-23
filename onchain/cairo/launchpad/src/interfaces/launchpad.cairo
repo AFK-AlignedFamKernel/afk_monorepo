@@ -1,5 +1,5 @@
 use afk_launchpad::types::launchpad_types::{
-    BondingType, MetadataLaunch, SharesTokenUser, SupportedExchanges, TokenLaunch,
+    BondingType, MetadataLaunch, MetadataLaunchParams, SharesTokenUser, SupportedExchanges, TokenLaunch,
     TokenQuoteBuyCoin,
     // MemecoinCreated, MemecoinLaunched
 };
@@ -26,7 +26,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         bonding_type: BondingType,
         creator_fee_percent: u256,
         creator_fee_destination: ContractAddress,
-        metadata: Option<MetadataLaunch>,
+        metadata: Option<MetadataLaunchParams>,
     ) -> ContractAddress;
     // fn create_and_launch_token_with_metadata(
     //     ref self: TContractState,
@@ -58,7 +58,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
         ref self: TContractState, coin_address: ContractAddress, friend: ContractAddress,
     );
     fn add_metadata(
-        ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunch,
+        ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunchParams,
     );
 
     // Views

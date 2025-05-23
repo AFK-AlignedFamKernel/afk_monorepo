@@ -2,88 +2,95 @@
 
 import '@rainbow-me/rainbowkit/styles.css';
 
-import { ChakraProvider, ColorModeProvider } from '@chakra-ui/react';
-// import {getDefaultConfig, RainbowKitProvider} from '@rainbow-me/rainbowkit';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-// import {Chain} from 'viem';
-// import {createConfig, http} from 'wagmi';
-// import {WagmiProvider} from 'wagmi';
-// import {mainnet, sepolia} from 'wagmi/chains';
+import React, { useEffect, useState } from 'react';
+import NDK from '@nostr-dev-kit/ndk';
+import { settingsStore, NostrProvider, TanstackProvider, useNostrContext } from 'afk_nostr_sdk';
+import dynamic from 'next/dynamic';
 
-import StarknetProvider from '@/context/StarknetProvider';
-import { NostrProvider, TanstackProvider } from 'afk_nostr_sdk';
+import { AFK_RELAYS } from 'common';
+import { UIProvider } from '@/providers/UIProvider';
+import { CashuProvider } from '@/providers/CashuProvider';
 
-import theme from '../theme'; // Import your custom theme
+// Dynamically import StarknetProvider with SSR disabled
+const StarknetProvider = dynamic(() => import('@/context/StarknetProvider'), {
+  ssr: false,
+});
 
-// const kakarotEvm: Chain = {
-//   id: 1802203764,
-//   name: 'Kakarot Sepolia',
-//   // network: "Scroll Sepolia Testnet",
-//   // iconUrl: '/assets/scroll.svg',
-//   // iconBackground: '#fff',
-//   nativeCurrency: {
-//     decimals: 18,
-//     name: 'Ethereum',
-//     symbol: 'ETH ',
-//   },
-//   rpcUrls: {
-//     public: {http: ['https://sepolia-rpc.kakarot.org']},
-//     default: {http: ['https://sepolia-rpc.kakarot.org']},
-//   },
-//   blockExplorers: {
-//     default: {name: 'Explorer', url: 'https://sepolia.kakarotscan.org/'},
-//     etherscan: {name: 'Explorer', url: 'https://sepolia.kakarotscan.org/'},
-//   },
-//   // testnet: true,
-// };
+// Custom wrapper for NostrProvider that ensures relays are configured
+const RelayInitializer: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  useEffect(() => {
+    // Set relays in the settings store
+    settingsStore.getState().setRelays(AFK_RELAYS);
+  }, []);
+  
+  return <>{children}</>;
+};
 
-// export const CHAINS_CONFIG = [mainnet, sepolia, kakarotEvm];
-// export const TRANSPORTS = {
-//   [mainnet.id]: http(),
-//   [sepolia.id]: http(),
-//   [kakarotEvm.id]: http(),
-// };
-// export const config = createConfig({
-//   chains: [mainnet, sepolia, kakarotEvm],
-//   transports: TRANSPORTS,
-//   multiInjectedProviderDiscovery: false,
-// });
+// Add NDK functionality to children components
+const NDKConnector: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  const { ndk, setNdk } = useNostrContext();
+  
+  useEffect(() => {
+    // When relay settings are already loaded, connect NDK
+    if (settingsStore.getState().relays.length > 0 && !ndk) {
+      // Create an NDK instance
+      const ndkInstance = new NDK({
+        explicitRelayUrls: settingsStore.getState().relays,
+      });
+      
+      // Connect to relays
+      ndkInstance.connect().then(() => {
+        console.log('Connected to relays!');
+        // Set the NDK instance in the context
+        setNdk(ndkInstance);
+      }).catch(err => {
+        console.error('Failed to connect to relays', err);
+      });
+    
+      // Cleanup on unmount
+      return () => {
+        // ndkInstance.disconnect();
+      };
+    }
+  }, [ndk, setNdk]);
+  
+  return <>{children}</>;
+};
 
-// const configRainbow = getDefaultConfig({
-//   appName: 'My RainbowKit App',
-//   projectId: 'YOUR_PROJECT_ID',
-//   chains: [mainnet, sepolia],
-//   transports: {
-//     [mainnet.id]: http('https://eth-mainnet.g.alchemy.com/v2/...'),
-//     [sepolia.id]: http('https://eth-sepolia.g.alchemy.com/v2/...'),
-//   },
-// });
-
-
-export default function Providers({ children }: { children: React.ReactNode }) {
-  const queryClient = new QueryClient();
+// Wrap the entire providers tree in a client-side only component
+const ClientProviders = ({ children }: { children: React.ReactNode }) => {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000, // 1 minute
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
 
   return (
-    <>
-      <ChakraProvider theme={theme}>
-        <ColorModeProvider
-          options={{
-            initialColorMode: theme.config.initialColorMode,
-            useSystemColorMode: theme.config.useSystemColorMode,
-          }}
-        >
-          <StarknetProvider>
-            {/* <WagmiProvider config={config} reconnectOnMount={false}> */}
-            <QueryClientProvider client={queryClient}>
-              {children}
-              <TanstackProvider>
-                <NostrProvider />
-              </TanstackProvider>
-            </QueryClientProvider>
-            {/* </WagmiProvider> */}
-          </StarknetProvider>
-        </ColorModeProvider>
-      </ChakraProvider>
-    </>
+    <StarknetProvider>
+      <QueryClientProvider client={queryClient}>
+        <TanstackProvider>
+          <RelayInitializer>
+            <NostrProvider>
+              <CashuProvider>
+                <UIProvider>
+                  <NDKConnector>
+                    {children}
+                  </NDKConnector>
+                </UIProvider>
+              </CashuProvider>
+            </NostrProvider>
+          </RelayInitializer>
+        </TanstackProvider>
+      </QueryClientProvider>
+    </StarknetProvider>
   );
-}
+};
+
+// Export a dynamic version of the providers with SSR disabled
+export default dynamic(() => Promise.resolve(ClientProviders), {
+  ssr: false,
+});

@@ -34,6 +34,11 @@ export class MetadataLaunchService {
             url: data.url,
             nostr_id: data.nostr_event_id,
             nostr_event_id: data?.nostr_event_id,
+            description: data.description,
+            website: data.website,
+            telegram: data.telegram,
+            github: data.github,
+            ipfs_hash: data.ipfsHash,
           },
         });
 
@@ -52,6 +57,10 @@ export class MetadataLaunchService {
             url: data?.url,
             nostr_id: data?.nostr_event_id,
             nostr_event_id: data?.nostr_event_id,
+            description: data.description,
+            website: data.website,
+            telegram: data.telegram,
+            github: data.github,
           },
         });
       } else {

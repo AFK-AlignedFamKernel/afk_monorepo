@@ -16,6 +16,7 @@
     "isolatedModules": true,
     "downlevelIteration": true,
     "allowSyntheticDefaultImports": true,
+    "preserveSymlinks": false,
     "jsx": "preserve",
     "module": "ES2015",
     "declaration": true,

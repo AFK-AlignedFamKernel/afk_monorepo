@@ -31,13 +31,15 @@
     "@nestjs/core": "^10.0.0",
     "@nestjs/event-emitter": "^3.0.0",
     "@nestjs/platform-express": "^10.0.0",
-    "@prisma/client": "^6.0.0",
     "env-var": "^7.5.0",
     "indexer-prisma": "workspace:*",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "viem": "^2.21.53",
     "common": "workspace:*"
+  },
+  "peerDependencies": {
+    "@prisma/client": "^5.22.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",

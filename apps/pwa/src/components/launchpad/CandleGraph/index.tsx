@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import * as echarts from 'echarts/core';
 import ReactEChartsCore from 'echarts-for-react/lib/core';
 import {
@@ -29,6 +29,9 @@ echarts.use([
 ]);
 
 const ChartComponent = ({ candleData = [], tokenName = 'Token', theme = 'dark' }) => {
+
+  const chartRef = useRef<ReactEChartsCore>(null);
+
   const processedData = useMemo(() => {
     if (!candleData || candleData.length === 0) {
       <div
@@ -40,21 +43,21 @@ const ChartComponent = ({ candleData = [], tokenName = 'Token', theme = 'dark' }
     }
 
     return {
-      dates: candleData.map((item) => {
-        const date = new Date(item.timestamp);
+      dates: candleData.map((item:any) => {
+        const date = new Date(item?.timestamp);
         return date.toISOString();
       }),
-      data: candleData.map((item) => [
-        parseFloat(item.open),
-        parseFloat(item.close),
-        parseFloat(item.low),
-        parseFloat(item.high),
+      data: candleData.map((item:any) => [
+        parseFloat(item?.open),
+        parseFloat(item?.close),
+        parseFloat(item?.low),
+        parseFloat(item?.high),
       ]),
     };
   }, [candleData]);
 
   const ma7 = useMemo(() => {
-    const result = [];
+    const result:any[] = [];
     const period = 7;
 
     for (let i = 0; i < processedData.data.length; i++) {
@@ -65,7 +68,7 @@ const ChartComponent = ({ candleData = [], tokenName = 'Token', theme = 'dark' }
 
       let sum = 0;
       for (let j = 0; j < period; j++) {
-        sum += parseFloat(processedData.data[i - j][1] as string);
+        sum += parseFloat(processedData.data[i - j][1] as unknown as string);
       }
       result.push(sum / period);
     }
@@ -331,14 +334,15 @@ const ChartComponent = ({ candleData = [], tokenName = 'Token', theme = 'dark' }
       className="w-full border rounded-lg m-4 p-4 bg-white shadow"
       style={{ background: theme === 'dark' ? '#181818' : '#ffffff' }}
     >
-      <ReactEChartsCore
+      {/* <ReactEChartsCore
+        ref={chartRef}
         style={{ height: 470 }}
         echarts={echarts}
-        option={options}
+        option={options as any}
         notMerge
         lazyUpdate
         theme={theme}
-      />
+      /> */}
     </div>
   );
 };

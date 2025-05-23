@@ -5,26 +5,48 @@ import { mainnet, sepolia } from '@starknet-react/chains';
 import {
   argent,
   braavos,
+  Connector,
   publicProvider,
   StarknetConfig,
   useInjectedConnectors,
   voyager,
 } from '@starknet-react/core';
+import { InjectedConnector } from 'starknetkit/injected';
+import { ArgentMobileConnector } from 'starknetkit/argentMobile';
+import { WebWalletConnector } from 'starknetkit/webwallet';
+import { ControllerConnector } from '@cartridge/connector';
+import { RpcProvider } from 'starknet';
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
   const chains = [mainnet, sepolia];
-  const { connectors } = useInjectedConnectors({
-    recommended: [argent(), braavos()],
-    includeRecommended: 'onlyIfNoConnectors',
-    order: 'random',
-  });
+  
+  // Create a custom provider with API key
+  const provider = () => {
+    return new RpcProvider({
+      nodeUrl: process.env.NEXT_PUBLIC_STARKNET_RPC_URL || 'https://starknet-sepolia.infura.io/v3/',
+      headers: {
+        'x-api-key': process.env.NEXT_PUBLIC_STARKNET_API_KEY || '',
+      },
+    });
+  };
+
+  const connectors = [
+    new InjectedConnector({
+      options: { id: "argentX", name: "Argent X" },
+    }),
+    new InjectedConnector({
+      options: { id: "braavos", name: "Braavos" },
+    }),
+    new WebWalletConnector({ url: "https://web.argent.xyz" }),
+    new ArgentMobileConnector(),
+  ]
 
   return (
     <StarknetConfig
       chains={chains}
-      provider={publicProvider()}
+      provider={provider}
       explorer={voyager}
-      connectors={connectors}
+      connectors={connectors as Connector[]}
       autoConnect
     >
       {children}

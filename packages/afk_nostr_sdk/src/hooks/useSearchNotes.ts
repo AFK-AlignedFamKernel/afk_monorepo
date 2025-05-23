@@ -1,5 +1,5 @@
 import {NDKKind} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../context/NostrContext';
 
@@ -9,7 +9,7 @@ export type UseRootNotesOptions = {
   kinds?: NDKKind[];
 };
 
-export const useSearchNotes = (options?: UseRootNotesOptions) => {
+export const useSearchNotes = (options?: UseRootNotesOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error>=> {
   const {ndk} = useNostrContext();
 
   return useInfiniteQuery({
