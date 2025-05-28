@@ -12,7 +12,7 @@ import { CashuSettingsModal } from './modals/CashuSettingsModal';
 import { CashuMintModal } from './modals/CashuMintModal';
 import { CashuTransactionDetailsModal } from './modals/CashuTransactionDetailsModal';
 import { useCashu } from '@/hooks/useCashu';
-import { useCashuStore } from 'afk_nostr_sdk';
+import { useCashuStore, useCashu as useCashuSDK } from 'afk_nostr_sdk';
 import { useUIStore } from '@/store/uiStore';
 import { Transaction } from '@/utils/storage';
 import { Icon } from '../small/icon-component';
@@ -38,6 +38,8 @@ export default function Cashu() {
     checkInvoiceStatus,
     checkInvoicePaymentStatus
   } = useCashu();
+
+  const { wallet } = useCashuSDK();
 
   // Direct access to the Cashu store from SDK
   const { setMintUrl } = useCashuStore();
@@ -369,13 +371,27 @@ export default function Cashu() {
       });
       return true;
     } catch (err) {
-      console.error('Error receiving token:', err);
-      showToast({
-        message: 'Failed to receive token',
-        type: 'error',
-        description: err instanceof Error ? err.message : 'Unknown error'
-      });
-      return false;
+      try {
+        console.log("try catch wallet", wallet)
+        // if(wallet) {
+        //   const res = await wallet.receive(token);
+        //   console.log("res", res)
+        //   return true;
+        // }
+        console.log("try receive")
+        const res = await wallet?.receive(token);
+        console.log("res", res)
+        return true;
+      } catch (error) {
+        console.error('Error receiving token:', err);
+        showToast({
+          message: 'Failed to receive token',
+          type: 'error',
+          description: err instanceof Error ? err.message : 'Unknown error'
+        });
+        return false;
+      }
+  
     }
   };
 
@@ -652,6 +668,8 @@ export default function Cashu() {
           unit={activeUnit || 'sat'}
           onSendToken={handleSendToken}
           onPayInvoice={handlePayInvoice}
+          activeMint={activeMint || ''}
+          activeUnit={activeUnit || 'sat'}
         />
       )}
 

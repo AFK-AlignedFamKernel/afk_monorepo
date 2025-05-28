@@ -23,6 +23,7 @@
     "@atomiqlabs/sdk": "^3.0.4",
     "@avnu/avnu-sdk": "^2.0.0",
     "@capacitor/core": "7.2.0",
+    "@cashu/cashu-ts": "2.4.1",
     "@cartridge/connector": "^0.7.13",
     "@cartridge/controller": "^0.7.13",
     "@chakra-ui/icons": "^2.2.4",

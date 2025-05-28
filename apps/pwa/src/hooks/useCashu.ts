@@ -519,7 +519,9 @@ export function useCashu() {
       }
 
       // Use the SDK to receive the token
+      console.log("wallet", wallet)
       const result = await wallet.receive(token);
+      console.log("result", result)
 
       if (!result) {
         throw new Error('Failed to process token');
@@ -532,7 +534,7 @@ export function useCashu() {
 
       // Record the transaction and token
       addTransaction('received', amount, 'Received ecash token', token);
-      addToken(token, amount, mintUrl);
+      // addToken(token, amount, mintUrl);
 
       // IMPORTANT ADDITION: Store the proofs directly in the SDK's wallet if possible
       try {
@@ -1123,18 +1125,23 @@ export function useCashu() {
         try {
           // If the wallet's send method requires changeProofs but they're undefined,
           // try the alternate approach with null change proofs
-          if (changeProofs === undefined) {
+          if (changeProofs === undefined || changeProofs.length === 0) {
             console.log('Change proofs undefined, trying alternate send approach');
             // Try various approaches that Cashu wallets might implement
             if (typeof wallet.sendWithoutChange === 'function') {
-              token = await wallet.sendWithoutChange(proofsToSend, amount);
+              // token = await wallet.sendWithoutChange(proofsToSend, amount);
+              // token = await wallet.send(proofsToSend, amount, null);
+              token = await wallet.send(amount, proofsToSend);
+
             } else {
               // Some implementations can handle null changeProofs
-              token = await wallet.send(proofsToSend, amount, null);
+              // token = await wallet.send(proofsToSend, amount, null);
+              token = await wallet.send(amount, proofsToSend);
             }
           } else {
             // Normal case with proper change proofs
-            token = await wallet.send(proofsToSend, amount, changeProofs);
+            // token = await wallet.send(proofsToSend, amount, changeProofs);
+            token = await wallet.send(amount, proofsToSend);
           }
         } catch (sendError) {
           console.error('Error in wallet.send:', sendError);
@@ -1143,6 +1150,7 @@ export function useCashu() {
           token = await wallet.send(proofsToSend, amount);
         }
 
+        console.log("token", token)
         if (!token) {
           throw new Error('Failed to create send token');
         }
@@ -1164,18 +1172,25 @@ export function useCashu() {
         );
 
         // Claim the change if we have change proofs
-        if (changeProofs && changeProofs.length > 0) {
-          console.log(`Claiming ${changeProofs.length} change proofs after creating token`);
-          await wallet.addProofs(changeProofs);
 
-          // Update the available proofs
-          if (typeof proofsApi !== 'undefined') {
-            await proofsApi.setAll(changeProofs);
-            await proofsByMintApi.addProofsForMint(changeProofs, walletData.activeMint);
+        try {
+          if (changeProofs && changeProofs.length > 0) {
+            console.log(`Claiming ${changeProofs.length} change proofs after creating token`);
+            await wallet.addProofs(changeProofs);
+  
+            // Update the available proofs
+            if (typeof proofsApi !== 'undefined') {
+              await proofsApi.setAll(changeProofs);
+              await proofsByMintApi.addProofsForMint(changeProofs, walletData.activeMint);
+            }
           }
+        } catch (error) {
+          console.error('Error claiming change proofs:', error);
         }
+  
 
-        // For spent proofs, move them to spent proofs collection
+        try {
+               // For spent proofs, move them to spent proofs collection
         if (typeof proofsSpentsApi !== 'undefined' && typeof proofsSpentsByMintApi !== 'undefined') {
           await proofsSpentsApi.updateMany(proofsToSend);
           await proofsSpentsByMintApi.addProofsForMint(proofsToSend, walletData.activeMint);
@@ -1190,6 +1205,10 @@ export function useCashu() {
           }
         }
 
+        } catch (error) {
+          console.error('Error moving spent proofs to spent proofs collection:', error);
+        }
+   
         return {
           amount,
           token: tokenStr,
