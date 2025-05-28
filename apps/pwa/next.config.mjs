@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
   webpack: (config) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     
@@ -35,6 +34,9 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   async headers() {
     return [
       {
@@ -55,10 +57,6 @@ const nextConfig = {
         ],
       },
     ];
-  },
-  // Disable static error page generation
-  typescript: {
-    ignoreBuildErrors: true,
   },
 };
 
