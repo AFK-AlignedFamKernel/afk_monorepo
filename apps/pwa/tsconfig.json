@@ -29,13 +29,24 @@
       "@/*": [
         "./src/*"
       ],
-      "pixel_ui": ["../../packages/pixel_ui/src"],
-      "common": ["../../packages/common/src"],
-      "afk_sdk": ["../../packages/afk_sdk/src"],
-      "afk_react_sdk": ["../../packages/afk_react_sdk/src"],
-      "afk_nostr_sdk": ["../../packages/afk_nostr_sdk/src"]
+      "pixel_ui": [
+        "../../packages/pixel_ui/src"
+      ],
+      "common": [
+        "../../packages/common/src"
+      ],
+      "afk_sdk": [
+        "../../packages/afk_sdk/src"
+      ],
+      "afk_react_sdk": [
+        "../../packages/afk_react_sdk/src"
+      ],
+      "afk_nostr_sdk": [
+        "../../packages/afk_nostr_sdk/src"
+      ]
     },
-    "noEmit": true
+    "noEmit": true,
+    "strictNullChecks": true
   },
   "include": [
     "next-env.d.ts",
@@ -43,7 +54,8 @@
     "**/*.tsx",
     "**/*.jsx",
     "**/*.js",
-    ".next/types/**/*.ts" ],
+    ".next/types/**/*.ts"
+  ],
   "exclude": [
     "node_modules"
   ]

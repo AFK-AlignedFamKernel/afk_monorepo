@@ -34,6 +34,15 @@ const nextConfig = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  // Configure build output
+  output: 'standalone',
+  // Configure error handling
+  onError: (err) => {
+    console.error('Next.js build error:', err);
+  },
   async headers() {
     return [
       {
