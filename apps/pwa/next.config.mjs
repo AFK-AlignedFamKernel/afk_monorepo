@@ -37,6 +37,14 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Disable static error page generation
+  output: 'standalone',
+  // Configure error handling
+  onError: (err) => {
+    console.error('Next.js build error:', err);
+  },
+  // Disable static optimization for error pages
+  staticPageGenerationTimeout: 0,
   async headers() {
     return [
       {
