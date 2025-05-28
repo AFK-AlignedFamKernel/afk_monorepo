@@ -37,7 +37,8 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  distDir: '.next',
+  // Configure build output
+  output: 'standalone',
   // Configure error handling
   onError: (err) => {
     console.error('Next.js build error:', err);
