@@ -24,10 +24,11 @@ interface TokenDeployInterface {
   threshold_liquidity?: string;
   bonding_type?: string;
   total_token_holded?: string | null;
+  url?: string;
 }
 
 export default function PumpComponent() {
-  const [showFilters, setShowFilters] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [tokenOrLaunch, setTokenOrLaunch] = useState<'TOKEN' | 'LAUNCH' | 'MY_DASHBOARD' | 'MY_LAUNCH_TOKEN'>('LAUNCH');
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,6 +72,7 @@ export default function PumpComponent() {
         break;
       case 'graduated':
         filtered.sort((a, b) => (b.is_liquidity_added ? 1 : 0) - (a.is_liquidity_added ? 1 : 0));
+        filtered = filtered.filter(item => item.is_liquidity_added);
         break;
     }
 
@@ -93,7 +95,7 @@ export default function PumpComponent() {
   return (
     <div className="content">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Launchpad</h1>
+        {/* <h1 className="text-2xl font-bold">Launchpad</h1> */}
         <a
           href="/launchpad/create"
           className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
@@ -102,31 +104,33 @@ export default function PumpComponent() {
         </a>
       </div>
 
-      <div className="card">
+      <div className="">
         <div className="flex flex-col gap-4">
           {/* Search */}
 
-          <div className="flex justify-between items-center mb-6">
-            <Search onSearch={handleSearch} placeholder="Search tokens or launches..." />
-            {/* <Filter
-              showFilters={showFilters}
-              setShowFilters={setShowFilters}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-              isLaunchView={isLaunchView}
-            /> */}
-          </div>
+
 
           {/* Action Toggle */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className="flex items-baseline gap-3 overflow-x-auto pb-2">
+            <div className="flex justify-between items-center mb-6"
+            >
+              {/* <Search onSearch={handleSearch} placeholder="Search tokens or launches..." /> */}
+              <Filter
+                showFilters={showFilters}
+                setShowFilters={setShowFilters}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                isLaunchView={isLaunchView}
+              />
+            </div>
             <button
-              className={`sidebar-nav-item ${tokenOrLaunch === 'LAUNCH' ? 'active' : ''}`}
+              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'LAUNCH' ? 'active' : ''}`}
               onClick={() => setTokenOrLaunch('LAUNCH')}
             >
               Launches
             </button>
             <button
-              className={`sidebar-nav-item ${tokenOrLaunch === 'TOKEN' ? 'active' : ''}`}
+              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'TOKEN' ? 'active' : ''}`}
               onClick={() => {
                 setTokenOrLaunch('TOKEN');
                 if (sortBy === 'liquidity' || sortBy === 'graduated') {
@@ -137,7 +141,7 @@ export default function PumpComponent() {
               Tokens
             </button>
             <button
-              className={`sidebar-nav-item ${tokenOrLaunch === 'MY_DASHBOARD' ? 'active' : ''}`}
+              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'MY_DASHBOARD' ? 'active' : ''}`}
               onClick={() => {
                 setTokenOrLaunch('MY_DASHBOARD');
                 if (sortBy === 'liquidity' || sortBy === 'graduated') {
@@ -148,10 +152,10 @@ export default function PumpComponent() {
               My Tokens
             </button>
             <button
-              className={`sidebar-nav-item ${tokenOrLaunch === 'MY_LAUNCH_TOKEN' ? 'active' : ''}`}
+              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'MY_LAUNCH_TOKEN' ? 'active' : ''}`}
               onClick={() => setTokenOrLaunch('MY_LAUNCH_TOKEN')}
             >
-              My Launched Tokens
+              My Launches
             </button>
           </div>
 
@@ -185,7 +189,16 @@ export default function PumpComponent() {
                     description: item.description,
                     block_timestamp: item.block_timestamp,
                     liquidity_raised: Number(item.liquidity_raised) || 0,
-                    is_liquidity_added: item.is_liquidity_added
+                    is_liquidity_added: item.is_liquidity_added,
+                    threshold_liquidity: Number(item.threshold_liquidity) || 0,
+                    url: item.url,
+                    price: item.price,
+                    total_supply: item.total_supply,
+                    network: item.network,
+                    created_at: item.created_at,
+                    bonding_type: item.bonding_type,
+                    total_token_holded: item.total_token_holded,
+
                   }}
                   type={isLaunchView ? 'LAUNCH' : 'TOKEN'}
                 />

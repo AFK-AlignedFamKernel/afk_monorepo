@@ -6,8 +6,13 @@ interface Transaction {
   amount: string;
   price: string;
   timestamp: string;
+  created_at?: string;
   from: string;
   to: string;
+  transaction_type?: 'buy' | 'sell';
+  quote_amount?: string;
+  coin_received?: string;
+  liquidity_raised?: string;
 }
 
 interface TransactionsProps {
@@ -42,14 +47,17 @@ export const Transactions: React.FC<TransactionsProps> = ({ transactions, loadin
                   Amount
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
+                  Quote
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Price
+                </th>
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   From
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   To
-                </th>
+                </th> */}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Time
                 </th>
@@ -60,11 +68,10 @@ export const Transactions: React.FC<TransactionsProps> = ({ transactions, loadin
                 <tr key={index}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
-                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        tx.type === 'BUY'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}
+                      className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${tx?.transaction_type === 'buy'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                        }`}
                     >
                       {tx?.type}
                     </span>
@@ -73,16 +80,19 @@ export const Transactions: React.FC<TransactionsProps> = ({ transactions, loadin
                     {tx?.amount}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {tx?.quote_amount}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {tx?.price}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {tx?.from?.slice(0, 6)}...{tx?.from?.slice(-4)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {tx?.to?.slice(0, 6)}...{tx?.to?.slice(-4)}
-                  </td>
+                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(tx.timestamp).toLocaleString()}
+                    {new Date(tx.created_at).toLocaleString()}
                   </td>
                 </tr>
               ))}

@@ -1,13 +1,13 @@
 import { Fragment } from 'react';
-import { CheckCircleIcon, XCircleIcon, InformationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface ToastProps {
   title: string;
   type: 'success' | 'error' | 'info';
   onClose: () => void;
+  description?: string;
 }
 
-export const Toast = ({ title, type, onClose }: ToastProps) => {
+export const Toast = ({ title, type, onClose, description }: ToastProps) => {
   const colors = {
     success: 'bg-green-50 text-green-800 border-green-200',
     error: 'bg-red-50 text-red-800 border-red-200',
@@ -15,12 +15,15 @@ export const Toast = ({ title, type, onClose }: ToastProps) => {
   };
 
   return (
-    <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg border">
+    <div className="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg border z-1200">
       <div className={`p-4 ${colors[type]}`}>
         <div className="flex items-start">
           <div className="flex-1">
             <p className="text-sm font-medium">{title}</p>
           </div>
+          {description && (
+            <div className="flex-1">  {description}</div>
+          )}
           <div className="ml-4 flex flex-shrink-0">
             <button
               type="button"
@@ -52,7 +55,7 @@ export const ToastContainer = ({ toasts, onRemove }: ToastContainerProps) => {
   return (
     <div
       aria-live="assertive"
-      className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6 z-50"
+      className="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6 z-1102"
     >
       <div className="flex w-full flex-col items-center space-y-4 sm:items-end">
         {toasts.map((toast) => (

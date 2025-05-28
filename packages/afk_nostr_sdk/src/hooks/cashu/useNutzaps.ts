@@ -1,8 +1,10 @@
 import {NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery, useMutation, useQuery} from '@tanstack/react-query';
+import {InfiniteData, useInfiniteQuery, useMutation, useQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context';
 import {useAuth} from '../../store';
+import { v2 } from '../../utils/nip44';
+import { generateRandomBytes } from '../../utils/keypair';
 
 /**
  * NIP-61: https://nips.nostr.com/61
@@ -124,7 +126,7 @@ export const useGetRecipientNutZapInfo = (recipientPubkey?: string) => {
 };
 
 // Hook to fetch received NutZaps
-export const useGetReceivedNutZaps = (options?: {mints?: string[]; since?: number}) => {
+export const useGetReceivedNutZaps = (options?: {mints?: string[]; since?: number}):UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
   const {ndk} = useNostrContext();
   const {publicKey} = useAuth();
 
@@ -183,13 +185,25 @@ export const useRecordNutZapRedemption = () => {
     }) => {
       const signer = new NDKPrivateKeySigner(privateKey);
       const user = new NDKUser({pubkey: publicKey});
-      const content = await signer.nip44Encrypt(
+      const conversationKey = await v2.utils.getConversationKey(publicKey, walletId);
+      const nonce = await generateRandomBytes();
+      // const content = await v2.encrypt(
+      //   JSON.stringify([
+      //     ['direction', 'in'],
+      //     ['amount', amount, unit],
+      //     ['e', newTokenEventId.id, newTokenEventId.relay || '', 'created'],
+      //   ]),
+      //   conversationKey,
+      //   nonce,
+      // );
+      const content = await signer?.encrypt(
         user,
         JSON.stringify([
           ['direction', 'in'],
           ['amount', amount, unit],
           ['e', newTokenEventId.id, newTokenEventId.relay || '', 'created'],
         ]),
+        "nip44"
       );
 
       const event = new NDKEvent(ndk);

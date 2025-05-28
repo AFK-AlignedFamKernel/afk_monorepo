@@ -1,10 +1,10 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
 import { HTTPStatus } from '../../utils/http';
 import { isValidStarknetAddress } from '../../utils/starknet';
-import { eq } from 'drizzle-orm';
 import { db } from 'indexer-v2-db/dist';
 import { daoCreation, daoProposal } from 'indexer-v2-db/dist/schema';
-
+import { eq } from 'indexer-v2-db/node_modules/drizzle-orm';
+// import {eq} from "drizzle-orm"
 interface DaoParams {
   dao_address: string;
 }
@@ -53,31 +53,31 @@ async function daoServiceRoute(fastify: FastifyInstance, options: RouteOptions) 
     }
   });
 
-  // Get all proposals for a dao
-  fastify.get<{
-    Params: DaoParams;
-  }>('/daos/:dao_address/proposals/', async (request, reply) => {
-    try {
-      const { dao_address } = request.params;
-      if (!isValidStarknetAddress(dao_address)) {
-        reply.status(HTTPStatus.BadRequest).send({
-          code: HTTPStatus.BadRequest,
-          message: 'Invalid dao address',
-        });
-        return;
-      }
+  // // Get all proposals for a dao
+  // fastify.get<{
+  //   Params: DaoParams;
+  // }>('/daos/:dao_address/proposals/', async (request, reply) => {
+  //   try {
+  //     const { dao_address } = request.params;
+  //     if (!isValidStarknetAddress(dao_address)) {
+  //       reply.status(HTTPStatus.BadRequest).send({
+  //         code: HTTPStatus.BadRequest,
+  //         message: 'Invalid dao address',
+  //       });
+  //       return;
+  //     }
 
-      const daoProposals = await db
-        .select()
-        .from(daoProposal)
-        .where(eq(daoProposal.contractAddress, dao_address));
+  //     const daoProposals = await db
+  //       .select()
+  //       .from(daoProposal)
+  //       .where(eq(daoProposal.contractAddress, dao_address));
 
-      reply.status(HTTPStatus.OK).send(daoProposals);
-    } catch (error) {
-      console.error('Error fetching dao proposals', error);
-      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
-    }
-  });
+  //     reply.status(HTTPStatus.OK).send(daoProposals);
+  //   } catch (error) {
+  //     console.error('Error fetching dao proposals', error);
+  //     reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
+  //   }
+  // });
 }
 
 export default daoServiceRoute;

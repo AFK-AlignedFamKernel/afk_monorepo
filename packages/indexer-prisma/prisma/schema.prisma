@@ -15,7 +15,7 @@ model token_deploy {
   block_hash        String?
   block_number      BigInt?
   block_timestamp   DateTime? @db.Timestamp(6)
-  memecoin_address  String?
+  memecoin_address  String?   @unique
   owner_address     String?
   name              String?
   symbol            String?
@@ -37,6 +37,12 @@ model token_deploy {
   telegram          String?
   twitter           String?
   website           String?
+
+  is_verified Boolean?
+  project_type String?
+
+  token_launch token_launch?
+  token_metadata token_metadata? @relation("TokenMetadataToDeploy")
 }
 
 model token_launch {
@@ -46,7 +52,7 @@ model token_launch {
   owner_address           String?
   block_number            BigInt?
   block_timestamp         DateTime? @db.Timestamp(6)
-  memecoin_address        String?
+  memecoin_address        String?   @unique
   quote_token             String?
   exchange_name           String?
   total_supply            String?
@@ -76,6 +82,42 @@ model token_launch {
   website                 String?
   name                    String?
   symbol                  String?
+  token_deploy_tx_hash    String? @unique
+  token_deploy            token_deploy? @relation(fields: [token_deploy_tx_hash], references: [transaction_hash])
+  token_metadata token_metadata? @relation("TokenMetadataToLaunch")
+
+  is_verified Boolean?
+  project_type String?
+}
+
+
+model token_metadata {
+  transaction_hash String    @id
+  network          String?
+  block_hash       String?
+  block_number     BigInt?
+  contract_address String?
+  block_timestamp  DateTime? @db.Timestamp(6)
+  memecoin_address String?  @unique
+  url              String?
+  website String?
+  twitter String?
+  telegram String?
+  github String?
+  description String?
+  nostr_id         String?
+  name             String?
+  symbol           String?
+  cursor           BigInt?   @map("_cursor")
+  time_stamp       DateTime? @db.Timestamp(6)
+  created_at       DateTime? @default(now()) @db.Timestamp(6)
+  updated_at       DateTime? @default(now()) @db.Timestamp(6)
+  nostr_event_id   String?
+  ipfs_hash String?
+
+  // One-to-one relation with token_launch
+  token_launch    token_launch? @relation("TokenMetadataToLaunch", fields: [memecoin_address], references: [memecoin_address], map: "token_metadata_to_launch_fkey")
+  token_deploy    token_deploy? @relation("TokenMetadataToDeploy", fields: [memecoin_address], references: [memecoin_address], map: "token_metadata_to_deploy_fkey")
 }
 
 model unrugmeme_deploy {
@@ -267,24 +309,6 @@ model candlesticks {
   @@index([interval_minutes])
 }
 
-model token_metadata {
-  transaction_hash String    @id
-  network          String?
-  block_hash       String?
-  block_number     BigInt?
-  contract_address String?
-  block_timestamp  DateTime? @db.Timestamp(6)
-  memecoin_address String?
-  url              String?
-  nostr_id         String?
-  name             String?
-  symbol           String?
-  cursor           BigInt?   @map("_cursor")
-  time_stamp       DateTime? @db.Timestamp(6)
-  created_at       DateTime? @default(now()) @db.Timestamp(6)
-  updated_at       DateTime? @default(now()) @db.Timestamp(6)
-  nostr_event_id   String?
-}
 
 model overall_data {
   transaction_hash             String

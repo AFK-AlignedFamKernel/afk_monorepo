@@ -91,3 +91,6 @@ export {useSendLabel} from './label/useSendLabel';
 export {useGetLabels} from './label/useGetLabels';
 export {useProfileTagsInterests} from './search/useProfileTagsInterests';
 export {useProfileTags} from './search/useProfileTags';
+export {useMessageGifts} from './messages/useMessageGifts';
+export {useProfileUser} from './useProfileUser';
+export {useFetchEvents} from "./search/useFetchEvents"

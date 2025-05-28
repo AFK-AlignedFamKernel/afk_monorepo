@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Overview } from '@/components/launchpad/Overview';
 import { Holders } from '@/components/launchpad/Holders';
@@ -11,6 +11,8 @@ import { useSellCoin } from '@/hooks/launchpad/useSellCoin';
 import { useToast } from '@/hooks/useToast';
 import { ToastContainer } from '@/components/ui/Toast';
 import { useAccount } from '@starknet-react/core';
+import { Icon } from '@/components/small/icon-component';
+import { useUIStore } from '@/store/uiStore';
 // import { Chart } from '@/components/launchpad/Chart';
 
 interface LaunchpadDetailProps {
@@ -19,8 +21,10 @@ interface LaunchpadDetailProps {
   };
 }
 
-export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
-  const { address } = params;
+export default function LaunchpadDetailPage() {
+  const { address } = useParams()
+  const { showModal } = useUIStore()
+
   const { account } = useAccount();
   const [selectedTab, setSelectedTab] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -29,46 +33,42 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [userShare, setUserShare] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
-
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [chartData, setChartData] = useState<any>(null);
   const { handleBuyCoins } = useBuyCoin();
   const { handleSellCoins } = useSellCoin();
   const { toasts, showToast, removeToast } = useToast();
 
+  const [shareUserState, setShareUserState] = useState<any>(null);
+  const userShareMemo = useMemo(() => {
+    if (holders) {
+      let userShare = holders?.find((holder: any) => holder?.owner === account?.address)
+      setShareUserState(userShare);
+      setUserShare(userShare);
+      return userShare;
+    }
+  }, [holders]);
+  const fetchData = async () => {
+    try {
+      const launchResponse = await fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy-launch/stats/${address}`);
+      const launchData = await launchResponse.json();
+      console.log("launchData", launchData);
+      setLaunchData(launchData?.data?.launch);
+      setHolders(launchData?.data?.holders);
+      setTransactions(launchData?.data?.transactions);
+      setChartData(launchData?.data?.chart);
+    } catch (error) {
+      console.error('Error fetching launchpad data:', error);
+      showToast({ title: 'Error loading data', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-
-        const launchResponse = await fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy-launch/stats/${address}`);
-        const launchData = await launchResponse.json();
-        console.log("launchData", launchData);
-        // TODO: Replace with your actual API calls
-        // const [launchResponse, holdersResponse, txResponse, chartResponse] = await Promise.all([
-        //   fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy-launch/${address}`),
-        //   fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/token-distribution-holders/${address}`),
-        //   fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/transactions/${address}`),
-        //   fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/chart/${address}`),
-        // ]);
-        // const [launchData, holdersData, txData, chartData] = await Promise.all([
-        //   launchResponse.json(),
-        //   holdersResponse.json(),
-        //   txResponse.json(),
-        //   chartResponse.json(),
-        // ]);
-        setLaunchData(launchData?.data?.launch);
-        setHolders(launchData?.data?.holders);
-        setTransactions(launchData?.data?.transactions);
-        // setChartData(chartData);
-      } catch (error) {
-        console.error('Error fetching launchpad data:', error);
-        showToast({ title: 'Error loading data', type: 'error' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (address) {
+      setLoading(true);
       fetchData();
+      setLoading(false);
     }
   }, [address, showToast]);
 
@@ -77,7 +77,7 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
       setActionLoading(true);
       await handleBuyCoins(
         launchData?.account,
-        address,
+        address as string,
         amount,
         launchData?.quote_token,
       );
@@ -99,8 +99,8 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
     try {
       setActionLoading(true);
       await handleSellCoins(
-        account?.address  ,
-        address,
+        account?.address,
+        address as string,
         amount,
         launchData?.quote_token,
       );
@@ -120,7 +120,7 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
 
   const tabs = [
     { name: 'Overview', component: <Overview data={launchData} /> },
-    { name: 'Holders', component: <Holders holders={holders} loading={loading} /> },
+    { name: 'Holders', component: <Holders holders={holders} loading={loading} total_supply={launchData?.total_supply} /> },
     { name: 'Transactions', component: <Transactions transactions={transactions} loading={loading} /> },
     // { name: 'Chart', component: <Chart data={chartData} loading={loading} /> },
   ];
@@ -128,50 +128,53 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ToastContainer 
+    <main className="min-h-screen transition-colors duration-200">
+      <ToastContainer
         toasts={toasts.map(toast => ({
           id: toast.id || Date.now(),
           title: toast.title,
           type: toast.type,
-        }))} 
-        onRemove={removeToast} 
+        }))}
+        onRemove={removeToast}
       />
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">Launchpad Details</h1>
-          <p className="text-gray-600">Address: {address}</p>
+        <div className="flex justify-end">
+          <button onClick={() => {
+            fetchData();
+          }}>
+            <Icon name="RefreshIcon" size={16} className="ml-1" />
+            Refresh
+          </button>
         </div>
-        <div className="lg:col-span-1">
-            <LaunchActionsForm
-              launch={launchData}
-              onBuyPress={handleBuy}
-              onSellPress={handleSell}
-              userShare={userShare}
-              loading={actionLoading}
-              memecoinAddress={address}
-            />
-          </div>
+        <div className="lg:col-span-1 mb-8">
+          <LaunchActionsForm
+            launch={launchData}
+            onBuyPress={handleBuy}
+            onSellPress={handleSell}
+            userShare={userShareMemo}
+            loading={actionLoading}
+            memecoinAddress={address as string}
+          />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <div className="space-y-4">
-              {/* Custom Tab Navigation */}
-              <div className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
+            <div className="space-y-6">
+              <div className="flex space-x-2 rounded-xl p-1.5 dark:bg-gray-800 shadow-sm">
                 {tabs.map((tab, index) => (
                   <button
                     key={tab.name}
                     onClick={() => setSelectedTab(index)}
-                    className={`w-full rounded-lg py-2.5 text-sm font-medium leading-5 transition-colors
+                    className={`w-full rounded-lg py-3 px-4 text-sm font-medium leading-5 transition-all duration-200
                       ${selectedTab === index
-                        ? 'bg-white text-blue-700 shadow'
-                        : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
+                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50'
                       }`}
                   >
                     {tab.name}
@@ -179,16 +182,32 @@ export default function LaunchpadDetailPage({ params }: LaunchpadDetailProps) {
                 ))}
               </div>
 
-              {/* Tab Content */}
-              <div className="rounded-xl bg-white p-3 shadow-lg">
+              <div className="rounded-xl p-6 shadow-lg transition-colors duration-200">
                 {tabs[selectedTab].component}
               </div>
             </div>
           </div>
-
-       
         </div>
+
+        <div className="fixed bottom-4 right-4">
+          <button
+            onClick={() => {
+              showModal(<LaunchActionsForm
+                launch={launchData}
+                onBuyPress={handleBuy}
+                onSellPress={handleSell}
+                userShare={userShareMemo}
+                loading={actionLoading}
+                memecoinAddress={address as string}
+              />)
+            }}
+            className="flex items-center justify-center w-12 h-12 rounded-full bg-primary-500 text-white shadow-lg hover:bg-primary-600 transition-colors duration-200"
+          >
+            <Icon name="RocketIcon" size={24} color="green-500" />
+          </button>
+        </div>
+
       </div>
-    </div>
+    </main>
   );
 } 

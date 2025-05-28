@@ -33,6 +33,7 @@ pub mod UnrugLiquidity {
         SetJediswapNFTRouterV2, SetJediswapRouterV2, SetJediswapV2Factory, StoredName,
         SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin, UnrugCallbackData,
         UnrugLaunchCallback,
+        MetadataLaunchParams,   
         // EkuboLiquidityParameters, DEFAULT_MIN_LOCKTIME, EkuboPoolParameters, CallbackData,
     // BondingType, LaunchCallback MemecoinCreated, MemecoinLaunched
     };
@@ -54,7 +55,7 @@ pub mod UnrugLiquidity {
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::token::erc20::interface::{
         ERC20ABIDispatcher, ERC20ABIDispatcherTrait // IERC20Dispatcher as OZIERC20Dispatcher,
-        // IERC20DispatcherTrait as OZIERC20DispatcherTrait,
+        // IERC20DispatcherTrait as OZIERC20DispatcherTrait,    
     };
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
@@ -213,7 +214,7 @@ pub mod UnrugLiquidity {
 
         let init_token = TokenQuoteBuyCoin {
             token_address: token_address, // starting_price,
-            price: 0_256, is_enable: true,
+            is_enable: true,
             // step_increase_linear,
         };
         self.is_custom_launch_enable.write(false);
@@ -416,7 +417,7 @@ pub mod UnrugLiquidity {
 
         // TODO finish add Metadata
         fn add_metadata(
-            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch,
+            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunchParams,
         ) {
             let caller = get_contract_address();
             // Verify if caller is owner
@@ -425,18 +426,29 @@ pub mod UnrugLiquidity {
 
             // Add or update metadata
 
-            self.metadata_coins.entry(coin_address).write(metadata.clone());
+            self.metadata_coins.entry(coin_address).write(MetadataLaunch{
+                token_address: coin_address,
+                nostr_event_id: metadata.nostr_event_id,
+                url: metadata.url.clone(),
+                ipfs_hash:metadata.ipfs_hash.clone(),
+                // twitter: metadata.twitter.clone(),
+                // website: metadata.website.clone(),
+                // telegram: metadata.telegram.clone(),
+                // github: metadata.github.clone(),
+                // description: metadata.description.clone(),
+            });
             self
                 .emit(
                     MetadataCoinAdded {
                         token_address: coin_address,
+                        ipfs_hash: metadata.ipfs_hash.clone(),
                         url: metadata.url,
-                        timestamp: get_block_timestamp(),
                         nostr_event_id: metadata.nostr_event_id,
                         twitter: metadata.twitter,
                         telegram: metadata.telegram,
                         github: metadata.github,
                         website: metadata.website,
+                        description: metadata.description,
                     },
                 );
         }

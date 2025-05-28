@@ -1,5 +1,5 @@
 import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { InfiniteData, useInfiniteQuery, UseInfiniteQueryResult } from '@tanstack/react-query';
 
 import { useNostrContext } from '../../context';
 import { useAuth } from '../../store';
@@ -31,32 +31,82 @@ interface DecryptedMessage {
   decryptedContent: string;
 }
 
-export const useMyMessagesSent = (options?: UseMyMessagesSentOptions) => {
+export const useMyMessagesSent = (options?: {
+  authors?: string[];
+  limit?: number;
+}) => {
   const { ndk } = useNostrContext();
-  const { publicKey } = useAuth();
+  const { publicKey, privateKey } = useAuth();
+
   return useInfiniteQuery({
+    queryKey: ['myMessagesSent', options?.authors],
     initialPageParam: 0,
-    queryKey: ['myMessagesSent', options?.authors, options?.search, ndk],
     getNextPageParam: (lastPage: any, allPages, lastPageParam) => {
       if (!lastPage?.length) return undefined;
-
       const pageParam = lastPage[lastPage.length - 1].created_at - 1;
-
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
     queryFn: async ({ pageParam }) => {
-      const giftsWrap = await ndk.fetchEvents({
-        kinds: [1059 as number],
+      if (!privateKey || !publicKey) {
+        throw new Error('Private key or public key not available');
+      }
+
+      const messages = await ndk.fetchEvents({
+        kinds: [1059 as NDKKind],
+        // authors: options?.authors || [publicKey],
         authors: options?.authors,
-        search: options?.search,
-        // until: pageParam || Math.round(Date.now() / 1000),
-        limit: 20,
+        since: pageParam || undefined,
+        limit: options?.limit || 20,
+        "#p": options?.authors || [publicKey],
       });
 
-      return [...giftsWrap];
+      const decryptMessages = async (giftWraps: NDKEvent[]) => {
+        return Promise.all(
+          [...giftWraps].map(async (giftWrap: NDKEvent) => {
+            try {
+              const receiverPublicKey = giftWrap.tags.find((tag) => tag[0] === 'p')?.[1];
+              if (!receiverPublicKey) return null;
+
+              const conversationKey = deriveSharedKey(privateKey, fixPubKey(receiverPublicKey));
+
+              // Decrypt the gift wrap content to get the sealed event
+              const sealedEventJson = v2.decrypt(giftWrap.content, conversationKey);
+              const sealedEvent = JSON.parse(sealedEventJson);
+
+              if (sealedEvent.kind !== 13) return null;
+
+              // Decrypt the sealed event content to get the direct message
+              const directMessageJson = v2.decrypt(sealedEvent.content, conversationKey);
+              const directMessage = JSON.parse(directMessageJson);
+
+              if (directMessage.kind !== 14) return null;
+
+              console.log('directMessage', directMessage);
+
+              if(directMessage?.pubkey !== publicKey) {
+                console.log('not the same pubkey');
+                return null;
+              }
+
+              return {
+                id: giftWrap.id,
+                content: directMessage.content,
+                created_at: giftWrap.created_at,
+                senderPublicKey: giftWrap.pubkey,
+                receiverPublicKey,
+              };
+            } catch (error) {
+              console.error('Failed to decrypt message:', error);
+              return null;
+            }
+          })
+        );
+      };
+
+      const decryptedMessages = await decryptMessages(messages as any);
+      return decryptedMessages.filter(Boolean);
     },
-    placeholderData: { pages: [], pageParams: [] },
   });
 };
 
@@ -82,9 +132,10 @@ export const useRoomMessages = (options?: UseRoomMessageOptions) => {
     queryFn: async ({ pageParam }) => {
       const giftWraps = await ndk.fetchEvents({
         kinds: [1059 as NDKKind],
-        authors: options.roomParticipants,
+        // authors: options.roomParticipants,
         since: pageParam ? pageParam : undefined,
         limit: options?.limit || 20,
+        "#p": options.roomParticipants,
       });
 
       const decryptedMessages: DecryptedMessage[] = await Promise.all(
@@ -122,7 +173,10 @@ export const useRoomMessages = (options?: UseRoomMessageOptions) => {
 
             //--> Decrypt the sealed event content to get the original message
             const originalMessageJson = v2.decrypt(sealedEvent.content, conversationKey);
+            console.log('originalMessageJson', originalMessageJson);
+
             const originalMessage = JSON.parse(originalMessageJson);
+            console.log('originalMessage', originalMessage);
 
             //--> Verify the original message is valid (kind 14)
             if (originalMessage.kind !== 14) {
@@ -163,6 +217,7 @@ export const useRoomMessages = (options?: UseRoomMessageOptions) => {
         }),
       );
 
+      console.log('decryptedMessages', decryptedMessages);
       // Filter out null values (failed decryptions)
       return decryptedMessages.filter((message): message is DecryptedMessage => message !== null);
     },

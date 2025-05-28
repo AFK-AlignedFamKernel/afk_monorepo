@@ -1,6 +1,6 @@
 // useSearchUsers.ts
 import {NDKKind} from '@nostr-dev-kit/ndk';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context/NostrContext';
 
@@ -13,9 +13,8 @@ export type UseSearch = {
   limit?: number;
 };
 
-export const useNotesFilter = (options?: UseSearch) => {
+export const useNotesFilter = (options?: UseSearch):UseInfiniteQueryResult<InfiniteData<any, any>, Error>=> {
   const {ndk} = useNostrContext();
-
   return useInfiniteQuery({
     initialPageParam: 0,
     queryKey: ['notesFilter', options?.authors, options?.search, options?.kind, options?.kinds, ndk],

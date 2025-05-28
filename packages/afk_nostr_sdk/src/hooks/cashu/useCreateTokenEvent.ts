@@ -46,13 +46,14 @@ export const useCreateTokenEvent = () => {
       try {
         const signer = new NDKPrivateKeySigner(privateKey);
         const user = new NDKUser({ pubkey: publicKey });
-        const content = await signer.nip44Encrypt(
+        const content = await signer.encrypt(
           user,
           JSON.stringify({
             mint,
             proofs,
             "del": [event_id_dels?.map((id) => id)]
           }),
+          "nip44"
         );
   
         const event = new NDKEvent(ndk);

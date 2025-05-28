@@ -1,10 +1,10 @@
 {
-  "name": "afk_monorepo",
-  "version": "0.0.1",
+  "name": "afk-monorepo",
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "mobile-template"
   ],
   "prisma": {},
   "scripts": {
@@ -30,6 +30,8 @@
     "extension": "turbo run dev --filter=extensions",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rimraf node_modules",
+    "clean:all": "turbo run clean && rimraf node_modules && rm -rf node_modules && find . -name 'node_modules' -type d -exec rm -rf {} + && find . -name 'dist' -type d -exec rm -rf {} + && find . -name '.turbo' -type d -exec rm -rf {} + && rm -rf .pnpm-store && pnpm store prune && pnpm cache clean && pnpm install",
+    "clean:all_packages": "find . -name 'node_modules' -type d -exec rm -rf {} + && find . -name 'dist' -type d -exec rm -rf {} + && find . -name '.turbo' -type d -exec rm -rf {} + && rm -rf .pnpm-store && pnpm store prune && pnpm cache clean && pnpm install",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:migrate:deploy": "turbo run db:migrate:deploy",
     "db:migrate:dev": "prisma migrate dev",
@@ -40,16 +42,51 @@
     "export-extension": "cd /apps/extensions && pnpm run build build && next export && cp -r extension/* out/",
     "contributors:add": "all-contributors add",
     "contributors:generate": "all-contributors generate",
-    "prepare": "husky"
+    "_prepare": "husky"
   },
   "dependencies": {
     "@babel/core": "^7.20.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
-    "@prisma/client": "^5.18.0",
+    "@prisma/client": "^5.22.0",
+    "fbjs": "^3.0.5",
     "prettier": "^2.8.8",
-    "prisma": "5.18.0",
+    "prisma": "5.22.0",
     "tsup": "^8.0.2",
-    "turbo": "^1.13.2"
+    "turbo": "^1.13.2",
+    "@noble/ciphers": "0.4.1",
+    "@noble/curves": "1.9.0",
+    "@noble/hashes": "1.8.0",
+    "@noble/secp256k1": "^2.2.3",
+    "bip39": "^3.1.0",
+    "@scure/bip32": "^1.7.0",
+    "@scure/bip39": "^1.6.0",
+    "@scure/base": "^1.2.5",
+    "@nostr-dev-kit/ndk": "^2.14.9",
+    "@nostr-dev-kit/ndk-wallet": "^0.5.13",
+    "drizzle-kit": "^0.29.0",
+    "pg": "^8.13.1",
+    "next": "15.1.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "peerDependencies": {
+    "prisma": "5.22.0",
+    "@prisma/client": "^5.22.0",
+    "@noble/ciphers": "0.4.1",
+    "@noble/curves": "1.9.0",
+    "@noble/hashes": "1.8.0",
+    "@noble/secp256k1": "^2.2.3",
+    "bip39": "^3.1.0",
+    "@scure/bip32": "^1.7.0",
+    "@scure/bip39": "^1.6.0",
+    "@scure/base": "^1.2.5",
+    "@nostr-dev-kit/ndk": "^2.14.9",
+    "@nostr-dev-kit/ndk-wallet": "^0.5.13",
+    "drizzle-kit": "^0.29.0",
+    "pg": "^8.13.1",
+    "next": "15.1.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "husky": "^9.1.7",
@@ -62,6 +99,6 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "packageManager": "pnpm@8.15.9",
+  "packageManager": "pnpm@10.10.0",
   "pnpm": {}
 }

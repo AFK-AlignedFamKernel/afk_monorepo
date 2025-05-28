@@ -15,4 +15,7 @@ export interface MetadataLaunch {
   telegram?: string;
   github?: string;
   website?: string;
+  description?: string;
+  image_url?: string;
+  ipfsHash?: string;
 }

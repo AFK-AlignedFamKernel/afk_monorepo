@@ -20,21 +20,10 @@ pub mod LaunchpadMarketplace {
         LiquidityCanBeAdded, LiquidityCreated, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch,
         SellToken, SetJediswapNFTRouterV2, SetJediswapV2Factory, SharesTokenUser, StoredName,
         SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin,
+        MetadataLaunchParams,   
         // MemecoinCreated, MemecoinLaunched
     };
-    // use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use core::num::traits::Zero;
-    // use cubit::f128::types::fixed::{Fixed, FixedPrint, FixedTrait, FixedTryIntoU128, ONE,
-    // ONE_u128};
-    // use ekubo::components::clear::{IClearDispatcher, IClearDispatcherTrait};
-    // use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker};
-    // use ekubo::interfaces::erc20::{
-    //     IERC20Dispatcher as EKIERC20Dispatcher, IERC20DispatcherTrait as EKIERC20DispatcherTrait,
-    // };
-    // use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher, dispatcher};
-    // use ekubo::interfaces::mathlib::{IMathLib, dispatcher};
-    // use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher};
-    // use ekubo::interfaces::mathlib::{IMathLib, IMathLibLibraryDispatcher};
     use ekubo::types::bounds::Bounds;
     use ekubo::types::i129::i129;
     use openzeppelin::access::accesscontrol::AccessControlComponent;
@@ -137,13 +126,11 @@ pub mod LaunchpadMarketplace {
         dollar_price_launch_pool: u256,
         dollar_price_create_token: u256,
         dollar_price_percentage: u256,
-        // starting_price: u256,
         threshold_liquidity: u256,
         threshold_market_cap: u256,
         liquidity_raised_amount_in_dollar: u256,
         protocol_fee_percent: u256,
         creator_fee_percent: u256,
-        // step_increase_linear: u256,
         // Admins params fees
         is_fees_protocol_sell_enabled: bool,
         is_fees_protocol_buy_enabled: bool,
@@ -199,8 +186,6 @@ pub mod LaunchpadMarketplace {
         TokenClaimed: TokenClaimed,
         MetadataCoinAdded: MetadataCoinAdded,
         CreatorFeeDistributed: CreatorFeeDistributed,
-        // MemecoinCreated: MemecoinCreated,
-        // MemecoinLaunched: MemecoinLaunched,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -213,9 +198,7 @@ pub mod LaunchpadMarketplace {
     fn constructor(
         ref self: ContractState,
         admin: ContractAddress,
-        starting_price: u256,
         token_address: ContractAddress,
-        step_increase_linear: u256,
         coin_class_hash: ClassHash,
         threshold_liquidity: u256,
         threshold_market_cap: u256,
@@ -282,20 +265,18 @@ pub mod LaunchpadMarketplace {
         self.admins_fees_params.write(admins_fees_params);
 
         let init_token = TokenQuoteBuyCoin {
-            token_address: token_address, // starting_price,
-            price: starting_price, is_enable: true,
+            token_address: token_address, 
+             is_enable: true,
             // step_increase_linear,
         };
         // TODO  test add case  if the payment are needed to create and launch
         self.is_custom_launch_enable.write(false);
         self.is_custom_token_enable.write(false);
         self.default_token.write(init_token.clone());
-        // self.starting_price.write(init_token.starting_price);
 
         self.threshold_liquidity.write(threshold_liquidity);
         self.threshold_market_cap.write(threshold_market_cap);
         self.protocol_fee_destination.write(admin);
-        // self.step_increase_linear.write(step_increase_linear);
         self.total_token.write(0);
         self.total_launch.write(0);
         self.protocol_fee_percent.write(MID_FEE_PROTOCOL);
@@ -575,8 +556,8 @@ pub mod LaunchpadMarketplace {
             bonding_type: BondingType,
             creator_fee_percent: u256,
             creator_fee_destination: ContractAddress,
-            metadata: Option<MetadataLaunch>,
-        ) -> ContractAddress {
+            metadata: Option<MetadataLaunchParams>,
+        ) -> ContractAddress {  
             let contract_address = get_contract_address();
             let caller = get_caller_address();
             let token_address = self
@@ -604,51 +585,6 @@ pub mod LaunchpadMarketplace {
             }
             token_address
         }
-
-
-        // Create coin and launch with metadata in bonding curve
-        // Add metadata to the token directly in the contract
-        // Need to have the allowance of the total supply to be used
-        // 80% percent on sale and 20% for the Liquidity pool when bonding curve reached threshold
-        // Threshold is setup by the admin and save in the pool struct (in case we change)
-        // fn create_and_launch_token_with_metadata(
-        //     ref self: ContractState,
-        //     symbol: ByteArray,
-        //     name: ByteArray,
-        //     initial_supply: u256,
-        //     contract_address_salt: felt252,
-        //     is_unruggable: bool,
-        //     bonding_type: BondingType,
-        //     creator_fee_percent: u256,
-        //     creator_fee_destination: ContractAddress,
-        //     metadata: MetadataLaunch,
-        // ) -> ContractAddress {
-        //     let contract_address = get_contract_address();
-        //     let caller = get_caller_address();
-        //     let token_address = self
-        //         ._create_token(
-        //             symbol,
-        //             name,
-        //             initial_supply,
-        //             contract_address_salt,
-        //             is_unruggable,
-        //             contract_address, // Send supply to this address
-        //             caller, // Owner of the address, Ownable access
-        //             contract_address // Factory address to set_launched and others stuff
-        //         );
-        //     self
-        //         ._launch_token(
-        //             token_address,
-        //             caller,
-        //             contract_address,
-        //             false,
-        //             Option::Some(bonding_type),
-        //             creator_fee_percent,
-        //             creator_fee_destination,
-        //         );
-        //     self.add_metadata(token_address, metadata);
-        //     token_address
-        // }
 
         // Launch coin to pool bonding curve
         // Need to have the allowance of the total supply to be used
@@ -773,9 +709,7 @@ pub mod LaunchpadMarketplace {
             quote_token.transfer_from(caller, get_contract_address(), remain_quote_to_liquidity);
 
             // Update pool state
-            let old_price = pool.price;
             pool.liquidity_raised += remain_quote_to_liquidity;
-            pool.price = quote_amount;
             pool.total_token_holded += coin_amount;
 
             if coin_amount >= pool.available_supply {
@@ -850,9 +784,7 @@ pub mod LaunchpadMarketplace {
                         caller,
                         token_address: coin_address,
                         amount: coin_amount,
-                        price: quote_amount,
                         protocol_fee: amount_protocol_fee,
-                        last_price: old_price,
                         timestamp: get_block_timestamp(),
                         quote_amount: remain_quote_to_liquidity,
                     },
@@ -1001,8 +933,6 @@ pub mod LaunchpadMarketplace {
             // println!("balance_contract: {}", balance_contract.clone());
 
             // assert(balance_contract >= quote_amount, errors::BALANCE_CONTRACT_BELOW_AMOUNT);
-
-            let quote_amount_paid = quote_amount.clone();
             // let quote_amount_paid = quote_amount - quote_fee_amount;
             // println!("quote_amount_paid: {}", quote_amount_paid.clone());
 
@@ -1013,15 +943,15 @@ pub mod LaunchpadMarketplace {
             // Rounding issue and approximation of the quote amount caused overflow/underflow when
             // transfering the token to the user
             // We do something wrong to enter this check
-            if balance_contract >= quote_amount_paid {
-                quote_token.transfer(caller, quote_amount_paid);
+            if balance_contract >= quote_amount {
+                quote_token.transfer(caller, quote_amount);
             } else {
                 // Balance doesn't have the quote amount to paid
                 // AUDIT HIGH SECURITY
                 // Rounding and approximation on calculation and fees have lost some precision
                 // let quote_amount_paid = quote_amount - quote_fee_amount;
-                let difference_amount = quote_amount_paid - balance_contract;
-                let amount_paid = quote_amount_paid - difference_amount;
+                let difference_amount = quote_amount - balance_contract;
+                let amount_paid = quote_amount - difference_amount;
                 // println!("amount_paid: {}", amount_paid.clone());
                 quote_token.transfer(caller, amount_paid);
             }
@@ -1060,11 +990,9 @@ pub mod LaunchpadMarketplace {
                         caller,
                         key_user: coin_address,
                         amount: quote_amount,
-                        price: updated_pool.price,
                         protocol_fee: quote_fee_amount,
                         creator_fee: creator_fee_amount,
                         timestamp: get_block_timestamp(),
-                        last_price: pool.price,
                         coin_amount: sell_amount,
                     },
                 );
@@ -1089,8 +1017,7 @@ pub mod LaunchpadMarketplace {
 
             assert(share_user.is_claimable, errors::NOT_CLAIMABLE);
 
-            let max_amount_claimable = share_user.amount_owned;
-            let amount = max_amount_claimable;
+            let amount = share_user.amount_owned;
             // Transfer memecoin
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             memecoin.transfer(caller, amount);
@@ -1163,8 +1090,7 @@ pub mod LaunchpadMarketplace {
 
             assert(share_user.is_claimable, errors::NOT_CLAIMABLE);
 
-            let max_amount_claimable = share_user.amount_owned;
-            let amount = max_amount_claimable;
+            let amount = share_user.amount_owned;
             // Transfer memecoin
             let memecoin = IERC20Dispatcher { contract_address: coin_address };
             memecoin.transfer(friend, amount);
@@ -1186,7 +1112,7 @@ pub mod LaunchpadMarketplace {
         }
         // TODO finish add Metadata for Token and Launched and also updated it
         fn add_metadata(
-            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunch,
+            ref self: ContractState, coin_address: ContractAddress, metadata: MetadataLaunchParams,
         ) {
             let caller = get_contract_address();
             // Verify if caller is owner
@@ -1197,18 +1123,30 @@ pub mod LaunchpadMarketplace {
                 errors::CALLER_NOT_OWNER,
             );
             // Add or update metadata
-            self.metadata_coins.entry(coin_address).write(metadata.clone());
+            let metadata_launch = MetadataLaunch{
+                token_address: coin_address,
+                nostr_event_id: metadata.nostr_event_id,
+                url: metadata.url.clone(),
+                ipfs_hash:metadata.ipfs_hash.clone(),
+                // twitter: metadata.twitter.clone(),
+                // website: metadata.website.clone(),
+                // telegram: metadata.telegram.clone(),
+                // github: metadata.github.clone(),
+                // description: metadata.description.clone(),
+            };
+            self.metadata_coins.entry(coin_address).write(metadata_launch.clone());
             self
                 .emit(
                     MetadataCoinAdded {
                         token_address: coin_address,
-                        url: metadata.url,
-                        timestamp: get_block_timestamp(),
                         nostr_event_id: metadata.nostr_event_id,
+                        ipfs_hash:metadata.ipfs_hash,
+                        url: metadata.url,
                         twitter: metadata.twitter,
                         website: metadata.website,
                         telegram: metadata.telegram,
                         github: metadata.github,
+                        description: metadata.description,
                     },
                 );
         }
@@ -1427,12 +1365,9 @@ pub mod LaunchpadMarketplace {
                 bonding_curve_type: bond_type,
                 created_at: get_block_timestamp(),
                 token_quote: token_to_use.clone(),
-                starting_price: 1_u256,
-                price: 1_u256,
                 liquidity_raised: 0_u256,
                 total_token_holded: 0_u256,
                 is_liquidity_launch: false,
-                slope: 1_u256,
                 threshold_liquidity: self.threshold_liquidity.read(),
                 liquidity_type: Option::None,
                 protocol_fee_percent: self.protocol_fee_percent.read(),
@@ -1475,9 +1410,7 @@ pub mod LaunchpadMarketplace {
                         caller: get_caller_address(),
                         token_address: coin_address,
                         amount: 0,
-                        price: 1_u256,
                         total_supply,
-                        slope: 1_u256,
                         threshold_liquidity: self.threshold_liquidity.read(),
                         quote_token_address,
                         bonding_type: bond_type,

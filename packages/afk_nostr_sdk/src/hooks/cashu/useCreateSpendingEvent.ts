@@ -52,7 +52,7 @@ export const useCreateSpendingEvent = () => {
         console.log('createSpendingEvent');
         const signer = new NDKPrivateKeySigner(privateKey);
         const user = new NDKUser({ pubkey: publicKey });
-        const content = await signer.nip44Encrypt(
+        const content = await signer.encrypt(
           user,
           JSON.stringify([
             ['direction', direction],
@@ -62,6 +62,7 @@ export const useCreateSpendingEvent = () => {
             // ...eventsIdRelations?.map((event) => ['e', event[0], event[1], event[2]])
   
           ]),
+          "nip44"
         );
   
         const event = new NDKEvent(ndk);

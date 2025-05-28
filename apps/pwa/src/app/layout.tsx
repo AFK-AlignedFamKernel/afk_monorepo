@@ -5,17 +5,17 @@ import '../styles/index.scss';
 import type { Metadata } from 'next';
 // import {useRouter} from 'next/router';
 import Script from 'next/script';
-import dynamic from 'next/dynamic';
+// import dynamic from 'next/dynamic';
 
 import Providers from './providers';
 import Layout from '../components/Layout';
 
 // Import Layout dynamically to avoid SSR issues
-const LayoutDynamic = dynamic(() => import('../components/Layout'), { ssr: false });
+// const LayoutDynamic = dynamic(() => import('../components/Layout'), { ssr: false });
 
 export const metadata: Metadata = {
-  title: 'AFK community LFG',
-  description: 'AFK community LFG app. Have fun',
+  title: 'AFK community Aligned Fam Kernel',
+  description: 'AFK community app for your Digital Freedom, Privacy and Ownership with fun',
 };
 const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS; // Replace with your actual tracking ID
 
@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
+        {/* <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" /> */}
         <Script
           strategy="afterInteractive"
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}

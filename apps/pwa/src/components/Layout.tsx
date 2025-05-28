@@ -1,10 +1,22 @@
 'use client';
 
 import { useState, useEffect, ReactNode } from 'react';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useAccount } from '@starknet-react/core';
-import { WalletConnectButton } from './WalletConnectButton';
+import { WalletConnectButton } from './account/WalletConnectButton';
+import { NostrKeyManager, useAuth } from 'afk_nostr_sdk';
+import { Icon } from './small/icon-component';
+import { useRouter } from 'next/navigation';
+import CryptoLoading from './small/crypto-loading';
+import Image from 'next/image';
+import { useUIStore } from '@/store/uiStore';
+import Accordion from './small/accordion';
+import RightBarDesktop from './RightBarDesktop';
+
+import { ProfileManagement } from '@/components/profile/profile-management';
+import { AvatarIcon } from './small/icons';
+import AccordionMenu from './small/AccordionMenu';
+import MobileBottomBar from './MobileBottomBar';
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,8 +25,39 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  const { showToast, showModal } = useUIStore()
+  const [isLoading, setIsLoading] = useState(false);
+  const router = typeof window === 'undefined' ? null : useRouter();
 
   const { address } = useAccount();
+
+  const { publicKey, setAuth } = useAuth();
+  useEffect(() => {
+    if (address) {
+      console.log('address', address);
+    }
+  }, [address]);
+
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const readNostrStorage = () => {
+      const nostrStorageStr = NostrKeyManager.getNostrWalletConnected()
+      if (!nostrStorageStr) {
+        return
+      }
+      const nostrStorage = JSON.parse(nostrStorageStr)
+      if (nostrStorage && nostrStorage?.publicKey) {
+        setAuth(nostrStorage?.publicKey, nostrStorage?.secretKey)
+      }
+    }
+    if (!publicKey) {
+      readNostrStorage()
+    }
+  }, [publicKey])
 
   // Close sidebar when window resizes to desktop
   useEffect(() => {
@@ -30,7 +73,9 @@ const Layout = ({ children }: LayoutProps) => {
 
   // Initialize dark mode from localStorage or system preference
   useEffect(() => {
-    // Check localStorage first
+    if (typeof window === 'undefined') return;
+
+    // Now safe to use localStorage or document
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       setDarkMode(true);
@@ -67,34 +112,68 @@ const Layout = ({ children }: LayoutProps) => {
       document.body.classList.remove('dark-mode');
       localStorage.setItem('theme', 'light');
     }
+
   };
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [darkMode]);
+
+  useEffect(() => {
+    const handleStart = () => {
+      setIsLoading(true);
+      document.body.classList.add('page-transition');
+    };
+
+    const handleComplete = () => {
+      setIsLoading(false);
+      document.body.classList.remove('page-transition');
+    };
+
+    // router?.events?.on('routeChangeStart', handleStart);
+    // router?.events?.on('routeChangeComplete', handleComplete);
+    // router?.events?.on('routeChangeError', handleComplete);
+
+    // return () => {
+    //   router?.events?.off('routeChangeStart', handleStart);
+    //   router?.events?.off('routeChangeComplete', handleComplete);
+    //   router?.events?.off('routeChangeError', handleComplete);
+    // };
+  }, [router]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Then use mounted state to guard browser API access
+  useEffect(() => {
+    if (!mounted) return;
+    // Safe to use browser APIs here
+  }, [mounted]);
 
   return (
     <div className="page">
       {/* Mobile Header */}
       <header className="mobile-header">
-        <button
-          className="sidebar-toggle"
-          onClick={toggleSidebar}
-          aria-label="Toggle navigation"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M3 12H21M3 6H21M3 18H21"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+
 
         <div className="mobile-header-logo">
-          <a href="/">AFK</a>
+          <a href="/">
+            <Image
+              src="/afk_logo_circle.png"
+              alt="AFK Logo"
+              width={50}
+              height={50}
+            />
+          </a>
         </div>
 
-        <div className="flex items-center gap-4">
-          <WalletConnectButton />
+        {/* <div className="flex items-center gap-4">
+
           <button
             className="theme-toggle"
             onClick={toggleTheme}
@@ -122,16 +201,37 @@ const Layout = ({ children }: LayoutProps) => {
               </svg>
             )}
           </button>
+        </div> */}
+        <div className="flex items-center gap-4">
+          <button className="btn btn-blue" onClick={() => showModal(<ProfileManagement />)}>
+            <AvatarIcon width={20} height={20} />
+          </button>
+          <button
+            // className="sidebar-toggle"
+            onClick={toggleSidebar}
+            aria-label="Toggle navigation"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M3 12H21M3 6H21M3 18H21"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
         </div>
+
       </header>
 
       {/* Sidebar */}
-      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''} `}>
         <div className="logo">
           <a href="/" onClick={closeSidebar}>AFK</a>
         </div>
 
-        <div className="sidebar-nav">
+        <div className="sidebar-nav overflow-y-hidden scrollbar-hide">
           <div className="sidebar-nav-header">
             <a href="/" className="sidebar-nav-item" onClick={closeSidebar}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -152,6 +252,55 @@ const Layout = ({ children }: LayoutProps) => {
               </svg>
               Home
             </a>
+
+            <div className='sidebar-nav-item'>
+              <AccordionMenu title="Nostr"
+                items={[{
+                  title: "Social Nostr",
+                  icon: (<Icon name="SocialNostr" size={24}></Icon>),
+                  content: (
+                    <>
+                      <Link href="/nostr/feed" className="sidebar-nav-item" onClick={closeSidebar}>
+                        <Icon name="FeedIcon" size={24} />
+
+                        Feed
+                      </Link>
+                      <Link href="/nostr/my-profile" className="sidebar-nav-item" onClick={closeSidebar}>
+                        <Icon name="UserIcon" size={24} />
+
+                        My Profile
+                      </Link>
+                      <Link href="/nostr/login" className="sidebar-nav-item" onClick={closeSidebar}>
+                        <Icon name="LoginIcon" size={24} />
+                        Login
+                      </Link>
+
+                      {/* {publicKey && (
+                        <Link href="/nostr/messages" className="sidebar-nav-item" onClick={closeSidebar}>
+                          <Icon name="MessageIcon" size={24} />
+                          Messages
+                        </Link>
+                      )} */}
+                    </>)
+                },
+                ]} />
+            </div>
+
+            {/* <Link href="/wallet" className="sidebar-nav-item" onClick={closeSidebar}>
+              <Icon name="WalletIcon" size={24} />
+              Wallet
+            </Link> */}
+
+
+            <Link href="/profile" className="sidebar-nav-item" onClick={closeSidebar}>
+              <Icon name="UserIcon" size={24} />
+
+              Profile
+            </Link>
+
+            <Link href="/create" className="sidebar-nav-item" onClick={closeSidebar}>
+              <Icon name="AddPostIcon" size={24} />
+              Create</Link>
 
             <Link href="/launchpad" className="sidebar-nav-item" onClick={closeSidebar}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -209,6 +358,39 @@ const Layout = ({ children }: LayoutProps) => {
               </svg>
               Launchpad
             </Link>
+            <div className="flex items-center gap-4">
+              <button className="btn btn-gradient-green" onClick={() => showModal(<ProfileManagement />)}>
+                Connect
+              </button>
+
+              <button
+                className="theme-toggle"
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+              >
+                {darkMode ? (
+                  <svg className="theme-toggle__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12 3V4M12 20V21M21 12H20M4 12H3M18.364 18.364L17.657 17.657M6.343 6.343L5.636 5.636M18.364 5.636L17.657 6.343M6.343 17.657L5.636 18.364M16 12C16 14.209 14.209 16 12 16C9.791 16 8 14.209 8 12C8 9.791 9.791 8 12 8C14.209 8 16 9.791 16 12Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                ) : (
+                  <svg className="theme-toggle__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M21.752 15.002C20.915 15.7527 19.9638 16.3526 18.938 16.774C17.9123 17.1954 16.8305 17.4329 15.738 17.476C14.6456 17.5192 13.5513 17.3672 12.5 17.027C8.6 15.7 5.9 11.992 5.9 8.002C5.9 7.302 5.978 6.618 6.14 5.959C6.28224 5.39118 6.48413 4.83807 6.743 4.309C3.57 5.7 1.25 8.97 1.25 12.826C1.25 18.001 5.394 22.125 10.575 22.125C15.268 22.125 19.143 19.092 20.45 14.985C20.8874 14.3631 21.2663 13.703 21.582 13.013C21.6 13.02 21.671 14.192 21.752 15.002Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                )}
+              </button>
+            </div>
             {/* <a href="/stream" className="sidebar-nav-item" onClick={closeSidebar}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect
@@ -291,10 +473,14 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Main Content */}
       <main className="main-content">
-        <div className="content">
+        {isLoading && <CryptoLoading />}
+        <div className="content pb-20 md:pb-0">
           {children}
+          {/* <RightBarDesktop /> */}
         </div>
       </main>
+      <MobileBottomBar />
+
     </div>
   );
 };

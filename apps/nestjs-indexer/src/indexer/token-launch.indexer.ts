@@ -87,12 +87,8 @@ export class TokenLaunchIndexer {
     const [
       amountLow,
       amountHigh,
-      priceLow,
-      priceHigh,
       totalSupplyLow,
       totalSupplyHigh,
-      slopeLow,
-      slopeHigh,
       thresholdLiquidityLow,
       thresholdLiquidityHigh,
       bondingTypeFelt,
@@ -104,11 +100,6 @@ export class TokenLaunchIndexer {
     });
     const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
 
-    const priceRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(priceLow),
-      high: FieldElement.toBigInt(priceHigh),
-    });
-    const price = formatUnits(priceRaw, constants.DECIMALS);
 
     const totalSupplyRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(totalSupplyLow),
@@ -119,12 +110,6 @@ export class TokenLaunchIndexer {
       constants.DECIMALS,
     ).toString();
 
-    const slopeRaw = uint256.uint256ToBN({
-      low: FieldElement.toBigInt(slopeLow),
-      high: FieldElement.toBigInt(slopeHigh),
-    });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const slope = formatUnits(slopeRaw, constants.DECIMALS).toString();
 
     const thresholdLiquidityRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(thresholdLiquidityLow),
@@ -157,7 +142,7 @@ export class TokenLaunchIndexer {
       quoteToken: quoteTokenAddress,
       amount: Number(amount),
       totalSupply,
-      price,
+      price:"0",
       ownerAddress,
       bondingType,
       thresholdLiquidity,

@@ -151,6 +151,92 @@ export const indexerCursor = pgTable('indexer_cursor', {
   last_tx_hash: text('last_tx_hash'),
 });
 
+export const tokenDeploy = pgTable('token_deploy', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  transaction_hash: text('transaction_hash').unique(),
+  network: text('network'),
+  block_timestamp: timestamp('block_timestamp'),
+  memecoin_address: text('memecoin_address').unique(),
+  owner_address: text('owner_address'),
+  name: text('name'),
+  symbol: text('symbol'),
+  initial_supply: text('initial_supply'),
+  total_supply: text('total_supply'),
+  created_at: timestamp('created_at').defaultNow(),
+  is_launched: boolean('is_launched').default(false),
+});
+
+export const tokenLaunch = pgTable('token_launch', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  transaction_hash: text('transaction_hash').unique(),
+  network: text('network'),
+  block_timestamp: timestamp('block_timestamp'),
+  memecoin_address: text('memecoin_address').unique(),
+  owner_address: text('owner_address'),
+  name: text('name'),
+  symbol: text('symbol'),
+  quote_token: text('quote_token'),
+  total_supply: text('total_supply'),
+  threshold_liquidity: text('threshold_liquidity'),
+  current_supply: text('current_supply'),
+  liquidity_raised: text('liquidity_raised'),
+  is_liquidity_added: boolean('is_liquidity_added').default(false),
+  total_token_holded: text('total_token_holded'),
+  price: text('price'),
+  bonding_type: text('bonding_type'),
+  initial_pool_supply_dex: text('initial_pool_supply_dex'),
+  market_cap: text('market_cap'),
+  created_at: timestamp('created_at').defaultNow(),
+  token_deploy_tx_hash: text('token_deploy_tx_hash').unique(),
+});
+
+export const tokenMetadata = pgTable('token_metadata', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  transaction_hash: text('transaction_hash').unique(),
+  network: text('network'),
+  block_timestamp: timestamp('block_timestamp'),
+  memecoin_address: text('memecoin_address').unique(),
+  url: text('url'),
+  nostr_id: text('nostr_id'),
+  nostr_event_id: text('nostr_event_id'),
+  twitter: text('twitter'),
+  telegram: text('telegram'),
+  github: text('github'),
+  website: text('website'),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
+export const tokenTransactions = pgTable('token_transactions', {
+  transfer_id: text('transfer_id').unique(),
+  network: text('network'),
+  block_timestamp: timestamp('block_timestamp'),
+  transaction_hash: text('transaction_hash'),
+  memecoin_address: text('memecoin_address'),
+  owner_address: text('owner_address'),
+  last_price: text('last_price'),
+  quote_amount: text('quote_amount'),
+  price: text('price'),
+  protocol_fee: text('protocol_fee'),
+  amount: text('amount'),
+  transaction_type: text('transaction_type'),
+  time_stamp: timestamp('time_stamp'),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
+export const sharesTokenUser = pgTable('shares_token_user', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  owner: text('owner').notNull(),
+  token_address: text('token_address').notNull(),
+  amount_owned: text('amount_owned').default('0'),
+  amount_buy: text('amount_buy').default('0'),
+  amount_sell: text('amount_sell').default('0'),
+  total_paid: text('total_paid').default('0'),
+  is_claimable: boolean('is_claimable').default(false),
+  created_at: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  uniqueOwnerToken: uniqueIndex('shares_token_user_owner_token_idx').on(table.owner, table.token_address)
+}));
+
 // Relations
 export const contractStateRelations = relations(contractState, ({ many }) => ({
   epochs: many(epochState),
@@ -201,6 +287,47 @@ export const daoProposalVoteRelations = relations(daoProposalVote, ({ one }) => 
   }),
 }));
 
+// Add relations
+export const tokenDeployRelations = relations(tokenDeploy, ({ one }) => ({
+  launch: one(tokenLaunch, {
+    fields: [tokenDeploy.transaction_hash],
+    references: [tokenLaunch.token_deploy_tx_hash],
+  }),
+  metadata: one(tokenMetadata, {
+    fields: [tokenDeploy.memecoin_address],
+    references: [tokenMetadata.memecoin_address],
+  }),
+}));
+
+export const tokenLaunchRelations = relations(tokenLaunch, ({ one }) => ({
+  deploy: one(tokenDeploy, {
+    fields: [tokenLaunch.token_deploy_tx_hash],
+    references: [tokenDeploy.transaction_hash],
+  }),
+  metadata: one(tokenMetadata, {
+    fields: [tokenLaunch.memecoin_address],
+    references: [tokenMetadata.memecoin_address],
+  }),
+}));
+
+export const tokenMetadataRelations = relations(tokenMetadata, ({ one }) => ({
+  deploy: one(tokenDeploy, {
+    fields: [tokenMetadata.memecoin_address],
+    references: [tokenDeploy.memecoin_address],
+  }),
+  launch: one(tokenLaunch, {
+    fields: [tokenMetadata.memecoin_address],
+    references: [tokenLaunch.memecoin_address],
+  }),
+}));
+
+export const sharesTokenUserRelations = relations(sharesTokenUser, ({ one }) => ({
+  token: one(tokenLaunch, {
+    fields: [sharesTokenUser.token_address],
+    references: [tokenLaunch.memecoin_address],
+  }),
+}));
+
 // Add proper type exports
 export type ContractState = typeof contractState.$inferSelect;
 export type NewContractState = typeof contractState.$inferInsert;
@@ -222,5 +349,20 @@ export type NewDaoProposal = typeof daoProposal.$inferInsert;
 
 export type DaoProposalVote = typeof daoProposalVote.$inferSelect;
 export type NewDaoProposalVote = typeof daoProposalVote.$inferInsert;
+
+export type TokenDeploy = typeof tokenDeploy.$inferSelect;
+export type NewTokenDeploy = typeof tokenDeploy.$inferInsert;
+
+export type TokenLaunch = typeof tokenLaunch.$inferSelect;
+export type NewTokenLaunch = typeof tokenLaunch.$inferInsert;
+
+export type TokenMetadata = typeof tokenMetadata.$inferSelect;
+export type NewTokenMetadata = typeof tokenMetadata.$inferInsert;
+
+export type TokenTransaction = typeof tokenTransactions.$inferSelect;
+export type NewTokenTransaction = typeof tokenTransactions.$inferInsert;
+
+export type SharesTokenUser = typeof sharesTokenUser.$inferSelect;
+export type NewSharesTokenUser = typeof sharesTokenUser.$inferInsert;
 
 

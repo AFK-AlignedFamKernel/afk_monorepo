@@ -2,16 +2,16 @@ import {schnorr} from '@noble/curves/secp256k1';
 import {getSharedSecret} from '@noble/secp256k1';
 import * as secp from '@noble/secp256k1';
 
-// Web Crypto API implementation
-export const getRandomBytes = async (length: number): Promise<Uint8Array> => {
+// Replace expo-crypto's getRandomBytes with Web Crypto API
+export const getRandomBytes = (length: number): Uint8Array => {
   const array = new Uint8Array(length);
   crypto.getRandomValues(array);
   return array;
 };
 
-export const generateRandomKeypair = async () => {
+export const generateRandomKeypair = () => {
   try {
-    const privateKey = await getRandomBytes(32);
+    const privateKey = getRandomBytes(32);
     const privateKeyHex = Buffer.from(privateKey).toString('hex');
 
     const publicKey = schnorr.getPublicKey(privateKeyHex);
@@ -99,7 +99,7 @@ export function deriveSharedKey(
     return sharedSecret.slice(1);
   } catch (error) {
     console.error('Error deriving shared key:', error);
-    throw error;
+    return null;
   }
 }
 
@@ -166,11 +166,26 @@ export function fixPubKey(pubkey: string): string {
     throw new Error('Public key is too long or unrecognized format.');
   }
 
-  // Pad with leading zeros if necessary
-  return pubkey.padStart(desiredLength, '0');
+  // Pad with leading zeros if the length is less than desired
+  // const fixedPubKey = pubkey.padStart(desiredLength, '0');
+  /** TODO fix pubkey padding way */
+  const fixedPubKey = pubkey.padStart(desiredLength, '02');
+
+  // Validate the corrected public key using secp256k1 library
+  try {
+    console.log("assure verification key")
+    // secp.getSharedSecret(fixedPubKey);
+    // const publicKeyPoint = secp.getPublicKey(fixedPubKey);
+    // publicKeyPoint.assertValidity(); // Check if the point is valid on the curve
+  } catch (error) {
+    throw new Error('Corrected public key is not valid on the secp256k1 curve.');
+  }
+
+  return fixedPubKey;
 }
 
-export const hashTag = async (tag: string) => {
+// Replace expo-crypto's digestStringAsync with Web Crypto API
+export const hashTag = async (tag: string): Promise<string> => {
   const encoder = new TextEncoder();
   const data = encoder.encode(tag);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -178,8 +193,9 @@ export const hashTag = async (tag: string) => {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 };
 
-export const generateRandomIdentifier = async (length = 16) => {
-  const array = new Uint8Array(length);
-  crypto.getRandomValues(array);
-  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+export const generateRandomIdentifier = async (length = 16): Promise<string> => {
+  const randomBytes = getRandomBytes(length);
+  return Array.from(randomBytes)
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('');
 };

@@ -17,6 +17,11 @@ export const useSellCoin = () => {
       if (!account) {
         throw new Error('No account connected');
       }
+
+      if (!memecoinAddress) {
+        throw new Error('Missing required parameters');
+      }
+
       const addressContract = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
       const quoteTokenAddress = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
       if (!account?.address) {
@@ -53,7 +58,8 @@ export const useSellCoin = () => {
           // calldata: [buyKeysParams.user_address, buyKeysParams.amount]
         };
 
-        const tx = await account?.execute([approveCall,
+        const tx = await account?.execute([
+          // approveCall,
           sellCoinCall
         ], undefined, {});
         console.log('tx hash', tx.transaction_hash);

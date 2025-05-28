@@ -1,0 +1,14 @@
+.input-text {
+  margin-bottom: 10px;
+  margin-top: 10px;
+  background-color: var(--primary-50);
+  color: var(--primary-900);
+  border: 1px solid var(--primary-200);
+  border-radius: 5px;
+  width: 100%;
+  min-height: 30px;
+  // @apply w-full p-2 rounded-md border border-gray-300;
+  &:hover {
+    border-color: var(--primary-300);
+  }
+}

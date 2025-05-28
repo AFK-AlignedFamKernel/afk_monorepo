@@ -16,7 +16,7 @@ import {
   ProofState,
 } from '@cashu/cashu-ts';
 import { bytesToHex } from '@noble/curves/abstract/utils';
-import { NDKCashuToken } from '@nostr-dev-kit/ndk-wallet';
+import { NDKCashuDeposit } from '@nostr-dev-kit/ndk-wallet';
 import * as Bip39 from 'bip39';
 import { useEffect, useMemo, useState } from 'react';
 import { getProofs as getProofsStorage, storeProofs as storeProofsStorage } from '../../storage';
@@ -24,6 +24,7 @@ import { useNostrContext } from '../../context';
 import { useAuth, useCashuStore } from '../../store';
 import { generateMnemonic } from 'bip39';
 import { MintData } from '../../types';
+import { NDKCashuToken } from '@nostr-dev-kit/ndk';
 
 export interface ICashu {
   wallet: CashuWallet;
@@ -36,6 +37,7 @@ export interface ICashu {
     keys: MintKeys[];
   }>;
   connectCashWallet: (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => Promise<CashuWallet>;
+  initializeWithNostrSeed: (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => Promise<CashuWallet>;
   requestMintQuote: (nb: number) => Promise<{
     request: MintQuoteResponse;
   }>;
@@ -75,7 +77,7 @@ export interface ICashu {
   getUnitProofs: (unit: string, pMint: MintData, proofsLocal: Proof[]) => Promise<Proof[]>;
   getUnitBalance: (unit: string, pMint: MintData, proofs: Proof[]) => Promise<number>;
   getKeys: () => Promise<MintActiveKeys>;
-  getProofs: (tokens: NDKCashuToken[]) => Promise<void>;
+  getProofs: (tokens: NDKCashuToken[]) => Promise<Proof[]>;
   getFeesForExternalInvoice: (externalInvoice: string) => Promise<number>;
   payExternalInvoice: (
     amount: number,
@@ -120,7 +122,8 @@ export interface ICashu {
   filteredProofsSpents: (proofs: Proof[]) => Promise<{ proofsFiltered: Proof[], proofsSpents: Proof[] }>;
 }
 
-export const useCashu = (): ICashu => {
+
+export const useCashu = () => {
   const { ndkCashuWallet } = useNostrContext();
   const { privateKey } = useAuth();
   const { setSeed, seed, setMnemonic } = useCashuStore();
@@ -128,16 +131,16 @@ export const useCashu = (): ICashu => {
 
   const [isWebsocketProofs, setIsWebsocketProofs] = useState<boolean>(false);
 
-  const [mintUrlSelected, setMintUrlSelected] = useState<string>("https://mint.minibits.cash/Bitcoin");
+  const [mintUrlSelected, setMintUrlSelected] = useState<string>("https://mint.cubabitcoin.org");
 
-  const [activeMint, setActiveMint] = useState<string>();
+  const [activeMint, setActiveMint] = useState<string>("https://mint.cubabitcoin.org");
   // const [activeMint, setActiveMint] = useState<string>("https://mint.minibits.cash/Bitcoin");
   const [activeMintIndex, setActiveMintIndex] = useState<number>(0);
   const [activeUnit, setActiveUnit] = useState<string>();
   const [activeCurrency, setActiveCurrency] = useState<string>();
   const [mints, setMints] = useState<MintData[]>();
   const [mintUrls, setMintUrls] = useState<MintData[]>([]);
-  const [mintsUrlsString, setMintsUrlsString] = useState<string[]>(['https://mint.minibits.cash/Bitcoin']);
+  const [mintsUrlsString, setMintsUrlsString] = useState<string[]>(['https://mint.cubabitcoin.org']);
 
   const [proofs, setProofs] = useState<Proof[]>([]);
   const [mintInfo, setMintInfo] = useState<GetInfoResponse | undefined>();
@@ -146,12 +149,13 @@ export const useCashu = (): ICashu => {
     // console.log('activeMint', activeMint);
     if (activeMint) return new CashuMint(activeMint);
     if (!activeMint && mintUrls && activeMintIndex) {
-      return new CashuMint(mintUrls[activeMintIndex].url);
+      return new CashuMint(mintUrls[activeMintIndex]?.url);
     }
     if (!activeMint && !mintUrls && !activeMintIndex) {
-      return new CashuMint(mintUrls[0].url);
+      return new CashuMint(mintUrls[0]?.url);
     }
-  }, [activeMint, mintUrls, activeMintIndex, setMintUrlSelected]);
+  }, [activeMint, mintUrls, activeMintIndex]);
+
 
   useEffect(() => {
     (async () => {
@@ -164,67 +168,105 @@ export const useCashu = (): ICashu => {
   }, [activeMintIndex]);
 
 
-  const [walletConnected, setWalletConnected] = useState<CashuWallet | undefined>(new CashuWallet(mint, {
-    bip39seed: seed,
-    // unit: activeUnit,
-    // keysets: keysetsMint,
-    // keys: keysMint,
-    // keysets: (await keysets).keysets || [],
-  }));
+  // Initialize without immediate state update that triggers renders
+  const [walletConnected, setWalletConnected] = useState<CashuWallet | undefined>(undefined);
 
+
+  const initializeWallet = async () => {
+    try {
+      console.log('Initializing wallet with mint:', mint.mintUrl);
+
+
+      let mintInstance = mint;
+
+      if (!mint) {
+        mintInstance = new CashuMint(activeMint);
+      }
+
+      if (!mintInstance) {
+        return;
+      }
+      // Create new wallet instance
+      const newWallet = new CashuWallet(mintInstance, {
+        bip39seed: seed,
+        unit: activeUnit || 'sat',
+      });
+
+      console.log('Wallet created, setting as walletConnected');
+      setWalletConnected(newWallet);
+
+      // Try to preload keys to ensure wallet is fully initialized
+      try {
+        console.log('Preloading mint keys and keysets');
+        const keysets = await mint.getKeys();
+        const keys = await mint.getKeySets();
+      } catch (keysErr) {
+        console.error('Error preloading keys (non-critical):', keysErr);
+        // Continue anyway - wallet can still work
+      }
+      return newWallet;
+    } catch (err) {
+      console.error('Error initializing wallet:', err);
+      return undefined;
+    }
+  };
+  // Initialize wallet in useEffect instead
+  useEffect(() => {
+    if (!mint) {
+      console.log('No mint available for wallet initialization');
+      return;
+    }
+    // Only initialize if we don't already have a wallet or if mint has changed
+    if (!walletConnected || (walletConnected && walletConnected.mint.mintUrl !== mint.mintUrl)) {
+      initializeWallet();
+    }
+  }, [mint, seed, activeUnit, walletConnected]);
 
 
   const [keysetsMint, setKeysetsMint] = useState<MintKeyset[]>([]);
   const [keysMint, setKeysMint] = useState<MintKeys[]>([]);
-  const keysets = useMemo(async () => {
-    const keysets = await mint?.getKeySets();
-    const keys = await mint?.getKeys();
-    setKeysetsMint(keysets?.keysets || []);
-    setKeysMint(keys?.keysets || []);
-    return keysets;
-  }, [mint, activeUnit, activeMint]);
+
+  // Move state updates to useEffect
+  useEffect(() => {
+    if (!mint) return;
+
+    (async () => {
+      try {
+        console.log('Fetching keysets and keys for mint:', mint.mintUrl);
+        const keysets = await mint.getKeySets();
+        const keys = await mint.getKeys();
+        setKeysetsMint(keysets?.keysets || []);
+        setKeysMint(keys?.keysets || []);
+      } catch (err) {
+        console.error('Error getting keysets/keys:', err);
+      }
+    })();
+  }, [mint]);
 
   const wallet = useMemo(() => {
-
-    let newWallet: CashuWallet | undefined;
-    // console.log('keysetsMint', keysetsMint);
-    // const keysets = await mint?.getKeySets();
-    if (mint) {
-      newWallet = new CashuWallet(mint, {
-        bip39seed: seed,
-        unit: activeUnit,
-        // keysets: keysetsMint,
-        // keys: keysMint,
-        // keysets: (await keysets).keysets || [],
-      });
-      // setWalletConnected(newWallet);
-    }
-    if (mint && !seed) {
-      newWallet = new CashuWallet(mint, {
-        // bip39seed: seed,
-        unit: activeUnit,
-        // keysets: keysetsMint,
-        // keys: keysMint,
-        // keysets: (await keysets).keysets || [],
-      });
-      setWalletConnected(newWallet);
-    }
-    if (newWallet) return newWallet;
     if (walletConnected) return walletConnected;
+    return undefined;
+  }, [walletConnected]);
 
-
-  }, [mint, seed, activeUnit, keysetsMint, walletConnected]);
-
+  // Fix the circular dependency that causes infinite loop
   useEffect(() => {
-    if (mint) {
+    // Only set activeMint from mint if needed
+    if (mint && (!activeMint || activeMint !== mint.mintUrl)) {
       setActiveMint(mint.mintUrl);
     }
+  }, [mint, activeMint]);
 
-    if (activeMintIndex && mintUrls) {
-      setActiveMint(mintUrls[activeMintIndex].url);
+  // Separate effect for mintUrls to avoid conflicts
+  useEffect(() => {
+    // Only update from mintUrls if we have a valid index
+    if (mintUrls && mintUrls.length > 0 && activeMintIndex >= 0 && activeMintIndex < mintUrls.length) {
+      const newMintUrl = mintUrls[activeMintIndex].url;
+      // Only update if different from current
+      if (newMintUrl && newMintUrl !== activeMint) {
+        setActiveMint(newMintUrl);
+      }
     }
-  }, [mint, mintUrls, activeMintIndex]);
-
+  }, [mintUrls, activeMintIndex, activeMint]);
 
   /** TODO saved in secure store */
   const generateNewMnemonic = () => {
@@ -392,22 +434,62 @@ export const useCashu = (): ICashu => {
     return info;
   };
 
-  /** TODO fixed connect cash wallet with mnemonic and keys */
+  /** 
+   * Connect to a Cashu wallet using the provided mint and keys
+   * This function initializes a wallet instance for use with the mint
+   */
   const connectCashWallet = async (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => {
-    if (!mint && !cashuMint) return undefined;
-    const mnemonic = generateMnemonic(128);
-    const mintKeysset = await mint?.getKeySets();
-    setActiveMint(cashuMint.mintUrl);
-    const wallet = new CashuWallet(cashuMint, {
-      bip39seed: seed,
-      unit: activeUnit,
-      // mnemonicOrSeed: mnemonic,
-      // keys:keys
-      // keysets: mintKeysset?.keysets || [],
-    });
-    // setWallet(wallet);
-    setWalletConnected(wallet);
-    return wallet;
+    try {
+      if (!cashuMint) {
+        console.error('Cannot connect wallet: No mint provided');
+        return undefined;
+      }
+
+      // Get the mint URL
+      const mintUrl = cashuMint.mintUrl;
+      console.log(`Connecting wallet to mint: ${mintUrl}`);
+
+      // Set as active mint
+      setActiveMint(mintUrl);
+
+      // Get mint keysets if needed
+      let mintKeyssets;
+      try {
+        mintKeyssets = await cashuMint.getKeySets();
+        console.log('Got keysets from mint:', mintKeyssets?.keysets?.length);
+      } catch (err) {
+        console.error('Error getting keysets from mint:', err);
+        // Continue without keysets - the wallet can still be created
+      }
+
+      // Create wallet instance
+      console.log('Creating wallet with seed, unit:', seed ? 'present' : 'not present', activeUnit || 'sat');
+      const walletInstance = new CashuWallet(cashuMint, {
+        bip39seed: seed,
+        unit: activeUnit || 'sat',
+        // Use keys if provided
+        keys: keys || undefined,
+      });
+
+      // Verify the wallet works by testing a basic function
+      try {
+        console.log('Testing wallet initialization with a basic operation');
+        await walletInstance.getKeySets();
+        console.log('Wallet initialization test passed');
+      } catch (testErr) {
+        console.error('Warning: Wallet initialization test failed:', testErr);
+        // Continue anyway - some operations may still work
+      }
+
+      // Store wallet instance globally for the SDK
+      setWalletConnected(walletInstance);
+      console.log('Wallet connected successfully');
+
+      return walletInstance;
+    } catch (err) {
+      console.error('Error connecting to wallet:', err);
+      return undefined;
+    }
   };
 
   const getKeys = async () => {
@@ -421,8 +503,9 @@ export const useCashu = (): ICashu => {
   };
 
   const getProofs = async (tokens: NDKCashuToken[]) => {
-    const proofsCheck = await ndkCashuWallet?.checkProofs([...tokens]);
-    return proofsCheck;
+    return []
+    // const proofsCheck = await wallet?.checkProofsStates([...tokens]);
+    // return proofsCheck;
   };
 
   const getKeySets = async () => {
@@ -511,17 +594,204 @@ export const useCashu = (): ICashu => {
     return unitBalance;
   };
 
+  // Add a helper function to validate and parse mint responses
+  const parseAndValidateMintResponse = (response: any): {
+    isValid: boolean;
+    invoice?: string;
+    paymentHash?: string;
+    quoteId?: string;
+    quote?: string;
+    amount?: number;
+    error?: string;
+  } => {
+    // First check if we have a response
+    if (!response) {
+      return { isValid: false, error: 'Empty response from mint' };
+    }
+
+    // Extract all possible invoice field names
+    const invoice = response.request ||
+      response.pr ||
+      response.bolt11 ||
+      response.payment_request ||
+      response.invoice ||
+      '';
+
+    // Extract all possible payment hash fields
+    const paymentHash = response.hash ||
+      response.payment_hash ||
+      response.id ||
+      response.paymentHash ||
+      '';
+
+    // Extract quote ID and amount if available
+    const quote = response.quote || '';
+    const quoteId = response.id || response.quote_id || '';
+    const amount = response.amount || response.value || 0;
+
+    // Log the found fields
+    console.log('Parsed mint response:', {
+      hasInvoice: !!invoice,
+      hasPaymentHash: !!paymentHash,
+      hasQuote: !!quote,
+      hasQuoteId: !!quoteId,
+      amount
+    });
+
+    // Determine validity - must have at least invoice or payment hash
+    const isValid = !!(invoice || paymentHash);
+
+    return {
+      isValid,
+      invoice,
+      paymentHash,
+      quoteId,
+      quote,
+      amount,
+      error: isValid ? undefined : 'Invalid mint response format'
+    };
+  };
+
+  // New method with retry logic for generating mint quotes
+  const createMintQuoteWithRetry = async (amount: number, maxAttempts = 3): Promise<MintQuoteResponse> => {
+    let lastError: Error | null = null;
+
+    // Get a wallet instance
+    const walletInstance = wallet || walletConnected;
+    if (!walletInstance) {
+      throw new Error('No wallet instance available');
+    }
+
+    // Make multiple attempts
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        console.log(`Creating mint quote attempt ${attempt}/${maxAttempts} for ${amount} sats`);
+
+        // Set timeout for this request
+        const timeoutMs = 5000 * attempt; // Increase timeout with each attempt
+
+        // Create the quote with timeout
+        const quotePromise = walletInstance.createMintQuote(amount);
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error(`Quote request timeout (${timeoutMs}ms)`)), timeoutMs)
+        );
+
+        // Race the promises
+        const response = await Promise.race([quotePromise, timeoutPromise]);
+
+        // Use our enhanced validation
+        const parsed = parseAndValidateMintResponse(response);
+
+        if (!parsed.isValid) {
+          console.warn(`Invalid response format (attempt ${attempt}):`, response);
+          throw new Error(parsed.error || 'Invalid mint response format');
+        }
+
+        // If we got here, we have a valid response
+        console.log(`Successful quote generation on attempt ${attempt}`);
+
+        // Ensure the response matches the expected MintQuoteResponse format as best as possible
+        const validatedResponse = {
+          ...response,
+          // Ensure the quote field exists
+          quote: (response as any).quote || (response as any).id || (response as any).hash || 'unknown',
+          // Add missing fields if needed
+          request: parsed.invoice || (response as any).request || '',
+          hash: parsed.paymentHash || (response as any).hash || ''
+        };
+
+        return validatedResponse as MintQuoteResponse;
+      } catch (err) {
+        console.error(`Quote generation failed on attempt ${attempt}:`, err);
+        lastError = err instanceof Error ? err : new Error(String(err));
+
+        // Don't wait after the final attempt
+        if (attempt < maxAttempts) {
+          const waitTime = 1000 * attempt;
+          console.log(`Waiting ${waitTime}ms before next attempt...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
+    }
+
+    // All attempts failed
+    throw lastError || new Error('Failed to generate quote after multiple attempts');
+  };
+
   const requestMintQuote = async (nb: number) => {
     try {
-      if (!wallet) return;
+      // Check if either wallet or walletConnected is available
+      const walletInstance = wallet || walletConnected;
 
-      const request = await wallet?.createMintQuote(nb);
-      await wallet?.checkMintQuote(request.quote);
+      if (!walletInstance) {
+        console.error('No wallet instance available when attempting to create mint quote');
+        throw new Error('Wallet not initialized');
+      }
+
+      console.log('Creating mint quote with wallet instance:', walletInstance);
+
+      // Validate the wallet instance has required methods
+      if (typeof walletInstance.createMintQuote !== 'function') {
+        console.error('Wallet instance missing createMintQuote method:', walletInstance);
+        throw new Error('Invalid wallet instance: missing createMintQuote method');
+      }
+
+      // Verify mint connection in the wallet
+      if (!walletInstance.mint) {
+        console.error('Wallet instance has no mint connection');
+        throw new Error('Wallet has no mint connection');
+      }
+
+      console.log('Using mint URL:', walletInstance.mint.mintUrl);
+
+      // Try to test mint connection
+      try {
+        const mintInfo = await walletInstance.mint.getInfo();
+        console.log('Connected to mint successfully:', mintInfo);
+      } catch (mintErr) {
+        console.warn('Warning: Could not get mint info:', mintErr);
+        // Continue anyway - some operations may still work
+      }
+
+      // Use the new retry function with enhanced validation
+      console.log(`Calling createMintQuoteWithRetry with amount: ${nb}`);
+      let request;
+
+      try {
+        request = await createMintQuoteWithRetry(nb);
+        console.log('Raw quote response after validation:', request);
+      } catch (quoteErr) {
+        console.error('Error in createMintQuoteWithRetry:', quoteErr);
+        throw quoteErr;
+      }
+
+      // Perform a final validation check
+      const finalValidation = parseAndValidateMintResponse(request);
+
+      if (!finalValidation.isValid) {
+        console.error('Final validation check failed:', finalValidation.error);
+        throw new Error(finalValidation.error || 'Invalid quote response from mint');
+      }
+
+      // Try to check the mint quote but don't fail if this fails
+      try {
+        if (request.quote) {
+          await walletInstance.checkMintQuote(request.quote);
+          console.log('Mint quote check successful');
+        } else {
+          console.warn('Cannot check mint quote: missing quote field');
+        }
+      } catch (checkErr) {
+        console.error('Error checking mint quote:', checkErr);
+        // Continue even if checking fails
+      }
+
       return {
         request,
       };
     } catch (e) {
-      console.log('MintQuote error', e);
+      console.error('MintQuote error:', e);
+      throw e; // Re-throw to allow handling in the UI
     }
   };
 
@@ -541,10 +811,18 @@ export const useCashu = (): ICashu => {
     try {
       console.log('meltTokens');
       console.log('wallet', wallet);
-      if (!wallet) return;
+      let walletInstance = wallet;
+      if (!wallet) {
+        walletInstance = await initializeWallet();
+      };
+
+      if (!walletInstance) {
+        console.log('No wallet instance available when attempting to melt tokens');
+        throw new Error('Wallet not initialized');
+      }
 
       // let walletToUse = wallet;
-      const meltQuote = await wallet?.createMeltQuote(invoice);
+      const meltQuote = await walletInstance?.createMeltQuote(invoice);
 
       console.log('meltQuote', meltQuote);
       const amountToSend = meltQuote.amount + meltQuote.fee_reserve;
@@ -568,22 +846,47 @@ export const useCashu = (): ICashu => {
         }
       }
 
-      // in a real wallet, we would coin select the correct amount of proofs from the wallet's storage
-      // instead of that, here we swap `proofs` with the mint to get the correct amount of proofs
-      const { keep: proofsToKeep, send: proofsToSend } = await wallet.send(
-        amountToSend,
-        selectedProofs,
-        // {
-        //   includeFees:true,
-        //   // keysetId: (await keysets).keysets[0].id,
-        // }
-      );
-      const meltResponse = await wallet.meltProofs(meltQuote, proofsToSend);
+      try {
+        // in a real wallet, we would coin select the correct amount of proofs from the wallet's storage
+        // instead of that, here we swap `proofs` with the mint to get the correct amount of proofs
+        const { keep: proofsToKeep, send: proofsToSend } = await walletInstance.send(
+          amountToSend,
+          selectedProofs,
+        );
+        const meltResponse = await walletInstance.meltProofs(meltQuote, proofsToSend);
 
-      return { meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs };
+        return { meltQuote, meltResponse, proofsToKeep, remainingProofs, selectedProofs };
+      } catch (err) {
+        // Check if this is a "Token already spent" error
+        if (err instanceof Error && err.message.includes('Token was already spent')) {
+          console.log('Token already spent, updating proofs and balance');
+          
+          // Check which proofs are spent
+          const proofsStates = await walletInstance.checkProofsStates(selectedProofs);
+          const spentProofs = proofsStates.filter(p => p.state === CheckStateEnum.SPENT);
+          
+          // Remove spent proofs from storage
+          const proofsStr = getProofsStorage();
+          const allProofs = JSON.parse(proofsStr);
+          const updatedProofs = allProofs.filter((p: Proof) => 
+            !spentProofs.some(spent => spent.Y === p.C)
+          );
+          
+          // Store updated proofs
+          storeProofsStorage(updatedProofs);
+          
+          // Update balance
+          const newBalance = updatedProofs.reduce((sum: number, p: Proof) => sum + p.amount, 0);
+          setProofs(updatedProofs); // This will trigger a balance update through the useCashuBalance hook
+          
+          // Re-throw the error to be handled by the UI
+          throw err;
+        }
+        throw err;
+      }
     } catch (e) {
       console.log('Error meltTokens', e);
-      return undefined;
+      throw e; // Re-throw to be handled by the UI
     }
   };
 
@@ -742,6 +1045,50 @@ export const useCashu = (): ICashu => {
     return mintData;
   };
 
+  /**
+   * Initialize a wallet with Nostr seed if available, otherwise use provided seed
+   */
+  const initializeWithNostrSeed = async (cashuMint: CashuMint, keys?: MintKeys | MintKeys[]) => {
+    try {
+      // Check if NostrKeyManager is available
+      const NostrKeyManager = await import('../../utils/nostr-key-manager').then(
+        m => m.NostrKeyManager
+      ).catch(() => null);
+
+      let walletSeed = seed; // Default to current seed
+      let usingNostrSeed = false;
+
+      // Try to get Nostr seed if NostrKeyManager is available
+      if (NostrKeyManager) {
+        try {
+          // Use the new utility method
+          const nostrSeed = await NostrKeyManager.checkNostrSeedAvailable();
+          if (nostrSeed) {
+            console.log('Using Nostr seed for Cashu wallet');
+            // Convert seed to the format expected by CashuWallet (Uint8Array)
+            walletSeed = Buffer.from(nostrSeed, 'hex');
+
+            // Update Cashu store with Nostr seed
+            if (walletSeed && walletSeed.length > 0) {
+              setSeed(walletSeed);
+              usingNostrSeed = true;
+            }
+          }
+        } catch (nostrErr) {
+          console.error('Error getting Nostr seed:', nostrErr);
+          // Continue with current seed if error occurs
+        }
+      }
+
+      // Connect wallet with appropriate seed
+      return connectCashWallet(cashuMint, keys);
+    } catch (err) {
+      console.error('Error initializing with Nostr seed:', err);
+      // Fall back to regular connection
+      return connectCashWallet(cashuMint, keys);
+    }
+  };
+
   return {
     wallet,
     mint,
@@ -795,6 +1142,7 @@ export const useCashu = (): ICashu => {
     walletConnected,
     getUnitBalanceWithProofsChecked,
     handleWebsocketProofs,
-    filteredProofsSpents
+    filteredProofsSpents,
+    initializeWithNostrSeed
   };
 };

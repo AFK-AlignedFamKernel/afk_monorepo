@@ -8,7 +8,7 @@ export async function authRoutes(fastify: FastifyInstance) {
   const signatureService = new SignatureService();
 
   fastify.post<{ Body: LoginInput }>(
-    '/auth',
+    '/auth/starknet',
     {
       schema: {
         body: {

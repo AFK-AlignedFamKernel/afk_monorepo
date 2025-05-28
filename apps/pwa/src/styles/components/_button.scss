@@ -1,0 +1,119 @@
+@import '../variables';
+
+// Base button styles
+.btn {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  outline: none;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+// Primary button
+.btn-primary {
+  background-color: var(--button-primary-color);
+  color: var(--contrast-50);
+  
+  &:hover {
+    // background-color: var(--blue-700);
+    background-color: var(--primary-color-hover);
+    // background-color: linear-gradient(var(--button-primary-color), var(--button-secondary-color));
+    // box-shadow: 0 4px 12px rgba(var(--blue-500), 0.3);
+  }
+}
+
+// Secondary button
+.btn-secondary {
+  background-color: var(--button-secondary-color);
+  color: var(--contrast-50);
+
+  &:hover {
+    background-color: var(--primary-600);
+    box-shadow: 0 4px 12px rgba(var(--primary-500), 0.3);
+  }
+}
+
+// Gradient buttons
+.btn-gradient-blue {
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 100%);
+  color: var(--contrast-50);
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--blue-600) 0%, var(--blue-700) 100%);
+    box-shadow: 0 4px 15px rgba(var(--blue-500), 0.4);
+  }
+}
+
+.btn-gradient-purple {
+  background: linear-gradient(135deg, var(--purple-500) 0%, var(--purple-600) 100%);
+  color: var(--contrast-50);
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--purple-600) 0%, var(--purple-700) 100%);
+    box-shadow: 0 4px 15px rgba(var(--purple-500), 0.4);
+  }
+}
+
+.btn-gradient-green {
+  background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
+  color: var(--contrast-50);
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--green-600) 0%, var(--green-700) 100%);
+    box-shadow: 0 4px 15px rgba(var(--green-500), 0.4);
+  }
+}
+
+
+// .btn-active {
+//   background-color: var(--primary-300);
+//   color: var(--contrast-100);
+// }
+
+// Animated button
+.btn-animated {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(var(--contrast-50), 0.2),
+      transparent
+    );
+    transition: all 0.6s;
+  }
+  
+  &:hover::before {
+    left: 100%;
+  }
+}
+
+// Disabled state
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  
+  &:hover {
+    box-shadow: none;
+    transform: none;
+  }
+}
