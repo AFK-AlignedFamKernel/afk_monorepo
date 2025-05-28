@@ -7,6 +7,8 @@ import { NostrKeyManager } from 'afk_nostr_sdk'
 import { NostrProfileEditForm } from '@/components/Nostr/profile/edit-form'
 import { useUIStore } from '@/store/uiStore'
 import { FeedTabsProfile } from '@/components/Nostr/feed/FeedTabsProfile'
+import NostrCreateAccountComponent from './login/NostrCreateAccount'
+import { NostrProfileManagement } from './profile/nostr-profile-management'
 export default function MyNostrProfileComponent() {
   const { publicKey, setAuth } = useAuth()
   const { ndk } = useNostrContext()
@@ -55,28 +57,36 @@ export default function MyNostrProfileComponent() {
 
 
   return (
-    <div className="p-4">
+    <div className="w-full max-w-full px-4 md:px-6 lg:px-8 overflow-x-hidden">
+      {!publicKey && (
+        <div className="w-full">
+          <p>No public key found</p>
+          <NostrCreateAccountComponent />
+          <NostrProfileManagement />
+        </div>
+      )}
 
       {!profile && publicKey &&
-        <div>
+        <div className="w-full">
           <p>Profile not found</p>
           <NostrProfileCreate />
         </div>
       }
       {profile &&
-        <div className='gap-4 mb-2'>
+        <div className='w-full mb-4'>
           <ProfileHeader profile={profile} />
           <button onClick={() => {
             setIsEditOpen(!isEditOpen)
             showModal(<NostrProfileEditForm />)
           }}
-          className='bg-blue-500 text-white px-4 py-2 rounded-md'
+            className='bg-blue-500 text-white px-4 py-2 rounded-md'
           >{isEditOpen ? 'Edit' : 'Edit'}</button>
-          {/* {isEditOpen && <NostrProfileEditForm />} */}
         </div>
       }
-      {profile && (
-        <FeedTabsProfile authors={[publicKey as string]} />
+      {profile && publicKey && (
+        <div className="w-full">
+          <FeedTabsProfile authors={[publicKey as string]} />
+        </div>
       )}
     </div>
   )
@@ -104,7 +114,7 @@ export const ProfileHeader = (props?: any) => {
   }
 
   return (
-    <div>
+    <div className="w-full">
       {profile.banner && (
         <img
           src={profile.banner}
@@ -113,25 +123,23 @@ export const ProfileHeader = (props?: any) => {
         />
       )}
 
-      <div className="flex  items-center">
+      <div className="flex flex-col md:flex-row items-center gap-4">
         {profile.picture && (
           <img
             src={profile.picture}
             alt="Profile"
-            className="w-32 h-32 rounded-full mb-4"
+            className="w-24 h-24 md:w-32 md:h-32 rounded-full"
           />
         )}
-        <div>
-
-          <p className="text-2xl font-bold mb-4">
+        <div className="text-center md:text-left">
+          <p className="text-xl md:text-2xl font-bold mb-2">
             {profile?.displayName || profile?.name || profile?.username || 'Anonymous'}
           </p>
 
-          <p className="text-2xl font-bold mb-4">
+          <p className="text-lg md:text-xl font-bold mb-2">
             {profile?.lud06 || profile?.lud16 || 'Anonymous'}
           </p>
         </div>
-
       </div>
 
       {profile.about && (

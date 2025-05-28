@@ -16,6 +16,7 @@ import RightBarDesktop from './RightBarDesktop';
 import { ProfileManagement } from '@/components/profile/profile-management';
 import { AvatarIcon } from './small/icons';
 import AccordionMenu from './small/AccordionMenu';
+import MobileBottomBar from './MobileBottomBar';
 
 interface LayoutProps {
   children: ReactNode;
@@ -477,6 +478,8 @@ const Layout = ({ children }: LayoutProps) => {
           <div className="content">
             {children}
             {/* <RightBarDesktop /> */}
+
+            <MobileBottomBar   />
 
           </div>
 

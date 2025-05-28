@@ -60,8 +60,8 @@
     "next-auth": "^4.24.11",
     "qs": "^6.12.3",
     "quill": "2.0.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-qr-code": "^2.0.15",
     "react-transition-group": "^4.4.5",
     "react-use-websocket": "^4.8.1",
@@ -76,8 +76,8 @@
   },
   "peerDependencies": {
     "next": "15.1.7",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   },
   "devDependencies": {
     "@capacitor/cli": "7.2.0",

@@ -477,7 +477,7 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
       </div>
       
       {/* Add debug section at the bottom */}
-      <div className="cashu-wallet__debug-section" style={{ padding: '10px', marginTop: '10px', border: '1px dashed #666', borderRadius: '4px' }}>
+      {/* <div className="cashu-wallet__debug-section" style={{ padding: '10px', marginTop: '10px', border: '1px dashed #666', borderRadius: '4px' }}>
         <h4>Debug Tools</h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
           <button
@@ -545,7 +545,7 @@ Note: The current Cashu SDK implementation uses a balance-based approach rather 
             Note: The current SDK implementation uses a balance-based approach. Lightning payments update your balance directly rather than creating tokens.
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

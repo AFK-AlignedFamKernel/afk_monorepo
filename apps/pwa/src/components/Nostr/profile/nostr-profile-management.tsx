@@ -55,7 +55,6 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
 
     return (
         <div style={{
-            width: '100%',
             padding: 8,
             textAlign:"left"
         }}>

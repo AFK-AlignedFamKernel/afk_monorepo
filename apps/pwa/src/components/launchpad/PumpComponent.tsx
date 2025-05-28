@@ -108,6 +108,10 @@ export default function PumpComponent() {
         <div className="flex flex-col gap-4">
           {/* Search */}
 
+
+
+          {/* Action Toggle */}
+          <div className="flex items-baseline gap-3 overflow-x-auto pb-2">
           <div className="flex justify-between items-center mb-6">
             {/* <Search onSearch={handleSearch} placeholder="Search tokens or launches..." /> */}
             <Filter
@@ -118,10 +122,7 @@ export default function PumpComponent() {
               isLaunchView={isLaunchView}
             />
           </div>
-
-          {/* Action Toggle */}
-          <div className="flex items-baseline gap-3 overflow-x-auto pb-2">
-                                                                                                                                                                                                                                                                                                        <button
+            <button
               className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'LAUNCH' ? 'active' : ''}`}
               onClick={() => setTokenOrLaunch('LAUNCH')}
             >
@@ -196,7 +197,7 @@ export default function PumpComponent() {
                     created_at: item.created_at,
                     bonding_type: item.bonding_type,
                     total_token_holded: item.total_token_holded,
-                    
+
                   }}
                   type={isLaunchView ? 'LAUNCH' : 'TOKEN'}
                 />
