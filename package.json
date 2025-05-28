@@ -66,8 +66,8 @@
     "drizzle-kit": "^0.29.0",
     "pg": "^8.13.1",
     "next": "15.1.7",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   },
   "peerDependencies": {
     "prisma": "5.22.0",
@@ -85,8 +85,8 @@
     "drizzle-kit": "^0.29.0",
     "pg": "^8.13.1",
     "next": "15.1.7",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   },
   "devDependencies": {
     "husky": "^9.1.7",
