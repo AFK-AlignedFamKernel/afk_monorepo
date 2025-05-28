@@ -42,9 +42,8 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
     });
   };
 
-
-  console.log("token", token)
-  console.log("type", type)
+  // console.log("token", token)
+  // console.log("type", type)
 
   return (
     <div className="card hover:shadow-lg transition-shadow duration-200">

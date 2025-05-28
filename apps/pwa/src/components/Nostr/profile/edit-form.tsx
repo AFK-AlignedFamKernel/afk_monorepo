@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { useEditProfile, useAuth, useProfile } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useUIStore } from '@/store/uiStore';
 export const NostrProfileEditForm = () => {
 
     const editProfile = useEditProfile()
     const queryClient = useQueryClient();
+    const { showModal, showToast     } = useUIStore();
     const { publicKey } = useAuth();
     const { data: profile } = useProfile({
         publicKey: publicKey as string,
@@ -78,8 +80,17 @@ export const NostrProfileEditForm = () => {
             });
             queryClient.invalidateQueries({ queryKey: ['profile', publicKey] });
 
+            showToast({
+                message: 'Profile updated',
+                type: 'success'
+            })
+
         } catch (error) {
             console.error('Failed to update profile:', error)
+            showToast({
+                message: 'Failed to update profile',
+                type: 'error'
+            })
         }
     }
 

@@ -57,9 +57,9 @@ export default function MyNostrProfileComponent() {
 
 
   return (
-    <div className="w-full max-w-full px-4 md:px-6 lg:px-8 overflow-x-hidden">
+    <div className="w-full max-w-full px-4 md:px-6 lg:px-8 overflow-x-hidden h-full">
       {!publicKey && (
-        <div className="w-full">
+        <div className="w-full overflow-y-scroll h-full">
           <p>No public key found</p>
           <NostrCreateAccountComponent />
           <NostrProfileManagement />
@@ -69,7 +69,16 @@ export default function MyNostrProfileComponent() {
       {!profile && publicKey &&
         <div className="w-full">
           <p>Profile not found</p>
-          <NostrProfileCreate />
+
+          <p className='text-sm overflow-x-scroll whitespace-nowrap'>Public Key: {publicKey}</p>
+
+          <button onClick={() => {
+            setIsEditOpen(!isEditOpen)
+            showModal(<NostrProfileCreate />)
+          }}
+            className='bg-blue-500 text-white px-4 py-2 rounded-md'
+          >{isEditOpen ? 'Edit' : 'Edit'}</button>
+          {/* <NostrProfileCreate /> */}
         </div>
       }
       {profile &&
@@ -97,7 +106,7 @@ export const NostrProfileCreate = () => {
   return (
     <div>
       <p>Create Nostr Profile</p>
-      <p>Public Key: {publicKey}</p>
+      <p className='text-sm overflow-x-scroll whitespace-nowrap'>Public Key: {publicKey}</p>
 
       <NostrProfileEditForm />
     </div>

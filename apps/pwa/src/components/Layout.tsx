@@ -473,15 +473,13 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Main Content */}
       <main className="main-content">
+        {isLoading && <CryptoLoading />}
         <div className="content">
-          {isLoading && <CryptoLoading />}
-          <div className="content">
-            {children}
-            {/* <RightBarDesktop /> */}
+          {children}
+          {/* <RightBarDesktop /> */}
 
-            <MobileBottomBar   />
 
-          </div>
+          <MobileBottomBar />
 
 
         </div>

@@ -28,7 +28,7 @@ interface TokenDeployInterface {
 }
 
 export default function PumpComponent() {
-  const [showFilters, setShowFilters] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [tokenOrLaunch, setTokenOrLaunch] = useState<'TOKEN' | 'LAUNCH' | 'MY_DASHBOARD' | 'MY_LAUNCH_TOKEN'>('LAUNCH');
   const [searchQuery, setSearchQuery] = useState('');
@@ -112,16 +112,17 @@ export default function PumpComponent() {
 
           {/* Action Toggle */}
           <div className="flex items-baseline gap-3 overflow-x-auto pb-2">
-          <div className="flex justify-between items-center mb-6">
-            {/* <Search onSearch={handleSearch} placeholder="Search tokens or launches..." /> */}
-            <Filter
-              showFilters={showFilters}
-              setShowFilters={setShowFilters}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-              isLaunchView={isLaunchView}
-            />
-          </div>
+            <div className="flex justify-between items-center mb-6"
+            >
+              {/* <Search onSearch={handleSearch} placeholder="Search tokens or launches..." /> */}
+              <Filter
+                showFilters={showFilters}
+                setShowFilters={setShowFilters}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                isLaunchView={isLaunchView}
+              />
+            </div>
             <button
               className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'LAUNCH' ? 'active' : ''}`}
               onClick={() => setTokenOrLaunch('LAUNCH')}
