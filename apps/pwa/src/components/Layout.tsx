@@ -474,16 +474,13 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Main Content */}
       <main className="main-content">
         {isLoading && <CryptoLoading />}
-        <div className="content">
+        <div className="content pb-20 md:pb-0">
           {children}
           {/* <RightBarDesktop /> */}
-
-
-          <MobileBottomBar />
-
-
         </div>
       </main>
+      <MobileBottomBar />
+
     </div>
   );
 };

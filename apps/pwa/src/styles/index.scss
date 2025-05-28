@@ -158,7 +158,8 @@ a {
   @media (max-width: $mobile-breakpoint) {
     margin-left: 0;
     width: 100%;
-    padding-top: calc($header-height + 2rem);
+    padding-top: calc($header-height + 1rem);
+    // padding-bottom: calc($header-height + 2rem);
   }
 }
 
@@ -534,7 +535,8 @@ button.sidebar-nav-footer-item {
   .main-content {
     margin-left: 0;
     width: 100%;
-    padding-top: calc($header-height + 2rem);
+    padding-top: calc($header-height + 1rem);
+    padding-bottom: calc($header-height + 1rem);
   }
 
   .sidebar {
