@@ -291,157 +291,209 @@ class CategoryScraper:
         try:
             # Process each keyword in the category
             for keyword in category.keywords:
-                # Get trend data
-                trend_data = await self.google_trends.get_trend_data(keyword)
-                if trend_data:
-                    await self._save_trend({
-                        'keyword': keyword,
-                        'timeframe': 'today 12-m',
-                        'geo': 'US',
-                        'interest_over_time': trend_data.get('interest_over_time'),
-                        'related_topics': trend_data.get('related_topics'),
-                        'related_queries': trend_data.get('related_queries'),
-                        'trend_metadata': trend_data
-                    }, category.id)
-                
-                # Get YouTube creators
-                youtube_creators = await self.youtube_analyzer.analyze_topic(keyword)
-                for creator in youtube_creators:
-                    saved_creator = await self._save_creator({
-                        'platform': 'youtube',
-                        'platform_id': creator['channel_id'],
-                        'name': creator['title'],
-                        'description': creator['description'],
-                        'followers_count': creator['subscriber_count'],
-                        'content_count': creator['content_count'],
-                        'total_views': creator['total_views'],
-                        'total_likes': creator['total_likes'],
-                        'total_comments': creator['total_comments'],
-                        'is_verified': False,
-                        'creator_metadata': creator
-                    }, 'youtube')
+                try:
+                 
                     
-                    if saved_creator:
-                        for video in creator['recent_videos']:
-                            await self._save_content({
-                                'platform': 'youtube',
-                                'platform_content_id': video['video_id'],
-                                'title': video['title'],
-                                'views': video['view_count'],
-                                'likes': video['like_count'],
-                                'comments': video['comment_count'],
-                                'published_at': datetime.fromisoformat(video['published_at']),
-                                'content_metadata': video
-                            }, saved_creator.id)
-                
-                # Get Twitter creators
-                twitter_creators = await self.twitter_analyzer.analyze_topic(keyword)
-                for creator in twitter_creators:
-                    saved_creator = await self._save_creator({
-                        'platform': 'twitter',
-                        'platform_id': creator['id'],
-                        'name': creator['name'],
-                        'description': creator['description'],
-                        'followers_count': creator['followers_count'],
-                        'content_count': creator['content_count'],
-                        'total_likes': creator['total_likes'],
-                        'total_comments': creator['total_replies'],
-                        'total_shares': creator['total_retweets'],
-                        'is_verified': creator['verified'],
-                        'creator_metadata': creator
-                    }, 'twitter')
+                    # Get YouTube creators
+                    try:
+                        youtube_creators = await self.youtube_analyzer.analyze_topic(keyword)
+                        for creator in youtube_creators:
+                            try:
+                                saved_creator = await self._save_creator({
+                                    'platform': 'youtube',
+                                    'platform_id': creator['channel_id'],
+                                    'name': creator['title'],
+                                    'description': creator['description'],
+                                    'followers_count': creator['subscriber_count'],
+                                    'content_count': creator['content_count'],
+                                    'total_views': creator['total_views'],
+                                    'total_likes': creator['total_likes'],
+                                    'total_comments': creator['total_comments'],
+                                    'is_verified': False,
+                                    'creator_metadata': creator
+                                }, 'youtube')
+                                
+                                if saved_creator:
+                                    for video in creator['recent_videos']:
+                                        try:
+                                            await self._save_content({
+                                                'platform': 'youtube',
+                                                'platform_content_id': video['video_id'],
+                                                'title': video['title'],
+                                                'views': video['view_count'],
+                                                'likes': video['like_count'],
+                                                'comments': video['comment_count'],
+                                                'published_at': datetime.fromisoformat(video['published_at']),
+                                                'content_metadata': video
+                                            }, saved_creator.id)
+                                        except Exception as e:
+                                            logger.error(f"Error saving YouTube video {video.get('video_id')}: {str(e)}")
+                            except Exception as e:
+                                logger.error(f"Error saving YouTube creator {creator.get('channel_id')}: {str(e)}")
+                    except Exception as e:
+                        logger.error(f"Error processing YouTube for keyword {keyword}: {str(e)}")
                     
-                    if saved_creator:
-                        for tweet in creator['recent_tweets']:
-                            await self._save_content({
-                                'platform': 'twitter',
-                                'platform_content_id': tweet['tweet_id'],
-                                'content': tweet['text'],
-                                'likes': tweet['favorite_count'],
-                                'comments': tweet['reply_count'],
-                                'shares': tweet['retweet_count'],
-                                'published_at': datetime.fromisoformat(tweet['created_at']),
-                                'content_metadata': tweet
-                            }, saved_creator.id)
-                
-                # Get Reddit creators
-                reddit_creators = await self.reddit_analyzer.analyze_topic(keyword)
-                for creator in reddit_creators:
-                    saved_creator = await self._save_creator({
-                        'platform': 'reddit',
-                        'platform_id': creator['username'],
-                        'name': creator['username'],
-                        'description': '',
-                        'followers_count': 0,
-                        'content_count': creator['content_count'],
-                        'total_likes': creator['total_score'],
-                        'total_comments': creator['total_comments'],
-                        'is_verified': creator['is_verified'],
-                        'creator_metadata': creator
-                    }, 'reddit')
+                    # Get Twitter creators
+                    try:
+                        twitter_creators = await self.twitter_analyzer.analyze_topic(keyword)
+                        for creator in twitter_creators:
+                            try:
+                                saved_creator = await self._save_creator({
+                                    'platform': 'twitter',
+                                    'platform_id': creator['id'],
+                                    'name': creator['name'],
+                                    'description': creator['description'],
+                                    'followers_count': creator['followers_count'],
+                                    'content_count': creator['content_count'],
+                                    'total_likes': creator['total_likes'],
+                                    'total_comments': creator['total_replies'],
+                                    'total_shares': creator['total_retweets'],
+                                    'is_verified': creator['verified'],
+                                    'creator_metadata': creator
+                                }, 'twitter')
+                                
+                                if saved_creator:
+                                    for tweet in creator['recent_tweets']:
+                                        try:
+                                            await self._save_content({
+                                                'platform': 'twitter',
+                                                'platform_content_id': tweet['tweet_id'],
+                                                'content': tweet['text'],
+                                                'likes': tweet['favorite_count'],
+                                                'comments': tweet['reply_count'],
+                                                'shares': tweet['retweet_count'],
+                                                'published_at': datetime.fromisoformat(tweet['created_at']),
+                                                'content_metadata': tweet
+                                            }, saved_creator.id)
+                                        except Exception as e:
+                                            logger.error(f"Error saving Twitter tweet {tweet.get('tweet_id')}: {str(e)}")
+                            except Exception as e:
+                                logger.error(f"Error saving Twitter creator {creator.get('id')}: {str(e)}")
+                    except Exception as e:
+                        logger.error(f"Error processing Twitter for keyword {keyword}: {str(e)}")
                     
-                    if saved_creator:
-                        for post in creator['recent_posts']:
-                            await self._save_content({
-                                'platform': 'reddit',
-                                'platform_content_id': post['post_id'],
-                                'title': post['title'],
-                                'content': post['text'],
-                                'likes': post['score'],
-                                'comments': post['num_comments'],
-                                'published_at': datetime.fromisoformat(post['created_at']),
-                                'content_metadata': post
-                            }, saved_creator.id)
-                
-                # Calculate and save platform stats
-                for platform in ['youtube', 'twitter', 'reddit']:
-                    creators = self.db.query(ContentCreator).filter_by(
-                        platform=platform
-                    ).all()
+                    # Get Reddit creators
+                    try:
+                        reddit_creators = await self.reddit_analyzer.analyze_topic(keyword)
+                        for creator in reddit_creators:
+                            try:
+                                saved_creator = await self._save_creator({
+                                    'platform': 'reddit',
+                                    'platform_id': creator['username'],
+                                    'name': creator['username'],
+                                    'description': '',
+                                    'followers_count': 0,
+                                    'content_count': creator['content_count'],
+                                    'total_likes': creator['total_score'],
+                                    'total_comments': creator['total_comments'],
+                                    'is_verified': creator['is_verified'],
+                                    'creator_metadata': creator
+                                }, 'reddit')
+                                
+                                if saved_creator:
+                                    for post in creator['recent_posts']:
+                                        try:
+                                            await self._save_content({
+                                                'platform': 'reddit',
+                                                'platform_content_id': post['post_id'],
+                                                'title': post['title'],
+                                                'content': post['text'],
+                                                'likes': post['score'],
+                                                'comments': post['num_comments'],
+                                                'published_at': datetime.fromisoformat(post['created_at']),
+                                                'content_metadata': post
+                                            }, saved_creator.id)
+                                        except Exception as e:
+                                            logger.error(f"Error saving Reddit post {post.get('post_id')}: {str(e)}")
+                            except Exception as e:
+                                logger.error(f"Error saving Reddit creator {creator.get('username')}: {str(e)}")
+                    except Exception as e:
+                        logger.error(f"Error processing Reddit for keyword {keyword}: {str(e)}")
                     
-                    for creator in creators:
-                        await self._save_platform_stats({
-                            'platform': platform,
-                            'creator_id': creator.id,
-                            'category_id': category.id,
-                            'timeframe': 'daily',
-                            'start_date': datetime.utcnow().date(),
-                            'end_date': datetime.utcnow().date(),
-                            'views': creator.total_views,
-                            'likes': creator.total_likes,
-                            'comments': creator.total_comments,
-                            'shares': creator.total_shares,
-                            'engagement_rate': creator.engagement_rate,
-                            'mindshare_score': creator.mindshare_score,
-                            'stats_metadata': {}
-                        })
-                
-                # Create leaderboards
-                for platform in ['youtube', 'twitter', 'reddit']:
-                    creators = self.db.query(ContentCreator).filter_by(
-                        platform=platform
-                    ).order_by(ContentCreator.mindshare_score.desc()).limit(100).all()
+                    # Get trend data - handle Google 429 separately
+                    try:
+                        trend_data = await self.google_trends.get_trend_data(keyword)
+                        if trend_data:
+                            await self._save_trend({
+                                'keyword': keyword,
+                                'timeframe': 'today 12-m',
+                                'geo': 'US',
+                                'interest_over_time': trend_data.get('interest_over_time'),
+                                'related_topics': trend_data.get('related_topics'),
+                                'related_queries': trend_data.get('related_queries'),
+                                'trend_metadata': trend_data
+                            }, category.id)
+                    except Exception as e:
+                        if "429" in str(e):
+                            logger.warning(f"Google Trends rate limit hit for keyword {keyword}, skipping Google Trends but continuing with other platforms")
+                            # Add a longer delay for Google
+                            await asyncio.sleep(300)  # 5 minutes delay for Google
+                        else:
+                            logger.error(f"Error processing Google Trends for keyword {keyword}: {str(e)}")
+
+                    # Calculate and save platform stats
+                    for platform in ['youtube', 'twitter', 'reddit']:
+                        try:
+                            creators = self.db.query(ContentCreator).filter_by(
+                                platform=platform
+                            ).all()
+                            
+                            for creator in creators:
+                                try:
+                                    await self._save_platform_stats({
+                                        'platform': platform,
+                                        'creator_id': creator.id,
+                                        'category_id': category.id,
+                                        'timeframe': 'daily',
+                                        'start_date': datetime.utcnow().date(),
+                                        'end_date': datetime.utcnow().date(),
+                                        'views': creator.total_views,
+                                        'likes': creator.total_likes,
+                                        'comments': creator.total_comments,
+                                        'shares': creator.total_shares,
+                                        'engagement_rate': creator.engagement_rate,
+                                        'mindshare_score': creator.mindshare_score,
+                                        'stats_metadata': {}
+                                    })
+                                except Exception as e:
+                                    logger.error(f"Error saving platform stats for creator {creator.id}: {str(e)}")
+                        except Exception as e:
+                            logger.error(f"Error processing platform stats for {platform}: {str(e)}")
                     
-                    rankings = [{
-                        'rank': i + 1,
-                        'creator_id': creator.id,
-                        'name': creator.name,
-                        'mindshare_score': creator.mindshare_score,
-                        'engagement_rate': creator.engagement_rate
-                    } for i, creator in enumerate(creators)]
+                    # Create leaderboards
+                    for platform in ['youtube', 'twitter', 'reddit']:
+                        try:
+                            creators = self.db.query(ContentCreator).filter_by(
+                                platform=platform
+                            ).order_by(ContentCreator.mindshare_score.desc()).limit(100).all()
+                            
+                            rankings = [{
+                                'rank': i + 1,
+                                'creator_id': creator.id,
+                                'name': creator.name,
+                                'mindshare_score': creator.mindshare_score,
+                                'engagement_rate': creator.engagement_rate
+                            } for i, creator in enumerate(creators)]
+                            
+                            await self._save_leaderboard({
+                                'category_id': category.id,
+                                'platform': platform,
+                                'timeframe': 'daily',
+                                'start_date': datetime.utcnow().date(),
+                                'end_date': datetime.utcnow().date(),
+                                'rankings': rankings,
+                                'leaderboard_metadata': {}
+                            })
+                        except Exception as e:
+                            logger.error(f"Error creating leaderboard for {platform}: {str(e)}")
                     
-                    await self._save_leaderboard({
-                        'category_id': category.id,
-                        'platform': platform,
-                        'timeframe': 'daily',
-                        'start_date': datetime.utcnow().date(),
-                        'end_date': datetime.utcnow().date(),
-                        'rankings': rankings,
-                        'leaderboard_metadata': {}
-                    })
+                except Exception as e:
+                    logger.error(f"Error processing keyword {keyword}: {str(e)}")
+                    continue  # Continue with next keyword
                 
         except Exception as e:
             logger.error(f"Error processing category {category.name}: {str(e)}")
+            # Don't re-raise the exception, just log it and continue
 
     async def run_scraper(self) -> None:
         """Main scraper function that runs every 4 hours."""
