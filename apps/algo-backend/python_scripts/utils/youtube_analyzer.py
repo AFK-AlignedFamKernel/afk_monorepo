@@ -157,6 +157,7 @@ class YouTubeAnalyzer:
                 
                 await asyncio.sleep(self.timeout_between_requests)
             
+            print("creators", creators)
             return creators
             
         except Exception as e:

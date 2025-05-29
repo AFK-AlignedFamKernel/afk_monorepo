@@ -27,11 +27,14 @@ logger = logging.getLogger(__name__)
 # Define major categories and their keywords
 CATEGORIES: Dict[str, List[str]] = {
     "Technology": [
-        "artificial intelligence", "blockchain", "cloud computing", "cybersecurity",
-        "data science", "machine learning", "quantum computing", "virtual reality",
-        "augmented reality", "internet of things", "5G technology", "robotics"
+      "technology", "artificial intelligence", "blockchain", 
+        # "cloud computing", "cybersecurity",
+        # "data science", "machine learning", "quantum computing", "virtual reality",
+        # "augmented reality", "internet of things", "5G technology", "robotics"
     ],
     "Finance": [
+        "finance",
+        #   "investing", "stock market", "bitcoin", "ethereum",
     #     "cryptocurrency", "stock market", "investing", "bitcoin", "ethereum",
     #     "trading", "defi", "nft", "web3", "digital banking", "fintech",
     #     "crypto trading", "blockchain finance", "interest rates", "stock market trends",
@@ -39,39 +42,50 @@ CATEGORIES: Dict[str, List[str]] = {
     #     "financial news", "economic analysis", "geopolitical events", "economic forecasts",
     ],
     "Economics": [
-        "interest rates", "geopolitics", "politics",
+        "economy"
+        # "interest rates", "geopolitics", "politics",
     ],
     "Entertainment": [
+        "entertainment",
     #     "gaming", "streaming", "movies", "music", "esports", "anime",
     #     "virtual concerts", "metaverse", "video games", "streaming platforms",
     #     "digital entertainment", "online gaming"
     ],
     "Art": [
+        "art"
     #     "digital art", "nft art", "ai art", "generative art", "digital artists",
     #     "art market", "art galleries", "art exhibitions", "digital creativity",
     #     "contemporary art", "digital design"
     ],
     "Science": [
+        "science",
     #     "space exploration", "climate change", "renewable energy", "biotechnology",
     #     "genetics", "quantum physics", "astronomy", "scientific research",
     #     "environmental science", "medical research"
     ],
     "Health": [
+        "health",
     #     "mental health", "fitness", "nutrition", "wellness", "meditation",
     #     "yoga", "healthcare technology", "digital health", "telemedicine",
     #     "health monitoring"
     ],
     "Education": [
+        "education",
         # "online learning", "edtech", "coding", "programming", "data science courses",
         # "digital skills", "remote education", "e-learning", "educational technology",
         # "online courses"
     ],
     "Business": [
-        "startups", "entrepreneurship", "remote work", "digital marketing",
-        "ecommerce", "business technology", "innovation", "digital transformation",
-        "business analytics", "digital strategy"
+        "business",
+        # "startups", "entrepreneurship", "remote work", "digital marketing",
+        # "ecommerce", "business technology", "innovation", "digital transformation",
+        # "business analytics", "digital strategy"
     ],
     "Social Media": [
+        # "social media",
+        # "social network",
+        "marketing",
+        "creative"
         # "social networks", "content creation", "influencers", "digital marketing",
         # "social media trends", "platform updates", "social media marketing",
         # "content strategy", "digital presence"
@@ -82,25 +96,26 @@ CATEGORIES: Dict[str, List[str]] = {
         # "sports technology"
     ],
     "Fashion": [
-        "digital clothing", "fashion tech",
-        "wearable technology"
+        "fashion",
+        # "digital clothing", "fashion tech",
+        # "wearable technology"
     ],
-    "Food": [
-        "food technology", "sustainable food", "food delivery", "food innovation",
-        "digital food", "food tech", "smart kitchen", "food trends"
-    ],
-    "Travel": [
-        "digital travel", "travel technology", "virtual tourism", "travel tech",
-        "smart travel", "digital nomad", "travel innovation", "travel trends"
-    ],
-    "Real Estate": [
-        "proptech", "digital real estate", "virtual property", "real estate tech",
-        "smart homes", "real estate innovation", "property technology"
-    ],
-    "Automotive": [
-        "electric vehicles", "autonomous cars", "automotive technology",
-        "smart cars", "car tech", "automotive innovation", "future mobility"
-    ]
+    # "Food": [
+    #     "food technology", "sustainable food", "food delivery", "food innovation",
+    #     "digital food", "food tech", "smart kitchen", "food trends"
+    # ],
+    # "Travel": [
+    #     "digital travel", "travel technology", "virtual tourism", "travel tech",
+    #     "smart travel", "digital nomad", "travel innovation", "travel trends"
+    # ],
+    # "Real Estate": [
+    #     "proptech", "digital real estate", "virtual property", "real estate tech",
+    #     "smart homes", "real estate innovation", "property technology"
+    # ],
+    # "Automotive": [
+    #     "electric vehicles", "autonomous cars", "automotive technology",
+    #     "smart cars", "car tech", "automotive innovation", "future mobility"
+    # ]
 }
 
 class CategoryScraper:
@@ -286,56 +301,62 @@ class CategoryScraper:
         # Timeout between categories (8-10 minutes)
         await asyncio.sleep(random.uniform(480, 600))
 
-    async def process_category(self, category: Category):
+    async def process_category(self, category: str):
         """Process a category and save all related data."""
         try:
             # Process each keyword in the category
-            for keyword in category.keywords:
+            print("category", category)
+            for keyword in CATEGORIES[category]:
+                print("CATEGORIES", CATEGORIES[category])
+                print("keyword", keyword)
                 try:
                  
                     
                     # Get YouTube creators
-                    try:
-                        youtube_creators = await self.youtube_analyzer.analyze_topic(keyword)
-                        for creator in youtube_creators:
-                            try:
-                                saved_creator = await self._save_creator({
-                                    'platform': 'youtube',
-                                    'platform_id': creator['channel_id'],
-                                    'name': creator['title'],
-                                    'description': creator['description'],
-                                    'followers_count': creator['subscriber_count'],
-                                    'content_count': creator['content_count'],
-                                    'total_views': creator['total_views'],
-                                    'total_likes': creator['total_likes'],
-                                    'total_comments': creator['total_comments'],
-                                    'is_verified': False,
-                                    'creator_metadata': creator
-                                }, 'youtube')
+                    # try:
+                    #     youtube_creators = await self.youtube_analyzer.analyze_topic(keyword)
+                    #     print("youtube_creators", youtube_creators)
+                    #     for creator in youtube_creators:
+                    #         try:
+                    #             saved_creator = await self._save_creator({
+                    #                 'platform': 'youtube',
+                    #                 'platform_id': creator['channel_id'],
+                    #                 'name': creator['title'],
+                    #                 'description': creator['description'],
+                    #                 'followers_count': creator['subscriber_count'],
+                    #                 'content_count': creator['content_count'],
+                    #                 'total_views': creator['total_views'],
+                    #                 'total_likes': creator['total_likes'],
+                    #                 'total_comments': creator['total_comments'],
+                    #                 'is_verified': False,
+                    #                 'creator_metadata': creator
+                    #             }, 'youtube')
                                 
-                                if saved_creator:
-                                    for video in creator['recent_videos']:
-                                        try:
-                                            await self._save_content({
-                                                'platform': 'youtube',
-                                                'platform_content_id': video['video_id'],
-                                                'title': video['title'],
-                                                'views': video['view_count'],
-                                                'likes': video['like_count'],
-                                                'comments': video['comment_count'],
-                                                'published_at': datetime.fromisoformat(video['published_at']),
-                                                'content_metadata': video
-                                            }, saved_creator.id)
-                                        except Exception as e:
-                                            logger.error(f"Error saving YouTube video {video.get('video_id')}: {str(e)}")
-                            except Exception as e:
-                                logger.error(f"Error saving YouTube creator {creator.get('channel_id')}: {str(e)}")
-                    except Exception as e:
-                        logger.error(f"Error processing YouTube for keyword {keyword}: {str(e)}")
+                    #             if saved_creator:
+                    #                 for video in creator['recent_videos']:
+                    #                     try:
+                    #                         await self._save_content({
+                    #                             'platform': 'youtube',
+                    #                             'platform_content_id': video['video_id'],
+                    #                             'title': video['title'],
+                    #                             'views': video['view_count'],
+                    #                             'likes': video['like_count'],
+                    #                             'comments': video['comment_count'],
+                    #                             'published_at': datetime.fromisoformat(video['published_at']),
+                    #                             'content_metadata': video
+                    #                         }, saved_creator.id)
+                    #                     except Exception as e:
+                    #                         logger.error(f"Error saving YouTube video {video.get('video_id')}: {str(e)}")
+                    #         except Exception as e:
+                    #             logger.error(f"Error saving YouTube creator {creator.get('channel_id')}: {str(e)}")
+                    # except Exception as e:
+                    #     logger.error(f"Error processing YouTube for keyword {keyword}: {str(e)}")
                     
                     # Get Twitter creators
                     try:
+                        print("X analyze_topic", keyword)
                         twitter_creators = await self.twitter_analyzer.analyze_topic(keyword)
+                        print("twitter_creators", twitter_creators)
                         for creator in twitter_creators:
                             try:
                                 saved_creator = await self._save_creator({
@@ -374,7 +395,9 @@ class CategoryScraper:
                     
                     # Get Reddit creators
                     try:
+                        print("Reddit analyze_topic", keyword)
                         reddit_creators = await self.reddit_analyzer.analyze_topic(keyword)
+                        print("reddit_creators", reddit_creators)
                         for creator in reddit_creators:
                             try:
                                 saved_creator = await self._save_creator({
@@ -413,7 +436,17 @@ class CategoryScraper:
                     # Get trend data - handle Google 429 separately
                     try:
                         trend_data = await self.google_trends.get_trend_data(keyword)
-                        if trend_data:
+                        if trend_data and isinstance(trend_data, dict):
+                            # Validate data before saving
+                            if any([
+                                not trend_data.get('interest_over_time'),
+                                not isinstance(trend_data.get('related_topics'), dict),
+                                not isinstance(trend_data.get('related_queries'), dict)
+                            ]):
+                                logger.warning(f"Invalid or incomplete trend data for keyword {keyword}, skipping")
+                                await asyncio.sleep(60)  # Short delay before next attempt
+                                continue
+
                             await self._save_trend({
                                 'keyword': keyword,
                                 'timeframe': 'today 12-m',
@@ -423,6 +456,9 @@ class CategoryScraper:
                                 'related_queries': trend_data.get('related_queries'),
                                 'trend_metadata': trend_data
                             }, category.id)
+                    except IndexError as e:
+                        logger.warning(f"List index error for keyword {keyword}, likely empty data: {str(e)}")
+                        await asyncio.sleep(60)  # Short delay before next attempt
                     except Exception as e:
                         if "429" in str(e):
                             logger.warning(f"Google Trends rate limit hit for keyword {keyword}, skipping Google Trends but continuing with other platforms")
@@ -430,6 +466,7 @@ class CategoryScraper:
                             await asyncio.sleep(300)  # 5 minutes delay for Google
                         else:
                             logger.error(f"Error processing Google Trends for keyword {keyword}: {str(e)}")
+                            await asyncio.sleep(60)  # Short delay for other errors
 
                     # Calculate and save platform stats
                     for platform in ['youtube', 'twitter', 'reddit']:
@@ -463,6 +500,7 @@ class CategoryScraper:
                     # Create leaderboards
                     for platform in ['youtube', 'twitter', 'reddit']:
                         try:
+                            print("platform", platform)
                             creators = self.db.query(ContentCreator).filter_by(
                                 platform=platform
                             ).order_by(ContentCreator.mindshare_score.desc()).limit(100).all()
@@ -501,6 +539,23 @@ class CategoryScraper:
             try:
                 for category, keywords in CATEGORIES.items():
                     await self.scrape_category(category, keywords)
+                
+                # Wait 4 hours before next run
+                logger.info("Completed full scraping cycle. Waiting 4 hours before next run.")
+                await asyncio.sleep(14400)  # 4 hours
+                
+            except Exception as e:
+                logger.error(f"Error in scraper main loop: {str(e)}")
+                # Wait 30 minutes on error before retrying
+                await asyncio.sleep(1800)
+
+    async def run_scraper_process(self) -> None:
+        """Main scraper function that runs every 4 hours."""
+        while True:
+            try:
+                for category, keywords in CATEGORIES.items():
+                    await self.process_category(category)
+                    # await self.scrape_category(category, keywords)
                 
                 # Wait 4 hours before next run
                 logger.info("Completed full scraping cycle. Waiting 4 hours before next run.")
@@ -658,7 +713,8 @@ class CategoryScraper:
 
 async def main():
     scraper = CategoryScraper()
-    await scraper.run_scraper()
+    # await scraper.run_scraper()
+    # await scraper.run_scraper_process()
 
 if __name__ == "__main__":
     asyncio.run(main()) 
