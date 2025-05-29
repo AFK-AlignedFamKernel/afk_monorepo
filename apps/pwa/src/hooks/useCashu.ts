@@ -25,6 +25,7 @@ import {
 } from '@/utils/storage';
 import { migrateFromLegacyStorage, getOrCreateWalletId } from '../utils/migrateStorage';
 import { useCashuContext } from '@/providers/CashuProvider';
+import { getDecodedToken, getEncodedToken, getEncodedTokenV4 } from '@cashu/cashu-ts';
 
 // Define the expected response type from selectProofsToSend
 interface ProofsSelectionResponse {
@@ -54,6 +55,9 @@ export function useCashu() {
     addTransaction,
     addToken,
     updateTransaction,
+    setBalance,
+    balance,
+    setWalletData
   } = useCashuStorage();
 
   const [isInitialized, setIsInitialized] = useState(false);
@@ -193,6 +197,39 @@ export function useCashu() {
   const setActiveUnit = useCallback((unit: string) => {
     setActiveUnitInStorage(unit);
   }, [setActiveUnitInStorage]);
+
+    // Add function to calculate balance from proofs
+    const calculateBalanceFromProofs = async (mintUrl: string) => {
+      try {
+        // Get active proofs for the mint
+        const activeProofs = await proofsByMintApi.getByMintUrl(mintUrl);
+        
+        // Calculate total from active proofs
+        const activeBalance = activeProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
+        
+        // Get spent proofs for the mint
+        const spentProofs = await proofsSpentsByMintApi.getByMintUrl(mintUrl);
+        
+        // Calculate total from spent proofs
+        const spentBalance = spentProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
+        
+        // Update the balance in the store
+        const newBalance = activeBalance - spentBalance;
+        console.log("newBalance", newBalance);
+        setBalance(newBalance);
+
+        const newWalletData = {
+          ...walletData,
+          balance: newBalance,
+        };
+        setWalletData(newWalletData);
+        
+        return newBalance;
+      } catch (error) {
+        console.error('Error calculating balance from proofs:', error);
+        return 0;
+      }
+    };
 
   // Get balance for the active mint/unit
   const getBalance = async () => {
@@ -1071,6 +1108,13 @@ export function useCashu() {
         // Get proofs from the new storage structure
         proofs = await proofsByMintApi.getByMintUrl(walletData.activeMint);
         console.log(`Found ${proofs.length} proofs for mint ${walletData.activeMint}`);
+
+        // Filter out any proofs that might be in the spent proofs collection
+        const spentProofs = await proofsSpentsByMintApi.getByMintUrl(walletData.activeMint);
+        const spentProofIds = new Set(spentProofs.map(p => p.C));
+        
+        proofs = proofs.filter(proof => !spentProofIds.has(proof.C));
+        console.log(`After filtering spent proofs: ${proofs.length} proofs remaining`);
       }
 
       // If we have direct access to proofs, use them directly
@@ -1121,6 +1165,7 @@ export function useCashu() {
         }
 
         // Create a send token with the selected proofs
+        let tokenResMelt;
         let token;
         try {
           // If the wallet's send method requires changeProofs but they're undefined,
@@ -1129,34 +1174,28 @@ export function useCashu() {
             console.log('Change proofs undefined, trying alternate send approach');
             // Try various approaches that Cashu wallets might implement
             if (typeof wallet.sendWithoutChange === 'function') {
-              // token = await wallet.sendWithoutChange(proofsToSend, amount);
-              // token = await wallet.send(proofsToSend, amount, null);
-              token = await wallet.send(amount, proofsToSend);
-
+              tokenResMelt = await wallet.send(amount, proofsToSend);
             } else {
-              // Some implementations can handle null changeProofs
-              // token = await wallet.send(proofsToSend, amount, null);
-              token = await wallet.send(amount, proofsToSend);
+              tokenResMelt = await wallet.send(amount, proofsToSend);
             }
           } else {
             // Normal case with proper change proofs
-            // token = await wallet.send(proofsToSend, amount, changeProofs);
-            token = await wallet.send(amount, proofsToSend);
+            tokenResMelt = await wallet.send(amount, proofsToSend);
           }
         } catch (sendError) {
           console.error('Error in wallet.send:', sendError);
           // Fallback to the simplest form as last resort
           console.log('Trying simple send as fallback');
-          token = await wallet.send(proofsToSend, amount);
+          tokenResMelt = await wallet.send(amount, proofsToSend);
         }
 
-        console.log("token", token)
-        if (!token) {
+        if (!tokenResMelt) {
           throw new Error('Failed to create send token');
         }
 
         // Create token record
-        const tokenStr = typeof token === 'string' ? token : JSON.stringify(token);
+        const tokenStr = getEncodedTokenV4({ mint: walletData.activeMint, proofs: proofsToSend });
+        console.log("Generated token:", tokenStr);
 
         // Use the SDK to generate the sent transaction
         console.log(`Created send token for ${amount} sats`);
@@ -1171,8 +1210,26 @@ export function useCashu() {
           'Created ecash token to send'
         );
 
-        // Claim the change if we have change proofs
+        // Move spent proofs to spent proofs collection BEFORE claiming change
+        try {
+          if (typeof proofsSpentsApi !== 'undefined' && typeof proofsSpentsByMintApi !== 'undefined') {
+            await proofsSpentsApi.updateMany(proofsToSend);
+            await proofsSpentsByMintApi.addProofsForMint(proofsToSend, walletData.activeMint);
 
+            // Remove from active proofs
+            const spentIds = proofsToSend.map(p => p.C);
+            if (spentIds.length > 0) {
+              for (const id of spentIds) {
+                await proofsApi.delete(id);
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Error moving spent proofs to spent proofs collection:', error);
+          throw new Error('Failed to update proof status. Please try again.');
+        }
+
+        // Claim the change if we have change proofs
         try {
           if (changeProofs && changeProofs.length > 0) {
             console.log(`Claiming ${changeProofs.length} change proofs after creating token`);
@@ -1186,64 +1243,18 @@ export function useCashu() {
           }
         } catch (error) {
           console.error('Error claiming change proofs:', error);
-        }
-  
-
-        try {
-               // For spent proofs, move them to spent proofs collection
-        if (typeof proofsSpentsApi !== 'undefined' && typeof proofsSpentsByMintApi !== 'undefined') {
-          await proofsSpentsApi.updateMany(proofsToSend);
-          await proofsSpentsByMintApi.addProofsForMint(proofsToSend, walletData.activeMint);
-
-          // Remove from active proofs
-          const spentIds = proofsToSend.map(p => p.C);
-          if (spentIds.length > 0) {
-            // Delete proofs one by one since deleteMany may not exist
-            for (const id of spentIds) {
-              await proofsApi.delete(id);
-            }
-          }
-        }
-
-        } catch (error) {
-          console.error('Error moving spent proofs to spent proofs collection:', error);
+          // Don't throw here as the main operation succeeded
         }
    
         return {
           amount,
           token: tokenStr,
+          ecash: tokenStr,
           mint: walletData.activeMint,
+          tokenResMelt: tokenResMelt,
         };
       } else {
-        // Legacy method using wallet.send directly
-        console.log('No proofs available in database, using wallet.send directly');
-
-        const token = await wallet.send(null, amount);
-        if (!token) {
-          throw new Error('Failed to create send token');
-        }
-
-        // Convert token to string if necessary
-        const tokenStr = typeof token === 'string' ? token : JSON.stringify(token);
-
-        // Record the transaction
-        console.log(`Created send token for ${amount} sats`);
-        addTransaction(
-          'sent',
-          amount,
-          'Sent ecash',
-          tokenStr,
-          null,
-          walletData.activeMint,
-          'paid' as const,
-          'Created ecash token to send'
-        );
-
-        return {
-          amount,
-          token: tokenStr,
-          mint: walletData.activeMint,
-        };
+        throw new Error('No proofs available to send. Please receive some tokens first.');
       }
     } catch (err) {
       console.error('Error creating send token:', err);
@@ -1533,6 +1544,8 @@ export function useCashu() {
     payLightningInvoice,
     nostrSeedAvailable,
     checkWalletReadiness,
-    decodeInvoiceAmount
+    decodeInvoiceAmount,
+    setBalance,
+    calculateBalanceFromProofs
   };
 } 

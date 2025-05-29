@@ -21,6 +21,7 @@ export function useCashuStorage() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [balance, setBalance] = useState(0);
 
   // Initialize the database
   useEffect(() => {
@@ -48,6 +49,7 @@ export function useCashuStorage() {
         
         // Ensure balance is not negative
         balance = Math.max(0, balance);
+        setBalance(balance);
         
         // For compatibility, use empty tokens array
         const tokens: Token[] = [];
@@ -229,6 +231,7 @@ export function useCashuStorage() {
       }
       
       const newBalance = prev.balance + balanceChange;
+      setBalance(newBalance);
 
       return {
         ...prev,
@@ -342,6 +345,7 @@ export function useCashuStorage() {
         
         const newBalance = prev.balance + balanceChange;
         
+        setBalance(newBalance);
         return {
           ...prev,
           transactions: updatedTransactions,
@@ -384,5 +388,7 @@ export function useCashuStorage() {
     addTransaction,
     addToken,
     updateTransaction,
+    setBalance,
+    balance
   };
 } 

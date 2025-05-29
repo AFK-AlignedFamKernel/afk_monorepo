@@ -17,6 +17,7 @@ import { useUIStore } from '@/store/uiStore';
 import { Transaction } from '@/utils/storage';
 import { Icon } from '../small/icon-component';
 import { getDecodedToken } from '@cashu/cashu-ts';
+import { proofsByMintApi, proofsSpentsByMintApi } from '@/utils/storage';
 
 export default function Cashu() {
   const {
@@ -37,10 +38,12 @@ export default function Cashu() {
     payLightningInvoice,
     checkWalletReadiness,
     checkInvoiceStatus,
-    checkInvoicePaymentStatus
+    checkInvoicePaymentStatus,
+    setBalance,
+    calculateBalanceFromProofs
   } = useCashu();
 
-  const { wallet } = useCashuSDK();
+  const { wallet, } = useCashuSDK();
 
   // Direct access to the Cashu store from SDK
   const { setMintUrl } = useCashuStore();
@@ -60,6 +63,7 @@ export default function Cashu() {
   const [walletReady, setWalletReady] = useState<boolean>(false);
   const [isLoadingProofs, setIsLoadingProofs] = useState<boolean>(false);
 
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   // Initialize wallet connection on mount or when active mint changes
   useEffect(() => {
     // Don't re-initialize if already checking or if no mint is selected
@@ -86,6 +90,7 @@ export default function Cashu() {
           console.log('Wallet is ready for operations');
           // Update balance
           const currentBalance = await getBalance();
+          console.log("currentBalance", currentBalance);
           setCurrentBalance(currentBalance);
         } else {
           console.error('Wallet initialization failed:', readinessCheck.error);
@@ -118,11 +123,12 @@ export default function Cashu() {
 
   // Fetch current balance
   useEffect(() => {
-    if (activeMint && activeUnit) {
+    if (activeMint && activeUnit && !isInitialized) {
       setIsBalanceLoading(true);
       getBalance()
         .then(balance => {
           setCurrentBalance(balance);
+          setIsInitialized(true);
         })
         .catch(err => {
           console.error('Error fetching balance:', err);
@@ -131,12 +137,54 @@ export default function Cashu() {
           setIsBalanceLoading(false);
         });
     }
-  }, [activeMint, activeUnit, getBalance]);
+  }, [activeMint, activeUnit, getBalance , balance]);
 
   // Update balance from wallet data
   useEffect(() => {
     setCurrentBalance(balance);
   }, [balance]);
+
+  // Add function to calculate balance from proofs
+  // const calculateBalanceFromProofs = async (mintUrl: string) => {
+  //   try {
+  //     // Get active proofs for the mint
+  //     const activeProofs = await proofsByMintApi.getByMintUrl(mintUrl);
+      
+  //     // Calculate total from active proofs
+  //     const activeBalance = activeProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
+      
+  //     // Get spent proofs for the mint
+  //     const spentProofs = await proofsSpentsByMintApi.getByMintUrl(mintUrl);
+      
+  //     // Calculate total from spent proofs
+  //     const spentBalance = spentProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
+      
+  //     // Update the balance in the store
+  //     const newBalance = activeBalance - spentBalance;
+  //     console.log("newBalance", newBalance);
+  //     setBalance(newBalance);
+  //     setCurrentBalance(newBalance);
+      
+  //     return newBalance;
+  //   } catch (error) {
+  //     console.error('Error calculating balance from proofs:', error);
+  //     return 0;
+  //   }
+  // };
+
+  // Update balance calculation when active mint changes
+  useEffect(() => {
+    if (activeMint) {
+      calculateBalanceFromProofs(activeMint);
+    }
+  }, [activeMint]);
+
+  // // Update balance after transactions
+  // useEffect(() => {
+  //   if (activeMint) {
+  //     calculateBalanceFromProofs(activeMint);
+  //   }
+  // }, [transactions]);
 
   // Handle creating a lightning invoice
   const handleCreateInvoice = async (amount: number) => {
@@ -371,6 +419,7 @@ export default function Cashu() {
 
       // Try to decode the token to get mint information
       const decodedToken = getDecodedToken(token);
+      console.log("decodedToken", decodedToken)
       if (!decodedToken) {
         throw new Error('Could not decode token');
       }
@@ -387,6 +436,12 @@ export default function Cashu() {
 
       // Try to receive the token
       await receiveToken(token);
+      
+      // Recalculate balance after receiving token
+      if (activeMint) {
+        await calculateBalanceFromProofs(activeMint);
+      }
+      
       handleCloseReceiveModal();
       showToast({
         message: 'Token received',
@@ -448,6 +503,11 @@ export default function Cashu() {
       const res = await payLightningInvoice(invoice);
 
       if (res && res?.success) {
+        // Recalculate balance after successful payment
+        if (activeMint) {
+          await calculateBalanceFromProofs(activeMint);
+        }
+        
         handleCloseSendModal();
         showToast({
           message: 'Invoice paid',
@@ -467,6 +527,10 @@ export default function Cashu() {
       
       // Check if this is a "Token already spent" error
       if (err instanceof Error && err.message.includes('Token was already spent')) {
+        // Recalculate balance even if there was an error
+        if (activeMint) {
+          await calculateBalanceFromProofs(activeMint);
+        }
         // Let the modal handle this specific error
         throw err;
       }
