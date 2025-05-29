@@ -16,6 +16,7 @@ import { useCashuStore, useCashu as useCashuSDK } from 'afk_nostr_sdk';
 import { useUIStore } from '@/store/uiStore';
 import { Transaction } from '@/utils/storage';
 import { Icon } from '../small/icon-component';
+import { getDecodedToken } from '@cashu/cashu-ts';
 
 export default function Cashu() {
   const {
@@ -363,6 +364,28 @@ export default function Cashu() {
   // Handle receiving token
   const handleReceiveToken = async (token: string) => {
     try {
+      // First validate the token format
+      if (!token.startsWith('cashu')) {
+        throw new Error('Invalid token format: token must start with "cashu"');
+      }
+
+      // Try to decode the token to get mint information
+      const decodedToken = getDecodedToken(token);
+      if (!decodedToken) {
+        throw new Error('Could not decode token');
+      }
+
+      // Check if the token's mint matches our active mint
+      if (decodedToken.mint && decodedToken.mint !== activeMint) {
+        showToast({
+          message: 'Mint mismatch',
+          type: 'warning',
+          description: 'This token was issued by a different mint. Please switch to the correct mint to receive it.'
+        });
+        return false;
+      }
+
+      // Try to receive the token
       await receiveToken(token);
       handleCloseReceiveModal();
       showToast({
@@ -370,28 +393,38 @@ export default function Cashu() {
         type: 'success'
       });
       return true;
-    } catch (err) {
-      try {
-        console.log("try catch wallet", wallet)
-        // if(wallet) {
-        //   const res = await wallet.receive(token);
-        //   console.log("res", res)
-        //   return true;
-        // }
-        console.log("try receive")
-        const res = await wallet?.receive(token);
-        console.log("res", res)
-        return true;
-      } catch (error) {
-        console.error('Error receiving token:', err);
+    } catch (error) {
+      console.error('Error receiving token:', error);
+      
+      // Handle specific error cases
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      if (errorMessage.includes('no outputs provided')) {
+        showToast({
+          message: 'Mint out of outputs',
+          type: 'error',
+          description: 'The mint currently has no outputs available. Please try again later or contact the mint operator.'
+        });
+      } else if (errorMessage.includes('invalid')) {
+        showToast({
+          message: 'Invalid token',
+          type: 'error',
+          description: 'The token format is invalid or corrupted'
+        });
+      } else if (errorMessage.includes('spent')) {
+        showToast({
+          message: 'Token already spent',
+          type: 'error',
+          description: 'This token has already been spent'
+        });
+      } else {
         showToast({
           message: 'Failed to receive token',
           type: 'error',
-          description: err instanceof Error ? err.message : 'Unknown error'
+          description: errorMessage
         });
-        return false;
       }
-  
+      return false;
     }
   };
 

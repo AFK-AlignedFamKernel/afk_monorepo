@@ -5,10 +5,31 @@ import { searchTikTok, getTikTokAnalytics } from '../../services/scraper/tiktok'
 import { getUnifiedTrendAnalytics } from '../../services/analytics/trendAnalytics';
 import { getHistoricalAnalytics } from '../../services/analytics/historicalAnalytics';
 import { scrapeKeywordTool } from '../../services/scraper/trends/keywordtoolio';
+// import { runPythonScript } from '../../utils/pythonRunner';
 dotenv.config();
 
 async function trendsRoutes(fastify: FastifyInstance) {
 
+    // fastify.get('/analytics/trends', async (req, reply) => {
+    //     try {
+    //         // const trends = await getOverallTrends();
+    //         const result = await runPythonScript('google_trends.py', {
+    //             keyword: 'AI ethics',
+    //             timeframe: 'today 5-y',
+    //             geo: 'US'
+    //           });
+    //           if (result.status === 'success') {
+    //             console.log('Trends data:', result.processed_data);
+    //           } else {
+    //             console.error('Error:', result.error);
+    //           }
+              
+    //         return reply.code(200).send(result);
+    //     } catch (error) {
+    //         console.error('Error fetching overall trends:', error);
+    //         return reply.code(500).send({ error: 'Failed to fetch trends data' });
+    //     }
+    // });
     fastify.get('/trend-per-top-pages', async (req, reply) => {
         try {
             const keyword = (req.query as any).keyword;
