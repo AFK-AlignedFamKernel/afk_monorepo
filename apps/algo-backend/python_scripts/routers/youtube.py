@@ -1,18 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 
 from database import get_db
-from models import TrendQuery, YouTubeData
+from models import TrendQuery, YouTubeData, ContentCreator, CreatorContent
 from utils.youtube_scraper import get_youtube_trends, search_youtube_videos, get_video_details
 from utils.beautifulsoup_scraper import scrape_youtube_trends, scrape_youtube_search, scrape_video_details
+from utils.youtube_analyzer import YouTubeAnalyzer
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/youtube", tags=["youtube"])
+router = APIRouter(
+    prefix="/youtube",
+    tags=["youtube"],
+    responses={404: {"description": "Not found"}},
+)
 
 @router.get("/trends")
 async def get_trends(

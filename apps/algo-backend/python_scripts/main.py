@@ -2,16 +2,27 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import asyncio
-from database import engine
-import models
-from routers import google_trends, youtube
+from database import engine, Base
+from routers import google_trends, youtube, niche_analytics
 from utils.scheduler import run_scheduler
 from category_scraper import CategoryScraper
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Create database tables
-models.Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Trend Analysis API")
+app = FastAPI(
+    title="AFK Analytics API",
+    description="API for analyzing trends and content across multiple platforms",
+    version="1.0.0"
+)
 
 # Configure CORS
 app.add_middleware(
@@ -25,6 +36,7 @@ app.add_middleware(
 # Include routers
 app.include_router(google_trends.router)
 app.include_router(youtube.router)
+app.include_router(niche_analytics.router)
 
 @app.get("/")
 async def root():
@@ -51,4 +63,5 @@ async def startup_event():
     asyncio.create_task(scraper.run_scraper())
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    # uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

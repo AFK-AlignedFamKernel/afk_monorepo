@@ -2,19 +2,23 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
 
 from database import get_db
-from models import TrendQuery, TrendData, TrendPlot
-from utils.google_trends import get_google_trends_data, get_trending_searches, get_trends_for_keyword
+from models import TrendQuery, TrendData, TrendPlot, YouTubeData
+from utils.google_trends import get_google_trends_data, get_trending_searches, get_trends_for_keyword, GoogleTrendsAnalyzer
 from utils.data_processing import (
     format_trend_data_for_ui,
     get_trend_periods,
     get_keyword_insights
 )
 
-router = APIRouter(prefix="/google", tags=["google"])
+router = APIRouter(
+    prefix="/google-trends",
+    tags=["google-trends"],
+    responses={404: {"description": "Not found"}},
+)
 
 # Create plots directory if it doesn't exist
 PLOTS_DIR = "plots"

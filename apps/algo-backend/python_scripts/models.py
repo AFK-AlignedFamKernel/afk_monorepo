@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON, Boolean
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON, Boolean, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -11,12 +11,17 @@ class Category(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    description = Column(String, nullable=True)
-    keywords = Column(JSON, default=list)  # List of keywords associated with this category
+    description = Column(Text)
+    keywords = Column(JSON)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = Column(Boolean, default=True)
     category_metadata = Column(JSON, default={})
+
+    # Relationships
+    trends = relationship("KeywordTrend", back_populates="category")
+    leaderboards = relationship("Leaderboard", back_populates="category")
+    platform_stats = relationship("PlatformStats", back_populates="category")
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert model to dictionary for API response"""
@@ -31,23 +36,112 @@ class Category(Base):
             "metadata": self.category_metadata
         }
 
-class TrendQuery(Base):
-    __tablename__ = "trend_queries"
-
+class ContentCreator(Base):
+    __tablename__ = "content_creators"
+    
     id = Column(Integer, primary_key=True, index=True)
-    keyword = Column(String, index=True)
-    timeframe = Column(String)
-    geo = Column(String)
+    platform = Column(String, index=True)  # youtube, twitter, reddit
+    platform_id = Column(String, index=True)  # channel_id, user_id, username
+    name = Column(String)
+    description = Column(Text)
+    followers_count = Column(Integer, default=0)
+    content_count = Column(Integer, default=0)
+    total_views = Column(Integer, default=0)
+    total_likes = Column(Integer, default=0)
+    total_comments = Column(Integer, default=0)
+    total_shares = Column(Integer, default=0)
+    engagement_rate = Column(Float, default=0.0)
+    mindshare_score = Column(Float, default=0.0)
+    is_verified = Column(Boolean, default=False)
+    creator_metadata = Column(JSON)  # Platform-specific metadata
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    is_active = Column(Boolean, default=True)
-    query_metadata = Column(JSON)
-    
+
     # Relationships
-    trend_data = relationship("TrendData", back_populates="query", cascade="all, delete-orphan")
-    trend_plots = relationship("TrendPlot", back_populates="query", cascade="all, delete-orphan")
-    youtube_data = relationship("YouTubeData", back_populates="query", cascade="all, delete-orphan")
+    content = relationship("CreatorContent", back_populates="creator")
+    platform_stats = relationship("PlatformStats", back_populates="creator")
+
+class CreatorContent(Base):
+    __tablename__ = "creator_content"
     
+    id = Column(Integer, primary_key=True, index=True)
+    creator_id = Column(Integer, ForeignKey("content_creators.id"))
+    platform = Column(String, index=True)
+    platform_content_id = Column(String, index=True)  # video_id, tweet_id, post_id
+    title = Column(String)
+    content = Column(Text)
+    views = Column(Integer, default=0)
+    likes = Column(Integer, default=0)
+    comments = Column(Integer, default=0)
+    shares = Column(Integer, default=0)
+    engagement_rate = Column(Float, default=0.0)
+    published_at = Column(DateTime)
+    content_metadata = Column(JSON)  # Platform-specific metadata
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    creator = relationship("ContentCreator", back_populates="content")
+
+class KeywordTrend(Base):
+    __tablename__ = "keyword_trends"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    keyword = Column(String, index=True)
+    category_id = Column(Integer, ForeignKey("categories.id"))
+    timeframe = Column(String)
+    geo = Column(String)
+    interest_over_time = Column(JSON)
+    related_topics = Column(JSON)
+    related_queries = Column(JSON)
+    trend_metadata = Column(JSON)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    category = relationship("Category", back_populates="trends")
+
+class Leaderboard(Base):
+    __tablename__ = "leaderboards"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    category_id = Column(Integer, ForeignKey("categories.id"))
+    platform = Column(String, index=True)
+    timeframe = Column(String)  # daily, weekly, monthly
+    start_date = Column(DateTime)
+    end_date = Column(DateTime)
+    rankings = Column(JSON)  # List of creator rankings with scores
+    leaderboard_metadata = Column(JSON)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    category = relationship("Category", back_populates="leaderboards")
+
+class PlatformStats(Base):
+    __tablename__ = "platform_stats"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    platform = Column(String, index=True)
+    creator_id = Column(Integer, ForeignKey("content_creators.id"))
+    category_id = Column(Integer, ForeignKey("categories.id"))
+    timeframe = Column(String)
+    start_date = Column(DateTime)
+    end_date = Column(DateTime)
+    views = Column(Integer, default=0)
+    likes = Column(Integer, default=0)
+    comments = Column(Integer, default=0)
+    shares = Column(Integer, default=0)
+    engagement_rate = Column(Float, default=0.0)
+    mindshare_score = Column(Float, default=0.0)
+    stats_metadata = Column(JSON)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    category = relationship("Category", back_populates="platform_stats")
+    creator = relationship("ContentCreator", back_populates="platform_stats")
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert model to dictionary for API response"""
         return {
@@ -58,7 +152,7 @@ class TrendQuery(Base):
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "is_active": self.is_active,
-            "metadata": self.query_metadata
+            "metadata": self.stats_metadata
         }
     
     def get_latest_data(self) -> Dict[str, Any]:
@@ -188,4 +282,34 @@ class CategoryTrendData(Base):
             "related_queries": self.related_queries,
             "timestamp": self.timestamp.isoformat(),
             "metadata": self.data_metadata
+        }
+
+class TrendQuery(Base):
+    __tablename__ = "trend_queries"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    keyword = Column(String, index=True)
+    timeframe = Column(String)
+    geo = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active = Column(Boolean, default=True)
+    query_metadata = Column(JSON, default={})
+    
+    # Relationships
+    trend_data = relationship("TrendData", back_populates="query")
+    trend_plots = relationship("TrendPlot", back_populates="query")
+    youtube_data = relationship("YouTubeData", back_populates="query")
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model to dictionary for API response"""
+        return {
+            "id": self.id,
+            "keyword": self.keyword,
+            "timeframe": self.timeframe,
+            "geo": self.geo,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+            "is_active": self.is_active,
+            "metadata": self.query_metadata
         } 

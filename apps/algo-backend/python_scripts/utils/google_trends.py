@@ -6,6 +6,7 @@ import json
 import sys
 import logging
 from .rate_limiter import with_retry, RateLimiter
+import asyncio
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -13,6 +14,85 @@ logger = logging.getLogger(__name__)
 
 # Create a rate limiter instance for Google Trends
 google_trends_limiter = RateLimiter(max_requests=3, time_window=60)  # 3 requests per minute
+
+class GoogleTrendsAnalyzer:
+    def __init__(self):
+        self.pytrends = TrendReq(hl='en-US', tz=360, timeout=(30, 60))
+        self.timeout_between_requests = 120  # 2 minutes between requests
+        self.max_retries = 5
+        self.base_retry_delay = 300  # 5 minutes base delay
+        self.max_retry_delay = 3600  # Maximum 1 hour delay
+
+    async def _handle_429_error(self, retry_count: int) -> None:
+        """Handle 429 error with exponential backoff and jitter."""
+        import random
+        delay = min(self.base_retry_delay * (2 ** retry_count), self.max_retry_delay)
+        jitter = random.uniform(0, 0.2 * delay)
+        total_delay = delay + jitter
+        
+        logger.warning(
+            f"Rate limit hit (429). Retry {retry_count + 1}/{self.max_retries}. "
+            f"Waiting for {total_delay/60:.1f} minutes before retry."
+        )
+        
+        await asyncio.sleep(total_delay)
+
+    async def get_trend_data(self, keyword: str, timeframe: str = "today 12-m") -> Dict:
+        """Get trend data for a keyword with retry logic."""
+        retry_count = 0
+        
+        while retry_count < self.max_retries:
+            try:
+                self.pytrends.build_payload(
+                    kw_list=[keyword],
+                    cat=0,
+                    timeframe=timeframe,
+                    geo='US'
+                )
+                
+                # Get interest over time
+                interest_over_time = self.pytrends.interest_over_time()
+                await asyncio.sleep(30)
+                
+                # Get related topics
+                related_topics = self.pytrends.related_topics()
+                await asyncio.sleep(30)
+                
+                # Get related queries
+                related_queries = self.pytrends.related_queries()
+                
+                return {
+                    'interest_over_time': {
+                        'dates': interest_over_time.index.strftime('%Y-%m-%d').tolist(),
+                        'values': interest_over_time[keyword].tolist()
+                    } if not interest_over_time.empty else None,
+                    'related_topics': {
+                        'top': related_topics[keyword]['top'].to_dict('records') if related_topics.get(keyword, {}).get('top') is not None else [],
+                        'rising': related_topics[keyword]['rising'].to_dict('records') if related_topics.get(keyword, {}).get('rising') is not None else []
+                    },
+                    'related_queries': {
+                        'top': related_queries[keyword]['top'].to_dict('records') if related_queries.get(keyword, {}).get('top') is not None else [],
+                        'rising': related_queries[keyword]['rising'].to_dict('records') if related_queries.get(keyword, {}).get('rising') is not None else []
+                    },
+                    'timestamp': datetime.utcnow().isoformat()
+                }
+                
+            except Exception as e:
+                if "429" in str(e):
+                    retry_count += 1
+                    if retry_count < self.max_retries:
+                        await self._handle_429_error(retry_count)
+                        continue
+                logger.error(f"Error getting trend data for {keyword}: {str(e)}")
+                return {
+                    'error': str(e),
+                    'timestamp': datetime.utcnow().isoformat()
+                }
+        
+        return {
+            'error': 'Max retries exceeded',
+            'timestamp': datetime.utcnow().isoformat()
+        }
 
 @with_retry(max_retries=3, rate_limiter=google_trends_limiter)
 async def get_google_trends_data(
