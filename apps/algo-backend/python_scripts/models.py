@@ -21,6 +21,7 @@ class TrendQuery(Base):
     # Relationships
     data = relationship("TrendData", back_populates="query", cascade="all, delete-orphan")
     plot = relationship("TrendPlot", back_populates="query", uselist=False, cascade="all, delete-orphan")
+    youtube_data = relationship("YouTubeData", back_populates="query", cascade="all, delete-orphan")
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert model to dictionary for API response"""
@@ -90,4 +91,44 @@ class TrendPlot(Base):
             "plot_path": self.plot_path,
             "plot_metadata": self.plot_metadata,
             "created_at": self.created_at.isoformat()
+        }
+
+class YouTubeData(Base):
+    __tablename__ = "youtube_data"
+
+    id = Column(Integer, primary_key=True, index=True)
+    query_id = Column(Integer, ForeignKey("trend_queries.id"))
+    video_id = Column(String, index=True)
+    title = Column(String)
+    channel_name = Column(String)
+    views = Column(String)
+    duration = Column(String)
+    published_at = Column(DateTime)
+    thumbnail_url = Column(String)
+    video_url = Column(String)
+    description = Column(String)
+    video_metadata = Column(JSON, default={})
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    query = relationship("TrendQuery", back_populates="youtube_data")
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model to dictionary for API response"""
+        return {
+            "id": self.id,
+            "query_id": self.query_id,
+            "video_id": self.video_id,
+            "title": self.title,
+            "channel_name": self.channel_name,
+            "views": self.views,
+            "duration": self.duration,
+            "published_at": self.published_at.isoformat() if self.published_at else None,
+            "thumbnail_url": self.thumbnail_url,
+            "video_url": self.video_url,
+            "description": self.description,
+            "metadata": self.video_metadata,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat()
         } 

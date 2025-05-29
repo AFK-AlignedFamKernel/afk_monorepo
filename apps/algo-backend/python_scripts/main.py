@@ -3,13 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from database import engine
 import models
-from routers.google_trends import router as google_trends_router
+from routers import google_trends, youtube
 from utils.scheduler import start_scheduler
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Google Trends API")
+app = FastAPI(title="Trend Analysis API")
 
 # Configure CORS
 app.add_middleware(
@@ -21,7 +21,8 @@ app.add_middleware(
 )
 
 # Include routers
-app.include_router(google_trends_router)
+app.include_router(google_trends.router)
+app.include_router(youtube.router)
 
 @app.get("/")
 async def root():

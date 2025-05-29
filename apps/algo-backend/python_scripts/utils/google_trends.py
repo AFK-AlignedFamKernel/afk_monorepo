@@ -1,24 +1,39 @@
 from pytrends.request import TrendReq
+from typing import Dict, Any, List, Optional
+from datetime import datetime, timedelta
 import pandas as pd
 import json
 import sys
-from typing import Dict, Any, List
+from .rate_limiter import with_retry, RateLimiter
 
-def get_google_trends_data(keyword: str, timeframe: str = "today 12-m", geo: str = "US") -> Dict[str, Any]:
+# Create a rate limiter instance for Google Trends
+google_trends_limiter = RateLimiter(max_requests=3, time_window=60)  # 3 requests per minute
+
+@with_retry(max_retries=3, rate_limiter=google_trends_limiter)
+async def get_google_trends_data(
+    keyword: str,
+    timeframe: str = "today 12-m",
+    geo: str = "US"
+) -> Dict[str, Any]:
     """
-    Get Google Trends data for a specific keyword.
+    Get Google Trends data for a keyword.
     
     Parameters:
-    - keyword: The search term to analyze
-    - timeframe: Time range for the data (e.g., 'today 12-m', '2023-01-01 2023-12-31')
-    - geo: Geographical region (e.g., 'US', 'FR', 'GB')
+    - keyword: The search term to get trends for
+    - timeframe: Time period for the trend data (e.g., "today 12-m", "now 1-d")
+    - geo: Geographical region (e.g., "US", "FR", "GB")
     """
     try:
         # Initialize pytrends
         pytrends = TrendReq(hl='en-US', tz=360)
         
         # Build payload
-        pytrends.build_payload([keyword], timeframe=timeframe, geo=geo)
+        pytrends.build_payload(
+            kw_list=[keyword],
+            cat=0,
+            timeframe=timeframe,
+            geo=geo
+        )
         
         # Get interest over time
         interest_over_time_df = pytrends.interest_over_time()
@@ -29,28 +44,49 @@ def get_google_trends_data(keyword: str, timeframe: str = "today 12-m", geo: str
                 'error': 'No data available for the specified parameters'
             }
         
-        # Get related queries
-        related_queries = pytrends.related_queries()
-        
-        # Get suggestions
-        suggestions = pytrends.suggestions(keyword)
-        
         # Process the data
         data = []
         for index, row in interest_over_time_df.iterrows():
-            data_point = {
-                'date': index,
-                keyword: row[keyword],
-                'isPartial': row.get('isPartial', 0)
-            }
-            data.append(data_point)
+            data.append({
+                'date': index.isoformat(),
+                'value': float(row[keyword]),
+                'is_partial': row.get('isPartial', False)
+            })
+        
+        # Get related queries
+        related_queries = pytrends.related_queries()
+        top_queries = related_queries.get(keyword, {}).get('top', pd.DataFrame())
+        rising_queries = related_queries.get(keyword, {}).get('rising', pd.DataFrame())
+        
+        # Process related queries
+        processed_queries = {
+            'top': [],
+            'rising': []
+        }
+        
+        if not top_queries.empty:
+            for _, row in top_queries.iterrows():
+                processed_queries['top'].append({
+                    'query': row['query'],
+                    'value': float(row['value'])
+                })
+        
+        if not rising_queries.empty:
+            for _, row in rising_queries.iterrows():
+                processed_queries['rising'].append({
+                    'query': row['query'],
+                    'value': float(row['value'])
+                })
         
         return {
             'status': 'success',
             'processed_data': {
+                'keyword': keyword,
+                'timeframe': timeframe,
+                'geo': geo,
                 'data': data,
-                'related_queries': related_queries.get(keyword, {}),
-                'suggestions': suggestions
+                'related_queries': processed_queries,
+                'timestamp': datetime.utcnow().isoformat()
             }
         }
         
@@ -60,41 +96,239 @@ def get_google_trends_data(keyword: str, timeframe: str = "today 12-m", geo: str
             'error': str(e)
         }
 
-def get_trending_searches(geo: str = "US", category: str = "all") -> Dict[str, Any]:
+@with_retry(max_retries=3, rate_limiter=google_trends_limiter)
+async def get_trending_searches(geo: str = "US", category: str = "all") -> Dict[str, Any]:
     """
     Get trending searches from Google Trends.
     
     Parameters:
-    - geo: Geographical region (e.g., 'US', 'FR', 'GB')
-    - category: Category of trending searches ('all', 'news', 'sports', etc.)
+    - geo: Geographical region (e.g., "US", "FR", "GB")
+    - category: Category of trending searches (e.g., "all", "sports", "entertainment")
     """
     try:
         # Initialize pytrends
         pytrends = TrendReq(hl='en-US', tz=360)
         
-        # Get trending searches
-        trending_searches = pytrends.trending_searches(pn=geo)
+        # Process the data
+        processed_data = {
+            'regular_trends': [],
+            'realtime_trends': [],
+            'timestamp': datetime.utcnow().isoformat()
+        }
         
-        # Get real-time trending searches
-        realtime_trending = pytrends.realtime_trending_searches(pn=geo)
+        # List of generic terms to get suggestions for
+        generic_terms = ["news", "trending", "viral", "popular", "hot", "latest"]
         
-        # Get top charts
-        top_charts = pytrends.top_charts(date='now', hl='en-US', tz=360, geo=geo)
+        # Get suggestions for each term
+        for term in generic_terms:
+            try:
+                # Get suggestions
+                suggestions = pytrends.suggestions(term)
+                if suggestions:
+                    for suggestion in suggestions:
+                        processed_data['regular_trends'].append({
+                            'query': suggestion.get('title', ''),
+                            'value': 100,  # Default value for suggestions
+                            'source': 'suggestions',
+                            'type': suggestion.get('type', '')
+                        })
+            except Exception:
+                continue
+        
+        # If we have no trends yet, try getting related topics
+        if not processed_data['regular_trends']:
+            # Build payload for multiple terms
+            pytrends.build_payload(
+                kw_list=generic_terms,
+                timeframe="now 1-d",
+                geo=geo
+            )
+            
+            # Get related topics
+            related_topics = pytrends.related_topics()
+            
+            # Process related topics for each term
+            for term in generic_terms:
+                try:
+                    top_topics = related_topics.get(term, {}).get("top", pd.DataFrame())
+                    if not top_topics.empty:
+                        for _, row in top_topics.iterrows():
+                            processed_data['regular_trends'].append({
+                                'query': row.get('topic_title', ''),
+                                'value': float(row.get('value', 0)),
+                                'source': 'related_topics',
+                                'type': 'topic'
+                            })
+                except Exception:
+                    continue
+        
+        # If we still have no trends, try getting related queries
+        if not processed_data['regular_trends']:
+            # Get related queries
+            related_queries = pytrends.related_queries()
+            
+            # Process related queries for each term
+            for term in generic_terms:
+                try:
+                    top_queries = related_queries.get(term, {}).get("top", pd.DataFrame())
+                    if not top_queries.empty:
+                        for _, row in top_queries.iterrows():
+                            processed_data['regular_trends'].append({
+                                'query': row['query'],
+                                'value': float(row['value']),
+                                'source': 'related_queries',
+                                'type': 'query'
+                            })
+                except Exception:
+                    continue
+        
+        # Try to get real-time trends
+        try:
+            realtime_trends = pytrends.realtime_trending_searches(pn=geo)
+            if not realtime_trends.empty:
+                for _, row in realtime_trends.iterrows():
+                    processed_data['realtime_trends'].append({
+                        'title': row.get('title', ''),
+                        'traffic': row.get('traffic', ''),
+                        'articles': row.get('articles', []),
+                        'image': row.get('image', {}).get('newsUrl', '')
+                    })
+        except Exception:
+            # If real-time trends fail, continue with regular trends
+            pass
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        processed_data['regular_trends'] = [
+            x for x in processed_data['regular_trends']
+            if not (x['query'] in seen or seen.add(x['query']))
+        ]
+        
+        # Sort by value if available
+        processed_data['regular_trends'].sort(key=lambda x: x.get('value', 0), reverse=True)
+        
+        return {
+            'status': 'success',
+            'processed_data': processed_data
+        }
+        
+    except Exception as e:
+        return {
+            'status': 'error',
+            'error': f"Failed to get trending searches: {str(e)}"
+        }
+
+@with_retry(max_retries=3, rate_limiter=google_trends_limiter)
+async def get_trends_for_keyword(keyword: str, geo: str = "US", timeframe: str = "today 12-m") -> Dict[str, Any]:
+    """
+    Get trend data for a specific keyword.
+    
+    Parameters:
+    - keyword: The search term to get trends for
+    - geo: Geographical region (e.g., "US", "FR", "GB")
+    - timeframe: Time period for the trend data (e.g., "today 12-m", "now 1-d")
+    """
+    try:
+        # Initialize pytrends
+        pytrends = TrendReq(hl='en-US', tz=360)
+        
+        # Build payload
+        pytrends.build_payload(
+            kw_list=[keyword],
+            cat=0,
+            timeframe=timeframe,
+            geo=geo
+        )
+        
+        # Get interest over time
+        interest_over_time_df = pytrends.interest_over_time()
+        
+        if interest_over_time_df.empty:
+            return {
+                'status': 'error',
+                'error': f'No data available for keyword "{keyword}"'
+            }
+        
+        # Process the data
+        data = []
+        for index, row in interest_over_time_df.iterrows():
+            data.append({
+                'date': index.isoformat(),
+                'value': float(row[keyword]),
+                'is_partial': row.get('isPartial', False)
+            })
+        
+        # Get related queries
+        related_queries = pytrends.related_queries()
+        top_queries = related_queries.get(keyword, {}).get('top', pd.DataFrame())
+        rising_queries = related_queries.get(keyword, {}).get('rising', pd.DataFrame())
+        
+        # Process related queries
+        processed_queries = {
+            'top': [],
+            'rising': []
+        }
+        
+        if not top_queries.empty:
+            for _, row in top_queries.iterrows():
+                processed_queries['top'].append({
+                    'query': row['query'],
+                    'value': float(row['value'])
+                })
+        
+        if not rising_queries.empty:
+            for _, row in rising_queries.iterrows():
+                processed_queries['rising'].append({
+                    'query': row['query'],
+                    'value': float(row['value'])
+                })
+        
+        # Get related topics
+        related_topics = pytrends.related_topics()
+        top_topics = related_topics.get(keyword, {}).get('top', pd.DataFrame())
+        rising_topics = related_topics.get(keyword, {}).get('rising', pd.DataFrame())
+        
+        # Process related topics
+        processed_topics = {
+            'top': [],
+            'rising': []
+        }
+        
+        if not top_topics.empty:
+            for _, row in top_topics.iterrows():
+                processed_topics['top'].append({
+                    'topic': row.get('topic_title', ''),
+                    'value': float(row.get('value', 0)),
+                    'type': row.get('topic_type', '')
+                })
+        
+        if not rising_topics.empty:
+            for _, row in rising_topics.iterrows():
+                processed_topics['rising'].append({
+                    'topic': row.get('topic_title', ''),
+                    'value': float(row.get('value', 0)),
+                    'type': row.get('topic_type', '')
+                })
         
         return {
             'status': 'success',
             'processed_data': {
-                'trending_searches': trending_searches.tolist(),
-                'realtime_trending': realtime_trending.to_dict('records'),
-                'top_charts': top_charts.to_dict('records')
+                'keyword': keyword,
+                'timeframe': timeframe,
+                'geo': geo,
+                'data': data,
+                'related_queries': processed_queries,
+                'related_topics': processed_topics,
+                'timestamp': datetime.utcnow().isoformat()
             }
         }
         
     except Exception as e:
         return {
             'status': 'error',
-            'error': str(e)
+            'error': f"Failed to get trend data for keyword '{keyword}': {str(e)}"
         }
+
 
 if __name__ == "__main__":
     # Read input from stdin

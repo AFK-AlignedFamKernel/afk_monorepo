@@ -13,4 +13,5 @@ alembic>=1.12.0
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 python-multipart>=0.0.6
-seaborn==0.13.0 
+seaborn==0.13.0
+youtube-search-python==1.6.6
