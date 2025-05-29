@@ -1,75 +1,100 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+import logging
 
 from database import get_db
 from models import TrendQuery, YouTubeData
 from utils.youtube_scraper import get_youtube_trends, search_youtube_videos, get_video_details
+from utils.beautifulsoup_scraper import scrape_youtube_trends, scrape_youtube_search, scrape_video_details
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/youtube", tags=["youtube"])
 
 @router.get("/trends")
-async def get_trending_videos(
-    region: str = "US",
-    limit: int = 10,
+async def get_trends(
+    region: str = Query("US", description="Geographical region (e.g., 'US', 'FR', 'GB')"),
+    limit: int = Query(10, description="Maximum number of videos to return"),
     db: Session = Depends(get_db)
 ):
     """
     Get trending videos from YouTube.
-    
-    Parameters:
-    - region: Geographical region (e.g., 'US', 'FR', 'GB')
-    - limit: Maximum number of videos to return
     """
-    result = get_youtube_trends(region, limit)
-    
-    if result['status'] != 'success':
-        raise HTTPException(status_code=400, detail=result.get('error', 'Failed to fetch trending videos'))
-    
-    return result['processed_data']
+    try:
+        # Try primary method (youtube-search-python)
+        result = await get_youtube_trends(region=region, limit=limit)
+        
+        # If primary method fails, try BeautifulSoup scraping
+        if result.get('status') == 'error':
+            logger.warning(f"Primary method failed, trying BeautifulSoup scraping: {result.get('error')}")
+            result = await scrape_youtube_trends(region=region, limit=limit)
+        
+        if result.get('status') == 'error':
+            raise HTTPException(status_code=400, detail=result.get('error'))
+        
+        return result.get('processed_data')
+        
+    except Exception as e:
+        logger.error(f"Error getting YouTube trends: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/search")
 async def search_videos(
-    query: str,
-    region: str = "US",
-    limit: int = 10,
-    sort_by: str = "relevance",
+    query: str = Query(..., description="Search query"),
+    region: str = Query("US", description="Geographical region (e.g., 'US', 'FR', 'GB')"),
+    limit: int = Query(10, description="Maximum number of results to return"),
+    sort_by: str = Query("relevance", description="Sort order (relevance, rating, upload_date, view_count)"),
     db: Session = Depends(get_db)
 ):
     """
-    Search for videos on YouTube.
-    
-    Parameters:
-    - query: Search term
-    - region: Geographical region (e.g., 'US', 'FR', 'GB')
-    - limit: Maximum number of videos to return
-    - sort_by: Sort order ('relevance', 'upload_date', 'view_count', 'rating')
+    Search for YouTube videos.
     """
-    result = search_youtube_videos(query, region, limit, sort_by)
-    
-    if result['status'] != 'success':
-        raise HTTPException(status_code=400, detail=result.get('error', 'Failed to search videos'))
-    
-    return result['processed_data']
+    try:
+        # Try primary method (youtube-search-python)
+        result = await search_youtube_videos(query=query, region=region, limit=limit, sort_by=sort_by)
+        
+        # If primary method fails, try BeautifulSoup scraping
+        if result.get('status') == 'error':
+            logger.warning(f"Primary method failed, trying BeautifulSoup scraping: {result.get('error')}")
+            result = await scrape_youtube_search(query=query, region=region, limit=limit)
+        
+        if result.get('status') == 'error':
+            raise HTTPException(status_code=400, detail=result.get('error'))
+        
+        return result.get('processed_data')
+        
+    except Exception as e:
+        logger.error(f"Error searching YouTube videos: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/videos/{video_id}")
+@router.get("/video/{video_id}")
 async def get_video(
     video_id: str,
     db: Session = Depends(get_db)
 ):
     """
     Get detailed information about a specific YouTube video.
-    
-    Parameters:
-    - video_id: The YouTube video ID
     """
-    result = get_video_details(video_id)
-    
-    if result['status'] != 'success':
-        raise HTTPException(status_code=404, detail=result.get('error', 'Video not found'))
-    
-    return result['processed_data']
+    try:
+        # Try primary method (youtube-search-python)
+        result = await get_video_details(video_id=video_id)
+        
+        # If primary method fails, try BeautifulSoup scraping
+        if result.get('status') == 'error':
+            logger.warning(f"Primary method failed, trying BeautifulSoup scraping: {result.get('error')}")
+            result = await scrape_video_details(video_id=video_id)
+        
+        if result.get('status') == 'error':
+            raise HTTPException(status_code=400, detail=result.get('error'))
+        
+        return result.get('processed_data')
+        
+    except Exception as e:
+        logger.error(f"Error getting video details: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/queries/{query_id}/videos")
 async def get_query_videos(
@@ -127,4 +152,49 @@ async def add_video_to_query(
     db.commit()
     db.refresh(youtube_data)
     
-    return youtube_data.to_dict() 
+    return youtube_data.to_dict()
+
+@router.get("/trends/history")
+async def get_trends_history(
+    skip: int = Query(0, description="Number of records to skip"),
+    limit: int = Query(10, description="Maximum number of records to return"),
+    db: Session = Depends(get_db)
+):
+    """
+    Get historical trend data from the database.
+    """
+    try:
+        # Query the database for trend queries with YouTube data
+        queries = db.query(TrendQuery).filter(
+            TrendQuery.youtube_data.any()
+        ).offset(skip).limit(limit).all()
+        
+        results = []
+        for query in queries:
+            youtube_data = query.youtube_data[0] if query.youtube_data else None
+            if youtube_data:
+                results.append({
+                    'query_id': query.id,
+                    'keyword': query.keyword,
+                    'region': query.region,
+                    'video_id': youtube_data.video_id,
+                    'title': youtube_data.title,
+                    'channel_name': youtube_data.channel_name,
+                    'views': youtube_data.views,
+                    'duration': youtube_data.duration,
+                    'published_at': youtube_data.published_at,
+                    'thumbnail_url': youtube_data.thumbnail_url,
+                    'video_url': youtube_data.video_url,
+                    'description': youtube_data.description,
+                    'created_at': youtube_data.created_at,
+                    'updated_at': youtube_data.updated_at
+                })
+        
+        return {
+            'total': len(results),
+            'results': results
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting trends history: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e)) 

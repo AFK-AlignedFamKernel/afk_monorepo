@@ -2,6 +2,9 @@ import pandas as pd
 from typing import Dict, List, Any
 from datetime import datetime, timedelta
 import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
 
 def calculate_trend_stats(data: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
@@ -32,38 +35,73 @@ def calculate_trend_stats(data: List[Dict[str, Any]]) -> Dict[str, Any]:
         'volatility': float(np.std(values) / np.mean(values)) if np.mean(values) != 0 else 0
     }
 
-def format_trend_data_for_ui(data: List[Dict[str, Any]]) -> Dict[str, Any]:
+def format_trend_data_for_ui(data: Dict[str, Any]) -> Dict[str, Any]:
     """
     Format trend data for UI display.
     
-    Args:
-        data: List of trend data points
-        
+    Parameters:
+    - data: Dictionary containing trend data
+    
     Returns:
-        Dictionary with formatted data for UI
+    - Dictionary with formatted data for UI
     """
-    if not data:
-        return {}
+    try:
+        # Extract the time series data
+        time_series_data = data.get('data', [])
+        if not time_series_data:
+            return {
+                'status': 'error',
+                'error': 'No time series data available'
+            }
         
-    df = pd.DataFrame(data)
-    df['date'] = pd.to_datetime(df['date'])
-    
-    # Group by date and calculate daily stats
-    daily_stats = df.groupby(df['date'].dt.date).agg({
-        'value': ['mean', 'min', 'max']
-    }).reset_index()
-    
-    # Format for UI
-    return {
-        'timeline': {
-            'dates': daily_stats['date'].dt.strftime('%Y-%m-%d').tolist(),
-            'values': daily_stats[('value', 'mean')].tolist(),
-            'min_values': daily_stats[('value', 'min')].tolist(),
-            'max_values': daily_stats[('value', 'max')].tolist()
-        },
-        'stats': calculate_trend_stats(data),
-        'last_updated': datetime.now().isoformat()
-    }
+        # Convert to DataFrame with proper structure
+        df = pd.DataFrame([
+            {
+                'date': item['date'],
+                'value': item['value'],
+                'is_partial': item.get('is_partial', False)
+            }
+            for item in time_series_data
+        ])
+        
+        # Convert date strings to datetime
+        df['date'] = pd.to_datetime(df['date'])
+        
+        # Sort by date
+        df = df.sort_values('date')
+        
+        # Format the data for UI
+        formatted_data = {
+            'keyword': data.get('keyword', ''),
+            'timeframe': data.get('timeframe', ''),
+            'geo': data.get('geo', ''),
+            'time_series': {
+                'dates': df['date'].dt.strftime('%Y-%m-%d').tolist(),
+                'values': df['value'].tolist(),
+                'is_partial': df['is_partial'].tolist()
+            },
+            'related_queries': {
+                'top': data.get('related_queries', {}).get('top', []),
+                'rising': data.get('related_queries', {}).get('rising', [])
+            },
+            'related_topics': {
+                'top': data.get('related_topics', {}).get('top', []),
+                'rising': data.get('related_topics', {}).get('rising', [])
+            },
+            'timestamp': data.get('timestamp', datetime.utcnow().isoformat())
+        }
+        
+        return {
+            'status': 'success',
+            'data': formatted_data
+        }
+        
+    except Exception as e:
+        logger.error(f"Error formatting trend data: {str(e)}", exc_info=True)
+        return {
+            'status': 'error',
+            'error': f'Failed to format trend data: {str(e)}'
+        }
 
 def get_trend_periods(data: List[Dict[str, Any]]) -> Dict[str, Any]:
     """

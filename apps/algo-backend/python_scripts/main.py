@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import asyncio
 from database import engine
 import models
 from routers import google_trends, youtube
-from utils.scheduler import start_scheduler
+from utils.scheduler import run_scheduler
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -40,8 +41,8 @@ async def root():
 
 @app.on_event("startup")
 async def startup_event():
-    """Start the scheduler when the application starts"""
-    start_scheduler()
+    """Start background tasks on application startup"""
+    asyncio.create_task(run_scheduler())
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

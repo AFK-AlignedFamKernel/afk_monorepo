@@ -24,7 +24,7 @@ async def check_keywords():
         for query in queries:
             try:
                 # Get fresh data
-                trends_result = get_google_trends_data(
+                trends_result = await get_google_trends_data(
                     query.keyword,
                     query.timeframe,
                     query.geo
@@ -74,17 +74,13 @@ async def check_keywords():
         db.close()
 
 async def run_scheduler():
-    """Run the scheduler in an infinite loop"""
+    """Run the scheduler loop"""
     while True:
         try:
             await check_keywords()
         except Exception as e:
-            print(f"Scheduler error: {str(e)}")
-        
-        # Wait for the next interval
+            print(f"Error in scheduler loop: {str(e)}")
         await asyncio.sleep(CRON_INTERVAL)
 
-def start_scheduler():
-    """Start the scheduler in the background"""
-    loop = asyncio.get_event_loop()
-    loop.create_task(run_scheduler())
+if __name__ == "__main__":
+    asyncio.run(run_scheduler())

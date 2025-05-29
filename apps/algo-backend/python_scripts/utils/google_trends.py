@@ -4,7 +4,12 @@ from datetime import datetime, timedelta
 import pandas as pd
 import json
 import sys
+import logging
 from .rate_limiter import with_retry, RateLimiter
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Create a rate limiter instance for Google Trends
 google_trends_limiter = RateLimiter(max_requests=3, time_window=60)  # 3 requests per minute
@@ -229,10 +234,14 @@ async def get_trends_for_keyword(keyword: str, geo: str = "US", timeframe: str =
     - timeframe: Time period for the trend data (e.g., "today 12-m", "now 1-d")
     """
     try:
+        logger.info(f"Getting trend data for keyword: {keyword}, geo: {geo}, timeframe: {timeframe}")
+        
         # Initialize pytrends
+        logger.debug("Initializing pytrends")
         pytrends = TrendReq(hl='en-US', tz=360)
         
         # Build payload
+        logger.debug(f"Building payload for keyword: {keyword}")
         pytrends.build_payload(
             kw_list=[keyword],
             cat=0,
@@ -241,75 +250,118 @@ async def get_trends_for_keyword(keyword: str, geo: str = "US", timeframe: str =
         )
         
         # Get interest over time
+        logger.debug("Fetching interest over time data")
         interest_over_time_df = pytrends.interest_over_time()
+        logger.debug(f"Interest over time data shape: {interest_over_time_df.shape}")
         
         if interest_over_time_df.empty:
+            logger.warning(f"No interest over time data available for keyword: {keyword}")
             return {
                 'status': 'error',
                 'error': f'No data available for keyword "{keyword}"'
             }
         
         # Process the data
+        logger.debug("Processing interest over time data")
         data = []
         for index, row in interest_over_time_df.iterrows():
-            data.append({
-                'date': index.isoformat(),
-                'value': float(row[keyword]),
-                'is_partial': row.get('isPartial', False)
-            })
+            try:
+                data.append({
+                    'date': index.isoformat(),
+                    'value': float(row[keyword]),
+                    'is_partial': row.get('isPartial', False)
+                })
+            except Exception as e:
+                logger.error(f"Error processing row: {row}, error: {str(e)}")
+                continue
         
-        # Get related queries
-        related_queries = pytrends.related_queries()
-        top_queries = related_queries.get(keyword, {}).get('top', pd.DataFrame())
-        rising_queries = related_queries.get(keyword, {}).get('rising', pd.DataFrame())
-        
-        # Process related queries
+        # Initialize empty results
         processed_queries = {
             'top': [],
             'rising': []
         }
-        
-        if not top_queries.empty:
-            for _, row in top_queries.iterrows():
-                processed_queries['top'].append({
-                    'query': row['query'],
-                    'value': float(row['value'])
-                })
-        
-        if not rising_queries.empty:
-            for _, row in rising_queries.iterrows():
-                processed_queries['rising'].append({
-                    'query': row['query'],
-                    'value': float(row['value'])
-                })
-        
-        # Get related topics
-        related_topics = pytrends.related_topics()
-        top_topics = related_topics.get(keyword, {}).get('top', pd.DataFrame())
-        rising_topics = related_topics.get(keyword, {}).get('rising', pd.DataFrame())
-        
-        # Process related topics
         processed_topics = {
             'top': [],
             'rising': []
         }
         
-        if not top_topics.empty:
-            for _, row in top_topics.iterrows():
-                processed_topics['top'].append({
-                    'topic': row.get('topic_title', ''),
-                    'value': float(row.get('value', 0)),
-                    'type': row.get('topic_type', '')
-                })
+        # Get related queries
+        logger.debug("Fetching related queries")
+        try:
+            related_queries = pytrends.related_queries()
+            logger.debug(f"Related queries keys: {list(related_queries.keys())}")
+            
+            if keyword in related_queries:
+                top_queries = related_queries[keyword].get('top', pd.DataFrame())
+                rising_queries = related_queries[keyword].get('rising', pd.DataFrame())
+                logger.debug(f"Top queries shape: {top_queries.shape}, Rising queries shape: {rising_queries.shape}")
+                
+                if not top_queries.empty:
+                    logger.debug("Processing top queries")
+                    for _, row in top_queries.iterrows():
+                        try:
+                            processed_queries['top'].append({
+                                'query': row['query'],
+                                'value': float(row['value'])
+                            })
+                        except Exception as e:
+                            logger.error(f"Error processing top query row: {row}, error: {str(e)}")
+                            continue
+                
+                if not rising_queries.empty:
+                    logger.debug("Processing rising queries")
+                    for _, row in rising_queries.iterrows():
+                        try:
+                            processed_queries['rising'].append({
+                                'query': row['query'],
+                                'value': float(row['value'])
+                            })
+                        except Exception as e:
+                            logger.error(f"Error processing rising query row: {row}, error: {str(e)}")
+                            continue
+        except Exception as e:
+            logger.warning(f"Error fetching related queries: {str(e)}")
         
-        if not rising_topics.empty:
-            for _, row in rising_topics.iterrows():
-                processed_topics['rising'].append({
-                    'topic': row.get('topic_title', ''),
-                    'value': float(row.get('value', 0)),
-                    'type': row.get('topic_type', '')
-                })
+        # Get related topics
+        logger.debug("Fetching related topics")
+        try:
+            related_topics = pytrends.related_topics()
+            logger.debug(f"Related topics keys: {list(related_topics.keys())}")
+            
+            if keyword in related_topics:
+                top_topics = related_topics[keyword].get('top', pd.DataFrame())
+                rising_topics = related_topics[keyword].get('rising', pd.DataFrame())
+                logger.debug(f"Top topics shape: {top_topics.shape}, Rising topics shape: {rising_topics.shape}")
+                
+                if not top_topics.empty:
+                    logger.debug("Processing top topics")
+                    for _, row in top_topics.iterrows():
+                        try:
+                            processed_topics['top'].append({
+                                'topic': row.get('topic_title', ''),
+                                'value': float(row.get('value', 0)),
+                                'type': row.get('topic_type', '')
+                            })
+                        except Exception as e:
+                            logger.error(f"Error processing top topic row: {row}, error: {str(e)}")
+                            continue
+                
+                if not rising_topics.empty:
+                    logger.debug("Processing rising topics")
+                    for _, row in rising_topics.iterrows():
+                        try:
+                            processed_topics['rising'].append({
+                                'topic': row.get('topic_title', ''),
+                                'value': float(row.get('value', 0)),
+                                'type': row.get('topic_type', '')
+                            })
+                        except Exception as e:
+                            logger.error(f"Error processing rising topic row: {row}, error: {str(e)}")
+                            continue
+        except Exception as e:
+            logger.warning(f"Error fetching related topics: {str(e)}")
         
+        logger.info(f"Successfully processed trend data for keyword: {keyword}")
         return {
             'status': 'success',
             'processed_data': {
@@ -324,6 +376,7 @@ async def get_trends_for_keyword(keyword: str, geo: str = "US", timeframe: str =
         }
         
     except Exception as e:
+        logger.error(f"Error getting trend data for keyword '{keyword}': {str(e)}", exc_info=True)
         return {
             'status': 'error',
             'error': f"Failed to get trend data for keyword '{keyword}': {str(e)}"

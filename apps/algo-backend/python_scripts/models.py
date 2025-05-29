@@ -16,11 +16,11 @@ class TrendQuery(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     is_active = Column(Boolean, default=True)
-    query_metadata = Column(JSON, default={})
+    query_metadata = Column(JSON)
     
     # Relationships
-    data = relationship("TrendData", back_populates="query", cascade="all, delete-orphan")
-    plot = relationship("TrendPlot", back_populates="query", uselist=False, cascade="all, delete-orphan")
+    trend_data = relationship("TrendData", back_populates="query", cascade="all, delete-orphan")
+    trend_plots = relationship("TrendPlot", back_populates="query", cascade="all, delete-orphan")
     youtube_data = relationship("YouTubeData", back_populates="query", cascade="all, delete-orphan")
     
     def to_dict(self) -> Dict[str, Any]:
@@ -38,9 +38,9 @@ class TrendQuery(Base):
     
     def get_latest_data(self) -> Dict[str, Any]:
         """Get the latest trend data point"""
-        if not self.data:
+        if not self.trend_data:
             return {}
-        latest = max(self.data, key=lambda x: x.date)
+        latest = max(self.trend_data, key=lambda x: x.date)
         return {
             "date": latest.date.isoformat(),
             "value": latest.value,
@@ -58,7 +58,7 @@ class TrendData(Base):
     data_metadata = Column(JSON, default={})
     
     # Relationship
-    query = relationship("TrendQuery", back_populates="data")
+    query = relationship("TrendQuery", back_populates="trend_data")
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert model to dictionary for API response"""
@@ -81,7 +81,7 @@ class TrendPlot(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationship
-    query = relationship("TrendQuery", back_populates="plot")
+    query = relationship("TrendQuery", back_populates="trend_plots")
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert model to dictionary for API response"""

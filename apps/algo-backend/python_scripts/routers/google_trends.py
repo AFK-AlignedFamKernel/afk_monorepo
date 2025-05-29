@@ -41,19 +41,37 @@ async def get_trending(
     return result['processed_data']
 
 @router.get("/trends/")
-async def list_trend_queries(
-    skip: int = 0,
-    limit: int = 10,
-    keyword: Optional[str] = None,
+async def get_trend_data(
+    keyword: str,
+    timeframe: str = "today 12-m",
+    geo: str = "US",
     db: Session = Depends(get_db)
 ):
-    """List all trend queries with optional filtering by keyword"""
-    query = db.query(TrendQuery)
-    if keyword:
-        query = query.filter(TrendQuery.keyword.ilike(f"%{keyword}%"))
+    """
+    Get trend data for a keyword.
     
-    queries = query.offset(skip).limit(limit).all()
-    return [q.to_dict() for q in queries]
+    Parameters:
+    - keyword: The search term to analyze
+    - timeframe: Time range for the data (e.g., 'today 12-m', '2023-01-01 2023-12-31')
+    - geo: Geographical region (e.g., 'US', 'FR', 'GB')
+    """
+    # Get trend data
+    result = await get_trends_for_keyword(keyword, geo, timeframe)
+    
+    print(result)
+    if result['status'] != 'success':
+        raise HTTPException(status_code=400, detail=result.get('error', 'Failed to fetch trend data'))
+    
+    # Format the data for UI
+    formatted_data = format_trend_data_for_ui(result['processed_data'])
+    
+    return {
+        'keyword': keyword,
+        'timeframe': timeframe,
+        'geo': geo,
+        'data': formatted_data,
+        'timestamp': datetime.utcnow().isoformat()
+    }
 
 @router.get("/trends/{query_id}")
 async def get_trend_query(query_id: int, db: Session = Depends(get_db)):
@@ -121,6 +139,12 @@ async def create_trend_query(
     - timeframe: Time range for the data (e.g., 'today 12-m', '2023-01-01 2023-12-31')
     - geo: Geographical region (e.g., 'US', 'FR', 'GB')
     """
+    # Get Google Trends data first
+    trends_result = await get_trends_for_keyword(keyword, geo, timeframe)
+    
+    if trends_result['status'] != 'success':
+        raise HTTPException(status_code=400, detail=trends_result.get('error', 'Failed to fetch trend data'))
+    
     # Check if query already exists
     existing_query = db.query(TrendQuery).filter(
         TrendQuery.keyword == keyword,
@@ -129,13 +153,26 @@ async def create_trend_query(
     ).first()
     
     if existing_query:
-        return existing_query.to_dict()
-    
-    # Get Google Trends data
-    trends_result = await get_google_trends_data(keyword, timeframe, geo)
-    
-    if trends_result['status'] != 'success':
-        raise HTTPException(status_code=400, detail=trends_result.get('error', 'Failed to fetch trend data'))
+        # Update existing query with new data
+        existing_query.query_metadata.update({
+            'related_queries': trends_result['processed_data'].get('related_queries', {}),
+            'related_topics': trends_result['processed_data'].get('related_topics', {}),
+            'last_checked': datetime.utcnow().isoformat()
+        })
+        db.commit()
+        db.refresh(existing_query)
+        
+        # Format the data for UI
+        formatted_data = format_trend_data_for_ui(trends_result['processed_data'])
+        
+        return {
+            'keyword': keyword,
+            'timeframe': timeframe,
+            'geo': geo,
+            'data': formatted_data,
+            'is_cached': True,
+            'timestamp': datetime.utcnow().isoformat()
+        }
     
     # Create new trend query
     trend_query = TrendQuery(
@@ -143,7 +180,9 @@ async def create_trend_query(
         timeframe=timeframe,
         geo=geo,
         query_metadata={
-            'related_queries': trends_result['processed_data']['related_queries']
+            'related_queries': trends_result['processed_data'].get('related_queries', {}),
+            'related_topics': trends_result['processed_data'].get('related_topics', {}),
+            'last_checked': datetime.utcnow().isoformat()
         }
     )
     
@@ -164,37 +203,16 @@ async def create_trend_query(
     
     db.commit()
     
-    # Generate and save plot
-    plot_filename = f"trend_{trend_query.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
-    plot_path = os.path.join(PLOTS_DIR, plot_filename)
-    
-    # Process and save plot
-    from ..process_trends import process_trends_data
-    process_trends_data(trends_result)
-    os.rename('trends_plot.png', plot_path)
-    
-    # Save plot record
-    db_plot = TrendPlot(
-        query_id=trend_query.id,
-        plot_path=plot_path,
-        plot_metadata={
-            'keyword': keyword,
-            'timeframe': timeframe,
-            'geo': geo,
-            'created_at': datetime.now().isoformat()
-        }
-    )
-    db.add(db_plot)
-    db.commit()
-    
-    # Format response with UI-friendly data
+    # Format the data for UI
     formatted_data = format_trend_data_for_ui(trends_result['processed_data'])
     
     return {
-        **trend_query.to_dict(),
+        'keyword': keyword,
+        'timeframe': timeframe,
+        'geo': geo,
         'data': formatted_data,
-        'plot': db_plot.to_dict(),
-        'insights': get_keyword_insights(trends_result['processed_data'])
+        'is_cached': False,
+        'timestamp': datetime.utcnow().isoformat()
     }
 
 @router.get("/trends/keyword/{keyword}")
