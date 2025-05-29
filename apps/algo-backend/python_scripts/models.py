@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
+from typing import Dict, Any, List
 
 Base = declarative_base()
 
@@ -13,17 +14,61 @@ class TrendQuery(Base):
     timeframe = Column(String)
     geo = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
-    trends_data = relationship("TrendData", back_populates="query")
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active = Column(Boolean, default=True)
+    query_metadata = Column(JSON, default={})
+    
+    # Relationships
+    data = relationship("TrendData", back_populates="query", cascade="all, delete-orphan")
+    plot = relationship("TrendPlot", back_populates="query", uselist=False, cascade="all, delete-orphan")
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model to dictionary for API response"""
+        return {
+            "id": self.id,
+            "keyword": self.keyword,
+            "timeframe": self.timeframe,
+            "geo": self.geo,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+            "is_active": self.is_active,
+            "metadata": self.query_metadata
+        }
+    
+    def get_latest_data(self) -> Dict[str, Any]:
+        """Get the latest trend data point"""
+        if not self.data:
+            return {}
+        latest = max(self.data, key=lambda x: x.date)
+        return {
+            "date": latest.date.isoformat(),
+            "value": latest.value,
+            "is_partial": latest.is_partial
+        }
 
 class TrendData(Base):
-    __tablename__ = "trends_data"
+    __tablename__ = "trend_data"
 
     id = Column(Integer, primary_key=True, index=True)
     query_id = Column(Integer, ForeignKey("trend_queries.id"))
     date = Column(DateTime, index=True)
     value = Column(Float)
-    is_partial = Column(Integer, default=0)
-    query = relationship("TrendQuery", back_populates="trends_data")
+    is_partial = Column(Boolean, default=False)
+    data_metadata = Column(JSON, default={})
+    
+    # Relationship
+    query = relationship("TrendQuery", back_populates="data")
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model to dictionary for API response"""
+        return {
+            "id": self.id,
+            "query_id": self.query_id,
+            "date": self.date.isoformat(),
+            "value": self.value,
+            "is_partial": self.is_partial,
+            "metadata": self.data_metadata
+        }
 
 class TrendPlot(Base):
     __tablename__ = "trend_plots"
@@ -31,5 +76,18 @@ class TrendPlot(Base):
     id = Column(Integer, primary_key=True, index=True)
     query_id = Column(Integer, ForeignKey("trend_queries.id"))
     plot_path = Column(String)
+    plot_metadata = Column(JSON, default={})
     created_at = Column(DateTime, default=datetime.utcnow)
-    plot_metadata = Column(JSON)  # Store additional plot metadata 
+    
+    # Relationship
+    query = relationship("TrendQuery", back_populates="plot")
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model to dictionary for API response"""
+        return {
+            "id": self.id,
+            "query_id": self.query_id,
+            "plot_path": self.plot_path,
+            "plot_metadata": self.plot_metadata,
+            "created_at": self.created_at.isoformat()
+        } 
