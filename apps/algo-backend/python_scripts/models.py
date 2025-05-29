@@ -6,6 +6,31 @@ from typing import Dict, Any, List
 
 Base = declarative_base()
 
+class Category(Base):
+    __tablename__ = "categories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+    description = Column(String, nullable=True)
+    keywords = Column(JSON, default=list)  # List of keywords associated with this category
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    is_active = Column(Boolean, default=True)
+    category_metadata = Column(JSON, default={})
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model to dictionary for API response"""
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "keywords": self.keywords,
+            "created_at": self.created_at.isoformat(),
+            "updated_at": self.updated_at.isoformat(),
+            "is_active": self.is_active,
+            "metadata": self.category_metadata
+        }
+
 class TrendQuery(Base):
     __tablename__ = "trend_queries"
 
@@ -131,4 +156,36 @@ class YouTubeData(Base):
             "metadata": self.video_metadata,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat()
+        }
+
+class CategoryTrendData(Base):
+    __tablename__ = "category_trend_data"
+
+    id = Column(Integer, primary_key=True, index=True)
+    category_id = Column(Integer, ForeignKey("categories.id"))
+    keyword = Column(String, index=True)
+    timeframe = Column(String)
+    geo = Column(String)
+    interest_over_time = Column(JSON)  # Store the time series data
+    related_topics = Column(JSON)  # Store related topics data
+    related_queries = Column(JSON)  # Store related queries data
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    data_metadata = Column(JSON, default={})
+    
+    # Relationship
+    category = relationship("Category", backref="trend_data")
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert model to dictionary for API response"""
+        return {
+            "id": self.id,
+            "category_id": self.category_id,
+            "keyword": self.keyword,
+            "timeframe": self.timeframe,
+            "geo": self.geo,
+            "interest_over_time": self.interest_over_time,
+            "related_topics": self.related_topics,
+            "related_queries": self.related_queries,
+            "timestamp": self.timestamp.isoformat(),
+            "metadata": self.data_metadata
         } 

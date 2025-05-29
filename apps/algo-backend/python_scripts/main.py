@@ -6,6 +6,7 @@ from database import engine
 import models
 from routers import google_trends, youtube
 from utils.scheduler import run_scheduler
+from category_scraper import CategoryScraper
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -42,7 +43,12 @@ async def root():
 @app.on_event("startup")
 async def startup_event():
     """Start background tasks on application startup"""
-    asyncio.create_task(run_scheduler())
+    # Start the scheduler
+    # asyncio.create_task(run_scheduler())
+    
+    # Start the category scraper
+    scraper = CategoryScraper()
+    asyncio.create_task(scraper.run_scraper())
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

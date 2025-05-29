@@ -31,18 +31,18 @@ async def get_google_trends_data(
     try:
         # Initialize pytrends
         pytrends = TrendReq(hl='en-US', tz=360)
-        
+
         # Build payload
         pytrends.build_payload(
             kw_list=[keyword],
-            cat=0,
-            timeframe=timeframe,
+                             cat=0,
+                             timeframe=timeframe,
             geo=geo
         )
-        
+
         # Get interest over time
         interest_over_time_df = pytrends.interest_over_time()
-        
+
         if interest_over_time_df.empty:
             return {
                 'status': 'error',
@@ -94,7 +94,7 @@ async def get_google_trends_data(
                 'timestamp': datetime.utcnow().isoformat()
             }
         }
-        
+
     except Exception as e:
         return {
             'status': 'error',
@@ -105,7 +105,7 @@ async def get_google_trends_data(
 async def get_trending_searches(geo: str = "US", category: str = "all") -> Dict[str, Any]:
     """
     Get trending searches from Google Trends.
-    
+
     Parameters:
     - geo: Geographical region (e.g., "US", "FR", "GB")
     - category: Category of trending searches (e.g., "all", "sports", "entertainment")
@@ -374,7 +374,7 @@ async def get_trends_for_keyword(keyword: str, geo: str = "US", timeframe: str =
                 'timestamp': datetime.utcnow().isoformat()
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Error getting trend data for keyword '{keyword}': {str(e)}", exc_info=True)
         return {
