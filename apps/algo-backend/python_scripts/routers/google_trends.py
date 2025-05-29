@@ -58,20 +58,16 @@ async def get_trend_data(
     # Get trend data
     result = await get_trends_for_keyword(keyword, geo, timeframe)
     
-    print(result)
     if result['status'] != 'success':
         raise HTTPException(status_code=400, detail=result.get('error', 'Failed to fetch trend data'))
     
     # Format the data for UI
-    formatted_data = format_trend_data_for_ui(result['processed_data'])
+    formatted_result = format_trend_data_for_ui(result['processed_data'])
     
-    return {
-        'keyword': keyword,
-        'timeframe': timeframe,
-        'geo': geo,
-        'data': formatted_data,
-        'timestamp': datetime.utcnow().isoformat()
-    }
+    if formatted_result['status'] != 'success':
+        raise HTTPException(status_code=400, detail=formatted_result.get('error', 'Failed to format trend data'))
+    
+    return formatted_result['data']
 
 @router.get("/trends/{query_id}")
 async def get_trend_query(query_id: int, db: Session = Depends(get_db)):
@@ -81,7 +77,7 @@ async def get_trend_query(query_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Trend query not found")
     
     # Get the latest data
-    result = await get_google_trends_data(
+    result = await get_trends_for_keyword(
         keyword=query.keyword,
         timeframe=query.timeframe,
         geo=query.geo
@@ -91,11 +87,14 @@ async def get_trend_query(query_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=result.get('error', 'Failed to fetch trend data'))
     
     # Format the data for UI
-    formatted_data = format_trend_data_for_ui(result['processed_data'])
+    formatted_result = format_trend_data_for_ui(result['processed_data'])
+    
+    if formatted_result['status'] != 'success':
+        raise HTTPException(status_code=400, detail=formatted_result.get('error', 'Failed to format trend data'))
     
     return {
         **query.to_dict(),
-        'data': formatted_data
+        'data': formatted_result['data']
     }
 
 @router.get("/trends/{query_id}/insights")
@@ -145,6 +144,12 @@ async def create_trend_query(
     if trends_result['status'] != 'success':
         raise HTTPException(status_code=400, detail=trends_result.get('error', 'Failed to fetch trend data'))
     
+    # Format the data for UI
+    formatted_result = format_trend_data_for_ui(trends_result['processed_data'])
+    
+    if formatted_result['status'] != 'success':
+        raise HTTPException(status_code=400, detail=formatted_result.get('error', 'Failed to format trend data'))
+    
     # Check if query already exists
     existing_query = db.query(TrendQuery).filter(
         TrendQuery.keyword == keyword,
@@ -162,16 +167,9 @@ async def create_trend_query(
         db.commit()
         db.refresh(existing_query)
         
-        # Format the data for UI
-        formatted_data = format_trend_data_for_ui(trends_result['processed_data'])
-        
         return {
-            'keyword': keyword,
-            'timeframe': timeframe,
-            'geo': geo,
-            'data': formatted_data,
-            'is_cached': True,
-            'timestamp': datetime.utcnow().isoformat()
+            **formatted_result['data'],
+            'is_cached': True
         }
     
     # Create new trend query
@@ -203,16 +201,9 @@ async def create_trend_query(
     
     db.commit()
     
-    # Format the data for UI
-    formatted_data = format_trend_data_for_ui(trends_result['processed_data'])
-    
     return {
-        'keyword': keyword,
-        'timeframe': timeframe,
-        'geo': geo,
-        'data': formatted_data,
-        'is_cached': False,
-        'timestamp': datetime.utcnow().isoformat()
+        **formatted_result['data'],
+        'is_cached': False
     }
 
 @router.get("/trends/keyword/{keyword}")
@@ -230,13 +221,6 @@ async def get_trend_keyword(
     - geo: Geographical region (e.g., 'US', 'FR', 'GB')
     - timeframe: Time range for the data (e.g., 'today 12-m', '2023-01-01 2023-12-31')
     """
-    # # Check if query already exists in database
-    # existing_query = db.query(TrendQuery).filter(
-    #     TrendQuery.keyword == keyword,
-    #     TrendQuery.timeframe == timeframe,
-    #     TrendQuery.geo == geo
-    # ).first()
-    
     # Get trend data
     result = await get_trends_for_keyword(keyword, geo, timeframe)
     
@@ -244,22 +228,9 @@ async def get_trend_keyword(
         raise HTTPException(status_code=400, detail=result.get('error', 'Failed to fetch trend data'))
     
     # Format the data for UI
-    formatted_data = format_trend_data_for_ui(result['processed_data'])
+    formatted_result = format_trend_data_for_ui(result['processed_data'])
     
-    # # If query exists in database, return with database info
-    # if existing_query:
-    #     return {
-    #         **existing_query.to_dict(),
-    #         'data': formatted_data,
-    #         'is_cached': True
-    #     }
+    if formatted_result['status'] != 'success':
+        raise HTTPException(status_code=400, detail=formatted_result.get('error', 'Failed to format trend data'))
     
-    # Otherwise, return just the trend data
-    return {
-        'keyword': keyword,
-        'timeframe': timeframe,
-        'geo': geo,
-        'data': formatted_data,
-        'is_cached': False,
-        'timestamp': datetime.utcnow().isoformat()
-    } 
+    return formatted_result['data'] 
