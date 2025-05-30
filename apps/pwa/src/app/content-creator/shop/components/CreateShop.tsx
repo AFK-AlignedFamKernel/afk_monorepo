@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { fetchWithAuth } from '@/lib/api';
 
 interface ShopFormData {
     name: string;
@@ -25,21 +26,22 @@ export default function CreateShop() {
         setError(null);
 
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/shops/create`, {
+            const response = await fetchWithAuth(`/shops/create`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
+                // headers: {
+                //     'Content-Type': 'application/json',
+                // },
+                // credentials: 'include',
                 body: JSON.stringify(formData),
             });
+            console.log("response",response)
 
-            if (!response.ok) {
-                const errorData = await response.json();
+            if (!response?.ok) {
+                const errorData = await response?.json();
                 throw new Error(errorData.error || 'Failed to create shop');
             }
 
-            const data = await response.json();
+            const data = await response?.json();
             router.push(`/content-creator/shop/${data.id}`);
             router.refresh();
         } catch (err) {

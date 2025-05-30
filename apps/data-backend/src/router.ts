@@ -21,7 +21,6 @@ import routesShareUserRoutes from './routes/indexer/share-user';
 import tipServiceRoute from './routes/indexer/tip';
 import uploadFile from './routes/upload/upload-file';
 import mainInfoFiRoute from './routes/indexer/infofi/infofi-main-contract';
-import {profileRoutes} from './routes/profile';
 import shopRoutes from './routes/shop';
 // import daoServiceRoute from './routes/indexer/dao';
 // import subScoreFactoryRoute from './routes/indexer/infofi/score-factory.routes';
@@ -45,24 +44,29 @@ function declareRoutes(
   fastify.register(tokenStatsRoute);
   fastify.register(transactionsRoute);
   fastify.register(allTransactionsRoute);
-  // fastify.register(createFunkitStripeCheckout);
+ 
+  // fastify.register(authRoutes);
+  // fastify.register(twitterRoutes);
+
+  fastify.register(unrugRoutes);
+  fastify.register(nameserviceRoutes);
+  fastify.register(tipServiceRoute);
+  fastify.register(routesShareUserRoutes);
+  fastify.register(uploadFile);
+  fastify.register(mainInfoFiRoute);
+  fastify.register(shopRoutes)
+  // fastify.register(profileRoutes);
+
+  // fastify.register(profileRoutes, { prefix: '/api' });
+
+  // fastify.register(daoServiceRoute);
+  // fastify.register(subScoreFactoryRoute);
+  // fastify.register(getOtp, twilio_services?.verifications);
+   // fastify.register(createFunkitStripeCheckout);
   // fastify.register(getFunkitStripeCheckoutQuote);
   // fastify.register(getFunkitStripeCheckoutStatus);
   // fastify.register(createPaymentIntent);
   // fastify.register(paymentSheet);
-  // fastify.register(authRoutes);
-  fastify.register(unrugRoutes);
-  fastify.register(nameserviceRoutes);
-  fastify.register(tipServiceRoute);
-  fastify.register(twitterRoutes);
-  fastify.register(routesShareUserRoutes);
-  fastify.register(uploadFile);
-  fastify.register(mainInfoFiRoute);
-  fastify.register(profileRoutes);
-  fastify.register(shopRoutes)
-  // fastify.register(daoServiceRoute);
-  // fastify.register(subScoreFactoryRoute);
-  // fastify.register(getOtp, twilio_services?.verifications);
   // fastify.register(verifyOtp, deployer, twilio_services?.verificationChecks);
   // fastify.register(verifyOtp, [deployer, twilio_services?.verificationChecks]);
 }

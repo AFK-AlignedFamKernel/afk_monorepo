@@ -4,6 +4,7 @@ import { ConnectTwitterInput } from '../../validations/auth.validation';
 
 const twitterRoutes: FastifyPluginAsync = async (fastify) => {
   const twitterService = new TwitterService(fastify.prisma, fastify);
+  
   // Step 1: Start OAuth flow
   fastify.get('/twitter/auth/login', async (request, reply) => {
     try {
@@ -19,25 +20,25 @@ const twitterRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post<{ Body: ConnectTwitterInput }>(
     '/twitter/connect-account',
     {
+      onRequest: [fastify.authenticate],
       schema: {
         body: {
           type: 'object',
-          required: ['code', 'codeVerifier', 'userId'],
+          required: ['code', 'codeVerifier'],
           properties: {
             code: { type: 'string' },
             codeVerifier: { type: 'string' },
-            userId: { type: 'string' },
           },
         },
       },
     },
     async (request, reply) => {
-      const { code, codeVerifier, userId } = request.body;
+      const { code, codeVerifier } = request.body;
       try {
         const resp = await twitterService.connectAccount({
           code,
           codeVerifier,
-          userId,
+          userId: request.user.id,
         });
         reply.send({ success: true, data: resp });
       } catch (error) {
@@ -48,23 +49,14 @@ const twitterRoutes: FastifyPluginAsync = async (fastify) => {
     },
   );
 
-  fastify.post<{ Body: { userId: string } }>(
+  fastify.post(
     '/twitter/disconnect',
     {
-      schema: {
-        body: {
-          type: 'object',
-          required: ['userId'],
-          properties: {
-            userId: { type: 'string' },
-          },
-        },
-      },
+      onRequest: [fastify.authenticate],
     },
     async (request, reply) => {
       try {
-        const { userId } = request.body;
-        const data = await twitterService.disconnectAccount(userId);
+        const data = await twitterService.disconnectAccount(request.user.id);
         reply.send({ success: true, data });
       } catch (error) {
         if (error instanceof Error) {

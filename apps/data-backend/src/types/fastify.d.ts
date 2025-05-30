@@ -1,16 +1,16 @@
-import { PrismaClient } from '@prisma/client';
-import { FastifyInstance as BaseFastifyInstance } from 'fastify';
+import { PrismaClient } from 'prisma-db';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { UserJwtPayload } from './index';
 
 declare module 'fastify' {
-    interface FastifyInstance extends BaseFastifyInstance {
+    interface FastifyInstance {
         prisma: PrismaClient;
-        authenticate: any; // You can replace 'any' with your actual auth plugin type
+        authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+        authenticateAuth: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     }
 
     interface FastifyRequest {
-        user: {
-            id: string;
-            // Add other user properties as needed
-        };
+        user: UserJwtPayload | null;
+        session?: any; // Using any for now since we don't need the full session type
     }
 } 

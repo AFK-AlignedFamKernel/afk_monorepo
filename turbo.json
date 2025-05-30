@@ -62,7 +62,9 @@
     "BACKEND_URL",
     "TWITTER_API_KEY",
     "TWITTER_API_SECRET_KEY",
-    "TWITTER_CALLBACK_URL"
+    "TWITTER_CALLBACK_URL",
+    "SUPABASE_URL",
+    "SUPABASE_ANON_KEY"
 
   ],
   "pipeline": {

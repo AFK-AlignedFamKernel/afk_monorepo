@@ -24,6 +24,35 @@ export const Oauth = () => {
             fetchSession();
         }
     }, [isInitialFetchUser, user, session]);
+
+
+    const handleLogin = async () => {
+        const res = await supabase.auth.signInWithOAuth({
+            provider:"google"
+        })
+
+        if(!res) {
+            return showToast({
+                message:"Error",
+                type:"error"
+            })
+        }
+
+        return showToast({
+            message:"Login successfuly",
+            type:"success"
+        })
+    }
+    const handleLogout = async () => {
+        const res = await supabase.auth.signOut()
+
+        if (!res) {
+            showToast({
+                message: "Logout successfully",
+                type: "error"
+            })
+        }
+    }
     return (
         <div>
             <p> {provider}</p>
@@ -53,11 +82,33 @@ export const Oauth = () => {
                 {user?.identities?.map((identity) => (
                     <div key={identity.id} className="flex gap-2">
                         <p>{identity.provider}</p>
-                        <p>{identity.identity_data.email}</p>
+                        <p>{identity?.identity_data?.email}</p>
                     </div>
                 ))}
 
             </div>
+
+
+            {!user &&
+                <button
+                    className="btn btn-primary"
+                    onClick={handleLogin}>
+                    Login
+                </button>
+            }
+
+            {user && session &&
+                <div>
+
+                    <button
+                        className="btn btn-secondary"
+                        onClick={handleLogout}>
+                        Logout
+                    </button>
+                </div>
+            }
+
+
             <p className="text-xs whitespace-pre-wrap overflow-hidden text-ellipsis">{JSON.stringify(user?.user_metadata)}</p>
         </div>
     )

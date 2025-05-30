@@ -47,44 +47,44 @@
   "dependencies": {
     "@babel/core": "^7.20.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
+    "@noble/ciphers": "0.4.1",
+    "@noble/curves": "1.9.0",
+    "@noble/hashes": "1.8.0",
+    "@noble/secp256k1": "^2.2.3",
+    "@nostr-dev-kit/ndk": "^2.14.9",
+    "@nostr-dev-kit/ndk-wallet": "^0.5.13",
     "@prisma/client": "^5.22.0",
+    "@scure/base": "^1.2.5",
+    "@scure/bip32": "^1.7.0",
+    "@scure/bip39": "^1.6.0",
+    "bip39": "^3.1.0",
+    "drizzle-kit": "^0.29.0",
     "fbjs": "^3.0.5",
+    "next": "15.1.7",
+    "pg": "^8.13.1",
     "prettier": "^2.8.8",
     "prisma": "5.22.0",
-    "tsup": "^8.0.2",
-    "turbo": "^1.13.2",
-    "@noble/ciphers": "0.4.1",
-    "@noble/curves": "1.9.0",
-    "@noble/hashes": "1.8.0",
-    "@noble/secp256k1": "^2.2.3",
-    "bip39": "^3.1.0",
-    "@scure/bip32": "^1.7.0",
-    "@scure/bip39": "^1.6.0",
-    "@scure/base": "^1.2.5",
-    "@nostr-dev-kit/ndk": "^2.14.9",
-    "@nostr-dev-kit/ndk-wallet": "^0.5.13",
-    "drizzle-kit": "^0.29.0",
-    "pg": "^8.13.1",
-    "next": "15.1.7",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "tsup": "^8.0.2",
+    "turbo": "^1.13.2"
   },
   "peerDependencies": {
-    "prisma": "5.22.0",
-    "@prisma/client": "^5.22.0",
     "@noble/ciphers": "0.4.1",
     "@noble/curves": "1.9.0",
     "@noble/hashes": "1.8.0",
     "@noble/secp256k1": "^2.2.3",
-    "bip39": "^3.1.0",
-    "@scure/bip32": "^1.7.0",
-    "@scure/bip39": "^1.6.0",
-    "@scure/base": "^1.2.5",
     "@nostr-dev-kit/ndk": "^2.14.9",
     "@nostr-dev-kit/ndk-wallet": "^0.5.13",
+    "@prisma/client": "^5.22.0",
+    "@scure/base": "^1.2.5",
+    "@scure/bip32": "^1.7.0",
+    "@scure/bip39": "^1.6.0",
+    "bip39": "^3.1.0",
     "drizzle-kit": "^0.29.0",
-    "pg": "^8.13.1",
     "next": "15.1.7",
+    "pg": "^8.13.1",
+    "prisma": "5.22.0",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
@@ -100,5 +100,9 @@
     "node": ">=14.0.0"
   },
   "packageManager": "pnpm@10.10.0",
-  "pnpm": {}
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "supabase"
+    ]
+  }
 }

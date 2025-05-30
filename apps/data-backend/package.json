@@ -19,7 +19,8 @@
     "prisma:setup": "",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
-    "ts:check": "tsc --noEmit"
+    "ts:check": "tsc --noEmit",
+    "db:init": "pnpm run supabase init"
   },
   "keywords": [],
   "author": "",

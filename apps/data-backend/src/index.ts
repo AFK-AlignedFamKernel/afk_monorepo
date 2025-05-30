@@ -14,7 +14,6 @@ import fastifySession from '@fastify/session';
 import fastifyOauth2 from '@fastify/oauth2';
 import fastifyMultipart from '@fastify/multipart';
 import dotenv from 'dotenv';
-import shopRoutes from './routes/shop';
 
 dotenv.config();
 
@@ -106,8 +105,10 @@ async function buildServer() {
   // Indexer
   await declareRoutes(fastify);
 
-  // Register shop routes
-  await fastify.register(shopRoutes, { prefix: '/api' });
+  // Health check
+  fastify.get('/health', async () => {
+    return { status: 'ok' };
+  });
 
   // Initialize WebSocket handlers
   fastify.ready((err) => {

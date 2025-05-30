@@ -1,7 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { createClient } from '@supabase/supabase-js';
 import { UserJwtPayload } from '../../types';
+import { supabaseAuthMiddleware } from '../../middleware/supabase-auth';
+import { supabaseAdmin } from '../../services/supabase';
 
 const shopSchema = z.object({
     name: z.string().min(1),
@@ -10,16 +11,10 @@ const shopSchema = z.object({
 });
 
 export default async function shopRoutes(fastify: FastifyInstance) {
-    const supabase = createClient(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_KEY!
-    );
-
-    
     // Get all shops
     fastify.get('/shops', async (request, reply) => {
         try {
-            const { data: shops, error } = await supabase
+            const { data: shops, error } = await supabaseAdmin
                 .from('shops')
                 .select('*')
                 .order('created_at', { ascending: false });
@@ -38,7 +33,7 @@ export default async function shopRoutes(fastify: FastifyInstance) {
         try {
             const { id } = request.params as { id: string };
 
-            const { data: shop, error } = await supabase
+            const { data: shop, error } = await supabaseAdmin
                 .from('shops')
                 .select('*')
                 .eq('id', id)
@@ -59,7 +54,7 @@ export default async function shopRoutes(fastify: FastifyInstance) {
 
     // Create shop - requires authentication
     fastify.post('/shops/create', {
-        preHandler: fastify.authenticateAuth
+        preHandler: supabaseAuthMiddleware
     }, async (request, reply) => {
         try {
             if (!request.user) {
@@ -68,7 +63,7 @@ export default async function shopRoutes(fastify: FastifyInstance) {
 
             const shopData = shopSchema.parse(request.body);
 
-            const { data, error } = await supabase
+            const { data, error } = await supabaseAdmin
                 .from('shops')
                 .insert([
                     {
@@ -79,10 +74,12 @@ export default async function shopRoutes(fastify: FastifyInstance) {
                 .select()
                 .single();
 
+            console.log("error",error)
             if (error) throw error;
 
             return reply.status(201).send(data);
         } catch (error) {
+            console.log("errors", error)
             if (error instanceof z.ZodError) {
                 return reply.status(400).send({ error: error.errors });
             }
@@ -93,7 +90,7 @@ export default async function shopRoutes(fastify: FastifyInstance) {
 
     // Update shop - requires authentication
     fastify.patch('/shops/:id', {
-        preHandler: fastify.authenticateAuth
+        preHandler: supabaseAuthMiddleware
     }, async (request, reply) => {
         try {
             if (!request.user) {
@@ -104,7 +101,7 @@ export default async function shopRoutes(fastify: FastifyInstance) {
             const shopData = shopSchema.partial().parse(request.body);
 
             // Check if user is owner or admin
-            const { data: shop } = await supabase
+            const { data: shop } = await supabaseAdmin
                 .from('shops')
                 .select('owner_id')
                 .eq('id', id)
@@ -114,7 +111,7 @@ export default async function shopRoutes(fastify: FastifyInstance) {
                 return reply.status(404).send({ error: 'Shop not found' });
             }
 
-            const { data: isAdmin } = await supabase
+            const { data: isAdmin } = await supabaseAdmin
                 .from('shop_admins')
                 .select('id')
                 .eq('shop_id', id)
@@ -125,7 +122,7 @@ export default async function shopRoutes(fastify: FastifyInstance) {
                 return reply.status(403).send({ error: 'Forbidden' });
             }
 
-            const { data, error } = await supabase
+            const { data, error } = await supabaseAdmin
                 .from('shops')
                 .update({
                     ...shopData,
@@ -149,7 +146,7 @@ export default async function shopRoutes(fastify: FastifyInstance) {
 
     // Delete shop - requires authentication
     fastify.delete('/shops/:id', {
-        preHandler: fastify.authenticateAuth
+        preHandler: supabaseAuthMiddleware
     }, async (request, reply) => {
         try {
             if (!request.user) {
@@ -159,7 +156,7 @@ export default async function shopRoutes(fastify: FastifyInstance) {
             const { id } = request.params as { id: string };
 
             // Check if user is owner
-            const { data: shop } = await supabase
+            const { data: shop } = await supabaseAdmin
                 .from('shops')
                 .select('owner_id')
                 .eq('id', id)
@@ -173,7 +170,7 @@ export default async function shopRoutes(fastify: FastifyInstance) {
                 return reply.status(403).send({ error: 'Forbidden' });
             }
 
-            const { error } = await supabase
+            const { error } = await supabaseAdmin
                 .from('shops')
                 .delete()
                 .eq('id', id);
