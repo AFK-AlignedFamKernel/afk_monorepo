@@ -1,7 +1,10 @@
+import CreateShop from './components/CreateShop';
+
 export default function ShopPage() {
     return (
-        <div>
-            <h1>Shop</h1>
+        <div className="container mx-auto py-8">
+            <h1 className="text-3xl font-bold mb-8">Shop Management</h1>
+            <CreateShop />
         </div>
-    )
+    );
 }   
