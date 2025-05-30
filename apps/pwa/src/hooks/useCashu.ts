@@ -588,8 +588,21 @@ export function useCashu() {
         balance: newBalance
       };
       setWalletData(newWalletData);
+      console?.log("wallet", wallet?.mint)
+
+      console.log('try saved proofs', result)
+      try {
+        await proofsByMintApi.addProofsForMint(result, walletData?.activeMint ?? wallet?.mint?.mintUrl ?? "");
+        const allProofs = await proofsApi.getAll();
+        await proofsApi.setAll([...allProofs, ...result]);
+      } catch (err) {
+        console.error('Error saving proofs:', err);
+      }
+
       // IMPORTANT ADDITION: Store the proofs directly in the SDK's wallet if possible
       try {
+   
+
         // Check if the result contains proofs and the wallet supports storing them
         if (result.proofs && Array.isArray(result.proofs) && wallet.addProofs) {
           await wallet.addProofs(result.proofs);
@@ -599,6 +612,7 @@ export function useCashu() {
           await wallet.addProofsByToken(result.token);
           console.log('Proofs stored in wallet by token');
         }
+
 
         // If the SDK supports updating the balance directly
         if (typeof wallet.updateBalance === 'function') {
@@ -1011,9 +1025,9 @@ export function useCashu() {
 
         if (quoteData) {
           // Check for different possible state indicators
-          isPaid = quoteData.paid === true ||
-            quoteData.state === 'PAID' ||
-            quoteData.status === 'paid';
+          isPaid = quoteData?.paid === true ||
+            quoteData?.state === 'PAID' ||
+            quoteData?.status === 'paid';
         }
       } catch (err) {
         console.warn('Error checking quote status:', err);
@@ -1386,6 +1400,10 @@ export function useCashu() {
             await proofsSpentsApi.updateMany(proofsToSend);
             await proofsSpentsByMintApi.addProofsForMint(proofsToSend, walletData.activeMint);
 
+            const proofPresent = await proofsByMintApi.getByMintUrl(walletData.activeMint);
+
+            const proofPresentCleared = proofPresent.filter(p => !proofsToSend.some(pt => pt.C === p.C));
+            await proofsByMintApi.setAllForMint([...proofPresentCleared], walletData.activeMint);
             // Remove from active proofs
             const spentIds = proofsToSend.map(p => p.C);
             if (spentIds.length > 0) {

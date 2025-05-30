@@ -12,11 +12,11 @@ import { CashuSettingsModal } from './modals/CashuSettingsModal';
 import { CashuMintModal } from './modals/CashuMintModal';
 import { CashuTransactionDetailsModal } from './modals/CashuTransactionDetailsModal';
 import { useCashu } from '@/hooks/useCashu';
-import { useCashuStore, useCashu as useCashuSDK, useNostrContext } from 'afk_nostr_sdk';
+import { useCashuStore, useCashu as useCashuSDK, useNostrContext, useAuth } from 'afk_nostr_sdk';
 import { useUIStore } from '@/store/uiStore';
 import { getWalletData, proofsApi, saveWalletData, Transaction } from '@/utils/storage';
 import { Icon } from '../small/icon-component';
-import { getDecodedToken } from '@cashu/cashu-ts';
+import { getDecodedToken, MeltQuoteState } from '@cashu/cashu-ts';
 import { proofsByMintApi, proofsSpentsByMintApi } from '@/utils/storage';
 
 export default function Cashu() {
@@ -64,6 +64,62 @@ export default function Cashu() {
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [walletReady, setWalletReady] = useState<boolean>(false);
   const [isLoadingProofs, setIsLoadingProofs] = useState<boolean>(false);
+
+  const [checkWallet, setCheckWallet] = useState<boolean>(true);
+
+  // console.log("ndkCashuWallet balance", ndkCashuWallet?.balance)
+  // console.log("ndkCashuWallet signer", ndkCashuWallet?.signer)
+
+  const { publicKey } = useAuth();
+  useEffect(() => {
+    if (checkWallet && publicKey) {
+      setCheckWallet(true);
+      initWalletNdk();
+    }
+ 
+  }, [activeMint, setActiveMint, checkWallet, publicKey])
+
+  async function initWalletNdk() {
+
+    try {
+      
+    if (!activeMint) return;
+
+    if (ndkCashuWallet?.mints?.includes(activeMint)) return;
+    if (ndkCashuWallet) {
+      ndkCashuWallet.mints = [activeMint]
+    }
+    const wallet = await ndkCashuWallet?.getCashuWallet(activeMint);
+    console.log("wallet", wallet)
+
+    if (!wallet) {
+      setWalletReady(false);
+
+    } else {
+
+      // REQUIRED: Publish the wallet's mint list for token/nutzap reception
+      await ndkCashuWallet?.publish();
+      setWalletReady(true);
+    }
+    // if (wallet) {
+    //   setWalletReady(true);
+    // } else {
+    //   setWalletReady(false);
+    // }
+    } catch (error) {
+      console.error('Error initializing wallet:', error);
+      // setWalletReady(false);
+      // showToast({
+      //   message: 'Wallet Initialization Error',
+      //   type: 'error',
+      //   description: error instanceof Error ? error.message : 'Unknown error during wallet initialization'
+      // });
+    }
+    finally {
+      setCheckWallet(false);
+    }
+  }
+
 
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   // Initialize wallet connection on mount or when active mint changes
@@ -142,6 +198,7 @@ export default function Cashu() {
     }
 
     initializeWallet();
+    // initWalletNdk();
 
     // This effect should only run when the activeMint changes, not on every render
     // or when related functions change their references
@@ -520,7 +577,7 @@ export default function Cashu() {
         result = res;
       }
 
-      if(!result) {
+      if (!result) {
         const res = await receiveToken(token);
         console.log("res", res)
         result = res;
@@ -640,12 +697,110 @@ export default function Cashu() {
     }
   };
 
+
+  // Handle checking payment status
+  const handleCheckPaymentInvoice = async (_transaction: Transaction) => {
+    let transaction = _transaction;
+
+
+    if (!transaction) {
+      console.error('Cannot check payment: no transaction provided');
+      return;
+    }
+
+    setIsLoadingProofs(true);
+    if (!transaction?.mintUrl) {
+      transaction.mintUrl = activeMint;
+    }
+
+    if (!transaction?.amount) {
+      transaction.amount = 0;
+    }
+
+    if (!transaction?.status) {
+      transaction.status = "pending"
+    }
+    try {
+      // Verify wallet is ready first
+      if (!walletReady) {
+        const readinessCheck = await checkWalletReadiness(activeMint);
+        if (!readinessCheck.ready) {
+          throw new Error('Wallet not ready - please check mint connection');
+        }
+        setWalletReady(true);
+      }
+
+      console.log('Checking payment for transaction:', transaction);
+
+      // Check if this is a Lightning invoice with a payment hash or quote
+      if (transaction.paymentHash || transaction?.invoice && transaction?.invoiceType === 'lightning' || transaction.quote) {
+        // Use the proper checkInvoicePaymentStatus function that handles all details
+        const result = await checkInvoicePaymentStatus(transaction);
+        console.log('Payment verification result:', result);
+
+        if (result.paid) {
+          showToast({
+            message: 'Payment confirmed',
+            type: 'success',
+            description: `${transaction.amount} ${activeUnit || 'sats'} have been added to your wallet`
+          });
+        } else if (result.error) {
+          showToast({
+            message: 'Error checking payment',
+            type: 'error',
+            description: result.error
+          });
+        } else {
+          showToast({
+            message: 'Payment not detected',
+            type: 'warning',
+            description: 'This invoice has not been paid yet'
+          });
+        }
+
+        return result;
+      }
+      // For other types of quotes (tokens etc.)
+      else if (transaction.token || transaction.invoiceType) {
+        // Display info about token transactions
+        setTimeout(() => {
+          showToast({
+            message: 'Token status checked',
+            type: 'info',
+            description: 'This is a token transaction'
+          });
+        }, 500);
+
+        return { checked: true, status: 'complete' };
+      }
+      else {
+        showToast({
+          message: 'Cannot check status',
+          type: 'error',
+          description: 'This transaction type does not support status checking'
+        });
+      }
+    } catch (err) {
+      console.error('Error checking payment/quote:', err);
+      showToast({
+        message: 'Error checking status',
+        type: 'error',
+        description: err instanceof Error ? err.message : 'Unknown error'
+      });
+      return null;
+    } finally {
+      setIsCheckingPayment(false);
+      setIsLoadingProofs(false);
+    }
+  };
   // Handle checking payment status
   const handleCheckPayment = async (transaction: Transaction) => {
     if (!transaction) {
       console.error('Cannot check payment: no transaction provided');
       return;
     }
+
+    console.log("transaction", transaction)
 
     setIsCheckingPayment(true);
     setSelectedTransaction(transaction);
@@ -859,6 +1014,8 @@ export default function Cashu() {
           unit={activeUnit || 'sat'}
           onReceiveToken={handleReceiveToken}
           onCreateInvoice={handleCreateInvoice}
+          onCheckPayment={handleCheckPaymentInvoice}
+
         />
       )}
 
