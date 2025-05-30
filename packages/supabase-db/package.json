@@ -1,0 +1,57 @@
+{
+  "name": "pwa",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "start": "next start",
+    "build:app": "pnpm run build:nostr_sdk && next build",
+    "build": "next build",
+    "build:nostr_sdk": "cd ../.. && pnpm run build:nostr_sdk",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "ts:check": "tsc --noEmit",
+    "validate": "pnpm run lint:fix && pnpm run build",
+    "safe-build": "pnpm run build || echo 'Build failed but continuing...'"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.8",
+    "axios": "^1.7.2",
+    "common": "workspace:*",
+    "dexie": "^4.0.11",
+    "dexie-react-hooks": "^1.1.7",
+    "starknet": "6.21.1",
+    "starknetkit": "2.10.4",
+    "viem": "~2.21.2",
+    "wagmi": "^2.13.4",
+    "yup": "^1.6.1",
+    "zod": "^3.23.8",
+    "zustand": "^4.5.2"
+  },
+  "peerDependencies": {
+    "next": "15.1.7",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "7.2.0",
+    "@types/node": "^20",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@uniswap/eslint-config": "^1.2.0",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.4",
+    "framer-motion": "^11.2.4",
+    "postcss": "^8.4.38",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5",
+    "web-vitals": "^2.1.4"
+  },
+  "packageManager": "pnpm@10.10.0"
+}
