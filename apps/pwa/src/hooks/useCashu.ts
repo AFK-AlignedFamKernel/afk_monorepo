@@ -1597,13 +1597,13 @@ export function useCashu() {
 
             // 4. Recalculate balance based on remaining proofs
             const remainingProofs = await proofsByMintApi.getByMintUrl(walletData.activeMint);
-            const newBalance = remainingProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
+            // const newBalance = remainingProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
 
-            // 5. Update wallet data with new balance
-            saveWalletData({
-              ...walletData,
-              balance: newBalance
-            });
+            // // 5. Update wallet data with new balance
+            // saveWalletData({
+            //   ...walletData,
+            //   balance: newBalance
+            // });
 
             // 6. Record the error transaction
             addTransaction(

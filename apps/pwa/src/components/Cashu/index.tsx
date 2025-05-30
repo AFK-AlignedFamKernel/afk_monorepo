@@ -12,9 +12,9 @@ import { CashuSettingsModal } from './modals/CashuSettingsModal';
 import { CashuMintModal } from './modals/CashuMintModal';
 import { CashuTransactionDetailsModal } from './modals/CashuTransactionDetailsModal';
 import { useCashu } from '@/hooks/useCashu';
-import { useCashuStore, useCashu as useCashuSDK } from 'afk_nostr_sdk';
+import { useCashuStore, useCashu as useCashuSDK, useNostrContext } from 'afk_nostr_sdk';
 import { useUIStore } from '@/store/uiStore';
-import { Transaction } from '@/utils/storage';
+import { getWalletData, proofsApi, saveWalletData, Transaction } from '@/utils/storage';
 import { Icon } from '../small/icon-component';
 import { getDecodedToken } from '@cashu/cashu-ts';
 import { proofsByMintApi, proofsSpentsByMintApi } from '@/utils/storage';
@@ -42,6 +42,8 @@ export default function Cashu() {
     setBalance,
     calculateBalanceFromProofs
   } = useCashu();
+
+  const { ndkCashuWallet, ndk, ndkWallet } = useNostrContext()
 
   const { wallet, } = useCashuSDK();
 
@@ -122,7 +124,7 @@ export default function Cashu() {
           } finally {
             setIsBalanceLoading(false);
           }
-       
+
         }
       } catch (err) {
         console.error('Error initializing wallet:', err);
@@ -465,14 +467,78 @@ export default function Cashu() {
       }
 
       // Try to receive the token
-      await receiveToken(token);
+      // const received = await ndkCashuWallet?.receiveToken(token)
+      // console.log("received", received)
 
+      // if (!ndkCashuWallet?.signer) {
+      //   showToast({
+      //     message: 'Wallet not ready',
+      //     type: 'error',
+      //     description: 'Please check mint connection and try again'
+      //   });
+      //   return false;
+      // }
+
+      let result;
+      if (ndkCashuWallet?.signer) {
+        const res = await ndkCashuWallet?.receiveToken(token)
+        // const res = await receiveToken(token);
+        console.log("res", res)
+        // res?.proofs.map(proof => {
+        //   console.log("proof", proof)
+        // })
+
+        result = res;
+
+        if (result?.proofs && result.proofs.length > 0) {
+          try {
+            // Save proofs to IndexedDB
+            await proofsApi.setAll(result.proofs);
+            // Recalculate balance after saving proofs
+
+            const walletData = await getWalletData();
+
+            const newBalance = walletData.balance + result.proofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
+
+            saveWalletData({
+              ...walletData,
+              balance: newBalance
+            });
+            console.log("walletData", walletData)
+            // await calculateBalanceFromProofs(activeMint);
+          } catch (storageError) {
+            console.error('Error saving proofs to storage:', storageError);
+            showToast({
+              message: 'Error saving proofs',
+              type: 'error',
+              description: 'The token was received but there was an error saving it to storage'
+            });
+          }
+        }
+      } else {
+        const res = await receiveToken(token);
+        result = res;
+      }
+
+      if(!result) {
+        const res = await receiveToken(token);
+        console.log("res", res)
+        result = res;
+      }
       // Recalculate balance after receiving token
       // if (activeMint) {
       //   await calculateBalanceFromProofs(activeMint);
       // }
 
+      if (!result) {
+        return showToast({
+          message: "Received ecash error",
+          type: "error"
+        })
+      }
+
       handleCloseReceiveModal();
+
       showToast({
         message: 'Token received',
         type: 'success'

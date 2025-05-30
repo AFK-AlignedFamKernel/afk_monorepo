@@ -68,6 +68,8 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
     const ndkCashuWalletNew = new NDKCashuWallet(ndk as any);
     setNDKCashuWallet(ndkCashuWalletNew);
 
+    newNdk.wallet= ndkCashuWallet;
+
     // const ndkNewWallet = new NDKWalletNWC(ndk as any);
     // setNDKWallet(ndkNewWallet);
   }, [privateKey, isExtension]);
