@@ -84,21 +84,45 @@ export default function Cashu() {
 
         // Check if wallet is ready
         const readinessCheck = await checkWalletReadiness(activeMint);
+        console.log("readinessCheck")
+
         setWalletReady(readinessCheck.ready);
 
         if (readinessCheck.ready) {
           console.log('Wallet is ready for operations');
           // Update balance
-          const currentBalance = await getBalance();
-          console.log("currentBalance", currentBalance);
-          setCurrentBalance(currentBalance);
+          // const currentBalance = await getBalance();
+          // console.log("currentBalance", currentBalance);
+          // setCurrentBalance(currentBalance);
         } else {
-          console.error('Wallet initialization failed:', readinessCheck.error);
-          showToast({
-            message: 'Wallet Connection Failed',
-            type: 'error',
-            description: 'Could not establish wallet connection. Please check your mint settings.'
-          });
+          try {
+            const readinessCheck = await checkWalletReadiness(activeMint);
+            console.log("readinessCheck")
+            setWalletReady(readinessCheck.ready);
+            if (readinessCheck.ready) {
+              showToast({
+                message: 'Wallet Connected',
+                type: 'success'
+              });
+            } else {
+              showToast({
+                message: 'Connection Failed',
+                type: 'error',
+                description: readinessCheck.error
+              });
+            }
+          } catch (err) {
+            console.error('Reconnection error:', err);
+            console.error('Wallet initialization failed:', readinessCheck.error);
+            showToast({
+              message: 'Wallet Connection Failed',
+              type: 'error',
+              description: 'Could not establish wallet connection. Please check your mint settings.'
+            });
+          } finally {
+            setIsBalanceLoading(false);
+          }
+       
         }
       } catch (err) {
         console.error('Error initializing wallet:', err);
@@ -137,7 +161,7 @@ export default function Cashu() {
           setIsBalanceLoading(false);
         });
     }
-  }, [activeMint, activeUnit, getBalance , balance]);
+  }, [activeMint, activeUnit, getBalance, balance]);
 
   // Update balance from wallet data
   useEffect(() => {
@@ -149,22 +173,22 @@ export default function Cashu() {
   //   try {
   //     // Get active proofs for the mint
   //     const activeProofs = await proofsByMintApi.getByMintUrl(mintUrl);
-      
+
   //     // Calculate total from active proofs
   //     const activeBalance = activeProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
-      
+
   //     // Get spent proofs for the mint
   //     const spentProofs = await proofsSpentsByMintApi.getByMintUrl(mintUrl);
-      
+
   //     // Calculate total from spent proofs
   //     const spentBalance = spentProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
-      
+
   //     // Update the balance in the store
   //     const newBalance = activeBalance - spentBalance;
   //     console.log("newBalance", newBalance);
   //     setBalance(newBalance);
   //     setCurrentBalance(newBalance);
-      
+
   //     return newBalance;
   //   } catch (error) {
   //     console.error('Error calculating balance from proofs:', error);
@@ -287,7 +311,13 @@ export default function Cashu() {
       setActiveMint(defaultMint);
     }
   }
-  const handleCloseMintModal = () => setIsMintModalOpen(false);
+  const handleCloseMintModal = () => {
+    setIsMintModalOpen(false);
+
+    if (activeTab === "mints") {
+      setActiveTab("transactions")
+    }
+  }
 
   // Handle adding a new mint
   const handleAddMint = async (mintUrl: string, alias: string) => {
@@ -436,12 +466,12 @@ export default function Cashu() {
 
       // Try to receive the token
       await receiveToken(token);
-      
+
       // Recalculate balance after receiving token
-      if (activeMint) {
-        await calculateBalanceFromProofs(activeMint);
-      }
-      
+      // if (activeMint) {
+      //   await calculateBalanceFromProofs(activeMint);
+      // }
+
       handleCloseReceiveModal();
       showToast({
         message: 'Token received',
@@ -450,10 +480,10 @@ export default function Cashu() {
       return true;
     } catch (error) {
       console.error('Error receiving token:', error);
-      
+
       // Handle specific error cases
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       if (errorMessage.includes('no outputs provided')) {
         showToast({
           message: 'Mint out of outputs',
@@ -507,7 +537,7 @@ export default function Cashu() {
         if (activeMint) {
           await calculateBalanceFromProofs(activeMint);
         }
-        
+
         handleCloseSendModal();
         showToast({
           message: 'Invoice paid',
@@ -524,7 +554,7 @@ export default function Cashu() {
       return false;
     } catch (err) {
       console.error('Error paying invoice:', err);
-      
+
       // Check if this is a "Token already spent" error
       if (err instanceof Error && err.message.includes('Token was already spent')) {
         // Recalculate balance even if there was an error
@@ -534,7 +564,7 @@ export default function Cashu() {
         // Let the modal handle this specific error
         throw err;
       }
-      
+
       showToast({
         message: 'Failed to pay invoice',
         type: 'error',
@@ -668,13 +698,10 @@ export default function Cashu() {
                 </button>
               </div>
             )} */}
-  
+
             <div className="cashu-wallet__tabs gap-2">
               <button className={`cashu-wallet__tab ${activeTab === 'transactions' ? 'cashu-wallet__tab--active' : ''}`} onClick={() => setActiveTab('transactions')}>
                 Transactions
-              </button>
-              <button className={`cashu-wallet__tab ${activeTab === 'cashu' ? 'cashu-wallet__tab--active' : ''}`} onClick={() => setActiveTab('cashu')}>
-                Cashu
               </button>
               <button className={`cashu-wallet__tab ${activeTab === 'mints' ? 'cashu-wallet__tab--active' : ''}`} onClick={() => setActiveTab('mints')}>
                 Mints
@@ -687,6 +714,17 @@ export default function Cashu() {
                 onTransactionClick={handleShowTransactionDetails}
               />
             )}
+            {activeTab === "mints" &&
+              <CashuMintModal
+                onClose={handleCloseMintModal}
+                mints={mints}
+                activeMint={activeMint}
+                onChangeMint={handleChangeMint}
+                onOpenSettings={handleOpenSettingsModal}
+                onAddMint={handleAddMint}
+
+              ></CashuMintModal>
+            }
           </>
         ) : loading ? (
           <div className="cashu-wallet__loading">Loading wallet...</div>

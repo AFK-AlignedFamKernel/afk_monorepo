@@ -226,7 +226,11 @@
       }
     }
   }
-  
+  &__tab {
+
+    margin-right:0.5rem
+  }
+
   &__tabs {
     display: flex;
     border-bottom: 1px solid var(--border);

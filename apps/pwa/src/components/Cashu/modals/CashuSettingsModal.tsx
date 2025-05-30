@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Icon } from '../../small/icon-component';
-import { useCashuStore } from 'afk_nostr_sdk';
+import { useCashu, useCashuStore } from 'afk_nostr_sdk';
+import { useUIStore } from '@/store/uiStore';
 
 interface MintData {
   url: string;
@@ -30,10 +31,14 @@ export const CashuSettingsModal: React.FC<CashuSettingsModalProps> = ({
   const [showAddMint, setShowAddMint] = useState<boolean>(false);
   const [newMintUrl, setNewMintUrl] = useState<string>('');
   const [mintAlias, setMintAlias] = useState<string>('');
-  
+
+  const { showToast } = useUIStore()
+
+  // const {seed} = useCashu()
+
   // Get setMintUrl from the SDK store
-  const { setMintUrl } = useCashuStore();
-  
+  const { setMintUrl, seed, mnemonic } = useCashuStore();
+
   const handleAddMint = (e: React.FormEvent) => {
     e.preventDefault();
     if (newMintUrl && mintAlias) {
@@ -48,7 +53,7 @@ export const CashuSettingsModal: React.FC<CashuSettingsModalProps> = ({
   const handleChangeMint = (url: string) => {
     // Update the mint URL in the SDK store
     setMintUrl(url);
-    
+
     // Then call the parent component's handler
     onChangeMint(url);
   };
@@ -66,14 +71,14 @@ export const CashuSettingsModal: React.FC<CashuSettingsModalProps> = ({
             <Icon name="CloseIcon" size={24} />
           </button>
         </div>
-        
+
         <div className="cashu-wallet__modal-content-body">
           <h4>Mints</h4>
           {mints.length > 0 ? (
             <div className="cashu-wallet__settings-mints">
               {mints.map((mint) => (
-                <div 
-                  key={mint.url} 
+                <div
+                  key={mint.url}
                   className={`cashu-wallet__settings-mint ${mint.url === activeMint ? 'cashu-wallet__settings-mint--active' : ''}`}
                   onClick={() => handleChangeMint(mint.url)}
                   style={{
@@ -86,7 +91,7 @@ export const CashuSettingsModal: React.FC<CashuSettingsModalProps> = ({
                 >
                   <div style={{ fontWeight: 500 }}>{mint.alias}</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--foreground-muted)' }}>{mint.url}</div>
-                  
+
                   {mint.url === activeMint && (
                     <div style={{ marginTop: '8px' }}>
                       <div style={{ fontSize: '0.875rem', marginBottom: '4px' }}>Unit:</div>
@@ -119,7 +124,68 @@ export const CashuSettingsModal: React.FC<CashuSettingsModalProps> = ({
           ) : (
             <div>No mints configured.</div>
           )}
-          
+
+
+          <div style={{ marginTop: '24px', padding: '16px', border: '1px solid var(--border)', borderRadius: '8px' }}>
+            <h4 style={{ marginBottom: '12px' }}>Wallet Seed</h4>
+            <p style={{ fontSize: '0.875rem', color: 'var(--foreground-muted)', marginBottom: '12px' }}>
+              Your wallet seed is used to recover your wallet. Keep it safe and never share it with anyone.
+            </p>
+
+            {seed &&
+              <button
+                className="cashu-wallet__button cashu-wallet__button--secondary"
+                onClick={() => {
+                  if (seed) {
+                    navigator.clipboard.writeText(Buffer.from(seed).toString('hex'));
+                    showToast({
+                      message: 'Seed copied to clipboard',
+                      type: 'success'
+                    });
+                  } else {
+                    showToast({
+                      message: 'No seed available',
+                      type: 'error'
+                    });
+                  }
+                }}
+                style={{ width: '100%' }}
+              >
+                Copy Seed to Clipboard
+              </button>
+            }
+
+
+
+            {mnemonic &&
+              <>
+                <p>Mnemonic</p>
+                <button
+                  className="cashu-wallet__button cashu-wallet__button--secondary"
+                  onClick={() => {
+                    if (mnemonic) {
+                      navigator.clipboard.writeText(mnemonic);
+                      showToast({
+                        message: 'Mnemonic copied to clipboard',
+                        type: 'success'
+                      });
+                    } else {
+                      showToast({
+                        message: 'No mnemonic available',
+                        type: 'error'
+                      });
+                    }
+                  }}
+                  style={{ width: '100%' }}
+                >
+                  Copy Mnemonic to Clipboard
+                </button>
+              </>
+
+            }
+
+          </div>
+
           {!showAddMint ? (
             <button
               className="cashu-wallet__button cashu-wallet__button--primary"
