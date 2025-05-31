@@ -21,7 +21,9 @@ import {
   proofsSpentsApi,
   proofsSpentsByMintApi,
   invoicesApi,
-  saveWalletData
+  saveWalletData,
+  transactionsApi,
+  Transaction
 } from '@/utils/storage';
 import { migrateFromLegacyStorage, getOrCreateWalletId } from '../utils/migrateStorage';
 import { useCashuContext } from '@/providers/CashuProvider';
@@ -211,10 +213,12 @@ export function useCashu() {
       const spentProofs = await proofsSpentsByMintApi.getByMintUrl(mintUrl);
 
       // Calculate total from spent proofs
+      // const spentBalance = spentProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
       const spentBalance = spentProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
 
       // Update the balance in the store
-      const newBalance = activeBalance - spentBalance;
+      const newBalance = activeBalance;
+      // const newBalance = activeBalance - spentBalance;
       console.log("newBalance", newBalance);
       setBalance(newBalance);
 
@@ -601,7 +605,7 @@ export function useCashu() {
 
       // IMPORTANT ADDITION: Store the proofs directly in the SDK's wallet if possible
       try {
-   
+
 
         // Check if the result contains proofs and the wallet supports storing them
         if (result.proofs && Array.isArray(result.proofs) && wallet.addProofs) {
@@ -1377,22 +1381,43 @@ export function useCashu() {
         // Update balance immediately
         setBalance(newBalance);
 
-        // Use the SDK to generate the sent transaction
-        console.log(`Created send token for ${amount} sats`);
-        addTransaction(
-          'sent',
-          amount,
-          'Sent ecash',
-          tokenStr, // Save the token string in the transaction
-          null,
-          walletData.activeMint,
-          'paid' as const,
-          'Created ecash token to send',
-          undefined, // invoiceType
-          undefined, // invoice
-          undefined, // quote
-          // proofsToSend // Save the proofs in the transaction
-        );
+
+        // try {
+        //   let tx:Transaction = {
+        //     id: uuidv4(),
+        //     type: 'sent',
+        //     amount: amount,
+        //     memo: 'Sent ecash',
+        //     token: tokenStr,
+        //     mintUrl: walletData.activeMint,
+        //   }
+        //   await transactionsApi.add(tx);
+
+        // } catch (error) {
+
+        // }
+
+        try {
+          // Use the SDK to generate the sent transaction
+          console.log(`Created send token for ${amount} sats`);
+          addTransaction(
+            'sent',
+            amount,
+            'Sent ecash',
+            tokenStr, // Save the token string in the transaction
+            tokenStr,
+            walletData.activeMint,
+            'paid' as const,
+            'Created ecash token to send',
+            undefined, // invoiceType
+            tokenStr, // invoice
+            tokenStr, // quote
+            // proofsToSend // Save the proofs in the transaction
+          );
+        } catch (error) {
+          console.error('Error saving transaction:', error);
+          // throw new Error('Failed to save transaction. Please try again.');
+        }
 
         // Move spent proofs to spent proofs collection BEFORE claiming change
         try {

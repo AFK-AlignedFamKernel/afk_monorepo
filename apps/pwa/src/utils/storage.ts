@@ -65,6 +65,12 @@ export interface StorageData {
   balance: number;
   transactions: Transaction[];
   tokens: Token[];
+  ecash?:{
+    token: string;
+    amount: number;
+    mintUrl: string;
+    created: string;
+  }[];
 }
 
 // Define our database
@@ -80,7 +86,7 @@ class CashuDatabase extends Dexie {
   invoices!: Dexie.Table<ICashuInvoice, string>;
   transactions!: Dexie.Table<Transaction, string>;
   settings!: Dexie.Table<{ key: string; value: string }, string>;
-
+  ecash!: Dexie.Table<{ token: string; amount: number; mintUrl: string; created: string }, string>;
   constructor() {
     super('cashu_database');
     
@@ -95,7 +101,8 @@ class CashuDatabase extends Dexie {
       quotes: '&id, amount, created_at',
       invoices: '&id, amount, paid, unit, mint, date, state, bolt11, quote',
       transactions: '&id, type, amount, date',
-      settings: '&key, value' // For storing active mint, unit, etc.
+      settings: '&key, value', // For storing active mint, unit, etc.
+      ecash: '&token, amount, mintUrl, created'
     });
     
     // Version 2: Migrate from the old IndexedDB format to the new structured format
@@ -558,3 +565,52 @@ export const saveWalletData = async (data: StorageData): Promise<void> => {
     await db.transactions.bulkAdd(data.transactions);
   });
 }; 
+
+export const transactionsApi = {
+  async add(transaction: Transaction): Promise<void> {
+    await db.transactions.add(transaction);
+  },
+  async getAll(): Promise<Transaction[]> {
+    return db.transactions.toArray();
+  },
+  async update(transaction: Transaction): Promise<void> {
+    await db.transactions.put(transaction);
+  },
+  async delete(id: string): Promise<void> {
+    await db.transactions.delete(id);
+  },  
+  async setAll(transactions: Transaction[]): Promise<void> {
+    await db.transaction('rw', db.transactions, async () => {
+      await db.transactions.clear();
+      await db.transactions.bulkAdd(transactions);
+    });
+  },
+  async get(id: string): Promise<Transaction | undefined> { 
+    return db.transactions.get(id);
+  },
+};
+
+
+export const ecashApi = {
+  async getAll(): Promise<{ token: string; amount: number; mintUrl: string; created: string }[]> {
+    return db.ecash.toArray();
+  },
+  async get(id: string): Promise<{ token: string; amount: number; mintUrl: string; created: string } | undefined> {
+    return db.ecash.get(id);
+  },
+  async add(ecash: { token: string; amount: number; mintUrl: string; created: string }): Promise<string> {
+    return await db.ecash.add(ecash) as unknown as string;
+  },
+  async update(ecash: { token: string; amount: number; mintUrl: string; created: string }): Promise<void> {
+    await db.ecash.put(ecash);
+  },
+  async delete(id: string): Promise<void> {
+    await db.ecash.delete(id);
+  },
+  async setAll(ecash: { token: string; amount: number; mintUrl: string; created: string }[]): Promise<void> {
+    await db.transaction('rw', db.ecash, async () => {
+      await db.ecash.clear();
+      await db.ecash.bulkAdd(ecash);
+    });
+  },
+};  

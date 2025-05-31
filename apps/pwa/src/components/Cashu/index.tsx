@@ -40,7 +40,7 @@ export default function Cashu() {
     checkInvoiceStatus,
     checkInvoicePaymentStatus,
     setBalance,
-    calculateBalanceFromProofs
+    calculateBalanceFromProofs,
   } = useCashu();
 
   const { ndkCashuWallet, ndk, ndkWallet } = useNostrContext()

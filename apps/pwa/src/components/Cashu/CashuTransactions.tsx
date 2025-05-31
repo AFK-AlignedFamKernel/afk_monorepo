@@ -11,6 +11,7 @@ interface CashuTransactionsProps {
   transactions: Transaction[];
   onCheckPayment?: (transaction: Transaction) => void;
   onTransactionClick?: (transaction: Transaction) => void;
+  ecash?: { token: string; amount: number; mintUrl: string; created: string }[];
 }
 
 type TabType = 'all' | 'in' | 'out' | 'mintQuote' | 'ecash';
@@ -19,6 +20,7 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
   transactions,
   onCheckPayment,
   onTransactionClick,
+  ecash,
 }) => {
   const { showToast } = useUIStore();
   const [activeTab, setActiveTab] = useState<TabType>('all');
