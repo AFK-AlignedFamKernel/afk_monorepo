@@ -22,11 +22,8 @@ const ndk = new NDK({
 const getNostrEvent = async (strkAddressUsed: string) => {
     const eventNDk = new NDKEvent(ndk);
     eventNDk.kind = NDKKind.Text;
-    // eventNDk.content = `link ${cairo.felt(strkAddressUsed)}`;
+    // Format content exactly as Cairo contract: "link {felt252_address}"
     eventNDk.content = `link ${cairo.felt(strkAddressUsed)}`;
-    // eventNDk.content = `link ${strkAddressUsed}`;
-    // eventNDk.content = `link ${accountAddress0}`;
-    // eventNDk.created_at = new Date().getTime();
     eventNDk.tags = [];
 
     await eventNDk.sign();
@@ -39,37 +36,19 @@ export const linkedToSecond = async (starknet_address: string) => {
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
     const privateKey0 = process.env.DEV_PK as string;
     const account = new Account(provider, accountAddress0, privateKey0, "1");
-    // @TODO find a way to convert the contract address to a hex string
+
+    // Convert the starknet address to felt252 format (same as Cairo contract)
     let starknet_user_recipient = cairo.felt(starknet_address);
-    // let strkAddressUsed  = "123";
-    // let starknet_user_recipient = cairo.felt(strkAddressUsed);
-    console.log(starknet_user_recipient);
+    console.log("Starknet address as felt:", starknet_user_recipient);
 
-    // let sk = generateSecretKey();
-    // let pk = getPublicKey(sk);
-    // console.log("pk", pk);
-    // console.log("sk", bytesToHex(sk));
-
-    // let sk = "3f310984112c5b5305162ecadfea7d59c682a8c04f16945e65572f22b019c2b0";
-    // let pk = "852d7fd9511ccd03c5d8da09273668dbbb160771d5da78ca4367be565fd0fb8b";
     let pk = getPublicKey(sk as any);
     console.log("second secret key", sk);
-
     console.log("second public key", pk);
-    // let uint_nostr_user_recipient = BigInt("0x" + pk);
-    // let felt_nostr = cairo.felt(uint_nostr_user_recipient);
 
-    console.log(sk);
-    console.log(pk);
-
-    // Use exactly 123 as the starknet address like in the test
-    const starknetAddress = accountAddress0; // This matches sender_address in the test
-    // let content = `link ${uint_nostr_user_recipient} to ${starknet_user_recipient}`;
-    // let content = `link ${uint_nostr_user_recipient} to ${pk}`;
-    //   let content = `link to ${cairo.felt(starknet_address)}`;
-    let content = `link ${starknet_address}`;
-    //   let content = `link ${cairo.felt(starknet_address)}`;
-    //   let content = `link ${cairo.felt(starknet_address)}`;
+    // Use exactly the same format as Cairo contract: "link {felt252_address}"
+    // The Cairo contract does: @format!("link {}", recipient_address)
+    // where recipient_address is felt252 = (*self.starknet_address).into()
+    let content = `link ${starknet_user_recipient}`;
     let timestamp = 1716285235;
     let event = finalizeEvent(
         {
@@ -104,13 +83,11 @@ export const linkedToSecond = async (starknet_address: string) => {
     const linkedArrayCalldata = CallData.compile([
         // recipient_public_key from test
         cairo.uint256(`0x${event?.pubkey}`),
-        // uint256.bnToUint256(BigInt(`0x${event?.pubkey}`)),
-        // cairo.uint256("0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc"),
         timestamp,
         1, // kind
         byteArray.byteArrayFromString("[]"),
         {
-            starknet_address: starknet_address,
+            starknet_address: starknet_user_recipient, // Use the felt252 version
         },
         {
             r: cairo.uint256(signatureR),
@@ -121,7 +98,8 @@ export const linkedToSecond = async (starknet_address: string) => {
     // Debug logs
     console.log("Debug Info:");
     console.log("Content:", content);
-    console.log("Starknet Address:", starknetAddress);
+    console.log("Starknet Address:", starknet_address);
+    console.log("Starknet Address (felt):", starknet_user_recipient);
     console.log("Public Key:", event.pubkey);
     console.log("Signature R:", signatureR);
     console.log("Signature S:", signatureS);
@@ -154,9 +132,10 @@ export const linkedNostrProfile = async () => {
     // const starknetAddress = "123"; // This matches sender_address in the test
     const starknetAddressFelt = cairo.felt(starknetAddress);
 
-    // Format content exactly as in the test
-    const content = `link ${starknetAddress}`;
-    // const content = `link ${starknetAddressFelt}`;
+    // Format content exactly as Cairo contract: "link {felt252_address}"
+    // The Cairo contract does: @format!("link {}", recipient_address)
+    // where recipient_address is felt252 = (*self.starknet_address).into()
+    const content = `link ${starknetAddressFelt}`;
 
     // Use the exact timestamp from the test
     const timestamp = 1716285235;
