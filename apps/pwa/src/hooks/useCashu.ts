@@ -1381,42 +1381,38 @@ export function useCashu() {
         // Update balance immediately
         setBalance(newBalance);
 
-
-        // try {
-        //   let tx:Transaction = {
-        //     id: uuidv4(),
-        //     type: 'sent',
-        //     amount: amount,
-        //     memo: 'Sent ecash',
-        //     token: tokenStr,
-        //     mintUrl: walletData.activeMint,
-        //   }
-        //   await transactionsApi.add(tx);
-
-        // } catch (error) {
-
-        // }
-
+        let sentTx;
         try {
-          // Use the SDK to generate the sent transaction
-          console.log(`Created send token for ${amount} sats`);
-          addTransaction(
+          sentTx = await addTransaction(
             'sent',
             amount,
             'Sent ecash',
-            tokenStr, // Save the token string in the transaction
+            tokenStr,
             tokenStr,
             walletData.activeMint,
             'paid' as const,
             'Created ecash token to send',
-            undefined, // invoiceType
-            tokenStr, // invoice
-            tokenStr, // quote
-            // proofsToSend // Save the proofs in the transaction
+            undefined,
+            tokenStr,
+            tokenStr
           );
         } catch (error) {
           console.error('Error saving transaction:', error);
-          // throw new Error('Failed to save transaction. Please try again.');
+        }
+
+        try {
+          // Update wallet data with new balance
+          const newWalletData = {
+            ...walletData,
+            balance: newBalance
+          };
+          setWalletData(newWalletData);
+
+          // Save to storage
+          saveWalletData(newWalletData);
+
+        } catch (error) {
+          console.error('Error saving transaction:', error);
         }
 
         // Move spent proofs to spent proofs collection BEFORE claiming change
@@ -1475,7 +1471,8 @@ export function useCashu() {
           ecash: tokenStr,
           mint: walletData.activeMint,
           tokenResMelt: tokenResMelt,
-          proofs: proofsToSend // Include proofs in the return value
+          proofs: proofsToSend,
+          transaction: sentTx
         };
       } else {
         throw new Error('No proofs available to send. Please receive some tokens first.');

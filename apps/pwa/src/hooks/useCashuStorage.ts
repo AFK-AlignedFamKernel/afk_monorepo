@@ -249,11 +249,11 @@ export function useCashuStorage() {
 
     const handleSaveEcash = async () => {
       try {
-        if (walletData.activeMint) {
+        if (walletData.activeMint ) {
           const ecashTX= await ecashApi.getAll();
           await ecashApi.setAll([...ecashTX,{
             // id: uuidv4(),
-            token: token || '',
+            token: token || invoice || '',
             amount: amount,
             mintUrl: mintUrl || walletData.activeMint,
             created: new Date().toISOString()

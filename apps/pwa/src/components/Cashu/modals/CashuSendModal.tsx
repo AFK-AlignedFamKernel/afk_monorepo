@@ -4,7 +4,8 @@ import { useUIStore } from '@/store/uiStore';
 import QRCode from 'react-qr-code';
 import { useAtomiqLab } from '@/hooks/atomiqlab';
 import { useCashu } from 'afk_nostr_sdk';
-import { proofsApi } from '@/utils/storage';
+import { proofsApi, Transaction, transactionsApi } from '@/utils/storage';
+import { v4 as uuidv4 } from 'uuid';
 
 interface CashuSendModalProps {
   onClose: () => void;
@@ -82,6 +83,40 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
           type: 'success',
           description: `${amount} ${unit}`
         });
+
+        try {
+          const res = await transactionsApi.getAll();
+
+          console.log("res", res)
+          const txFind = res.find((transaction: any) =>transaction.invoice === tokenToDisplay);
+          console.log("txFind", txFind)
+
+          if (!txFind) {
+            let tx: Transaction = {
+              token: tokenToDisplay,
+              status: "paid",
+              type: "sent",
+              amount: Number(amount),
+              unit: unit,
+              id: uuidv4(),
+              invoice:tokenToDisplay,
+              date: new Date().toISOString(),
+              paymentHash: tokenToDisplay,
+              memo: "Sent " + tokenToDisplay,
+              description: "Sent " + tokenToDisplay,
+              invoiceType: undefined,
+              mintUrl: activeMint,
+              quote: tokenToDisplay,
+
+            } 
+            const res = await transactionsApi.add(tx);
+            console.log("res", res)
+          } else {
+            console.log("txFind", txFind)
+          }
+        } catch (err) {
+          console.error('Error creating transaction:', err);
+        }
       } else {
         try {
           const proofs = await proofsApi.getAll();
