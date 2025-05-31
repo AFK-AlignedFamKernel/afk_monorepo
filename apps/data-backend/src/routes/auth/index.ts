@@ -69,7 +69,12 @@ export async function authRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        const user = await authService.getUserProfile(request.user.id);
+
+        if (!request?.user?.id) {
+          return reply.code(401).send({ message: 'Unauthorized' });
+        }
+
+        const user = await authService.getUserProfile(request?.user?.id);
         return { success: true, data: { user } };
       } catch (error) {
         request.log.error(error);

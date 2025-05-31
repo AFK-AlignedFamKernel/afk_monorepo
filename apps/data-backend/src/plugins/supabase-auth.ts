@@ -58,7 +58,7 @@ export default fp(async function (fastify: FastifyInstance) {
 
     // Add auth decorator to check if user is authenticated
     fastify.decorate('authenticateAuth', async (request: FastifyRequest, reply: FastifyReply) => {
-        if (!request?.user.id) {
+        if (!request?.user?.id) {
             reply.code(401).send({ error: 'Unauthorized' });
         }
     });

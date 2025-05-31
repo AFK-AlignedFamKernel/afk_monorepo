@@ -45,7 +45,7 @@ export interface ConnectTwitterParams {
 // Extend FastifyRequest to include session
 declare module 'fastify' {
   interface FastifyRequest {
-    user: UserJwtPayload | null;
-    session?: any; // Using any for now since we don't need the full session type
+    user: UserJwtPayload | null | undefined;
+    session: any | undefined; // Using any for now since we don't need the full session type
   }
 }

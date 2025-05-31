@@ -34,11 +34,16 @@ const twitterRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { code, codeVerifier } = request.body;
+
+      if (!request?.user?.id) {
+        return reply.code(401).send({ message: 'Unauthorized' });
+      }
+
       try {
         const resp = await twitterService.connectAccount({
           code,
           codeVerifier,
-          userId: request.user.id,
+          userId: request?.user?.id,
         });
         reply.send({ success: true, data: resp });
       } catch (error) {
@@ -56,7 +61,11 @@ const twitterRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       try {
-        const data = await twitterService.disconnectAccount(request.user.id);
+        if (!request?.user?.id) {
+          return reply.code(401).send({ message: 'Unauthorized' });
+        }
+
+        const data = await twitterService.disconnectAccount(request?.user?.id);
         reply.send({ success: true, data });
       } catch (error) {
         if (error instanceof Error) {
