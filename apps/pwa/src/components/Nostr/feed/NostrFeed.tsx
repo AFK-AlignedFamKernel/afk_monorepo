@@ -121,7 +121,6 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     setHasMoreContent(true);
     setIsError(false);
     setError(null);
-    await fetchEvents();
     setIsInitialLoading(false);
   };
 
@@ -136,16 +135,16 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
 
   useEffect(() => {
-    if (!isInitialLoading) {
-      fetchEvents()
+    if (!isInitialLoading && !isLoadingMore) {
+      // fetchEvents()
     };
 
-  }, [kinds, limit, authors, searchQuery, since, until, isInitialLoading]);
+  }, [kinds, limit, authors, searchQuery, since, until, isInitialLoading, isLoadingMore]);
 
   // Intersection Observer for infinite scrolling
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const [entry] = entries;
-    if (entry.isIntersecting && hasMoreContent && !isLoadingMore) {
+    if (entry.isIntersecting) {
       fetchEvents();
     }
   }, [hasMoreContent, isLoadingMore]);
