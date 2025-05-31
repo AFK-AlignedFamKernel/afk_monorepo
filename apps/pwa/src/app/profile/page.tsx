@@ -22,7 +22,7 @@ export default function ProfileAfk() {
             <button className="btn btn-gradient-purple w-full flex items-center justify-between" disabled>
               <div>
                 <p className="font-semibold">Farcaster Protocol</p>
-                <p className="text-sm opacity-80">Coming soon - Web3 social networking</p>
+                <p className="text-sm opacity-80">Coming soon</p>
               </div>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -31,7 +31,7 @@ export default function ProfileAfk() {
             <button className="btn btn-gradient-green w-full flex items-center justify-between" disabled>
               <div>
                 <p className="font-semibold">Lens Protocol</p>
-                <p className="text-sm opacity-80">Coming soon - Web3 social networking</p>
+                <p className="text-sm opacity-80">Coming soon</p>
               </div>
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

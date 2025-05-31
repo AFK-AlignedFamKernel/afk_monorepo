@@ -155,7 +155,8 @@ export const linkedNostrProfile = async () => {
     const starknetAddressFelt = cairo.felt(starknetAddress);
 
     // Format content exactly as in the test
-    const content = `link ${starknetAddressFelt}`;
+    const content = `link ${starknetAddress}`;
+    // const content = `link ${starknetAddressFelt}`;
 
     // Use the exact timestamp from the test
     const timestamp = 1716285235;
@@ -170,11 +171,18 @@ export const linkedNostrProfile = async () => {
         sk as any
     );
 
+
+    const isGood = verifyEvent(event);
+    console.log("isGood", isGood);
+
     // This should generate the exact same signature as in the test:
     // r: 0xd96a1e022bf0bf6f42333bace383710f0512e9c05e9daf17550c5bcb96eccf70
     // s: 0x3dd921a2ef0cae5fa9906e1575aeb23aba9cef613627578b655f3bf1b0aa6585
 
     const signature = event.sig;
+    // const signatureR = "0xd96a1e022bf0bf6f42333bace383710f0512e9c05e9daf17550c5bcb96eccf70";
+    // const signatureS = "0x3dd921a2ef0cae5fa9906e1575aeb23aba9cef613627578b655f3bf1b0aa6585";
+
     const signatureR = "0x" + signature.slice(0, signature.length / 2);
     const signatureS = "0x" + signature.slice(signature.length / 2);
 
@@ -216,6 +224,6 @@ export const linkedNostrProfile = async () => {
 };
 
 
-// linkedNostrProfile()
+linkedNostrProfile()
 
-linkedToSecond(process.env.DEV_PUBLIC_KEY as string)
+// linkedToSecond(process.env.DEV_PUBLIC_KEY as string)

@@ -66,18 +66,18 @@ export async function migrateFromLegacyStorage(): Promise<boolean> {
         }
         
         // Migrate transactions
-        if (walletData.transactions && walletData.transactions.length > 0) {
-          // Ensure each transaction has a proper ID
-          const transactions = walletData.transactions.map(tx => ({
-            ...tx,
-            id: tx.id || uuidv4()
-          }));
+        // if (walletData.transactions && walletData.transactions.length > 0) {
+        //   // Ensure each transaction has a proper ID
+        //   const transactions = walletData.transactions.map(tx => ({
+        //     ...tx,
+        //     id: tx.id || uuidv4()
+        //   }));
           
-          // Save to database
-          await db.transactions.bulkAdd(transactions);
-          console.log(`Migrated ${transactions.length} transactions`);
-          migrationCount++;
-        }
+        //   // Save to database
+        //   await db.transactions.bulkAdd(transactions);
+        //   console.log(`Migrated ${transactions.length} transactions`);
+        //   migrationCount++;
+        // }
       } catch (err) {
         console.error('Error parsing wallet data during migration:', err);
       }

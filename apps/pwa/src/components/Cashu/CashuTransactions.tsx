@@ -11,14 +11,16 @@ interface CashuTransactionsProps {
   transactions: Transaction[];
   onCheckPayment?: (transaction: Transaction) => void;
   onTransactionClick?: (transaction: Transaction) => void;
+  ecash?: { token: string; amount: number; mintUrl: string; created: string }[];
 }
 
-type TabType = 'all' | 'in' | 'out' | 'mintQuote';
+type TabType = 'all' | 'in' | 'out' | 'mintQuote' | 'ecash';
 
 export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
   transactions,
   onCheckPayment,
   onTransactionClick,
+  ecash,
 }) => {
   const { showToast } = useUIStore();
   const [activeTab, setActiveTab] = useState<TabType>('all');
@@ -54,6 +56,10 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
         return transactions.filter(tx => 
           tx.invoiceType === 'lightning' || 
           (tx.type === 'received' && tx.token)
+        );
+      case 'ecash':
+        return transactions.filter(tx => 
+          tx.token && !tx.invoiceType // Only ecash tokens, not lightning invoices
         );
       case 'all':
       default:
@@ -104,6 +110,16 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
       return transaction.token;
     }
     return '';
+  };
+
+  // Get transaction type label
+  const getTransactionTypeLabel = (transaction: Transaction) => {
+    if (transaction.invoiceType === 'lightning') {
+      return 'Lightning Invoice';
+    } else if (transaction.token) {
+      return 'Ecash Token';
+    }
+    return transaction.type === 'received' ? 'Received' : 'Sent';
   };
 
   // Handle copying content to clipboard
@@ -278,30 +294,36 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
       </div>
       
       <div className="cashu-wallet__tabs">
-        <div 
-          className={`cashu-wallet__tabs-item ${activeTab === 'all' ? 'cashu-wallet__tabs-item--active' : ''}`}
+        <button 
+          className={`cashu-wallet__tabs-item ${activeTab === 'all' ? 'cashu-wallet__tab--active' : ''}`}
           onClick={() => setActiveTab('all')}
         >
           All
-        </div>
-        <div 
-          className={`cashu-wallet__tabs-item ${activeTab === 'in' ? 'cashu-wallet__tabs-item--active' : ''}`}
+        </button>
+        <button 
+          className={`cashu-wallet__tabs-item ${activeTab === 'in' ? 'cashu-wallet__tab--active' : ''}`}
           onClick={() => setActiveTab('in')}
         >
-          In
-        </div>
-        <div 
-          className={`cashu-wallet__tabs-item ${activeTab === 'out' ? 'cashu-wallet__tabs-item--active' : ''}`}
+          Received
+        </button>
+        <button 
+          className={`cashu-wallet__tabs-item ${activeTab === 'out' ? 'cashu-wallet__tab--active' : ''}`}
           onClick={() => setActiveTab('out')}
         >
-          Out
-        </div>
-        <div 
-          className={`cashu-wallet__tabs-item ${activeTab === 'mintQuote' ? 'cashu-wallet__tabs-item--active' : ''}`}
+          Sent
+        </button>
+        <button 
+          className={`cashu-wallet__tabs-item ${activeTab === 'mintQuote' ? 'cashu-wallet__tab--active' : ''}`}
           onClick={() => setActiveTab('mintQuote')}
         >
-          Quotes
-        </div>
+          Lightning
+        </button>
+        <button 
+          className={`cashu-wallet__tabs-item ${activeTab === 'ecash' ? 'cashu-wallet__tab--active' : ''}`}
+          onClick={() => setActiveTab('ecash')}
+        >
+          Ecash
+        </button>
       </div>
       
       <div className="cashu-wallet__transactions-list">
@@ -326,9 +348,7 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                 </div>
                 <div className="cashu-wallet__transactions-list-item-details">
                   <div className="cashu-wallet__transactions-list-item-details-title">
-                    {transaction.type === 'sent' ? 'Sent' : 'Received'}
-                    {transaction.invoiceType === 'lightning' && ' (Lightning)'}
-                    {transaction.token && !transaction.invoiceType && ' (Ecash)'}
+                    {getTransactionTypeLabel(transaction)}
                   </div>
                   <div className="cashu-wallet__transactions-list-item-details-date">
                     {transaction.date}
@@ -388,10 +408,17 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                       className="cashu-wallet__transactions-list-item-check-btn"
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent triggering the onTransactionClick
+                        setCheckingTransactionId(transaction.id);
+                        setCheckingPayment(true);
                         onCheckPayment(transaction);
                       }}
+                      disabled={checkingPayment && checkingTransactionId === transaction.id}
                     >
-                      {getCheckButtonText(transaction)}
+                      {checkingPayment && checkingTransactionId === transaction.id ? (
+                        'Checking...'
+                      ) : (
+                        getCheckButtonText(transaction)
+                      )}
                     </button>
                   )}
                 </div>

@@ -12,10 +12,12 @@ import { CashuSettingsModal } from './modals/CashuSettingsModal';
 import { CashuMintModal } from './modals/CashuMintModal';
 import { CashuTransactionDetailsModal } from './modals/CashuTransactionDetailsModal';
 import { useCashu } from '@/hooks/useCashu';
-import { useCashuStore } from 'afk_nostr_sdk';
+import { useCashuStore, useCashu as useCashuSDK, useNostrContext, useAuth } from 'afk_nostr_sdk';
 import { useUIStore } from '@/store/uiStore';
-import { Transaction } from '@/utils/storage';
+import { getWalletData, proofsApi, saveWalletData, Transaction } from '@/utils/storage';
 import { Icon } from '../small/icon-component';
+import { getDecodedToken, MeltQuoteState } from '@cashu/cashu-ts';
+import { proofsByMintApi, proofsSpentsByMintApi } from '@/utils/storage';
 
 export default function Cashu() {
   const {
@@ -36,8 +38,14 @@ export default function Cashu() {
     payLightningInvoice,
     checkWalletReadiness,
     checkInvoiceStatus,
-    checkInvoicePaymentStatus
+    checkInvoicePaymentStatus,
+    setBalance,
+    calculateBalanceFromProofs,
   } = useCashu();
+
+  const { ndkCashuWallet, ndk, ndkWallet } = useNostrContext()
+
+  const { wallet, } = useCashuSDK();
 
   // Direct access to the Cashu store from SDK
   const { setMintUrl } = useCashuStore();
@@ -57,6 +65,63 @@ export default function Cashu() {
   const [walletReady, setWalletReady] = useState<boolean>(false);
   const [isLoadingProofs, setIsLoadingProofs] = useState<boolean>(false);
 
+  const [checkWallet, setCheckWallet] = useState<boolean>(true);
+
+  // console.log("ndkCashuWallet balance", ndkCashuWallet?.balance)
+  // console.log("ndkCashuWallet signer", ndkCashuWallet?.signer)
+
+  const { publicKey } = useAuth();
+  useEffect(() => {
+    if (checkWallet && publicKey) {
+      setCheckWallet(true);
+      initWalletNdk();
+    }
+ 
+  }, [activeMint, setActiveMint, checkWallet, publicKey])
+
+  async function initWalletNdk() {
+
+    try {
+      
+    if (!activeMint) return;
+
+    if (ndkCashuWallet?.mints?.includes(activeMint)) return;
+    if (ndkCashuWallet) {
+      ndkCashuWallet.mints = [activeMint]
+    }
+    const wallet = await ndkCashuWallet?.getCashuWallet(activeMint);
+    console.log("wallet", wallet)
+
+    if (!wallet) {
+      setWalletReady(false);
+
+    } else {
+
+      // REQUIRED: Publish the wallet's mint list for token/nutzap reception
+      await ndkCashuWallet?.publish();
+      setWalletReady(true);
+    }
+    // if (wallet) {
+    //   setWalletReady(true);
+    // } else {
+    //   setWalletReady(false);
+    // }
+    } catch (error) {
+      console.error('Error initializing wallet:', error);
+      // setWalletReady(false);
+      // showToast({
+      //   message: 'Wallet Initialization Error',
+      //   type: 'error',
+      //   description: error instanceof Error ? error.message : 'Unknown error during wallet initialization'
+      // });
+    }
+    finally {
+      setCheckWallet(false);
+    }
+  }
+
+
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   // Initialize wallet connection on mount or when active mint changes
   useEffect(() => {
     // Don't re-initialize if already checking or if no mint is selected
@@ -77,20 +142,45 @@ export default function Cashu() {
 
         // Check if wallet is ready
         const readinessCheck = await checkWalletReadiness(activeMint);
+        console.log("readinessCheck")
+
         setWalletReady(readinessCheck.ready);
 
         if (readinessCheck.ready) {
           console.log('Wallet is ready for operations');
           // Update balance
-          const currentBalance = await getBalance();
-          setCurrentBalance(currentBalance);
+          // const currentBalance = await getBalance();
+          // console.log("currentBalance", currentBalance);
+          // setCurrentBalance(currentBalance);
         } else {
-          console.error('Wallet initialization failed:', readinessCheck.error);
-          showToast({
-            message: 'Wallet Connection Failed',
-            type: 'error',
-            description: 'Could not establish wallet connection. Please check your mint settings.'
-          });
+          try {
+            const readinessCheck = await checkWalletReadiness(activeMint);
+            console.log("readinessCheck")
+            setWalletReady(readinessCheck.ready);
+            if (readinessCheck.ready) {
+              showToast({
+                message: 'Wallet Connected',
+                type: 'success'
+              });
+            } else {
+              showToast({
+                message: 'Connection Failed',
+                type: 'error',
+                description: readinessCheck.error
+              });
+            }
+          } catch (err) {
+            console.error('Reconnection error:', err);
+            console.error('Wallet initialization failed:', readinessCheck.error);
+            showToast({
+              message: 'Wallet Connection Failed',
+              type: 'error',
+              description: 'Could not establish wallet connection. Please check your mint settings.'
+            });
+          } finally {
+            setIsBalanceLoading(false);
+          }
+
         }
       } catch (err) {
         console.error('Error initializing wallet:', err);
@@ -108,6 +198,7 @@ export default function Cashu() {
     }
 
     initializeWallet();
+    // initWalletNdk();
 
     // This effect should only run when the activeMint changes, not on every render
     // or when related functions change their references
@@ -115,11 +206,12 @@ export default function Cashu() {
 
   // Fetch current balance
   useEffect(() => {
-    if (activeMint && activeUnit) {
+    if (activeMint && activeUnit && !isInitialized) {
       setIsBalanceLoading(true);
       getBalance()
         .then(balance => {
           setCurrentBalance(balance);
+          setIsInitialized(true);
         })
         .catch(err => {
           console.error('Error fetching balance:', err);
@@ -128,12 +220,54 @@ export default function Cashu() {
           setIsBalanceLoading(false);
         });
     }
-  }, [activeMint, activeUnit, getBalance]);
+  }, [activeMint, activeUnit, getBalance, balance]);
 
   // Update balance from wallet data
   useEffect(() => {
     setCurrentBalance(balance);
   }, [balance]);
+
+  // Add function to calculate balance from proofs
+  // const calculateBalanceFromProofs = async (mintUrl: string) => {
+  //   try {
+  //     // Get active proofs for the mint
+  //     const activeProofs = await proofsByMintApi.getByMintUrl(mintUrl);
+
+  //     // Calculate total from active proofs
+  //     const activeBalance = activeProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
+
+  //     // Get spent proofs for the mint
+  //     const spentProofs = await proofsSpentsByMintApi.getByMintUrl(mintUrl);
+
+  //     // Calculate total from spent proofs
+  //     const spentBalance = spentProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
+
+  //     // Update the balance in the store
+  //     const newBalance = activeBalance - spentBalance;
+  //     console.log("newBalance", newBalance);
+  //     setBalance(newBalance);
+  //     setCurrentBalance(newBalance);
+
+  //     return newBalance;
+  //   } catch (error) {
+  //     console.error('Error calculating balance from proofs:', error);
+  //     return 0;
+  //   }
+  // };
+
+  // Update balance calculation when active mint changes
+  useEffect(() => {
+    if (activeMint) {
+      calculateBalanceFromProofs(activeMint);
+    }
+  }, [activeMint]);
+
+  // // Update balance after transactions
+  // useEffect(() => {
+  //   if (activeMint) {
+  //     calculateBalanceFromProofs(activeMint);
+  //   }
+  // }, [transactions]);
 
   // Handle creating a lightning invoice
   const handleCreateInvoice = async (amount: number) => {
@@ -236,7 +370,13 @@ export default function Cashu() {
       setActiveMint(defaultMint);
     }
   }
-  const handleCloseMintModal = () => setIsMintModalOpen(false);
+  const handleCloseMintModal = () => {
+    setIsMintModalOpen(false);
+
+    if (activeTab === "mints") {
+      setActiveTab("transactions")
+    }
+  }
 
   // Handle adding a new mint
   const handleAddMint = async (mintUrl: string, alias: string) => {
@@ -361,20 +501,137 @@ export default function Cashu() {
   // Handle receiving token
   const handleReceiveToken = async (token: string) => {
     try {
-      await receiveToken(token);
+      // First validate the token format
+      if (!token.startsWith('cashu')) {
+        throw new Error('Invalid token format: token must start with "cashu"');
+      }
+
+      // Try to decode the token to get mint information
+      const decodedToken = getDecodedToken(token);
+      console.log("decodedToken", decodedToken)
+      if (!decodedToken) {
+        throw new Error('Could not decode token');
+      }
+
+      // Check if the token's mint matches our active mint
+      if (decodedToken.mint && decodedToken.mint !== activeMint) {
+        showToast({
+          message: 'Mint mismatch',
+          type: 'warning',
+          description: 'This token was issued by a different mint. Please switch to the correct mint to receive it.'
+        });
+        return false;
+      }
+
+      // Try to receive the token
+      // const received = await ndkCashuWallet?.receiveToken(token)
+      // console.log("received", received)
+
+      // if (!ndkCashuWallet?.signer) {
+      //   showToast({
+      //     message: 'Wallet not ready',
+      //     type: 'error',
+      //     description: 'Please check mint connection and try again'
+      //   });
+      //   return false;
+      // }
+
+      let result;
+      if (ndkCashuWallet?.signer) {
+        const res = await ndkCashuWallet?.receiveToken(token)
+        // const res = await receiveToken(token);
+        console.log("res", res)
+        // res?.proofs.map(proof => {
+        //   console.log("proof", proof)
+        // })
+
+        result = res;
+
+        if (result?.proofs && result.proofs.length > 0) {
+          try {
+            // Save proofs to IndexedDB
+            await proofsApi.setAll(result.proofs);
+            // Recalculate balance after saving proofs
+
+            const walletData = await getWalletData();
+
+            const newBalance = walletData.balance + result.proofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
+
+            saveWalletData({
+              ...walletData,
+              balance: newBalance
+            });
+            console.log("walletData", walletData)
+            // await calculateBalanceFromProofs(activeMint);
+          } catch (storageError) {
+            console.error('Error saving proofs to storage:', storageError);
+            showToast({
+              message: 'Error saving proofs',
+              type: 'error',
+              description: 'The token was received but there was an error saving it to storage'
+            });
+          }
+        }
+      } else {
+        const res = await receiveToken(token);
+        result = res;
+      }
+
+      if (!result) {
+        const res = await receiveToken(token);
+        console.log("res", res)
+        result = res;
+      }
+      // Recalculate balance after receiving token
+      // if (activeMint) {
+      //   await calculateBalanceFromProofs(activeMint);
+      // }
+
+      if (!result) {
+        return showToast({
+          message: "Received ecash error",
+          type: "error"
+        })
+      }
+
       handleCloseReceiveModal();
+
       showToast({
         message: 'Token received',
         type: 'success'
       });
       return true;
-    } catch (err) {
-      console.error('Error receiving token:', err);
-      showToast({
-        message: 'Failed to receive token',
-        type: 'error',
-        description: err instanceof Error ? err.message : 'Unknown error'
-      });
+    } catch (error) {
+      console.error('Error receiving token:', error);
+
+      // Handle specific error cases
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      if (errorMessage.includes('no outputs provided')) {
+        showToast({
+          message: 'Mint out of outputs',
+          type: 'error',
+          description: 'The mint currently has no outputs available. Please try again later or contact the mint operator.'
+        });
+      } else if (errorMessage.includes('invalid')) {
+        showToast({
+          message: 'Invalid token',
+          type: 'error',
+          description: 'The token format is invalid or corrupted'
+        });
+      } else if (errorMessage.includes('spent')) {
+        showToast({
+          message: 'Token already spent',
+          type: 'error',
+          description: 'This token has already been spent'
+        });
+      } else {
+        showToast({
+          message: 'Failed to receive token',
+          type: 'error',
+          description: errorMessage
+        });
+      }
       return false;
     }
   };
@@ -399,6 +656,11 @@ export default function Cashu() {
       const res = await payLightningInvoice(invoice);
 
       if (res && res?.success) {
+        // Recalculate balance after successful payment
+        if (activeMint) {
+          await calculateBalanceFromProofs(activeMint);
+        }
+
         handleCloseSendModal();
         showToast({
           message: 'Invoice paid',
@@ -415,13 +677,17 @@ export default function Cashu() {
       return false;
     } catch (err) {
       console.error('Error paying invoice:', err);
-      
+
       // Check if this is a "Token already spent" error
       if (err instanceof Error && err.message.includes('Token was already spent')) {
+        // Recalculate balance even if there was an error
+        if (activeMint) {
+          await calculateBalanceFromProofs(activeMint);
+        }
         // Let the modal handle this specific error
         throw err;
       }
-      
+
       showToast({
         message: 'Failed to pay invoice',
         type: 'error',
@@ -431,12 +697,110 @@ export default function Cashu() {
     }
   };
 
+
+  // Handle checking payment status
+  const handleCheckPaymentInvoice = async (_transaction: Transaction) => {
+    let transaction = _transaction;
+
+
+    if (!transaction) {
+      console.error('Cannot check payment: no transaction provided');
+      return;
+    }
+
+    setIsLoadingProofs(true);
+    if (!transaction?.mintUrl) {
+      transaction.mintUrl = activeMint;
+    }
+
+    if (!transaction?.amount) {
+      transaction.amount = 0;
+    }
+
+    if (!transaction?.status) {
+      transaction.status = "pending"
+    }
+    try {
+      // Verify wallet is ready first
+      if (!walletReady) {
+        const readinessCheck = await checkWalletReadiness(activeMint);
+        if (!readinessCheck.ready) {
+          throw new Error('Wallet not ready - please check mint connection');
+        }
+        setWalletReady(true);
+      }
+
+      console.log('Checking payment for transaction:', transaction);
+
+      // Check if this is a Lightning invoice with a payment hash or quote
+      if (transaction.paymentHash || transaction?.invoice && transaction?.invoiceType === 'lightning' || transaction.quote) {
+        // Use the proper checkInvoicePaymentStatus function that handles all details
+        const result = await checkInvoicePaymentStatus(transaction);
+        console.log('Payment verification result:', result);
+
+        if (result.paid) {
+          showToast({
+            message: 'Payment confirmed',
+            type: 'success',
+            description: `${transaction.amount} ${activeUnit || 'sats'} have been added to your wallet`
+          });
+        } else if (result.error) {
+          showToast({
+            message: 'Error checking payment',
+            type: 'error',
+            description: result.error
+          });
+        } else {
+          showToast({
+            message: 'Payment not detected',
+            type: 'warning',
+            description: 'This invoice has not been paid yet'
+          });
+        }
+
+        return result;
+      }
+      // For other types of quotes (tokens etc.)
+      else if (transaction.token || transaction.invoiceType) {
+        // Display info about token transactions
+        setTimeout(() => {
+          showToast({
+            message: 'Token status checked',
+            type: 'info',
+            description: 'This is a token transaction'
+          });
+        }, 500);
+
+        return { checked: true, status: 'complete' };
+      }
+      else {
+        showToast({
+          message: 'Cannot check status',
+          type: 'error',
+          description: 'This transaction type does not support status checking'
+        });
+      }
+    } catch (err) {
+      console.error('Error checking payment/quote:', err);
+      showToast({
+        message: 'Error checking status',
+        type: 'error',
+        description: err instanceof Error ? err.message : 'Unknown error'
+      });
+      return null;
+    } finally {
+      setIsCheckingPayment(false);
+      setIsLoadingProofs(false);
+    }
+  };
   // Handle checking payment status
   const handleCheckPayment = async (transaction: Transaction) => {
     if (!transaction) {
       console.error('Cannot check payment: no transaction provided');
       return;
     }
+
+    console.log("transaction", transaction)
 
     setIsCheckingPayment(true);
     setSelectedTransaction(transaction);
@@ -555,13 +919,10 @@ export default function Cashu() {
                 </button>
               </div>
             )} */}
-  
+
             <div className="cashu-wallet__tabs gap-2">
               <button className={`cashu-wallet__tab ${activeTab === 'transactions' ? 'cashu-wallet__tab--active' : ''}`} onClick={() => setActiveTab('transactions')}>
                 Transactions
-              </button>
-              <button className={`cashu-wallet__tab ${activeTab === 'cashu' ? 'cashu-wallet__tab--active' : ''}`} onClick={() => setActiveTab('cashu')}>
-                Cashu
               </button>
               <button className={`cashu-wallet__tab ${activeTab === 'mints' ? 'cashu-wallet__tab--active' : ''}`} onClick={() => setActiveTab('mints')}>
                 Mints
@@ -574,6 +935,17 @@ export default function Cashu() {
                 onTransactionClick={handleShowTransactionDetails}
               />
             )}
+            {activeTab === "mints" &&
+              <CashuMintModal
+                onClose={handleCloseMintModal}
+                mints={mints}
+                activeMint={activeMint}
+                onChangeMint={handleChangeMint}
+                onOpenSettings={handleOpenSettingsModal}
+                onAddMint={handleAddMint}
+
+              ></CashuMintModal>
+            }
           </>
         ) : loading ? (
           <div className="cashu-wallet__loading">Loading wallet...</div>
@@ -642,6 +1014,8 @@ export default function Cashu() {
           unit={activeUnit || 'sat'}
           onReceiveToken={handleReceiveToken}
           onCreateInvoice={handleCreateInvoice}
+          onCheckPayment={handleCheckPaymentInvoice}
+
         />
       )}
 
@@ -652,6 +1026,8 @@ export default function Cashu() {
           unit={activeUnit || 'sat'}
           onSendToken={handleSendToken}
           onPayInvoice={handlePayInvoice}
+          activeMint={activeMint || ''}
+          activeUnit={activeUnit || 'sat'}
         />
       )}
 

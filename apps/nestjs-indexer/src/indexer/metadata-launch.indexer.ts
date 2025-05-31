@@ -35,6 +35,67 @@ export class MetadataLaunchIndexer {
     return /^[a-zA-Z0-9\s\-_.!@#$%^&*()/:]+$/.test(char);
   };
 
+  private tryGetMetadata = async (bodyMetadata: any | undefined, ipfsUrl: string, new_hash: string) => {
+    try {
+      
+      if (ipfsUrl ) {
+        const response = await fetch(`${ipfsUrl}`);
+        const data = await response.json();
+        console.log("data", data);
+        bodyMetadata = data;
+      
+      }
+      if(!bodyMetadata) {
+        try {
+  
+        
+          ipfsUrl= new_hash;
+          if (ipfsUrl ) {
+            const response = await fetch(`${ipfsUrl}`);
+            const data = await response.json();
+            console.log("data", data);
+            bodyMetadata = data;
+          
+          }
+    
+        } catch (error) {
+          console.log("error fetching website", error);
+          if (!bodyMetadata) {
+            let retryCount = 0;
+            const maxRetries = 3;
+            const timeout = 1000; // 1 second timeout
+    
+            while (retryCount < maxRetries) {
+              try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+    
+                const response = await fetch(`${ipfsUrl}`, {
+                  signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+    
+                const data = await response.json();
+                bodyMetadata = data;
+                break;
+              } catch (error) {
+                retryCount++;
+                if (retryCount === maxRetries) {
+                  console.log(`Failed to fetch twitter after ${maxRetries} retries:`, error);
+                }
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between retries
+              }
+            }
+          }
+        }
+    
+      }
+      return bodyMetadata;
+    } catch (error) {
+      return null;
+    }
+  } 
+
   private cleanString = (str: string): string => {
     return str
       .split('')
@@ -182,7 +243,7 @@ export class MetadataLaunchIndexer {
     try {
 
       if (ipfsHash) {
-        const response = await fetch(`https://ipfs.io/ipfs/${ipfsHash}`);
+        const response = await fetch(`${ipfsHash}`);
         const data = await response.json();
         console.log("data", data);
         bodyMetadata = data;
@@ -191,10 +252,6 @@ export class MetadataLaunchIndexer {
     } catch (error) {
       console.log("error fetching ipfs hash", error);
     }
-
-
-
-
 
     /** TODO: 
      * ADD Twitter, Telegram, Github, Website */
@@ -225,48 +282,8 @@ export class MetadataLaunchIndexer {
     } catch (error) {
       console.log("error decoding metadata ipfsUrl bytearray : ", error);
     }
+    await this.tryGetMetadata(bodyMetadata, ipfsUrl, ipfsHash);
 
-    try {
-
-      
-      if (ipfsUrl ) {
-        const response = await fetch(`${ipfsUrl}`);
-        const data = await response.json();
-        console.log("data", data);
-        bodyMetadata = data;
-      
-      }
-
-    } catch (error) {
-      console.log("error fetching website", error);
-      if (!bodyMetadata) {
-        let retryCount = 0;
-        const maxRetries = 3;
-        const timeout = 1000; // 1 second timeout
-
-        while (retryCount < maxRetries) {
-          try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-            const response = await fetch(`${ipfsUrl}`, {
-              signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-
-            const data = await response.json();
-            bodyMetadata = data;
-            break;
-          } catch (error) {
-            retryCount++;
-            if (retryCount === maxRetries) {
-              console.log(`Failed to fetch twitter after ${maxRetries} retries:`, error);
-            }
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between retries
-          }
-        }
-      }
-    }
 
 
     let twitter = '';
@@ -292,6 +309,8 @@ export class MetadataLaunchIndexer {
       console.log("error decoding metadata twitter bytearray : ", error);
     }
 
+    await this.tryGetMetadata(bodyMetadata, ipfsUrl, twitter);
+
 
     let website = '';
 
@@ -316,6 +335,9 @@ export class MetadataLaunchIndexer {
     } catch (error) {
       console.log("error decoding metadata website bytearray : ", error);
     }
+
+   
+    await this.tryGetMetadata(bodyMetadata, ipfsUrl, website);
 
 
 
@@ -343,6 +365,8 @@ export class MetadataLaunchIndexer {
       console.log("error decoding metadata telegram bytearray : ", error);
     }
 
+    await this.tryGetMetadata(bodyMetadata, ipfsUrl, telegram);
+
     let github = '';
     try {
       while (i < event.data.length) {
@@ -366,6 +390,8 @@ export class MetadataLaunchIndexer {
     } catch (error) {
       console.log("error decoding metadata github bytearray : ", error);
     }
+
+    await this.tryGetMetadata(bodyMetadata, ipfsUrl, github);
 
 
     let description = '';
@@ -391,6 +417,8 @@ export class MetadataLaunchIndexer {
     } catch (error) {
       console.log("error decoding metadata description bytearray : ", error);
     }
+
+    await this.tryGetMetadata(bodyMetadata, ipfsUrl, description);
 
     // try {
     //   twitter = byteArray.stringFromByteArray(twitterFelt as ByteArray);

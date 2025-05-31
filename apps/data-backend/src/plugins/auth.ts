@@ -18,6 +18,7 @@ export default fp(async function (fastify: FastifyInstance) {
       // Add user to request
       request.user = decoded;
     } catch (err) {
+      request.user = null;
       reply.code(401).send({ message: 'Unauthorized' });
     }
   });
@@ -40,9 +41,5 @@ declare module 'fastify' {
       sign: (payload: object, options?: jwt.SignOptions) => string;
       verify: (token: string) => UserJwtPayload;
     };
-  }
-
-  interface FastifyRequest {
-    user: UserJwtPayload;
   }
 }

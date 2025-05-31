@@ -65,8 +65,10 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
     });
 
     // Use any type to avoid type incompatibility issues
-    const ndkCashuWalletNew = new NDKCashuWallet(ndk as any);
+    const ndkCashuWalletNew = new NDKCashuWallet(newNdk as any);
     setNDKCashuWallet(ndkCashuWalletNew);
+
+    // newNdk.wallet= ndkCashuWalletNew;
 
     // const ndkNewWallet = new NDKWalletNWC(ndk as any);
     // setNDKWallet(ndkNewWallet);

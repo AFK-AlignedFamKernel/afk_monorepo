@@ -3,21 +3,28 @@ import { Icon } from '../../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
 import QRCode from 'react-qr-code';
 import { useAtomiqLab } from '@/hooks/atomiqlab';
-import { useCashu } from '@/hooks/useCashu';
+import { useCashu } from 'afk_nostr_sdk';
+import { proofsApi, Transaction, transactionsApi } from '@/utils/storage';
+import { v4 as uuidv4 } from 'uuid';
+
 interface CashuSendModalProps {
   onClose: () => void;
   balance: number;
   unit: string;
   onSendToken: (amount: number) => Promise<any>;
   onPayInvoice: (invoice: string) => Promise<any>;
+  activeMint: string;
+  activeUnit: string;
 }
 
 export const CashuSendModal: React.FC<CashuSendModalProps> = ({
   onClose,
-  balance,
   unit,
   onSendToken,
   onPayInvoice,
+  activeMint,
+  activeUnit,
+  balance,
 }) => {
   const { showToast } = useUIStore();
   const [activeTab, setActiveTab] = useState<'lightning' | 'ecash'>('ecash');
@@ -30,7 +37,10 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const [type, setType] = useState<"CASHU" | "STRK">("CASHU")
 
+
+  const { wallet, getEncodedTokenV4 } = useCashu();
   const { decodeInvoiceAmount } = useCashu();
+
 
   const { handlePayInvoice: handlePayInvoiceAtomiq } = useAtomiqLab();
 
@@ -73,7 +83,84 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
           type: 'success',
           description: `${amount} ${unit}`
         });
+
+        try {
+          const res = await transactionsApi.getAll();
+
+          console.log("res", res)
+          const txFind = res.find((transaction: any) =>transaction.invoice === tokenToDisplay);
+          console.log("txFind", txFind)
+
+          if (!txFind) {
+            let tx: Transaction = {
+              token: tokenToDisplay,
+              status: "paid",
+              type: "sent",
+              amount: Number(amount),
+              unit: unit,
+              id: uuidv4(),
+              invoice:tokenToDisplay,
+              date: new Date().toISOString(),
+              paymentHash: tokenToDisplay,
+              memo: "Sent " + tokenToDisplay,
+              description: "Sent " + tokenToDisplay,
+              invoiceType: undefined,
+              mintUrl: activeMint,
+              quote: tokenToDisplay,
+
+            } 
+            const res = await transactionsApi.add(tx);
+            console.log("res", res)
+          } else {
+            console.log("txFind", txFind)
+          }
+        } catch (err) {
+          console.error('Error creating transaction:', err);
+        }
       } else {
+        try {
+          const proofs = await proofsApi.getAll();
+          console.log("proofs", proofs)
+          const proofsToSend = await wallet?.selectProofsToSend(proofs, Number(amount));
+
+          console.log("proofsToSend", proofsToSend)
+
+          if (wallet && proofsToSend && proofsToSend.send && proofsToSend.send.length > 0) {
+
+            console.log("wallet", wallet)
+            const res = await wallet?.send(Number(amount), proofsToSend?.send);
+            console.log("res", res)
+            // const token = await wallet?.send(Number(amount), proofsToSend.send, null);
+
+            if (res && res?.send && res?.send.length > 0) {
+              const token = await getEncodedTokenV4({
+                mint: activeMint,
+                proofs: res.keep,
+                // amount: Number(amount)
+              });
+              console.log("token", token)
+              if (!token) {
+                throw new Error('Failed to generate token');
+              }
+              setGeneratedToken(token);
+              setTokenAmount(Number(amount));
+              showToast({
+                message: 'Ecash token created',
+                type: 'success',
+                description: `${amount} ${unit}`
+              });
+            } else {
+              throw new Error('Failed to send ecash');
+            }
+          }
+
+          // if (result.error) {
+          //   throw new Error(result.error);
+          // }
+        } catch (err) {
+          console.error('Error sending ecash:', err);
+        }
+
         throw new Error('Failed to generate token');
       }
     } catch (err) {

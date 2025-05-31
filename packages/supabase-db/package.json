@@ -1,0 +1,32 @@
+{
+  "name": "@afk/supabase-db",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint . --ext .ts",
+    "clean": "rm -rf dist",
+    "db:init": "pnpm supabase init",
+    "db:start": "pnpm supabase start",
+    "db:stop": "pnpm supabase stop",
+    "db:reset": "pnpm supabase db reset",
+    "db:push": "pnpm supabase db push",
+    "db:pull": "pnpm supabase db pull",
+    "db:diff": "pnpm supabase db diff",
+    "db:new-migration": "pnpm supabase migration new",
+    "db:status": "pnpm supabase status"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.8",
+    "supabase": "^2.23.4",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "eslint": "^8.57.0",
+    "typescript": "^5"
+  }
+}

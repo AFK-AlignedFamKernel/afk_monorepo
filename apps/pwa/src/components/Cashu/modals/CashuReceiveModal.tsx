@@ -9,6 +9,7 @@ interface CashuReceiveModalProps {
   unit: string;
   onReceiveToken: (token: string) => Promise<any>;
   onCreateInvoice: (amount: number) => Promise<any>;
+  onCheckPayment?: (transaction: any) => Promise<any>;
 }
 
 export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
@@ -17,6 +18,7 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
   unit,
   onReceiveToken,
   onCreateInvoice,
+  onCheckPayment,
 }) => {
   const { showToast } = useUIStore();
   const [activeTab, setActiveTab] = useState<'lightning' | 'ecash'>('lightning');
@@ -26,6 +28,7 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
+  const [transaction, setTransaction] = useState<any>(null);
   const handleTabChange = (tab: 'lightning' | 'ecash') => {
     setActiveTab(tab);
   };
@@ -48,7 +51,16 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
     try {
       console.log(`Creating invoice for ${Number(amount)} ${unit} with mint: ${mint}`);
       const invoiceData = await onCreateInvoice(Number(amount));
-      
+      setTransaction({...invoiceData, invoiceType: 'lightning', mintUrl: mint, amount: Number(amount), status: "pending",
+        quoteId: invoiceData?.quoteId,
+        paymentHash: invoiceData?.paymentHash,
+        quote: invoiceData?.paymentHash,
+        state: invoiceData?.state,
+        paid: invoiceData?.paid,
+        createdAt: invoiceData?.createdAt,
+        updatedAt: invoiceData?.updatedAt,
+
+      });
       // Handle null or invalid response gracefully
       if (invoiceData && typeof invoiceData === 'object' && invoiceData.invoice) {
         // Only update state with valid invoice data
@@ -374,6 +386,8 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
                       Share this invoice to receive {amount} {unit}
                     </p>
                   </div>
+
+                 
                   
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
@@ -389,10 +403,23 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
                       New Invoice
                     </button>
                   </div>
+
+                  {onCheckPayment && (
+                    <div>
+                      <button
+                        className="cashu-wallet__button cashu-wallet__button--secondary"
+                        onClick={() => onCheckPayment(transaction)}
+                      >
+                        Check Payment
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </>
           )}
+
+
           
           {activeTab === 'ecash' && (
             <form onSubmit={handleReceiveEcash}>

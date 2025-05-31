@@ -1,0 +1,17 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+# prisma
+.prisma
+
+# Supabase
+.branches
+.temp
+
+# dotenvx
+.env.keys
+.env.local
+.env.*.local
+
+.vscode

@@ -21,7 +21,7 @@ export default function MenuHomeComponent() {
       <div className="grid grid-cols-2 gap-4">
         <Link
           href="/nostr/feed"
-          className="game-launcher-item bg-gradient-to-br hover:to-blue-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"
+          // className="game-launcher-item bg-gradient-to-br hover:to-blue-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"
         >
           <div className="flex flex-col items-center">
             <Icon name="ConversationIconBubble" size={24} ></Icon>
@@ -32,7 +32,7 @@ export default function MenuHomeComponent() {
 
         <Link
           href="/launchpad"
-          className="game-launcher-item bg-gradient-to-br from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"
+          // className="game-launcher-item bg-gradient-to-br from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"
         >
           <div className="flex flex-col items-center">
             <Icon name="HandshakeIcon" size={24}></Icon>
@@ -42,7 +42,7 @@ export default function MenuHomeComponent() {
 
         <Link
           href="/wallet"
-          className="game-launcher-item  to-purple-700 hover:from-purple-600 hover:to-purple-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"
+          // className="game-launcher-item  to-purple-700 hover:from-purple-600 hover:to-purple-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"
         >
           <div className="flex flex-col items-center">
             <Icon name="WalletIcon" size={24}></Icon>
@@ -52,7 +52,7 @@ export default function MenuHomeComponent() {
 
         <Link
           href="/profile"
-          className="game-launcher-item bg-gradient-to-br hover:to-blue-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"
+          // className="game-launcher-item bg-gradient-to-br hover:to-blue-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"
         >
           <div className="flex flex-col items-center">
             <Icon name="UserIcon" size={24} ></Icon>

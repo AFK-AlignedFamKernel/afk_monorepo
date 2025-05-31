@@ -13,6 +13,9 @@ import declareRoutes from './router';
 import fastifySession from '@fastify/session';
 import fastifyOauth2 from '@fastify/oauth2';
 import fastifyMultipart from '@fastify/multipart';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Type declarations
 declare module 'fastify' {
@@ -30,10 +33,8 @@ async function buildServer() {
 
   // CORS configuration
   await fastify.register(fastifyCors, {
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true
   });
 
   // Socket.IO setup
@@ -103,6 +104,11 @@ async function buildServer() {
   // await fastify.register(authRoutes);
   // Indexer
   await declareRoutes(fastify);
+
+  // Health check
+  fastify.get('/health', async () => {
+    return { status: 'ok' };
+  });
 
   // Initialize WebSocket handlers
   fastify.ready((err) => {

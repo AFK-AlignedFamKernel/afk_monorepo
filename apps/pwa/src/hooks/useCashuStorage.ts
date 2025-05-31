@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { 
-  MintData, 
-  Token, 
-  Transaction, 
-  StorageData, 
-  initDatabase, 
+import {
+  MintData,
+  Token,
+  Transaction,
+  StorageData,
+  initDatabase,
   settingsApi,
   mintsApi,
-  db
+  db,
+  ecashApi
 } from '@/utils/storage';
 
 export function useCashuStorage() {
@@ -21,6 +22,7 @@ export function useCashuStorage() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [balance, setBalance] = useState(0);
 
   // Initialize the database
   useEffect(() => {
@@ -31,13 +33,15 @@ export function useCashuStorage() {
         if (!dbInitialized) {
           throw new Error('Failed to initialize database');
         }
-        
+
         // Load data from the new database
         const mints = await mintsApi.getAll();
         const activeMint = await settingsApi.get('ACTIVE_MINT', '');
         const activeUnit = await settingsApi.get('ACTIVE_UNIT', 'sat');
         const transactions = await db.transactions.toArray();
-        
+
+        console.log("transactions", transactions)
+
         // Calculate balance from transactions
         let balance = 0;
         transactions.forEach(tx => {
@@ -45,13 +49,14 @@ export function useCashuStorage() {
             balance += tx.type === 'received' ? tx.amount : -tx.amount;
           }
         });
-        
+
         // Ensure balance is not negative
         balance = Math.max(0, balance);
-        
+        setBalance(balance);
+
         // For compatibility, use empty tokens array
         const tokens: Token[] = [];
-        
+
         // Set the wallet data
         setWalletData({
           mints,
@@ -61,7 +66,7 @@ export function useCashuStorage() {
           transactions,
           tokens,
         });
-        
+
         setIsInitialized(true);
         setLoading(false);
       } catch (err) {
@@ -79,26 +84,26 @@ export function useCashuStorage() {
       if (isInitialized && !loading) {
         try {
           console.log('Saving wallet data to database...');
-          
+
           // Update mints
           await mintsApi.setAll(walletData.mints);
-          
+
           // Update active mint and unit
           if (walletData.activeMint) {
             await settingsApi.set('ACTIVE_MINT', walletData.activeMint);
           }
-          
+
           if (walletData.activeUnit) {
             await settingsApi.set('ACTIVE_UNIT', walletData.activeUnit);
           }
-          
+
           // Update transactions
           await db.transaction('rw', db.transactions, async () => {
             // This is a simple implementation - in reality you might want to be more selective
             await db.transactions.clear();
             await db.transactions.bulkAdd(walletData.transactions);
           });
-          
+
           console.log('Successfully saved wallet data to database');
         } catch (err) {
           console.error('Failed to save wallet data to database:', err);
@@ -106,7 +111,7 @@ export function useCashuStorage() {
         }
       }
     };
-    
+
     saveData();
   }, [walletData, isInitialized, loading]);
 
@@ -125,7 +130,7 @@ export function useCashuStorage() {
       };
 
       const newMints = [...prev.mints, newMint];
-      
+
       // If this is the first mint, set it as active
       const newActiveMint = prev.activeMint || mintUrl;
       const newActiveUnit = prev.activeUnit || 'sat';
@@ -193,11 +198,11 @@ export function useCashuStorage() {
 
   // Add a transaction
   const addTransaction = useCallback((
-    type: 'sent' | 'received', 
-    amount: number, 
-    memo?: string, 
-    token?: string | null, 
-    paymentHash?: string | null, 
+    type: 'sent' | 'received',
+    amount: number,
+    memo?: string,
+    token?: string | null,
+    paymentHash?: string | null,
     mintUrl?: string,
     status?: 'pending' | 'paid' | 'failed',
     description?: string,
@@ -227,23 +232,45 @@ export function useCashuStorage() {
       if (invoiceType !== 'lightning' || status === 'paid') {
         balanceChange = type === 'received' ? amount : -amount;
       }
-      
-      const newBalance = prev.balance + balanceChange;
 
+      const newBalance = prev.balance + balanceChange;
+      setBalance(newBalance);
+
+      console.log("newTransaction", newTransaction)
+      console.log("prev.transactions", prev.transactions)
       return {
         ...prev,
-        transactions: [newTransaction, ...prev.transactions],
+        transactions: [...prev.transactions, newTransaction],
         balance: newBalance >= 0 ? newBalance : prev.balance, // Safety check
       };
     });
-    
+
+
+
+    const handleSaveEcash = async () => {
+      try {
+        if (walletData.activeMint ) {
+          const ecashTX= await ecashApi.getAll();
+          await ecashApi.setAll([...ecashTX,{
+            // id: uuidv4(),
+            token: token || invoice || '',
+            amount: amount,
+            mintUrl: mintUrl || walletData.activeMint,
+            created: new Date().toISOString()
+          }]);
+        }
+      } catch (err) {
+        console.error('Error saving ecash to database:', err);
+      }
+    };
+    handleSaveEcash();
     // Also save directly to the database
     const saveToDb = async (
-      type: 'sent' | 'received', 
-      amount: number, 
-      memo?: string, 
-      token?: string | null, 
-      paymentHash?: string | null, 
+      type: 'sent' | 'received',
+      amount: number,
+      memo?: string,
+      token?: string | null,
+      paymentHash?: string | null,
       mintUrl?: string,
       status?: 'pending' | 'paid' | 'failed',
       description?: string,
@@ -267,24 +294,25 @@ export function useCashuStorage() {
           invoice,
           quote
         };
-        
+        console.log("newTransaction", newTransaction)
+
         await db.transactions.add(newTransaction);
       } catch (err) {
         console.error('Error saving transaction to database:', err);
       }
     };
-    
+
     saveToDb(
-      type, 
-      amount, 
-      memo, 
-      token, 
-      paymentHash, 
-      mintUrl, 
-      status, 
-      description, 
-      invoiceType, 
-      invoice, 
+      type,
+      amount,
+      memo,
+      token,
+      paymentHash,
+      mintUrl,
+      status,
+      description,
+      invoiceType,
+      invoice,
       quote
     );
   }, [walletData.activeMint]);
@@ -292,7 +320,7 @@ export function useCashuStorage() {
   // Add token
   const addToken = useCallback((token: string, amount: number, mintUrl: string) => {
     console.log('Adding token to storage:', { amount, mintUrl });
-    
+
     setWalletData(prev => {
       const newToken: Token = {
         id: uuidv4(),
@@ -302,7 +330,7 @@ export function useCashuStorage() {
         spendable: true,
         created: new Date().toISOString(),
       };
-      
+
       return {
         ...prev,
         tokens: [...prev.tokens, newToken],
@@ -330,7 +358,7 @@ export function useCashuStorage() {
       if ('status' in updates) {
         let balanceChange = 0;
         const tx = prev.transactions[transactionIndex];
-        
+
         // If changing from pending/failed to paid
         if (tx.status !== 'paid' && updates.status === 'paid') {
           balanceChange = tx.type === 'received' ? tx.amount : -tx.amount;
@@ -339,9 +367,10 @@ export function useCashuStorage() {
         else if (tx.status === 'paid' && updates.status !== 'paid') {
           balanceChange = tx.type === 'received' ? -tx.amount : tx.amount;
         }
-        
+
         const newBalance = prev.balance + balanceChange;
-        
+
+        setBalance(newBalance);
         return {
           ...prev,
           transactions: updatedTransactions,
@@ -354,7 +383,7 @@ export function useCashuStorage() {
         transactions: updatedTransactions,
       };
     });
-    
+
     // Also update in database
     const updateInDb = async (transactionId: string, updates: Partial<Transaction>) => {
       try {
@@ -367,7 +396,7 @@ export function useCashuStorage() {
         console.error('Error updating transaction in database:', err);
       }
     };
-    
+
     updateInDb(transactionId, updates);
   }, []);
 
@@ -384,5 +413,7 @@ export function useCashuStorage() {
     addTransaction,
     addToken,
     updateTransaction,
+    setBalance,
+    balance
   };
 } 

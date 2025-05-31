@@ -14,6 +14,10 @@ import {
   MintQuoteResponse,
   Proof,
   ProofState,
+  getEncodedTokenV4, 
+  getEncodedTokenBinary,
+  getDecodedTokenBinary,
+  
 } from '@cashu/cashu-ts';
 import { bytesToHex } from '@noble/curves/abstract/utils';
 import { NDKCashuDeposit } from '@nostr-dev-kit/ndk-wallet';
@@ -120,6 +124,7 @@ export interface ICashu {
   getUnitBalanceWithProofsChecked: (unit: string, pMint: MintData, proofs: Proof[]) => Promise<number>;
   handleWebsocketProofs: (mergedProofsParents?: Proof[]) => Promise<void>;
   filteredProofsSpents: (proofs: Proof[]) => Promise<{ proofsFiltered: Proof[], proofsSpents: Proof[] }>;
+
 }
 
 
@@ -1089,6 +1094,17 @@ export const useCashu = () => {
     }
   };
 
+  const decodeInvoiceAmount = (invoice: string) => {
+
+    // Get invoice amount from the Lightning invoice
+    // Decode the Lightning invoice to get the amount
+    const decodedInvoice = invoice.match(/lnbc(\d+)n/);
+    const amount = decodedInvoice ? Number(decodedInvoice[1]) / 10 : 0;
+    console.log(`Decoded invoice amount: ${amount} sats`);
+
+    return amount;
+  }
+
   return {
     wallet,
     mint,
@@ -1143,6 +1159,10 @@ export const useCashu = () => {
     getUnitBalanceWithProofsChecked,
     handleWebsocketProofs,
     filteredProofsSpents,
-    initializeWithNostrSeed
+    initializeWithNostrSeed,
+    getEncodedTokenV4,
+    getEncodedTokenBinary,
+    getDecodedTokenBinary,
+    decodeInvoiceAmount
   };
 };
