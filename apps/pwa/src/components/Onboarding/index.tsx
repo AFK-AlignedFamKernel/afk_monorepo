@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Brand from './Brand';
+import User from './User';
 
 type UserType = 'user' | 'brand';
 
@@ -34,7 +35,9 @@ export default function Onboarding() {
                 {selectedType && (
                     <>
                         <button onClick={handleBack}>Back</button>
-                        <Brand />
+
+                        {selectedType === 'brand' && <Brand />}
+                        {selectedType === 'user' && <User />}
                     </>
                 )}
 

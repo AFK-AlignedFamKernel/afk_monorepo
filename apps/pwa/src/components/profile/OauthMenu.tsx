@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 import { Session } from "@supabase/supabase-js";
 import Image from "next/image";
 import { useAppStore } from "@/store/app";
-export const Oauth = () => {
+export const OauthMenu = () => {
     const { user, session, setUser, setSession, isInitialFetchUser, setIsInitialFetchUser } = useAppStore();
     const { showToast } = useUIStore();
     const [isLoading, setIsLoading] = useState(true);

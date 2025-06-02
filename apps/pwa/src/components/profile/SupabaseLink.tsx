@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
+import { supabase } from "@/lib/supabase";
+import { useUIStore } from "@/store/uiStore";
+import { useAppStore } from "@/store/app";
+import { Provider } from '@supabase/supabase-js';
 
 const PLATFORMS = [
   { label: 'Twitter (OAuth or Proof)', value: 'twitter', oauth: true, proof: true },
-  { label: 'GitHub (OAuth or Proof)', value: 'github', oauth: true, proof: true },
-  { label: 'Nostr (Proof Only)', value: 'nostr', oauth: false, proof: true },
-  { label: 'Farcaster (Proof Only)', value: 'farcaster', oauth: false, proof: true },
-  // Add more as needed
+  { label: 'GitHub (OAuth)', value: 'github', oauth: true, proof: false },
+  { label: 'Discord (OAuth)', value: 'discord', oauth: true, proof: false },
+  // { label: 'Nostr (Proof Only)', value: 'nostr', oauth: false, proof: true },
+  // { label: 'Farcaster (Proof Only)', value: 'farcaster', oauth: false, proof: true },
 ];
 
-export const SocialAccountLinker: React.FC = () => {
-  const [platform, setPlatform] = useState('');
+export const SupabaseLink: React.FC = () => {
+  const { user } = useAppStore();
+  const { showToast } = useUIStore();
+  const [platform, setPlatform] = useState<Provider>();
   const [handle, setHandle] = useState('');
   const [proofUrl, setProofUrl] = useState('');
   const [status, setStatus] = useState<'idle' | 'verifying' | 'verified' | 'error'>('idle');
@@ -18,28 +24,94 @@ export const SocialAccountLinker: React.FC = () => {
   const selectedPlatform = PLATFORMS.find((p) => p.value === platform);
 
   const handleOAuth = async () => {
+    if (!user) {
+      showToast({
+        message: "Please sign in first",
+        type: "error"
+      });
+      return;
+    }
+
     setStatus('verifying');
     setError(null);
-    // TODO: Integrate with Supabase OAuth for the selected platform
-    // For MVP, just simulate success
-    setTimeout(() => {
+
+    if (!platform) {
+      setStatus('error');
+      setError('Platform is required.');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: platform,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+
+      if (error) throw error;
+
+      showToast({
+        message: "Successfully linked account",
+        type: "success"
+      });
       setStatus('verified');
-    }, 1200);
+    } catch (err) {
+      setStatus('error');
+      setError(err.message);
+      showToast({
+        message: "Failed to link account",
+        type: "error"
+      });
+    }
   };
 
   const handleProof = async () => {
+    if (!user) {
+      showToast({
+        message: "Please sign in first",
+        type: "error"
+      });
+      return;
+    }
+
+    if (!proofUrl) {
+      setStatus('error');
+      setError('Proof URL is required.');
+      return;
+    }
+
     setStatus('verifying');
     setError(null);
-    // TODO: Call backend API to verify proofUrl for the selected platform/handle
-    // For MVP, just simulate success if proofUrl is not empty
-    setTimeout(() => {
-      if (proofUrl) {
-        setStatus('verified');
-      } else {
-        setStatus('error');
-        setError('Proof URL is required.');
-      }
-    }, 1200);
+
+    try {
+      const { data, error } = await supabase
+        .from('social_proofs')
+        .insert([
+          {
+            user_id: user.id,
+            platform,
+            handle,
+            proof_url: proofUrl,
+            status: 'pending'
+          }
+        ]);
+
+      if (error) throw error;
+
+      showToast({
+        message: "Proof submitted for verification",
+        type: "success"
+      });
+      setStatus('verified');
+    } catch (err) {
+      setStatus('error');
+      setError(err.message);
+      showToast({
+        message: "Failed to submit proof",
+        type: "error"
+      });
+    }
   };
 
   return (
@@ -51,7 +123,7 @@ export const SocialAccountLinker: React.FC = () => {
           className="input input-bordered w-full"
           value={platform}
           onChange={(e) => {
-            setPlatform(e.target.value);
+            setPlatform(e.target.value as Provider);
             setStatus('idle');
             setError(null);
           }}
@@ -110,4 +182,4 @@ export const SocialAccountLinker: React.FC = () => {
   );
 };
 
-export default SocialAccountLinker; 
+export default SupabaseLink;
