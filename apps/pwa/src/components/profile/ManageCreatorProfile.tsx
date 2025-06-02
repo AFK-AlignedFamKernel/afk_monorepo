@@ -67,6 +67,7 @@ export const ManageCreatorProfile: React.FC = () => {
       setBio(res?.bio)
       setTokenAddress(res?.token_address)
       console.log("res", res)
+      setContentCreator(res)
       setIsInitialFetchUser(true)
     } catch (error) {
       console.log("error", error)
@@ -139,125 +140,152 @@ export const ManageCreatorProfile: React.FC = () => {
     }
   }
   return (
-    <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow">
-      <p className='text-sm'>Manage your profile</p>
-
-      <button onClick={() => {
-        fetchMyContentCreatorProfile()
-      }}>
-        <Icon name="RefreshIcon" size={16} className='w-4 h-4' />
-      </button>
-
-      <div className='flex gap-2 flex-col'>
-        <input type="text" placeholder='Handle' value={handle} onChange={(e) => setHandle(e.target.value)} />
-        <input type="text" placeholder='Slug Name' value={slugName} onChange={(e) => setSlugName(e.target.value)} />
-        <input type="text" placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
-        <input type="text" placeholder='Tip to Stake token address' value={starknetAddress} onChange={(e) => setStarknetAddress(e.target.value as `0x${string}`)} />
-
-        {address && <div>
-          <p className='text-sm'>Current Starknet Address</p>
-          <p> Click to used this address</p>
-          <button className='btn btn-secondary p-2' onClick={() => {
-            setStarknetAddress(address)
-          }}>Used</button>
-          <button className='btn  p-2' onClick={() => {
-            navigator.clipboard.writeText(address)
-          }}><Icon name="CopyIcon" size={16} className='w-4 h-4' /></button>
-          <p>{address}</p>
-        </div>}
+    <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow max-w-full overflow-x-hidden">
+      <div className="flex justify-between items-center mb-4">
+        <p className='text-sm'>Manage your profile</p>
+        <button onClick={() => fetchMyContentCreatorProfile()}>
+          <Icon name="RefreshIcon" size={16} className='w-4 h-4' />
+        </button>
       </div>
 
+      <div className='flex gap-4 flex-col'>
+        <input type="text" placeholder='Handle' value={handle} onChange={(e) => setHandle(e.target.value)} className="w-full" />
+        <label className='text-sm font-medium'>Slug Name: link to your profile</label>
+        <input type="text" placeholder='Slug Name' value={slugName} onChange={(e) => setSlugName(e.target.value)} className="w-full" />
+        <label className='text-sm font-medium'>Bio</label>
+        <input type="text" placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} className="w-full" />
+        <label className='text-sm font-medium'>Tip to Stake token address</label>
+
+        <div className='flex gap-2 items-center'>
+          <input type="text" placeholder='Tip to Stake token address' value={starknetAddress} onChange={(e) => setStarknetAddress(e.target.value as `0x${string}`)} className="w-full" />
 
 
-      <TagsForm tags={topics} setTags={setTopics} />
+          {address &&
+            <div className='flex flex-col gap-2 items-center'>
+              <p className="text-sm break-all mt-2">{address?.slice(0, 6)}...{address?.slice(-4)}</p>
 
-      <input type="text" placeholder='Your token address' value={tokenAddress} onChange={(e) => setTokenAddress(e.target.value)} />
+              <div>
+                <button className='btn btn-secondary p-2' onClick={() => {
+                  setStarknetAddress(address);
+                  showToast({
+                    type: "success",
+                    message: "Starknet address used!"
+                  })
+                }}>Use</button>
+                <button className='btn p-2' onClick={() => navigator.clipboard.writeText(address)}>
+                  <Icon name="CopyIcon" size={16} className='w-4 h-4' />
+                </button>
+              </div>
+            </div>}
 
-      {tokenAddress && <div>
-        <p className='text-sm'>Token Address</p>
-        <p>{tokenAddress}</p>
-        <Link href={`/launchpad/${tokenAddress}`} target='_blank'>
-          <Icon name="ExternalLinkIcon" size={16} className='w-4 h-4' />
-          View external
-        </Link>
-      </div>}
-
-
-      <Accordion
-        items={[{
-          title: "Content Creator Profile",
-          content: <>
-            <div>
-              <p className='text-sm'>Handle</p>
-              {contentCreator?.name}
-              {contentCreator?.slug_name}
-              {contentCreator?.avatar_url}
-              {contentCreator?.bio}
-              {contentCreator?.token_address}
-              {contentCreator?.topics}
-            </div>
-          </>
-        }]}
-      />
-
-
-      <div>
-        <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        <button onClick={() => {
-          if (file) {
-            setFileUrl(URL.createObjectURL(file))
-          }
-        }}>Upload</button>
-        {fileUrl && <img src={fileUrl} alt="File" />}
-      </div>
-      {status === 'verified' && (
-        <div className="alert alert-success mt-2">Account linked and verified!</div>
-      )}
-      {status === 'error' && error && (
-        <div className="alert alert-error mt-2">{error}</div>
-      )}
-
-      <div className='flex gap-2 flex-col'>
-
-
-
-        <div className='flex gap-2 flex-row justify-between flex-wrap basis-1/2 items-center'>
-
-          <div className='flex gap-2 flex-col'>
-            <p className='text-sm text-gray-500'>Update your profile</p>
-            <button className='btn btn-primary' onClick={handleUpdateFromIdentity}>Update</button>
-
-          </div>
-
-          <div className='flex gap-2 flex-col w-1/3'>
-            <p className='text-sm text-gray-500'>Verify your social network identity</p>
-            <button className='btn btn-secondary' onClick={handleVerifyFromIdentity}>Verify</button>
-
-          </div>
         </div>
 
+        {address && (
+          <div className=" p-3 rounded-lg">
+            <p className='text-sm font-medium'>Current Starknet Address</p>
+            <p className="text-sm text-gray-600 mb-2">Click to use this address</p>
+            <div className="flex gap-2 items-center">
 
-
-
+              <button className='btn p-2' onClick={() => navigator.clipboard.writeText(address)}>
+                <Icon name="CopyIcon" size={16} className='w-4 h-4' />
+              </button>
+            </div>
+            <p className="text-sm break-all mt-2">{address}</p>
+          </div>
+        )}
       </div>
 
-      <Accordion
-        items={[{
-          title: "Oauth",
-          content: <Oauth />
-        },
-        {
-          title: "Supabase Link",
-          content: <SupabaseLink />
-        },
-        {
-          title: "Link Account",
-          content: <LinkAccount />
-        }]}
-      />
+      <div className="mt-4">
+        <TagsForm tags={topics} setTags={setTopics} />
+      </div>
+
+      <div className="mt-4">
+        <label className='text-sm font-medium'>Select your token address</label>
+        <input type="text" placeholder='Your token address' value={tokenAddress} onChange={(e) => setTokenAddress(e.target.value)} className="w-full" />
+      </div>
+
+      {tokenAddress && (
+        <div className="p-3 rounded-lg mt-2">
+          <p className='text-sm font-medium'>Token Address</p>
+          <p className="text-sm break-all">{tokenAddress}</p>
+          <Link href={`/launchpad/${tokenAddress}`} target='_blank' className="flex items-center gap-1 text-sm text-blue-600 mt-1">
+            <Icon name="ExternalLinkIcon" size={16} className='w-4 h-4' />
+            View external
+          </Link>
+        </div>
+      )}
 
 
+      <div className="mt-4">
+        <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="w-full" />
+        <button
+          onClick={() => file && setFileUrl(URL.createObjectURL(file))}
+          className="btn btn-secondary mt-2"
+        >
+          Upload
+        </button>
+        {fileUrl && (
+          <div className="mt-2">
+            <img src={fileUrl} alt="File" className="max-w-full h-auto rounded-lg" />
+          </div>
+        )}
+      </div>
 
+      {status === 'verified' && (
+        <div className="alert alert-success mt-4">Account linked and verified!</div>
+      )}
+      {status === 'error' && error && (
+        <div className="alert alert-error mt-4">{error}</div>
+      )}
+
+      <div className='mt-6 space-y-4'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          <div className='flex flex-col gap-2'>
+            <p className='text-sm text-gray-500'>Update your profile</p>
+            <button className='btn btn-primary w-full' onClick={handleUpdateFromIdentity}>Update</button>
+          </div>
+
+          <div className='flex flex-col gap-2'>
+            <p className='text-sm text-gray-500'>Verify your social network identity</p>
+            <button className='btn btn-secondary w-full' onClick={handleVerifyFromIdentity}>Verify</button>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <Accordion
+          items={[
+            {
+              title: "Content Creator Profile",
+              content: (
+                <div className="p-2">
+                  <p className='text-sm font-medium mb-2'>Profile Details</p>
+                  <div className="space-y-1 text-sm">
+                    <p>Name: {contentCreator?.name}</p>
+                    <p>Slug: {contentCreator?.slug_name}</p>
+                    <p>Avatar: {contentCreator?.avatar_url}</p>
+                    <p>Bio: {contentCreator?.bio}</p>
+                    <p>Token: {contentCreator?.token_address}</p>
+                    <p>Topics: {contentCreator?.topics?.join(', ')}</p>
+                  </div>
+                </div>
+              )
+            },
+            {
+              title: "Oauth",
+              content: <Oauth />
+            },
+            {
+              title: "Supabase Link",
+              content: <SupabaseLink />
+            },
+            {
+              title: "Link Account",
+              content: <LinkAccount />
+            }
+          ]}
+        />
+      </div>
     </div>
   );
 };

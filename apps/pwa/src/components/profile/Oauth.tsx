@@ -1,7 +1,7 @@
 import { useUIStore } from "@/store/uiStore"
 import { supabase } from "@/lib/supabase"
 import { useEffect, useState } from "react";
-import { User } from "@supabase/supabase-js";
+import { Provider, User } from "@supabase/supabase-js";
 import { Session } from "@supabase/supabase-js";
 import Image from "next/image";
 import { useAppStore } from "@/store/app";
@@ -26,21 +26,21 @@ export const Oauth = () => {
     }, [isInitialFetchUser, user, session]);
 
 
-    const handleLogin = async () => {
+    const handleLogin = async (provider: Provider) => {
         const res = await supabase.auth.signInWithOAuth({
-            provider:"google"
+            provider: provider
         })
 
-        if(!res) {
+        if (!res) {
             return showToast({
-                message:"Error",
-                type:"error"
+                message: "Error",
+                type: "error"
             })
         }
 
         return showToast({
-            message:"Login successfuly",
-            type:"success"
+            message: "Login successfuly",
+            type: "success"
         })
     }
     const handleLogout = async () => {
@@ -58,10 +58,10 @@ export const Oauth = () => {
             <div className="flex flex-col items-center space-y-4">
                 {user?.app_metadata.provider && (
                     <div className="flex flex-col items-center space-y-2">
-                        <Image 
-                            src={user?.user_metadata.avatar_url} 
-                            alt={user?.app_metadata.provider} 
-                            width={80} 
+                        <Image
+                            src={user?.user_metadata.avatar_url}
+                            alt={user?.app_metadata.provider}
+                            width={80}
                             height={80}
                             className="rounded-full border-2 border-gray-200"
                         />
@@ -75,8 +75,8 @@ export const Oauth = () => {
                     <h3 className="text-lg font-semibold">Connected Accounts</h3>
                     <div className="grid gap-3">
                         {user.identities.map((identity) => (
-                            <div 
-                                key={identity.id} 
+                            <div
+                                key={identity.id}
                                 className="flex items-center justify-between p-3 rounded-lg border border-gray-200"
                             >
                                 <div className="flex items-center space-x-3">
@@ -91,12 +91,23 @@ export const Oauth = () => {
 
             <div className="flex justify-center">
                 {!user ? (
-                    <button
-                        className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium transition-colors"
-                        onClick={handleLogin}
-                    >
-                        Sign in with Google
-                    </button>
+                    <>
+                        <button
+                            className="px-6 py-2 rounded-lg  hover:bg-blue-700 text-white font-medium transition-colors"
+                            onClick={() => handleLogin("google")}
+                        >
+                            <Image src="/assets/icons/google.svg" alt="Google" width={50} height={50} />
+                            Sign in with Google
+                        </button>
+                        <button
+                            className="px-6 py-2 rounded-lg  hover:bg-blue-700 text-white font-medium transition-colors"
+                            onClick={() => handleLogin("discord")}
+                        >
+                            <Image src="/assets/icons/discord.svg" alt="Discord" width={50} height={50} />
+                            Sign in with Discord
+                        </button>
+                    </>
+
                 ) : (
                     <button
                         className="px-6 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 font-medium transition-colors"

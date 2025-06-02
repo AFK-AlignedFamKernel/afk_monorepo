@@ -71,6 +71,13 @@ input {
   text-wrap: nowrap;
 }
 
+select {
+  color: var(--contrast-900);
+  background-color: var(--contrast-500);
+  border: 1px solid var(--border);
+  text-wrap: nowrap;
+}
+
 // button {
 //   color: var(--contrast-900);
 //   background-color: var(--contrast-500);

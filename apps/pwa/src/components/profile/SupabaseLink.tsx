@@ -60,13 +60,20 @@ export const SupabaseLink: React.FC = () => {
         }
         // console.log('session', session);
       });
+      // const { data, error } = await supabase.auth.signInWithOAuth({
+      //   provider: platform,
+      //   options: {
+      //     // skipBrowserRedirect: true,
+      //     // redirectTo: `${window.location.origin}/auth/callback`
+      //   }
+      // });
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: platform,
-        // options: {
-        //   redirectTo: `${window.location.origin}/auth/callback`
-        // }
+        provider: "twitter",
+        options: {
+          // skipBrowserRedirect: true,
+          // redirectTo: `${window.location.origin}/auth/callback`
+        }
       });
-
 
 
 

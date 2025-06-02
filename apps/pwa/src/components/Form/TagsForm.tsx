@@ -27,7 +27,7 @@ export const TagsForm: React.FC<TagsFormProps> = ({
   const [tagsInput, setTagsInput] = useState<string[]>(tags || []);
 
   const tagsRendered = useMemo(() => {
-    const tags = tagsInput?.map((tag) => {
+    const uniqueTags = [...new Set([...tagsInput, ...tags || []])].map((tag) => {
       return tag
     })
     return tags?.filter((tag) => tag !== '')
