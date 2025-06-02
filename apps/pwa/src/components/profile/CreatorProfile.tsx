@@ -17,6 +17,7 @@ export const CreatorProfile: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'verifying' | 'verified' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
 
+  const [slugName, setSlugName] = useState('');
   const [contentCreator, setContentCreator] = useState()
   const [isFetchContentDone, setIsInitialFetchUser] = useState(false)
 
@@ -63,14 +64,24 @@ export const CreatorProfile: React.FC = () => {
       body: JSON.stringify({
         id: session?.user?.id,
         user_id: session?.user?.id,
-        proof_url: proofUrl
+        proof_url: proofUrl,
+        slug_name: slugName
       })
     })
   }
   return (
-    <div className="p-4 border rounded-lg dark:bg-contrast-100 shadow space-y-4">
-      <h3 className="text-xl font-semibold mb-2">Link Social Account</h3>
+    <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow space-y-4">
 
+      <div className='flex gap-2 flex-col'>
+        <input type="text" placeholder='Handle' value={handle} onChange={(e) => setHandle(e.target.value)} />
+        <input type="text" placeholder='Slug Name' value={slugName} onChange={(e) => setSlugName(e.target.value)} />
+      </div>
+      {status === 'verified' && (
+        <div className="alert alert-success mt-2">Account linked and verified!</div>
+      )}
+      {status === 'error' && error && (
+        <div className="alert alert-error mt-2">{error}</div>
+      )}
 
       <div className='flex gap-2 flex-col'>
 
@@ -82,12 +93,6 @@ export const CreatorProfile: React.FC = () => {
         </button>
         <button onClick={handleUpdateFromIdentity}>Verify</button>
       </div>
-      {status === 'verified' && (
-        <div className="alert alert-success mt-2">Account linked and verified!</div>
-      )}
-      {status === 'error' && error && (
-        <div className="alert alert-error mt-2">{error}</div>
-      )}
     </div>
   );
 };

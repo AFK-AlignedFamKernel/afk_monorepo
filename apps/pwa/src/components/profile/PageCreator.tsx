@@ -1,12 +1,29 @@
-import React from "react";
+"use client"
+import React, { useEffect, useState } from "react";
 import { ContentCreator } from "@/types";
 import Link from "next/link";
 
-interface CreatorCardProps {
-  creator: ContentCreator;
-}
 
-const CreatorCard: React.FC<CreatorCardProps> = ({ creator }) => {
+
+const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
+
+  const [creator, setCreator] = useState<ContentCreator | null>(null);
+
+  useEffect(() => {
+    const res = fetch(`/content-creator/view-profile?slug_name=${slug}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log("data", data)
+        setCreator(data);
+      });
+
+    console.log("res", res)
+  }, [slug]);
+
+  if (!creator) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="border rounded-lg p-4 shadow flex flex-col items-center dark:bg-contrast-100">
       {creator.avatar_url ? (
@@ -68,4 +85,4 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ creator }) => {
   );
 };
 
-export default CreatorCard; 
+export default PageCreator; 

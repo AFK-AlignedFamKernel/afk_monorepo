@@ -6,6 +6,39 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
   // List all social identities
 
 
+  fastify.get('/content-creator/view-profile', async (request: FastifyRequest, reply: FastifyReply) => {
+
+    try {
+      const { slug_name } = request.query as any;
+
+      if(!slug_name) {
+        return reply.code(400).send({ error: 'Slug name is required' });
+      }
+
+      console.log("slug_name", slug_name)
+
+      console.log("fetch content creators data")
+      const { data, error } = await supabaseAdmin
+        .from('content_creators')
+        .select('*')
+        .eq('slug_name', slug_name)
+        .single();  
+
+      console.log("fetch content creators data", data)
+      console.log("fetch content creators error", error)
+
+
+      if (error) {
+        return reply.code(500).send({ error: error.message });
+      }
+
+      return reply.code(200).send(data);  
+    } catch (error) {
+      console.log("error", error)
+      return reply.code(500).send({ error: error.message });
+    }
+  }); 
+
   fastify.get('/content-creator', async (request: FastifyRequest, reply: FastifyReply) => {
 
     console.log("fetch content creators")
@@ -106,8 +139,6 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
       const { id, slug_name } = request.body as any;
       console.log("request?.user?.identities", request?.user?.identities)
 
-
-
       const slugName  = slug_name?.replace(" ","-") ?? request?.user?.identities[0]?.identity_data?.full_name?.replace(" ","-") ?? "Anonymous"
       const identities = request?.user?.identities.map((identity: any) => {
         return {
@@ -130,6 +161,8 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
       })
 
 
+      console.log("slugName", slugName)
+
       const { data: isExistsSlug, error: isExistsSlugError } = await supabaseAdmin
         .from('content_creators')
         .select('*')
@@ -137,8 +170,6 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         .single();
 
       console.log("isExistsSlug", isExistsSlug)
-
-
 
       const { data: isExists, error: isExistsError } = await supabaseAdmin
         .from('content_creators')

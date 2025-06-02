@@ -97,7 +97,7 @@ export const AllCreators: React.FC = () => {
         {creators && creators?.length > 0 && creators
           // .filter((creator: ContentCreator) => creator.owner_id && creator.is_verified)
           .map((creator: ContentCreator) => (
-            <CreatorCard key={creator.id} creator={creator} />
+            <CreatorCard key={`${creator.id}-${creator.owner_id}`} creator={creator} />
           ))}
       </div>
     </div>
