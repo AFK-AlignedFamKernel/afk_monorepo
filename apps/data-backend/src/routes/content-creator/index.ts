@@ -7,10 +7,10 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
 
 
   fastify.get('/content-creator/view-profile', async (request: FastifyRequest, reply: FastifyReply) => {
-
     try {
       const { slug_name } = request.query as any;
 
+      console.log("request", request)
       if(!slug_name) {
         return reply.code(400).send({ error: 'Slug name is required' });
       }
@@ -136,21 +136,26 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
 
 
 
-      const { id, slug_name } = request.body as any;
+      const { id, slug_name, avatar_url } = request.body as any;
       console.log("request?.user?.identities", request?.user?.identities)
 
       const slugName  = slug_name?.replace(" ","-") ?? request?.user?.identities[0]?.identity_data?.full_name?.replace(" ","-") ?? "Anonymous"
+
+      if(!slugName) {
+        return reply.code(400).send({ error: 'Slug name is required' });
+      }
+
       const identities = request?.user?.identities.map((identity: any) => {
         return {
           slug_name: slugName,
-          provider: identity?.identity_data?.provider,
+          provider: identity?.provider ?? identity?.identity_data?.provider,
           name: identity?.identity_data?.full_name,
           full_name: identity?.identity_data?.full_name,
           email_verified: identity?.identity_data?.email_verified,
           user_name: identity?.identity_data?.user_name,
-          avatar_url: identity?.identity_data?.avatar_url,
+          avatar_url: avatar_url ?? identity?.identity_data?.avatar_url,
           identity_data: {
-            provider: identity?.identity_data?.provider,
+            provider: identity?.provider ?? identity?.identity_data?.provider,
             name: identity?.identity_data?.full_name,
             full_name: identity?.identity_data?.full_name,
             email_verified: identity?.identity_data?.email_verified,
@@ -184,6 +189,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         const { data, error } = await supabaseAdmin
           .from('content_creators')
           .update({
+            avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
             name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             owner_id: request?.user?.id,
@@ -209,6 +215,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         const { data, error } = await supabaseAdmin
           .from('content_creators')
           .update({
+            avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
             name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             owner_id: request?.user?.id,
@@ -236,6 +243,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         const { data, error } = await supabaseAdmin
           .from('content_creators')
           .upsert({
+            avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
             name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             owner_id: request?.user?.id,
@@ -271,6 +279,163 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
     }
   });
 
+
+  // Link/claim a social identity (link to user)
+  fastify.post('/content-creator/update/verify_identity', { preHandler: supabaseAuthMiddleware }, async (request: FastifyRequest, reply: FastifyReply) => {
+
+    try {
+
+      if (!request.user) {
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
+      if (!request?.user?.identities?.length) {
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
+
+
+
+      const { id, slug_name, avatar_url } = request.body as any;
+      console.log("request?.user?.identities", request?.user?.identities)
+
+      const slugName  = slug_name?.replace(" ","-") ?? request?.user?.identities[0]?.identity_data?.full_name?.replace(" ","-") ?? "Anonymous"
+
+      if(!slugName) {
+        return reply.code(400).send({ error: 'Slug name is required' });
+      }
+
+      const identities = request?.user?.identities.map((identity: any) => {
+        return {
+          slug_name: slugName,
+          provider: identity?.provider ?? identity?.identity_data?.provider,
+          name: identity?.identity_data?.full_name,
+          full_name: identity?.identity_data?.full_name,
+          email_verified: identity?.identity_data?.email_verified,
+          user_name: identity?.identity_data?.user_name,
+          avatar_url: avatar_url ?? identity?.identity_data?.avatar_url,
+          identity_data: {
+            provider: identity?.provider ?? identity?.identity_data?.provider,
+            name: identity?.identity_data?.full_name,
+            full_name: identity?.identity_data?.full_name,
+            email_verified: identity?.identity_data?.email_verified,
+            user_name: identity?.identity_data?.user_name,
+            avatar_url: identity?.identity_data?.avatar_url,
+          }
+        }
+      })
+
+
+      console.log("slugName", slugName)
+
+      const { data: isExistsSlug, error: isExistsSlugError } = await supabaseAdmin
+        .from('content_creators')
+        .select('*')
+        .eq('slug_name', slugName)
+        .single();
+
+      console.log("isExistsSlug", isExistsSlug)
+
+      const { data: isExists, error: isExistsError } = await supabaseAdmin
+        .from('content_creators')
+        .select('*')
+        .eq('owner_id', request?.user?.id)
+        .single();
+
+      console.log("isExists", isExists)
+
+
+      if (isExistsSlug) {
+        const { data, error } = await supabaseAdmin
+          .from('content_creators')
+          .update({
+            avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
+            name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
+            slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
+            owner_id: request?.user?.id,
+            // metadata: {
+            // },
+            identities: {
+              ...identities,
+            },
+            social_links: {
+              ...identities,
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('owner_id', request?.user?.id)
+          .select()
+          .single();
+
+        console.log("data", data)
+        console.log("error", error)
+      }
+
+      else if (isExists) {
+        const { data, error } = await supabaseAdmin
+          .from('content_creators')
+          .update({
+            avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
+            name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
+            slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
+            owner_id: request?.user?.id,
+            // metadata: {
+            // },
+            identities: {
+              ...identities,
+            },
+            social_links: {
+              ...identities,
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('owner_id', request?.user?.id)
+          .select()
+          .single();
+
+        console.log("data", data)
+        console.log("error", error)
+        return reply.code(200).send({ isSuccess: true });
+      }
+
+
+      if (!isExists) {
+        const { data, error } = await supabaseAdmin
+          .from('content_creators')
+          .upsert({
+            avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
+            name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
+            slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
+            owner_id: request?.user?.id,
+            // metadata: {
+            // },
+            identities: {
+              ...identities,
+            },
+            social_links: {
+              ...identities,
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('owner_id', request?.user?.id)
+          .select()
+          .single();
+
+        console.log("data", data)
+        console.log("error", error)
+        if (error) {
+          return reply.code(500).send({ error: error.message });
+        }
+
+        if (!data) {
+          return reply.code(404).send({ error: 'Identity not found' });
+        }
+      }
+
+      reply.send({ isSuccess: true });
+    } catch (error) {
+      console.log("error", error)
+      return reply.code(500).send({ error: error.message });
+    }
+  });
   // Link/claim a social identity (link to user)
   fastify.post('/content-creator/claim', { preHandler: supabaseAuthMiddleware }, async (request: FastifyRequest, reply: FastifyReply) => {
 

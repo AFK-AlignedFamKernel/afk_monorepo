@@ -8,7 +8,7 @@ export default function ProfileAfk() {
         <div className="bg-contrast-100 p-6 rounded-lg shadow-lg">
           <h2 className="text-2xl font-semibold mb-4">Decentralized Identities</h2>
           <div
-           className="space-y-4">
+            className="space-y-4">
             <Link href="/nostr/my-profile" className="btn btn-gradient-blue w-full flex items-center justify-between">
               <div>
                 <p className="font-semibold">Nostr Profile</p>
@@ -43,15 +43,7 @@ export default function ProfileAfk() {
           <h2 className="text-2xl font-semibold mb-4">Connected Accounts</h2>
           <div className="space-y-4">
 
-            <Link href="/brand" className="btn btn-gradient-blue w-full flex items-center justify-between">
-              <div>
-                <p className="font-semibold">Brand Profile</p>
-                <p className="text-sm opacity-80">Manage your brand identity</p>
-              </div>
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+
 
 
             <Link href="/content-creator" className="btn btn-gradient-green w-full flex items-center justify-between">
@@ -63,6 +55,16 @@ export default function ProfileAfk() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </Link>
+
+            {/* <Link href="/brand" className="btn btn-gradient-blue w-full flex items-center justify-between">
+              <div>
+                <p className="font-semibold">Brand Profile</p>
+                <p className="text-sm opacity-80">Manage your brand identity</p>
+              </div>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link> */}
 
             <div className="p-4 border border-contrast-200 rounded-lg">
               <p className="text-lg font-medium mb-2">Social Connections</p>

@@ -58,12 +58,20 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ creator }) => {
         </div>
       )}
 
+      {creator.slug_name && (
+        <>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">{creator.slug_name}</p>
 
-      <Link href={`/content-creator/profile/${creator.slug_name}`}>
-        <button className="bg-blue-500 text-white p-2 rounded-md">
-          View Profile
-        </button>
-      </Link>
+          <Link href={`/content-creator/profile/${creator.slug_name}`}>
+            <button className="bg-blue-500 text-white p-2 rounded-md">
+              View Profile
+            </button>
+          </Link>
+        </>
+      )}
+
+
+
     </div>
   );
 };

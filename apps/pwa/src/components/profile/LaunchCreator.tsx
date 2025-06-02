@@ -4,23 +4,16 @@ import { ContentCreator } from "@/types";
 import Link from "next/link";
 
 
+interface LaunchCreatorProps {
+  slug: string;
+  creator: ContentCreator;
+  onLaunch: () => void;
+}
 
-const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
-
-  const [creator, setCreator] = useState<ContentCreator | null>(null);
+const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }) => {
 
   const [activeTab, setActiveTab] = useState<"token_address" | "social_links" | "analytics" | "reputation">("token_address");
 
-  useEffect(() => {
-    const res = fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/content-creator/view-profile?slug_name=${slug}`)
-      .then(res => res.json())
-      .then(data => {
-        console.log("data", data)
-        setCreator(data);
-      });
-
-    console.log("res", res)
-  }, [slug]);
 
   if (!creator) {
     return <div>Loading...</div>;
@@ -222,4 +215,4 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
   );
 };
 
-export default PageCreator; 
+export default LaunchCreator; 
