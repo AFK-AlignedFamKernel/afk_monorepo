@@ -1,5 +1,5 @@
 import LinkAccount from "@/components/ContentCreator/profile/LinkAccount";
-import CreatorProfile from "@/components/profile/CreatorProfile";
+import ManageCreatorProfile from "@/components/profile/ManageCreatorProfile";
 import SupabaseLink from "@/components/profile/SupabaseLink";
 import Accordion from "@/components/small/accordion";
 
@@ -8,7 +8,7 @@ export default function MyProfileContentCreator() {
         <div>
             <h1>My Profile</h1>
             <SupabaseLink />
-            <CreatorProfile />
+            <ManageCreatorProfile    />
             <Accordion items={[{
                 title: "Link Account",
                 content: <LinkAccount />

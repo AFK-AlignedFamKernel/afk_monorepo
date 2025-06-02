@@ -57,9 +57,8 @@ export const CreatorProfile: React.FC = () => {
   }, [isFetchContentDone, user])
 
 
-  const handleUpdateFromIdentity = async () => {
-
-    fetchWithAuth("/content-creator/verify_identity", {
+  const handleVerifyFromIdentity = async () => {
+    const res = await fetchWithAuth("/content-creator/verify_identity", {
       method: 'POST',
       body: JSON.stringify({
         id: session?.user?.id,
@@ -68,6 +67,30 @@ export const CreatorProfile: React.FC = () => {
         slug_name: slugName
       })
     })
+    if (res) {
+      showToast({
+        type: "success",
+        message: "Account linked and verified!"
+      })
+    }
+  }
+
+  const handleUpdateFromIdentity = async () => {
+    const res = await fetchWithAuth("/content-creator/update/verify_identity", {
+      method: 'POST',
+      body: JSON.stringify({
+        id: session?.user?.id,
+        user_id: session?.user?.id,
+        proof_url: proofUrl,
+        slug_name: slugName
+      })
+    })
+    if (res) {
+      showToast({
+        type: "success",
+        message: "Account linked and verified!"
+      })
+    }
   }
   return (
     <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow space-y-4">
@@ -91,7 +114,12 @@ export const CreatorProfile: React.FC = () => {
         }}>
           Refresh page
         </button>
-        <button onClick={handleUpdateFromIdentity}>Verify</button>
+        <button onClick={handleUpdateFromIdentity}>Update</button>
+
+
+        <p>Verify your Oauth connected account</p>
+        <button onClick={handleVerifyFromIdentity}>Verify</button>
+
       </div>
     </div>
   );

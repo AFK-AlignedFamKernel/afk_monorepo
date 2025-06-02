@@ -7,7 +7,6 @@ import { Provider } from '@supabase/supabase-js';
 import { api, fetchWithAuth } from '@/lib/api';
 
 
-
 export const ManageCreatorProfile: React.FC = () => {
   const { user, session } = useAppStore();
   const { showToast } = useUIStore();
@@ -20,8 +19,6 @@ export const ManageCreatorProfile: React.FC = () => {
   const [slugName, setSlugName] = useState('');
   const [contentCreator, setContentCreator] = useState()
   const [isFetchContentDone, setIsInitialFetchUser] = useState(false)
-
-  const [tokenAddress, setTokenAddress] = useState('');
 
   const fetchMyContentCreatorProfile = async () => {
 
@@ -59,9 +56,8 @@ export const ManageCreatorProfile: React.FC = () => {
   }, [isFetchContentDone, user])
 
 
-  const handleUpdateFromIdentity = async () => {
-
-    fetchWithAuth("/content-creator/update/verify_identity", {
+  const handleVerifyFromIdentity = async () => {
+    const res = await fetchWithAuth("/content-creator/verify_identity", {
       method: 'POST',
       body: JSON.stringify({
         id: session?.user?.id,
@@ -70,6 +66,30 @@ export const ManageCreatorProfile: React.FC = () => {
         slug_name: slugName
       })
     })
+    if (res) {
+      showToast({
+        type: "success",
+        message: "Account linked and verified!"
+      })
+    }
+  }
+
+  const handleUpdateFromIdentity = async () => {
+    const res = await fetchWithAuth("/content-creator/update/verify_identity", {
+      method: 'POST',
+      body: JSON.stringify({
+        id: session?.user?.id,
+        user_id: session?.user?.id,
+        proof_url: proofUrl,
+        slug_name: slugName
+      })
+    })
+    if (res) {
+      showToast({
+        type: "success",
+        message: "Account linked and verified!"
+      })
+    }
   }
   return (
     <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow space-y-4">
@@ -77,11 +97,6 @@ export const ManageCreatorProfile: React.FC = () => {
       <div className='flex gap-2 flex-col'>
         <input type="text" placeholder='Handle' value={handle} onChange={(e) => setHandle(e.target.value)} />
         <input type="text" placeholder='Slug Name' value={slugName} onChange={(e) => setSlugName(e.target.value)} />
-      </div>
-
-
-      <div>
-          
       </div>
       {status === 'verified' && (
         <div className="alert alert-success mt-2">Account linked and verified!</div>
@@ -92,12 +107,18 @@ export const ManageCreatorProfile: React.FC = () => {
 
       <div className='flex gap-2 flex-col'>
 
+
         <button onClick={() => {
           fetchMyContentCreatorProfile()
         }}>
           Refresh page
         </button>
         <button onClick={handleUpdateFromIdentity}>Update</button>
+
+
+        <p>Verify your Oauth connected account</p>
+        <button onClick={handleVerifyFromIdentity}>Verify</button>
+
       </div>
     </div>
   );
