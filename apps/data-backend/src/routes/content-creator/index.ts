@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { supabaseAdmin } from '../services/supabase';
-import { supabaseAuthMiddleware } from '../middleware/supabase-auth';
+import { supabaseAdmin } from '../../services/supabase';
+import { supabaseAuthMiddleware } from '../../middleware/supabase-auth';
 
-export default async function socialIdentityRoutes(fastify: FastifyInstance) {
+export default async function contentCreatorRoutes(fastify: FastifyInstance) {
   // List all social identities
-  fastify.get('/social-identity', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/content-creator', async (request: FastifyRequest, reply: FastifyReply) => {
     const { data, error } = await supabaseAdmin
       .from('social_identities')
       .select('*');
@@ -17,7 +17,7 @@ export default async function socialIdentityRoutes(fastify: FastifyInstance) {
   });
 
   // Create a new social identity (scraped, not linked to owner)
-  fastify.post('/social-identity', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/content-creator', async (request: FastifyRequest, reply: FastifyReply) => {
     const { platform, handle, metadata } = request.body as any;
 
     const { data, error } = await supabaseAdmin
@@ -40,7 +40,7 @@ export default async function socialIdentityRoutes(fastify: FastifyInstance) {
   });
 
   // Link/claim a social identity (link to user)
-  fastify.post('/social-identity/verify_identity', { preHandler: supabaseAuthMiddleware }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/content-creator/verify_identity', { preHandler: supabaseAuthMiddleware }, async (request: FastifyRequest, reply: FastifyReply) => {
 
     if (!request.user) {
       return reply.status(401).send({ error: 'Unauthorized' });
@@ -50,7 +50,6 @@ export default async function socialIdentityRoutes(fastify: FastifyInstance) {
     if (!request?.user?.identities?.length) {
       return reply.status(401).send({ error: 'Unauthorized' });
     }
-
 
     const { data, error } = await supabaseAdmin
       .from('content_creators')
@@ -79,7 +78,7 @@ export default async function socialIdentityRoutes(fastify: FastifyInstance) {
   });
 
   // Link/claim a social identity (link to user)
-  fastify.post('/social-identity/claim', { preHandler: supabaseAuthMiddleware }, async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.post('/content-creator/claim', { preHandler: supabaseAuthMiddleware }, async (request: FastifyRequest, reply: FastifyReply) => {
 
     if (!request.user) {
       return reply.status(401).send({ error: 'Unauthorized' });

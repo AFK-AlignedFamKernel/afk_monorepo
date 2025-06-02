@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { useUIStore } from "@/store/uiStore";
 import { useAppStore } from "@/store/app";
 import { Provider } from '@supabase/supabase-js';
+import { fetchWithAuth } from '@/lib/api';
 
 const PLATFORMS = [
   { label: 'Twitter (OAuth or Proof)', value: 'twitter', oauth: true, proof: true },
@@ -42,14 +43,33 @@ export const SupabaseLink: React.FC = () => {
     }
 
     try {
+      console.log('platform', platform);
+      supabase.auth.onAuthStateChange((event, session) => {
+        console.log('event', event);
+        if(event == "USER_UPDATED") {
+          fetchWithAuth('/content-creator/verify_identity', {
+            method: 'POST',
+            body: JSON.stringify({
+              id: session?.user?.id,
+              user_id: session?.user?.id,
+              proof_url: proofUrl
+            })
+          })
+
+        }
+        // console.log('session', session);
+      });
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: platform,
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
+        // options: {
+        //   redirectTo: `${window.location.origin}/auth/callback`
+        // }
       });
 
-      if (error) throw error;
+
+
+
+      // if (error) throw error;
 
       showToast({
         message: "Successfully linked account",

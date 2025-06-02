@@ -1,3 +1,4 @@
+import { UserIdentity } from '@supabase/supabase-js';
 import { Signature, TypedData } from 'starknet';
 
 export interface UserJwtPayload {
@@ -7,6 +8,7 @@ export interface UserJwtPayload {
   role?: string;
   iat?: number;
   exp?: number;
+  identities?: UserIdentity[];
 }
 
 export interface SignatureVerificationRequest {

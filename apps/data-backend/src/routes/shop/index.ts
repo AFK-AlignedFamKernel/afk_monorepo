@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import fastify, { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { UserJwtPayload } from '../../types';
 import { supabaseAuthMiddleware } from '../../middleware/supabase-auth';
@@ -8,6 +8,23 @@ const shopSchema = z.object({
     name: z.string().min(1),
     description: z.string().optional(),
     slug_name: z.string().min(1),
+    metadata: z.object({
+        logo: z.string().optional(),
+        banner: z.string().optional(),
+        description: z.string().optional(),
+        website: z.string().optional(),
+        social_links: z.array(z.object({
+            platform: z.string(),
+            url: z.string(),
+        })).optional(),
+    }).optional(),
+    owner_id: z.string().optional(),
+    created_at: z.string().optional(),
+    updated_at: z.string().optional(),
+    starknet_address: z.string().optional(),
+    evm_address: z.string().optional(),
+    btc_address: z.string().optional(),
+    is_active: z.boolean().optional(),
 });
 
 export default async function shopRoutes(fastify: FastifyInstance) {

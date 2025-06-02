@@ -23,6 +23,7 @@ import uploadFile from './routes/upload/upload-file';
 import mainInfoFiRoute from './routes/indexer/infofi/infofi-main-contract';
 import shopRoutes from './routes/shop';
 import socialIdentityRoutes from './routes/socialIdentity';
+import contentCreatorRoutes from './routes/content-creator';
 // import daoServiceRoute from './routes/indexer/dao';
 // import subScoreFactoryRoute from './routes/indexer/infofi/score-factory.routes';
 // import getOtp from "./routes/otp/getOtp";
@@ -60,6 +61,7 @@ function declareRoutes(
 
   // Register social identity routes
   fastify.register(socialIdentityRoutes);
+  fastify.register(contentCreatorRoutes);
 
   // fastify.register(profileRoutes, { prefix: '/api' });
 
