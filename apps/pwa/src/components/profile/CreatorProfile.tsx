@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useUIStore } from "@/store/uiStore";
 import { useAppStore } from "@/store/app";
 import { Provider } from '@supabase/supabase-js';
-import { fetchWithAuth } from '@/lib/api';
+import { api, fetchWithAuth } from '@/lib/api';
 
 
 
@@ -22,10 +22,6 @@ export const CreatorProfile: React.FC = () => {
 
   const fetchMyContentCreatorProfile = async () => {
 
-    if (!isFetchContentDone) {
-      return;
-    }
-
     try {
       if (!user) {
         showToast({
@@ -33,10 +29,17 @@ export const CreatorProfile: React.FC = () => {
           message: "Connect you"
         })
       }
-      const res = fetchWithAuth("/content-creator/my-profile", {
-        method: 'GET',
 
-      })
+      const res = await api.content_creator.my_profile()
+      // const res = await fetchWithAuth("/content-creator/my-profile", {
+      //   method: 'GET',
+      //   // body: JSON.stringify({
+      //   //   id: session?.user?.id,
+      //   //   user_id: session?.user?.id,
+      //   //   proof_url: proofUrl
+      //   // })
+
+      // })
       console.log("res", res)
       setIsInitialFetchUser(true)
     } catch (error) {
@@ -69,8 +72,14 @@ export const CreatorProfile: React.FC = () => {
       <h3 className="text-xl font-semibold mb-2">Link Social Account</h3>
 
 
-      <div>
+      <div className='flex gap-2 flex-col'>
 
+
+        <button onClick={() => {
+          fetchMyContentCreatorProfile()
+        }}>
+          Refresh page
+        </button>
         <button onClick={handleUpdateFromIdentity}>Verify</button>
       </div>
       {status === 'verified' && (

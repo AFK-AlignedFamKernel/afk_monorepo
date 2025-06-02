@@ -7,7 +7,8 @@ export default function ProfileAfk() {
       <div className="grid md:grid-cols-2 gap-8">
         <div className="bg-contrast-100 p-6 rounded-lg shadow-lg">
           <h2 className="text-2xl font-semibold mb-4">Decentralized Identities</h2>
-          <div className="space-y-4">
+          <div
+           className="space-y-4">
             <Link href="/nostr/my-profile" className="btn btn-gradient-blue w-full flex items-center justify-between">
               <div>
                 <p className="font-semibold">Nostr Profile</p>

@@ -37,18 +37,26 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 
         if (!response.ok) {
             const errorData = await response.json();
+            console.log("errorData", errorData)
+            // return errorData
             throw new Error(errorData.error || `API error: ${response.statusText}`);
         }
 
         return response.json();
     } catch (error) {
         console.error('API request failed:', error);
+        return {
+            error: error
+        }
         throw error;
     }
 }
 
 // Example API methods
 export const api = {
+    content_creator: {
+        my_profile: () => fetchWithAuth('/content-creator/my-profile'),
+    },
     // Shop endpoints
     shops: {
         getAll: () => fetchWithAuth('/shops'),

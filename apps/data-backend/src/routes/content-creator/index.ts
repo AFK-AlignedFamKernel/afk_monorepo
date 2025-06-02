@@ -22,16 +22,14 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
   }, async (request: FastifyRequest, reply: FastifyReply) => {
 
     try {
+      console.log("request?.user", request?.user)
 
       if (!request.user) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
-      const { id, user_id, proof_url } = request.body as any;
-
       if (!request?.user?.identities?.length) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
-
 
       console.log("request?.user?.id", request?.user?.id)
       const { data, error } = await supabaseAdmin
