@@ -31,7 +31,8 @@ export async function supabaseAuthMiddleware(request: FastifyRequest, reply: Fas
             userAddress: user.user_metadata?.address || '',
             email: user.email || '',
             role: user.role || 'user',
-            identities: user.identities || []
+            identities: user.identities || [],
+            // ...user
         };
 
         // Add session to request for additional security checks if needed

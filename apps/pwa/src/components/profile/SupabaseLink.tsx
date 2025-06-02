@@ -1,3 +1,4 @@
+"use client"
 import React, { useState } from 'react';
 import { supabase } from "@/lib/supabase";
 import { useUIStore } from "@/store/uiStore";

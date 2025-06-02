@@ -5,6 +5,7 @@ import { Oauth } from '../profile/Oauth';
 import { useAppStore } from '@/store/app';
 import SocialAccountLinker from '../profile/SocialAccountLinker';
 import SupabaseLink from '../profile/SupabaseLink';
+import CreatorProfile from '../profile/CreatorProfile';
 
 export default function Brand() {
   const router = useRouter();
@@ -19,7 +20,9 @@ export default function Brand() {
           {user && session &&
             <>
               <SupabaseLink />
-              <SocialAccountLinker />
+
+              <CreatorProfile />
+              {/* <SocialAccountLinker /> */}
             </>
           }
         </div>
