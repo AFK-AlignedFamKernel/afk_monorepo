@@ -56,6 +56,9 @@ export async function fetchWithAuth(endpoint: string, options: RequestInit = {})
 export const api = {
     content_creator: {
         my_profile: () => fetchWithAuth('/content-creator/my-profile'),
+        list: () => fetchWithAuth('/content-creator', {
+            method: 'GET',
+        }),
     },
     // Shop endpoints
     shops: {
