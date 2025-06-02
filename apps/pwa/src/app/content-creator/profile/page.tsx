@@ -1,18 +1,10 @@
-import LinkAccount from "@/components/ContentCreator/profile/LinkAccount";
 import ManageCreatorProfile from "@/components/profile/ManageCreatorProfile";
-import SupabaseLink from "@/components/profile/SupabaseLink";
-import Accordion from "@/components/small/accordion";
 
 export default function MyProfileContentCreator() {
     return (
-        <div>
-            <h1>My Creator Profile</h1>
-            <SupabaseLink />
+        <div className="shadow space-y-4">
+            <h1 className="text-2xl font-bold m-2 text-center">My Creator Profile</h1>
             <ManageCreatorProfile />
-            <Accordion items={[{
-                title: "Link Account",
-                content: <LinkAccount />
-            }]} />
         </div>
     )
 }   

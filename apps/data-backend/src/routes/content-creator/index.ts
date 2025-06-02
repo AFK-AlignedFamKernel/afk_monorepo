@@ -122,7 +122,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
   });
 
 
-  // Link/claim a social identity (link to user)
+  //  Verify content creator identity using supabase identites and Oauth middleware
   fastify.post('/content-creator/verify_identity', { preHandler: supabaseAuthMiddleware }, async (request: FastifyRequest, reply: FastifyReply) => {
 
     try {
@@ -134,11 +134,11 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
 
+      const { id, slug_name, avatar_url, topics } = request.body as any;
+      console.log("topics", topics)
 
-
-      const { id, slug_name, avatar_url } = request.body as any;
       console.log("request?.user?.identities", request?.user?.identities)
-
+      console.log("topics", topics)
       const slugName  = slug_name?.replace(" ","-") ?? request?.user?.identities[0]?.identity_data?.full_name?.replace(" ","-") ?? "Anonymous"
 
       if(!slugName) {
@@ -189,6 +189,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         const { data, error } = await supabaseAdmin
           .from('content_creators')
           .update({
+            topics: topics,
             avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
             name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
@@ -215,6 +216,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         const { data, error } = await supabaseAdmin
           .from('content_creators')
           .update({
+            topics: topics,
             avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
             name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
@@ -243,6 +245,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         const { data, error } = await supabaseAdmin
           .from('content_creators')
           .upsert({
+            topics: topics,
             avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
             name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
@@ -280,7 +283,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
   });
 
 
-  // Link/claim a social identity (link to user)
+  // Update content creator profile
   fastify.post('/content-creator/update/verify_identity', { preHandler: supabaseAuthMiddleware }, async (request: FastifyRequest, reply: FastifyReply) => {
 
     try {
@@ -292,9 +295,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
 
-
-
-      const { id, slug_name, avatar_url } = request.body as any;
+      const { id, slug_name, avatar_url, topics } = request.body as any;
       console.log("request?.user?.identities", request?.user?.identities)
 
       const slugName  = slug_name?.replace(" ","-") ?? request?.user?.identities[0]?.identity_data?.full_name?.replace(" ","-") ?? "Anonymous"
@@ -319,7 +320,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
             email_verified: identity?.identity_data?.email_verified,
             user_name: identity?.identity_data?.user_name,
             avatar_url: identity?.identity_data?.avatar_url,
-          }
+          },
         }
       })
 
@@ -347,6 +348,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         const { data, error } = await supabaseAdmin
           .from('content_creators')
           .update({
+            topics: topics,
             avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
             name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
@@ -373,6 +375,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         const { data, error } = await supabaseAdmin
           .from('content_creators')
           .update({
+            topics: topics,
             avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
             name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
@@ -401,6 +404,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         const { data, error } = await supabaseAdmin
           .from('content_creators')
           .upsert({
+            topics: topics,
             avatar_url: avatar_url ?? request?.user?.identities[0]?.identity_data?.avatar_url,
             name: request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",
             slug_name: slugName ?? request?.user?.identities[0]?.identity_data?.full_name ?? "Anonymous",

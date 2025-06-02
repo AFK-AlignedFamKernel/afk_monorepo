@@ -11,18 +11,18 @@ export enum GiftType {
 export type SocialPlatform = 'twitter' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok' | 'youtube' | 'discord' | 'telegram';
 
 export interface ContentCreator {
-  id: string;
+  id?: string;
   name: string;
   description?: string;
   slug_name: string;
   metadata?: Record<string, any>;
   owner_id: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
   starknet_address?: string;
   evm_address?: string;
   btc_address?: string;
-  is_active: boolean;
+  is_active?: boolean;
   identities?: Record<string, any>;
   token_address?: string;
   nft_address?: string;

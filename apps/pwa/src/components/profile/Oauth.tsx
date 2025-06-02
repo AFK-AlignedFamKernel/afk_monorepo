@@ -81,7 +81,7 @@ export const Oauth = () => {
                             >
                                 <div className="flex items-center space-x-3">
                                     <span className="capitalize font-medium">{identity.provider}</span>
-                                    <span className="text-sm text-gray-600">{identity?.identity_data?.email}</span>
+                                    <span className="text-sm text-gray-600">{identity?.identity_data?.full_name}</span>
                                 </div>
                             </div>
                         ))}
