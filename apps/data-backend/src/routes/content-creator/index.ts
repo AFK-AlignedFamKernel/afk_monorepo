@@ -326,6 +326,8 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
       }
       console.log("body", res?.data)
 
+      console.log("request?.user?.identities", request?.user?.identities)
+
       const identities = request?.user?.identities.map((identity: any) => {
         return {
           slug_name: slugName,

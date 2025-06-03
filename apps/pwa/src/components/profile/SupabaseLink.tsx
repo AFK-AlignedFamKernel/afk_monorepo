@@ -157,28 +157,28 @@ export const SupabaseLink: React.FC = () => {
 
       }
 
-      // const { data, error } = await supabase.auth.linkIdentity({
-      //   provider: platform,
-      //   // options: {
-      //   //   // skipBrowserRedirect: true,
-      //   //   // redirectTo: `${window.location.origin}/auth/callback`
-      //   // }
-      // });
-      // console.log('data', data);
-      // console.log('error', error);
+      const { data, error } = await supabase.auth.linkIdentity({
+        provider: platform,
+        // options: {
+        //   // skipBrowserRedirect: true,
+        //   // redirectTo: `${window.location.origin}/auth/callback`
+        // }
+      });
+      console.log('data', data);
+      console.log('error', error);
 
-      // if (data) {
-      //   console.log('data', data);
-      //   // if (error) throw error;
+      if (data) {
+        console.log('data', data);
+        // if (error) throw error;
 
-      //   showToast({
-      //     message: "Successfully linked account",
-      //     type: "success"
-      //   });
-      //   setStatus('verified');
-      // }
+        showToast({
+          message: "Successfully linked account",
+          type: "success"
+        });
+        setStatus('verified');
+      }
 
-      setStatus('verified');
+      setStatus("idle");
 
 
 

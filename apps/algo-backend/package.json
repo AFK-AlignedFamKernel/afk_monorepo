@@ -64,6 +64,7 @@
     "nodemailer": "^6.9.16",
     "nostr-tools": "2.12.0",
     "pg": "^8.13.1",
+    "@supabase/supabase-js": "^2.49.8",
     "pg-promise": "^11.10.1",
     "prisma-db": "workspace:*",
     "puppeteer": "^24.8.2",
