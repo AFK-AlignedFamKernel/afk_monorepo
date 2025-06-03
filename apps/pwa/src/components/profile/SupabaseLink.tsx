@@ -45,21 +45,21 @@ export const SupabaseLink: React.FC = () => {
 
     try {
       console.log('platform', platform);
-      supabase.auth.onAuthStateChange((event, session) => {
-        console.log('event', event);
-        if(event == "USER_UPDATED") {
-          fetchWithAuth('/content-creator/verify_identity', {
-            method: 'POST',
-            body: JSON.stringify({
-              id: session?.user?.id,
-              user_id: session?.user?.id,
-              proof_url: proofUrl
-            })
-          })
+      // supabase.auth.onAuthStateChange((event, session) => {
+      //   console.log('event', event);
+      //   if(event == "USER_UPDATED") {
+      //     fetchWithAuth('/content-creator/verify_identity', {
+      //       method: 'POST',
+      //       body: JSON.stringify({
+      //         id: session?.user?.id,
+      //         user_id: session?.user?.id,
+      //         proof_url: proofUrl
+      //       })
+      //     })
 
-        }
-        // console.log('session', session);
-      });
+      //   }
+      //   // console.log('session', session);
+      // });
       // const { data, error } = await supabase.auth.signInWithOAuth({
       //   provider: platform,
       //   options: {
@@ -67,23 +67,37 @@ export const SupabaseLink: React.FC = () => {
       //     // redirectTo: `${window.location.origin}/auth/callback`
       //   }
       // });
+
+      if (platform == "twitter") {
+
+      } else {
+
+      }
+
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "twitter",
-        options: {
-          // skipBrowserRedirect: true,
-          // redirectTo: `${window.location.origin}/auth/callback`
-        }
+        provider: platform,
+        // options: {
+        //   // skipBrowserRedirect: true,
+        //   // redirectTo: `${window.location.origin}/auth/callback`
+        // }
       });
+      console.log('data', data);
+      console.log('error', error);
+
+      if (data) {
+        console.log('data', data);
+        // if (error) throw error;
+
+        showToast({
+          message: "Successfully linked account",
+          type: "success"
+        });
+        setStatus('verified');
+      }
 
 
 
-      // if (error) throw error;
 
-      showToast({
-        message: "Successfully linked account",
-        type: "success"
-      });
-      setStatus('verified');
     } catch (err) {
       setStatus('error');
       setError(err.message);
@@ -94,6 +108,90 @@ export const SupabaseLink: React.FC = () => {
     }
   };
 
+  const handleLinkIdentity = async () => {
+    if (!user) {
+      showToast({
+        message: "Please sign in first",
+        type: "error"
+      });
+      return;
+    }
+
+    setStatus('verifying');
+    setError(null);
+
+    if (!platform) {
+      setStatus('error');
+      setError('Platform is required.');
+      return;
+    }
+
+    try {
+      console.log('platform', platform);
+      // supabase.auth.onAuthStateChange((event, session) => {
+      //   console.log('event', event);
+      //   if(event == "USER_UPDATED") {
+      //     fetchWithAuth('/content-creator/verify_identity', {
+      //       method: 'POST',
+      //       body: JSON.stringify({
+      //         id: session?.user?.id,
+      //         user_id: session?.user?.id,
+      //         proof_url: proofUrl
+      //       })
+      //     })
+
+      //   }
+      //   // console.log('session', session);
+      // });
+      // const { data, error } = await supabase.auth.signInWithOAuth({
+      //   provider: platform,
+      //   options: {
+      //     // skipBrowserRedirect: true,
+      //     // redirectTo: `${window.location.origin}/auth/callback`
+      //   }
+      // });
+
+      if (platform == "twitter") {
+
+      } else {
+
+      }
+
+      // const { data, error } = await supabase.auth.linkIdentity({
+      //   provider: platform,
+      //   // options: {
+      //   //   // skipBrowserRedirect: true,
+      //   //   // redirectTo: `${window.location.origin}/auth/callback`
+      //   // }
+      // });
+      // console.log('data', data);
+      // console.log('error', error);
+
+      // if (data) {
+      //   console.log('data', data);
+      //   // if (error) throw error;
+
+      //   showToast({
+      //     message: "Successfully linked account",
+      //     type: "success"
+      //   });
+      //   setStatus('verified');
+      // }
+
+      setStatus('verified');
+
+
+
+
+    } catch (err) {
+      setStatus('error');
+      setError(err.message);
+      showToast({
+        message: "Failed to link account",
+        type: "error"
+      });
+    }
+  };
   const handleProof = async () => {
     if (!user) {
       showToast({
@@ -162,6 +260,17 @@ export const SupabaseLink: React.FC = () => {
           ))}
         </select>
       </div>
+
+      {platform && selectedPlatform?.oauth && (
+        <button
+          className="btn btn-primary w-full mt-2"
+          onClick={handleLinkIdentity}
+          disabled={status === 'verifying'}
+        >
+          {status === 'verifying' ? 'Verifying...' : `Link via OAuth`}
+        </button>
+      )}
+
       {platform && (
         <div>
           <label className="block mb-1 font-medium">Handle</label>
@@ -173,15 +282,7 @@ export const SupabaseLink: React.FC = () => {
           />
         </div>
       )}
-      {platform && selectedPlatform?.oauth && (
-        <button
-          className="btn btn-primary w-full mt-2"
-          onClick={handleOAuth}
-          disabled={status === 'verifying'}
-        >
-          {status === 'verifying' ? 'Verifying...' : `Link via OAuth`}
-        </button>
-      )}
+      
       {platform && selectedPlatform?.proof && (
         <div className="mt-2">
           <label className="block mb-1 font-medium">Proof URL</label>

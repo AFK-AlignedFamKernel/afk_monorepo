@@ -51,6 +51,16 @@ export const ManageCreatorProfile: React.FC = () => {
   const [isFetchContentDone, setIsInitialFetchUser] = useState(false)
 
   const [topics, setTopics] = useState<string[]>([])
+  const [unverifedSocials, setUnverifedSocials] = useState<{
+    handle:string,
+    provider:string,
+  }[]>([])
+  const [verifiedSocials, setVerifiedSocials] = useState<string[]>([])
+  const [nostrAddress, setNostrAddress] = useState<string>('')
+  const [ludAddress, setLudAddress] = useState<string>('')
+  const [tokensAddress, setTokensAddress] = useState<string[]>([])
+  const [creatorToken, setCreatorToken] = useState<string>('')
+
   const fetchMyContentCreatorProfile = async () => {
 
     try {
@@ -157,6 +167,14 @@ export const ManageCreatorProfile: React.FC = () => {
       })
     }
   }
+
+
+  if (!user) {
+    return <div>
+      <p>Please connect your account</p>
+      <Oauth />
+    </div>
+  }
   return (
     <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow max-w-full overflow-x-hidden">
       <div className="flex justify-between items-center mb-4">
@@ -212,6 +230,7 @@ export const ManageCreatorProfile: React.FC = () => {
           </div>
         )}
       </div>
+
 
       <div className="mt-4">
         <TagsForm tags={topics} setTags={setTopics} />
@@ -290,17 +309,18 @@ export const ManageCreatorProfile: React.FC = () => {
               )
             },
             {
-              title: "Oauth",
-              content: <Oauth />
-            },
-            {
               title: "Supabase Link",
               content: <SupabaseLink />
             },
             {
               title: "Link Account",
               content: <LinkAccount />
-            }
+            },
+            {
+              title: "Oauth",
+              content: <Oauth />
+            },
+      
           ]}
         />
       </div>

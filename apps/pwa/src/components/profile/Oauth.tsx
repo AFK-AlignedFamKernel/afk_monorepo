@@ -45,11 +45,17 @@ export const Oauth = () => {
     }
     const handleLogout = async () => {
         const res = await supabase.auth.signOut()
+        console.log('res', res);
 
-        if (!res) {
+        if (!res?.error) {
+            setUser(null);
+            setSession(null);
+            setIsLoading(true);
+            setIsInitialFetchUser(false);
+            setProvider("");
             showToast({
                 message: "Logout successfully",
-                type: "error"
+                type: "success"
             })
         }
     }
@@ -91,7 +97,7 @@ export const Oauth = () => {
 
             <div className="flex justify-center">
                 {!user ? (
-                    <>
+                    <div className="flex flex-col gap-2">
                         <button
                             className="px-6 py-2 rounded-lg  hover:bg-blue-700 text-white font-medium transition-colors"
                             onClick={() => handleLogin("google")}
@@ -101,12 +107,26 @@ export const Oauth = () => {
                         </button>
                         <button
                             className="px-6 py-2 rounded-lg  hover:bg-blue-700 text-white font-medium transition-colors"
+                            onClick={() => handleLogin("github")}
+                        >
+                            <Image src="/assets/icons/github.svg" alt="Twitter" width={50} height={50} />
+                            Sign in with Github
+                        </button>
+                        <button
+                            className="px-6 py-2 rounded-lg  hover:bg-blue-700 text-white font-medium transition-colors"
                             onClick={() => handleLogin("discord")}
                         >
                             <Image src="/assets/icons/discord.svg" alt="Discord" width={50} height={50} />
                             Sign in with Discord
                         </button>
-                    </>
+                        <button
+                            className="px-6 py-2 rounded-lg  hover:bg-blue-700 text-white font-medium transition-colors"
+                            onClick={() => handleLogin("twitter")}
+                        >
+                            <Image src="/assets/icons/twitter.svg" alt="Twitter" width={50} height={50} />
+                            Sign in with Twitter
+                        </button>
+                    </div>
 
                 ) : (
                     <button

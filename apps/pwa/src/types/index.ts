@@ -36,3 +36,14 @@ export interface ContentCreator {
   topics?: string[];
 }
 
+
+export interface GeneratedCodeVerification {
+  verification_code: string;
+  instructions?: string;
+  created_at?: string;
+  expires_at?: string;
+  is_verified?: boolean;
+  platform: string;
+  handle: string;
+  user_id?: string;
+}

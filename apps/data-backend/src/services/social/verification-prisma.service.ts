@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 
 import prisma, { PrismaClient } from "prisma-db";
-export class SocialVerificationService {
+export class SocialVerificationServicePrisma {
 
     constructor(private prisma: PrismaClient) {}
     async generateVerificationCode(userId: string, platform: string, handle: string) {
@@ -37,16 +37,37 @@ export class SocialVerificationService {
         return verificationCode;
     }
 
-    async verifyAccount(username: string, platform: string, verificationCode: string) {
-        console.log('username', username);
-        console.log('platform', platform);
-        console.log('verificationCode', verificationCode);
+    async verifyAccount(userId: string, platform: string) {
+        const account = await prisma.socialAccount.findUnique({
+            where: {
+                userId_platform: {
+                    userId,
+                    platform,
+                },
+            },
+        });
+
+        if (!account || !account.verificationCode) {
+            throw new Error('No pending verification found');
+        }
+
+        if (!account.username) {
+            throw new Error('No username found');
+        }
 
         // Platform-specific verification logic
-        const isVerified = await this.verifyPlatformProfile(platform, username, verificationCode);
+        const isVerified = await this.verifyPlatformProfile(platform, account.username, account.verificationCode);
 
         if (isVerified) {
-           
+            await prisma.socialAccount.update({
+                where: {
+                    id: account.id,
+                },
+                data: {
+                    status: 'verified',
+                    verificationCode: null,
+                },
+            });
             return true;
         }
 
