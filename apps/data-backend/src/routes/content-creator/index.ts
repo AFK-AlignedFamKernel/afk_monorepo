@@ -1,6 +1,33 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { supabaseAdmin } from '../../services/supabase';
 import { supabaseAuthMiddleware } from '../../middleware/supabase-auth';
+import { z } from 'zod';
+
+
+const contentCreatorSchema = z.object({
+  name: z.string().min(0).optional(),
+  description: z.string().optional(),
+  slug_name: z.string().min(1).optional(),
+  avatar_url: z.string().optional(),
+  topics: z.array(z.string()).optional(),
+  token_address: z.string().optional().nullable(),
+  starknet_address: z.string().optional().nullable(),
+  evm_address: z.string().optional().nullable(),
+  btc_address: z.string().optional().nullable(),
+  is_active: z.boolean().optional(),
+  metadata: z.object({
+      logo: z.string().optional(),
+      banner: z.string().optional(),
+      description: z.string().optional(),
+      website: z.string().optional(),
+      social_links: z.array(z.object({
+          platform: z.string(),
+          url: z.string(),
+      })).optional(),
+  }).optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+});
 
 export default async function contentCreatorRoutes(fastify: FastifyInstance) {
   // List all social identities
@@ -10,23 +37,15 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
     try {
       const { slug_name } = request.query as any;
 
-      console.log("request", request)
       if(!slug_name) {
         return reply.code(400).send({ error: 'Slug name is required' });
       }
 
-      console.log("slug_name", slug_name)
-
-      console.log("fetch content creators data")
       const { data, error } = await supabaseAdmin
         .from('content_creators')
         .select('*')
         .eq('slug_name', slug_name)
         .single();  
-
-      console.log("fetch content creators data", data)
-      console.log("fetch content creators error", error)
-
 
       if (error) {
         return reply.code(500).send({ error: error.message });
@@ -41,17 +60,12 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
 
   fastify.get('/content-creator', async (request: FastifyRequest, reply: FastifyReply) => {
 
-    console.log("fetch content creators")
     try {
-      console.log("fetch content creators")
       const { data, error } = await supabaseAdmin
         .from('content_creators')
         .select('*')
         .order('created_at', { ascending: false })
       // .eq('is_verified', true);
-
-      console.log("fetch content creators data", data)
-      console.log("fetch content creators error", error)
 
       if (error) {
         return reply.code(500).send({ error: error.message });
@@ -134,11 +148,12 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
 
-      const { id, slug_name, avatar_url, topics } = request.body as any;
-      console.log("topics", topics)
-
-      console.log("request?.user?.identities", request?.user?.identities)
-      console.log("topics", topics)
+      const res = contentCreatorSchema.safeParse(request.body);
+      console.log("zod res", res)
+      if (!res.success) {
+        return reply.code(400).send({ error: 'Invalid request body' });
+      }
+      const { slug_name, avatar_url, topics, token_address, starknet_address, evm_address, btc_address, is_active } = res.data;
       const slugName  = slug_name?.replace(" ","-") ?? request?.user?.identities[0]?.identity_data?.full_name?.replace(" ","-") ?? "Anonymous"
 
       if(!slugName) {
@@ -166,24 +181,17 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
       })
 
 
-      console.log("slugName", slugName)
-
       const { data: isExistsSlug, error: isExistsSlugError } = await supabaseAdmin
         .from('content_creators')
         .select('*')
         .eq('slug_name', slugName)
         .single();
 
-      console.log("isExistsSlug", isExistsSlug)
-
       const { data: isExists, error: isExistsError } = await supabaseAdmin
         .from('content_creators')
         .select('*')
         .eq('owner_id', request?.user?.id)
         .single();
-
-      console.log("isExists", isExists)
-
 
       if (isExistsSlug) {
         const { data, error } = await supabaseAdmin
@@ -202,14 +210,16 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
             social_links: {
               ...identities,
             },
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            token_address: token_address ?? isExists?.token_address,
+            starknet_address: starknet_address ?? isExists?.starknet_address,
+            evm_address: evm_address ?? isExists?.evm_address,
+            btc_address: btc_address ?? isExists?.btc_address,
+            is_active: is_active ?? isExists?.is_active,
           })
           .eq('owner_id', request?.user?.id)
           .select()
           .single();
-
-        console.log("data", data)
-        console.log("error", error)
       }
 
       else if (isExists) {
@@ -229,14 +239,17 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
             social_links: {
               ...identities,
             },
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            token_address: token_address ?? isExists?.token_address,
+            starknet_address: starknet_address ?? isExists?.starknet_address,
+            evm_address: evm_address ?? isExists?.evm_address,
+            btc_address: btc_address ?? isExists?.btc_address,
+            is_active: is_active ?? isExists?.is_active,
           })
           .eq('owner_id', request?.user?.id)
           .select()
           .single();
 
-        console.log("data", data)
-        console.log("error", error)
         return reply.code(200).send({ isSuccess: true });
       }
 
@@ -258,14 +271,17 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
             social_links: {
               ...identities,
             },
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            token_address: token_address ?? isExists?.token_address,
+            starknet_address: starknet_address ?? isExists?.starknet_address,
+            evm_address: evm_address ?? isExists?.evm_address,
+            btc_address: btc_address ?? isExists?.btc_address,
+            is_active: is_active ?? isExists?.is_active,
           })
           .eq('owner_id', request?.user?.id)
           .select()
           .single();
 
-        console.log("data", data)
-        console.log("error", error)
         if (error) {
           return reply.code(500).send({ error: error.message });
         }
@@ -295,14 +311,20 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
         return reply.status(401).send({ error: 'Unauthorized' });
       }
 
-      const { id, slug_name, avatar_url, topics } = request.body as any;
-      console.log("request?.user?.identities", request?.user?.identities)
 
+      const res = contentCreatorSchema.safeParse(request.body);
+      console.log("zod res", res?.error?.issues)
+
+      if (!res.success) {
+        return reply.code(400).send({ error: 'Invalid request body' });
+      }
+      const { slug_name, avatar_url, topics, token_address, starknet_address, evm_address, btc_address, is_active } = res.data;
       const slugName  = slug_name?.replace(" ","-") ?? request?.user?.identities[0]?.identity_data?.full_name?.replace(" ","-") ?? "Anonymous"
 
       if(!slugName) {
         return reply.code(400).send({ error: 'Slug name is required' });
       }
+      console.log("body", res?.data)
 
       const identities = request?.user?.identities.map((identity: any) => {
         return {
@@ -325,24 +347,17 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
       })
 
 
-      console.log("slugName", slugName)
-
       const { data: isExistsSlug, error: isExistsSlugError } = await supabaseAdmin
         .from('content_creators')
         .select('*')
         .eq('slug_name', slugName)
         .single();
 
-      console.log("isExistsSlug", isExistsSlug)
-
       const { data: isExists, error: isExistsError } = await supabaseAdmin
         .from('content_creators')
         .select('*')
         .eq('owner_id', request?.user?.id)
         .single();
-
-      console.log("isExists", isExists)
-
 
       if (isExistsSlug) {
         const { data, error } = await supabaseAdmin
@@ -367,8 +382,6 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
           .select()
           .single();
 
-        console.log("data", data)
-        console.log("error", error)
       }
 
       else if (isExists) {
@@ -394,8 +407,6 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
           .select()
           .single();
 
-        console.log("data", data)
-        console.log("error", error)
         return reply.code(200).send({ isSuccess: true });
       }
 
@@ -423,8 +434,6 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
           .select()
           .single();
 
-        console.log("data", data)
-        console.log("error", error)
         if (error) {
           return reply.code(500).send({ error: error.message });
         }
@@ -436,7 +445,7 @@ export default async function contentCreatorRoutes(fastify: FastifyInstance) {
 
       reply.send({ isSuccess: true });
     } catch (error) {
-      console.log("error", error)
+      console.error("error", error)
       return reply.code(500).send({ error: error.message });
     }
   });

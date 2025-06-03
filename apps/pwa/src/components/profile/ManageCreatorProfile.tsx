@@ -33,8 +33,9 @@ export const ManageCreatorProfile: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [slugName, setSlugName] = useState('');
   const [bio, setBio] = useState('');
-  const [tokenAddress, setTokenAddress] = useState('');
+  const [tokenAddress, setTokenAddress] = useState<string | undefined>(undefined);
   const [starknetAddress, setStarknetAddress] = useState(address);
+  const [btcAddress, setBtcAddress] = useState('');
   const [formData, setFormData] = useState<ContentCreator | null>({
     name: '',
     slug_name: '',
@@ -102,7 +103,12 @@ export const ManageCreatorProfile: React.FC = () => {
         proof_url: proofUrl,
         slug_name: slugName,
         avatar_url: fileUrl,
-        topics: topics
+        topics: topics,
+        token_address: tokenAddress,
+        starknet_address: starknetAddress,
+        evm_address: address,
+        btc_address: btcAddress,
+        is_active: true
       })
     })
     if (res) {
@@ -122,6 +128,13 @@ export const ManageCreatorProfile: React.FC = () => {
       fileUrl = res.data?.url
     }
 
+    console.log("tokenAddress", tokenAddress)
+    console.log("starknetAddress", starknetAddress)
+    console.log("address", address)
+    console.log("btcAddress", btcAddress)
+    console.log("slugName", slugName)
+    console.log("topics", topics)
+
     const res = await fetchWithAuth("/content-creator/update/verify_identity", {
       method: 'POST',
       body: JSON.stringify({
@@ -129,7 +142,12 @@ export const ManageCreatorProfile: React.FC = () => {
         user_id: session?.user?.id,
         proof_url: proofUrl,
         slug_name: slugName,
-        topics: topics
+        topics: topics,
+        token_address: tokenAddress,
+        starknet_address: starknetAddress,
+        evm_address: address,
+        btc_address: btcAddress,
+        is_active: true
       })
     })
     if (res) {
@@ -201,7 +219,7 @@ export const ManageCreatorProfile: React.FC = () => {
 
       <div className="mt-4">
         <label className='text-sm font-medium'>Select your token address</label>
-        <input type="text" placeholder='Your token address' value={tokenAddress} onChange={(e) => setTokenAddress(e.target.value)} className="w-full" />
+        <input type="text" placeholder='Your token address' value={tokenAddress ?? ''} onChange={(e) => setTokenAddress(e.target.value)} className="w-full" />
       </div>
 
       {tokenAddress && (

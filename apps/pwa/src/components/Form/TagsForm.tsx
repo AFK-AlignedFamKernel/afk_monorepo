@@ -30,8 +30,8 @@ export const TagsForm: React.FC<TagsFormProps> = ({
     const uniqueTags = [...new Set([...tagsInput, ...tags || []])].map((tag) => {
       return tag
     })
-    return tags?.filter((tag) => tag !== '')
-  }, [tagsInput])
+    return uniqueTags?.filter((tag) => tag !== '')
+  }, [tagsInput, tags])
 
   const handleTagAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {
