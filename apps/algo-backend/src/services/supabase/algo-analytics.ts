@@ -1,9 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-import { getProfilesToAnalyzeOnchainIndexer } from "../db/indexer";
-import { handleProfilesScoring, handleTrendingAndViralEvents } from "../nostr/algo-general";
-import { externalTrendings } from "../nostr/content/trending";
 import { supabaseAdmin } from ".";
-
 
 export const NPUBKEY_EXAMPLE = "npub1rtlqca8r6auyaw5n5h3l5422dm4sry5dzfee4696fqe8s6qgudks7djtfs"
 export const handleAnalytics = async () => {
@@ -12,7 +7,6 @@ export const handleAnalytics = async () => {
     const { data, error } = await supabase.from('content_creators').select('*');
     console.log("data", data);
     console.log("error", error);
-
 
     const allContentCreators = data;
 
