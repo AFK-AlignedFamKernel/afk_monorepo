@@ -823,6 +823,9 @@ CREATE TABLE IF NOT EXISTS leaderboard_stats (
     users_scores JSONB[],
     users_names TEXT[],
     total_users INTEGER DEFAULT 0,
+    total_mindshare_score DECIMAL DEFAULT 0,
+    total_engagement_score DECIMAL DEFAULT 0,
+    total_quality_score DECIMAL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     creator_ranks JSONB DEFAULT '[]', -- Array of creator rankings
     scraping_ranks JSONB DEFAULT '[]', -- Array of scraping rankings

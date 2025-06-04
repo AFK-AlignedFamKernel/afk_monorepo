@@ -137,8 +137,8 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                                                             </Link>
                                                         )}
                                                     </td>
-                                                    <td className="px-4 py-2 text-right">{user.totalMindshareScore}</td>
-                                                    <td className="px-4 py-2 text-right">{user.totalEngagementScore}</td>
+                                                    <td className="px-4 py-2 text-right">{user.totalMindshareScore / leaderboard.total_mindshare_score * 100}%</td>
+                                                    <td className="px-4 py-2 text-right">{user.totalEngagementScore / leaderboard.total_engagement_score * 100}%</td>
                                                 </tr>
                                             )
                                         })}

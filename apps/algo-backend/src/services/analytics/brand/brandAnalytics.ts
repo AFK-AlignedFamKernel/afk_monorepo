@@ -88,6 +88,8 @@ export class BrandAnalytics {
         result?: any[],
         usersScores?: any[],
         usersNamesScores?: any[],
+        totalMindshareScore?:number,
+        totalEngagementScore?:number,
     } | null | undefined> {
         try {
             console.log("brand_handle", brand_handle);
@@ -121,6 +123,7 @@ export class BrandAnalytics {
             const userTweets = new Map();
             const userTweet = new Map();
             const userTweetsWithData = new Map();
+
 
             if (lastXkaito && Array.isArray(lastXkaito)) {
                 lastXkaito.forEach((tweet: any) => {
@@ -160,17 +163,19 @@ export class BrandAnalytics {
             console.log("User tweets mapping:", userTweetsList.length);
             console.log("User tweets mapping with data:", userTweetsListWithData.length);
 
-            let usersScores:any[]= []
-            let usersNamesScores:any[]= []
+            let usersScores: any[] = []
+            let usersNamesScores: any[] = []
             let totalTweets = 0;
+            let overallMindshareScore = 0;
+            let overallEngagementScore = 0;
 
             let userScoreMap = Array.from(userTweets.entries()).map(([userName, tweets]) => {
-                
+
                 console.log("tweets per user", tweets);
 
                 let user = userProfilePerName.get(userName);
                 console.log("user calculated", user?.userName);
-                
+
                 totalTweets += tweets.length;
 
                 let repostCount = 0;
@@ -204,18 +209,19 @@ export class BrandAnalytics {
                 console.log("mindshareScore", mindshareScore);
 
                 const engagementScore = engagementScoreProfileRating({
-                    repostCount:repostCount,
+                    repostCount: repostCount,
                     likeCount: likeCount,
                     viewCount: viewCount,
-                    quoteCount:quoteCount,
+                    quoteCount: quoteCount,
                     replyCount: replyCount,
                     bookmarkCount: bookmarkCount,
                     followersCount: user?.followersCount,
                     followingCount: user?.followingCount,
                 })
 
+                overallMindshareScore += mindshareScore?.totalScore
+                overallEngagementScore += engagementScore?.totalScore
                 let userRanking = {
-
                     ...user,
                     mindshareScore: mindshareScore,
                     engagementScore: engagementScore,
@@ -255,7 +261,7 @@ export class BrandAnalytics {
             usersNamesScores = usersNamesScores.filter(name => name !== undefined);
 
 
-          
+
             return {
                 dataUser: {
                     xKaito: lastXkaito,
@@ -266,6 +272,8 @@ export class BrandAnalytics {
                 result: usersScores,
                 usersScores: usersScores,
                 usersNamesScores: usersNamesScores,
+                totalMindshareScore:overallMindshareScore,
+                totalEngagementScore:overallEngagementScore
             };
         } catch (error) {
             console.error(error);
