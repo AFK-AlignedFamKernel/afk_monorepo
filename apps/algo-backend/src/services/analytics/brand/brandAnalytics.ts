@@ -116,6 +116,7 @@ export class BrandAnalytics {
             console.log("lastXkaito apify", lastXkaito);
 
             const usersNames = new Set();
+            const userProfilePerName = new Map();
             const users = new Set();
             const userTweets = new Map();
             const userTweet = new Map();
@@ -126,6 +127,10 @@ export class BrandAnalytics {
                     if (tweet.author && tweet.author.userName) {
                         usersNames.add(tweet.author.userName);
                         users.add(tweet.author);
+
+                        if (!userProfilePerName.has(tweet.author.userName)) {
+                            userProfilePerName.set(tweet.author.userName, tweet.author);
+                        }
 
                         if (!userTweets.has(tweet.author.userName)) {
                             userTweets.set(tweet.author.userName, []);
@@ -159,9 +164,11 @@ export class BrandAnalytics {
             let usersNamesScores:any[]= []
             let totalTweets = 0;
 
-            let userScoreMap = Array.from(userTweets.entries()).map(([user, tweets]) => {
+            let userScoreMap = Array.from(userTweets.entries()).map(([userName, tweets]) => {
                 
                 console.log("tweets per user", tweets);
+
+                let user = userProfilePerName.get(userName);
                 console.log("user calculated", user?.userName);
                 
                 totalTweets += tweets.length;
@@ -210,8 +217,10 @@ export class BrandAnalytics {
                 let userRanking = {
 
                     ...user,
-                    mindshareScore: mindshareScore?.totalScore,
-                    engagementScore: engagementScore?.totalScore
+                    mindshareScore: mindshareScore,
+                    engagementScore: engagementScore,
+                    totalMindshareScore: mindshareScore?.totalScore,
+                    totalEngagementScore: engagementScore?.totalScore
                 }
 
                 usersScores.push(userRanking);
@@ -219,8 +228,10 @@ export class BrandAnalytics {
                 return {
                     user: {
                         ...user,
-                        mindshareScore: mindshareScore?.totalScore,
-                        engagementScore: engagementScore?.totalScore
+                        mindshareScore: mindshareScore,
+                        engagementScore: engagementScore,
+                        totalMindshareScore: mindshareScore?.totalScore,
+                        totalEngagementScore: engagementScore?.totalScore
                     },
                     tweets: tweets,
                 }
@@ -228,7 +239,7 @@ export class BrandAnalytics {
 
             console.log("totalTweets", totalTweets);
 
-            usersScores.sort((a, b) => (b.mindshareScore + b.engagementScore) - (a.mindshareScore + a.engagementScore));
+            usersScores.sort((a, b) => (b.totalMindshareScore + b.totalEngagementScore) - (a.totalMindshareScore + a.totalEngagementScore));
 
             usersScores = usersScores.map((user, index) => {
                 usersNamesScores.push(user?.userName);

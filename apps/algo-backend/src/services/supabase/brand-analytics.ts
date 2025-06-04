@@ -27,7 +27,9 @@ export const handleBrandAnalytics = async () => {
         let twitterAnalytics: any;
         if (twitterHandle) {
             const result = await brandAnalytics.getTwitterAnalytics(twitterHandle);
-            console.log("result twitter ", result?.usersScores?.length);
+            console.log("len twitter scores", result?.usersScores?.length);
+            console.log("len twitter users names ", result?.usersNamesScores?.length);
+            console.log("result twitter usersScores ", result?.usersScores);
             console.log("result twitter users names ", result?.usersNamesScores);
             twitterAnalytics = result;
 
@@ -37,19 +39,26 @@ export const handleBrandAnalytics = async () => {
 
             if (leaderboard && errorLeaderboard === null) {
 
-                const { data: dataBrandUpdate, error: errorBrandUpdate } = await supabase.from('leaderboard').update({
-                    users_scores: twitterAnalytics?.usersScores,
+                console.log("update leaderboard");
+
+                const { data: dataLeaderboardUpdate, error: errorLeaderboardUpdate } = await supabase.from('leaderboard_stats').update({
+                    users_scores: twitterAnalytics?.usersScores ?? [],
                     total_users: twitterAnalytics?.usersScores.length,
-                    users_names_scores: twitterAnalytics?.usersNamesScores,
+                    users_names: twitterAnalytics?.usersNamesScores ?? [],
+
                 }).eq('id', leaderboard.id).eq('brand_id', brand.id).eq('platform', 'twitter').select().single();
 
+                console.log("dataLeaderboardUpdate", dataLeaderboardUpdate);
+                console.log("errorLeaderboardUpdate", errorLeaderboardUpdate);
             } else {
+                console.log("upsert leaderboard");
+
                 const { data, error } = await supabase.from('leaderboard_stats').upsert({
                     brand_id: brand.id,
                     platform: 'twitter',
-                    users_scores: twitterAnalytics?.usersScores,
+                    users_scores: twitterAnalytics?.usersScores ?? [],
                     total_users: twitterAnalytics?.usersScores.length,
-                    users_names_scores: twitterAnalytics?.usersNamesScores,
+                    users_names: twitterAnalytics?.usersNamesScores ?? [],
                 }).select().single();
             }
 
