@@ -3,6 +3,8 @@ import ApifyService from "../../apify/apifiy";
 import { generateObject, generateText } from 'ai';
 import { object, z } from 'zod';
 import { createOpenRouter, openrouter } from '@openrouter/ai-sdk-provider';
+import { mindshareScoreProfileRating } from "../scoring";
+import { engagementScoreProfileRating } from "../scoring";
 
 
 
@@ -83,11 +85,9 @@ export class BrandAnalytics {
         dataUser?: any,
         xKaito?: any,
         twitter?: any,
-        result?: any,
-        processData?: any,
-        recommendations?: any,
-        stats_creator?: any,
-        stats_content?: any,
+        result?: any[],
+        usersScores?: any[],
+        usersNamesScores?: any[],
     } | null | undefined> {
         try {
             console.log("brand_handle", brand_handle);
@@ -97,120 +97,154 @@ export class BrandAnalytics {
             //     twitterHandles: [user]
             // });
             // console.log("lastTwitter apify", lastTwitter);
-            const lastXkaito = await this.apifyService.runApifyActorWithDataset(this.actorsApify["x-kaito"], {
+            // const lastXkaito = await this.apifyService.runApifyActorWithDataset(this.actorsApify["x-kaito"], {
+            //     searchTerms: [brand_handle],
+            //     since: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+            //     "@": brand_handle,
+            //     queryType: "Top",
+            //     maxItems: 100,
+            //     twitterContent: brand_handle,
+            // });
+            const lastXkaito = await this.apifyService.getLastRunItemsApifyActorWithDataset(this.actorsApify["x-kaito"], {
                 searchTerms: [brand_handle],
                 since: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
                 "@": brand_handle,
-                queryType:"Top",
-                maxItems:100,
-                twitterContent:brand_handle,
+                queryType: "Top",
+                maxItems: 100,
+                twitterContent: brand_handle,
             });
             console.log("lastXkaito apify", lastXkaito);
 
+            const usersNames = new Set();
             const users = new Set();
             const userTweets = new Map();
+            const userTweet = new Map();
+            const userTweetsWithData = new Map();
 
             if (lastXkaito && Array.isArray(lastXkaito)) {
                 lastXkaito.forEach((tweet: any) => {
                     if (tweet.author && tweet.author.userName) {
-                        users.add(tweet.author.userName);
-                        
+                        usersNames.add(tweet.author.userName);
+                        users.add(tweet.author);
+
                         if (!userTweets.has(tweet.author.userName)) {
                             userTweets.set(tweet.author.userName, []);
                         }
                         userTweets.get(tweet.author.userName).push(tweet);
+                        userTweetsWithData.set(tweet.author, tweet);
+                        userTweet.set(tweet.author, tweet);
+
                     }
                 });
             }
 
+            const usersListNames = Array.from(usersNames);
             const usersList = Array.from(users);
             const userTweetsList = Array.from(userTweets.entries()).map(([user, tweets]) => ({
                 user,
                 tweets
             }));
 
-            console.log("Unique users:", usersList);
-            console.log("User tweets mapping:", userTweetsList);
+            const userTweetsListWithData = Array.from(userTweets.entries()).map(([user, userTweets]) => ({
+                user,
+                userTweets
+            }));
 
-            let prompt = `Rank the best users by score for the brand_handle ${brand_handle} and the topics ${topics}.
-                `
+            console.log("Unique users names:", usersListNames.length);
+            console.log("Unique users:", usersList.length);
+            console.log("User tweets mapping:", userTweetsList.length);
+            console.log("User tweets mapping with data:", userTweetsListWithData.length);
 
-            if(userTweetsList.length > 0) {
-                prompt += `
-                - ${JSON.stringify(userTweetsList)}
-                `
-            }
+            let usersScores:any[]= []
+            let usersNamesScores:any[]= []
+            let totalTweets = 0;
+
+            let userScoreMap = Array.from(userTweets.entries()).map(([user, tweets]) => {
+                
+                console.log("tweets per user", tweets);
+                console.log("user calculated", user?.userName);
+                
+                totalTweets += tweets.length;
+
+                let repostCount = 0;
+                let likeCount = 0;
+                let viewCount = 0;
+                let quoteCount = 0;
+                let replyCount = 0;
+                let bookmarkCount = 0;
+
+                for (let tweet of Array.isArray(tweets) ? tweets : []) {
+                    repostCount += tweet?.retweetCount;
+                    likeCount += tweet?.likeCount;
+                    viewCount += tweet?.viewCount;
+                    quoteCount += tweet?.quoteCount;
+                    replyCount += tweet?.replyCount;
+                    bookmarkCount += tweet?.bookmarkCount;
+                }
+
+                const mindshareScore = mindshareScoreProfileRating({
+                    repostCount: repostCount,
+                    likeCount: likeCount,
+                    viewCount: viewCount,
+                    quoteCount: quoteCount,
+                    replyCount: replyCount,
+                    followersCount: user?.followersCount,
+                    followingCount: user?.followingCount,
+                    bookmarkCount: bookmarkCount,
+                })
 
 
-            const resultProcessDataObject = await this.generateObject({
-                model: "anthropic/claude-3.7-sonnet",
-                systemPrompt: `You are an AI analyzing a Twitter/X profile. Based on the bio, tweet content, engagement, and patterns, classify the profile according to:
-                Rank the best users by score for the brand_handle ${brand_handle} and the topics ${topics}.
+                console.log("mindshareScore", mindshareScore);
 
-                    - Main Topics (max 3) [e.g., Crypto, Politics, Productivity]
-                    - Expertise Level [Beginner, Intermediate, Expert]
-                    - Reputation Score [0-100] (based on consistency, quality, and community trust)
-                    - Sentiment Profile [Positive, Neutral, Negative, Mixed]
-                    - Polarization Level [Low, Medium, High]
-                    - Truthfulness Estimate [Likely True, Somewhat Misleading, Often Exaggerated]
-                    - Copywriting Style [Professional, Casual, Technical, Humorous, etc.]
-                    - Engagement Rate [0-100] (based on the number of likes, retweets, and comments)
-                    - Content Quality [High, Medium, Low]
-                    - Consistency [High, Medium, Low]
-                    - Relevance [High, Medium, Low]
-                    - Clarity [High, Medium, Low]
-                    - Creativity [High, Medium, Low]
-                    - Engagement Rate [0-100] (based on the number of likes, retweets, and comments)
+                const engagementScore = engagementScoreProfileRating({
+                    repostCount:repostCount,
+                    likeCount: likeCount,
+                    viewCount: viewCount,
+                    quoteCount:quoteCount,
+                    replyCount: replyCount,
+                    bookmarkCount: bookmarkCount,
+                    followersCount: user?.followersCount,
+                    followingCount: user?.followingCount,
+                })
 
-                    Rank the best users by score for the brand_handle ${brand_handle} and the topics ${topics}.
-                    `,
-                prompt: `You are an AI analyzing a Twitter/X profile. Based on the bio, tweet content, engagement, and patterns, classify the profile according to:
-                    Rank the best users by score for the brand_handle ${brand_handle} and the topics ${topics}.
-                    
-                - Main Topics (max 3) [e.g., Crypto, Politics, Productivity]
-                    - Expertise Level [Beginner, Intermediate, Expert]
-                    - Reputation Score [0-100] (based on consistency, quality, and community trust)
-                    - Sentiment Profile [Positive, Neutral, Negative, Mixed]
-                    - Polarization Level [Low, Medium, High]
-                    - Truthfulness Estimate [Likely True, Somewhat Misleading, Often Exaggerated]
-                    - Copywriting Style [Professional, Casual, Technical, Humorous, etc.]
-                    - Engagement Rate [0-100] (based on the number of likes, retweets, and comments)
-                    - Content Quality [High, Medium, Low]
-                    - Consistency [High, Medium, Low]
-                    - Relevance [High, Medium, Low]
-                    - Clarity [High, Medium, Low]
-                    - Creativity [High, Medium, Low]
-                    - Engagement Rate [0-100] (based on the number of likes, retweets, and comments)
-                    - Tone [Formal, Informal, Friendly, Casual]
-                    - Introduction, Body, and Conclusion Score [0-100]
-                    - Copy Writing Score [0-100]
-                    - Story Telling and Hooks Score [0-100]
-                    - Sentiment [Happy, Neutral, Sad, Critical, Passionate, Optimistic, Pessimistic]
-                    - Overall Score [0-100]
+                let userRanking = {
 
-                    Return a structured JSON object.
-                    Data process are here: ${prompt}
-                    
+                    ...user,
+                    mindshareScore: mindshareScore?.totalScore,
+                    engagementScore: engagementScore?.totalScore
+                }
 
-                    `,
-                schema: z.object({
-                    users: z.array(z.string()).describe("Array of users by descending order of score. Get handle twitter from the prompt and the score is the overall score of the user"),
-                    score: z.array(z.number()).describe("Array of scores of the users"),
-                    tweetRanking: z.array(z.string()).describe("Array of tweets by descending order of score, get the tweet from the prompt input"),
-                    scoreTweets: z.array(z.number()).describe("Array of scores of the tweets"),
-                   
-                    // rankUsers: z.array(z.object({
-                    //     user: z.string().describe("User name"),
-                    //     score: z.number().describe("Score of the user"),
-                    // })).describe("Array of users by descending order of score. Get handle twitter from the prompt and the score is the overall score of the user"),
-                    // tweetRanking: z.array(z.object({
-                    //     tweet: z.string().describe("Tweet"),
-                    //     score: z.number().describe("Score of the tweet"),
-                    // })).describe("Array of tweets by descending order of score, get the tweet from the prompt input"),
-                }),
+                usersScores.push(userRanking);
+
+                return {
+                    user: {
+                        ...user,
+                        mindshareScore: mindshareScore?.totalScore,
+                        engagementScore: engagementScore?.totalScore
+                    },
+                    tweets: tweets,
+                }
+            })
+
+            console.log("totalTweets", totalTweets);
+
+            usersScores.sort((a, b) => (b.mindshareScore + b.engagementScore) - (a.mindshareScore + a.engagementScore));
+
+            usersScores = usersScores.map((user, index) => {
+                usersNamesScores.push(user?.userName);
+                return {
+                    ...user,
+                    rank: index + 1
+                }
             });
-            console.log("resultProcessDataObject", resultProcessDataObject);
 
+
+
+            usersScores = usersScores.filter(user => user !== undefined);
+            usersNamesScores = usersNamesScores.filter(name => name !== undefined);
+
+
+          
             return {
                 dataUser: {
                     xKaito: lastXkaito,
@@ -218,8 +252,9 @@ export class BrandAnalytics {
                 },
                 xKaito: lastXkaito,
                 twitter: lastTwitter,
-                result: resultProcessDataObject?.object,
-                processData: prompt,
+                result: usersScores,
+                usersScores: usersScores,
+                usersNamesScores: usersNamesScores,
             };
         } catch (error) {
             console.error(error);

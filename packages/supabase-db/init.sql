@@ -804,7 +804,6 @@ CREATE INDEX idx_brand_owner_id ON brand(owner_id);
 CREATE INDEX idx_brand_created_at ON brand(created_at);
 CREATE INDEX idx_brand_slug_name ON brand(slug_name);
 
-
 -- Create leaderboard table for tracking user rankings
 CREATE TABLE IF NOT EXISTS leaderboard_stats (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -820,12 +819,15 @@ CREATE TABLE IF NOT EXISTS leaderboard_stats (
     data_user_stats JSONB DEFAULT '{}',
     new_user TEXT[],
     last_updated TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    users TEXT[],
+    users_scores JSONB[],
+    users_names TEXT[],
+    total_users INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     creator_ranks JSONB DEFAULT '[]', -- Array of creator rankings
     scraping_ranks JSONB DEFAULT '[]', -- Array of scraping rankings
     UNIQUE(brand_id, platform)
 );
-
 -- Enable RLS on leaderboard_stats table
 ALTER TABLE leaderboard_stats ENABLE ROW LEVEL SECURITY;
 
