@@ -1,7 +1,11 @@
-import { useEffect } from "react";
+"use client";
 import PageCreator from "@/components/profile/PageCreator";
+import { useParams } from "next/navigation";
 
-export default function CreatorProfilePage({ params }: { params: { slug: string } }) {
-    const { slug } = params;
-    return <PageCreator slug={slug} />;
+export default function CreatorProfilePage() {
+    const { slug } = useParams();
+    if (!slug) {
+        return <div>No slug</div>;
+    }
+    return <PageCreator slug={slug as string} />;
 }

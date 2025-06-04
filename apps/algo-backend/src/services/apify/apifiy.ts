@@ -28,7 +28,7 @@ class ApifyService {
     }
 
     constructor() {
-        this.client = new ApifyClient({ token: process.env.APIFY_TOKEN });
+        this.client = new ApifyClient({ token: process.env.APIFY_API_KEY });
     }
 
     getClient(): ApifyClient {
@@ -56,6 +56,12 @@ class ApifyService {
         }
     }
 
+    public async getLastRunItemsApifyActorWithDataset(actorName: string, inputs?: any) {
+        const items = await this.getLastRunItems(actorName);
+        console.log("items", items);
+        return items;
+      }
+
     async getLastRunItems(actorName: string) {
         const actorClient = this.client.actor(actorName);
         const lastSucceededRunClient = actorClient.lastRun({ status: 'SUCCEEDED' });
@@ -65,7 +71,20 @@ class ApifyService {
 
     async getActorRun(actorName: string, inputs?:any) {
         try {
-            const { defaultDatasetId } = await this.client.actor(actorName).call();
+            const { defaultDatasetId } = await this.client.actor(actorName).call(inputs);
+            const { items } = await this.client.dataset(defaultDatasetId).listItems({
+                // limit: 100
+            });
+            return items;
+        } catch (error) {
+            console.error('Error getting Apify actor run:', error);
+            throw error;
+        }
+    }
+
+    async runApifyActorWithDataset(actorName: string, inputs?:any) {
+        try {
+            const { defaultDatasetId } = await this.client.actor(actorName).call(inputs);
             const { items } = await this.client.dataset(defaultDatasetId).listItems({
                 // limit: 100
             });

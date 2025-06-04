@@ -25,6 +25,7 @@ import shopRoutes from './routes/shop';
 import socialIdentityRoutes from './routes/socialIdentity';
 import contentCreatorRoutes from './routes/content-creator';
 import profileRoutes from './routes/profile';
+import analyticsRoutes from './routes/analytics';
 // import daoServiceRoute from './routes/indexer/dao';
 // import subScoreFactoryRoute from './routes/indexer/infofi/score-factory.routes';
 // import getOtp from "./routes/otp/getOtp";
@@ -63,6 +64,7 @@ function declareRoutes(
   // Register social identity routes
   fastify.register(socialIdentityRoutes);
   fastify.register(contentCreatorRoutes);
+  fastify.register(analyticsRoutes);
 
   // fastify.register(profileRoutes, { prefix: '/api' });
 

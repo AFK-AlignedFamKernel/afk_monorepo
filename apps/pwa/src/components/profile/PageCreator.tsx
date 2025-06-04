@@ -4,6 +4,7 @@ import { ContentCreator } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
 import { LaunchpadWrapperCard } from "../launchpad/LaunchpadWrapperCard";
+import AnalyticsCreatorConsumer from "./AnalyticsCreatorConsumer";
 
 const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
 
@@ -96,7 +97,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
         <p>Links</p>
       )}
 
-{creator?.identities && creator?.identities?.length > 0 && (
+      {creator?.identities && creator?.identities?.length > 0 && (
         <div className="flex flex-row gap-4 mt-4 p-4 rounded-lg shadow h-auto">
           {Object.entries(creator.identities).map(([platformIndex, platform]) => {
             return (
@@ -180,15 +181,11 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
         </div>
       )}
 
-
       {creator?.identities && (
         <div className="flex gap-2 mt-2">
           {Object.entries(creator.identities).map(([platformIndex, platform]) => {
             return (
               <div key={platformIndex + platform + platform.url + platform.identity_data.provider}>
-
-
-
                 <div className="flex flex-col items-center gap-3">
                   <img src={`/assets/icons/${platform.identity_data.provider?.toLowerCase()}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
                   <p>{platform.identity_data.provider}</p>
@@ -272,6 +269,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
         {activeTab === "analytics" && (
           <div>
             <p>Analytics</p>
+            <AnalyticsCreatorConsumer slug={slug} creator={creator} />
           </div>
         )}
 

@@ -3,7 +3,6 @@ import { supabaseAdmin } from '../../services/supabase';
 import { supabaseAuthMiddleware } from '../../middleware/supabase-auth';
 import { z } from 'zod';
 
-
 const contentCreatorSchema = z.object({
   name: z.string().min(0).optional(),
   description: z.string().optional(),
