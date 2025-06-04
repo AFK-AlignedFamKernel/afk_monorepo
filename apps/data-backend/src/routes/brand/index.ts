@@ -28,9 +28,9 @@ const contentCreatorSchema = z.object({
   updated_at: z.string().optional(),
 });
 
-export default async function analyticsRoutes(fastify: FastifyInstance) {
+export default async function brandRoutes(fastify: FastifyInstance) {
 
-  fastify.get('/analytics/content-creator/view-profile', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/brand/view-profile', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { slug_name } = request.query as any;
 
@@ -39,7 +39,7 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
       }
 
       const { data, error } = await supabaseAdmin
-        .from('content_creators')
+        .from('brand')
         .select('*')
         .eq('slug_name', slug_name)
         .single();  
@@ -48,31 +48,36 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
         return reply.code(500).send({ error: error.message });
       }
 
-      const { data: analytics, error: analyticsError } = await supabaseAdmin
-        .from('creator_analytics')
+      const { data: leaderboards, error: leaderboardError } = await supabaseAdmin
+        .from('leaderboard_stats')
         .select('*')
-        .eq('creator_id', data?.id)
+        .eq('brand_id', data?.id)
 
-      console.log("analytics", analytics);
+      console.log("leaderboards", leaderboards);
 
-      if (analyticsError) {
-        return reply.code(500).send({ error: analyticsError.message });
+      if (leaderboardError) {
+        return reply.code(500).send({ error: leaderboardError.message });
       }
 
-      return reply.code(200).send({ creator: data, analytics });  
+      return reply.code(200).send({ brand: data, leaderboards: leaderboards });  
     } catch (error) {
       console.log("error", error)
       return reply.code(500).send({ error: error.message });
     }
   }); 
 
-  fastify.get('/analytics/keywords', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/brand', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const { keywords } = request.query as any;
 
-      if(!keywords) {
-        return reply.code(400).send({ error: 'Keywords are required' });
+      const { data, error } = await supabaseAdmin
+        .from('brand')
+        .select('*')
+
+      if (error) {
+        return reply.code(500).send({ error: error.message });
       }
+
+      return reply.code(200).send({ brands: data });
       
     } catch (error) {
       console.log("error", error)

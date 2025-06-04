@@ -2,6 +2,7 @@ import { handleProfilesScoring, handleTrendingAndViralEvents } from "./nostr/alg
 import { externalTrendings } from "./nostr/content/trending";
 import { handleScoringByUsersLinked } from "./nostr/cron-helpers";
 import { handleAnalytics } from "./supabase/algo-analytics";
+import { handleBrandAnalytics } from "./supabase/brand-analytics";
 
 export const NPUBKEY_EXAMPLE = "npub1rtlqca8r6auyaw5n5h3l5422dm4sry5dzfee4696fqe8s6qgudks7djtfs"
 export const initAllCronJobs = async () => {
@@ -22,8 +23,11 @@ export const initAllCronJobs = async () => {
     // setInterval(handleScoringByUsersLinked, 1000 * 60 * 60 * 24 * 7);
 
 
-    await handleAnalytics()
-    setInterval(handleAnalytics, 1000 * 60 * 60 * 24);
+    await handleBrandAnalytics()
+    setInterval(handleBrandAnalytics, 1000 * 60 * 60 * 24);
+
+    // await handleAnalytics()
+    // setInterval(handleAnalytics, 1000 * 60 * 60 * 24);
 
     // const PUBKEY_EXAMPLE = "c1e9ab3a56a2ab6ca4bebf44ea64b2fda40ac6311e886ba86b4652169cb56b43"
     // const limit = 1;

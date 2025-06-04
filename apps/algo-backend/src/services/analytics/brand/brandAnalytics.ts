@@ -19,7 +19,7 @@ interface LlmInputsGenerationObject {
     schema: z.ZodSchema;
 }
 
-export class ContentCreatorAnalytics {
+export class BrandAnalytics {
     private openRouter = createOpenRouter({
         apiKey: process.env.OPENROUTER_API_KEY!,
     });;
@@ -79,7 +79,7 @@ export class ContentCreatorAnalytics {
         }
     }
 
-    async getTwitterAnalytics(user: string): Promise<{
+    async getTwitterAnalytics(brand_handle: string, topics?: string[]): Promise<{
         dataUser?: any,
         xKaito?: any,
         twitter?: any,
@@ -90,7 +90,7 @@ export class ContentCreatorAnalytics {
         stats_content?: any,
     } | null | undefined> {
         try {
-            console.log("user", user);
+            console.log("brand_handle", brand_handle);
             console.log("runApify",);
             let lastTwitter = null;
             // const lastTwitter = await this.apifyService.runApifyActorWithDataset(this.actorsApify["twitter"], {
@@ -98,35 +98,55 @@ export class ContentCreatorAnalytics {
             // });
             // console.log("lastTwitter apify", lastTwitter);
             const lastXkaito = await this.apifyService.runApifyActorWithDataset(this.actorsApify["x-kaito"], {
-                from: user,
-                maxItems:50,
+                searchTerms: [brand_handle],
+                since: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+                "@": brand_handle,
+                queryType:"Top",
+                maxItems:100,
+                twitterContent:brand_handle,
             });
             console.log("lastXkaito apify", lastXkaito);
 
-            let prompt = `Generate a summary of the last 10 tweets of the user ${user}.
+            const users = new Set();
+            const userTweets = new Map();
+
+            if (lastXkaito && Array.isArray(lastXkaito)) {
+                lastXkaito.forEach((tweet: any) => {
+                    if (tweet.author && tweet.author.userName) {
+                        users.add(tweet.author.userName);
+                        
+                        if (!userTweets.has(tweet.author.userName)) {
+                            userTweets.set(tweet.author.userName, []);
+                        }
+                        userTweets.get(tweet.author.userName).push(tweet);
+                    }
+                });
+            }
+
+            const usersList = Array.from(users);
+            const userTweetsList = Array.from(userTweets.entries()).map(([user, tweets]) => ({
+                user,
+                tweets
+            }));
+
+            console.log("Unique users:", usersList);
+            console.log("User tweets mapping:", userTweetsList);
+
+            let prompt = `Rank the best users by score for the brand_handle ${brand_handle} and the topics ${topics}.
                 `
 
-            // if (lastTwitter) {
-            //     prompt += `
-            //     - ${JSON.stringify(lastTwitter)}
-            //     `
-            // }
-
-            if (lastXkaito) {
+            if(userTweetsList.length > 0) {
                 prompt += `
-                - ${JSON.stringify(lastXkaito)}
+                - ${JSON.stringify(userTweetsList)}
                 `
             }
-            const resultProcessData = await this.generateTextLlm({
-                model: "anthropic/claude-3.7-sonnet",
-                systemPrompt: `You are a helpful assistant that can generate a summary of the last 10 tweets of a user.`,
-                prompt: prompt
-            });
-            console.log("resultProcessData", resultProcessData);
+
 
             const resultProcessDataObject = await this.generateObject({
                 model: "anthropic/claude-3.7-sonnet",
                 systemPrompt: `You are an AI analyzing a Twitter/X profile. Based on the bio, tweet content, engagement, and patterns, classify the profile according to:
+                Rank the best users by score for the brand_handle ${brand_handle} and the topics ${topics}.
+
                     - Main Topics (max 3) [e.g., Crypto, Politics, Productivity]
                     - Expertise Level [Beginner, Intermediate, Expert]
                     - Reputation Score [0-100] (based on consistency, quality, and community trust)
@@ -141,9 +161,13 @@ export class ContentCreatorAnalytics {
                     - Clarity [High, Medium, Low]
                     - Creativity [High, Medium, Low]
                     - Engagement Rate [0-100] (based on the number of likes, retweets, and comments)
+
+                    Rank the best users by score for the brand_handle ${brand_handle} and the topics ${topics}.
                     `,
                 prompt: `You are an AI analyzing a Twitter/X profile. Based on the bio, tweet content, engagement, and patterns, classify the profile according to:
-                    - Main Topics (max 3) [e.g., Crypto, Politics, Productivity]
+                    Rank the best users by score for the brand_handle ${brand_handle} and the topics ${topics}.
+                    
+                - Main Topics (max 3) [e.g., Crypto, Politics, Productivity]
                     - Expertise Level [Beginner, Intermediate, Expert]
                     - Reputation Score [0-100] (based on consistency, quality, and community trust)
                     - Sentiment Profile [Positive, Neutral, Negative, Mixed]
@@ -165,45 +189,24 @@ export class ContentCreatorAnalytics {
                     - Overall Score [0-100]
 
                     Return a structured JSON object.
-                    Data process are here: ${resultProcessData?.text}
+                    Data process are here: ${prompt}
+                    
+
                     `,
                 schema: z.object({
-                    summary: z.string().describe("Summary of the user's recent tweets and overall content"),
-                    mainTopics: z.array(z.string()).describe("Array of main topics the user frequently discusses (max 3)"),
-                    mainSubjects: z.array(z.string()).describe("Array of main subjects the user frequently discusses, references, or mentions (max 3)"),
-                    mainSubjectsPessimistic: z.array(z.string()).describe("Array of main subjects the user frequently discusses, references, or mentions negatively (max 3)"),
-                    mainSubjectsNeutral: z.array(z.string()).describe("Array of main subjects the user frequently discusses, references, or mentions neutrally (max 3)"),
-                    mainSubjectsOptimistic: z.array(z.string()).describe("Array of main subjects the user frequently discusses, references, or mentions positively (max 3)"),
-                    expertiseLevel: z.number().min(0).max(3).describe("User's level of expertise in their main topics"),
-                    reputationScore: z.number().min(0).max(100).describe("Numerical score (0-100) representing user's reputation based on consistency and community trust"),
-                    sentimentProfile: z.string().describe("Overall sentiment of user's content"),
-                    polarizationLevel: z.number().min(0).max(3).describe("Level of content polarization"),
-                    trustScore: z.number().min(0).max(100).describe("Numerical score (0-100) representing user's trust based on consistency and community trust"),
-                    truthfulnessEstimate: z.string().describe("Assessment of content truthfulness"),
-                    copywritingStyle: z.string().describe("Style of writing and communication"),
-                    mindShare: z.number().min(0).max(100).describe("Measure of user's influence and reach (0-100)"),
-                    tone: z.enum(["formal", "informal", 'friendly', 'casual']).describe("The tone of the text"),
-                    introductionBodyConclusionScore: z.number().min(0).max(100).describe("The score of the text in the introduction, body, and conclusion criteria"),
-                    copyWritingScore: z.number().min(0).max(100).describe("The score of the text in the copy writing criteria and skills"),
-                    storyTellingAndHooksScore: z.number().min(0).max(100).describe("The score of the text in the story telling and hooks criteria"),
-                    sentiment: z
-                        .enum(["happy", "neutral", "sad", "critical", "passionate", "optimistic", "pessimistic"])
-                        .describe("The sentiment of the text"),
-
-                    editingScore: z.number().min(0).max(100).describe("The score of the text in the editing criteria: like grammar, spelling, punctuation, etc."),
-                    educationalScore: z.number().min(0).max(100).describe("The score of the text in the educational criteria: like pedagogy, way to talk, tone, introduction, body, and conclusion"),
-                    buildingScore: z.number().min(0).max(100).describe("The score of the text in the building criteria, like founder, working on an company, etc."),
-                    contentScore: z.number().min(0).max(100).describe("The score of the text in the content criteria: like hooks, body, intro, narrative, conclusion, story telling, emotions feeling, value sharing and constructive, educational, pedagogy, way to talk, tone, introduction, body, and conclusion"),
-                    consistencyScore: z.number().min(0).max(100).describe("The score of the text in the consistency criteria: like hooks, body, intro, narrative, conclusion, story telling, emotions feeling, value sharing and constructive, educational, pedagogy, way to talk, tone, introduction, body, and conclusion"),
-                    relevanceScore: z.number().min(0).max(100).describe("The score of the text in the relevance criteria: like hooks, body, intro, narrative, conclusion, story telling, emotions feeling, value sharing and constructive, educational, pedagogy, way to talk, tone, introduction, body, and conclusion"),
-                    clarityScore: z.number().min(0).max(100).describe("The score of the text in the clarity criteria: like hooks, body, intro, narrative, conclusion, story telling, emotions feeling, value sharing and constructive, educational, pedagogy, way to talk, tone, introduction, body, and conclusion"),
-                    creativityScore: z.number().min(0).max(100).describe("The score of the text in the creativity criteria: like hooks, body, intro, narrative, conclusion, story telling, emotions feeling, value sharing and constructive, educational, pedagogy, way to talk, tone, introduction, body, and conclusion"),
-                    overallScore: z
-                        .number()
-                        .min(0)
-                        .max(100)
-                        .int()
-                        .describe("The score of the text in the copy writing criteria: hooks, body, intro, narrative, conclusion, story telling, emotions feeling, value sharing and constructive, educational, pedagogy, way to talk, tone, introduction, body, and conclusion"),
+                    users: z.array(z.string()).describe("Array of users by descending order of score. Get handle twitter from the prompt and the score is the overall score of the user"),
+                    score: z.array(z.number()).describe("Array of scores of the users"),
+                    tweetRanking: z.array(z.string()).describe("Array of tweets by descending order of score, get the tweet from the prompt input"),
+                    scoreTweets: z.array(z.number()).describe("Array of scores of the tweets"),
+                   
+                    // rankUsers: z.array(z.object({
+                    //     user: z.string().describe("User name"),
+                    //     score: z.number().describe("Score of the user"),
+                    // })).describe("Array of users by descending order of score. Get handle twitter from the prompt and the score is the overall score of the user"),
+                    // tweetRanking: z.array(z.object({
+                    //     tweet: z.string().describe("Tweet"),
+                    //     score: z.number().describe("Score of the tweet"),
+                    // })).describe("Array of tweets by descending order of score, get the tweet from the prompt input"),
                 }),
             });
             console.log("resultProcessDataObject", resultProcessDataObject);
@@ -216,7 +219,7 @@ export class ContentCreatorAnalytics {
                 xKaito: lastXkaito,
                 twitter: lastTwitter,
                 result: resultProcessDataObject?.object,
-                processData: resultProcessData,
+                processData: prompt,
             };
         } catch (error) {
             console.error(error);

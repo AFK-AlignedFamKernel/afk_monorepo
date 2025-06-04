@@ -1,10 +1,9 @@
-import MenuCreator from "@/components/ContentCreator/MenuCreator";
-import Explanation from "@/components/ContentCreator/Explanation";
+import ListBrand from "@/components/Brand/ListBrand";
 export default function ContentCreatorPage() {
     return (
         <div className="container mx-auto p-4">
-            <Explanation />
-            <MenuCreator />
+
+            <ListBrand />
 
         </div>
     )

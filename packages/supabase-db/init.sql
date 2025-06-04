@@ -805,22 +805,25 @@ CREATE INDEX idx_brand_created_at ON brand(created_at);
 CREATE INDEX idx_brand_slug_name ON brand(slug_name);
 
 
-
 -- Create leaderboard table for tracking user rankings
 CREATE TABLE IF NOT EXISTS leaderboard_stats (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    creator_id UUID REFERENCES content_creators(id) ON DELETE CASCADE,
-    scraping_id UUID REFERENCES creator_scraping(id) ON DELETE CASCADE,
+    brand_id UUID REFERENCES brand(id) ON DELETE CASCADE,
     platform social_platform NOT NULL,
     total_score DECIMAL(5,2) DEFAULT 0,
     rank_position INTEGER DEFAULT 0,
     previous_rank INTEGER DEFAULT 0,
     rank_change INTEGER DEFAULT 0,
+    user_votes JSONB DEFAULT '{}',
+    user_top TEXT[],
+    user_rank JSONB DEFAULT '{}',
+    data_user_stats JSONB DEFAULT '{}',
+    new_user TEXT[],
     last_updated TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     creator_ranks JSONB DEFAULT '[]', -- Array of creator rankings
     scraping_ranks JSONB DEFAULT '[]', -- Array of scraping rankings
-    UNIQUE(creator_id, platform)
+    UNIQUE(brand_id, platform)
 );
 
 -- Enable RLS on leaderboard_stats table
@@ -834,7 +837,5 @@ CREATE POLICY "Leaderboard stats can be updated by system" ON leaderboard_stats
     FOR UPDATE USING (auth.role() = 'service_role');
 
 -- Create indexes for better performance
-CREATE INDEX idx_leaderboard_creator_id ON leaderboard_stats(creator_id);
-CREATE INDEX idx_leaderboard_scraping_id ON leaderboard_stats(scraping_id);
 CREATE INDEX idx_leaderboard_platform ON leaderboard_stats(platform);
 CREATE INDEX idx_leaderboard_rank_position ON leaderboard_stats(rank_position);

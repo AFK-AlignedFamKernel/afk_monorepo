@@ -298,6 +298,11 @@ const Layout = ({ children }: LayoutProps) => {
               Profile
             </Link>
 
+
+            <Link href="/discovery" className="sidebar-nav-item" onClick={closeSidebar}>
+              <Icon name="DiscoverIcon" size={24} />
+              Discover</Link>
+
             <Link href="/create" className="sidebar-nav-item" onClick={closeSidebar}>
               <Icon name="AddPostIcon" size={24} />
               Create</Link>
