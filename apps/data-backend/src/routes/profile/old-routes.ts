@@ -9,6 +9,7 @@ interface LinkAccountBody {
 
 interface VerifyAccountBody {
     platform: string;
+    code: string;
 }
 
 export default async function profileRoutes(fastify: FastifyInstance) {
@@ -53,11 +54,12 @@ export default async function profileRoutes(fastify: FastifyInstance) {
                 return reply.status(401).send({ error: 'Unauthorized' });
             }
 
-            const { platform } = request.body;
+            const { platform, code } = request.body;
 
             const isVerified = await socialVerificationService.verifyAccount(
                 request.user.id,
-                platform
+                platform,
+                code
             );
 
             if (!isVerified) {
