@@ -9,7 +9,7 @@ export default function BrandView() {
         return <div>No slug</div>;
     }
     return (
-        <div className="flex flex-col items-center gap-4">
+        <div className="">
             <h1>Brand</h1>
             <BrandPage slug_name={slug as string} />
         </div>
