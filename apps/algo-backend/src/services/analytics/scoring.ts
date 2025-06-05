@@ -105,20 +105,23 @@ export const mindshareScore = async ({ repostCount, likeCount, viewCount, quoteC
 
 
 
-export const mindshareScoreProfileRating =  ({ repostCount = 0, likeCount = 0, viewCount = 0, quoteCount = 0, replyCount = 0,
-
+export const mindshareScoreProfileRating = ({
+    repostCount = 0,
+    likeCount = 0,
+    viewCount = 0,
+    quoteCount = 0,
+    replyCount = 0,
     bookmarkCount = 0,
     followersCount = 0,
-
     followingCount = 0,
-}: InputMindshareScoreProfileRating):   { mindshareScoreProfileRating: number, mindshareScoreFollowers: number, mindshareScoreFollowing: number, mindshare: number, totalScore: number } => {
+}: InputMindshareScoreProfileRating): { mindshareScoreProfileRating: number, mindshareScoreFollowers: number, mindshareScoreFollowing: number, mindshare: number, totalScore: number } => {
     try {
-        const mindshare = (repostCount * WEIGHT_INTERACTIONS_MINDSHARE.repost + 
-            likeCount * WEIGHT_INTERACTIONS_MINDSHARE.reaction + 
-            viewCount * WEIGHT_INTERACTIONS_MINDSHARE.view + 
-            quoteCount * WEIGHT_INTERACTIONS_MINDSHARE.quote + 
-            replyCount * WEIGHT_INTERACTIONS_MINDSHARE.reply + 
-            bookmarkCount * WEIGHT_INTERACTIONS_MINDSHARE.bookmark + 
+        const mindshare = (repostCount * WEIGHT_INTERACTIONS_MINDSHARE.repost +
+            likeCount * WEIGHT_INTERACTIONS_MINDSHARE.reaction +
+            viewCount * WEIGHT_INTERACTIONS_MINDSHARE.view +
+            quoteCount * WEIGHT_INTERACTIONS_MINDSHARE.quote +
+            replyCount * WEIGHT_INTERACTIONS_MINDSHARE.reply +
+            bookmarkCount * WEIGHT_INTERACTIONS_MINDSHARE.bookmark +
             followersCount * WEIGHT_INTERACTIONS_MINDSHARE.repost) / 7;
         const mindshareScore = mindshare * 100;
 
@@ -150,32 +153,61 @@ export const mindshareScoreProfileRating =  ({ repostCount = 0, likeCount = 0, v
 
 }
 
-export const engagementScoreProfileRating = ({ repostCount = 0, likeCount = 0, viewCount = 0, quoteCount = 0, replyCount = 0, followersCount = 0, followingCount = 0, bookmarkCount = 0 }: InputEngagementScore):
-    { engagementScore: number, engagementScoreFollowers: number, engagementScoreFollowing: number, engagement: number, totalScore: number } => {
+export const engagementScoreProfileRating = ({
+    repostCount = 0,
+    likeCount = 0,
+    viewCount = 0,
+    quoteCount = 0,
+    replyCount = 0,
+    followersCount = 0,
+    followingCount = 0,
+    bookmarkCount = 0 }: InputEngagementScore): { engagementScore: number, engagementRate: number, engagementScoreFollowing: number, engagement: number, totalScore: number } => {
     try {
 
+        // Calculate base engagement metrics with weighted interactions
+        const baseEngagementScore = (
+            repostCount * WEIGHT_INTERACTIONS_ENGAGEMENT.repost +
+            likeCount * WEIGHT_INTERACTIONS_ENGAGEMENT.reaction +
+            viewCount * WEIGHT_INTERACTIONS_ENGAGEMENT.view +
+            quoteCount * WEIGHT_INTERACTIONS_ENGAGEMENT.quote +
+            replyCount * WEIGHT_INTERACTIONS_ENGAGEMENT.reply +
+            bookmarkCount * WEIGHT_INTERACTIONS_ENGAGEMENT.bookmark
+        ) / 6; // Normalize by number of interaction types
 
-        const engagementScore = (repostCount * WEIGHT_INTERACTIONS_ENGAGEMENT.repost + 
-            likeCount * WEIGHT_INTERACTIONS_ENGAGEMENT.reaction + 
-            viewCount * WEIGHT_INTERACTIONS_ENGAGEMENT.view + 
-            quoteCount * WEIGHT_INTERACTIONS_ENGAGEMENT.quote + 
-            replyCount * WEIGHT_INTERACTIONS_ENGAGEMENT.reply + 
-            bookmarkCount * WEIGHT_INTERACTIONS_ENGAGEMENT.bookmark + 
-            followersCount * WEIGHT_INTERACTIONS_ENGAGEMENT.repost) / 7;
+        // Calculate follower engagement ratio (followers who interact)
+        const followerEngagementRatio = followersCount > 0 
+            ? (repostCount + likeCount + quoteCount + replyCount) / followersCount 
+            : 0;
 
-        const engagementScoreFollowers = followersCount * 100;
+        // Calculate profile engagement score with diminishing returns
+        const engagementScore = Math.min(baseEngagementScore * (1 + followerEngagementRatio), 100);
 
-        const engagementScoreFollowing = followingCount * 100;
+        // Calculate follower quality score (penalize for following too many)
+        const followerQualityScore = followersCount > 0 && followingCount > 0
+            ? Math.min((followersCount / followingCount) * 50, 100)
+            : 0;
 
-        const engagement = engagementScore * 100;
+        // Calculate engagement rate (interactions per follower)
+        const engagementRate = followersCount > 0
+            ? ((repostCount + likeCount + quoteCount + replyCount) / followersCount) * 100
+            : 0;
 
-        const totalScore = engagementScore + engagementScoreFollowers + engagementScoreFollowing;
+        // Combine scores with weighted importance
+        const totalScore = (
+            engagementScore * 0.4 +           // Base engagement
+            followerQualityScore * 0.3 +      // Follower quality
+            engagementRate * 0.3              // Engagement rate
+        );
+
+        const engagement = Math.min(totalScore, 100);
+
+        const engagementScoreFollowing = ((repostCount + likeCount + quoteCount + replyCount) / followersCount)
 
         return {
 
             engagementScore,
-            engagementScoreFollowers,
-            engagementScoreFollowing,
+            engagementRate,
+            engagementScoreFollowing:engagement,
             engagement,
             totalScore
         };
@@ -183,7 +215,7 @@ export const engagementScoreProfileRating = ({ repostCount = 0, likeCount = 0, v
         console.error('Error in engagementScore', error);
         return {
             engagementScore: 0,
-            engagementScoreFollowers: 0,
+            engagementRate: 0,
             engagementScoreFollowing: 0,
             engagement: 0,
             totalScore: 0

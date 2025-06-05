@@ -118,6 +118,11 @@ a {
   }
 }
 
+table {
+  background-color: var(--background);
+  color: var(--contrast-900);
+}
+
 // Theme toggle styles
 .theme-toggle {
   display: flex;

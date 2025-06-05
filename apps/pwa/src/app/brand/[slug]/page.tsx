@@ -10,11 +10,7 @@ export default function BrandView() {
     }
     return (
         <div className="">
-            <h1>Brand</h1>
             <BrandPage slug_name={slug as string} />
         </div>
     )
-
-
-
 }

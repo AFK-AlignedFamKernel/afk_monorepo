@@ -99,7 +99,7 @@ export class ContentCreatorAnalytics {
             // console.log("lastTwitter apify", lastTwitter);
             const lastXkaito = await this.apifyService.runApifyActorWithDataset(this.actorsApify["x-kaito"], {
                 from: user,
-                maxItems:50,
+                maxItems:30,
             });
             console.log("lastXkaito apify", lastXkaito);
 
@@ -116,6 +116,10 @@ export class ContentCreatorAnalytics {
                 prompt += `
                 - ${JSON.stringify(lastXkaito)}
                 `
+            }
+
+            if(!lastXkaito){
+                return null;
             }
             const resultProcessData = await this.generateTextLlm({
                 model: "anthropic/claude-3.7-sonnet",

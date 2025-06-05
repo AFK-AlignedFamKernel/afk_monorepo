@@ -58,11 +58,11 @@ export const handleAnalytics = async () => {
                         console.log("dataCreator", dataCreator);
                         console.log("errorCreator", errorCreator);
                         const { data, error } = await supabase.from('creator_analytics').update({
-                            llm_classification: twitterAnalytics?.result,
-                            llm_process_data: twitterAnalytics?.processData,
-                            recommendations: twitterAnalytics?.recommendations,
-                            stats_creator: twitterAnalytics?.stats_creator,
-                            stats_content: twitterAnalytics?.stats_content,
+                            llm_classification: twitterAnalytics?.result ?? dataCreator[0].llm_classification,
+                            llm_process_data: twitterAnalytics?.processData ?? dataCreator[0].llm_process_data,
+                            recommendations: twitterAnalytics?.recommendations ?? dataCreator[0].recommendations,
+                            stats_creator: twitterAnalytics?.stats_creator ?? dataCreator[0].stats_creator,
+                            stats_content: twitterAnalytics?.stats_content ?? dataCreator[0].stats_content,
                         }).eq('id', dataCreator[0].id).eq('creator_id', creator.id).eq('platform', 'twitter').select().single();
                         console.log("data", data);
                         console.log("error", error);
