@@ -176,7 +176,7 @@ export const ManageCreatorProfile: React.FC = () => {
     </div>
   }
   return (
-    <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow overflow-x-hidden">
+    <div className="md:max-w-md w-full mx-auto p-4 m-2 rounded-lg dark:bg-contrast-100 shadow overflow-x-hidden sm:p-2">
       <div className="flex justify-between items-center mb-4">
         <p className='text-sm'>Manage your profile</p>
         <button onClick={() => fetchMyContentCreatorProfile()}>
@@ -184,7 +184,7 @@ export const ManageCreatorProfile: React.FC = () => {
         </button>
       </div>
 
-      <div className='flex gap-4 flex-col'>
+      <div className='flex flex-col gap-3'>
         <input type="text" placeholder='Handle' value={handle} onChange={(e) => setHandle(e.target.value)} className="w-full" />
         <label className='text-sm font-medium'>Slug Name: link to your profile</label>
         <input type="text" placeholder='Slug Name' value={slugName} onChange={(e) => setSlugName(e.target.value)} className="w-full" />
@@ -192,14 +192,14 @@ export const ManageCreatorProfile: React.FC = () => {
         <input type="text" placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} className="w-full" />
         <label className='text-sm font-medium'>Tip to Stake token address</label>
 
-        <div className='flex gap-2 items-center'>
+        <div className='flex flex-col sm:flex-row gap-2 items-stretch sm:items-center'>
           <input type="text" placeholder='Tip to Stake token address' value={starknetAddress} onChange={(e) => setStarknetAddress(e.target.value as `0x${string}`)} className="w-full" />
 
           {address &&
-            <div className='flex flex-col gap-2 items-center'>
-              <p className="text-sm break-all mt-2">{address?.slice(0, 6)}...{address?.slice(-4)}</p>
+            <div className='flex flex-row sm:flex-col gap-2 items-center sm:items-start'>
+              <p className="text-sm break-all mt-2 sm:mt-0">{address?.slice(0, 6)}...{address?.slice(-4)}</p>
 
-              <div>
+              <div className="flex gap-2">
                 <button className='btn btn-secondary p-2' onClick={() => {
                   setStarknetAddress(address);
                   showToast({
@@ -216,11 +216,10 @@ export const ManageCreatorProfile: React.FC = () => {
         </div>
 
         {address && (
-          <div className=" p-3 rounded-lg">
+          <div className="p-3 rounded-lg">
             <p className='text-sm font-medium'>Current Starknet Address</p>
             <p className="text-sm text-gray-600 mb-2">Click to use this address</p>
             <div className="flex gap-2 items-center">
-
               <button className='btn p-2' onClick={() => navigator.clipboard.writeText(address)}>
                 <Icon name="CopyIcon" size={16} className='w-4 h-4' />
               </button>
@@ -229,7 +228,6 @@ export const ManageCreatorProfile: React.FC = () => {
           </div>
         )}
       </div>
-
 
       <div className="mt-4">
         <TagsForm tags={topics} setTags={setTopics} />
@@ -251,18 +249,17 @@ export const ManageCreatorProfile: React.FC = () => {
         </div>
       )}
 
-
       <div className="mt-4">
         <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="w-full" />
         <button
           onClick={() => file && setFileUrl(URL.createObjectURL(file))}
-          className="btn btn-secondary mt-2"
+          className="btn btn-secondary mt-2 w-full"
         >
           Upload
         </button>
         {fileUrl && (
           <div className="mt-2">
-            <img src={fileUrl} alt="File" className="max-w-full h-auto rounded-lg" />
+            <img src={fileUrl} alt="File" className="max-w-full h-auto rounded-lg w-full object-contain" />
           </div>
         )}
       </div>
@@ -277,14 +274,14 @@ export const ManageCreatorProfile: React.FC = () => {
       <div className='mt-6 space-y-4'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           <div className='flex flex-col gap-2'>
-            <p className='text-sm text-gray-500'>Update your profile</p>
-            <button className='btn btn-primary w-full' onClick={handleUpdateFromIdentity}>Update</button>
+            <p className='text-sm text-gray-500'>{!contentCreator ? "Create" : "Update"} your profile</p>
+            <button className='btn btn-primary w-full' onClick={handleUpdateFromIdentity}>{!contentCreator ? "Create" : "Update"}</button>
           </div>
 
-          <div className='flex flex-col gap-2'>
+          {/* <div className='flex flex-col gap-2'>
             <p className='text-sm text-gray-500'>Verify your social network identity</p>
             <button className='btn btn-secondary w-full' onClick={handleVerifyFromIdentity}>Verify</button>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -311,15 +308,14 @@ export const ManageCreatorProfile: React.FC = () => {
               title: "Supabase Link",
               content: <SupabaseLink />
             },
-            {
-              title: "Link Account",
-              content: <LinkAccount />
-            },
+            // {
+            //   title: "Link Account",
+            //   content: <LinkAccount />
+            // },
             {
               title: "Oauth",
               content: <Oauth />
             },
-      
           ]}
         />
       </div>
