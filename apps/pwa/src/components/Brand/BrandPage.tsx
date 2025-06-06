@@ -75,7 +75,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                         {brand?.is_verified && <Icon name="CheckIcon" size={20} className="text-green-600" />}
                     </div>
 
-                    <img src={brand.image_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-20 h-20 object-cover rounded-full border border-gray-200" />
+                    <img src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-20 h-20 object-cover rounded-full border border-gray-200" />
                     {/* <p className="text-green-600 font-semibold">{brand?.is_verified ? 'Verified' : ''}</p> */}
 
                     <p className="break-words whitespace-normal text-center w-full px-2">{brand?.description}</p>
