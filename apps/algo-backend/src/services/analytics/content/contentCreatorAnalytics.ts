@@ -96,7 +96,6 @@ export class ContentCreatorAnalytics {
     } | null | undefined> {
         try {
             console.log("user", user);
-            console.log("runApify",);
             let lastTwitter: any = null;
 
             if(!this.twitterScraper.isInitialized) {

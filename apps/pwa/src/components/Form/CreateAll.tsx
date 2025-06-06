@@ -6,10 +6,12 @@ import { NostrForm, NostrFormData } from '@/components/Form/NostrForm';
 import { useUIStore } from '@/store/uiStore';
 import { TokenCreateForm } from '../launchpad/TokenCreateForm';
 import { NostrArticleForm } from './NostrArticleForm';
+import { CreateBrandForm } from '../Brand/CreateBrandForm';
 enum CreateType {
   POST = 'post',
   ARTICLE = 'article',
   TOKEN = 'token',
+  BRAND = 'brand',
 }
 export default function CreateAll() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -80,6 +82,13 @@ export default function CreateAll() {
         <div>
           <h1>Token</h1>
           <TokenCreateForm></TokenCreateForm>
+        </div>
+      )}
+
+      {createType === CreateType.BRAND && (
+        <div>
+          <h1>Brand</h1>
+          <CreateBrandForm></CreateBrandForm>
         </div>
       )}
       
