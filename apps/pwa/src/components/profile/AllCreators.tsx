@@ -82,7 +82,7 @@ export const AllCreators: React.FC = () => {
  
   console.log("creators", creators)
   return (
-    <div className="p-4 border rounded-lg dark:bg-contrast-100 shadow space-y-4">
+    <div className="p-4 rounded-lg dark:bg-contrast-100 shadow space-y-4">
       <h3 className="text-xl font-semibold mb-2">All Connected & Verified Creators</h3>
       <div className="flex flex-row justify-center">
         <button className="bg-blue-500 text-white p-2 rounded-md" onClick={() => {

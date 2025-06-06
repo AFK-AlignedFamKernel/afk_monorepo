@@ -36,7 +36,6 @@ export default function ListBrand() {
 
     return (
         <div>
-            <h1>List Brand</h1>
 
             {loading && <div>Loading...</div>}
 

@@ -81,10 +81,8 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
       )}
 
 
-
-
       {creator?.topics && creator?.topics?.length > 0 && (
-        <div className="flex flex-row gap-4 mt-4 p-4 rounded-lg shadow h-auto overflow-x-auto scrollbar-hide">
+        <div className="flex flex-row gap-4 rounded-lg shadow h-auto overflow-x-auto scrollbar-hide">
           {creator.topics.map((topic, index) => (
             <div key={index} className="flex flex-col items-center gap-3 rounded-md">
               <p className="text-sm truncate w-full no-wrap ellipsis">{topic}</p>
@@ -93,21 +91,20 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
         </div>
       )}
 
-      {(creator?.social_links || creator?.identities) && (
-        <p>Links</p>
-      )}
-
       {creator?.identities && creator?.identities?.length > 0 && (
-        <div className="flex flex-row gap-4 mt-4 p-4 rounded-lg shadow h-auto">
+        <div className="flex flex-row gap-4 rounded-lg shadow h-auto">
           {Object.entries(creator.identities).map(([platformIndex, platform]) => {
             return (
               <div key={platformIndex + platform + platform.url + platform.identity_data.provider}
                 className="flex flex-col items-center gap-3 p-3 rounded-md">
                 {/* <p className="font-medium capitalize">{platform.identity_data.provider}</p> */}
-                <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
 
                 {platform?.identity_data?.provider === "discord" && (
-                  <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  <>
+                    <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+                    <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+
+                  </>
                 )}
 
                 {platform?.identity_data?.provider === "github" && (
@@ -115,6 +112,8 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                     <Link href={`https://github.com/${platform.identity_data.user_name}`} target="_blank"
                       className="text-blue-500 hover:underline text-sm flex">
                       {/* {`https://github.com/${platform.identity_data.user_name}`} */}
+                      <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+
                       <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                       <p className="font-medium">{platform.identity_data.name}</p>
 
@@ -123,12 +122,16 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                 )}
 
                 {platform?.identity_data?.provider === "google" && (
-                  <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  <>
+                    <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+                    <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  </>
                 )}
 
                 {platform?.identity_data?.provider === "twitter" && (
                   <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank">
-                    <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                    <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+                    {/* <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" /> */}
                   </Link>
                 )}
 
@@ -140,23 +143,26 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
       )}
 
       {creator?.social_links && (
-        <div className="flex flex-row gap-4 mt-4 p-4 rounded-lg shadow h-auto">
+        <div className="flex flex-row gap-4 p-1 rounded-lg shadow h-auto">
           {Object.entries(creator.social_links).map(([platformIndex, platform]) => {
             return (
               <div key={platformIndex + platform + platform.url + platform.identity_data.provider}
                 className="flex flex-col items-center gap-3 p-3 rounded-md">
-                {/* <p className="font-medium capitalize">{platform.identity_data.provider}</p> */}
-                <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
 
                 {platform?.identity_data?.provider === "discord" && (
-                  <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  <>
+                    <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+
+                    <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  </>
                 )}
 
                 {platform?.identity_data?.provider === "github" && (
                   <div className="items-center gap-3">
                     <Link href={`https://github.com/${platform.identity_data.user_name}`} target="_blank"
                       className="text-blue-500 hover:underline text-sm flex">
-                      {/* {`https://github.com/${platform.identity_data.user_name}`} */}
+                      <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+
                       <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                       <p className="font-medium">{platform.identity_data.name}</p>
 
@@ -165,64 +171,22 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                 )}
 
                 {platform?.identity_data?.provider === "google" && (
-                  <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  <>
+                    <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+                    <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+
+                  </>
                 )}
 
                 {platform?.identity_data?.provider === "twitter" && (
                   <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank">
-                    <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                    <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+
+                    {/* <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" /> */}
                   </Link>
                 )}
 
 
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      {creator?.identities && (
-        <div className="flex gap-2 mt-2">
-          {Object.entries(creator.identities).map(([platformIndex, platform]) => {
-            return (
-              <div key={platformIndex + platform + platform.url + platform.identity_data.provider}>
-                <div className="flex flex-col items-center gap-3">
-                  <img src={`/assets/icons/${platform.identity_data.provider?.toLowerCase()}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
-                  <p>{platform.identity_data.provider}</p>
-                  {platform.identity_data.provider === "discord" && (
-                    // <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name}  className="w-4 h-4 rounded-full object-cover"  />
-                    <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-10 h-10 rounded-full object-cover" />
-                  )}
-                </div>
-
-                {platform.identity_data.provider === "github" && (
-                  <>
-
-                    <Link href={`https://github.com/${platform.identity_data.user_name}`} target="_blank">
-                      <p>{platform.identity_data.name}</p>
-                      <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-10 h-10 rounded-full object-cover" />
-                      {/* <p>{`https://github.com/${platform.identity_data.user_name}`}</p> */}
-                    </Link>
-                  </>
-                )}
-
-                {platform.identity_data.provider === "google" && (
-                  <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-10 h-10 rounded-full object-cover" />
-                )}
-
-                {platform.identity_data.provider === "twitter" && (
-                  <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank">
-                    <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-10 h-10 rounded-full object-cover" />
-                  </Link>
-
-                )}
-                <p
-                  key={platform + platform.url}
-                  className="text-blue-500 hover:underline text-sm truncate w-full"
-                >
-
-
-                </p>
               </div>
             )
           })}

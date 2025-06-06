@@ -4,9 +4,12 @@ import { object, z } from 'zod';
 import { createOpenRouter, openrouter } from '@openrouter/ai-sdk-provider';
 import { mindshareScoreProfileRating } from "../scoring";
 import { engagementScoreProfileRating } from "../scoring";
-import { TwitterAnalytics } from "./twitterAnalytics";
+import { AiService } from "../../ai/ai";
+import { TwitterScraper } from "../../scraper/twitterScraper";
+import { Tweet } from "@the-convocation/twitter-scraper";
 
-
+import dotenv from 'dotenv';
+dotenv.config();
 
 interface LlmInputsGeneration {
     model: string;
@@ -21,12 +24,9 @@ interface LlmInputsGenerationObject {
     schema: z.ZodSchema;
 }
 
-export class BrandAnalytics {
-    private openRouter = createOpenRouter({
-        apiKey: process.env.OPENROUTER_API_KEY!,
-    });;
-    private twitterAnalytics: TwitterAnalytics = new TwitterAnalytics();
-
+export class TwitterAnalytics {
+    private aiService: AiService = new AiService();
+    private twitterScraper: TwitterScraper = new TwitterScraper();
 
     private apifyService: ApifyService;
     public actorsApify: {
@@ -42,7 +42,6 @@ export class BrandAnalytics {
         this.apifyService = new ApifyService();
     }
 
-
     async getTwitterAnalytics(brand_handle: string, topics?: string[]): Promise<{
         dataUser?: any,
         xKaito?: any,
@@ -57,55 +56,57 @@ export class BrandAnalytics {
             console.log("brand_handle", brand_handle);
             console.log("runApify",);
             let lastTwitter = null;
-            // const lastTwitter = await this.apifyService.runApifyActorWithDataset(this.actorsApify["twitter"], {
-            //     twitterHandles: [user]
-            // });
-            // console.log("lastTwitter apify", lastTwitter);
-            // const lastXkaito = await this.apifyService.runApifyActorWithDataset(this.actorsApify["x-kaito"], {
-            //     searchTerms: [brand_handle],
-            //     since: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
-            //     "@": brand_handle,
-            //     queryType: "Top",
-            //     maxItems: 100,
-            //     twitterContent: brand_handle,
-            // });
-            const lastXkaito = await this.apifyService.getLastRunItemsApifyActorWithDataset(this.actorsApify["x-kaito"], {
-                searchTerms: [brand_handle],
-                since: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
-                "@": brand_handle,
-                queryType: "Top",
-                maxItems: 100,
-                twitterContent: brand_handle,
+
+            await this.twitterScraper.init({
+                username: process.env.TWITTER_USERNAME!,
+                password: process.env.TWITTER_PASSWORD!,
+                email: process.env.TWITTER_EMAIL!,
             });
-            console.log("lastXkaito apify", lastXkaito);
+
+            const user = await this.twitterScraper.getUser(brand_handle);
+            console.log("user", user);
+
+
+            const query = `(${brand_handle} OR @${brand_handle}) since:${new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString().split('T')[0]}`;
+
+            const twitterLatestTweets = await this.twitterScraper.searchTweets(query, 100);
+
+
+            if(!twitterLatestTweets) {
+                return null;
+            }
+
+          
+        
+            console.log("twitterLatestTweets scraper", twitterLatestTweets);
 
             const usersNames = new Set();
             const userProfilePerName = new Map();
             const users = new Set();
-            const userTweets = new Map();
-            const userTweet = new Map();
+            const userTweets = new Map<string| undefined, Tweet[]>(new Map());
+            const userTweet = new Map<string, Tweet>();
             const userTweetsWithData = new Map();
 
 
-            if (lastXkaito && Array.isArray(lastXkaito)) {
-                lastXkaito.forEach((tweet: any) => {
-                    if (tweet.author && tweet.author.userName) {
-                        usersNames.add(tweet.author.userName);
-                        users.add(tweet.author);
+       
+            for (let tweet of twitterLatestTweets) {
 
-                        if (!userProfilePerName.has(tweet.author.userName)) {
-                            userProfilePerName.set(tweet.author.userName, tweet.author);
-                        }
+                if(tweet?.username) {
+                    usersNames.add(tweet.username);
+                    users.add(tweet);
 
-                        if (!userTweets.has(tweet.author.userName)) {
-                            userTweets.set(tweet.author.userName, []);
-                        }
-                        userTweets.get(tweet.author.userName).push(tweet);
-                        userTweetsWithData.set(tweet.author, tweet);
-                        userTweet.set(tweet.author, tweet);
-
+                    if (!userProfilePerName.has(tweet.username)) {
+                        userProfilePerName.set(tweet.username, tweet);
                     }
-                });
+
+                    if (!userTweets.has(tweet.username)) {
+                        userTweets.set(tweet.username, []);
+                    }
+                    userTweets.get(tweet.username)?.push(tweet);
+                    userTweetsWithData.set(tweet, tweet);
+                    userTweet.set(tweet.username, tweet);
+                }
+                
             }
 
             const usersListNames = Array.from(usersNames);
@@ -130,10 +131,11 @@ export class BrandAnalytics {
             let totalTweets = 0;
             let overallMindshareScore = 0;
             let overallEngagementScore = 0;
+            
 
-            let userScoreMap = Array.from(userTweets.entries()).map(([userName, tweets]) => {
+            Array.from(userTweets.entries()).forEach(([userName, tweets]) => {
 
-                console.log("tweets per user", tweets);
+                // console.log("tweets per user", tweets);
 
                 let user = userProfilePerName.get(userName);
                 console.log("user calculated", user?.userName);
@@ -148,12 +150,12 @@ export class BrandAnalytics {
                 let bookmarkCount = 0;
 
                 for (let tweet of Array.isArray(tweets) ? tweets : []) {
-                    repostCount += tweet?.retweetCount;
-                    likeCount += tweet?.likeCount;
-                    viewCount += tweet?.viewCount;
-                    quoteCount += tweet?.quoteCount;
-                    replyCount += tweet?.replyCount;
-                    bookmarkCount += tweet?.bookmarkCount;
+                    repostCount += tweet?.retweets ?? 0;
+                    likeCount += tweet?.likes ?? 0;
+                    viewCount += tweet?.views ?? 0;
+                    quoteCount += tweet?.quotedStatus?.likes ?? 0;
+                    replyCount += tweet?.replies ?? 0;
+                    bookmarkCount += tweet?.bookmarkCount ?? 0;
                 }
 
                 const mindshareScore = mindshareScoreProfileRating({
@@ -210,7 +212,7 @@ export class BrandAnalytics {
             usersScores.sort((a, b) => (b.totalMindshareScore + b.totalEngagementScore) - (a.totalMindshareScore + a.totalEngagementScore));
 
             usersScores = usersScores.map((user, index) => {
-                usersNamesScores.push(user?.userName);
+                usersNamesScores.push(user?.username);
                 return {
                     ...user,
                     rank: index + 1
@@ -226,10 +228,10 @@ export class BrandAnalytics {
 
             return {
                 dataUser: {
-                    xKaito: lastXkaito,
+                    xKaito: twitterLatestTweets,
                     twitter: lastTwitter,
                 },
-                xKaito: lastXkaito,
+                xKaito: twitterLatestTweets,
                 twitter: lastTwitter,
                 result: usersScores,
                 usersScores: usersScores,
