@@ -38,8 +38,9 @@ export class TwitterAnalytics {
             "x-kaito": "kaitoeasyapi/twitter-x-data-tweet-scraper-pay-per-result-cheapest"
         }
 
-    constructor() {
+    constructor(twitterScraper: TwitterScraper) {
         this.apifyService = new ApifyService();
+        this.twitterScraper = twitterScraper;
     }
 
     async getTwitterAnalytics(brand_handle: string, topics?: string[]): Promise<{
@@ -49,19 +50,20 @@ export class TwitterAnalytics {
         result?: any[],
         usersScores?: any[],
         usersNamesScores?: any[],
-        totalMindshareScore?:number,
-        totalEngagementScore?:number,
+        totalMindshareScore?: number,
+        totalEngagementScore?: number,
     } | null | undefined> {
         try {
             console.log("brand_handle", brand_handle);
-            console.log("runApify",);
             let lastTwitter = null;
 
-            await this.twitterScraper.init({
-                username: process.env.TWITTER_USERNAME!,
-                password: process.env.TWITTER_PASSWORD!,
-                email: process.env.TWITTER_EMAIL!,
-            });
+            if (!this.twitterScraper.isInitialized) {
+                await this.twitterScraper.init({
+                    username: process.env.TWITTER_USERNAME!,
+                    password: process.env.TWITTER_PASSWORD!,
+                    email: process.env.TWITTER_EMAIL!,
+                });
+            }
 
             const user = await this.twitterScraper.getUser(brand_handle);
             console.log("user", user);
@@ -72,26 +74,25 @@ export class TwitterAnalytics {
             const twitterLatestTweets = await this.twitterScraper.searchTweets(query, 100);
 
 
-            if(!twitterLatestTweets) {
+            if (!twitterLatestTweets) {
                 return null;
             }
 
-          
-        
+
             console.log("twitterLatestTweets scraper", twitterLatestTweets);
 
             const usersNames = new Set();
             const userProfilePerName = new Map();
             const users = new Set();
-            const userTweets = new Map<string| undefined, Tweet[]>(new Map());
+            const userTweets = new Map<string | undefined, Tweet[]>(new Map());
             const userTweet = new Map<string, Tweet>();
             const userTweetsWithData = new Map();
 
 
-       
+
             for (let tweet of twitterLatestTweets) {
 
-                if(tweet?.username) {
+                if (tweet?.username) {
                     usersNames.add(tweet.username);
                     users.add(tweet);
 
@@ -106,7 +107,7 @@ export class TwitterAnalytics {
                     userTweetsWithData.set(tweet, tweet);
                     userTweet.set(tweet.username, tweet);
                 }
-                
+
             }
 
             const usersListNames = Array.from(usersNames);
@@ -131,7 +132,7 @@ export class TwitterAnalytics {
             let totalTweets = 0;
             let overallMindshareScore = 0;
             let overallEngagementScore = 0;
-            
+
 
             Array.from(userTweets.entries()).forEach(([userName, tweets]) => {
 
@@ -236,8 +237,8 @@ export class TwitterAnalytics {
                 result: usersScores,
                 usersScores: usersScores,
                 usersNamesScores: usersNamesScores,
-                totalMindshareScore:overallMindshareScore,
-                totalEngagementScore:overallEngagementScore
+                totalMindshareScore: overallMindshareScore,
+                totalEngagementScore: overallEngagementScore
             };
         } catch (error) {
             console.error(error);
@@ -253,8 +254,8 @@ export class TwitterAnalytics {
         result?: any[],
         usersScores?: any[],
         usersNamesScores?: any[],
-        totalMindshareScore?:number,
-        totalEngagementScore?:number,
+        totalMindshareScore?: number,
+        totalEngagementScore?: number,
     } | null | undefined> {
         try {
             console.log("brand_handle", brand_handle);
@@ -437,8 +438,8 @@ export class TwitterAnalytics {
                 result: usersScores,
                 usersScores: usersScores,
                 usersNamesScores: usersNamesScores,
-                totalMindshareScore:overallMindshareScore,
-                totalEngagementScore:overallEngagementScore
+                totalMindshareScore: overallMindshareScore,
+                totalEngagementScore: overallEngagementScore
             };
         } catch (error) {
             console.error(error);

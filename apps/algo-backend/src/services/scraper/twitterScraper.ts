@@ -9,6 +9,8 @@ const PROXY_URL = process.env.PROXY_URL ?? "https://afk-community.xyz/?";
 export class TwitterScraper {
   private scraper: Scraper;
 
+  public isInitialized = false;
+
   constructor() {
     console.log("PROXY_URL", PROXY_URL);
     this.scraper = new Scraper({
@@ -31,12 +33,11 @@ export class TwitterScraper {
       // },
     });
 
-
   }
 
   async init(credentials: { username: string, password: string, email?: string }) {
     try {
-
+      console.log("init twitter scraper", credentials);
       const cookies = await this.scraper.getCookies();
       console.log("cookies", cookies);
       if (!cookies || cookies.length === 0) {
@@ -44,11 +45,12 @@ export class TwitterScraper {
         console.log("login");
         const user = await this.scraper.login(credentials.username, credentials.password, credentials.email);
         console.log("user", user);
+        this.isInitialized = true;
         return true;
       }
 
       this.scraper.setCookies(cookies);
-
+      this.isInitialized = true;
       return true;
     } catch (error) {
       console.error("init error", error);

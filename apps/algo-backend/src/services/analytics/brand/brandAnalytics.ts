@@ -5,6 +5,7 @@ import { createOpenRouter, openrouter } from '@openrouter/ai-sdk-provider';
 import { mindshareScoreProfileRating } from "../scoring";
 import { engagementScoreProfileRating } from "../scoring";
 import { TwitterAnalytics } from "./twitterAnalytics";
+import { TwitterScraper } from "../../scraper/twitterScraper";
 
 
 
@@ -25,7 +26,7 @@ export class BrandAnalytics {
     private openRouter = createOpenRouter({
         apiKey: process.env.OPENROUTER_API_KEY!,
     });;
-    private twitterAnalytics: TwitterAnalytics = new TwitterAnalytics();
+    private twitterAnalytics: TwitterAnalytics;
 
 
     private apifyService: ApifyService;
@@ -38,9 +39,11 @@ export class BrandAnalytics {
             "x-kaito": "kaitoeasyapi/twitter-x-data-tweet-scraper-pay-per-result-cheapest"
         }
 
-    constructor() {
+    constructor(twitterScraper: TwitterScraper) {
         this.apifyService = new ApifyService();
+        this.twitterAnalytics = new TwitterAnalytics(twitterScraper);
     }
+
 
 
     async getTwitterAnalytics(brand_handle: string, topics?: string[]): Promise<{

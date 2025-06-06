@@ -26,7 +26,7 @@ export class ContentCreatorAnalytics {
         apiKey: process.env.OPENROUTER_API_KEY!,
     });;
 
-    private twitterScraper: TwitterScraper = new TwitterScraper();
+    private twitterScraper: TwitterScraper;
     private aiService: AiService = new AiService();
 
     private apifyService: ApifyService;
@@ -39,7 +39,8 @@ export class ContentCreatorAnalytics {
             "x-kaito": "kaitoeasyapi/twitter-x-data-tweet-scraper-pay-per-result-cheapest"
         }
 
-    constructor() {
+    constructor(twitterScraper: TwitterScraper) {
+        this.twitterScraper = twitterScraper;
         this.apifyService = new ApifyService();
     }
 
@@ -97,6 +98,15 @@ export class ContentCreatorAnalytics {
             console.log("user", user);
             console.log("runApify",);
             let lastTwitter: any = null;
+
+            if(!this.twitterScraper.isInitialized) {
+                console.log("init twitter scraper");
+                await this.twitterScraper.init({
+                    username: process.env.TWITTER_USERNAME ?? "",
+                    password: process.env.TWITTER_PASSWORD ?? "",
+                    email: process.env.TWITTER_EMAIL ?? "",
+                })
+            }
             // const lastTwitter = await this.apifyService.runApifyActorWithDataset(this.actorsApify["twitter"], {
             //     twitterHandles: [user]
             // });
