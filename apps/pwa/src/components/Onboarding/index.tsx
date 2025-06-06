@@ -3,9 +3,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Brand from './Brand';
 import User from './User';
+import Creator from './Creator';
 import { logClickedEvent } from '@/lib/analytics';
+import { Icon } from '../small/icon-component';
 
-type UserType = 'user' | 'brand';
+type UserType = 'user' | 'brand' | 'creator';
 
 export default function Onboarding() {
     const [selectedType, setSelectedType] = useState<UserType | null>(null);
@@ -26,20 +28,28 @@ export default function Onboarding() {
     return (
         <div className="w-full px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto py-10">
             <div className="flex flex-col items-center space-y-8">
-                <h1 className="text-2xl sm:text-3xl font-bold text-center">
+                {/* <h1 className="text-2xl sm:text-3xl font-bold text-center">
                     Welcome to Our Platform
-                </h1>
-                <p className="text-base sm:text-lg text-center">
-                    Please select how you want to use our platform
-                </p>
+                </h1> */}
+
+
+                {!selectedType &&
+                    <p className="text-base sm:text-lg text-center">
+                        Please select how you want to use our platform
+                    </p>
+                }
 
                 {selectedType && (
-                    <>
-                        <button onClick={handleBack}>Back</button>
+                    <div>
+
+                        <div className='flex justify-between w-full'>
+                            <button onClick={handleBack}><Icon name="BackIcon" size={20} className='w-4 h-4' />Back</button>
+                        </div>
 
                         {selectedType === 'brand' && <Brand />}
                         {selectedType === 'user' && <User />}
-                    </>
+                        {selectedType === 'creator' && <Creator />}
+                    </div>
                 )}
 
                 {!selectedType && (
@@ -48,8 +58,8 @@ export default function Onboarding() {
                             <button
                                 className={`w-full sm:w-[200px] h-[160px] sm:h-[200px] rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center p-4
               ${selectedType === 'user'
-                                    ? 'bg-blue-500 border-blue-500'
-                                    : 'text-blue-500 border-blue-500 '}`}
+                                        ? 'bg-blue-500 border-blue-500'
+                                        : 'text-blue-500 border-blue-500 '}`}
                                 onClick={() => {
                                     handleSelection('user')
                                     logClickedEvent('onboarding_user', 'user', 'onboarding', 1)
@@ -63,15 +73,32 @@ export default function Onboarding() {
 
                             <button
                                 className={`w-full sm:w-[200px] h-[160px] sm:h-[200px] rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center p-4
-              ${selectedType === 'brand'
-                                    ? 'bg-purple-500 border-purple-500'
-                                    : 'text-purple-500 border-purple-500'}`}
+                                  ${selectedType === 'brand'
+                                        ? 'bg-green-500 border-green-500'
+                                        : 'text-green-500 border-green-500'}`}
                                 onClick={() => {
                                     handleSelection('brand')
                                     logClickedEvent('onboarding_brand', 'brand', 'onboarding', 1)
                                 }}
                             >
                                 <span className="text-xl font-semibold mb-2">Brand</span>
+                                <span className="text-sm text-center">
+                                    Manage brand and create contests
+                                </span>
+                            </button>
+
+
+                            <button
+                                className={`w-full sm:w-[200px] h-[160px] sm:h-[200px] rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center p-4
+                                  ${selectedType === 'brand'
+                                        ? 'bg-purple-500 border-purple-500'
+                                        : 'text-purple-500 border-purple-500'}`}
+                                onClick={() => {
+                                    handleSelection('creator')
+                                    logClickedEvent('onboarding_creator', 'creator', 'onboarding', 1)
+                                }}
+                            >
+                                <span className="text-xl font-semibold mb-2">Creator</span>
                                 <span className="text-sm text-center">
                                     I want to create and manage content
                                 </span>

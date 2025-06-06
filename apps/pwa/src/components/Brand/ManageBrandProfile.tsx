@@ -170,8 +170,17 @@ export const ManageBrandProfile: React.FC = () => {
       <Oauth />
     </div>
   }
+
+
+  if(selectedBrand) {
+    return (
+      <div>
+        <p>No brand selected</p>
+      </div>
+    )
+  }
   return (
-    <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow max-w-full overflow-x-hidden">
+    <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow overflow-x-hidden">
      
      <button className='btn' onClick={fetchMyBrandProfile}><Icon name="RefreshIcon" size={16} className='w-4 h-4' /></button>
       <div className="mb-4">

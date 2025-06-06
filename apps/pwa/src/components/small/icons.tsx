@@ -148,12 +148,13 @@ export const BackIcon: IconComponent = forwardRef<SVGSVGElement, IconProps>((pro
     height={24}
     viewBox="0 0 24 24"
     fill="none"
+    stroke="currentColor"
     {...props}
   >
     <path
       d="M20 12H4M10 18L4 12L10 6"
-      // {...props}
       strokeWidth={2}
+      strokeLinecap="round"
       strokeLinejoin="round"
     />
   </svg>

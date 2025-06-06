@@ -5,11 +5,13 @@ import { Provider, User } from "@supabase/supabase-js";
 import { Session } from "@supabase/supabase-js";
 import Image from "next/image";
 import { useAppStore } from "@/store/app";
+import CryptoLoading from "../small/crypto-loading";
 export const Oauth = () => {
     const { user, session, setUser, setSession, isInitialFetchUser, setIsInitialFetchUser } = useAppStore();
     const { showToast } = useUIStore();
     const [isLoading, setIsLoading] = useState(true);
     const [provider, setProvider] = useState<string>(user?.app_metadata.provider || "");
+    const [isFirstInit, setIsFirstInit] = useState(false);
     useEffect(() => {
         const fetchSession = async () => {
             const { data: session } = await supabase.auth.getSession();
@@ -18,6 +20,7 @@ export const Oauth = () => {
             setSession(session?.session);
             setUser(user?.user);
             setIsLoading(false);
+            setIsFirstInit(true);
             setIsInitialFetchUser(true);
             setProvider(user?.user?.app_metadata.provider || "");
         }
@@ -60,6 +63,16 @@ export const Oauth = () => {
             })
         }
     }
+
+
+    if (!isInitialFetchUser) {
+        return <div className="w-full max-w-2xl mx-auto p-6 space-y-8">
+            <div className="flex flex-col items-center space-y-4">
+                <p>Loading...</p>
+                <CryptoLoading />
+            </div>
+        </div>
+    }
     return (
         <div className="w-full max-w-2xl mx-auto p-6 space-y-8">
             <div className="flex flex-col items-center space-y-4">
@@ -72,7 +85,7 @@ export const Oauth = () => {
                             height={80}
                             className="rounded-full border-2 border-gray-200"
                         />
-                        <p className="text-sm font-medium">{user?.email}</p>
+                        <p className="text-sm font-medium">{user?.user_metadata?.full_name}</p>
                     </div>
                 )}
             </div>

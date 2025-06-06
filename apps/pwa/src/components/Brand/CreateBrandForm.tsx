@@ -173,7 +173,7 @@ export const CreateBrandForm: React.FC = () => {
     </div>
   }
   return (
-    <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow max-w-full overflow-x-hidden">
+    <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow overflow-x-hidden">
       {/* --- Brand Creation Form --- */}
       <div className="mb-8 border-b pb-6">
         <h2 className="text-xl font-bold mb-4">Create Your Brand</h2>
@@ -236,100 +236,34 @@ export const CreateBrandForm: React.FC = () => {
             <label className="block text-sm font-medium">Telegram Handle</label>
             <input type="text" value={brandTelegram} onChange={e => setBrandTelegram(e.target.value)} className="w-full" />
           </div>
-          <button type="submit" className="btn btn-primary w-full" disabled={brandLoading}>{brandLoading ? 'Creating...' : 'Create Brand'}</button>
+
+          <div className="mt-4">
+            <label className='text-sm font-medium'>Select your token address</label>
+            <input type="text" placeholder='Your token address' value={tokenAddress ?? ''} onChange={(e) => setTokenAddress(e.target.value)} className="w-full" />
+          </div>
+
+
+          {tokenAddress && (
+            <div className="p-3 rounded-lg mt-2">
+              <p className='text-sm font-medium'>Token Address</p>
+              <p className="text-sm break-all">{tokenAddress}</p>
+              <Link href={`/launchpad/${tokenAddress}`} target='_blank' className="flex items-center gap-1 text-sm text-blue-600 mt-1">
+                <Icon name="ExternalLinkIcon" size={16} className='w-4 h-4' />
+                View external
+              </Link>
+            </div>
+          )}
+
+          <p className='text-sm text-gray-500'>Create your brand</p>
+
+          <button
+            //  type="submit" 
+            onClick={handleCreateBrand}
+            className="btn btn-primary w-full" disabled={brandLoading}>{brandLoading ? 'Creating...' : 'Create Brand'}</button>
         </form>
       </div>
-      {/* --- Existing Content Creator Profile Logic --- */}
-      <div className="flex justify-between items-center mb-4">
-        <p className='text-sm'>Manage your profile</p>
-        <button onClick={() => fetchMyContentCreatorProfile()}>
-          <Icon name="RefreshIcon" size={16} className='w-4 h-4' />
-        </button>
-      </div>
-
-      <div className='flex gap-4 flex-col'>
-        <input type="text" placeholder='Handle' value={handle} onChange={(e) => setHandle(e.target.value)} className="w-full" />
-        <label className='text-sm font-medium'>Slug Name: link to your profile</label>
-        <input type="text" placeholder='Slug Name' value={slugName} onChange={(e) => setSlugName(e.target.value)} className="w-full" />
-        <label className='text-sm font-medium'>Bio</label>
-        <input type="text" placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} className="w-full" />
-        <label className='text-sm font-medium'>Tip to Stake token address</label>
-
-        <div className='flex gap-2 items-center'>
-          <input type="text" placeholder='Tip to Stake token address' value={starknetAddress} onChange={(e) => setStarknetAddress(e.target.value as `0x${string}`)} className="w-full" />
 
 
-          {address &&
-            <div className='flex flex-col gap-2 items-center'>
-              <p className="text-sm break-all mt-2">{address?.slice(0, 6)}...{address?.slice(-4)}</p>
-
-              <div>
-                <button className='btn btn-secondary p-2' onClick={() => {
-                  setStarknetAddress(address);
-                  showToast({
-                    type: "success",
-                    message: "Starknet address used!"
-                  })
-                }}>Use</button>
-                <button className='btn p-2' onClick={() => navigator.clipboard.writeText(address)}>
-                  <Icon name="CopyIcon" size={16} className='w-4 h-4' />
-                </button>
-              </div>
-            </div>}
-
-        </div>
-
-        {address && (
-          <div className=" p-3 rounded-lg">
-            <p className='text-sm font-medium'>Current Starknet Address</p>
-            <p className="text-sm text-gray-600 mb-2">Click to use this address</p>
-            <div className="flex gap-2 items-center">
-
-              <button className='btn p-2' onClick={() => navigator.clipboard.writeText(address)}>
-                <Icon name="CopyIcon" size={16} className='w-4 h-4' />
-              </button>
-            </div>
-            <p className="text-sm break-all mt-2">{address}</p>
-          </div>
-        )}
-      </div>
-
-
-      <div className="mt-4">
-        <TagsForm tags={topics} setTags={setTopics} />
-      </div>
-
-      <div className="mt-4">
-        <label className='text-sm font-medium'>Select your token address</label>
-        <input type="text" placeholder='Your token address' value={tokenAddress ?? ''} onChange={(e) => setTokenAddress(e.target.value)} className="w-full" />
-      </div>
-
-      {tokenAddress && (
-        <div className="p-3 rounded-lg mt-2">
-          <p className='text-sm font-medium'>Token Address</p>
-          <p className="text-sm break-all">{tokenAddress}</p>
-          <Link href={`/launchpad/${tokenAddress}`} target='_blank' className="flex items-center gap-1 text-sm text-blue-600 mt-1">
-            <Icon name="ExternalLinkIcon" size={16} className='w-4 h-4' />
-            View external
-          </Link>
-        </div>
-      )}
-
-
-      <div className="mt-4">
-        <input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="w-full" />
-        <button
-          onClick={() => file && setFileUrl(URL.createObjectURL(file))}
-          className="btn btn-secondary mt-2"
-        >
-          Upload
-        </button>
-        {fileUrl && (
-          <div className="mt-2">
-            <img src={fileUrl} alt="File" className="max-w-full h-auto rounded-lg" />
-          </div>
-        )}
-      </div>
 
       {status === 'verified' && (
         <div className="alert alert-success mt-4">Account linked and verified!</div>
@@ -338,16 +272,6 @@ export const CreateBrandForm: React.FC = () => {
         <div className="alert alert-error mt-4">{error}</div>
       )}
 
-      <div className='mt-6 space-y-4'>
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-          <div className='flex flex-col gap-2'>
-            <p className='text-sm text-gray-500'>Create your brand</p>
-            <button className='btn btn-primary w-full' onClick={handleCreateBrand}>Create</button>
-          </div>
-
-        
-        </div>
-      </div>
     </div>
   );
 };

@@ -176,7 +176,7 @@ export const ManageCreatorProfile: React.FC = () => {
     </div>
   }
   return (
-    <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow max-w-full overflow-x-hidden">
+    <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow overflow-x-hidden">
       <div className="flex justify-between items-center mb-4">
         <p className='text-sm'>Manage your profile</p>
         <button onClick={() => fetchMyContentCreatorProfile()}>
@@ -194,7 +194,6 @@ export const ManageCreatorProfile: React.FC = () => {
 
         <div className='flex gap-2 items-center'>
           <input type="text" placeholder='Tip to Stake token address' value={starknetAddress} onChange={(e) => setStarknetAddress(e.target.value as `0x${string}`)} className="w-full" />
-
 
           {address &&
             <div className='flex flex-col gap-2 items-center'>
