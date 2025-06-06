@@ -76,5 +76,12 @@ export const api = {
             method: 'DELETE',
         }),
     },
+    brand: {
+        my: () => fetchWithAuth('/brand/owned'),
+        update: (data: any) => fetchWithAuth('/brand/update', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+    },
     // Add other API endpoints as needed
 }; 

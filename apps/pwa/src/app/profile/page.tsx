@@ -44,6 +44,13 @@ export default function ProfileAfk() {
           <div className="space-y-4">
 
 
+            <Link href="/brand/management" className="btn btn-gradient-blue w-full flex items-center justify-between">
+              <div>
+                <p className="font-semibold">Brand Profile</p>
+                <p className="text-sm opacity-80">Manage your brand identity</p>
+              </div>
+            </Link>
+
 
 
             <Link href="/content-creator" className="btn btn-gradient-green w-full flex items-center justify-between">

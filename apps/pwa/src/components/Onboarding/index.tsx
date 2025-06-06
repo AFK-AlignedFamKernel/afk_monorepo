@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Brand from './Brand';
 import User from './User';
+import { logClickedEvent } from '@/lib/analytics';
 
 type UserType = 'user' | 'brand';
 
@@ -49,7 +50,10 @@ export default function Onboarding() {
               ${selectedType === 'user'
                                     ? 'bg-blue-500 border-blue-500'
                                     : 'text-blue-500 border-blue-500 '}`}
-                                onClick={() => handleSelection('user')}
+                                onClick={() => {
+                                    handleSelection('user')
+                                    logClickedEvent('onboarding_user', 'user', 'onboarding', 1)
+                                }}
                             >
                                 <span className="text-xl font-semibold mb-2">User</span>
                                 <span className="text-sm text-center">
@@ -62,7 +66,10 @@ export default function Onboarding() {
               ${selectedType === 'brand'
                                     ? 'bg-purple-500 border-purple-500'
                                     : 'text-purple-500 border-purple-500'}`}
-                                onClick={() => handleSelection('brand')}
+                                onClick={() => {
+                                    handleSelection('brand')
+                                    logClickedEvent('onboarding_brand', 'brand', 'onboarding', 1)
+                                }}
                             >
                                 <span className="text-xl font-semibold mb-2">Brand</span>
                                 <span className="text-sm text-center">

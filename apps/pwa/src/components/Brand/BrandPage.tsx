@@ -89,7 +89,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
 
                     <div className="w-full flex justify-center">
                         <div className="flex flex-row gap-2">
-                            <Link href={`https://x.com/${brand.twitter_handle}`}>
+                            <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank">
                                 <button className="flex flex-row items-center gap-2 px-3 py-1 rounded hover:bg-blue-200 transition">
                                     <Image src={`/assets/icons/twitter.svg`} alt="Twitter" width={30} height={30} />
                                     <span className="truncate">Twitter</span>
@@ -142,8 +142,8 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                                                     <td className="px-4 py-2 break-words max-w-[120px]">{user?.name}</td>
                                                     <td className="px-4 py-2 break-all max-w-[120px]">
                                                         {activePlatformLeaderboard === "twitter" && (
-                                                            <Link href={`https://x.com/${user.handle ?? user?.userName}`} target="_blank" className="text-blue-600 hover:underline truncate inline-block max-w-[100px]">
-                                                                {user.handle ?? user?.userName}
+                                                            <Link href={`https://x.com/${user.handle ?? user?.userName ?? user?.username}`} target="_blank" className="text-blue-600 hover:underline truncate inline-block max-w-[100px]">
+                                                                {user.handle ?? user?.userName ?? user?.username}
                                                             </Link>
                                                         )}
                                                     </td>
