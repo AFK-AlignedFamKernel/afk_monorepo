@@ -95,7 +95,7 @@ export default async function brandRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.get('/brand/create', {
+  fastify.post('/brand/create', {
     preHandler: [supabaseAuthMiddleware],
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {

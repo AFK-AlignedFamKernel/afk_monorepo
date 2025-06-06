@@ -55,10 +55,11 @@ export default function CreateAll() {
 
 
       <div className="flex flex-row gap-2"> 
-        <button className="btn btn-secondary" onClick={() => setCreateType(CreateType.POST)}>Post</button>
-        <button className="btn btn-secondary" onClick={() => setCreateType(CreateType.TOKEN)}>Token</button>
+        <button className={`btn btn-secondary ${createType === CreateType.POST ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.POST)}>Post</button>
+        <button className={`btn btn-secondary ${createType === CreateType.TOKEN ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.TOKEN)}>Token</button>
 
-        <button className="btn btn-secondary" onClick={() => setCreateType(CreateType.ARTICLE)}>Article</button>
+        <button className={`btn btn-secondary ${createType === CreateType.ARTICLE ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.ARTICLE)}>Article</button>
+        <button className={`btn btn-secondary ${createType === CreateType.BRAND ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.BRAND)}>Brand</button>
 
 
       </div>

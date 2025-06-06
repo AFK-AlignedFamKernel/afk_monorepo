@@ -59,6 +59,25 @@ export const CreateBrandForm: React.FC = () => {
   const [tokensAddress, setTokensAddress] = useState<string[]>([])
   const [creatorToken, setCreatorToken] = useState<string>('')
 
+  // --- Brand creation state ---
+  const [brandName, setBrandName] = useState('');
+  const [brandSlug, setBrandSlug] = useState('');
+  const [brandDescription, setBrandDescription] = useState('');
+  const [brandWebsite, setBrandWebsite] = useState('');
+  const [brandTopics, setBrandTopics] = useState<string[]>([]);
+  const [brandAvatar, setBrandAvatar] = useState<File | null>(null);
+  const [brandAvatarUrl, setBrandAvatarUrl] = useState('');
+  const [brandBanner, setBrandBanner] = useState<File | null>(null);
+  const [brandBannerUrl, setBrandBannerUrl] = useState('');
+  const [brandTokenAddress, setBrandTokenAddress] = useState('');
+  const [brandStarknetAddress, setBrandStarknetAddress] = useState('');
+  const [brandEvmAddress, setBrandEvmAddress] = useState('');
+  const [brandBtcAddress, setBrandBtcAddress] = useState('');
+  const [brandTwitter, setBrandTwitter] = useState('');
+  const [brandDiscord, setBrandDiscord] = useState('');
+  const [brandTelegram, setBrandTelegram] = useState('');
+  const [brandLoading, setBrandLoading] = useState(false);
+
   const fetchMyContentCreatorProfile = async () => {
 
     try {
@@ -85,87 +104,67 @@ export const CreateBrandForm: React.FC = () => {
   }
   useEffect(() => {
 
-    if (!isFetchContentDone && user) {
-      fetchMyContentCreatorProfile()
-    }
+    // if (!isFetchContentDone && user) {
+    //   fetchMyContentCreatorProfile()
+    // }
 
   }, [isFetchContentDone, user])
 
-
-  const handleVerifyFromIdentity = async () => {
-
-    let fileUrl = '';
-    if (file) {
-
-      const res = await fileUpload.mutateAsync(file);
-      setFileUrl(res.data?.url)
-      fileUrl = res.data?.url
+  // --- Brand creation handler ---
+  const handleCreateBrand = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBrandLoading(true);
+    setError(null);
+    let avatarUrl = '';
+    let bannerUrl = '';
+    try {
+      if (brandAvatar) {
+        const res = await fileUpload.mutateAsync(brandAvatar);
+        avatarUrl = res.data?.url;
+        setBrandAvatarUrl(avatarUrl);
+      }
+      if (brandBanner) {
+        const res = await fileUpload.mutateAsync(brandBanner);
+        bannerUrl = res.data?.url;
+        setBrandBannerUrl(bannerUrl);
+      }
+      const payload = {
+        name: brandName,
+        slug_name: brandSlug,
+        description: brandDescription,
+        avatar_url: avatarUrl || undefined,
+        banner_url: bannerUrl || undefined,
+        website_url: brandWebsite || undefined,
+        topics: brandTopics,
+        token_address: brandTokenAddress || undefined,
+        starknet_address: brandStarknetAddress || undefined,
+        evm_address: brandEvmAddress || undefined,
+        btc_address: brandBtcAddress || undefined,
+        twitter_handle: brandTwitter || undefined,
+        discord_handle: brandDiscord || undefined,
+        telegram_handle: brandTelegram || undefined,
+        is_active: true,
+      };
+      const res = await fetchWithAuth('/brand/create', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      if (res && !res.error) {
+        showToast({ type: 'success', message: 'Brand created successfully!' });
+        // Optionally reset form
+        setBrandName(''); setBrandSlug(''); setBrandDescription(''); setBrandWebsite(''); setBrandTopics([]);
+        setBrandAvatar(null); setBrandAvatarUrl(''); setBrandBanner(null); setBrandBannerUrl('');
+        setBrandTokenAddress(''); setBrandStarknetAddress(''); setBrandEvmAddress(''); setBrandBtcAddress('');
+        setBrandTwitter(''); setBrandDiscord(''); setBrandTelegram('');
+      } else {
+        showToast({ type: 'error', message: res?.error?.message || 'Failed to create brand' });
+      }
+    } catch (err: any) {
+      showToast({ type: 'error', message: err.message || 'Failed to create brand' });
+    } finally {
+      setBrandLoading(false);
     }
-
-
-    const res = await fetchWithAuth("/content-creator/verify_identity", {
-      method: 'POST',
-      body: JSON.stringify({
-        id: session?.user?.id,
-        user_id: session?.user?.id,
-        proof_url: proofUrl,
-        slug_name: slugName,
-        avatar_url: fileUrl,
-        topics: topics,
-        token_address: tokenAddress,
-        starknet_address: starknetAddress,
-        evm_address: address,
-        btc_address: btcAddress,
-        is_active: true
-      })
-    })
-    if (res) {
-      showToast({
-        type: "success",
-        message: "Account linked and verified!"
-      })
-    }
-  }
-
-  const handleUpdateFromIdentity = async () => {
-    let fileUrl = '';
-    if (file) {
-
-      const res = await fileUpload.mutateAsync(file);
-      setFileUrl(res.data?.url)
-      fileUrl = res.data?.url
-    }
-
-    console.log("tokenAddress", tokenAddress)
-    console.log("starknetAddress", starknetAddress)
-    console.log("address", address)
-    console.log("btcAddress", btcAddress)
-    console.log("slugName", slugName)
-    console.log("topics", topics)
-
-    const res = await fetchWithAuth("/content-creator/update/verify_identity", {
-      method: 'POST',
-      body: JSON.stringify({
-        id: session?.user?.id,
-        user_id: session?.user?.id,
-        proof_url: proofUrl,
-        slug_name: slugName,
-        topics: topics,
-        token_address: tokenAddress,
-        starknet_address: starknetAddress,
-        evm_address: address,
-        btc_address: btcAddress,
-        is_active: true
-      })
-    })
-    if (res) {
-      showToast({
-        type: "success",
-        message: "Account updated!"
-      })
-    }
-  }
-
+  };
 
   if (!user) {
     return <div>
@@ -175,6 +174,72 @@ export const CreateBrandForm: React.FC = () => {
   }
   return (
     <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow max-w-full overflow-x-hidden">
+      {/* --- Brand Creation Form --- */}
+      <div className="mb-8 border-b pb-6">
+        <h2 className="text-xl font-bold mb-4">Create Your Brand</h2>
+        <form onSubmit={handleCreateBrand} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium">Brand Name</label>
+            <input type="text" value={brandName} onChange={e => setBrandName(e.target.value)} required className="w-full" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Slug Name</label>
+            <input type="text" value={brandSlug} onChange={e => setBrandSlug(e.target.value)} required className="w-full" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Description</label>
+            <textarea value={brandDescription} onChange={e => setBrandDescription(e.target.value)} className="w-full" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Website</label>
+            <input type="url" value={brandWebsite} onChange={e => setBrandWebsite(e.target.value)} className="w-full" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Topics</label>
+            <TagsForm tags={brandTopics} setTags={setBrandTopics} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Avatar</label>
+            <input type="file" accept="image/*" onChange={e => setBrandAvatar(e.target.files?.[0] || null)} className="w-full" />
+            {brandAvatarUrl && <img src={brandAvatarUrl} alt="Avatar" className="max-w-xs mt-2 rounded" />}
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Banner</label>
+            <input type="file" accept="image/*" onChange={e => setBrandBanner(e.target.files?.[0] || null)} className="w-full" />
+            {brandBannerUrl && <img src={brandBannerUrl} alt="Banner" className="max-w-xs mt-2 rounded" />}
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Token Address</label>
+            <input type="text" value={brandTokenAddress} onChange={e => setBrandTokenAddress(e.target.value)} className="w-full" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Starknet Address</label>
+            <input type="text" value={brandStarknetAddress} onChange={e => setBrandStarknetAddress(e.target.value)} className="w-full" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">EVM Address</label>
+            <input type="text" value={brandEvmAddress} onChange={e => setBrandEvmAddress(e.target.value)} className="w-full" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">BTC Address</label>
+            <input type="text" value={brandBtcAddress} onChange={e => setBrandBtcAddress(e.target.value)} className="w-full" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Twitter Handle</label>
+            <input type="text" value={brandTwitter} onChange={e => setBrandTwitter(e.target.value)} className="w-full" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Discord Handle</label>
+            <input type="text" value={brandDiscord} onChange={e => setBrandDiscord(e.target.value)} className="w-full" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium">Telegram Handle</label>
+            <input type="text" value={brandTelegram} onChange={e => setBrandTelegram(e.target.value)} className="w-full" />
+          </div>
+          <button type="submit" className="btn btn-primary w-full" disabled={brandLoading}>{brandLoading ? 'Creating...' : 'Create Brand'}</button>
+        </form>
+      </div>
+      {/* --- Existing Content Creator Profile Logic --- */}
       <div className="flex justify-between items-center mb-4">
         <p className='text-sm'>Manage your profile</p>
         <button onClick={() => fetchMyContentCreatorProfile()}>
@@ -276,14 +341,11 @@ export const CreateBrandForm: React.FC = () => {
       <div className='mt-6 space-y-4'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
           <div className='flex flex-col gap-2'>
-            <p className='text-sm text-gray-500'>Update your profile</p>
-            <button className='btn btn-primary w-full' onClick={handleUpdateFromIdentity}>Update</button>
+            <p className='text-sm text-gray-500'>Create your brand</p>
+            <button className='btn btn-primary w-full' onClick={handleCreateBrand}>Create</button>
           </div>
 
-          <div className='flex flex-col gap-2'>
-            <p className='text-sm text-gray-500'>Verify your social network identity</p>
-            <button className='btn btn-secondary w-full' onClick={handleVerifyFromIdentity}>Verify</button>
-          </div>
+        
         </div>
       </div>
     </div>
