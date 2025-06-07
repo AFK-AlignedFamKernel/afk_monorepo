@@ -13,4 +13,5 @@ export interface TokenDeployInterface {
   status?: 'pending' | 'active' | 'completed' | 'failed';
   network?: string;
   chain_id?: number;
+  metadata?: MetadataOnchain;
 } 
