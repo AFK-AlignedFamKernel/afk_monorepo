@@ -85,6 +85,8 @@ export const useCreateToken = () => {
     } catch (error) {
       console.log('Error deploy token', error);
       return Promise.reject(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -199,6 +201,8 @@ export const useCreateToken = () => {
       console.log('Error launch token', error);
       console.log('Error deploy token', error);
       return Promise.reject(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -296,6 +300,8 @@ export const useCreateToken = () => {
       console.log('Error deploy token and launch', error);
       console.log('Error deploy token', error);
       return Promise.reject(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

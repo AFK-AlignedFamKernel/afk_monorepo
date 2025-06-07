@@ -6,6 +6,8 @@ import { Filter, SortOption } from '@/components/launchpad/Filter';
 import { LaunchpadCard } from '@/components/launchpad/LaunchpadCard';
 import { useTokens } from '@/hooks/api/indexer/useTokens';
 import { useLaunches } from '@/hooks/api/indexer/useLaunches';
+import { TokenCreateForm } from './TokenCreateForm';
+import { useUIStore } from '@/store/uiStore';
 
 interface TokenDeployInterface {
   token_address: string;
@@ -36,6 +38,7 @@ export default function PumpComponent() {
   const { data: tokens, isLoading: isLoadingTokens, error: tokensError } = useTokens();
   const { data: launches, isLoading: isLoadingLaunches, error: launchesError } = useLaunches();
 
+  const { showModal } = useUIStore();
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
@@ -96,12 +99,22 @@ export default function PumpComponent() {
     <div className="content">
       <div className="flex justify-between items-center mb-6">
         {/* <h1 className="text-2xl font-bold">Launchpad</h1> */}
-        <a
-          href="/launchpad/create"
-          className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+
+        <button
+          className="px-4 py-2 btn btn-primary rounded-lg hover:bg-primary-700 transition-colors"
+          onClick={() => {
+            // setTokenOrLaunch('LAUNCH');
+            showModal(<TokenCreateForm />);
+          }}
         >
           Create Token
-        </a>
+          {/* <a
+            href="/launchpad/create"
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            Create Token
+          </a> */}
+        </button>
       </div>
 
       <div className="">
@@ -197,7 +210,7 @@ export default function PumpComponent() {
                     network: item.network,
                     created_at: item.created_at,
                     bonding_type: item.bonding_type,
-                    total_token_holded: item.total_token_holded,
+                    total_token_holded: item.total_token_holded || '0',
 
                   }}
                   type={isLaunchView ? 'LAUNCH' : 'TOKEN'}
