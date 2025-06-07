@@ -30,6 +30,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           network: true,
           created_at: true,
           threshold_liquidity: true,
+          initial_pool_supply_dex: true,
           bonding_type: true,
           total_token_holded: true,
           block_timestamp: true,
@@ -94,6 +95,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           block_timestamp:true,
           is_liquidity_added:true,
           market_cap:true,
+          initial_pool_supply_dex:true,
           url:true,
           name:true,
           symbol:true
@@ -148,6 +150,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           telegram:true,
           github:true,
           website:true,
+          initial_pool_supply_dex:true,
           ipfs_hash:true,
           token_deploy: {
             select: {
@@ -187,6 +190,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           price: true,
           coin_received: true,
           liquidity_raised: true,
+          protocol_fee: true,
           total_supply: true,
           network: true,
           transaction_type: true,
