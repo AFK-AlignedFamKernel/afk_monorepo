@@ -54,6 +54,11 @@ export const ComplexContentCreatorAnalyticsSchema = z.object({
     expertiseLevel: z.number().min(0).max(3).describe("User's level of expertise in their main topics"),
     reputationScore: z.number().min(0).max(100).describe("Numerical score (0-100) representing user's reputation based on consistency and community trust"),
     sentimentProfile: z.string().describe("Overall sentiment of user's content"),
+    
+    sentiment: z
+    .enum(["happy", "neutral", "sad", "critical", "passionate", "optimistic", "pessimistic"])
+    .describe("The sentiment of the text"),
+
     polarizationLevel: z.number().min(0).max(3).describe("Level of content polarization"),
     trustScore: z.number().min(0).max(100).describe("Numerical score (0-100) representing user's trust based on consistency and community trust"),
     truthfulnessEstimate: z.string().describe("Assessment of content truthfulness"),
@@ -63,9 +68,6 @@ export const ComplexContentCreatorAnalyticsSchema = z.object({
     introductionBodyConclusionScore: z.number().min(0).max(100).describe("The score of the text in the introduction, body, and conclusion criteria"),
     copyWritingScore: z.number().min(0).max(100).describe("The score of the text in the copy writing criteria and skills"),
     storyTellingAndHooksScore: z.number().min(0).max(100).describe("The score of the text in the story telling and hooks criteria"),
-    sentiment: z
-        .enum(["happy", "neutral", "sad", "critical", "passionate", "optimistic", "pessimistic"])
-        .describe("The sentiment of the text"),
 
     editingScore: z.number().min(0).max(100).describe("The score of the text in the editing criteria: like grammar, spelling, punctuation, etc."),
     educationalScore: z.number().min(0).max(100).describe("The score of the text in the educational criteria: like pedagogy, way to talk, tone, introduction, body, and conclusion"),
