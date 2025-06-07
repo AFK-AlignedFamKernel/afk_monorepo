@@ -172,13 +172,6 @@ export const ManageBrandProfile: React.FC = () => {
   }
 
 
-  if(selectedBrand) {
-    return (
-      <div>
-        <p>No brand selected</p>
-      </div>
-    )
-  }
   return (
     <div className="p-4 m-2 rounded-lg dark:bg-contrast-100 shadow overflow-x-hidden">
      
