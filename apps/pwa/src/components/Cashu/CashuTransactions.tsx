@@ -49,16 +49,16 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
   const getFilteredTransactions = () => {
     switch (activeTab) {
       case 'in':
-        return transactions.filter(tx => tx.type === 'received');
+        return transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).filter(tx => tx.type === 'received');
       case 'out':
-        return transactions.filter(tx => tx.type === 'sent');
+        return transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).filter(tx => tx.type === 'sent');
       case 'mintQuote':
-        return transactions.filter(tx => 
+        return transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).filter(tx => 
           tx.invoiceType === 'lightning' || 
           (tx.type === 'received' && tx.token)
         );
       case 'ecash':
-        return transactions.filter(tx => 
+        return transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).filter(tx => 
           tx.token && !tx.invoiceType // Only ecash tokens, not lightning invoices
         );
       case 'all':

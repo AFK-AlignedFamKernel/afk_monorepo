@@ -1430,6 +1430,7 @@ export function useCashu() {
             if (spentIds.length > 0) {
               for (const id of spentIds) {
                 await proofsApi.delete(id);
+                await proofsByMintApi.delete(id);
               }
             }
           }
@@ -1556,6 +1557,7 @@ export function useCashu() {
       try {
         // Attempt to melt the tokens
         const response = await meltTokens(invoice, proofsToSend);
+        console.log("response", response)
         if (!response) {
           throw new Error('Failed to melt tokens for payment');
         }
@@ -1570,6 +1572,7 @@ export function useCashu() {
           const spentIds = proofsToSend.map(p => p.C);
           for (const id of spentIds) {
             await proofsApi.delete(id);
+            await proofsByMintApi.delete(id);
           }
 
           // 3. Update active proofs with change proofs if any
@@ -1627,6 +1630,8 @@ export function useCashu() {
             const spentIds = proofsToSend.map(p => p.C);
             for (const id of spentIds) {
               await proofsApi.delete(id);
+              await proofsByMintApi.delete(id);
+
             }
 
             // 3. Update active proofs with change proofs if any
