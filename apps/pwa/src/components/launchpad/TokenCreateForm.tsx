@@ -33,7 +33,7 @@ const validationSchema = Yup.object().shape({
   bonding_type: Yup.string().required('Bonding type is required'),
   creator_fee_percent: Yup.number()
     .min(0, 'Fee must be positive')
-    .max(100, 'Fee cannot exceed 100%'),
+    .max(10, 'Fee cannot exceed 10%'),
   metadata: Yup.object().shape({
     // url: Yup.string().url('Must be a valid URL'),
     twitter: Yup.string(),
@@ -152,10 +152,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
     } catch (err) {
       onError?.(err as Error);
     }
-    finally {
-      console.log('finally');
-      setIsLoading(false);
-    }
+
 
   };
 
@@ -353,7 +350,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
                       placeholder="https://linktr.ee/afk_aligned_fam_kernel"
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                     />
-                    {errors?.metadata?.website && touched.metadata?.website && (
+                    {errors?.metadata && errors?.metadata?.website && touched?.metadata?.website && (
                       <p className="mt-1 text-sm text-red-600">{errors?.metadata?.website}</p>
                     )}
                   </div>

@@ -109,8 +109,10 @@ export const useCreateToken = () => {
         bondingEnum = new CairoCustomEnum({ Exponential: {} });
       }
 
-      const creator_fee_percent = formatFloatToUint256(data.creator_fee_percent ?? 0);
+      const creator_fee_percent = formatFloatToUint256(data.creator_fee_percent ?? 0, 2);
       const nameByteArray = byteArray.byteArrayFromString(data.name ?? 'LFG');
+      console.log('creator_fee_percent', data.creator_fee_percent);
+      console.log('creator_fee_percent uint256', creator_fee_percent);
       const symbolByteArray = byteArray.byteArrayFromString(data.symbol ?? 'LFG');
 
       // const nameByteArray = byteArray.byteArrayFromString('');
