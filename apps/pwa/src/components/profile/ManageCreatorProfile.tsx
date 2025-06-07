@@ -176,7 +176,7 @@ export const ManageCreatorProfile: React.FC = () => {
     </div>
   }
   return (
-    <div className="md:max-w-md w-full mx-auto p-4 m-2 rounded-lg dark:bg-contrast-100 shadow overflow-x-hidden sm:p-2">
+    <div className="max-w-md w-full mx-auto p-4 m-2 rounded-lg dark:bg-contrast-100 shadow overflow-x-hidden sm:p-2">
       <div className="flex justify-between items-center mb-4">
         <p className='text-sm'>Manage your profile</p>
         <button onClick={() => fetchMyContentCreatorProfile()}>

@@ -14,7 +14,7 @@ export default function Creator() {
   const { user, session, setUser, setSession, isInitialFetchUser, setIsInitialFetchUser } = useAppStore();
 
   return (
-    <div className="w-full mx-auto">
+    <div className="sm:max-w-md w-full mx-auto">
       <div 
       // className="flex flex-col items-center space-y-8 justify-center p-4 sm:p-8"
       >
