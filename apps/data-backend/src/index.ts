@@ -1,3 +1,4 @@
+// import './types/fastify';
 import Fastify from 'fastify';
 import fastifyCors from '@fastify/cors';
 import fastifyIO from 'fastify-socket.io';

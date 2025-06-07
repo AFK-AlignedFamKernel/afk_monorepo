@@ -4,7 +4,7 @@ import { useUIStore } from '@/store/uiStore';
 import QRCode from 'react-qr-code';
 import { useAtomiqLab } from '@/hooks/atomiqlab';
 import { useCashu } from 'afk_nostr_sdk';
-import { proofsApi, Transaction, transactionsApi } from '@/utils/storage';
+import { proofsApi, proofsSpentsApi, proofsSpentsByMintApi, Transaction, transactionsApi } from '@/utils/storage';
 import { v4 as uuidv4 } from 'uuid';
 
 interface CashuSendModalProps {
@@ -57,6 +57,7 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
 
     try {
       const result = await onSendToken(Number(amount));
+      console.log("result", result)
       if (result && result.token) {
         // Extract token from result, handle different response formats
         let tokenToDisplay = result.token;
@@ -135,7 +136,7 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
             if (res && res?.send && res?.send.length > 0) {
               const token = await getEncodedTokenV4({
                 mint: activeMint,
-                proofs: res.keep,
+                proofs: res.send,
                 // amount: Number(amount)
               });
               console.log("token", token)
@@ -143,6 +144,23 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
                 throw new Error('Failed to generate token');
               }
               setGeneratedToken(token);
+
+              const proofs = await proofsApi.getAll();
+              console.log("proofs", proofs)
+              const proofsToSend = await wallet?.selectProofsToSend(proofs, Number(amount));
+
+              console.log("proofsToSend", proofsToSend)
+
+              // Move spent proofs to spent proofs collection
+              await proofsSpentsApi.updateMany(res.send);
+              await proofsSpentsByMintApi.addProofsForMint(res.send, activeMint);
+
+              // Remove spent proofs from active proofs
+              const spentIds = res.send.map(p => p.C);
+              for (const id of spentIds) {
+                await proofsApi.delete(id);
+              }
+
               setTokenAmount(Number(amount));
               showToast({
                 message: 'Ecash token created',

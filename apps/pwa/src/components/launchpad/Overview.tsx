@@ -150,6 +150,16 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
               <span>Liquidity Raised</span>
               <span className="font-medium">{Number(data?.liquidity_raised)?.toFixed(6) || '0'}</span>
             </div>
+
+            <div className="flex justify-between">
+              {data?.initial_pool_supply_dex && Number(data?.initial_pool_supply_dex) > 0 && (
+                <span>Token to sell: {Number(data?.initial_pool_supply_dex)?.toFixed(6) || '0'}</span>
+              )}
+              {data?.total_token_holded && (
+                <span>Holded/Bought: {Number(data?.total_token_holded)?.toFixed(6) || '0'}</span>
+              )}
+            </div>
+
             <div className="flex justify-between">
               <span>Price</span>
               <span className="font-medium">{data?.price && Number(data?.price) > 0 && Number.isFinite(Number(data?.price)) ?  Number(data?.price)?.toFixed(6) : '0'}</span>

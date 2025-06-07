@@ -31,7 +31,7 @@ export const logClickedEvent = (
       });
     }
   } catch (error) {
-    console.error(error);
+    console.error("logClickedEvent", error);
   }
 
 };

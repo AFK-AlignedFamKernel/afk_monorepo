@@ -10,11 +10,12 @@ type AccordionProps = {
     icon?: React.ReactNode;
   }[];
   isOpen?: boolean;
+  className?: string;
 };
 
-const Accordion: React.FC<AccordionProps> = ({ items, title, isOpen = false }) => {
+const Accordion: React.FC<AccordionProps> = ({ items, title, isOpen = false, className }) => {
   return (
-    <div className="w-full flex-start">
+    <div className={`w-full flex-start ${className}`}>
       {/* <div>
         {title && <p className="text-1xl font-bold">{title}</p>}
       </div> */}

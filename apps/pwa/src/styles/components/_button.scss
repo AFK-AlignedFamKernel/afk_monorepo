@@ -44,12 +44,34 @@
 }
 
 // Gradient buttons
+.btn-gradient-green {
+  background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
+  color: var(--contrast-50);
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--green-600) 0%, var(--green-700) 100%);
+    box-shadow: 0 4px 15px rgba(var(--green-500), 0.4);
+  }
+}
+
+// Gradient buttons
 .btn-gradient-blue {
   background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-600) 100%);
   color: var(--contrast-50);
   
   &:hover {
     background: linear-gradient(135deg, var(--blue-600) 0%, var(--blue-700) 100%);
+    box-shadow: 0 4px 15px rgba(var(--blue-500), 0.4);
+  }
+}
+
+// Gradient buttons
+.btn-gradient-blue-secondary {
+  background: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-300) 100%);
+  color: var(--contrast-50);
+  
+  &:hover {
+    background: linear-gradient(135deg, var(--blue-400) 0%, var(--blue-500) 100%);
     box-shadow: 0 4px 15px rgba(var(--blue-500), 0.4);
   }
 }

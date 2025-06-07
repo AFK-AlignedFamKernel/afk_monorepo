@@ -1430,6 +1430,7 @@ export function useCashu() {
             if (spentIds.length > 0) {
               for (const id of spentIds) {
                 await proofsApi.delete(id);
+                await proofsByMintApi.delete(id);
               }
             }
           }
@@ -1521,10 +1522,10 @@ export function useCashu() {
       const amount = decodedInvoice ? Number(decodedInvoice[1]) / 10 : 0;
       console.log(`Decoded invoice amount: ${amount} sats`);
 
-      let fees = await sdkCashu?.wallet?.getFeesForKeyset(amount, sdkCashu.activeUnit);
+      let fees = await sdkCashu?.wallet?.getFeesForKeyset(amount, sdkCashu?.activeUnit || 'sat');
       console.log("fees", fees);
 
-      const totalAmount = amount + (fees > 0 ? fees : 1); // Include fees in total amount
+      const totalAmount = amount + (fees > 0 ? fees : 0); // Include fees in total amount
 
       console.log("totalAmount", totalAmount)
       console.log("walletData.balance", walletData.balance)
@@ -1556,6 +1557,7 @@ export function useCashu() {
       try {
         // Attempt to melt the tokens
         const response = await meltTokens(invoice, proofsToSend);
+        console.log("response", response)
         if (!response) {
           throw new Error('Failed to melt tokens for payment');
         }
@@ -1570,6 +1572,7 @@ export function useCashu() {
           const spentIds = proofsToSend.map(p => p.C);
           for (const id of spentIds) {
             await proofsApi.delete(id);
+            await proofsByMintApi.delete(id);
           }
 
           // 3. Update active proofs with change proofs if any
@@ -1627,6 +1630,8 @@ export function useCashu() {
             const spentIds = proofsToSend.map(p => p.C);
             for (const id of spentIds) {
               await proofsApi.delete(id);
+              await proofsByMintApi.delete(id);
+
             }
 
             // 3. Update active proofs with change proofs if any
@@ -1637,13 +1642,13 @@ export function useCashu() {
 
             // 4. Recalculate balance based on remaining proofs
             const remainingProofs = await proofsByMintApi.getByMintUrl(walletData.activeMint);
-            // const newBalance = remainingProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
+            const newBalance = remainingProofs.reduce((sum, proof) => sum + (proof.amount || 0), 0);
 
             // // 5. Update wallet data with new balance
-            // saveWalletData({
-            //   ...walletData,
-            //   balance: newBalance
-            // });
+            saveWalletData({
+              ...walletData,
+              balance: newBalance
+            });
 
             // 6. Record the error transaction
             addTransaction(

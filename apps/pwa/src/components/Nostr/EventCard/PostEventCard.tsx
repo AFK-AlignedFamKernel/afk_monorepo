@@ -111,7 +111,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const isRepost = event?.kind == NDKKind.Repost || event?.kind == NDKKind.GenericRepost;
   const handleToReplyView = () => {
     if (!reply || reply.length === 0) return;
-    router.push(`/post/${reply[0]}`);
+    router.push(`/nostr/note/${reply[0]}`);
   };
 
 

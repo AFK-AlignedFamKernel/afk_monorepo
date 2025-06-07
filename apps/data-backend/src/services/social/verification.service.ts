@@ -6,8 +6,12 @@ export class SocialVerificationService {
     constructor(private prisma: PrismaClient) {}
     async generateVerificationCode(userId: string, platform: string, handle: string) {
         const verificationCode = `AFK-${randomBytes(4).toString('hex').toUpperCase()}`;
-        
-        // Create or update social account with pending status
+    
+
+        return verificationCode;
+    }
+
+    async savedVerificationCode(userId: string, platform: string, handle: string, verificationCode: string) {
         await prisma.socialAccount.upsert({
             where: {
                 userId_platform: {
@@ -33,37 +37,16 @@ export class SocialVerificationService {
         return verificationCode;
     }
 
-    async verifyAccount(userId: string, platform: string) {
-        const account = await prisma.socialAccount.findUnique({
-            where: {
-                userId_platform: {
-                    userId,
-                    platform,
-                },
-            },
-        });
-
-        if (!account || !account.verificationCode) {
-            throw new Error('No pending verification found');
-        }
-
-        if (!account.username) {
-            throw new Error('No username found');
-        }
+    async verifyAccount(username: string, platform: string, verificationCode: string) {
+        console.log('username', username);
+        console.log('platform', platform);
+        console.log('verificationCode', verificationCode);
 
         // Platform-specific verification logic
-        const isVerified = await this.verifyPlatformProfile(platform, account.username, account.verificationCode);
+        const isVerified = await this.verifyPlatformProfile(platform, username, verificationCode);
 
         if (isVerified) {
-            await prisma.socialAccount.update({
-                where: {
-                    id: account.id,
-                },
-                data: {
-                    status: 'verified',
-                    verificationCode: null,
-                },
-            });
+           
             return true;
         }
 
