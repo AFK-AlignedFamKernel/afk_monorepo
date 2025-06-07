@@ -107,6 +107,20 @@ export default function Onboarding() {
                     </>
                 )}
             </div>
+
+
+            <div className='my-4 flex justify-center items-center w-full'>
+
+                <button
+
+                    className='text-sm italic shadow'
+                    onClick={() => {
+                        router.push('/discover');
+                    }}>
+                    Skip
+                </button>
+            </div>
+
         </div>
     );
 }
