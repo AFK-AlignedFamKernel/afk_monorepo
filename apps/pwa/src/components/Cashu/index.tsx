@@ -655,11 +655,12 @@ export default function Cashu() {
     try {
       const res = await payLightningInvoice(invoice);
 
+      console.log("res", res)
       if (res && res?.success) {
         // Recalculate balance after successful payment
-        if (activeMint) {
-          await calculateBalanceFromProofs(activeMint);
-        }
+        // if (activeMint) {
+        //   await calculateBalanceFromProofs(activeMint);
+        // }
 
         handleCloseSendModal();
         showToast({
@@ -681,9 +682,9 @@ export default function Cashu() {
       // Check if this is a "Token already spent" error
       if (err instanceof Error && err.message.includes('Token was already spent')) {
         // Recalculate balance even if there was an error
-        if (activeMint) {
-          await calculateBalanceFromProofs(activeMint);
-        }
+        // if (activeMint) {
+        //   await calculateBalanceFromProofs(activeMint);
+        // }
         // Let the modal handle this specific error
         throw err;
       }

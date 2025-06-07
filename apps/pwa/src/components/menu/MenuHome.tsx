@@ -51,7 +51,7 @@ export default function MenuHomeComponent() {
           </div>
         </Link>
 
-        <Link
+        {/* <Link
           href="/wallet"
           // className="game-launcher-item  to-purple-700 hover:from-purple-600 hover:to-purple-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"
         >
@@ -59,7 +59,7 @@ export default function MenuHomeComponent() {
             <Icon name="WalletIcon" size={24}></Icon>
             <span className="text-white font-semibold text-lg">Wallet</span>
           </div>
-        </Link>
+        </Link> */}
 
         <Link
           href="/profile"
