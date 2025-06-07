@@ -81,8 +81,8 @@ export default function Cashu() {
           <div className='flex flex-col gap-2 text-left'>
             <h1 className='text-lg font-bold'> Cashu wallet</h1>
             <p className='text-sm'>This is a beta version of Cashu wallet.</p>
-            <p className='text-sm'>This is a your own risk. We don't have an audit about this Cashu client code.</p>
-            <p className='text-sm'>Only use a small amount of funds for testing. We are not responsible for any loss of funds.</p>
+            <p className='text-sm italic'>Use at your own risk. Only use a small amount of funds for testing. </p>
+            <p className='text-sm'>We are not responsible for any loss of funds, and we don't have an audit about this Cashu client code at the moment.</p>
             <p className='text-sm'>Cashu is a decentralized cash system that allows you to send and receive cash without intermediaries.</p>
             <p className='text-sm'>You can use this wallet to send and receive cash and lightning invoices without intermediaries.</p>
 
