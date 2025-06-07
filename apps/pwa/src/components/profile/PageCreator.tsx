@@ -92,7 +92,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
       )}
 
       {creator?.identities && creator?.identities?.length > 0 && (
-        <div className="flex flex-row gap-4 rounded-lg shadow h-auto">
+        <div className="flex flex-row gap-2 h-auto">
           {Object.entries(creator.identities).map(([platformIndex, platform]) => {
             return (
               <div key={platformIndex + platform + platform.url + platform.identity_data.provider}
@@ -129,8 +129,8 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                 )}
 
                 {platform?.identity_data?.provider === "twitter" && (
-                  <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank">
-                    <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+                  <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank" className="flex flex-row items-center gap-2 bg-black dark:bg-white rounded-full p-2">
+                    <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className={`w-8 h-8 rounded-full object-cover text-white dark:text-black bg-black dark:bg-white`} />
                     {/* <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" /> */}
                   </Link>
                 )}
@@ -143,7 +143,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
       )}
 
       {creator?.social_links && (
-        <div className="flex flex-row gap-4 p-1 rounded-lg shadow h-auto">
+        <div className="flex flex-row gap-4 p-1 rounded-lg h-auto">
           {Object.entries(creator.social_links).map(([platformIndex, platform]) => {
             return (
               <div key={platformIndex + platform + platform.url + platform.identity_data.provider}
@@ -180,7 +180,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
 
                 {platform?.identity_data?.provider === "twitter" && (
                   <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank">
-                    <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+                    <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover bg-black dark:bg-white" />
 
                     {/* <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" /> */}
                   </Link>

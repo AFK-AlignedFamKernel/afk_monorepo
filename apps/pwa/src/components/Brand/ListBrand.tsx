@@ -5,7 +5,14 @@ import { useEffect, useState } from "react";
 import { Icon } from "../small/icon-component";
 
 import Image from "next/image";
-export default function ListBrand() {
+import BrandCard from "./BrandCard";
+
+interface IListBrandProps {
+    brandsProps?: any[]
+    setBrandsProps?: (brands: any[]) => void
+    isRefreshButton?: boolean
+}
+export default function ListBrand({ brandsProps, setBrandsProps, isRefreshButton = false }: IListBrandProps) {
 
     const [brands, setBrands] = useState<any[]>([])
 
@@ -39,42 +46,40 @@ export default function ListBrand() {
 
             {loading && <div>Loading...</div>}
 
-            <button onClick={() => setIsInitialLoading(false)}><Icon name="RefreshIcon" size={20} /></button>
+            {isRefreshButton && (
+                <button onClick={() => setIsInitialLoading(false)}><Icon name="RefreshIcon" size={20} /></button>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {brands?.map((brand, index) => (
-                    <div key={brand.id} className="border border-gray-300 rounded-md py-4 px-2 shadow-md flex flex-col items-center gap-1">
+                    <>
+                        <BrandCard brandProps={brand}></BrandCard>
+                        {/* <div key={brand.id} className="border border-gray-300 rounded-md py-4 px-2 shadow-md flex flex-col items-center gap-1">
 
-                        <img src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-10 h-10 object-cover rounded-full" />
+                            <img src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-10 h-10 object-cover rounded-full" />
 
-                        <div className="flex flex-row gap-2">
-                            <p>{brand.name}</p>
-                            <p>{brand.slug_name}</p>
-                        </div>
+                            <div className="flex flex-row gap-2">
+                                <p>{brand.name}</p>
+                                <p>{brand.slug_name}</p>
+                            </div>
 
-                        <p className="text-sm text-gray-500 line-clamp-2">{brand.description}</p>
-                        {/* <p>{brand.starknet_address}</p> */}
-                        {/* <p>{brand.evm_address}</p> */}
+                            <p className="text-sm text-gray-500 line-clamp-2">{brand.description}</p>
+                            <div className="flex flex-row gap-2">
+                                <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank">
+                                    <button className="flex flex-row items-center gap-2">
+                                        <Image src={`/assets/icons/twitter.svg`} alt="Twitter" width={20} height={20} className="bg-black dark:bg-white text-white dark:text-black rounded-full" />
+                                        Twitter
+                                    </button>
+                                </Link>
+                            </div>
+                            <div className="my-4">
+                                <Link href={`/brand/${brand.slug_name}`} className="w-50 center bg-blue-500 text-white p-2 rounded-md">
+                                    View
+                                </Link>
+                            </div>
+                        </div> */}
+                    </>
 
-                        <div className="flex flex-row gap-2">
-                            <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank">
-                                <button className="flex flex-row items-center gap-2">
-                                    <Image src={`/assets/icons/twitter.svg`} alt="Twitter" width={20} height={20} className="bg-black dark:bg-white text-white dark:text-black rounded-full" />
-                                    Twitter
-                                </button>
-                            </Link>
-                        </div>
-
-
-                        <div className="my-4">
-
-                            <Link href={`/brand/${brand.slug_name}`} className="w-50 center bg-blue-500 text-white p-2 rounded-md">
-                                View
-                            </Link>
-
-                        </div>
-
-                    </div>
                 ))}
             </div>
         </div>
