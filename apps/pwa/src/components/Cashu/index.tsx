@@ -51,7 +51,7 @@ export default function Cashu() {
   const { setMintUrl } = useCashuStore();
 
   // UI store for toast messages
-  const { showToast, showModal } = useUIStore();
+  const { showToast, showModal, hideModal } = useUIStore();
 
   const [activeTab, setActiveTab] = useState<'mints' | 'cashu' | 'transactions'>('transactions');
   const [currentBalance, setCurrentBalance] = useState<number>(balance);
@@ -66,9 +66,41 @@ export default function Cashu() {
   const [isLoadingProofs, setIsLoadingProofs] = useState<boolean>(false);
 
   const [checkWallet, setCheckWallet] = useState<boolean>(true);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const [isOnboardingChecked, setIsOnboardingChecked] = useState<boolean>(false);
 
   // console.log("ndkCashuWallet balance", ndkCashuWallet?.balance)
   // console.log("ndkCashuWallet signer", ndkCashuWallet?.signer)
+
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isOnboardingChecked) {
+      if (!localStorage.getItem("hasOnboardCashu") || localStorage.getItem("hasOnboardCashu") === "false") {
+        localStorage.setItem("hasOnboardCashu", "true");
+        showModal(<>
+          <div className='flex flex-col gap-2 text-left'>
+            <h1 className='text-lg font-bold'> Cashu wallet</h1>
+            <p className='text-sm'>This is a beta version of Cashu wallet.</p>
+            <p className='text-sm'>This is a your own risk. We don't have an audit about this Cashu client code.</p>
+            <p className='text-sm'>Only use a small amount of funds for testing. We are not responsible for any loss of funds.</p>
+            <p className='text-sm'>Cashu is a decentralized cash system that allows you to send and receive cash without intermediaries.</p>
+            <p className='text-sm'>You can use this wallet to send and receive cash and lightning invoices without intermediaries.</p>
+
+            <button className='bg-blue-500 text-white px-4 py-2 rounded-md' onClick={() => {
+              if (localStorage) {
+                localStorage?.setItem("hasOnboardCashu", "true");
+              }
+              hideModal();
+              setIsOnboardingChecked(true)
+            }}>I understand</button>
+          </div>
+        </>)
+      }
+      setIsOnboardingChecked(true);
+    }
+
+   
+  }, [isInitialized, isOnboardingChecked])
 
   const { publicKey } = useAuth();
   useEffect(() => {
@@ -76,36 +108,36 @@ export default function Cashu() {
       setCheckWallet(true);
       initWalletNdk();
     }
- 
+
   }, [activeMint, setActiveMint, checkWallet, publicKey])
 
   async function initWalletNdk() {
 
     try {
-      
-    if (!activeMint) return;
 
-    if (ndkCashuWallet?.mints?.includes(activeMint)) return;
-    if (ndkCashuWallet) {
-      ndkCashuWallet.mints = [activeMint]
-    }
-    const wallet = await ndkCashuWallet?.getCashuWallet(activeMint);
-    console.log("wallet", wallet)
+      if (!activeMint) return;
 
-    if (!wallet) {
-      setWalletReady(false);
+      if (ndkCashuWallet?.mints?.includes(activeMint)) return;
+      if (ndkCashuWallet) {
+        ndkCashuWallet.mints = [activeMint]
+      }
+      const wallet = await ndkCashuWallet?.getCashuWallet(activeMint);
+      console.log("wallet", wallet)
 
-    } else {
+      if (!wallet) {
+        setWalletReady(false);
 
-      // REQUIRED: Publish the wallet's mint list for token/nutzap reception
-      await ndkCashuWallet?.publish();
-      setWalletReady(true);
-    }
-    // if (wallet) {
-    //   setWalletReady(true);
-    // } else {
-    //   setWalletReady(false);
-    // }
+      } else {
+
+        // REQUIRED: Publish the wallet's mint list for token/nutzap reception
+        await ndkCashuWallet?.publish();
+        setWalletReady(true);
+      }
+      // if (wallet) {
+      //   setWalletReady(true);
+      // } else {
+      //   setWalletReady(false);
+      // }
     } catch (error) {
       console.error('Error initializing wallet:', error);
       // setWalletReady(false);
@@ -121,7 +153,6 @@ export default function Cashu() {
   }
 
 
-  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   // Initialize wallet connection on mount or when active mint changes
   useEffect(() => {
     // Don't re-initialize if already checking or if no mint is selected
