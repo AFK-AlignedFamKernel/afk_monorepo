@@ -15,13 +15,20 @@ import { TagsForm } from '../Form/TagsForm';
 import { useAccount } from '@starknet-react/core';
 import { LaunchpadCard } from '../launchpad/LaunchpadCard';
 import Link from 'next/link';
+import { useCreatorsStore } from '@/store/creators';
+import { IContentCreator } from '@/types/brand';
 
 
 export const ManageCreatorProfile: React.FC = () => {
   const { user, session } = useAppStore();
+  const { myContentCreatorProfile: creatorStore, setMyContentCreatorProfile: setCreatorStore } = useCreatorsStore()
+
+  const [contentCreator, setContentCreator] = useState<IContentCreator | undefined>(creatorStore ?? undefined)
+  const [isFetchContentDone, setIsInitialFetchUser] = useState(false)
+
   const { showToast } = useUIStore();
   const [platform, setPlatform] = useState<Provider>();
-  const [handle, setHandle] = useState('');
+  const [handle, setHandle] = useState(creatorStore?.name ?? '');
   const [proofUrl, setProofUrl] = useState('');
   const [status, setStatus] = useState<'idle' | 'verifying' | 'verified' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -31,35 +38,36 @@ export const ManageCreatorProfile: React.FC = () => {
   const fileUpload = useFileUpload();
   const [fileUrl, setFileUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
-  const [slugName, setSlugName] = useState('');
-  const [bio, setBio] = useState('');
-  const [tokenAddress, setTokenAddress] = useState<string | undefined>(undefined);
-  const [starknetAddress, setStarknetAddress] = useState(address);
-  const [btcAddress, setBtcAddress] = useState('');
+  const [slugName, setSlugName] = useState(creatorStore?.slug_name ?? '');
+  const [bio, setBio] = useState(creatorStore?.bio ?? '');
+  const [tokenAddress, setTokenAddress] = useState<string | undefined>(creatorStore?.token_address ?? undefined);
+  const [starknetAddress, setStarknetAddress] = useState(creatorStore?.starknet_address ?? address);
+  const [btcAddress, setBtcAddress] = useState(creatorStore?.btc_address ?? '');
   const [formData, setFormData] = useState<ContentCreator | null>({
-    name: '',
-    slug_name: '',
-    avatar_url: '',
-    bio: '',
-    topics: [],
-    token_address: '',
-    id: '',
-    owner_id: '',
+    name: creatorStore?.name ?? '',
+    slug_name: creatorStore?.slug_name ?? '',
+    avatar_url: creatorStore?.avatar_url ?? '',
+    bio: creatorStore?.bio ?? '',
+    topics: creatorStore?.topics ?? [],
+    token_address: creatorStore?.token_address ?? '',
+    id: creatorStore?.id ?? '',
+    owner_id: creatorStore?.owner_id ?? '',
     is_verified: false,
   })
-  const [contentCreator, setContentCreator] = useState<ContentCreator | null>(null)
-  const [isFetchContentDone, setIsInitialFetchUser] = useState(false)
 
-  const [topics, setTopics] = useState<string[]>([])
+
+  const [topics, setTopics] = useState<string[]>(creatorStore?.topics ?? [])
   const [unverifedSocials, setUnverifedSocials] = useState<{
-    handle:string,
-    provider:string,
+    handle: string,
+    provider: string,
   }[]>([])
   const [verifiedSocials, setVerifiedSocials] = useState<string[]>([])
   const [nostrAddress, setNostrAddress] = useState<string>('')
   const [ludAddress, setLudAddress] = useState<string>('')
   const [tokensAddress, setTokensAddress] = useState<string[]>([])
   const [creatorToken, setCreatorToken] = useState<string>('')
+
+
 
   const fetchMyContentCreatorProfile = async () => {
 
@@ -73,13 +81,14 @@ export const ManageCreatorProfile: React.FC = () => {
       const res = await api.content_creator.my_profile()
       const slugName = res?.slug_name
       setSlugName(slugName)
-      setTopics(res?.topics)
+      setTopics(res?.topics ?? [])
       setHandle(res?.name)
       setBio(res?.bio)
       setTokenAddress(res?.token_address)
       console.log("res", res)
       setContentCreator(res)
-      setIsInitialFetchUser(true)
+      setIsInitialFetchUser(true);
+      setCreatorStore(res)
     } catch (error) {
       console.log("error", error)
     }
@@ -87,47 +96,11 @@ export const ManageCreatorProfile: React.FC = () => {
   }
   useEffect(() => {
 
-    if (!isFetchContentDone && user) {
+    if (!isFetchContentDone && user && !creatorStore && !contentCreator) {
       fetchMyContentCreatorProfile()
     }
 
-  }, [isFetchContentDone, user])
-
-
-  const handleVerifyFromIdentity = async () => {
-
-    let fileUrl = '';
-    if (file) {
-
-      const res = await fileUpload.mutateAsync(file);
-      setFileUrl(res.data?.url)
-      fileUrl = res.data?.url
-    }
-
-
-    const res = await fetchWithAuth("/content-creator/verify_identity", {
-      method: 'POST',
-      body: JSON.stringify({
-        id: session?.user?.id,
-        user_id: session?.user?.id,
-        proof_url: proofUrl,
-        slug_name: slugName,
-        avatar_url: fileUrl,
-        topics: topics,
-        token_address: tokenAddress,
-        starknet_address: starknetAddress,
-        evm_address: address,
-        btc_address: btcAddress,
-        is_active: true
-      })
-    })
-    if (res) {
-      showToast({
-        type: "success",
-        message: "Account linked and verified!"
-      })
-    }
-  }
+  }, [isFetchContentDone, user, creatorStore, contentCreator])
 
   const handleUpdateFromIdentity = async () => {
     let fileUrl = '';
@@ -167,7 +140,6 @@ export const ManageCreatorProfile: React.FC = () => {
       })
     }
   }
-
 
   if (!user) {
     return <div>
