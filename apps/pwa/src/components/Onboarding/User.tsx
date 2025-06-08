@@ -37,14 +37,13 @@ export default function User() {
             <NostrCreateAccountComponent />
           </>}
 
-          {step === 1 && !isNostrConnected && <div className='flex flex-col gap-4'>
+          {step === 1 && (!isNostrConnected || !isWalletConnected) && <div className='flex flex-col gap-4'>
             <NostrProfileManagement />
             <WalletConnectButton />
           </div>}
 
           {step === 2 || (isNostrConnected && isWalletConnected) && <div className='flex flex-col gap-4'>
             <p>You are all set up!</p>
-
 
             <div className='flex flex-row gap-4 grid grid-cols-2'>
 

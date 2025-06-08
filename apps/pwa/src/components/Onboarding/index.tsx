@@ -26,15 +26,15 @@ export default function Onboarding() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col justify-center items-center py-8 px-2">
+        <div className="flex flex-col justify-center items-center py-8 px-2">
             <div className="w-full max-w-2xl rounded-2xl shadow-xl p-6 sm:p-10 flex flex-col items-center">
                 <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-primary">Welcome to AFK</h1>
                 <p className="text-base sm:text-lg text-center mb-6">Get started by telling us how you want to use the platform.</p>
 
                 {/* Step label */}
-                <div className="w-full flex justify-center mb-4">
+                {/* <div className="w-full flex justify-center mb-4">
                     <span className="text-xs font-medium rounded-full px-3 py-1">Step 1 of 2</span>
-                </div>
+                </div> */}
 
                 {/* Selection Step */}
                 {!selectedType && (
