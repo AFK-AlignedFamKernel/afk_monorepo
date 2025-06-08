@@ -4,6 +4,8 @@ import { ContentCreator } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
 import { LaunchpadWrapperCard } from "../launchpad/LaunchpadWrapperCard";
+import { useBrandStore } from "@/store/brand";
+import { useCreatorsStore } from "@/store/creators";
 
 
 interface AnalyticsCreatorConsumerProps {
@@ -13,9 +15,11 @@ interface AnalyticsCreatorConsumerProps {
 
 const AnalyticsCreatorConsumer: React.FC<AnalyticsCreatorConsumerProps> = ({ slug, creator }) => {
 
-  const [creatorInput, setCreatorInput] = useState<ContentCreator | null>(null);
 
-  const [analytics, setAnalytics] = useState<any[]>([]);
+  const { creatorAnalytics, setCreatorAnalytics, isInitialFetchCreatorAnalytics, setContentCreator, contentCreator } = useCreatorsStore();
+  const [creatorInput, setCreatorInput] = useState<ContentCreator | null>();
+
+  const [analytics, setAnalytics] = useState<any[]>(creatorAnalytics || []);
   const [activeTab, setActiveTab] = useState<"token_address" | "social_links" | "analytics" | "reputation">("token_address");
   const [activeTabAnalytics, setActiveTabAnalytics] = useState<"twitter" | "youtube" | "tiktok" | "instagram" | "facebook" | "linkedin" | "telegram" | "discord" | "reddit" | "twitch" | "website" | "other">("twitter");
 
@@ -26,16 +30,25 @@ const AnalyticsCreatorConsumer: React.FC<AnalyticsCreatorConsumerProps> = ({ slu
   console.log("selectedAnalytics", selectedAnalytics)
 
   useEffect(() => {
-    const res = fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/analytics/content-creator/view-profile?slug_name=${slug}`)
-      .then(res => res.json())
-      .then(data => {
-        console.log("analytics data", data)
-        setCreatorInput(data.creator);
-        setAnalytics(data.analytics);
-      });
 
-    console.log("res", res)
-  }, [slug]);
+    // if (creatorAnalytics && contentCreator) {
+    //   setAnalytics(creatorAnalytics);
+    // }
+
+    if (slug && !creatorAnalytics && !contentCreator) {
+      const res = fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/analytics/content-creator/view-profile?slug_name=${slug}`)
+        .then(res => res.json())
+        .then(data => {
+          console.log("analytics data", data)
+          setCreatorInput(data.creator);
+          setAnalytics(data.analytics);
+          setCreatorAnalytics(data.analytics);
+          setContentCreator(data.creator);
+        });
+
+      console.log("res", res)
+    }
+  }, [slug, creatorAnalytics, contentCreator]);
 
   if (!analytics) {
     return <div>Loading...</div>;

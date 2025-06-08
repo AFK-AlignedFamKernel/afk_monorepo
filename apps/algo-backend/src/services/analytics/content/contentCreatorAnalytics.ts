@@ -6,6 +6,7 @@ import { createOpenRouter, openrouter } from '@openrouter/ai-sdk-provider';
 import { TwitterScraper } from "../../scraper/twitterScraper";
 import { AiService } from "../../ai/ai";
 import { ContentCreatorAnalyticsSchema } from "../../../types/schema";
+import { systemPromptAnalyticsCreator } from "../../../types/prompts";
 
 
 
@@ -170,22 +171,23 @@ export class ContentCreatorAnalytics {
             }
             const resultProcessDataObject = await this.generateObject({
                 model: "anthropic/claude-3.7-sonnet",
-                systemPrompt: `You are an AI analyzing a Twitter/X profile. Based on the bio, tweet content, engagement, and patterns, classify the profile according to:
-                    - Main Topics (max 3) [e.g., Crypto, Politics, Productivity]
-                    - Expertise Level [Beginner, Intermediate, Expert]
-                    - Reputation Score [0-100] (based on consistency, quality, and community trust)
-                    - Sentiment Profile [Positive, Neutral, Negative, Mixed]
-                    - Polarization Level [Low, Medium, High]
-                    - Truthfulness Estimate [Likely True, Somewhat Misleading, Often Exaggerated]
-                    - Copywriting Style [Professional, Casual, Technical, Humorous, etc.]
-                    - Engagement Rate [0-100] (based on the number of likes, retweets, and comments)
-                    - Content Quality [High, Medium, Low]
-                    - Consistency [High, Medium, Low]
-                    - Relevance [High, Medium, Low]
-                    - Clarity [High, Medium, Low]
-                    - Creativity [High, Medium, Low]
-                    - Engagement Rate [0-100] (based on the number of likes, retweets, and comments)
-                    `,
+                systemPrompt: systemPromptAnalyticsCreator,
+                //  `You are an AI analyzing a Twitter/X profile. Based on the bio, tweet content, engagement, and patterns, classify the profile according to:
+                //     - Main Topics (max 3) [e.g., Crypto, Politics, Productivity]
+                //     - Expertise Level [Beginner, Intermediate, Expert]
+                //     - Reputation Score [0-100] (based on consistency, quality, and community trust)
+                //     - Sentiment Profile [Positive, Neutral, Negative, Mixed]
+                //     - Polarization Level [Low, Medium, High]
+                //     - Truthfulness Estimate [Likely True, Somewhat Misleading, Often Exaggerated]
+                //     - Copywriting Style [Professional, Casual, Technical, Humorous, etc.]
+                //     - Engagement Rate [0-100] (based on the number of likes, retweets, and comments)
+                //     - Content Quality [High, Medium, Low]
+                //     - Consistency [High, Medium, Low]
+                //     - Relevance [High, Medium, Low]
+                //     - Clarity [High, Medium, Low]
+                //     - Creativity [High, Medium, Low]
+                //     - Engagement Rate [0-100] (based on the number of likes, retweets, and comments)
+                //     `,
                 prompt: `You are an AI analyzing a Twitter/X profile. Based on the bio, tweet content, engagement, and patterns, classify the profile according to:
                     - Main Topics (max 3) [e.g., Crypto, Politics, Productivity]
                     - Expertise Level [Beginner, Intermediate, Expert]

@@ -27,9 +27,6 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
     return <div>Loading...</div>;
   }
 
-
-  console.log("creator", creator)
-
   return (
     <div className="p-4 shadow flex flex-col items-center dark:bg-contrast-100">
       {creator.avatar_url ? (
