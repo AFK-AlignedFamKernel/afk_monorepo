@@ -5,6 +5,8 @@ import { ILaunch } from '../types/token';
 import { IBrand, IContentCreator, ILeaderboardStats } from '@/types/brand';
 
 interface BrandState {
+  myContentCreatorProfile:IContentCreator | null;
+  setMyContentCreatorProfile: (myContentCreatorProfile: IContentCreator | null) => void;
   brand:IBrand | null;
   setBrand: (brand: IBrand | null) => void;
   brands:IBrand[] | null;
@@ -23,7 +25,9 @@ interface BrandState {
   setIsInitialFetchLeaderboardStats: (isInitialFetchLeaderboardStats: boolean) => void;
 }
 
-export const useBrand = create<BrandState>((set) => ({
+export const useBrandStore = create<BrandState>((set) => ({
+  myContentCreatorProfile: null,
+  setMyContentCreatorProfile: (myContentCreatorProfile: IContentCreator | null) => set({ myContentCreatorProfile }),
   brand: null,
   leaderboardStats: null,
   setLeaderboardStats: (leaderboardStats: ILeaderboardStats[] | null) => set({ leaderboardStats }),

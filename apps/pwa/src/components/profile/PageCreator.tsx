@@ -232,7 +232,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
 
         {activeTab === "analytics" && (
           <div>
-            <p>Analytics</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">Analytics</p>
             <AnalyticsCreatorConsumer slug={slug} creator={creator} />
           </div>
         )}

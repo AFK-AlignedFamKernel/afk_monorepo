@@ -16,7 +16,7 @@ interface LaunchpadState {
   setIsInitialFetchLaunch: (isInitialFetchLaunch: boolean) => void;
 }
 
-export const useLaunchpad = create<LaunchpadState>((set) => ({
+export const useLaunchpadStore = create<LaunchpadState>((set) => ({
   token: null,
   setToken: (token: ILaunch | null) => set({ token }),
   launch: null,
