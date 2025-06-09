@@ -7,8 +7,9 @@ import { Provider } from '@supabase/supabase-js';
 import { api, fetchWithAuth } from '@/lib/api';
 import CreatorCard from "./CreatorCard";
 import { ContentCreator } from "@/types";
-
-
+  
+import { useCreatorsStore } from '@/store/creators';
+import { IContentCreator } from '@/types/brand';
 
 export const AllCreators: React.FC = () => {
   const { user, session } = useAppStore();
@@ -19,10 +20,12 @@ export const AllCreators: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'verifying' | 'verified' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
 
+
+  const {contentCreators:contentCreatorsStore, setContentCreators:setContentCreatorsStore} = useCreatorsStore()
+  const [creators, setCreators] = useState<IContentCreator[]>(contentCreatorsStore || []);
+
   const [contentCreator, setContentCreator] = useState();
   const [isFetchContentDone, setIsFetchContentDone] = useState(false);
-  const [creators, setCreators] = useState<ContentCreator[]>([]);
-
   const fetchCreators = async () => {
     try {
       if(isFetchContentDone) {
@@ -32,6 +35,7 @@ export const AllCreators: React.FC = () => {
       const res = await api.content_creator.list();
       console.log("res", res)
       setCreators(res);
+      setContentCreatorsStore(res);
     } catch (error) {
       console.error("Error fetching creators:", error);
     }
@@ -96,7 +100,7 @@ export const AllCreators: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {creators && creators?.length > 0 && creators
           // .filter((creator: ContentCreator) => creator.owner_id && creator.is_verified)
-          .map((creator: ContentCreator) => (
+          .map((creator: IContentCreator | any) => (
             <CreatorCard key={`${creator.id}-${creator.owner_id}`} creator={creator} />
           ))}
       </div>

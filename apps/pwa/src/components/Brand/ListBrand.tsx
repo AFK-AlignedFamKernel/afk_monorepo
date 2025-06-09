@@ -6,6 +6,7 @@ import { Icon } from "../small/icon-component";
 
 import Image from "next/image";
 import BrandCard from "./BrandCard";
+import { useBrandStore } from "@/store/brand";
 
 interface IListBrandProps {
     brandsProps?: any[]
@@ -13,33 +14,46 @@ interface IListBrandProps {
     isRefreshButton?: boolean
 }
 export default function ListBrand({ brandsProps, setBrandsProps, isRefreshButton = false }: IListBrandProps) {
+    const {brands:brandsStore, setBrands:setBrandsStore} = useBrandStore()
 
-    const [brands, setBrands] = useState<any[]>([])
+    const [brands, setBrands] = useState<any[]>(brandsStore || [])
+
 
     const [leaderboard, setLeaderboard] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
     const [isInitialLoading, setIsInitialLoading] = useState(false)
 
     const [isLoading, setIsLoading] = useState(false)
-
+    console.log("brands", brands);
     useEffect(() => {
         const fetchBrand = async () => {
 
-            console.log("fetchBrand")
-
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/brand`)
-            console.log("res", res)
-            const data = await res.json()
-            console.log("data", data)
-            setBrands(data?.brands || [])
-            setLoading(false)
-            setIsInitialLoading(true)
+            try {
+                setLoading(true)
+                console.log("fetchBrand")
+    
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/brand`)
+                console.log("res", res)
+                const data = await res.json()
+                console.log("data", data)
+                setBrands(data?.brands || [])
+                setBrandsStore(data?.brands || [])
+                setLoading(false)
+                setIsInitialLoading(true)
+                setLoading(false)
+            } catch (error) {
+                setLoading(false)
+            }finally{
+                setLoading(false)
+            }
+        
         }
-        if (!isInitialLoading) {
+        if (!isInitialLoading || (!brands.length || brands.length === 0)) {
+            console.log("fetchBrand")
             fetchBrand()
             setIsInitialLoading(true)
         }
-    }, [isInitialLoading])
+    }, [isInitialLoading, brands, isLoading])
 
     return (
         <div>

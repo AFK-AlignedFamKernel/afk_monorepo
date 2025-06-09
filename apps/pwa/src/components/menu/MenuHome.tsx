@@ -32,7 +32,7 @@ export default function MenuHomeComponent() {
 
 
         <Link
-          href="/discovery"
+          href="/discover"
           // className="game-launcher-item bg-gradient-to-br hover:to-blue-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"
         >
           <div className="flex flex-col items-center">

@@ -191,6 +191,8 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
       )}
 
       <div className="flex flex-row gap-4 mt-4 p-4 rounded-lg shadow h-auto overflow-x-auto">
+
+
         <button className="bg-blue-500 text-white p-2 rounded-md"
           onClick={() => setActiveTab("token_address")}
         >  Token Address </button>
@@ -211,9 +213,12 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
       <div>
         {activeTab === "token_address" && (
           <div className="flex flex-col gap-4">
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">{creator.token_address?.slice(0, 6) + "..." + creator.token_address?.slice(-4)}</p>
+            {creator?.token_address && (
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">{creator?.token_address?.slice(0, 6) + "..." + creator?.token_address?.slice(-4)}</p>
+            )}
 
-            {creator.token_address && (
+
+            {creator?.token_address && (
               <LaunchpadWrapperCard
                 token_address={creator.token_address}
               />

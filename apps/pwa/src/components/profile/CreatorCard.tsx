@@ -1,9 +1,9 @@
 import React from "react";
-import { ContentCreator } from "@/types";
 import Link from "next/link";
+import { IContentCreator } from "@/types/brand";
 
 interface CreatorCardProps {
-  creator: ContentCreator;
+  creator: IContentCreator;
 }
 
 const CreatorCard: React.FC<CreatorCardProps> = ({ creator }) => {
@@ -43,8 +43,8 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ creator }) => {
       {creator.identities && (
         <div className="flex gap-2 mt-2">
           {Object.entries(creator.identities).map(([platformIndex, platform]) => {
-            console.log("platform", platform)
-            console.log("url", platform.url)
+            // console.log("platform", platform)
+            // console.log("url", platform.url)
             return (
               <div key={platform + platform.url}>
                 <p
