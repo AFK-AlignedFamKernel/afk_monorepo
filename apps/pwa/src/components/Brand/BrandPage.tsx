@@ -1,5 +1,4 @@
 "use client"
-import { supabase } from "@/lib/supabase";
 import { useEffect, useState, useMemo } from "react";
 import { Icon } from "../small/icon-component";
 
@@ -7,8 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 
 export default function BrandPage({ slug_name }: { slug_name: string }) {
-
-
 
     const [brand, setBrand] = useState<any>(null)
 
@@ -26,14 +23,13 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
 
 
     useEffect(() => {
-        const fetchBrand = async () => {
+        const fetchBrandBySlugName = async () => {
 
-            console.log("fetchBrand")
+            console.log("fetchBrand by slug_name", slug_name)
             try {
                 setIsLoading(true)
                 const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/brand/view-profile?slug_name=${slug_name}`)
                 const data = await res.json()
-                console.log("data", data)
                 setBrand(data?.brand)
                 setLeaderboards(data?.leaderboards || [])
                 setLoading(false)
@@ -47,7 +43,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
 
         }
         if (!isInitialLoading) {
-            fetchBrand()
+            fetchBrandBySlugName()
             setIsInitialLoading(true)
         }
     }, [isInitialLoading])

@@ -24,6 +24,9 @@ export const CreateBrandForm: React.FC = () => {
   const [status, setStatus] = useState<'idle' | 'verifying' | 'verified' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
 
+  const [step, setStep] = useState<'create' | 'verify' | 'complete'>('create')
+  const [stepNumber, setStepNumber] = useState(0)
+
   const { address } = useAccount()
 
   const fileUpload = useFileUpload();

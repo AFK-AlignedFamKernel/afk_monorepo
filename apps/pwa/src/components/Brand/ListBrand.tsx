@@ -1,10 +1,6 @@
 "use client"
-import { supabase } from "@/lib/supabase";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Icon } from "../small/icon-component";
-
-import Image from "next/image";
 import BrandCard from "./BrandCard";
 import { useBrandStore } from "@/store/brand";
 
@@ -24,7 +20,7 @@ export default function ListBrand({ brandsProps, setBrandsProps, isRefreshButton
     const [isInitialLoading, setIsInitialLoading] = useState(false)
 
     const [isLoading, setIsLoading] = useState(false)
-    console.log("brands", brands);
+    // console.log("brands", brands);
     useEffect(() => {
         const fetchBrand = async () => {
 
@@ -33,9 +29,9 @@ export default function ListBrand({ brandsProps, setBrandsProps, isRefreshButton
                 console.log("fetchBrand")
     
                 const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/brand`)
-                console.log("res", res)
+                // console.log("res", res)
                 const data = await res.json()
-                console.log("data", data)
+                // console.log("data", data)
                 setBrands(data?.brands || [])
                 setBrandsStore(data?.brands || [])
                 setLoading(false)
@@ -49,7 +45,6 @@ export default function ListBrand({ brandsProps, setBrandsProps, isRefreshButton
         
         }
         if (!isInitialLoading || (!brands.length || brands.length === 0)) {
-            console.log("fetchBrand")
             fetchBrand()
             setIsInitialLoading(true)
         }

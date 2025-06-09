@@ -27,12 +27,12 @@ export const initAllCronJobs = async () => {
     const brandAnalytics = new BrandAnalyticsService(twitterScraper)
 
     // console.log("brand analytics");
-    // const allBrandsAnalytics = await brandAnalytics.getAllBrandsAnalytics();
-    // console.log("allBrandsAnalytics", allBrandsAnalytics);
-    // setInterval(async () => {
-    //     const allBrandsAnalytics = await brandAnalytics.getAllBrandsAnalytics();
-    //     console.log("allBrandsAnalytics", allBrandsAnalytics);
-    // }, 1000 * 60 * 60 * 24);
+    const allBrandsAnalytics = await brandAnalytics.getAllBrandsAnalytics();
+    console.log("allBrandsAnalytics", allBrandsAnalytics);
+    setInterval(async () => {
+        const allBrandsAnalytics = await brandAnalytics.getAllBrandsAnalytics();
+        console.log("allBrandsAnalytics", allBrandsAnalytics);
+    }, 1000 * 60 * 60 * 24);
    
     // content creator analytics
     console.log("content creator analytics");

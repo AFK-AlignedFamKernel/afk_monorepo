@@ -33,7 +33,7 @@ export const AllCreators: React.FC = () => {
       }
       
       const res = await api.content_creator.list();
-      console.log("res", res)
+      // console.log("res", res)
       setCreators(res);
       setContentCreatorsStore(res);
     } catch (error) {
@@ -69,7 +69,7 @@ export const AllCreators: React.FC = () => {
       //   // })
 
       // })
-      console.log("res", res)
+      // console.log("res", res)
       setIsFetchContentDone(true)
     } catch (error) {
       console.log("error", error)
@@ -84,7 +84,7 @@ export const AllCreators: React.FC = () => {
 
   }, [isFetchContentDone, user])
  
-  console.log("creators", creators)
+  // console.log("creators", creators)
   return (
     <div className="p-4 rounded-lg dark:bg-contrast-100 shadow space-y-4">
       <h3 className="text-xl font-semibold mb-2">All Connected & Verified Creators</h3>
