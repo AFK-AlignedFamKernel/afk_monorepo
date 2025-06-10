@@ -165,23 +165,24 @@ export const linkedNostrProfile = async () => {
     const signatureR = "0x" + signature.slice(0, signature.length / 2);
     const signatureS = "0x" + signature.slice(signature.length / 2);
 
-    // Format calldata exactly as the test expects
-    const linkedArrayCalldata = CallData.compile([
-        // recipient_public_key from test
-        cairo.uint256(`0x${event?.pubkey}`),
-        // uint256.bnToUint256(BigInt(`0x${event?.pubkey}`)),
-        // cairo.uint256("0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc"),
-        timestamp,
-        1, // kind
-        byteArray.byteArrayFromString("[]"),
-        {
+    // Create the SocialRequest struct that matches the Cairo contract exactly
+    // The contract expects: fn linked_nostr_profile(ref self: ContractState, request: SocialRequest<LinkedStarknetAddress>)
+    const socialRequest = {
+        public_key: cairo.uint256(`0x${event?.pubkey}`),
+        created_at: timestamp,
+        kind: 1,
+        tags: byteArray.byteArrayFromString("[]"),
+        content: {
             starknet_address: starknetAddressFelt,
         },
-        {
+        sig: {
             r: cairo.uint256(signatureR),
             s: cairo.uint256(signatureS),
         }
-    ]);
+    };
+
+    // Compile the single SocialRequest parameter
+    const linkedArrayCalldata = CallData.compile([socialRequest]);
 
     // Debug logs
     console.log("Debug Info:");
