@@ -35,7 +35,7 @@ export default function MenuHomeComponent() {
         // className="game-launcher-item bg-gradient-to-br from-primary-500 to-primary-700 hover:from-primary-600 hover:to-primary-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition-all"
         >
           <div className="flex flex-col items-center">
-            <Icon name="FundraiseIcon" size={24}></Icon>
+            <Icon name="UpwardTrendGraphIcon" size={24}></Icon>
             <span className="text-white font-semibold text-lg">Launchpad</span>
           </div>
         </Link>

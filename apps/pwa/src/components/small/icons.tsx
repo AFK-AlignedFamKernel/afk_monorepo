@@ -851,3 +851,26 @@ export const FundraiseIcon: React.FC<SVGProps<SVGSVGElement>> = (props) => (
     />
   </svg>
 );
+
+
+export const UpwardTrendGraphIcon: React.FC<SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" {...props}>
+    {/* This path creates the upward trending line */}
+    <path
+      d="M3 18L10 11L14 15L21 7" // Starts low, goes up, slightly dips, then finishes high
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    {/* Optional: Add a subtle 'base' or 'axis' line for context, if desired */}
+    {/* <path
+      d="M3 20H21"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      opacity="0.5"
+    /> */}
+  </svg>
+);
