@@ -43,7 +43,7 @@ export class TwitterAnalytics {
         this.twitterScraper = twitterScraper;
     }
 
-    async getTwitterAnalytics(brand_handle: string, topics?: string[]): Promise<{
+    async getTwitterAnalytics(brand_handle: string, ticker?: string, topics?: string[]): Promise<{
         dataUser?: any,
         xKaito?: any,
         twitter?: any,
@@ -67,12 +67,8 @@ export class TwitterAnalytics {
 
             const user = await this.twitterScraper.getUser(brand_handle);
             console.log("user", user);
-
-
-            const query = `(${brand_handle} OR @${brand_handle}) since:${new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString().split('T')[0]}`;
-
+            let query = `(${brand_handle} OR @${brand_handle} OR ${user?.name} OR ${user?.username} ${ticker && `OR $${ticker} OR ${ticker}`}) since:${new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString().split('T')[0]}`;
             const twitterLatestTweets = await this.twitterScraper.searchTweets(query, 100);
-
 
             if (!twitterLatestTweets) {
                 return null;
