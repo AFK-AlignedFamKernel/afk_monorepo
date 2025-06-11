@@ -17,6 +17,7 @@ import { ProfileManagement } from '@/components/profile/profile-management';
 import { AvatarIcon } from './small/icons';
 import AccordionMenu from './small/AccordionMenu';
 import MobileBottomBar from './MobileBottomBar';
+import { logClickedEvent } from '@/lib/analytics';
 
 interface LayoutProps {
   children: ReactNode;
@@ -228,12 +229,18 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''} `}>
         <div className="logo">
-          <a href="/" onClick={closeSidebar}>AFK</a>
+          <Link href="/" onClick={() => {
+            logClickedEvent("home", "click", "link_drawer")
+            closeSidebar()
+          }}>AFK</Link>
         </div>
 
         <div className="sidebar-nav overflow-y-hidden scrollbar-hide">
           <div className="sidebar-nav-header">
-            <a href="/" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Link href="/" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("home", "click", "link_drawer")
+              closeSidebar()
+            }}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
@@ -251,7 +258,7 @@ const Layout = ({ children }: LayoutProps) => {
                 />
               </svg>
               Home
-            </a>
+            </Link>
 
             <div className='sidebar-nav-item'>
               <AccordionMenu title="Nostr"
@@ -260,18 +267,31 @@ const Layout = ({ children }: LayoutProps) => {
                   icon: (<Icon name="SocialNostr" size={24}></Icon>),
                   content: (
                     <>
-                      <Link href="/nostr/feed" className="sidebar-nav-item" onClick={closeSidebar}>
+                      <Link href="/nostr/feed" className="sidebar-nav-item" onClick={() => {
+                        logClickedEvent("nostr_feed", "click", "link_drawer")
+                        closeSidebar()
+                      }}>
                         <Icon name="FeedIcon" size={24} />
 
                         Feed
                       </Link>
-                      <Link href="/nostr/my-profile" className="sidebar-nav-item" onClick={closeSidebar}>
-                        <Icon name="UserIcon" size={24} />
+                      <Link href="/nostr/my-profile" className="sidebar-nav-item" onClick={() => {
+                        logClickedEvent("nostr_my_profile", "click", "link_drawer")
+                        closeSidebar()
+                      }}>
+                        <Icon name="UserIcon" size={24}
+
+
+                        />
 
                         My Profile
                       </Link>
-                      <Link href="/nostr/login" className="sidebar-nav-item" onClick={closeSidebar}>
-                        <Icon name="LoginIcon" size={24} />
+                      <Link href="/nostr/login" className="sidebar-nav-item" onClick={() => {
+                        logClickedEvent("nostr_login", "click", "link_drawer")
+                        closeSidebar()
+                      }}>
+                        <Icon name="LoginIcon" size={24}
+                        />
                         Login
                       </Link>
 
@@ -291,20 +311,32 @@ const Layout = ({ children }: LayoutProps) => {
               Wallet
             </Link> */}
 
-            <Link href="/profile" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Link href="/profile" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("profile", "click", "link_drawer")
+              closeSidebar()
+            }}>
               <Icon name="UserIcon" size={24} />
               Profile
             </Link>
 
-            <Link href="/discover" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Link href="/discover" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("discover", "click", "link_drawer")
+              closeSidebar()
+            }}>
               <Icon name="DiscoverIcon" size={24} />
               Discover</Link>
 
-            <Link href="/create" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Link href="/create" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("create", "click", "link_drawer")
+              closeSidebar()
+            }}>
               <Icon name="AddPostIcon" size={24} />
               Create</Link>
 
-            <Link href="/launchpad" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Link href="/launchpad" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("launchpad", "click", "link_drawer")
+              closeSidebar()
+            }}>
               <Icon name="UpwardTrendGraphIcon" size={24} />
               Launchpad
             </Link>
@@ -409,7 +441,7 @@ const Layout = ({ children }: LayoutProps) => {
             </button>
 
             <div className="sidebar-nav-copyright">
-              © {new Date().getFullYear()} AFK
+              AFK © {new Date().getFullYear()}
             </div>
           </div>
         </div>
@@ -426,7 +458,7 @@ const Layout = ({ children }: LayoutProps) => {
         {isLoading && <CryptoLoading />}
         <div className="content pb-20 md:pb-0">
           {children}
-          {/* <RightBarDesktop /> */}
+          <RightBarDesktop />
         </div>
       </main>
       <MobileBottomBar />

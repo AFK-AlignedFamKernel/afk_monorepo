@@ -30,7 +30,7 @@ const topics: TopicItem[] = [
   { title: 'Financial Markets', category: 'Business' },
 ];
 
-const DiscoveryComponent = () => {
+const TopicsDiscoveryComponent = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('For you');
@@ -127,4 +127,4 @@ const DiscoveryComponent = () => {
   );
 };
 
-export default DiscoveryComponent;
+export default TopicsDiscoveryComponent;

@@ -161,6 +161,7 @@ table {
 .main-content {
   flex: 1;
   margin-left: $sidebar-width;
+  margin-right: $sidebar-width-right;
   min-height: 100vh;
   width: calc(100% - $sidebar-width);
   // padding: 0.5rem;
@@ -223,6 +224,7 @@ table {
   padding: 2rem;
   border-left: 1px solid var(--border);
   background-color: var(--sidebar-bg);
+  color: var(--contrast-900);
   z-index: 1000;
   transition: transform 0.3s ease-in-out, background-color 0.2s ease-in-out;
 
@@ -245,7 +247,7 @@ table {
   // }
 }
 
-@media (min-width: $desktop-breakpoint) {
+@media (max-width: $desktop-breakpoint) {
   .sidebar-right {
     display: none;
   }
@@ -282,8 +284,8 @@ table {
 .sidebar-nav-right {
   display: flex;
   flex-direction: column;
-  height: 100%;
   // overflow-y: auto;
+  color: var(--contrast-900);
   overflow-y: auto;
   &::-webkit-scrollbar {
     display: none;
@@ -293,7 +295,7 @@ table {
   scrollbar-width: none;  /* Firefox */
 }
 
-@media (min-width: $desktop-breakpoint) {
+@media (max-width: $desktop-breakpoint) {
   .sidebar-nav-right {
     display: none;
   }
@@ -553,8 +555,8 @@ button.sidebar-nav-footer-item {
 
   .sidebar {
     transform: translateX(-100%);
-    width: 80%;
-    max-width: 300px;
+    width: 70%;
+    max-width: 200px;
     height: 100vh;
     transition: transform 0.3s ease-in-out;
     z-index: 1000;

@@ -27,26 +27,18 @@ const AnalyticsCreatorConsumer: React.FC<AnalyticsCreatorConsumerProps> = ({ slu
     return analytics?.find((analytic: any) => analytic.platform === activeTabAnalytics);
   }, [analytics, activeTabAnalytics, activeTab]);
 
-  console.log("selectedAnalytics", selectedAnalytics)
-
   useEffect(() => {
-
-    // if (creatorAnalytics && contentCreator) {
-    //   setAnalytics(creatorAnalytics);
-    // }
 
     if (slug && !creatorAnalytics && !contentCreator) {
       const res = fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/analytics/content-creator/view-profile?slug_name=${slug}`)
         .then(res => res.json())
         .then(data => {
-          console.log("analytics data", data)
           setCreatorInput(data.creator);
           setAnalytics(data.analytics);
           setCreatorAnalytics(data.analytics);
           setContentCreator(data.creator);
         });
 
-      console.log("res", res)
     }
   }, [slug, creatorAnalytics, contentCreator]);
 

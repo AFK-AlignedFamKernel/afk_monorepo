@@ -10,17 +10,17 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
 
   const [creator, setCreator] = useState<ContentCreator | null>(null);
 
-  const [activeTab, setActiveTab] = useState<"token_address" | "social_links" | "analytics" | "reputation">("token_address");
+  const [activeTab, setActiveTab] = useState<"token_address" | "social_links" | "analytics" | "reputation">("analytics");
 
   useEffect(() => {
     const res = fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/content-creator/view-profile?slug_name=${slug}`)
       .then(res => res.json())
       .then(data => {
-        console.log("data", data)
+        // console.log("data", data)
         setCreator(data);
       });
 
-    console.log("res", res)
+    // console.log("res", res)
   }, [slug]);
 
   if (!creator) {
@@ -193,9 +193,14 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
       <div className="flex flex-row gap-4 mt-4 p-4 rounded-lg shadow h-auto overflow-x-auto">
 
 
-        <button className="bg-blue-500 text-white p-2 rounded-md"
-          onClick={() => setActiveTab("token_address")}
-        >  Token Address </button>
+        {creator?.token_address && (
+
+          <button className="bg-blue-500 text-white p-2 rounded-md"
+            onClick={() => setActiveTab("token_address")}
+          >  Token Address </button>
+
+        )}
+
 
         {/* <button className="bg-blue-500 text-white p-2 rounded-md"
           onClick={() => setActiveTab("social_links")}

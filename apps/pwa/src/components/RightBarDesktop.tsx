@@ -57,9 +57,16 @@ const RightBarDesktop = ({ children }: RightBarDesktopProps) => {
   }, [router]);
 
   return (
-    <aside className={`sidebar-right`}>
+    <aside className={`sm:hidden lg:block sidebar-right`}>
       <div className="sidebar-nav-right overflow-y-hidden scrollbar-hide">
-        <div className="sidebar-nav-header border-l border-gray-200">
+        <div className="sidebar-nav-header">
+          <Link href="/" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Icon name="HomeIcon" size={24} />
+            Home
+          </Link>
+        </div>
+        
+        <div className="sidebar-nav-header">
           <a href="/" className="sidebar-nav-item" onClick={closeSidebar}>
             <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
