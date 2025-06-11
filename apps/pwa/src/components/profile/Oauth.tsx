@@ -16,7 +16,7 @@ export const Oauth = () => {
         const fetchSession = async () => {
             const { data: session } = await supabase.auth.getSession();
             const { data: user } = await supabase.auth.getUser();
-            console.log("user", user);
+            // console.log("user", user);
             setSession(session?.session);
             setUser(user?.user);
             setIsLoading(false);

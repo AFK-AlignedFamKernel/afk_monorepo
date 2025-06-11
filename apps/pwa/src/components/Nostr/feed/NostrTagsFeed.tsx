@@ -84,7 +84,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
         '#t': [tag || selectedTag],
       });
 
-      console.log("notes", notes);
+      // console.log("notes", notes);
       if (notes.size === 0) {
         setHasMoreContent(false);
         return;

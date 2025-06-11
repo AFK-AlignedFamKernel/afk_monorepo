@@ -260,6 +260,14 @@ const Layout = ({ children }: LayoutProps) => {
               Home
             </Link>
 
+            <Link href="/create" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("create", "click", "link_drawer")
+              closeSidebar()
+            }}>
+              <Icon name="AddPostIcon" size={24} />
+              Create</Link>
+
+
             <div className='sidebar-nav-item'>
               <AccordionMenu title="Nostr"
                 items={[{
@@ -306,13 +314,16 @@ const Layout = ({ children }: LayoutProps) => {
                 ]} />
             </div>
 
-            {/* <Link href="/wallet" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Link href="/wallet" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("go_to_wallet", "click", "link_drawer")
+              closeSidebar()
+            }}>
               <Icon name="WalletIcon" size={24} />
               Wallet
-            </Link> */}
+            </Link>
 
             <Link href="/profile" className="sidebar-nav-item" onClick={() => {
-              logClickedEvent("profile", "click", "link_drawer")
+              logClickedEvent("go_to_profile", "click", "link_drawer")
               closeSidebar()
             }}>
               <Icon name="UserIcon" size={24} />
@@ -320,21 +331,15 @@ const Layout = ({ children }: LayoutProps) => {
             </Link>
 
             <Link href="/discover" className="sidebar-nav-item" onClick={() => {
-              logClickedEvent("discover", "click", "link_drawer")
+              logClickedEvent("go_to_discover", "click", "link_drawer")
               closeSidebar()
             }}>
               <Icon name="DiscoverIcon" size={24} />
               Discover</Link>
 
-            <Link href="/create" className="sidebar-nav-item" onClick={() => {
-              logClickedEvent("create", "click", "link_drawer")
-              closeSidebar()
-            }}>
-              <Icon name="AddPostIcon" size={24} />
-              Create</Link>
 
             <Link href="/launchpad" className="sidebar-nav-item" onClick={() => {
-              logClickedEvent("launchpad", "click", "link_drawer")
+              logClickedEvent("go_to_launchpad", "click", "link_drawer")
               closeSidebar()
             }}>
               <Icon name="UpwardTrendGraphIcon" size={24} />

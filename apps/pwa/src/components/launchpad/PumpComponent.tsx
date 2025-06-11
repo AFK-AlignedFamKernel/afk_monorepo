@@ -30,6 +30,13 @@ interface TokenDeployInterface {
   total_token_holded?: string | null;
   url?: string;
   market_cap?: string;
+  twitter?: string;
+  website?: string;
+  telegram?: string;
+  discord?: string;
+  instagram?: string;
+  youtube?: string;
+  tiktok?: string;
 }
 
 export default function PumpComponent() {
@@ -99,6 +106,8 @@ export default function PumpComponent() {
   //   );
   // }
 
+  // console.log("filteredData", filteredData)
+
   return (
     <div className="content">
       <div className="flex justify-between items-center mb-6">
@@ -121,63 +130,62 @@ export default function PumpComponent() {
         </button>
       </div>
 
-      <div className="">
-        <div className="flex flex-col gap-4">
-          {/* Search */}
+      <div className="flex flex-col gap-4">
+        {/* Search */}
 
 
 
-          {/* Action Toggle */}
-          <div className="flex items-baseline gap-3 overflow-x-auto pb-2">
-            <div className="flex justify-between items-center mb-6"
-            >
-              {/* <Search onSearch={handleSearch} placeholder="Search tokens or launches..." /> */}
-              <Filter
-                showFilters={showFilters}
-                setShowFilters={setShowFilters}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                isLaunchView={isLaunchView}
-              />
-            </div>
-            <button
-              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'LAUNCH' ? 'active' : ''}`}
-              onClick={() => setTokenOrLaunch('LAUNCH')}
-            >
-              Launches
-            </button>
-            <button
-              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'TOKEN' ? 'active' : ''}`}
-              onClick={() => {
-                setTokenOrLaunch('TOKEN');
-                if (sortBy === 'liquidity' || sortBy === 'graduated') {
-                  setSortBy('recent');
-                }
-              }}
-            >
-              Tokens
-            </button>
-            <button
-              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'MY_DASHBOARD' ? 'active' : ''}`}
-              onClick={() => {
-                setTokenOrLaunch('MY_DASHBOARD');
-                if (sortBy === 'liquidity' || sortBy === 'graduated') {
-                  setSortBy('recent');
-                }
-              }}
-            >
-              My Tokens
-            </button>
-            <button
-              className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'MY_LAUNCH_TOKEN' ? 'active' : ''}`}
-              onClick={() => setTokenOrLaunch('MY_LAUNCH_TOKEN')}
-            >
-              My Launches
-            </button>
+        {/* Action Toggle */}
+        <div className="flex items-baseline gap-3 overflow-x-auto pb-2">
+          <div className="flex justify-between items-center mb-6"
+          >
+            {/* <Search onSearch={handleSearch} placeholder="Search tokens or launches..." /> */}
+            <Filter
+              showFilters={showFilters}
+              setShowFilters={setShowFilters}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              isLaunchView={isLaunchView}
+            />
           </div>
+          <button
+            className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'LAUNCH' ? 'active' : ''}`}
+            onClick={() => setTokenOrLaunch('LAUNCH')}
+          >
+            Launches
+          </button>
+          <button
+            className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'TOKEN' ? 'active' : ''}`}
+            onClick={() => {
+              setTokenOrLaunch('TOKEN');
+              if (sortBy === 'liquidity' || sortBy === 'graduated') {
+                setSortBy('recent');
+              }
+            }}
+          >
+            Tokens
+          </button>
+          <button
+            className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'MY_DASHBOARD' ? 'active' : ''}`}
+            onClick={() => {
+              setTokenOrLaunch('MY_DASHBOARD');
+              if (sortBy === 'liquidity' || sortBy === 'graduated') {
+                setSortBy('recent');
+              }
+            }}
+          >
+            My Tokens
+          </button>
+          <button
+            className={`sidebar-nav-item whitespace-nowrap ${tokenOrLaunch === 'MY_LAUNCH_TOKEN' ? 'active' : ''}`}
+            onClick={() => setTokenOrLaunch('MY_LAUNCH_TOKEN')}
+          >
+            My Launches
+          </button>
+        </div>
 
-          {/* Filter Section */}
-          {/* <Filter
+        {/* Filter Section */}
+        {/* <Filter
             showFilters={showFilters}
             setShowFilters={setShowFilters}
             sortBy={sortBy}
@@ -185,67 +193,91 @@ export default function PumpComponent() {
             isLaunchView={isLaunchView}
           /> */}
 
-          {/* Content Grid */}
-          {isLoading ? (
-            <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
-            </div>
-          ) : filteredData.length === 0 ? (
-            <div className="text-center py-8 text-shade-500">
-              No {isLaunchView ? 'launches' : 'tokens'} found
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
+        {/* Content Grid */}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+          </div>
+        ) : filteredData.length === 0 ? (
+          <div className="text-center py-8 text-shade-500">
+            No {isLaunchView ? 'launches' : 'tokens'} found
+          </div>
+        ) : (
+          <div className="gap-1 overflow-y-auto max-h-[350px] scrollbar-hide scrollbar-width-none">
+            <table className="min-w-full text-sm overflow-x-auto overflow-y-auto max-h-[350px] scrollbar-hide scrollbar-width-none">
+              <thead>
+                <tr className="bg-muted gap-2">
+                  <th className="px-4 py-2 text-left font-semibold">Project</th>
+                  <th className="px-4 py-2 text-left font-semibold">Actions</th>
+                  <th className="px-4 py-2 text-left font-semibold">Info</th>
+                  <th className="px-4 py-2 text-left font-semibold">Socials</th>
+                </tr>
+              </thead>
+              <tbody>
 
-              <table className="min-w-full text-sm overflow-x-auto">
-                <thead>
-                  <tr className="bg-muted gap-2">
-                    <th className="px-4 py-2 text-left font-semibold">Project</th>
-                    <th className="px-4 py-2 text-left font-semibold">Info</th>
-                    <th className="px-4 py-2 text-left font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+                {filteredData.map((item: TokenDeployInterface) => (
+                  <tr className="border-b border-gray-200"
+                    onClick={() => {
+                    }}
+                  >
+                    <td className="px-2 py-3 flex flex-row items-left gap-1 baseline">
+                      {item?.url && (
+                        <Image src={item?.url}
+                          alt={item?.name || item?.symbol || "Token"}
+                          width={50}
+                          height={50}
+                          className='rounded-full'
+                        />
+                      )}
 
-                  {filteredData.map((item: TokenDeployInterface) => (
-                    <tr className="border-b border-gray-200"
-                      onClick={() => {
-                      }}
-                    >
-                      <td className="px-2 py-3 flex flex-col items-left gap-1">
-                        {item?.url && (
-                          <Image src={item?.url}
-                            alt={item?.name || item?.symbol || "Token"}
-                            width={50}
-                            height={50}
-                            className='rounded-full'
-                          />
-                        )}
+                      <div>
                         <p className="text-sm font-semibold">{item?.name}</p>
                         <p className="text-xs">{item?.symbol}</p>
-                      </td>
-                      <td className="text-xs">
-                        {item?.liquidity_raised && Number(item?.liquidity_raised) > 0 && (
-                          <div className="flex flex-row gap-2">
-                            <p className="text-xs">
-                              Price: {Number(item?.price).toFixed(2) || "N/A"}
-                            </p>
+                      </div>
+                    </td>
+                    <td>
+                      <Link href={`/launchpad/token/${item?.memecoin_address || item?.token_address}`}>
+                        View
+                      </Link>
+                    </td>
+                    <td className="text-xs">
+                      {item?.liquidity_raised && Number(item?.liquidity_raised) > 0 && (
+                        <div className="flex flex-row gap-2">
+                          <p className="text-xs">
+                            Price: {Number(item?.price).toFixed(2) || "N/A"}
+                          </p>
 
-                          </div>
-                        )}
-                        <p className="text-xs">Liquidity:{Number(item?.liquidity_raised).toFixed(2) || "N/A"}</p>
-                        <p className="text-xs">MC:{Number(item?.market_cap).toFixed(2) || "N/A"}</p>
-                      </td>
-                      <td>
-                        <Link href={`/launchpad/token/${item?.token_address}`}>
-                          View
+                        </div>
+                      )}
+                      <p className="text-xs">Liquidity:{Number(item?.liquidity_raised).toFixed(2) || "N/A"}</p>
+                      <p className="text-xs">MC:{Number(item?.market_cap).toFixed(2) || "N/A"}</p>
+                    </td>
+                    <td className='flex flex-row gap-2'>
+                      {item?.twitter && (
+                        <Link href={item?.twitter}>
+                          {/* <Icon name="TwitterIcon" size={24} /> */}
                         </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {/* {filteredData.map((item: TokenDeployInterface) => (
+                      )}
+
+                      {item?.website && (
+                        <Link href={item?.website}>
+                          {/* <Icon name="WebsiteIcon" size={24} /> */}
+                        </Link>
+                      )}
+
+                      {item?.telegram && (
+                        <Link href={item?.telegram}>
+                          {/* <Icon name="TelegramIcon" size={24} /> */}
+                        </Link>
+                      )}
+
+                    </td>
+
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* {filteredData.map((item: TokenDeployInterface) => (
                 <LaunchpadCard
                   key={item.memecoin_address || item.token_address}
                   token={{
@@ -269,9 +301,8 @@ export default function PumpComponent() {
                   type={isLaunchView ? 'LAUNCH' : 'TOKEN'}
                 />
               ))} */}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

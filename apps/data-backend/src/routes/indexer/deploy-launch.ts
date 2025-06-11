@@ -39,6 +39,9 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           name: true,
           symbol: true,
           url: true,
+          website: true,
+          twitter: true,
+          telegram: true,
           token_deploy: {
             select: {
               name: true,

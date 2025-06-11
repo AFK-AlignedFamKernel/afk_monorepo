@@ -1,15 +1,15 @@
 'use client';
-
-import { FeedNostr } from '@/components/Nostr/feed';
 import React from 'react';
-import Link from 'next/link';
 import MenuHomeComponent from '@/components/menu/MenuHome';
+import { useAppStore } from '@/store/app';
 
 // Use inline Layout to avoid type issues
 export default function HomePage() {
+
+  const { user, setUser } = useAppStore();
   return (
     <div className="content">
-      <MenuHomeComponent></MenuHomeComponent>
+      <MenuHomeComponent />
     </div>
   );
 }
