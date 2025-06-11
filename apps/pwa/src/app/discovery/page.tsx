@@ -1,6 +1,6 @@
 import ListBrand from "@/components/Brand/ListBrand";
 import DiscoveryComponent from "@/components/Discovery";
-import AllCreators from "@/components/profile/AllCreators";
+import AllCreators from "@/components/ContentCreator/AllCreators";
 
 export default function Discovery() {
   return (

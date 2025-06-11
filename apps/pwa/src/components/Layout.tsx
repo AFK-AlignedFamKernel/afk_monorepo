@@ -291,15 +291,12 @@ const Layout = ({ children }: LayoutProps) => {
               Wallet
             </Link> */}
 
-
             <Link href="/profile" className="sidebar-nav-item" onClick={closeSidebar}>
               <Icon name="UserIcon" size={24} />
-
               Profile
             </Link>
 
-
-            <Link href="/discovery" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Link href="/discover" className="sidebar-nav-item" onClick={closeSidebar}>
               <Icon name="DiscoverIcon" size={24} />
               Discover</Link>
 

@@ -14,6 +14,8 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
     const [isInitialLoading, setIsInitialLoading] = useState(false)
     const [isLoading, setIsLoading] = useState(false)
 
+    const [activeTab, setActiveTab] = useState<"leaderboard" | "feed">("leaderboard")
+
     const [activePlatformLeaderboard, setActivePlatformLeaderboard] = useState<string>("twitter")
 
 
@@ -98,63 +100,78 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                 </div>
             )}
 
-            {leaderboards &&
-                <div className="mt-8 w-full">
-                    <h2 className="text-xl font-semibold mb-4">Leaderboard</h2>
+            <div className="flex flex-row gap-4 w-full justify-center my-4">
 
-                    <div className="flex flex-row gap-4 overflow-x-auto shadow-md rounded-md p-2 mb-4 w-full">
-                        {leaderboards?.map((leaderboard: any) => (
-                            <div key={leaderboard.id}
-                                className={`border border-gray-300 rounded-md p-2 min-w-[100px] flex flex-row items-center gap-2 cursor-pointer transition ${activePlatformLeaderboard === leaderboard.platform ? "bg-blue-700 text-white" : "bg-gray-100 hover:bg-gray-200"}`}
-                                onClick={() => setActivePlatformLeaderboard(leaderboard.platform)}>
-                                <p className="font-medium mb-1">{leaderboard.platform}</p>
-                                <img src={`/assets/icons/${leaderboard.platform}.svg`} alt={leaderboard.platform} className="w-10 h-10 object-cover rounded-full" />
-                            </div>
-                        ))}
+                <button className={`px-4 py-2 rounded-md ${activeTab === "leaderboard" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => setActiveTab("leaderboard")}>Leaderboard</button>
+                <button className={`px-4 py-2 rounded-md ${activeTab === "feed" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => setActiveTab("feed")}>Feeds</button>
+            </div>
+
+
+            <div className="shadow-md rounded-md p-4">
+                {activeTab === "feed" && (
+                    <div className="mt-8 w-full">
+                        <h2 className="text-xl font-semibold mb-4">Feeds</h2>
+                        <p>Feeds is coming soon</p>
                     </div>
+                )}
+                {leaderboards && activeTab === "leaderboard" &&
+                    <div className="mt-8 w-full">
+                        <h2 className="text-xl font-semibold mb-4">Leaderboard</h2>
 
-                    {leaderboard && (
-                        <div className="overflow-x-auto w-full">
-                            <h3 className="text-lg font-semibold mb-2">{leaderboard.platform}</h3>
-                            <div className="flex flex-wrap gap-4 mb-2">
-                                <p className="rounded px-2 py-1 text-sm">Total Score: <span className="font-bold">{leaderboard.total_score}</span></p>
-                                <p className="rounded px-2 py-1 text-sm">Total Users: <span className="font-bold">{leaderboard.total_users}</span></p>
-                                <p className="rounded px-2 py-1 text-sm">Rank Position: <span className="font-bold">{leaderboard.rank_position}</span></p>
-                            </div>
-                            <div className="overflow-x-auto rounded shadow border border-gray-200">
-                                <table className="min-w-[500px] w-full text-sm">
-                                    <thead className="sticky top-0 z-10 border-b border-gray-300">
-                                        <tr>
-                                            <th className="px-4 py-2 text-left">Username</th>
-                                            <th className="px-4 py-2 text-left">Handle</th>
-                                            <th className="px-4 py-2 text-right">Mindshare</th>
-                                            <th className="px-4 py-2 text-right">Engagement</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {leaderboard?.users_scores && leaderboard?.users_scores?.length > 0 && leaderboard?.users_scores?.map((user: any) => {
-                                            return (
-                                                <tr key={user.id} className="border-b hover:bg-gray-50">
-                                                    <td className="px-4 py-2 break-words max-w-[120px]">{user?.name}</td>
-                                                    <td className="px-4 py-2 break-all max-w-[120px]">
-                                                        {activePlatformLeaderboard === "twitter" && (
-                                                            <Link href={`https://x.com/${user.handle ?? user?.userName ?? user?.username}`} target="_blank" className="text-blue-600 hover:underline truncate inline-block max-w-[100px]">
-                                                                {user.handle ?? user?.userName ?? user?.username}
-                                                            </Link>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-4 py-2 text-right">{(user.totalMindshareScore / leaderboard.total_mindshare_score * 100).toFixed(2)}%</td>
-                                                    <td className="px-4 py-2 text-right">{(user.totalEngagementScore / leaderboard.total_engagement_score * 100).toFixed(2)}%</td>
-                                                </tr>
-                                            )
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div className="flex flex-row gap-4 overflow-x-auto shadow-md rounded-md p-2 mb-4 w-full">
+                            {leaderboards?.map((leaderboard: any) => (
+                                <div key={leaderboard.id}
+                                    className={`border border-gray-300 rounded-md p-2 min-w-[100px] flex flex-row items-center gap-2 cursor-pointer transition ${activePlatformLeaderboard === leaderboard.platform ? "bg-blue-700 text-white" : "bg-gray-100 hover:bg-gray-200"}`}
+                                    onClick={() => setActivePlatformLeaderboard(leaderboard.platform)}>
+                                    <p className="font-medium mb-1">{leaderboard.platform}</p>
+                                    <img src={`/assets/icons/${leaderboard.platform}.svg`} alt={leaderboard.platform} className="w-10 h-10 object-cover rounded-full" />
+                                </div>
+                            ))}
                         </div>
-                    )}
-                </div>
-            }
+
+                        {leaderboard && (
+                            <div className="overflow-x-auto w-full">
+                                <h3 className="text-lg font-semibold mb-2">{leaderboard.platform}</h3>
+                                <div className="flex flex-wrap gap-4 mb-2">
+                                    <p className="rounded px-2 py-1 text-sm">Total Score: <span className="font-bold">{leaderboard.total_score}</span></p>
+                                    <p className="rounded px-2 py-1 text-sm">Total Users: <span className="font-bold">{leaderboard.total_users}</span></p>
+                                    <p className="rounded px-2 py-1 text-sm">Rank Position: <span className="font-bold">{leaderboard.rank_position}</span></p>
+                                </div>
+                                <div className="overflow-x-auto rounded shadow border border-gray-200">
+                                    <table className="min-w-[500px] w-full text-sm">
+                                        <thead className="sticky top-0 z-10 border-b border-gray-300">
+                                            <tr>
+                                                <th className="px-4 py-2 text-left">Username</th>
+                                                <th className="px-4 py-2 text-left">Handle</th>
+                                                <th className="px-4 py-2 text-right">Mindshare</th>
+                                                <th className="px-4 py-2 text-right">Engagement</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {leaderboard?.users_scores && leaderboard?.users_scores?.length > 0 && leaderboard?.users_scores?.map((user: any) => {
+                                                return (
+                                                    <tr key={user.id} className="border-b hover:bg-gray-500">
+                                                        <td className="px-4 py-2 break-words max-w-[120px]">{user?.name}</td>
+                                                        <td className="px-4 py-2 break-all max-w-[120px]">
+                                                            {activePlatformLeaderboard === "twitter" && (
+                                                                <Link href={`https://x.com/${user.handle ?? user?.userName ?? user?.username}`} target="_blank" className="text-blue-600 hover:underline truncate inline-block max-w-[100px]">
+                                                                    {user.handle ?? user?.userName ?? user?.username}
+                                                                </Link>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-4 py-2 text-right">{(user.totalMindshareScore / leaderboard.total_mindshare_score * 100).toFixed(2)}%</td>
+                                                        <td className="px-4 py-2 text-right">{(user.totalEngagementScore / leaderboard.total_engagement_score * 100).toFixed(2)}%</td>
+                                                    </tr>
+                                                )
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                }
+            </div>
         </div >
     )
 }

@@ -5,7 +5,7 @@ import { useUIStore } from "@/store/uiStore";
 import { useAppStore } from "@/store/app";
 import { Provider } from '@supabase/supabase-js';
 import { api, fetchWithAuth } from '@/lib/api';
-import CreatorCard from "./CreatorCard";
+import CreatorCard from "../profile/CreatorCard";
 import { ContentCreator } from "@/types";
   
 import { useCreatorsStore } from '@/store/creators';
@@ -24,7 +24,7 @@ export const AllCreators: React.FC = () => {
   const {contentCreators:contentCreatorsStore, setContentCreators:setContentCreatorsStore} = useCreatorsStore()
   const [creators, setCreators] = useState<IContentCreator[]>(contentCreatorsStore || []);
 
-  const [contentCreator, setContentCreator] = useState();
+  const [contentCreators, setContentCreators] = useState<IContentCreator[]>(contentCreatorsStore || []);
   const [isFetchContentDone, setIsFetchContentDone] = useState(false);
   const fetchCreators = async () => {
     try {
@@ -43,11 +43,11 @@ export const AllCreators: React.FC = () => {
 
   useEffect(() => {
 
-    if (!isFetchContentDone) {
+    if (!isFetchContentDone && contentCreators.length === 0) {
       console.log("fetching creators")
       fetchCreators();
     }
-  }, [isFetchContentDone]);
+  }, [isFetchContentDone, contentCreators, contentCreatorsStore]);
 
   const fetchMyContentCreatorProfile = async () => {
 
@@ -76,32 +76,32 @@ export const AllCreators: React.FC = () => {
     }
 
   }
-  useEffect(() => {
+  // useEffect(() => {
 
-    if (!isFetchContentDone && user) {
-      fetchMyContentCreatorProfile()
-    }
+  //   if (!isFetchContentDone && user) {
+  //     fetchMyContentCreatorProfile()
+  //   }
 
-  }, [isFetchContentDone, user])
+  // }, [isFetchContentDone, user])
  
   // console.log("creators", creators)
   return (
-    <div className="p-4 rounded-lg dark:bg-contrast-100 shadow space-y-4">
-      <h3 className="text-xl font-semibold mb-2">All Connected & Verified Creators</h3>
-      <div className="flex flex-row justify-center">
+    <div className="rounded-lg dark:bg-contrast-100 shadow space-y-4">
+      {/* <h3 className="text-sm font-semibold mb-2">All Connected & Verified Creators</h3> */}
+      {/* <div className="flex flex-row justify-center">
         <button className="bg-blue-500 text-white p-2 rounded-md" onClick={() => {
           setIsFetchContentDone(false)
           fetchCreators()
         }}>
           Refresh
         </button>
-      </div>
+      </div> */}
      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-4 sm:gap-0">
         {creators && creators?.length > 0 && creators
           // .filter((creator: ContentCreator) => creator.owner_id && creator.is_verified)
-          .map((creator: IContentCreator | any) => (
-            <CreatorCard key={`${creator.id}-${creator.owner_id}`} creator={creator} />
+          .map((creator: IContentCreator | any, index: number) => (
+            <CreatorCard key={`${creator.id}-${index}`} creator={creator} />
           ))}
       </div>
     </div>

@@ -44,7 +44,7 @@ export default function ListBrand({ brandsProps, setBrandsProps, isRefreshButton
             }
         
         }
-        if (!isInitialLoading || (!brands.length || brands.length === 0)) {
+        if (!isInitialLoading && (!brands.length || brands.length === 0)) {
             fetchBrand()
             setIsInitialLoading(true)
         }
@@ -59,7 +59,7 @@ export default function ListBrand({ brandsProps, setBrandsProps, isRefreshButton
                 <button onClick={() => setIsInitialLoading(false)}><Icon name="RefreshIcon" size={20} /></button>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-4 sm:gap-0">
                 {brands?.map((brand, index) => (
                     <>
                         <BrandCard brandProps={brand}></BrandCard>

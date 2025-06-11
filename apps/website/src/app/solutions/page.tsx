@@ -7,6 +7,7 @@ import {Navbar} from '../components/Navbar';
 import {Footer} from '../components/Footer';
 import {FaLock, FaUserSecret, FaComments, FaGlobe} from 'react-icons/fa';
 import {Metadata} from 'next';
+import { IconType } from 'react-icons/lib';
 const metadata: Metadata = {
   title: 'AFK Solutions',
   description:
@@ -14,13 +15,13 @@ const metadata: Metadata = {
 };
 const MotionBox = motion(Box);
 
-const features = [
+const features: { icon: IconType; title: string; description: string; href?: string }[] = [
   {
     icon: FaComments,
     title: 'InfoFi: Attention & Knowledge',
     description:
       'A transparent, fair attention economy where users vote, creators earn, Vaults reward, and businesses engage — without platform gatekeeping.',
-    href: '/infofi',
+    // href: '/infofi',
   },
   {
     icon: FaGlobe,
@@ -51,9 +52,9 @@ const features = [
 
 const sectors = [
   {
-    sector: 'Finance',
-    problem: 'Bankless payments, remittance',
-    solution: 'Lightning, USDC, Starknet bridge',
+    sector: 'Content creation',
+    problem: 'Monetization of content',
+    solution: 'More rewards for quality content',
   },
   {
     sector: 'Social Media',
@@ -69,6 +70,11 @@ const sectors = [
     sector: 'Privacy',
     problem: 'Surveillance, doxxing',
     solution: 'Encrypted chat, stealth protocols',
+  },
+  {
+    sector: 'Finance',
+    problem: 'Bankless payments, remittance',
+    solution: 'Lightning, USDC, Starknet bridge',
   },
   // { sector: "Identity", problem: "Web2 login lock-in", solution: "zkDID + universal passport" },
 ];
@@ -127,8 +133,8 @@ export default function FeaturesPage() {
                   {feature.description}
                 </Text>
 
-                {feature.href && (
-                  <Link href={feature.href} passHref>
+                {feature?.href && (
+                  <Link href={feature?.href} passHref>
                     <Button mt={4} variant="solid" colorScheme="green">
                       Learn More
                     </Button>

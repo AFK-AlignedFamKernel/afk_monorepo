@@ -1,4 +1,4 @@
-import AllCreators from "@/components/profile/AllCreators";
+import AllCreators from "@/components/ContentCreator/AllCreators";
 
 export default function AllCreatorsDiscovery() {
   return (

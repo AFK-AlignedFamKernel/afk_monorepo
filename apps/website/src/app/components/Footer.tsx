@@ -10,29 +10,35 @@ export function Footer() {
         <Box className="flex flex-col items-center tab:items-start text-center tab:text-left">
           <img
             src="/assets/pepe-logo.png"
-            className="w-[80px] h-[80px] tab:h-auto tab:w-auto"
+            className="w-[30px] h-[30px] tab:h-auto tab:w-auto"
             alt=""
           />
           <Text className="text-base leading-[18px] font-normal mt-[15px] tab:mb-[66px] mb-6 w-[278px]">
             Free, open-source decentralized social media platform.
           </Text>
-          <Box className="flex items-center gap-x-5">
+          {/* <Box className="flex items-center gap-x-5">
             <Box>
               <img src="/assets/appStoreBtn.svg" className="w-[100px] tab:w-auto" alt="" />
             </Box>
             <Box>
               <img src="/assets/googlePlaybtn.svg" className="w-[100px] tab:w-auto" alt="" />
             </Box>
-          </Box>
+          </Box> */}
         </Box>
-        <Box className="flex gap-x-[40px] tab:gap-x-[122px] text-[14px] leading-[21px] font-normal pt-[46px]">
+        <Box className="flex gap-x-[30px] tab:gap-x-[70px] text-[14px] leading-[21px] font-normal pt-[46px]">
           <List className="flex flex-col gap-y-10">
             <ListItem className="font-bold text-base leading-6">Product</ListItem>
             <ListItem>
               <Link href="https://afk-community.xyz">Nostr client</Link>
             </ListItem>
-            <ListItem>
+            {/* <ListItem>
               <Link href="https://afk-community.xyz">SocialFi features</Link>
+            </ListItem> */}
+          </List>
+          <List className="flex flex-col gap-y-10">
+            <ListItem className="font-bold text-base leading-6">Explore</ListItem>
+            <ListItem>
+              <Link href="/solutions">Solutions</Link>
             </ListItem>
             <ListItem>
               <Link href="/infofi">Info Fi</Link>

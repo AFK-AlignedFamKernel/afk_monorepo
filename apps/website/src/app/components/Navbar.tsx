@@ -16,11 +16,11 @@ export function Navbar() {
       <Box className="flex items-center gap-x-[10px] text">
         <img
           // src="/assets/pepe-logo.png"
-          src="/assets/afk_logo_circle.png"
-          className="desktop:h-[52px] w-9 h-9 desktop:w-[52px]"
+          src="/assets/afk_logo_circle.svg"
+          className="desktop:h-[30px] w-9 h-9 desktop:w-[30px]"
           alt=""
         />
-        <LinkChakra href="/" className="desktop:text-2xl text-lg leading-7 font-bold">
+        <LinkChakra href="/" className="desktop:text-xl text-base leading-7 font-bold">
           AFK
           {/* <Text >AFK</Text> */}
         </LinkChakra>
@@ -56,7 +56,7 @@ export function Navbar() {
           src="assets/hamburger-icon.svg"
           className="w-6 h-6"
           alt=""
-          color="currentColor"
+          // color="currentColor"
         />
       </Button>
 
