@@ -236,7 +236,7 @@ export default function PumpComponent() {
                       </div>
                     </td>
                     <td>
-                      <Link href={`/launchpad/token/${item?.memecoin_address || item?.token_address}`}>
+                      <Link href={`/launchpad/${item?.memecoin_address || item?.token_address}`}>
                         View
                       </Link>
                     </td>

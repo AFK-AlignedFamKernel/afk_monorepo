@@ -11,7 +11,7 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
   const { showToast } = useUIStore();
   return (
     <div className="space-y-6 shadow-lg">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div className="rounded-lg p-6 shadow-sm dark:bg-[var(--dark-card-bg)]">
           <h3 className="text-lg font-semibold mb-4">Token Information</h3>
           <div className="space-y-3">

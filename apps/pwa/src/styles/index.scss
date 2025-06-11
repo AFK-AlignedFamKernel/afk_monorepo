@@ -163,7 +163,8 @@ table {
   margin-left: $sidebar-width;
   margin-right: $sidebar-width-right;
   min-height: 100vh;
-  width: calc(100% - $sidebar-width);
+  // width: calc(100% - $sidebar-width);
+  width: 100%;
   // padding: 0.5rem;
   background-color: var(--background);
   transition: margin-left 0.3s ease-in-out;
@@ -177,7 +178,7 @@ table {
 }
 
 .content {
-  max-width: 1200px;
+  // max-width: 1200px;
   // margin: 0 auto;
   width: 100%;
 }

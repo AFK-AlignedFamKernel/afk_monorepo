@@ -3,10 +3,47 @@ import React from 'react';
 import Link from 'next/link';
 import { Icon } from '../small/icon-component';
 import { logClickedEvent } from '@/lib/analytics';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import CryptoLoading from '../small/crypto-loading';
+import { useAppStore } from '@/store/app';
 
 export default function MenuHomeComponent() {
+
+  const {user} = useAppStore();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitalized, setIsInitalized] = useState(user ? true : false);
+
+  const handleOnboarding = () => {
+    console.log('pathname', pathname);
+    const hasOnboarded = localStorage.getItem('hasOnboarded');
+    console.log('hasOnboarded', hasOnboarded);
+
+    if (!hasOnboarded) {
+      localStorage.setItem('hasOnboarded', 'true');
+      setIsLoading(true);
+      // window.location.href = '/onboarding';
+      router.push('/onboarding');
+      setIsLoading(false);
+    }
+    setIsInitalized(true);
+  }
+  useEffect(() => {
+ 
+    if(!user && !isInitalized) {
+      handleOnboarding();
+    }
+    setIsInitalized(true);
+  }, [isInitalized, user, isLoading]);
+
+  if(!isInitalized || isLoading) {
+    return <div><CryptoLoading /></div>;
+  }
+
   return (
-    <div className="shadow-lg p-4 rounded-lg px-4">
+    <div className="p-4 rounded-lg px-4">
       <h2 className="font-semibold">AFK is your gateway for your Freedom</h2>
       <p className="text-sm">
         Own your digital content, data, money and identity.
@@ -19,7 +56,7 @@ export default function MenuHomeComponent() {
          Cross social media platform all-in-one that allows you to produced and get rewarded for your content.
         </p> */}
 
-      <div className="grid grid-cols-2 gap-4 mt-4 ">
+      <div className="grid grid-cols-2 gap-4 mt-4 p-4 rounded-lg px-4 shadow-md">
         <Link
           href="/nostr/feed"
           onClick={() => {
@@ -29,7 +66,7 @@ export default function MenuHomeComponent() {
           <div className="flex flex-col items-center">
             <Icon name="ConversationIconBubble" size={24} ></Icon>
 
-            <span className="text-white font-semibold text-lg">Feed</span>
+            <span className="font-semibold text-lg">Feed</span>
           </div>
         </Link>
 
@@ -42,7 +79,7 @@ export default function MenuHomeComponent() {
         >
           <div className="flex flex-col items-center">
             <Icon name="UpwardTrendGraphIcon" size={24}></Icon>
-            <span className="text-white font-semibold text-lg">Launchpad</span>
+            <span className="font-semibold text-lg">Launchpad</span>
           </div>
         </Link>
 
@@ -55,7 +92,7 @@ export default function MenuHomeComponent() {
         >
           <div className="flex flex-col items-center">
             <Icon name="DiscoverIcon" size={24} ></Icon>
-            <span className="text-white font-semibold text-lg">Discover</span>
+            <span className="font-semibold text-lg">Discover</span>
           </div>
         </Link>
 
@@ -69,7 +106,7 @@ export default function MenuHomeComponent() {
           <div className="flex flex-col items-center">
             <Icon name="UserIcon" size={24} ></Icon>
 
-            <span className="text-white font-semibold text-lg">Profile</span>
+            <span className="font-semibold text-lg">Profile</span>
           </div>
         </Link>
         <Link
@@ -81,7 +118,7 @@ export default function MenuHomeComponent() {
         >
           <div className="flex flex-col items-center">
             <Icon name="WalletIcon" size={24}></Icon>
-            <span className="text-white font-semibold text-lg">Wallet</span>
+            <span className="font-semibold text-lg">Wallet</span>
           </div>
         </Link>
       </div>
