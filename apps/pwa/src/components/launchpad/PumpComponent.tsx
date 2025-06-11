@@ -8,6 +8,8 @@ import { useTokens } from '@/hooks/api/indexer/useTokens';
 import { useLaunches } from '@/hooks/api/indexer/useLaunches';
 import { TokenCreateForm } from './TokenCreateForm';
 import { useUIStore } from '@/store/uiStore';
+import Image from 'next/image';
+import Link from "next/link"
 
 interface TokenDeployInterface {
   token_address: string;
@@ -27,9 +29,11 @@ interface TokenDeployInterface {
   bonding_type?: string;
   total_token_holded?: string | null;
   url?: string;
+  market_cap?: string;
 }
 
 export default function PumpComponent() {
+
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [tokenOrLaunch, setTokenOrLaunch] = useState<'TOKEN' | 'LAUNCH' | 'MY_DASHBOARD' | 'MY_LAUNCH_TOKEN'>('LAUNCH');
@@ -191,8 +195,57 @@ export default function PumpComponent() {
               No {isLaunchView ? 'launches' : 'tokens'} found
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredData.map((item: TokenDeployInterface) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
+
+              <table className="min-w-full text-sm overflow-x-auto">
+                <thead>
+                  <tr className="bg-muted gap-2">
+                    <th className="px-4 py-2 text-left font-semibold">Project</th>
+                    <th className="px-4 py-2 text-left font-semibold">Info</th>
+                    <th className="px-4 py-2 text-left font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+
+                  {filteredData.map((item: TokenDeployInterface) => (
+                    <tr className="border-b border-gray-200"
+                      onClick={() => {
+                      }}
+                    >
+                      <td className="px-2 py-3 flex flex-col items-left gap-1">
+                        {item?.url && (
+                          <Image src={item?.url}
+                            alt={item?.name || item?.symbol || "Token"}
+                            width={50}
+                            height={50}
+                            className='rounded-full'
+                          />
+                        )}
+                        <p className="text-sm font-semibold">{item?.name}</p>
+                        <p className="text-xs">{item?.symbol}</p>
+                      </td>
+                      <td className="text-xs">
+                        {item?.liquidity_raised && Number(item?.liquidity_raised) > 0 && (
+                          <div className="flex flex-row gap-2">
+                            <p className="text-xs">
+                              Price: {Number(item?.price).toFixed(2) || "N/A"}
+                            </p>
+
+                          </div>
+                        )}
+                        <p className="text-xs">Liquidity:{Number(item?.liquidity_raised).toFixed(2) || "N/A"}</p>
+                        <p className="text-xs">MC:{Number(item?.market_cap).toFixed(2) || "N/A"}</p>
+                      </td>
+                      <td>
+                        <Link href={`/launchpad/token/${item?.token_address}`}>
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {/* {filteredData.map((item: TokenDeployInterface) => (
                 <LaunchpadCard
                   key={item.memecoin_address || item.token_address}
                   token={{
@@ -215,7 +268,7 @@ export default function PumpComponent() {
                   }}
                   type={isLaunchView ? 'LAUNCH' : 'TOKEN'}
                 />
-              ))}
+              ))} */}
             </div>
           )}
         </div>

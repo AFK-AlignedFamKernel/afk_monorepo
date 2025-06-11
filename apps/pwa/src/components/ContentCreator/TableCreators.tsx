@@ -135,7 +135,7 @@ export const TableCreators: React.FC = () => {
                 <td>
                   {creator.identities && (
                     <div className="flex gap-2 mt-2">
-                      {Object.entries(creator.identities).map(([platformIndex, platform]) => {
+                      {Object.entries(creator.identities).map(([platformIndex, platform]: [string, any]) => {
                         if (platform && typeof platform === 'object' && 'provider' in platform && platform.provider === "twitter") {
                           return (
                             <div key={platformIndex}>
