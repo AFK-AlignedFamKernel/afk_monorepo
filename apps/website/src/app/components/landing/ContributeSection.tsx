@@ -23,7 +23,7 @@ export function ContributeSection() {
           Contribute to AFK - Aligned Fam Kernel{' '}
         </h3>
         <p className="desktop:text-[24px] text-sm mb-10 w-[80%] desktop:w-[623px]  text-center">
-          AlIgnedFamKernel is a free and open source dApp multiplatform.
+          AFK - Aligned Fam Kernel is a free and open source dApp multiplatform.
         </p>
         <a
           href="https://github.com/AFK-AlignedFamKernel/afk_monorepo"
@@ -33,6 +33,15 @@ export function ContributeSection() {
           <img src="/assets/githubLogoDark.svg" alt="" />
           See all issues on Github
           <img src="/assets/go-to.svg" alt="" />
+        </a>
+
+
+        <a
+          href="https://afk-community.xyz"
+          target="_blank"
+          className="my-[8px] py-[15px] desktop:px-[42px] px-[24px] bg-white rounded-[5px] flex gap-x-[10px] items-center text-black"
+        >
+           Go AFK
         </a>
       </motion.div>
     </div>

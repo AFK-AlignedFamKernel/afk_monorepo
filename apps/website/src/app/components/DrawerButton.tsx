@@ -60,7 +60,7 @@ export function DrawerButton({setToggle, toggle}: Props) {
             <li>
               <button className="py-[12px] w-[145px] bg-[#8DAEF1]">
                 {' '}
-                <a href="https://app.afk-community.xyz" target="_blank">
+                <a href="https://afk-community.xyz" target="_blank">
                   {' '}
                   Sign up
                 </a>

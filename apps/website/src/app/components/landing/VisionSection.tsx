@@ -76,7 +76,7 @@ export function VisionSection() {
             </h5>
             <p className="text-sm leading-7 desktop:text-base desktop:leading-10">
               Freedom requires censorship resistance, and Nostr provides exactly that.
-              AlIgnedFamKernel leverages Nostr’s decentralized and open social network to give you a
+              AFK leverages Nostr&apos;s decentralized and open social network to give you a
               platform free from ads, toxic algorithms, and censorship. With Nostr, your social
               interactions are safeguarded from any centralized control, ensuring your voice is
               heard without interference.
@@ -121,10 +121,10 @@ export function VisionSection() {
               Enhanced by StarkNet Account Abstraction
             </h2>
             <h5 className="desktop:text-[24px] text-base desktop:leading-10 text-[#9D9797] desktop:mb-6 mb-2">
-              Combining the power of Nostr with StarkNet’s account abstraction
+              Combining the power of Nostr with StarkNet&apos;s account abstraction
             </h5>
             <p className="text-sm leading-7 desktop:text-base desktop:leading-10">
-              AlIgnedFamKernel offers an unparalleled user experience. StarkNet’s layer 2 scaling
+              AFK offers an unparalleled user experience. StarkNet&apos;s layer 2 scaling
               solutions ensure smooth, cost-efficient transactions and interactions, while account
               abstraction simplifies user authentication and management.
             </p>

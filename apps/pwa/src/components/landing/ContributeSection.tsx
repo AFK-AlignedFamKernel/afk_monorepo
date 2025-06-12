@@ -23,7 +23,7 @@ export function ContributeSection() {
           Contribute to AFK - Aligned Fam Kernel{' '}
         </h3>
         <p className="desktop:text-[24px] text-sm mb-10 w-[80%] desktop:w-[623px]  text-center">
-          AlIgnedFamKernel is available on iOS, Web and Android. It’s free and open source.
+          AlignedFamKernel is available on iOS, Web and Android. It’s free and open source.
         </p>
         <a
           href="https://github.com/AFK-AlignedFamKernel/afk_monorepo"

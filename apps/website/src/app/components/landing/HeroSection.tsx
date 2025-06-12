@@ -27,16 +27,16 @@ export function HeroSection() {
           className="desktop:w-[773px] w-[85%] flex flex-col items-center h-fit text-center relative z-[270]"
         >
           <h1 className="desktop:text-[52px] text-[36px] leading-[50px] desktop:leading-[50px] mb-3">
-            The Social Networking your own.
+            The Social Network you own.
           </h1>
           {/* <h1 className="desktop:text-[52px] text-[36px] leading-[50px] desktop:leading-[50px] mb-3">
             Step into a New Era of Social Networking
           </h1> */}
           <Text className="desktop:text-[18px] base:text-[14px] text-base leading-8 mb-2">
-            Decentralized social built with Nostr and powered by Starknet.
+            Own your digital life and get rewarded as your deserved.
           </Text>
           <Text className="desktop:text-[12px] text-base leading-8 mb-8">
-            Own your digital life and get rewarded as your deserved.
+            Decentralized social built with Nostr and powered by Starknet.
           </Text>
           <Box className="flex desktop:flex-row flex-col items-center gap-y-4 gap-x-6 text-[18px] leading-[21px]">
             <Button className="bg:brand.primary desktop:py-5 text-sm desktop:text-base py-3 px-4 w-[200px] border-white border-[1px] border-solid desktop:border-none">

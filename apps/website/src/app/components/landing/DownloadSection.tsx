@@ -4,7 +4,7 @@ import {motion} from 'framer-motion';
 
 export function DownloadSection() {
   return (
-    <div className="desktop:pt-[34px] pt-[40px]  desktop:pb-[180px] text-center bg-gradientBg bg-center">
+    <div className="desktop:pt-[34px] pt-[10px]  desktop:pb-[8px] text-center bg-gradientBg bg-center">
       <motion.div
         animate={{x: [-1200, 0]}}
         transition={{
