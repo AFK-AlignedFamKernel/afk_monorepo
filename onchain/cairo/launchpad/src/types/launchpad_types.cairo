@@ -352,6 +352,7 @@ pub struct BuyToken {
     pub protocol_fee: u256,
     pub timestamp: u64,
     pub quote_amount: u256,
+    pub creator_fee_amount: u256,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -391,6 +392,7 @@ pub struct CreateLaunch {
     pub total_supply: u256,
     pub threshold_liquidity: u256,
     pub bonding_type: BondingType,
+    pub creator_fee_percent: u256,
 }
 
 #[derive(Drop, starknet::Event)]

@@ -86,6 +86,8 @@ model token_launch {
   token_deploy            token_deploy? @relation(fields: [token_deploy_tx_hash], references: [transaction_hash])
   token_metadata token_metadata? @relation("TokenMetadataToLaunch")
 
+  creator_fee_percent String?
+  creator_fee_raised String?
   is_verified Boolean?
   project_type String?
 }
@@ -186,6 +188,7 @@ model token_transactions {
   cursor           BigInt?   @map("_cursor")
   transaction_type String
   time_stamp       DateTime? @db.Timestamp(6)
+  creator_fee_amount String?
 }
 
 model renew_subscription {

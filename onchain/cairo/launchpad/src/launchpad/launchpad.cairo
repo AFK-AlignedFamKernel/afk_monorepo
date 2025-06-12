@@ -787,6 +787,7 @@ pub mod LaunchpadMarketplace {
                         protocol_fee: amount_protocol_fee,
                         timestamp: get_block_timestamp(),
                         quote_amount: remain_quote_to_liquidity,
+                        creator_fee_amount: creator_fee_amount,
                     },
                 );
             id
@@ -1414,6 +1415,7 @@ pub mod LaunchpadMarketplace {
                         threshold_liquidity: self.threshold_liquidity.read(),
                         quote_token_address,
                         bonding_type: bond_type,
+                        creator_fee_percent: creator_fee_percent,
                     },
                 );
         }

@@ -15,4 +15,5 @@ export interface BuyToken {
   protocolFee: string;
   timestamp: Date;
   transactionType: string;
+  creatorFee?: string;
 }

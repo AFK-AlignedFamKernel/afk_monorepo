@@ -108,13 +108,13 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
       console.log('values', values);
 
       let metadata = {
-        url: values.metadata.url,
-        twitter: values.metadata.twitter,
-        github: values.metadata.github,
-        telegram: values.metadata.telegram,
-        website: values.metadata.website,
+        url: values.metadata?.url,
+        twitter: values.metadata?.twitter,
+        github: values.metadata?.github,
+        telegram: values.metadata?.telegram,
+        website: values.metadata?.website,
         description: values?.metadata?.description,
-        nostr_event_id: values.metadata.nostr_event_id,
+        nostr_event_id: values.metadata?.nostr_event_id,
         ipfs_hash: undefined,
         ipfs_url: undefined
       }

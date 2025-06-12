@@ -67,6 +67,7 @@ export class BuyTokenService {
         Number(tokenLaunchRecord.total_token_holded ?? 0) +
         Number(data.coinAmount);
 
+      let newCreatorFeeRaised = Number(tokenLaunchRecord.creator_fee_raised ?? 0) + Number(data.creatorFee);
       // let price = Number(newTotalTokenHolded) / Number(newLiquidityRaised);
 
       // Calculate price based on liquidity and token supply
@@ -111,6 +112,7 @@ export class BuyTokenService {
           total_token_holded: newTotalTokenHolded.toString(),
           price: price?.toString(),
           market_cap: marketCap,
+          creator_fee_raised: newCreatorFeeRaised.toString(),
         },
         // update: {
         //   current_supply: newSupply.toString(),
@@ -172,6 +174,7 @@ export class BuyTokenService {
             protocol_fee: data.protocolFee,
             time_stamp: data.timestamp,
             transaction_type: data.transactionType,
+            creator_fee_amount: data.creatorFee,
           },
         });
       } catch (error) {

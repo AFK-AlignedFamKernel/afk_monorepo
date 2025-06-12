@@ -17,4 +17,5 @@ export interface TokenLaunch {
   ownerAddress?:string;
   bondingType?:string;
   thresholdLiquidity?:string;
+  creatorFeePercent?:string;
 }

@@ -15,4 +15,5 @@ export interface SellToken {
   timestamp: Date;
   transactionType: string;
   coinAmount?:number;
+  creatorFee?: string;
 }
