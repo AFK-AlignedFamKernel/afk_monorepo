@@ -150,7 +150,6 @@ export default function ContentCreatorPageComponent() {
           />
         </SimpleGrid>
       </Box> */}
-
       {/* CTA */}
       <Box mt={32} textAlign="center">
         <Heading size="lg">🧬 Join the Sovereign Internet Layer</Heading>

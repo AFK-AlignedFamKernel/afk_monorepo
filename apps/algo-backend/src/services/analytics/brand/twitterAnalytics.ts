@@ -84,8 +84,6 @@ export class TwitterAnalytics {
             const userTweet = new Map<string, Tweet>();
             const userTweetsWithData = new Map();
 
-
-
             for (let tweet of twitterLatestTweets) {
 
                 if (tweet?.username) {

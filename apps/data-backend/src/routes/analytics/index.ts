@@ -58,7 +58,8 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
         return reply.code(400).send({ error: 'Keywords are required' });
       }
 
-      var data = JSON.stringify([{ "keyword": keywords, "location_code": 2840, "language_code": "en", "depth": 3, "include_seed_keyword": false, "include_serp_info": false, "ignore_synonyms": false, "include_clickstream_data": false, "replace_with_core_keyword": false, "limit": 100 }]);
+      const data = JSON.stringify([{ "keyword": keywords, "location_code": 2840, "language_code": "en", "depth": 3, "include_seed_keyword": false, "include_serp_info": false, "ignore_synonyms": false, "include_clickstream_data": false, "replace_with_core_keyword": false, "limit": 100 }]);
+      console.log("data", data);
       const response = await axios.post(
         'https://api.dataforseo.com/v3/dataforseo_labs/google/related_keywords/live',
         data,
@@ -71,6 +72,10 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
       );
 
       console.log("response", response.data);
+
+      if (response.status !== 200) {
+        return reply.code(500).send({ error: response.data.status_message });
+      }
 
       return reply.code(200).send({ data: response.data });
 
