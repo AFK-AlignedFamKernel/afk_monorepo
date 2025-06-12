@@ -61,47 +61,49 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
                 <button onClick={() => setIsInitialLoading(false)}><Icon name="RefreshIcon" size={20} /></button>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 md:gap-4 sm:gap-0">
-                <div className="overflow-x-auto w-full">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Social</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                            {brands?.map((brand, index) => (
-                                <tr key={index}>
-                                    <td className="px-6 py-4 whitespace-nowrap flex items-center gap-2">
-                                        <Image
-                                            src={brand?.avatar_url ?? `/assets/icons/${brand.slug_name}.png`}
-                                            alt={brand.name} width={20} height={20}
-                                            className="w-5 h-5 shadow-md rounded-full"
-                                        />
-                                        {brand?.name}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {brand?.twitter_handle && (
-                                            <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank">
-                                                <Image src="/assets/icons/twitter.svg" alt="Twitter" width={20} height={20} className="hover:opacity-80" />
-                                            </Link>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <Link href={`/brand/${brand.slug_name}`} className="text-blue-600 hover:text-blue-900">
-                                            View
+            <div className="overflow-x-auto w-full gap-2">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="">
+                        <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Social</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                        {brands?.map((brand, index) => (
+                            <tr key={index}>
+                                <td className="px-6 py-4 whitespace-nowrap flex items-center gap-2">
+                                    <Image
+                                        src={brand?.avatar_url ?? `/assets/icons/${brand.slug_name}.png`}
+                                        alt={brand.name} width={20} height={20}
+                                        className="w-5 h-5 shadow-md rounded-full"
+                                    />
+                                    {brand?.name}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    {brand?.twitter_handle && (
+                                        <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank">
+                                            <Image src="/assets/icons/twitter.svg" alt="Twitter" width={20} height={20} className="hover:opacity-80" />
                                         </Link>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">{brand?.description}</td>
+                                    )}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <Link href={`/brand/${brand.slug_name}`} className="text-blue-600 hover:text-blue-900">
+                                        View
+                                    </Link>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap ellipsis">
+                                    <div className="text-sm text-gray-500">
+                                        {brand?.description}
+                                    </div>
+                                </td>
 
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
         </div >
 

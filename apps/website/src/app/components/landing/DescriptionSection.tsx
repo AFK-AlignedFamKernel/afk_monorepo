@@ -30,7 +30,7 @@ export function DescriptionSection() {
           transition={{ease: 'easeOut', duration: 1}}
           className="flex desktop:flex-row flex-col items-center gap-6"
         >
-          <Feature
+          {/* <Feature
             img="/assets/key.svg"
             title="No Registration Required"
             description="No registration required. Use passkeys to log in and sign messages securely, ensuring your interactions remain private and effortless."
@@ -39,7 +39,7 @@ export function DescriptionSection() {
             img="/assets/noAdIcon.svg"
             title="No Advertisement"
             description="No intrusive advertisements. Your privacy is preserved and the Data is owned by you, not the protocol."
-          />
+          /> */}
           <Feature
             img="/assets/money-send.svg"
             title="Social Payment"
@@ -49,6 +49,11 @@ export function DescriptionSection() {
             img="/assets/money-send.svg"
             title="Freedom vision"
             description="Community project that aims to bring the Freedom and Integrity world. Own your Digital Identity & Money, Content, Data."
+          />
+           <Feature
+            img="/assets/key.svg"
+            title="Make money"
+            description="Make more money from your content, insights and the attention your get."
           />
         </motion.div>
       </div>

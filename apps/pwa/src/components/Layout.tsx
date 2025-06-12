@@ -314,6 +314,23 @@ const Layout = ({ children }: LayoutProps) => {
                 ]} />
             </div>
 
+
+            <Link href="/launchpad" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("go_to_launchpad", "click", "link_drawer")
+              closeSidebar()
+            }}>
+              <Icon name="UpwardTrendGraphIcon" size={24} />
+              Launchpad
+            </Link>
+
+            <Link href="/discover" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("go_to_discover", "click", "link_drawer")
+              closeSidebar()
+            }}>
+              <Icon name="DiscoverIcon" size={24} />
+              Discover
+            </Link>
+
             <Link href="/wallet" className="sidebar-nav-item" onClick={() => {
               logClickedEvent("go_to_wallet", "click", "link_drawer")
               closeSidebar()
@@ -330,21 +347,8 @@ const Layout = ({ children }: LayoutProps) => {
               Profile
             </Link>
 
-            <Link href="/discover" className="sidebar-nav-item" onClick={() => {
-              logClickedEvent("go_to_discover", "click", "link_drawer")
-              closeSidebar()
-            }}>
-              <Icon name="DiscoverIcon" size={24} />
-              Discover</Link>
 
 
-            <Link href="/launchpad" className="sidebar-nav-item" onClick={() => {
-              logClickedEvent("go_to_launchpad", "click", "link_drawer")
-              closeSidebar()
-            }}>
-              <Icon name="UpwardTrendGraphIcon" size={24} />
-              Launchpad
-            </Link>
             <div className="flex items-center gap-4">
               <button className="btn btn-gradient-green" onClick={() => showModal(<ProfileManagement />)}>
                 Connect

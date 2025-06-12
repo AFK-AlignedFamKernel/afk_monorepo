@@ -1,5 +1,5 @@
 // 'use client';
-import {List, ListItem, Box, Button, Text} from '@chakra-ui/react';
+import {List, ListItem, Box, Text} from '@chakra-ui/react';
 import Link from 'next/link';
 
 export function NavigationLinks() {
@@ -22,11 +22,13 @@ export function NavigationLinks() {
       </ListItem>
       <ListItem>
         <Box className="desktop:flex hidden items-center gap-x-4 font-bold text-sm leading-[16px]">
-          <Button className="py-[15px] px-[48px] bg-white">
-            <a href="https://afk-community.xyz" target="_blank">
+          {/* <Button className="py-[15px] px-[48px] bg-white"> */}
+            <Link href="https://afk-community.xyz" target="_blank"
+            className="py-[15px] px-[48px] italic text-[18px] leading-[21px]"
+            >
               Go AFK
-            </a>
-          </Button>
+            </Link>
+          {/* </Button> */} 
         </Box>
       </ListItem>
       {/* <li>

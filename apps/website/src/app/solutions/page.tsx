@@ -16,13 +16,7 @@ const metadata: Metadata = {
 const MotionBox = motion(Box);
 
 const features: { icon: IconType; title: string; description: string; href?: string }[] = [
-  {
-    icon: FaComments,
-    title: 'InfoFi: Attention & Knowledge',
-    description:
-      'A transparent, fair attention economy where users vote, creators earn, Vaults reward, and businesses engage — without platform gatekeeping.',
-    // href: '/infofi',
-  },
+
   {
     icon: FaGlobe,
     title: 'Uncensorable Social Layer',
@@ -34,6 +28,13 @@ const features: { icon: IconType; title: string; description: string; href?: str
     title: 'Integrated Payments',
     description: 'Seamless Bitcoin, Ethereum, and Starknet transactions.',
     // href: "/features/payments"
+  },
+  {
+    icon: FaComments,
+    title: 'InfoFi: Attention & Knowledge',
+    description:
+      'A transparent, fair attention economy where users vote, creators earn, Vaults reward, and businesses engage — without platform gatekeeping.',
+    // href: '/infofi',
   },
 
   // {

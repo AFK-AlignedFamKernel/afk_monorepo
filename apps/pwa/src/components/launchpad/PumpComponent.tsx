@@ -10,6 +10,7 @@ import { TokenCreateForm } from './TokenCreateForm';
 import { useUIStore } from '@/store/uiStore';
 import Image from 'next/image';
 import Link from "next/link"
+import { Icon } from '../small/icon-component';
 
 interface TokenDeployInterface {
   token_address: string;
@@ -203,81 +204,79 @@ export default function PumpComponent() {
             No {isLaunchView ? 'launches' : 'tokens'} found
           </div>
         ) : (
-          <div className="gap-1 overflow-y-auto max-h-[350px] scrollbar-hide scrollbar-width-none">
-            <table className="min-w-full text-sm overflow-x-auto overflow-y-auto max-h-[350px] scrollbar-hide scrollbar-width-none">
-              <thead>
-                <tr className="bg-muted gap-2">
-                  <th className="px-4 py-2 text-left font-semibold">Project</th>
-                  <th className="px-4 py-2 text-left font-semibold">Actions</th>
-                  <th className="px-4 py-2 text-left font-semibold">Info</th>
-                  <th className="px-4 py-2 text-left font-semibold">Socials</th>
-                </tr>
-              </thead>
-              <tbody>
+          <div className="gap-1 overflow-y-auto scrollbar-hide scrollbar-width-none">
+            {/* <table className="min-w-full text-sm overflow-x-auto overflow-y-auto max-h-[350px] scrollbar-hide scrollbar-width-none">
+                  <thead>
+                    <tr className="bg-muted gap-2">
+                      <th className="px-4 py-2 text-left font-semibold">Project</th>
+                      <th className="px-4 py-2 text-left font-semibold">Actions</th>
+                      <th className="px-4 py-2 text-left font-semibold">Info</th>
+                      <th className="px-4 py-2 text-left font-semibold">Socials</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredData.map((item: TokenDeployInterface) => (
+                      <tr className="border-b border-gray-200"
+                        onClick={() => {
+                        }}
+                      >
+                        <td className="px-2 py-3 flex flex-row items-left gap-1 baseline">
+                          {item?.url && (
+                            <Image src={item?.url}
+                              alt={item?.name || item?.symbol || "Token"}
+                              width={50}
+                              height={50}
+                              className='rounded-full'
+                            />
+                          )}
 
-                {filteredData.map((item: TokenDeployInterface) => (
-                  <tr className="border-b border-gray-200"
-                    onClick={() => {
-                    }}
-                  >
-                    <td className="px-2 py-3 flex flex-row items-left gap-1 baseline">
-                      {item?.url && (
-                        <Image src={item?.url}
-                          alt={item?.name || item?.symbol || "Token"}
-                          width={50}
-                          height={50}
-                          className='rounded-full'
-                        />
-                      )}
+                          <div>
+                            <p className="text-sm font-semibold">{item?.name}</p>
+                            <p className="text-xs">{item?.symbol}</p>
+                          </div>
+                        </td>
+                        <td>
+                          <Link href={`/launchpad/${item?.memecoin_address || item?.token_address}`}>
+                            View
+                          </Link>
+                        </td>
+                        <td className="text-xs">
+                          {item?.liquidity_raised && Number(item?.liquidity_raised) > 0 && (
+                            <div className="flex flex-row gap-2">
+                              <p className="text-xs">
+                                Price: {Number(item?.price).toFixed(2) || "N/A"}
+                              </p>
 
-                      <div>
-                        <p className="text-sm font-semibold">{item?.name}</p>
-                        <p className="text-xs">{item?.symbol}</p>
-                      </div>
-                    </td>
-                    <td>
-                      <Link href={`/launchpad/${item?.memecoin_address || item?.token_address}`}>
-                        View
-                      </Link>
-                    </td>
-                    <td className="text-xs">
-                      {item?.liquidity_raised && Number(item?.liquidity_raised) > 0 && (
-                        <div className="flex flex-row gap-2">
-                          <p className="text-xs">
-                            Price: {Number(item?.price).toFixed(2) || "N/A"}
-                          </p>
+                            </div>
+                          )}
+                          <p className="text-xs">Liquidity:{Number(item?.liquidity_raised).toFixed(2) || "N/A"}</p>
+                          <p className="text-xs">MC:{Number(item?.market_cap).toFixed(2) || "N/A"}</p>
+                        </td>
+                        <td className='flex flex-row gap-2'>
+                          {item?.twitter && (
+                            <Link href={item?.twitter}>
+                              <Image src="assets/icons/twitter.svg" width={20} height={20} alt="Twitter"></Image>
+                            </Link>
+                          )}
 
-                        </div>
-                      )}
-                      <p className="text-xs">Liquidity:{Number(item?.liquidity_raised).toFixed(2) || "N/A"}</p>
-                      <p className="text-xs">MC:{Number(item?.market_cap).toFixed(2) || "N/A"}</p>
-                    </td>
-                    <td className='flex flex-row gap-2'>
-                      {item?.twitter && (
-                        <Link href={item?.twitter}>
-                          {/* <Icon name="TwitterIcon" size={24} /> */}
-                        </Link>
-                      )}
+                          {item?.website && (
+                            <Link href={item?.website}>
+                            </Link>
+                          )}
 
-                      {item?.website && (
-                        <Link href={item?.website}>
-                          {/* <Icon name="WebsiteIcon" size={24} /> */}
-                        </Link>
-                      )}
+                          {item?.telegram && (
+                            <Link href={item?.telegram}>
+                            </Link>
+                          )}
 
-                      {item?.telegram && (
-                        <Link href={item?.telegram}>
-                          {/* <Icon name="TelegramIcon" size={24} /> */}
-                        </Link>
-                      )}
+                        </td>
 
-                    </td>
-
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {/* {filteredData.map((item: TokenDeployInterface) => (
+                      </tr>
+                    ))}
+                  </tbody>
+                </table> */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredData.map((item: TokenDeployInterface) => (
                 <LaunchpadCard
                   key={item.memecoin_address || item.token_address}
                   token={{
@@ -300,7 +299,8 @@ export default function PumpComponent() {
                   }}
                   type={isLaunchView ? 'LAUNCH' : 'TOKEN'}
                 />
-              ))} */}
+              ))}
+            </div>
           </div>
         )}
       </div>
