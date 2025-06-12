@@ -16,14 +16,14 @@ import {
   useDisclosure,
   Fade,
 } from '@chakra-ui/react';
-import {FaUser, FaBullhorn, FaCoins, FaStar, FaVoteYea} from 'react-icons/fa';
-import {useEffect, useState} from 'react';
-import {IconType} from 'react-icons/lib';
+import { FaUser, FaBullhorn, FaCoins, FaStar, FaVoteYea } from 'react-icons/fa';
+import { useEffect, useState } from 'react';
+import { IconType } from 'react-icons/lib';
 
-export default function ContentCreatorPageComponent() {
+export default function InfoFiPageComponent() {
   const bg = useColorModeValue('gray.50', 'gray.800');
-  const {isOpen, onToggle} = useDisclosure();
-  const delay = useBreakpointValue({base: 0.2, md: 0.1});
+  const { isOpen, onToggle } = useDisclosure();
+  const delay = useBreakpointValue({ base: 0.2, md: 0.1 });
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -47,9 +47,9 @@ export default function ContentCreatorPageComponent() {
           </Text>
         </Fade>
 
-        <Stack direction={{base: 'column', md: 'row'}} spacing={4} pt={4}>
+        <Stack direction={{ base: 'column', md: 'row' }} spacing={4} pt={4}>
           <Button colorScheme="green" size="lg">
-            <Link href="https://afk-community.xyz/" target="_blank">
+            <Link href="https://afk-community.xyz/app/login" target="_blank">
               Create Your Profile
             </Link>
           </Button>
@@ -66,7 +66,7 @@ export default function ContentCreatorPageComponent() {
         <Heading size="lg" textAlign="center" mb={10}>
           Who is InfoFi For?
         </Heading>
-        <SimpleGrid columns={{base: 1, md: 3}} spacing={10}>
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={10}>
           <Fade in={mounted}>
             <BenefitBlock
               icon={FaUser}
@@ -100,10 +100,13 @@ export default function ContentCreatorPageComponent() {
           InfoFi turns attention into capital — fairly. No algorithm games, just a loop where value
           flows directly.
         </Text>
+        <Text fontSize="md" color="gray.600" maxW="600px" mx="auto">
+          Leaderboard of most influencial content creator for a project/topic.
+        </Text>
         <Flex direction="column" align="center" mt={10}>
           <Box maxW="600px" bg={bg} p={6} rounded="xl" shadow="lg">
             <Stack spacing={4} textAlign="left" fontSize="md">
-              <Text>📥 1. Creators link their profile: X, Nostr, Farcaster</Text>
+              <Text>📥 1. Creators register their Nostr profile</Text>
               <Text>👍 2. Users vote or tip based on merit</Text>
               <Text>🧠 3. Vaults + AI + DAO score the profiles</Text>
               <Text>💸 4. Rewards are distributed every epoch</Text>
@@ -118,7 +121,7 @@ export default function ContentCreatorPageComponent() {
         <Heading size="lg" mb={8} textAlign="center">
           ✨ Why InfoFi Matters
         </Heading>
-        <SimpleGrid columns={{base: 1, md: 2}} spacing={8}>
+        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
           <FeatureBlock
             icon={FaCoins}
             title="Transparent Monetization"
@@ -141,7 +144,7 @@ export default function ContentCreatorPageComponent() {
         </Text>
         <Stack mt={6} direction="row" spacing={4} justify="center">
           <Button colorScheme="green" size="lg">
-            <Link href="https://afk-community.xyz/app/login" target="_blank">
+            <Link href="https://afk-community.xyz/" target="_blank">
               Start Now
             </Link>
           </Button>

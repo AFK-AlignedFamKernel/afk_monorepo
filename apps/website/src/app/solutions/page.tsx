@@ -3,8 +3,8 @@
 import {Box, Heading, Text, VStack, Grid, Button, Icon, Container, Stack} from '@chakra-ui/react';
 import {motion} from 'framer-motion';
 import Link from 'next/link';
-import {Navbar} from '../components/Navbar';
-import {Footer} from '../components/Footer';
+import {Navbar} from '../../components/Navbar';
+import {Footer} from '../../components/Footer';
 import {FaLock, FaUserSecret, FaComments, FaGlobe} from 'react-icons/fa';
 import {Metadata} from 'next';
 import { IconType } from 'react-icons/lib';
