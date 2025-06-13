@@ -13,6 +13,8 @@ interface Transaction {
   quote_amount?: string;
   coin_received?: string;
   liquidity_raised?: string;
+  creator_fee_amount?: string;
+  creator_fee_percentage?: string;
 }
 
 interface TransactionsProps {
@@ -35,22 +37,25 @@ export const Transactions: React.FC<TransactionsProps> = ({ transactions, loadin
         <h3 className="text-lg font-semibold">Recent Transactions</h3>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Amount
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium  uppercase tracking-wider">
                   Quote
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Price
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                  Creator Fee
                 </th>
                 {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   From
@@ -63,7 +68,7 @@ export const Transactions: React.FC<TransactionsProps> = ({ transactions, loadin
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200">
               {transactions && transactions?.length > 0 && transactions?.map((tx, index) => (
                 <tr key={index}>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -73,7 +78,7 @@ export const Transactions: React.FC<TransactionsProps> = ({ transactions, loadin
                         : 'bg-red-100 text-red-800'
                         }`}
                     >
-                      {tx?.type}
+                      {tx?.transaction_type}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -91,9 +96,16 @@ export const Transactions: React.FC<TransactionsProps> = ({ transactions, loadin
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {tx?.to?.slice(0, 6)}...{tx?.to?.slice(-4)}
                   </td> */}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(tx.created_at).toLocaleString()}
+
+                  <td  className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {tx?.creator_fee_amount}
                   </td>
+
+                  {tx?.created_at && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(tx.created_at).toLocaleString()}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

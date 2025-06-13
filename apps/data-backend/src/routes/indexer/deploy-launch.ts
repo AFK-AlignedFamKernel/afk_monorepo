@@ -155,6 +155,8 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           website:true,
           initial_pool_supply_dex:true,
           ipfs_hash:true,
+          creator_fee_raised:true,
+          creator_fee_percent:true,
           token_deploy: {
             select: {
               name: true,
@@ -201,6 +203,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           quote_amount: true,
           transaction_hash: true,
           time_stamp: true,
+          creator_fee_amount: true,
         },
       });
 

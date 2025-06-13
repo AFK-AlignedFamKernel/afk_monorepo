@@ -103,7 +103,7 @@ export class SellTokenIndexer {
       low: FieldElement.toBigInt(creatorFeeLow),
       high: FieldElement.toBigInt(creatorFeeHigh),
     });
-    const creatorFee = formatUnits(creatorFeeRaw, 2).toString();
+    const creatorFee = formatUnits(creatorFeeRaw, 18).toString();
 
     const protocolFeeRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(protocolFeeLow),

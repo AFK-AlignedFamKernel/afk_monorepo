@@ -174,7 +174,7 @@ export class BuyTokenService {
             protocol_fee: data.protocolFee,
             time_stamp: data.timestamp,
             transaction_type: data.transactionType,
-            creator_fee_amount: data.creatorFee,
+            creator_fee_amount: newCreatorFeeRaised.toString(),
           },
         });
       } catch (error) {
