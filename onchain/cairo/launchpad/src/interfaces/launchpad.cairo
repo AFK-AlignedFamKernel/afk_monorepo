@@ -10,6 +10,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
     // User call
     fn create_token(
         ref self: TContractState,
+        owner: ContractAddress,
         recipient: ContractAddress,
         symbol: ByteArray,
         name: ByteArray,
@@ -19,6 +20,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
     fn create_and_launch_token(
         ref self: TContractState,
+        owner: ContractAddress,
         symbol: ByteArray,
         name: ByteArray,
         initial_supply: u256,
@@ -43,6 +45,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
     // fn launch_token(ref self: TContractState, coin_address: ContractAddress);
     fn launch_token(
         ref self: TContractState,
+        owner: ContractAddress,
         coin_address: ContractAddress,
         bonding_type: BondingType,
         creator_fee_percent: u256,

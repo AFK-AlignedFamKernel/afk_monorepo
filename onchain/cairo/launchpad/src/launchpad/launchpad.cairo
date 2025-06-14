@@ -518,6 +518,7 @@ pub mod LaunchpadMarketplace {
         // Add Factory address for the memecoin.cairo
         fn create_token(
             ref self: ContractState,
+            owner: ContractAddress,
             recipient: ContractAddress,
             symbol: ByteArray,
             name: ByteArray,
@@ -534,7 +535,7 @@ pub mod LaunchpadMarketplace {
                     initial_supply,
                     contract_address_salt,
                     recipient, // Send supply to this address
-                    caller, // Owner of the address, Ownable access
+                    owner, // Owner of the address, Ownable access
                     contract_address // Factory address to set_launched and others stuff
                 );
 
@@ -547,6 +548,7 @@ pub mod LaunchpadMarketplace {
         // Threshold is setup by the admin and save in the pool struct (in case we change)
         fn create_and_launch_token(
             ref self: ContractState,
+            owner:ContractAddress,
             symbol: ByteArray,
             name: ByteArray,
             initial_supply: u256,
@@ -565,13 +567,13 @@ pub mod LaunchpadMarketplace {
                     initial_supply,
                     contract_address_salt,
                     contract_address, // Send supply to this address
-                    caller, // Owner of the address, Ownable access
+                    owner, // Owner of the address, Ownable access
                     contract_address // Factory address to set_launched and others stuff
                 );
             self
                 ._launch_token(
                     token_address,
-                    caller,
+                    owner,
                     contract_address,
                     Option::Some(bonding_type),
                     creator_fee_percent,
@@ -590,6 +592,7 @@ pub mod LaunchpadMarketplace {
         // Threshold is setup by the admin and save in the pool struct (in case we change)
         fn launch_token(
             ref self: ContractState,
+            owner: ContractAddress,
             coin_address: ContractAddress,
             bonding_type: BondingType,
             creator_fee_percent: u256,
@@ -600,7 +603,7 @@ pub mod LaunchpadMarketplace {
             self
                 ._launch_token(
                     coin_address,
-                    caller,
+                    owner,
                     contract_address,
                     Option::Some(bonding_type),
                     creator_fee_percent,
@@ -1263,7 +1266,7 @@ pub mod LaunchpadMarketplace {
             self.total_token.write(total_token + 1);
 
             // Set the owner of the token
-            self.owner_of_token.entry(token_address).write(caller);
+            self.owner_of_token.entry(token_address).write(owner);
 
             self
                 .emit(
@@ -1274,6 +1277,7 @@ pub mod LaunchpadMarketplace {
                         name: name,
                         initial_supply,
                         total_supply: initial_supply.clone(),
+                        owner: owner,
                     },
                 );
             token_address
@@ -1283,7 +1287,7 @@ pub mod LaunchpadMarketplace {
         fn _launch_token(
             ref self: ContractState,
             coin_address: ContractAddress,
-            caller: ContractAddress,
+            owner: ContractAddress,
             creator: ContractAddress,
             bonding_type: Option<BondingType>,
             creator_fee_percent: u256,
@@ -1354,7 +1358,7 @@ pub mod LaunchpadMarketplace {
 
             // Create launch parameters
             let launch_token_pump = TokenLaunch {
-                owner: caller.clone(),
+                owner: owner.clone(),
                 creator: caller.clone(),
                 token_address: coin_address,
                 total_supply,
@@ -1386,10 +1390,10 @@ pub mod LaunchpadMarketplace {
             // or without the function create_token_and_launch directly
             let balance_contract = memecoin.balance_of(get_contract_address());
             if balance_contract < total_supply {
-                let allowance = memecoin.allowance(caller, get_contract_address());
+                let allowance = memecoin.allowance(owner, get_contract_address());
                 assert(allowance >= total_supply, errors::INSUFFICIENT_ALLOWANCE);
                 memecoin
-                    .transfer_from(caller, get_contract_address(), total_supply - balance_contract);
+                    .transfer_from(owner, get_contract_address(), total_supply - balance_contract);
             }
 
             // Store launch data
@@ -1414,6 +1418,7 @@ pub mod LaunchpadMarketplace {
                         quote_token_address,
                         bonding_type: bond_type,
                         creator_fee_percent: creator_fee_percent,
+                        owner: owner,
                     },
                 );
         }

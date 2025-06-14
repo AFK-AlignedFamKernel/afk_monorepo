@@ -517,7 +517,7 @@ mod launchpad_tests {
         println!("create and launch token");
         let token_address = launchpad
             .create_and_launch_token(
-                // owner: OWNER(),
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -744,7 +744,7 @@ mod launchpad_tests {
         println!("create and launch token");
         let token_address = launchpad
             .create_and_launch_token(
-                // owner: OWNER(),
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -817,7 +817,7 @@ mod launchpad_tests {
         println!("create and launch token");
         let token_address = launchpad
             .create_and_launch_token(
-                // owner: OWNER(),
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -904,7 +904,7 @@ mod launchpad_tests {
         println!("create and launch token");
         let token_address = launchpad
             .create_and_launch_token(
-                // owner: OWNER(),
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -990,7 +990,7 @@ mod launchpad_tests {
         println!("create and launch token");
         let token_address = launchpad
             .create_and_launch_token(
-                // owner: OWNER(),
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -1074,7 +1074,7 @@ mod launchpad_tests {
         let token_address = launchpad
             .create_token(
                 recipient: OWNER(),
-                // owner: OWNER(),
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -1132,7 +1132,7 @@ mod launchpad_tests {
         let token_address = launchpad
             .create_token(
                 recipient: OWNER(),
-                // owner: OWNER(),
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: THRESHOLD_LIQUIDITY,
@@ -1266,7 +1266,7 @@ mod launchpad_tests {
         let token_address = launchpad
             .create_token(
                 recipient: OWNER(),
-                // owner: OWNER(),
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -1393,7 +1393,7 @@ mod launchpad_tests {
         println!("create and launch token");
         let token_address = launchpad
             .create_and_launch_token(
-                // owner: OWNER(),
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -1642,6 +1642,7 @@ mod launchpad_tests {
 
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -1674,6 +1675,7 @@ mod launchpad_tests {
         start_cheat_caller_address(launchpad.contract_address, OWNER());
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -1707,6 +1709,7 @@ mod launchpad_tests {
 
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -1738,6 +1741,7 @@ mod launchpad_tests {
 
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -1782,6 +1786,7 @@ mod launchpad_tests {
 
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -1886,6 +1891,7 @@ mod launchpad_tests {
 
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -2010,6 +2016,7 @@ mod launchpad_tests {
 
             let token_address = launchpad
                 .create_and_launch_token(
+                    owner: OWNER(),
                     symbol: SYMBOL(),
                     name: NAME(),
                     initial_supply: *init_supplies.at(i),
@@ -2094,6 +2101,7 @@ mod launchpad_tests {
 
             let token_address = launchpad
                 .create_and_launch_token(
+                    owner: OWNER(),
                     symbol: SYMBOL(),
                     name: NAME(),
                     initial_supply: *init_supplies.at(i),
@@ -2160,6 +2168,7 @@ mod launchpad_tests {
 
     //         let token_address = launchpad
     //             .create_and_launch_token(
+    //                 owner: OWNER(),
     //                 symbol: SYMBOL(),
     //                 name: NAME(),
     //                 initial_supply: *init_supplies.at(i),
@@ -2430,6 +2439,7 @@ mod launchpad_tests {
 
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -2480,6 +2490,7 @@ mod launchpad_tests {
 
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -2526,6 +2537,7 @@ mod launchpad_tests {
 
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),
@@ -2579,6 +2591,7 @@ mod launchpad_tests {
 
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: DEFAULT_INITIAL_SUPPLY(),

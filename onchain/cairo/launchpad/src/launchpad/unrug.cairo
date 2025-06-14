@@ -550,6 +550,7 @@ pub mod UnrugLiquidity {
                         name: name,
                         initial_supply,
                         total_supply: initial_supply.clone(),
+                        owner: owner,
                     },
                 );
             token_address

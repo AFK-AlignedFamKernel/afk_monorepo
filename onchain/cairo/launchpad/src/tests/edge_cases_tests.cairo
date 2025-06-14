@@ -736,6 +736,7 @@ mod edge_cases_tests {
         // let total_supply:u256 = *init_supplies.at(i);
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: *init_supplies.at(i),
@@ -852,6 +853,7 @@ mod edge_cases_tests {
             // let total_supply:u256 = *init_supplies.at(i);
             let token_address = launchpad
                 .create_and_launch_token(
+                    owner: OWNER(),
                     symbol: SYMBOL(),
                     name: NAME(),
                     initial_supply: *init_supplies.at(i),
@@ -933,6 +935,8 @@ mod edge_cases_tests {
                 "linear latest init_supply in loop test_buy_coin_with_different_supply {:?}",
                 init_supplies.at(i).clone(),
             );
+
+            println!("perform_swap");
             perform_swap(
                 router,
                 erc20,
@@ -970,6 +974,7 @@ mod edge_cases_tests {
 
             let token_address = launchpad
                 .create_and_launch_token(
+                    owner: OWNER(),
                     symbol: SYMBOL(),
                     name: NAME(),
                     initial_supply: *init_supplies.at(i),

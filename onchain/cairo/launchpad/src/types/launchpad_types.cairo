@@ -393,6 +393,7 @@ pub struct CreateToken {
     pub name: ByteArray,
     pub initial_supply: u256,
     pub total_supply: u256,
+    pub owner: ContractAddress,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -408,6 +409,7 @@ pub struct CreateLaunch {
     pub threshold_liquidity: u256,
     pub bonding_type: BondingType,
     pub creator_fee_percent: u256,
+    pub owner: ContractAddress,
 }
 
 #[derive(Drop, starknet::Event)]
