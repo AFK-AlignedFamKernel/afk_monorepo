@@ -1,7 +1,9 @@
 use alexandria_math::fast_power::fast_power;
 use starknet::storage::Map;
 use starknet::{ClassHash, ContractAddress, get_block_timestamp};
-use crate::types::launchpad_types::{BondingType, LiquidityType, TokenQuoteBuyCoin, TokenICOQuoteBuyCoin};
+use crate::types::launchpad_types::{
+    BondingType, LiquidityType, TokenICOQuoteBuyCoin, TokenQuoteBuyCoin,
+};
 
 #[starknet::interface]
 pub trait IICO<TContractState> {

@@ -18,9 +18,9 @@ pub mod LaunchpadMarketplace {
         ADMIN_ROLE, AdminsFeesParams, BondingType, BuyToken, CreateLaunch, CreateToken,
         CreatorFeeDistributed, EkuboLP, EkuboPoolParameters, EkuboUnrugLaunchParameters,
         LiquidityCanBeAdded, LiquidityCreated, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch,
-        SellToken, SetJediswapNFTRouterV2, SetJediswapV2Factory, SharesTokenUser, StoredName,
-        SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin,
-        MetadataLaunchParams,   
+        MetadataLaunchParams, SellToken, SetJediswapNFTRouterV2, SetJediswapV2Factory,
+        SharesTokenUser, StoredName, SupportedExchanges, Token, TokenClaimed, TokenLaunch,
+        TokenQuoteBuyCoin,
         // MemecoinCreated, MemecoinLaunched
     };
     use core::num::traits::Zero;
@@ -265,9 +265,7 @@ pub mod LaunchpadMarketplace {
         self.admins_fees_params.write(admins_fees_params);
 
         let init_token = TokenQuoteBuyCoin {
-            token_address: token_address, 
-             is_enable: true,
-            // step_increase_linear,
+            token_address: token_address, is_enable: true // step_increase_linear,
         };
         // TODO  test add case  if the payment are needed to create and launch
         self.is_custom_launch_enable.write(false);
@@ -557,7 +555,7 @@ pub mod LaunchpadMarketplace {
             creator_fee_percent: u256,
             creator_fee_destination: ContractAddress,
             metadata: Option<MetadataLaunchParams>,
-        ) -> ContractAddress {  
+        ) -> ContractAddress {
             let contract_address = get_contract_address();
             let caller = get_caller_address();
             let token_address = self
@@ -1124,16 +1122,16 @@ pub mod LaunchpadMarketplace {
                 errors::CALLER_NOT_OWNER,
             );
             // Add or update metadata
-            let metadata_launch = MetadataLaunch{
+            let metadata_launch = MetadataLaunch {
                 token_address: coin_address,
                 nostr_event_id: metadata.nostr_event_id,
                 url: metadata.url.clone(),
-                ipfs_hash:metadata.ipfs_hash.clone(),
+                ipfs_hash: metadata.ipfs_hash.clone(),
                 // twitter: metadata.twitter.clone(),
-                // website: metadata.website.clone(),
-                // telegram: metadata.telegram.clone(),
-                // github: metadata.github.clone(),
-                // description: metadata.description.clone(),
+            // website: metadata.website.clone(),
+            // telegram: metadata.telegram.clone(),
+            // github: metadata.github.clone(),
+            // description: metadata.description.clone(),
             };
             self.metadata_coins.entry(coin_address).write(metadata_launch.clone());
             self
@@ -1141,7 +1139,7 @@ pub mod LaunchpadMarketplace {
                     MetadataCoinAdded {
                         token_address: coin_address,
                         nostr_event_id: metadata.nostr_event_id,
-                        ipfs_hash:metadata.ipfs_hash,
+                        ipfs_hash: metadata.ipfs_hash,
                         url: metadata.url,
                         twitter: metadata.twitter,
                         website: metadata.website,
@@ -1442,7 +1440,7 @@ pub mod LaunchpadMarketplace {
 
             // Get launch info and validate
             let launch = self.launched_coins.read(coin_address);
-            assert(launch.is_liquidity_launch, errors::LIQUIDITY_ALREADY_LAUNCHED);
+            assert(!launch.is_liquidity_launch, errors::LIQUIDITY_ALREADY_LAUNCHED);
 
             // Calculate thresholds
             // let threshold_liquidity = launch.threshold_liquidity.clone();

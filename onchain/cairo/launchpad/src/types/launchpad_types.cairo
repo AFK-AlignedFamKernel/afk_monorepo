@@ -159,10 +159,10 @@ pub struct MetadataLaunch {
     pub ipfs_hash: ByteArray,
     pub url: ByteArray,
     // pub twitter: ByteArray,
-    // pub github: ByteArray,
-    // pub telegram: ByteArray,
-    // pub website: ByteArray,
-    // pub description: ByteArray,
+// pub github: ByteArray,
+// pub telegram: ByteArray,
+// pub website: ByteArray,
+// pub description: ByteArray,
 }
 
 #[derive(Drop, starknet::Event)]
@@ -220,7 +220,7 @@ pub struct EkuboUnrugLaunchParameters {
     pub caller: ContractAddress,
 }
 
-#[derive(Copy, Drop, Serde)]
+#[derive(Copy, Drop, Serde, PartialEq)]
 pub struct EkuboLP {
     pub owner: ContractAddress,
     pub quote_address: ContractAddress,
@@ -228,6 +228,19 @@ pub struct EkuboLP {
     pub bounds: Bounds,
 }
 
+#[derive(Copy, Drop, Serde, starknet::Store, PartialEq)]
+pub struct EkuboLPStore {
+    pub id: u64,
+    pub owner: ContractAddress,
+    pub quote_address: ContractAddress,
+    pub token0: ContractAddress,
+    pub token1: ContractAddress,
+    pub fee: u128,
+    pub tick_spacing: u128,
+    pub extension: ContractAddress,
+    pub lower_bound: i129,
+    pub upper_bound: i129,
+}
 // #[derive(Drop, Copy, starknet::Store, Serde)]
 // pub struct EkuboPoolParameters {
 //     pub fee: u128,
@@ -309,12 +322,13 @@ pub struct UnrugLaunchCallback {
     pub unrug_params: EkuboUnrugLaunchParameters,
 }
 
-// #[derive(Serde, Drop, Copy)]
-// struct WithdrawFeesCallback {
-//     id: u64,
-//     liquidity_type: EkuboLP,
-//     recipient: ContractAddress,
-// }
+#[derive(Serde, Drop, Copy)]
+pub struct WithdrawFeesCallback {
+    // pub id: u64,
+    pub recipient: ContractAddress,
+    pub token_address: ContractAddress,
+    pub quote_address: ContractAddress,
+}
 
 #[derive(Serde, Drop, Copy)]
 pub enum CallbackData {
@@ -325,6 +339,7 @@ pub enum CallbackData {
 #[derive(Serde, Drop, Copy)]
 pub enum UnrugCallbackData {
     UnrugLaunchCallback: UnrugLaunchCallback,
+    WithdrawFeesCallback: WithdrawFeesCallback,
 }
 
 #[derive(Drop, Serde, Copy, starknet::Store, PartialEq)]
@@ -447,6 +462,24 @@ pub struct LiquidityCreated {
 }
 
 #[derive(Drop, starknet::Event)]
+pub struct FeesCollected {
+    #[key]
+    pub id: u256,
+    #[key]
+    pub pool: ContractAddress,
+    #[key]
+    pub asset: ContractAddress,
+    #[key]
+    pub quote_token_address: ContractAddress,
+    // pub token_id:u256,
+    pub owner: ContractAddress,
+    pub exchange: SupportedExchanges,
+    pub is_unruggable: bool,
+    pub fees0: u128,
+    pub fees1: u128,
+}
+
+#[derive(Drop, starknet::Event)]
 pub struct TokenClaimed {
     #[key]
     pub token_address: ContractAddress,
@@ -469,7 +502,6 @@ pub struct TokenClaimed {
 //     pub github: ByteArray,
 //     pub description: ByteArray,
 // }
-
 
 #[derive(Copy, Drop, starknet::Store, Serde)]
 pub struct JediswapLiquidityParameters {

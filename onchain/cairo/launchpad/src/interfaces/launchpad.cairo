@@ -1,6 +1,6 @@
 use afk_launchpad::types::launchpad_types::{
-    BondingType, MetadataLaunch, MetadataLaunchParams, SharesTokenUser, SupportedExchanges, TokenLaunch,
-    TokenQuoteBuyCoin,
+    BondingType, MetadataLaunch, MetadataLaunchParams, SharesTokenUser, SupportedExchanges,
+    TokenLaunch, TokenQuoteBuyCoin,
     // MemecoinCreated, MemecoinLaunched
 };
 use starknet::{ClassHash, ContractAddress};

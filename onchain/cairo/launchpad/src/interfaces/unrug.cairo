@@ -1,6 +1,6 @@
 use afk_launchpad::types::launchpad_types::{
-    TokenQuoteBuyCoin, SupportedExchanges, MetadataLaunch, MetadataLaunchParams, EkuboLP, EkuboLaunchParameters,
-    // LiquidityType,
+    TokenQuoteBuyCoin, SupportedExchanges, MetadataLaunch, MetadataLaunchParams, EkuboLP,
+    EkuboLaunchParameters, // LiquidityType,
     EkuboUnrugLaunchParameters,
     // MemecoinCreated, MemecoinLaunched
 };
@@ -50,6 +50,13 @@ pub trait IUnrugLiquidity<TContractState> {
     // fn claim_coin_buy(ref self: TContractState, coin_address: ContractAddress, amount: u256);
     fn add_metadata(
         ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunchParams,
+    );
+
+    fn collect_fees(
+        ref self: TContractState,
+        token_address: ContractAddress,
+        quote_address: ContractAddress,
+        recipient: ContractAddress,
     );
 
     // Views
