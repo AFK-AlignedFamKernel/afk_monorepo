@@ -18,28 +18,25 @@ export default function DiscoverComponent() {
   return (
     <div className="flex flex-col gap-1">
 
-
       <div className="p-4">
 
-        <h1 className="text-3xl font-bold">Discover</h1>
-
-        <div className="flex flex-row gap-4 overflow-x-auto">
-          <button className={`px-4 py-2 rounded-md ${activeTab === "brand" ? "bg-gray-800 text-white" : "border border-gray-300"}`} onClick={() => {
+        <div className="flex flex-row gap-1 overflow-x-auto">
+          <button className={`px-4 py-2 rounded-md ${activeTab === "brand" ? "border border-green-500" : ""}`} onClick={() => {
             setActiveTab("brand")
             logClickedEvent("discover_brand", "click")
           }}>Brands</button>
-          <button className={`px-4 py-2 rounded-md ${activeTab === "creator" ? "bg-gray-800 text-white" : "border border-gray-300"}`} onClick={() => {
+          <button className={`px-4 py-2 rounded-md ${activeTab === "creator" ? "border border-green-500" : ""}`} onClick={() => {
             setActiveTab("creator")
             logClickedEvent("discover_creator", "click")
 
           }}>Creators</button>
-          <button className={`px-4 py-2 rounded-md ${activeTab === "launchpad" ? "bg-gray-700" : "border border-gray-300"}`} onClick={() => {
+          <button className={`px-4 py-2 rounded-md ${activeTab === "launchpad" ? "border border-green-500" : ""}`} onClick={() => {
             setActiveTab("launchpad")
             logClickedEvent("discover_launchpad", "click", "discover_launchpad")
 
           }}>Launchpad</button>
           {/* <button className={`px-4 py-2 rounded-md ${activeTab === "topic" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => setActiveTab("topic")}>Topics</button> */}
-          <button className={`px-4 py-2 rounded-md ${activeTab === "feed" ? "bg-gray-700" : "border border-gray-300"}`} onClick={() => {
+          <button className={`px-4 py-2 rounded-md ${activeTab === "feed" ? "border border-green-500" : ""}`} onClick={() => {
             setActiveTab("feed")
             logClickedEvent("discover_feed", "click", "discover_feed")
 
@@ -79,9 +76,9 @@ export default function DiscoverComponent() {
             More feeds coming soon
           </p> */}
           <div className="flex flex-row gap-4">
+          <FeedTabs />
 
           </div>
-          <FeedTabs />
         </>
       )}
 
