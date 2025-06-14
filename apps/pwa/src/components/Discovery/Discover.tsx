@@ -2,20 +2,18 @@
 
 import ListBrand from "@/components/Brand/ListBrand";
 import TableBrand from "@/components/Brand/TableBrand";
-import DiscoveryComponent from "@/components/Discovery";
-import AllCreators from "@/components/ContentCreator/AllCreators";
-import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import TableCreators from "@/components/ContentCreator/TableCreators";
 import { FeedTabs } from "@/components/Nostr/feed";
 import { logClickedEvent } from "@/lib/analytics";
+import PumpComponent from "../launchpad/PumpComponent";
 
 export default function DiscoverComponent() {
 
   // const searchParams = useSearchParams()
   // const query = searchParams.get("query")
 
-  const [activeTab, setActiveTab] = useState<"brand" | "creator" | "topic" | "feed">("brand");
+  const [activeTab, setActiveTab] = useState<"brand" | "creator" | "topic" | "feed" | "launchpad">("brand");
 
   return (
     <div className="flex flex-col gap-4">
@@ -25,18 +23,23 @@ export default function DiscoverComponent() {
 
         <h1 className="text-3xl font-bold">Discover</h1>
 
-        <div className="flex flex-row gap-4">
-          <button className={`px-4 py-2 rounded-md ${activeTab === "brand" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => {
+        <div className="flex flex-row gap-4 overflow-x-auto">
+          <button className={`px-4 py-2 rounded-md ${activeTab === "brand" ? "bg-gray-800 text-white" : "border border-gray-300"}`} onClick={() => {
             setActiveTab("brand")
             logClickedEvent("discover_brand", "click")
           }}>Brands</button>
-          <button className={`px-4 py-2 rounded-md ${activeTab === "creator" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => {
+          <button className={`px-4 py-2 rounded-md ${activeTab === "creator" ? "bg-gray-800 text-white" : "border border-gray-300"}`} onClick={() => {
             setActiveTab("creator")
             logClickedEvent("discover_creator", "click")
 
           }}>Creators</button>
+          <button className={`px-4 py-2 rounded-md ${activeTab === "launchpad" ? "bg-gray-700" : "border border-gray-300"}`} onClick={() => {
+            setActiveTab("launchpad")
+            logClickedEvent("discover_launchpad", "click", "discover_launchpad")
+
+          }}>Launchpad</button>
           {/* <button className={`px-4 py-2 rounded-md ${activeTab === "topic" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => setActiveTab("topic")}>Topics</button> */}
-          <button className={`px-4 py-2 rounded-md ${activeTab === "feed" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => {
+          <button className={`px-4 py-2 rounded-md ${activeTab === "feed" ? "bg-gray-700" : "border border-gray-300"}`} onClick={() => {
             setActiveTab("feed")
             logClickedEvent("discover_feed", "click", "discover_feed")
 
@@ -82,6 +85,11 @@ export default function DiscoverComponent() {
         </>
       )}
 
+      {activeTab === "launchpad" && (
+        <>
+          <PumpComponent />
+        </>
+      )}
 
     </div>
   );
