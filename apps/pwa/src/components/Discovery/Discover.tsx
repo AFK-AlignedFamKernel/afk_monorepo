@@ -16,7 +16,7 @@ export default function DiscoverComponent() {
   const [activeTab, setActiveTab] = useState<"brand" | "creator" | "topic" | "feed" | "launchpad">("brand");
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-1">
 
 
       <div className="p-4">
