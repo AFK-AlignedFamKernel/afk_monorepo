@@ -15,12 +15,12 @@ pub mod LaunchpadMarketplace {
     use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
 
     use afk_launchpad::types::launchpad_types::{
-        ADMIN_ROLE, AdminsFeesParams, BondingType, BuyToken, CreateLaunch, CreateToken,
-        CreatorFeeDistributed, EkuboLP, EkuboPoolParameters, EkuboUnrugLaunchParameters,
-        LiquidityCanBeAdded, LiquidityCreated, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch,
-        MetadataLaunchParams, SellToken, SetJediswapNFTRouterV2, SetJediswapV2Factory,
-        SharesTokenUser, StoredName, SupportedExchanges, Token, TokenClaimed, TokenLaunch,
-        TokenQuoteBuyCoin,
+        ADMIN_ROLE, AdminsFeesParams, BondingType, BuyToken, CollectedFees, CreateLaunch,
+        CreateToken, CreatorFeeDistributed, EkuboLP, EkuboPoolParameters,
+        EkuboUnrugLaunchParameters, LiquidityCanBeAdded, LiquidityCreated, MINTER_ROLE,
+        MetadataCoinAdded, MetadataLaunch, MetadataLaunchParams, SellToken, SetJediswapNFTRouterV2,
+        SetJediswapV2Factory, SharesTokenUser, StoredName, SupportedExchanges, Token, TokenClaimed,
+        TokenLaunch, TokenQuoteBuyCoin,
         // MemecoinCreated, MemecoinLaunched
     };
     use core::num::traits::Zero;
@@ -186,6 +186,7 @@ pub mod LaunchpadMarketplace {
         TokenClaimed: TokenClaimed,
         MetadataCoinAdded: MetadataCoinAdded,
         CreatorFeeDistributed: CreatorFeeDistributed,
+        CollectedFees: CollectedFees,
         #[flat]
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
@@ -548,7 +549,7 @@ pub mod LaunchpadMarketplace {
         // Threshold is setup by the admin and save in the pool struct (in case we change)
         fn create_and_launch_token(
             ref self: ContractState,
-            owner:ContractAddress,
+            owner: ContractAddress,
             symbol: ByteArray,
             name: ByteArray,
             initial_supply: u256,
@@ -1073,6 +1074,41 @@ pub mod LaunchpadMarketplace {
                         creator_fee_destination: launch.creator_fee_destination,
                         memecoin_address: coin_address,
                     },
+                );
+        }
+
+
+        fn admin_collect_fees(
+            ref self: ContractState, coin_address: ContractAddress, recipient: ContractAddress,
+        ) {
+            let caller = get_contract_address();
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            let mut launch = self.launched_coins.read(coin_address);
+            assert(launch.is_liquidity_launch, errors::NOT_LAUNCHED_YET);
+            let unrug_address = self.unrug_liquidity_address.read();
+            let unrug = IUnrugLiquidityDispatcher { contract_address: unrug_address };
+
+            let (id, fees0, fees1) = unrug
+                .collect_fees(coin_address, launch.token_quote.token_address, recipient);
+
+            self.emit(CollectedFees { id: id, caller: caller, fees0: fees0, fees1: fees1, recipient: recipient });
+        }
+
+        fn collect_fees_owner(ref self: ContractState, coin_address: ContractAddress) {
+            let caller = get_contract_address();
+            let mut launch = self.launched_coins.read(coin_address);
+            assert(launch.is_liquidity_launch, errors::NOT_LAUNCHED_YET);
+            let owner_of_token = self.owner_of_token.read(coin_address);
+            assert(owner_of_token == caller, errors::CALLER_NOT_OWNER);
+            let unrug_address = self.unrug_liquidity_address.read();
+            let unrug = IUnrugLiquidityDispatcher { contract_address: unrug_address };
+
+            let (id, fees0, fees1) = unrug
+                .collect_fees(coin_address, launch.token_quote.token_address, owner_of_token);
+
+            self
+                .emit(
+                    CollectedFees { id: id, caller: caller, fees0: fees0, fees1: fees1, recipient: owner_of_token },
                 );
         }
 

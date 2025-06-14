@@ -241,6 +241,11 @@ pub mod UnrugLiquidity {
     impl UnrugLiquidity of IUnrugLiquidity<ContractState> {
         // ADMIN
 
+        fn set_launchpad_address(ref self: ContractState, launchpad_address: ContractAddress) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.launchpad_address.write(launchpad_address);
+        }
+
         fn set_token(ref self: ContractState, token_quote: TokenQuoteBuyCoin) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_tokens_buy_enable.entry(token_quote.token_address).write(token_quote);
@@ -423,8 +428,8 @@ pub mod UnrugLiquidity {
             token_address: ContractAddress,
             quote_address: ContractAddress,
             recipient: ContractAddress,
-        ) {
-            self
+        ) -> (u64, u128, u128) {
+            let (id, fees0, fees1) = self
                 ._collect_fees(
                     token_address,
                     WithdrawFeesCallback {
@@ -433,6 +438,7 @@ pub mod UnrugLiquidity {
                         quote_address: quote_address,
                     },
                 );
+            (id, fees0, fees1)
         }
 
 

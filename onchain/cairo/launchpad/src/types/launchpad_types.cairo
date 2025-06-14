@@ -482,6 +482,17 @@ pub struct FeesCollected {
 }
 
 #[derive(Drop, starknet::Event)]
+pub struct CollectedFees {
+    #[key]
+    pub id: u64,
+    #[key]
+    pub caller: ContractAddress,
+    pub fees0: u128,
+    pub fees1: u128,
+    pub recipient: ContractAddress,
+}
+
+#[derive(Drop, starknet::Event)]
 pub struct TokenClaimed {
     #[key]
     pub token_address: ContractAddress,

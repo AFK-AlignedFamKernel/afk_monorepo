@@ -57,7 +57,7 @@ pub trait IUnrugLiquidity<TContractState> {
         token_address: ContractAddress,
         quote_address: ContractAddress,
         recipient: ContractAddress,
-    );
+    ) -> (u64, u128, u128);
 
     // Views
     fn get_default_token(self: @TContractState) -> TokenQuoteBuyCoin;
@@ -92,4 +92,5 @@ pub trait IUnrugLiquidity<TContractState> {
         ref self: TContractState, new_ekubo_registry_address: ContractAddress,
     );
     fn set_lock_manager_address(ref self: TContractState, lock_manager_address: ContractAddress);
+    fn set_launchpad_address(ref self: TContractState, launchpad_address: ContractAddress);
 }
