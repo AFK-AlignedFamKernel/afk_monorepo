@@ -1,8 +1,9 @@
 'use client';
 import React from 'react';
-import MenuHomeComponent from '@/components/menu/MenuHome';
+// import MenuHomeComponent from '@/components/menu/MenuHome';
 import { useAppStore } from '@/store/app';
 import DiscoverComponent from '@/components/Discovery/Discover';
+import OnboardingCheck from '@/components/Onboarding/OnboardingCheck';
 
 // Use inline Layout to avoid type issues
 export default function HomePage() {
@@ -11,7 +12,8 @@ export default function HomePage() {
   return (
     <div className="content">
       <DiscoverComponent />
-      <MenuHomeComponent />
+      <OnboardingCheck />
+      {/* <MenuHomeComponent /> */}
     </div>
   );
 }

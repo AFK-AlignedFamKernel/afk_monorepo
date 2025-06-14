@@ -26,8 +26,8 @@ export default function Onboarding() {
     };
 
     return (
-        <div className="flex flex-col justify-center items-center py-8 px-2">
-            <div className="w-full max-w-2xl rounded-2xl shadow-xl p-6 sm:p-10 flex flex-col items-center">
+        <div className="flex flex-col justify-center items-center py-2 px-2">
+            <div className="w-full max-w-2xl rounded-2xl p-6 sm:p-10 flex flex-col items-center">
                 <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2 text-primary">Welcome to AFK</h1>
                 <p className="text-base sm:text-lg text-center mb-6">Get started by telling us how you want to use the platform.</p>
 
@@ -48,14 +48,6 @@ export default function Onboarding() {
                             <span className="text-xs text-center">I want to explore and interact with content</span>
                         </button>
                         <button
-                            className="flex-1 min-w-[160px] h-[140px] sm:h-[180px] rounded-xl border-2 border-green-500 transition-all duration-200 flex flex-col items-center justify-center p-4 shadow-sm group focus:ring-2 focus:ring-green-300"
-                            onClick={() => { handleSelection('brand'); logClickedEvent('onboarding_brand', 'brand', 'onboarding', 1); }}
-                        >
-                            <Icon name="BrandIcon" size={36} className="mb-2 text-green-500 group-hover:scale-110 transition-transform" />
-                            <span className="text-lg font-semibold mb-1">Brand</span>
-                            <span className="text-xs text-center">Manage brand and create contests</span>
-                        </button>
-                        <button
                             className="flex-1 min-w-[160px] h-[140px] sm:h-[180px] rounded-xl border-2 border-purple-500 transition-all duration-200 flex flex-col items-center justify-center p-4 shadow-sm group focus:ring-2 focus:ring-purple-300"
                             onClick={() => { handleSelection('creator'); logClickedEvent('onboarding_creator', 'creator', 'onboarding', 1); }}
                         >
@@ -63,6 +55,15 @@ export default function Onboarding() {
                             <span className="text-lg font-semibold mb-1">Creator</span>
                             <span className="text-xs text-center">I want to create and manage content</span>
                         </button>
+                        <button
+                            className="flex-1 min-w-[160px] h-[140px] sm:h-[180px] rounded-xl border-2 border-green-500 transition-all duration-200 flex flex-col items-center justify-center p-4 shadow-sm group focus:ring-2 focus:ring-green-300"
+                            onClick={() => { handleSelection('brand'); logClickedEvent('onboarding_brand', 'brand', 'onboarding', 1); }}
+                        >
+                            <Icon name="BrandIcon" size={36} className="mb-2 text-green-500 group-hover:scale-110 transition-transform" />
+                            <span className="text-lg font-semibold mb-1">Brand</span>
+                            <span className="text-xs text-center">Manage brand and create contests</span>
+                        </button>
+
                     </div>
                 )}
 

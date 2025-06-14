@@ -323,13 +323,13 @@ const Layout = ({ children }: LayoutProps) => {
               Launchpad
             </Link>
 
-            <Link href="/discover" className="sidebar-nav-item" onClick={() => {
+            {/* <Link href="/discover" className="sidebar-nav-item" onClick={() => {
               logClickedEvent("go_to_discover", "click", "link_drawer")
               closeSidebar()
             }}>
               <Icon name="DiscoverIcon" size={24} />
               Discover
-            </Link>
+            </Link> */}
 
             <Link href="/wallet" className="sidebar-nav-item" onClick={() => {
               logClickedEvent("go_to_wallet", "click", "link_drawer")

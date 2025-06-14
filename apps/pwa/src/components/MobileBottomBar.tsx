@@ -176,7 +176,7 @@ const MobileBottomBar = () => {
             </button>
           </Link> */}
 
-          <Link href="/discover">
+          {/* <Link href="/discover">
 
             <button className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
               <div className="flex h-8 items-center justify-center">
@@ -185,7 +185,7 @@ const MobileBottomBar = () => {
               </div>
               <p className="text-xs font-medium leading-normal tracking-[0.015em]">Discover</p>
             </button>
-          </Link>
+          </Link> */}
           <Link href="/create">
             <button className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
               <div className="flex h-8 items-center justify-center">

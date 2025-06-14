@@ -34,13 +34,13 @@ export default function DiscoverComponent() {
             setActiveTab("launchpad")
             logClickedEvent("discover_launchpad", "click", "discover_launchpad")
 
-          }}>Launchpad</button>
+          }}>Tokens</button>
           {/* <button className={`px-4 py-2 rounded-md ${activeTab === "topic" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => setActiveTab("topic")}>Topics</button> */}
           <button className={`px-4 py-2 rounded-md ${activeTab === "feed" ? "border border-green-500" : ""}`} onClick={() => {
             setActiveTab("feed")
             logClickedEvent("discover_feed", "click", "discover_feed")
 
-          }}>Feeds</button>
+          }}>Feed</button>
         </div>
 
 
@@ -83,9 +83,9 @@ export default function DiscoverComponent() {
       )}
 
       {activeTab === "launchpad" && (
-        <>
+        <div className="px-4">
           <PumpComponent />
-        </>
+        </div>
       )}
 
     </div>

@@ -12,6 +12,7 @@ import { useCreatorsStore } from '@/store/creators';
 import { IContentCreator } from '@/types/brand';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Icon } from '../small/icon-component';
 
 export const TableCreators: React.FC = () => {
   const { user, session } = useAppStore();
@@ -38,8 +39,12 @@ export const TableCreators: React.FC = () => {
       // console.log("res", res)
       setCreators(res);
       setContentCreatorsStore(res);
+      setIsFetchContentDone(true)
     } catch (error) {
       console.error("Error fetching creators:", error);
+    }
+    finally {
+      setIsFetchContentDone(true)
     }
   };
 
@@ -88,16 +93,23 @@ export const TableCreators: React.FC = () => {
 
   // console.log("creators", creators)
   return (
-    <div className="rounded-xl shadow-lg bg-card p-4 w-full max-w-3xl mx-auto overflow-x-auto">
+    <div className="rounded-xl shadow-lg bg-card p-4 w-full md:max-w-3xl mx-auto overflow-x-auto">
       {/* <h3 className="text-sm font-semibold mb-2">All Connected & Verified Creators</h3> */}
-      {/* <div className="flex flex-row justify-center">
-        <button className="bg-blue-500 text-white p-2 rounded-md" onClick={() => {
-          setIsFetchContentDone(false)
-          fetchCreators()
-        }}>
-          Refresh
-        </button>
-      </div> */}
+
+      {creators.length === 0 && (
+        <div className="flex flex-row justify-center">
+          <p className="text-sm text-muted-foreground">No creators found</p>
+          <div className="flex flex-row justify-center">
+            <button className="bg-blue-500 text-white p-2 rounded-md" onClick={() => {
+              setIsFetchContentDone(false)
+              fetchCreators()
+            }}>
+              <Icon name="RefreshIcon" className="w-4 h-4" />
+            </button>
+          </div>
+
+        </div>
+      )}
 
       <table className="min-w-full text-sm">
 
@@ -147,7 +159,7 @@ export const TableCreators: React.FC = () => {
                                 {platform?.name}
                               </p> */}
                               <Link href={`https://x.com/${platform?.identity_data?.user_name ?? platform?.identity_data?.name}`} target="_blank" rel="noopener noreferrer">
-                                <Image src="/assets/icons/twitter.svg" alt="Twitter" width={20} height={20} className="hover:opacity-80" />
+                                <Image src="/assets/icons/twitter.svg" alt="Twitter" width={20} height={20} className="hover:opacity-80 bg-gray-500 rounded-full p-1" />
                               </Link>
                             </div>
                           )
