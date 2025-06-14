@@ -136,6 +136,7 @@ export const TableCreators: React.FC = () => {
                   {creator.identities && (
                     <div className="flex gap-2 mt-2">
                       {Object.entries(creator.identities).map(([platformIndex, platform]: [string, any]) => {
+
                         if (platform && typeof platform === 'object' && 'provider' in platform && platform.provider === "twitter") {
                           return (
                             <div key={platformIndex}>
@@ -145,7 +146,7 @@ export const TableCreators: React.FC = () => {
                               >
                                 {platform?.name}
                               </p> */}
-                              <Link href={`https://x.com/${platform?.name}`} target="_blank" rel="noopener noreferrer">
+                              <Link href={`https://x.com/${platform?.identity_data?.user_name ?? platform?.identity_data?.name}`} target="_blank" rel="noopener noreferrer">
                                 <Image src="/assets/icons/twitter.svg" alt="Twitter" width={20} height={20} className="hover:opacity-80" />
                               </Link>
                             </div>
@@ -163,7 +164,6 @@ export const TableCreators: React.FC = () => {
                       })}
                     </div>
                   )}
-
                 </td>
                 <td>
                   <Link href={`/content-creator/profile/${creator.slug_name}`}>

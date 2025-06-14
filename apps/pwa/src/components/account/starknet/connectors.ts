@@ -12,9 +12,30 @@ import { InjectedConnector } from "starknetkit/injected"
 import { WebWalletConnector } from "starknetkit/webwallet"
 import { getStarknet } from "@starknet-io/get-starknet-core"
 import { ControllerConnector } from "@cartridge/connector"
+import { sepolia, mainnet } from "@starknet-react/chains";
+import {
+  StarknetConfig,
+  publicProvider,
+  argent,
+  braavos,
+  useInjectedConnectors,
+  voyager,
+  Connector,
+  jsonRpcProvider,
+  cartridgeProvider,
+} from "@starknet-react/core";
+// const cartridgeConnector = new ControllerConnector({
+//   url: cartridgeProvider()?.nodeUrl ?? 'https://api.cartridge.gg/x/starknet/sepolia',
+//   // url: 'https://api.cartridge.gg/x/starknet/sepolia',
+//   defaultChainId: CHAIN_ID,
+//   chains: [
+//     {
+//       rpcUrl: cartridgeProvider()?.nodeUrl ?? 'https://api.cartridge.gg/x/starknet/sepolia',
+//     },
+//   ],
+// });
 
 const cartridgeConnector = new ControllerConnector({
-  // url: cartridgeProvider()?.nodeUrl ?? 'https://api.cartridge.gg/x/starknet/sepolia',
   url: 'https://api.cartridge.gg/x/starknet/sepolia',
   defaultChainId: CHAIN_ID,
   chains: [
