@@ -55,7 +55,9 @@ export class SellTokenService {
       let newLiquidityRaised =
         Number(tokenLaunchRecord.liquidity_raised ?? 0) -
         effectiveQuoteAmount;
-        
+
+      let newCreatorFeeRaised = Number(tokenLaunchRecord.creator_fee_raised ?? 0) + Number(data.creatorFee);
+
       if (!tokenLaunchRecord) {
         this.logger.warn(
           `Record with memecoin address ${data.memecoinAddress} doesn't exists`,
@@ -67,6 +69,10 @@ export class SellTokenService {
         newLiquidityRaised =
           Number(tokenLaunchRecord.liquidity_raised ?? 0) -
           effectiveQuoteAmount;
+
+        newCreatorFeeRaised =
+          Number(tokenLaunchRecord.creator_fee_raised ?? 0) +
+          Number(data.creatorFee);
 
         const maxLiquidityRaised = tokenLaunchRecord?.threshold_liquidity;
 
@@ -127,6 +133,7 @@ export class SellTokenService {
             total_token_holded: newTotalTokenHolded.toString(),
             price: price?.toString(),
             market_cap: marketCap,
+            creator_fee_raised: newCreatorFeeRaised.toString(),
           },
         });
       }
@@ -197,6 +204,7 @@ export class SellTokenService {
           protocol_fee: data.protocolFee,
           time_stamp: data.timestamp,
           transaction_type: data.transactionType,
+          creator_fee_amount: data.creatorFee,
         },
       });
 

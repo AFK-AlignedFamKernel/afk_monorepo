@@ -1,6 +1,8 @@
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import { UserJwtPayload } from '../../types';
 import { SocialVerificationService } from '../../services/social/verification.service';
+import { supabaseAuthMiddleware } from '../../middleware/supabase-auth';
+import { supabaseAdmin } from '../../services/supabase';
 
 interface LinkAccountBody {
     platform: string;
@@ -9,27 +11,61 @@ interface LinkAccountBody {
 
 interface VerifyAccountBody {
     platform: string;
+    verification_code: string;
 }
 
 export default async function profileRoutes(fastify: FastifyInstance) {
     const socialVerificationService = new SocialVerificationService(fastify.prisma);
 
+
+    fastify.get('/social/code-generated', {
+        preHandler: supabaseAuthMiddleware
+    }, async (request, reply) => {
+        console.log('social/code-generated');
+        console.log('request.user', request.user);
+        if (!request.user) {
+            return reply.status(401).send({ error: 'Unauthorized' });
+        }
+
+        const { data, error } = await supabaseAdmin.from('social_verification_codes').select('*').eq('user_id', request.user.id);
+
+        console.log('data', data);
+        console.log('error', error);
+        if (error) {
+            return reply.status(500).send({ error: error.message });
+        }
+
+        return reply.send({
+            success: true,
+            data: data,
+        });
+    });
     // Link social account
     fastify.post<{ Body: LinkAccountBody }>('/social/link-account', {
-        preHandler: fastify.authenticate
+        preHandler: supabaseAuthMiddleware
     }, async (request, reply) => {
         try {
+            console.log('request.user', request.user);
             if (!request.user) {
                 return reply.status(401).send({ error: 'Unauthorized' });
             }
-
             const { platform, handle } = request.body;
 
-            const verificationCode = await socialVerificationService.generateVerificationCode(
-                request.user.id,
+
+            const verificationCode = await socialVerificationService.generateVerificationCode(request.user.id, platform, handle);
+
+            console.log('verificationCode', verificationCode);
+            const { data, error } = await supabaseAdmin.from('social_verification_codes').insert({
+                user_id: request.user.id,
                 platform,
-                handle
-            );
+                handle,
+                verification_code: verificationCode,
+            });
+
+
+            console.log('data', data);
+            console.log('error', error);
+
 
             return reply.send({
                 success: true,
@@ -39,26 +75,42 @@ export default async function profileRoutes(fastify: FastifyInstance) {
                 },
             });
         } catch (error) {
-            request.log.error(error);
+            // request.log.error(error);
+            console.log('error', error);
             return reply.status(500).send({ error: 'Failed to link account' });
         }
     });
 
     // Verify social account
     fastify.post<{ Body: VerifyAccountBody }>('/social/verify-account', {
-        preHandler: fastify.authenticate
+        preHandler: supabaseAuthMiddleware
     }, async (request, reply) => {
         try {
             if (!request.user) {
                 return reply.status(401).send({ error: 'Unauthorized' });
             }
 
-            const { platform } = request.body;
+            const { platform, verification_code } = request.body;
+
+
+            const { data, error } = await supabaseAdmin.from('social_verification_codes').select('*').eq('user_id', request.user.id).eq('platform', platform).eq('verification_code', verification_code).eq('is_verified', false).single();
+
+            console.log('data', data);
+            console.log('error', error);
+
+            if (error) {
+                return reply.status(500).send({ error: error.message });
+            }
+            if (!data) {
+                return reply.status(400).send({ error: 'Verification code not found' });
+            }
 
             const isVerified = await socialVerificationService.verifyAccount(
-                request.user.id,
-                platform
+                data.handle,
+                data.platform,
+                data.verification_code
             );
+            console.log('isVerified', isVerified);
 
             if (!isVerified) {
                 return reply.status(400).send({

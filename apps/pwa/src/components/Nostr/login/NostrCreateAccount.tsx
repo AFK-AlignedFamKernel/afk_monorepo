@@ -7,6 +7,7 @@ import { generateRandomKeypair } from '../../../../../../packages/afk_nostr_sdk/
 import * as bip39 from 'bip39';
 import { useUIStore } from '@/store/uiStore';
 import { Icon } from '@/components/small/icon-component';
+import { logClickedEvent } from '@/lib/analytics';
 
 export default function NostrCreateAccountComponent() {
     const [passkey, setPasskey] = useState(false);
@@ -58,6 +59,7 @@ export default function NostrCreateAccountComponent() {
             NostrKeyManager?.setNostrWalletConnectedStorage({ secretKey: privateKey, publicKey, mnemonic: '', seed: seedCashu });
 
 
+
             showToast({
                 message: 'Account created successfully',
                 type: 'success',
@@ -75,6 +77,8 @@ export default function NostrCreateAccountComponent() {
                     })
                 }
             })
+            await logClickedEvent('create_account', 'nostr', 'create_account', 1)
+
 
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to set private key');

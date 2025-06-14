@@ -17,6 +17,7 @@ import { ProfileManagement } from '@/components/profile/profile-management';
 import { AvatarIcon } from './small/icons';
 import AccordionMenu from './small/AccordionMenu';
 import MobileBottomBar from './MobileBottomBar';
+import { logClickedEvent } from '@/lib/analytics';
 
 interface LayoutProps {
   children: ReactNode;
@@ -228,12 +229,18 @@ const Layout = ({ children }: LayoutProps) => {
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''} `}>
         <div className="logo">
-          <a href="/" onClick={closeSidebar}>AFK</a>
+          <Link href="/" onClick={() => {
+            logClickedEvent("home", "click", "link_drawer")
+            closeSidebar()
+          }}>AFK</Link>
         </div>
 
         <div className="sidebar-nav overflow-y-hidden scrollbar-hide">
           <div className="sidebar-nav-header">
-            <a href="/" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Link href="/" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("home", "click", "link_drawer")
+              closeSidebar()
+            }}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
                   d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
@@ -251,7 +258,15 @@ const Layout = ({ children }: LayoutProps) => {
                 />
               </svg>
               Home
-            </a>
+            </Link>
+
+            <Link href="/create" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("create", "click", "link_drawer")
+              closeSidebar()
+            }}>
+              <Icon name="AddPostIcon" size={24} />
+              Create</Link>
+
 
             <div className='sidebar-nav-item'>
               <AccordionMenu title="Nostr"
@@ -260,18 +275,31 @@ const Layout = ({ children }: LayoutProps) => {
                   icon: (<Icon name="SocialNostr" size={24}></Icon>),
                   content: (
                     <>
-                      <Link href="/nostr/feed" className="sidebar-nav-item" onClick={closeSidebar}>
+                      <Link href="/nostr/feed" className="sidebar-nav-item" onClick={() => {
+                        logClickedEvent("nostr_feed", "click", "link_drawer")
+                        closeSidebar()
+                      }}>
                         <Icon name="FeedIcon" size={24} />
 
                         Feed
                       </Link>
-                      <Link href="/nostr/my-profile" className="sidebar-nav-item" onClick={closeSidebar}>
-                        <Icon name="UserIcon" size={24} />
+                      <Link href="/nostr/my-profile" className="sidebar-nav-item" onClick={() => {
+                        logClickedEvent("nostr_my_profile", "click", "link_drawer")
+                        closeSidebar()
+                      }}>
+                        <Icon name="UserIcon" size={24}
+
+
+                        />
 
                         My Profile
                       </Link>
-                      <Link href="/nostr/login" className="sidebar-nav-item" onClick={closeSidebar}>
-                        <Icon name="LoginIcon" size={24} />
+                      <Link href="/nostr/login" className="sidebar-nav-item" onClick={() => {
+                        logClickedEvent("nostr_login", "click", "link_drawer")
+                        closeSidebar()
+                      }}>
+                        <Icon name="LoginIcon" size={24}
+                        />
                         Login
                       </Link>
 
@@ -286,78 +314,41 @@ const Layout = ({ children }: LayoutProps) => {
                 ]} />
             </div>
 
-            {/* <Link href="/wallet" className="sidebar-nav-item" onClick={closeSidebar}>
-              <Icon name="WalletIcon" size={24} />
-              Wallet
+
+            <Link href="/launchpad" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("go_to_launchpad", "click", "link_drawer")
+              closeSidebar()
+            }}>
+              <Icon name="UpwardTrendGraphIcon" size={24} />
+              Launchpad
+            </Link>
+
+            {/* <Link href="/discover" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("go_to_discover", "click", "link_drawer")
+              closeSidebar()
+            }}>
+              <Icon name="DiscoverIcon" size={24} />
+              Discover
             </Link> */}
 
+            <Link href="/wallet" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("go_to_wallet", "click", "link_drawer")
+              closeSidebar()
+            }}>
+              <Icon name="WalletIcon" size={24} />
+              Wallet
+            </Link>
 
-            <Link href="/profile" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Link href="/profile" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("go_to_profile", "click", "link_drawer")
+              closeSidebar()
+            }}>
               <Icon name="UserIcon" size={24} />
-
               Profile
             </Link>
 
-            <Link href="/create" className="sidebar-nav-item" onClick={closeSidebar}>
-              <Icon name="AddPostIcon" size={24} />
-              Create</Link>
 
-            <Link href="/launchpad" className="sidebar-nav-item" onClick={closeSidebar}>
-              <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect
-                  x="3"
-                  y="3"
-                  width="18"
-                  height="18"
-                  rx="2"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1="3"
-                  y1="9"
-                  x2="21"
-                  y2="9"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1="3"
-                  y1="15"
-                  x2="21"
-                  y2="15"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1="9"
-                  y1="3"
-                  x2="9"
-                  y2="21"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1="15"
-                  y1="3"
-                  x2="15"
-                  y2="21"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Launchpad
-            </Link>
+
             <div className="flex items-center gap-4">
               <button className="btn btn-gradient-green" onClick={() => showModal(<ProfileManagement />)}>
                 Connect
@@ -459,7 +450,7 @@ const Layout = ({ children }: LayoutProps) => {
             </button>
 
             <div className="sidebar-nav-copyright">
-              © {new Date().getFullYear()} AFK
+              AFK © {new Date().getFullYear()}
             </div>
           </div>
         </div>

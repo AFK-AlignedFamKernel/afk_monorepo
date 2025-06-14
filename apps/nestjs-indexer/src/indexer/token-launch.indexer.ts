@@ -92,6 +92,8 @@ export class TokenLaunchIndexer {
       thresholdLiquidityLow,
       thresholdLiquidityHigh,
       bondingTypeFelt,
+      creatorFeePercentLow,
+      creatorFeePercentHigh,
     ] = event.data;
 
     const amountRaw = uint256.uint256ToBN({
@@ -132,6 +134,12 @@ export class TokenLaunchIndexer {
 
     console.log('bondingType', bondingType);
 
+    const creatorFeePercentRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(creatorFeePercentLow),
+      high: FieldElement.toBigInt(creatorFeePercentHigh),
+    });
+    const creatorFeePercent = formatUnits(creatorFeePercentRaw, 2).toString();
+
     const data = {
       transactionHash,
       network: 'starknet-sepolia',
@@ -146,6 +154,7 @@ export class TokenLaunchIndexer {
       ownerAddress,
       bondingType,
       thresholdLiquidity,
+      creatorFeePercent,
     };
 
     await this.tokenLaunchService.create(data);

@@ -13,7 +13,14 @@ interface DeployLaunchByUserParams {
 async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions) {
   fastify.get('/deploy-launch', async (request, reply) => {
     try {
+      const { offset = 0, limit = 20 } = request.query as { offset?: number; limit?: number };
+      
       const launches = await prisma.token_launch.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          liquidity_raised: 'desc',
+        },
         select: {
           memecoin_address: true,
           quote_token: true,
@@ -22,38 +29,37 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           liquidity_raised: true,
           network: true,
           created_at: true,
-          threshold_liquidity:true,
-          bonding_type:true,
-          total_token_holded:true,
-          block_timestamp:true,
-          is_liquidity_added:true,
-          market_cap:true,
-          // name:true,
-          // symbol:true,
-          // token_metadata:{
-          //   select:{
-          //     url:true,
-          //   }
-          // },
-          name:true,
-          symbol:true,
-          url:true,
+          threshold_liquidity: true,
+          initial_pool_supply_dex: true,
+          bonding_type: true,
+          total_token_holded: true,
+          block_timestamp: true,
+          is_liquidity_added: true,
+          market_cap: true,
+          name: true,
+          symbol: true,
+          url: true,
+          website: true,
+          twitter: true,
+          telegram: true,
           token_deploy: {
             select: {
               name: true,
               symbol: true,
             },
           },
-          // name:true,
-          // symbol:true,
-       
         },
       });
 
-      console.log("launches",launches)
+      const total = await prisma.token_launch.count();
 
       reply.status(HTTPStatus.OK).send({
         data: launches,
+        pagination: {
+          total,
+          offset,
+          limit,
+        },
       });
     } catch (error) {
       console.error('Error deploying launch:', error);
@@ -92,6 +98,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           block_timestamp:true,
           is_liquidity_added:true,
           market_cap:true,
+          initial_pool_supply_dex:true,
           url:true,
           name:true,
           symbol:true
@@ -146,7 +153,10 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           telegram:true,
           github:true,
           website:true,
+          initial_pool_supply_dex:true,
           ipfs_hash:true,
+          creator_fee_raised:true,
+          creator_fee_percent:true,
           token_deploy: {
             select: {
               name: true,
@@ -185,6 +195,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           price: true,
           coin_received: true,
           liquidity_raised: true,
+          protocol_fee: true,
           total_supply: true,
           network: true,
           transaction_type: true,
@@ -192,6 +203,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           quote_amount: true,
           transaction_hash: true,
           time_stamp: true,
+          creator_fee_amount: true,
         },
       });
 

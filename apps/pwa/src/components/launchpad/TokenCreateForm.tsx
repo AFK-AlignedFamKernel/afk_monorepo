@@ -33,7 +33,7 @@ const validationSchema = Yup.object().shape({
   bonding_type: Yup.string().required('Bonding type is required'),
   creator_fee_percent: Yup.number()
     .min(0, 'Fee must be positive')
-    .max(100, 'Fee cannot exceed 100%'),
+    .max(10, 'Fee cannot exceed 10%'),
   metadata: Yup.object().shape({
     // url: Yup.string().url('Must be a valid URL'),
     twitter: Yup.string(),
@@ -108,13 +108,13 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
       console.log('values', values);
 
       let metadata = {
-        url: values.metadata.url,
-        twitter: values.metadata.twitter,
-        github: values.metadata.github,
-        telegram: values.metadata.telegram,
-        website: values.metadata.website,
+        url: values.metadata?.url,
+        twitter: values.metadata?.twitter,
+        github: values.metadata?.github,
+        telegram: values.metadata?.telegram,
+        website: values.metadata?.website,
         description: values?.metadata?.description,
-        nostr_event_id: values.metadata.nostr_event_id,
+        nostr_event_id: values.metadata?.nostr_event_id,
         ipfs_hash: undefined,
         ipfs_url: undefined
       }
@@ -152,6 +152,8 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
     } catch (err) {
       onError?.(err as Error);
     }
+
+
   };
 
   return (
@@ -348,7 +350,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
                       placeholder="https://linktr.ee/afk_aligned_fam_kernel"
                       className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600"
                     />
-                    {errors?.metadata?.website && touched.metadata?.website && (
+                    {errors?.metadata && errors?.metadata?.website && touched?.metadata?.website && (
                       <p className="mt-1 text-sm text-red-600">{errors?.metadata?.website}</p>
                     )}
                   </div>
@@ -364,13 +366,18 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
 
             <button
               type="submit"
+              // onClick={() => {
+              //   console.log('test');
+              //   deployToken(initialValues);
+              // }}
               disabled={!address || isLoading}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Creating Token...' : 'Create Token'}
             </button>
 
-            <button
+            {/* 
+ <button
               type="button"
               onClick={() => {
                 console.log('test');
@@ -378,7 +385,9 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
               }}
             >
               Create token
-            </button>
+            // </button>
+ */}
+
           </Form>
         )}
       </Formik>

@@ -42,10 +42,10 @@ export const Holders: React.FC<HoldersProps> = ({ holders, loading, total_supply
         )}
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div className="rounded-lg shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 min-h-[300px] max-h-[300px] overflow-y-auto">
+            <thead className=" dark:bg-gray-700/50">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Address
@@ -61,21 +61,21 @@ export const Holders: React.FC<HoldersProps> = ({ holders, loading, total_supply
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 min-h-[300px] max-h-[300px] overflow-y-auto">
               {holders && holders.length > 0 && holders?.map((holder, index) => {
                 const amount = Number(holder.amount_owned) || 0;
                 const supplyPercentage = total_supply ? (amount / total_supply) * 100 : 0;
                 const distributionPercentage = totalAmount ? (amount / totalAmount) * 100 : 0;
                 
                 return (
-                  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
+                  <tr key={index} className=" transition-colors duration-150">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                       <span className="font-mono">{holder?.owner?.slice(0, 6)}...{holder?.owner?.slice(-4)}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {amount.toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm dark:text-gray-300">
                       <div className="flex items-center space-x-2">
                         <span>{supplyPercentage.toFixed(2)}%</span>
                         <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">

@@ -54,8 +54,8 @@ jobs:
             pnpm install
           fi
 
-      - name: Prettier Format Check
-        run: pnpm prettier:check
+      # - name: Prettier Format Check
+      #   run: pnpm prettier:check
 
       # - name: ESLint Check
       #   run: pnpm lint

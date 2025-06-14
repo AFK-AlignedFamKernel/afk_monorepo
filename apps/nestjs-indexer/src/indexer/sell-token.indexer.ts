@@ -99,6 +99,11 @@ export class SellTokenIndexer {
     });
     const amount = formatUnits(amountRaw, constants.DECIMALS).toString();
 
+    const creatorFeeRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(creatorFeeLow),
+      high: FieldElement.toBigInt(creatorFeeHigh),
+    });
+    const creatorFee = formatUnits(creatorFeeRaw, 18).toString();
 
     const protocolFeeRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(protocolFeeLow),
@@ -149,6 +154,7 @@ export class SellTokenIndexer {
       amount: Number(amount),
       price:"0",
       protocolFee,
+      creatorFee,
       lastPrice:"0",
       quoteAmount:Number(amount).toString(),
       timestamp,

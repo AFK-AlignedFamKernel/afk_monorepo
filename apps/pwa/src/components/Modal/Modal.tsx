@@ -85,28 +85,31 @@ export const Modal: React.FC<ModalProps> = ({
             )}
             onClick={(e) => e.stopPropagation()}
           >
-            {showCloseButton && (
-              <button
-                className="modal__close-button"
-                onClick={onClose}
-                aria-label="Close modal"
-              >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+
+            <div className='modal__content-container'>
+              {showCloseButton && (
+                <button
+                  className="modal__close-button"
+                  onClick={onClose}
+                  aria-label="Close modal"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            )}
-            {children}
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+              {children}
+            </div>
           </div>
         </div>
       </div>

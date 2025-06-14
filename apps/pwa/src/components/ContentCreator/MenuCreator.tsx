@@ -8,9 +8,14 @@ export default function MenuCreator() {
                     Create your profile
                 </button>
             </Link>
-            <Link href="/content-creator/shop">
+            {/* <Link href="/content-creator/shop">
                 <button className="bg-blue-500 text-white p-2 rounded-md">
                     Create your shop
+                </button>
+            </Link> */}
+            <Link href="/content-creator/discovery">
+                <button className="bg-blue-500 text-white p-2 rounded-md">
+                    Discover creators
                 </button>
             </Link>
         </div>

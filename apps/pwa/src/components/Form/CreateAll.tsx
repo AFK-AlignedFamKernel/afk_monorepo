@@ -6,10 +6,12 @@ import { NostrForm, NostrFormData } from '@/components/Form/NostrForm';
 import { useUIStore } from '@/store/uiStore';
 import { TokenCreateForm } from '../launchpad/TokenCreateForm';
 import { NostrArticleForm } from './NostrArticleForm';
+import { CreateBrandForm } from '../Brand/CreateBrandForm';
 enum CreateType {
   POST = 'post',
   ARTICLE = 'article',
   TOKEN = 'token',
+  BRAND = 'brand',
 }
 export default function CreateAll() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -53,10 +55,11 @@ export default function CreateAll() {
 
 
       <div className="flex flex-row gap-2"> 
-        <button className="btn btn-secondary" onClick={() => setCreateType(CreateType.POST)}>Post</button>
-        <button className="btn btn-secondary" onClick={() => setCreateType(CreateType.TOKEN)}>Token</button>
+        <button className={`btn btn-secondary ${createType === CreateType.POST ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.POST)}>Post</button>
+        <button className={`btn btn-secondary ${createType === CreateType.TOKEN ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.TOKEN)}>Token</button>
 
-        <button className="btn btn-secondary" onClick={() => setCreateType(CreateType.ARTICLE)}>Article</button>
+        <button className={`btn btn-secondary ${createType === CreateType.ARTICLE ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.ARTICLE)}>Article</button>
+        <button className={`btn btn-secondary ${createType === CreateType.BRAND ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.BRAND)}>Brand</button>
 
 
       </div>
@@ -80,6 +83,13 @@ export default function CreateAll() {
         <div>
           <h1>Token</h1>
           <TokenCreateForm></TokenCreateForm>
+        </div>
+      )}
+
+      {createType === CreateType.BRAND && (
+        <div>
+          <h1>Brand</h1>
+          <CreateBrandForm></CreateBrandForm>
         </div>
       )}
       

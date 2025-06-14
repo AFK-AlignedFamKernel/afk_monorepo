@@ -51,6 +51,7 @@ export class TokenLaunchService {
         );
         return;
       }
+      console.log('creatorFeePercent', data?.creatorFeePercent);
       await this.prismaService.token_launch.create({
         data: {
           network: data.network,
@@ -82,6 +83,7 @@ export class TokenLaunchService {
           image_url: deployToken.image_url,
           symbol: deployToken.symbol,
           total_token_holded: '0',
+          creator_fee_percent: data.creatorFeePercent,
         },
       });
 

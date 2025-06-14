@@ -71,6 +71,13 @@ input {
   text-wrap: nowrap;
 }
 
+select {
+  color: var(--contrast-900);
+  background-color: var(--contrast-500);
+  border: 1px solid var(--border);
+  text-wrap: nowrap;
+}
+
 // button {
 //   color: var(--contrast-900);
 //   background-color: var(--contrast-500);
@@ -111,6 +118,11 @@ a {
   }
 }
 
+table {
+  background-color: var(--background);
+  color: var(--contrast-900);
+}
+
 // Theme toggle styles
 .theme-toggle {
   display: flex;
@@ -149,8 +161,10 @@ a {
 .main-content {
   flex: 1;
   margin-left: $sidebar-width;
+  margin-right: $sidebar-width-right;
   min-height: 100vh;
-  width: calc(100% - $sidebar-width);
+  // width: calc(100% - $sidebar-width);
+  width: 100%;
   // padding: 0.5rem;
   background-color: var(--background);
   transition: margin-left 0.3s ease-in-out;
@@ -164,7 +178,7 @@ a {
 }
 
 .content {
-  max-width: 1200px;
+  // max-width: 1200px;
   // margin: 0 auto;
   width: 100%;
 }
@@ -211,6 +225,7 @@ a {
   padding: 2rem;
   border-left: 1px solid var(--border);
   background-color: var(--sidebar-bg);
+  color: var(--contrast-900);
   z-index: 1000;
   transition: transform 0.3s ease-in-out, background-color 0.2s ease-in-out;
 
@@ -233,7 +248,7 @@ a {
   // }
 }
 
-@media (min-width: $desktop-breakpoint) {
+@media (max-width: $desktop-breakpoint) {
   .sidebar-right {
     display: none;
   }
@@ -270,8 +285,8 @@ a {
 .sidebar-nav-right {
   display: flex;
   flex-direction: column;
-  height: 100%;
   // overflow-y: auto;
+  color: var(--contrast-900);
   overflow-y: auto;
   &::-webkit-scrollbar {
     display: none;
@@ -281,7 +296,7 @@ a {
   scrollbar-width: none;  /* Firefox */
 }
 
-@media (min-width: $desktop-breakpoint) {
+@media (max-width: $desktop-breakpoint) {
   .sidebar-nav-right {
     display: none;
   }
@@ -466,7 +481,7 @@ button.sidebar-nav-footer-item {
   background-color: var(--card-bg);
   border-radius: 8px;
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  // margin-bottom: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid var(--border);
   transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
@@ -519,6 +534,7 @@ button.sidebar-nav-footer-item {
   }
 }
 
+
 // Mobile styles
 @media (max-width: 768px) {
   .page {
@@ -541,8 +557,8 @@ button.sidebar-nav-footer-item {
 
   .sidebar {
     transform: translateX(-100%);
-    width: 80%;
-    max-width: 300px;
+    width: 70%;
+    max-width: 200px;
     height: 100vh;
     transition: transform 0.3s ease-in-out;
     z-index: 1000;

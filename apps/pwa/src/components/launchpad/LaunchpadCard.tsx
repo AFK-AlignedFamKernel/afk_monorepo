@@ -47,7 +47,7 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
 
   return (
     <div className="card hover:shadow-lg transition-shadow duration-200">
-      <div className="flex justify-between items-start mb-4 gap-2">
+      <div className="flex justify-between items-start gap-2">
         <div className="flex justify-between items-center text-sm">
 
           {token?.url && (token?.url !== "" && token?.url !== null && token?.url !== undefined) && (

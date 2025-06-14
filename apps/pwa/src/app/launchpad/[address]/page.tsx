@@ -143,16 +143,10 @@ export default function LaunchpadDetailPage() {
         }))}
         onRemove={removeToast}
       />
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-end">
-          <button onClick={() => {
-            fetchData();
-          }}>
-            <Icon name="RefreshIcon" size={16} className="ml-1" />
-            Refresh
-          </button>
-        </div>
+      <div className="container mx-auto px-4 py-8 lg:grid lg:grid-cols-2 gap-8">
+
         <div className="lg:col-span-1 mb-8">
+
           <LaunchActionsForm
             launch={launchData}
             onBuyPress={handleBuy}
@@ -161,9 +155,16 @@ export default function LaunchpadDetailPage() {
             loading={actionLoading}
             memecoinAddress={address as string}
           />
+          <div className="flex justify-end">
+            <button onClick={() => {
+              fetchData();
+            }}>
+              <Icon name="RefreshIcon" size={16} className="ml-1" />
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-1">
           <div className="lg:col-span-2">
             <div className="space-y-6">
               <div className="flex space-x-2 rounded-xl p-1.5 dark:bg-gray-800 shadow-sm">

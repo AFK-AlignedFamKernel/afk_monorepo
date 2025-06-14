@@ -14,12 +14,22 @@ import Image from 'next/image';
 import { ProfileManagement } from '@/components/profile/profile-management';
 import { useUIStore } from '@/store/uiStore';
 import Accordion from './small/accordion';
+import { useLaunchpadStore } from '@/store/launchpad';
+import { useBrandStore } from '@/store/brand';
+import { useCreatorsStore } from '@/store/creators';
+import ListBrand from './Brand/ListBrand';
+import DiscoverComponent from './Discovery/Discover';
 
 interface RightBarDesktopProps {
   children?: ReactNode;
 }
 
 const RightBarDesktop = ({ children }: RightBarDesktopProps) => {
+
+
+  const { launchs, setLaunchs } = useLaunchpadStore();
+  const { brand } = useBrandStore();
+  const { contentCreators } = useCreatorsStore()
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -57,10 +67,18 @@ const RightBarDesktop = ({ children }: RightBarDesktopProps) => {
   }, [router]);
 
   return (
-    <aside className={`sidebar-right`}>
+    <aside className={`sm:hidden lg:block sidebar-right`}>
       <div className="sidebar-nav-right overflow-y-hidden scrollbar-hide">
-        <div className="sidebar-nav-header border-l border-gray-200">
+        <div className="sidebar-nav-header">
+          <Link href="/" className="sidebar-nav-item" onClick={closeSidebar}>
+            <Icon name="HomeIcon" size={24} />
+            Home
+          </Link>
+        </div>
+
+        <div className="sidebar-nav-header">
           <a href="/" className="sidebar-nav-item" onClick={closeSidebar}>
+
             <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
@@ -80,6 +98,9 @@ const RightBarDesktop = ({ children }: RightBarDesktopProps) => {
             Home
           </a>
 
+
+          <DiscoverComponent />
+
           <div className='sidebar-nav-item'>
             <Accordion title="Nostr"
               items={[{
@@ -87,16 +108,8 @@ const RightBarDesktop = ({ children }: RightBarDesktopProps) => {
                 icon: (<Icon name="SocialNostr" size={24}></Icon>),
                 content: (
                   <>
-                    <Link href="/nostr/feed" className="sidebar-nav-item" onClick={closeSidebar}>
-                      <Icon name="FeedIcon" size={24} />
-
-                      Feed
-                    </Link>
-                    <Link href="/nostr/my-profile" className="sidebar-nav-item" onClick={closeSidebar}>
-                      <Icon name="UserIcon" size={24} />
-
-                      My Profile
-                    </Link>
+                    <ListBrand  />
+                
                     <Link href="/nostr/login" className="sidebar-nav-item" onClick={closeSidebar}>
                       <Icon name="LoginIcon" size={24} />
                       Login
@@ -108,11 +121,6 @@ const RightBarDesktop = ({ children }: RightBarDesktopProps) => {
                   </>)
               },
               ]} />
-          </div>
-          <div className="flex items-center gap-4">
-            <button className="btn btn-gradient-green" onClick={() => showModal(<ProfileManagement />)}>
-              Connect
-            </button>
           </div>
 
         </div>

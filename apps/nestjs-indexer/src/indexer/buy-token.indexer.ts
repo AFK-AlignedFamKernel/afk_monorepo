@@ -88,6 +88,8 @@ export class BuyTokenIndexer {
       timestampFelt,
       quoteAmountLow,
       quoteAmountHigh,
+      creatorFeeLow,
+      creatorFeeHigh,
     ] = event.data;
 
     const amountRaw = uint256.uint256ToBN({
@@ -105,6 +107,12 @@ export class BuyTokenIndexer {
       protocolFeeRaw,
       constants.DECIMALS,
     ).toString();
+
+    const creatorFeeRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(creatorFeeLow),
+      high: FieldElement.toBigInt(creatorFeeHigh),
+    });
+    const creatorFee = formatUnits(creatorFeeRaw, 18).toString();
 
     const quoteAmountRaw = uint256.uint256ToBN({
       low: FieldElement.toBigInt(quoteAmountLow),
@@ -136,6 +144,7 @@ export class BuyTokenIndexer {
       quoteAmount,
       timestamp,
       transactionType: 'buy',
+      creatorFee,
     };
 
     await this.buyTokenService.create(data);

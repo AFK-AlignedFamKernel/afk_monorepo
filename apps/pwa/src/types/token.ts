@@ -42,7 +42,7 @@ export interface TokenResponse {
 } 
 
 
-export interface Launch {
+export interface ILaunchpadToken {
   memecoin_address: string;
   quote_token: string;
   price: string;
@@ -56,3 +56,37 @@ export interface Launch {
   block_timestamp: string;
   is_liquidity_added: boolean;
 }
+
+
+export interface ILaunch extends TokenDeployInterface {
+  token_address: string;
+  name: string;
+  symbol: string;
+  description?: string;
+  block_timestamp: string;
+  liquidity_raised?: number;
+  total_token_holded: string | null;
+  initial_pool_supply_dex?: string;
+  bonding_type?: string;
+  market_cap?: number;
+  price?: number;
+  url?: string;
+  is_liquidity_added?: boolean;
+  metadata?: MetadataOnchain;
+  creator_address?: string;
+}
+
+export interface TokenDeployInterface {
+  token_address: string;
+  name: string;
+  symbol: string;
+  description?: string;
+  block_timestamp: string;
+  creator_address?: string;
+  total_supply?: string;
+  decimals?: number;
+  launch_date?: string;
+  status?: 'pending' | 'active' | 'completed' | 'failed';
+  network?: string;
+  chain_id?: number;
+} 

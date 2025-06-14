@@ -76,7 +76,7 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
                 <button className={`btn btn-secondary ${activeTab == 'oauth' ? 'btn-active' : ''}`} onClick={() => setActiveTab('oauth')}>Oauth</button>
             </div>
             {activeTab === 'oauth' && (
-                <div className='card shadow'>
+                <div className='shadow p-4'>
                     <Oauth></Oauth>
                 </div>
             )}

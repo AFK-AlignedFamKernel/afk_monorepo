@@ -41,7 +41,7 @@
     transform: scale(0.95);
     opacity: 0;
     transition: all 0.3s ease-in-out;
-    background-color: var(--background);
+    background: var(--background);
     padding: 1.5rem;
     border-radius: 1rem;
     box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
@@ -50,13 +50,14 @@
     color: var(--text);
 
     .dark & {
-      background-color: var(--background);
+      background: var(--contrast-background);
       color: var(--text);
       box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
     }
 
     &--visible {
       transform: scale(1);
+      background: var(--gray-800);
       opacity: 1;
     }
 
@@ -162,6 +163,16 @@
     }
   }
 
+  &__content-container {
+
+    // background: var(--gray-100);
+    // padding: 1.5rem;
+    // border-radius: 1rem;
+    // box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    // max-height: calc(100vh - 2rem);
+    // overflow-y: auto;
+  }
+
   // Close button styling
   &__close-button {
     position: absolute;
@@ -182,4 +193,4 @@
       }
     }
   }
-} 
+}
