@@ -193,8 +193,13 @@ export class MetadataLaunchIndexer {
     ).toString();
 
     console.log("nostrEventId", nostrEventId);
-    // let i = 2;
-    let i = 3;
+    let i = 2;
+
+    if(event.data.length === 30){
+      i = 3;
+    }
+
+    // let i = 3;
     let ipfsHash = '';
     let ipfsUrl = '';
     let url = '';
@@ -297,10 +302,16 @@ export class MetadataLaunchIndexer {
     // i += 2;
     // i += 3;
 
-    await this.tryGetMetadata(bodyMetadata, ipfsUrl, ipfsHash);
+    if(ipfsUrl){
+      console.log("ipfsUrl", ipfsUrl);
+      bodyMetadata = await this.tryGetMetadata(bodyMetadata, ipfsUrl, ipfsHash);
+    }
 
 
-    bodyMetadata = await this.tryGetMetadata(bodyMetadata, ipfsUrl, description);
+    if(ipfsHash){
+      console.log("ipfsHash", ipfsHash);
+      bodyMetadata = await this.tryGetMetadata(bodyMetadata, ipfsHash, ipfsUrl);
+    }
 
     // try {
     //   twitter = byteArray.stringFromByteArray(twitterFelt as ByteArray);
@@ -326,6 +337,45 @@ export class MetadataLaunchIndexer {
     console.log("description", description);
 
     console.log("bodyMetadata", bodyMetadata);
+
+    if(!bodyMetadata){
+
+      console.log("bodyMetadata is null");
+      i++;
+      try {
+        while (i < event.data.length) {
+          const part = event.data[i];
+          const decodedPart = shortString.decodeShortString(
+            FieldElement.toBigInt(part).toString(),
+          );
+  
+          if (this.isNumeric(decodedPart)) {
+            i++;
+            break;
+          }
+  
+          ipfsUrl += decodedPart;
+          i++;
+        }
+        console.log("ipfsUrl", ipfsUrl);
+  
+        ipfsUrl = this.cleanString(ipfsUrl);
+        console.log("ipfsUrl", ipfsUrl);
+      } catch (error) {
+        console.log("error bytearray", error);
+      }
+
+      if(ipfsUrl){
+        console.log("ipfsUrl", ipfsUrl);
+        bodyMetadata = await this.tryGetMetadata(bodyMetadata, ipfsUrl, ipfsHash);
+      }
+
+      if(ipfsHash){
+        console.log("ipfsHash", ipfsHash);
+        bodyMetadata = await this.tryGetMetadata(bodyMetadata, ipfsHash, ipfsUrl);
+      }
+    }
+
     const data = {
       transferId,
       network: 'starknet-sepolia',

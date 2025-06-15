@@ -96,6 +96,10 @@ export const useCreateToken = () => {
       throw new Error('Wallet not connected');
     }
 
+    if (!account) {
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -124,13 +128,13 @@ export const useCreateToken = () => {
       const websiteByteArray = metadata?.website ? byteArray.byteArrayFromString(metadata?.website) : byteArray.byteArrayFromString('');
       const descriptionByteArray = metadata?.description ? byteArray.byteArrayFromString(metadata?.description) : byteArray.byteArrayFromString('');
 
-      const ipfsHash = metadata?.ipfs_hash ?  byteArray.byteArrayFromString(metadata?.ipfs_hash) : byteArray.byteArrayFromString("")
+      const ipfsHash = metadata?.ipfs_hash ? byteArray.byteArrayFromString(metadata?.ipfs_hash) : byteArray.byteArrayFromString("")
       const nostrEventIdUint = metadata?.nostr_event_id ? uint256.bnToUint256(`0x${metadata?.nostr_event_id}`) : cairo.uint256(0); // Recipient nostr pubkey
       const metadataLaunch = {
         token_address: address,
         nostr_event_id: nostrEventIdUint,
         url: urlMetadata,
-        ipfs_hash:ipfsHash,
+        ipfs_hash: ipfsHash,
         twitter: twitterByteArray,
         github: githubByteArray,
         telegram: telegramByteArray,
@@ -138,12 +142,18 @@ export const useCreateToken = () => {
         description: descriptionByteArray,
       };
 
+
+
+      if (!data?.recipient && !account?.address) {
+        return;
+      }
       // console.log("metadataLaunch", metadataLaunch);
 
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         entrypoint: 'create_and_launch_token',
         calldata: CallData.compile({
+          owner: data?.recipient ?? account?.address,
           name: nameByteArray,
           symbol: symbolByteArray,
           initialSupply: initial_supply,
@@ -185,17 +195,58 @@ export const useCreateToken = () => {
     }
   };
 
-  const launchToken = async (account: AccountInterface, coin_address: string) => {
+  const launchToken = async (coin_address: string,
+
+    creator_fee_percent?: number,
+    bonding_type?: BondingType,
+    creator_fee_destination?: string,
+  ) => {
     try {
+
+      if (!account) {
+        return;
+      }
+
+
+      if (!creator_fee_destination && !account?.address) {
+        return;
+      }
+
+      // let bondingEnum = new CairoCustomEnum({Exponential: 1});
+      let bondingEnum = new CairoCustomEnum({ Linear: {} });
+      // let bondingEnum = new CairoCustomEnum({Linear: 0});
+      // let bondingEnum = new CairoCustomEnum({Exponential: {}});
+      console.log('[DEBUG] bondingEnum', bondingEnum);
+
+      if (bonding_type !== undefined) {
+        // Compare against the enum values
+        if (bonding_type === BondingType.Linear) {
+          // bondingEnum = new CairoCustomEnum({Linear: 0});
+          bondingEnum = new CairoCustomEnum({ Linear: {} });
+        } else if (bonding_type === BondingType.Exponential) {
+          // bondingEnum = new CairoCustomEnum({Exponential: 1});
+          // bondingEnum = new CairoCustomEnum({Exponential: 3});
+          bondingEnum = new CairoCustomEnum({ Exponential: {} });
+        }
+      }
+
+      if (!creator_fee_destination) {
+        creator_fee_destination = address;
+      }
+
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         entrypoint: 'launch_token',
         calldata: CallData.compile({
+          owner: account?.address ?? address,
           coin_address,
+          bonding_type: bondingEnum,
+          creator_fee_percent: formatFloatToUint256(creator_fee_percent ?? 0),
+          creator_fee_destination: creator_fee_destination ?? account?.address,
         }),
       };
 
-      const tx = await account.execute(deployCall);
+      const tx = await account?.execute(deployCall);
       console.log('tx hash', tx.transaction_hash);
       const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
       return wait_tx;
@@ -217,6 +268,10 @@ export const useCreateToken = () => {
       //     ? '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6'
       //     : '0x36d8be2991d685af817ef9d127ffb00fbb98a88d910195b04ec4559289a99f6';
 
+
+      if (!account) {
+        return;
+      }
 
       const defaultAddress = data?.creator_fee_destination ?? address;
       if (!defaultAddress) {
@@ -271,10 +326,16 @@ export const useCreateToken = () => {
         telegram: telegramByteArray,
         website: websiteByteArray,
       };
+
+      if (!data?.recipient && !account?.address) {
+        return;
+      }
+
       const deployCall = {
         contractAddress: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
         entrypoint: 'create_and_launch_token_with_metadata',
         calldata: CallData.compile({
+          owner: data?.recipient ?? account?.address ?? address,
           name: nameByteArray,
           symbol: symbolByteArray,
           // name: data.name ?? 'LFG',
