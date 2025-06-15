@@ -1,6 +1,6 @@
 use afk_launchpad::types::launchpad_types::{
-    TokenQuoteBuyCoin, SupportedExchanges, MetadataLaunch, MetadataLaunchParams, EkuboLP, EkuboLaunchParameters,
-    // LiquidityType,
+    TokenQuoteBuyCoin, SupportedExchanges, MetadataLaunch, MetadataLaunchParams, EkuboLP,
+    EkuboLaunchParameters, // LiquidityType,
     EkuboUnrugLaunchParameters,
     // MemecoinCreated, MemecoinLaunched
 };
@@ -52,6 +52,13 @@ pub trait IUnrugLiquidity<TContractState> {
         ref self: TContractState, coin_address: ContractAddress, metadata: MetadataLaunchParams,
     );
 
+    fn collect_fees(
+        ref self: TContractState,
+        token_address: ContractAddress,
+        quote_address: ContractAddress,
+        recipient: ContractAddress,
+    ) -> (u64, u128, u128);
+
     // Views
     fn get_default_token(self: @TContractState) -> TokenQuoteBuyCoin;
     fn get_position_ekubo_address(self: @TContractState) -> ContractAddress;
@@ -85,4 +92,5 @@ pub trait IUnrugLiquidity<TContractState> {
         ref self: TContractState, new_ekubo_registry_address: ContractAddress,
     );
     fn set_lock_manager_address(ref self: TContractState, lock_manager_address: ContractAddress);
+    fn set_launchpad_address(ref self: TContractState, launchpad_address: ContractAddress);
 }

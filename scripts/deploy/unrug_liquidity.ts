@@ -92,11 +92,7 @@ export const deployUnrugLiquidity = async () => {
   if (process.env.IS_DEPLOY_CONTRACT == "true") {
     let unrugContract = await createUnrugLiquidity(
       TOKEN_QUOTE_ADDRESS,
-      initial_key_price,
-      step_increase_linear,
       TOKEN_CLASS_HASH,
-      threshold_liquidity,
-      threshold_marketcap,
       UNRUG_FACTORY_ADDRESS,
       EKUBO_REGISTRY_ADDRESS,
       EKUBO_CORE_ADDRESS,

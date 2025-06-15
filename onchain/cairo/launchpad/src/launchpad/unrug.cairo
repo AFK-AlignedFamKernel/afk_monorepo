@@ -27,13 +27,13 @@ pub mod UnrugLiquidity {
     use afk_launchpad::tokens::memecoin::{IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk_launchpad::types::jediswap_types::MintParams;
     use afk_launchpad::types::launchpad_types::{
-        ADMIN_ROLE, BuyToken, CreateLaunch, CreateToken, EkuboLP, EkuboLaunchParameters,
-        EkuboUnrugLaunchParameters, LaunchParameters, LaunchUpdated, LiquidityCanBeAdded,
-        LiquidityCreated, LockPosition, MINTER_ROLE, MetadataCoinAdded, MetadataLaunch, SellToken,
-        SetJediswapNFTRouterV2, SetJediswapRouterV2, SetJediswapV2Factory, StoredName,
-        SupportedExchanges, Token, TokenClaimed, TokenLaunch, TokenQuoteBuyCoin, UnrugCallbackData,
-        UnrugLaunchCallback,
-        MetadataLaunchParams,   
+        ADMIN_ROLE, BuyToken, CreateLaunch, CreateToken, EkuboLP, EkuboLPStore,
+        EkuboLaunchParameters, EkuboUnrugLaunchParameters, FeesCollected, LaunchParameters,
+        LaunchUpdated, LiquidityCanBeAdded, LiquidityCreated, LockPosition, MINTER_ROLE,
+        MetadataCoinAdded, MetadataLaunch, MetadataLaunchParams, SellToken, SetJediswapNFTRouterV2,
+        SetJediswapRouterV2, SetJediswapV2Factory, StoredName, SupportedExchanges, Token,
+        TokenClaimed, TokenLaunch, TokenQuoteBuyCoin, UnrugCallbackData, UnrugLaunchCallback,
+        WithdrawFeesCallback,
         // EkuboLiquidityParameters, DEFAULT_MIN_LOCKTIME, EkuboPoolParameters, CallbackData,
     // BondingType, LaunchCallback MemecoinCreated, MemecoinLaunched
     };
@@ -55,7 +55,7 @@ pub mod UnrugLiquidity {
     use openzeppelin::introspection::src5::SRC5Component;
     use openzeppelin::token::erc20::interface::{
         ERC20ABIDispatcher, ERC20ABIDispatcherTrait // IERC20Dispatcher as OZIERC20Dispatcher,
-        // IERC20DispatcherTrait as OZIERC20DispatcherTrait,    
+        // IERC20DispatcherTrait as OZIERC20DispatcherTrait,
     };
     use starknet::storage::{
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
@@ -148,6 +148,7 @@ pub mod UnrugLiquidity {
         is_custom_token_enable: bool,
         is_paid_launch_enable: bool,
         is_create_token_paid: bool,
+        launchpad_address: ContractAddress,
         // Stats
         total_token: u64,
         total_launch: u64,
@@ -164,6 +165,8 @@ pub mod UnrugLiquidity {
         address_jediswap_router_v1: ContractAddress,
         address_ekubo_factory: ContractAddress,
         address_ekubo_router: ContractAddress,
+        liquidity_per_token: Map<ContractAddress, EkuboLPStore>,
+        token_owner: Map<ContractAddress, ContractAddress>,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -186,6 +189,7 @@ pub mod UnrugLiquidity {
         LiquidityCanBeAdded: LiquidityCanBeAdded,
         TokenClaimed: TokenClaimed,
         MetadataCoinAdded: MetadataCoinAdded,
+        FeesCollected: FeesCollected,
         // MemecoinCreated: MemecoinCreated,
         // MemecoinLaunched: MemecoinLaunched,
         #[flat]
@@ -236,6 +240,11 @@ pub mod UnrugLiquidity {
     #[abi(embed_v0)]
     impl UnrugLiquidity of IUnrugLiquidity<ContractState> {
         // ADMIN
+
+        fn set_launchpad_address(ref self: ContractState, launchpad_address: ContractAddress) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.launchpad_address.write(launchpad_address);
+        }
 
         fn set_token(ref self: ContractState, token_quote: TokenQuoteBuyCoin) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
@@ -414,6 +423,24 @@ pub mod UnrugLiquidity {
             id_cast
         }
 
+        fn collect_fees(
+            ref self: ContractState,
+            token_address: ContractAddress,
+            quote_address: ContractAddress,
+            recipient: ContractAddress,
+        ) -> (u64, u128, u128) {
+            let (id, fees0, fees1) = self
+                ._collect_fees(
+                    token_address,
+                    WithdrawFeesCallback {
+                        recipient: recipient,
+                        token_address: token_address,
+                        quote_address: quote_address,
+                    },
+                );
+            (id, fees0, fees1)
+        }
+
 
         // TODO finish add Metadata
         fn add_metadata(
@@ -426,29 +453,34 @@ pub mod UnrugLiquidity {
 
             // Add or update metadata
 
-            self.metadata_coins.entry(coin_address).write(MetadataLaunch{
-                token_address: coin_address,
-                nostr_event_id: metadata.nostr_event_id,
-                url: metadata.url.clone(),
-                ipfs_hash:metadata.ipfs_hash.clone(),
-                // twitter: metadata.twitter.clone(),
-                // website: metadata.website.clone(),
-                // telegram: metadata.telegram.clone(),
-                // github: metadata.github.clone(),
-                // description: metadata.description.clone(),
-            });
+            self
+                .metadata_coins
+                .entry(coin_address)
+                .write(
+                    MetadataLaunch {
+                        token_address: coin_address,
+                        nostr_event_id: metadata.nostr_event_id,
+                        url: metadata.url.clone(),
+                        ipfs_hash: metadata.ipfs_hash.clone(),
+                        // twitter: metadata.twitter.clone(),
+                    // website: metadata.website.clone(),
+                    // telegram: metadata.telegram.clone(),
+                    // github: metadata.github.clone(),
+                    // description: metadata.description.clone(),
+                    },
+                );
             self
                 .emit(
                     MetadataCoinAdded {
                         token_address: coin_address,
-                        ipfs_hash: metadata.ipfs_hash.clone(),
-                        url: metadata.url,
-                        nostr_event_id: metadata.nostr_event_id,
-                        twitter: metadata.twitter,
-                        telegram: metadata.telegram,
-                        github: metadata.github,
-                        website: metadata.website,
-                        description: metadata.description,
+                        // ipfs_hash: metadata.ipfs_hash.clone(),
+                        metadata_url: metadata.url,
+                        // nostr_event_id: metadata.nostr_event_id,
+                        // twitter: metadata.twitter,
+                        // telegram: metadata.telegram,
+                        // github: metadata.github,
+                        // website: metadata.website,
+                        // description: metadata.description,
                     },
                 );
         }
@@ -524,6 +556,7 @@ pub mod UnrugLiquidity {
                         name: name,
                         initial_supply,
                         total_supply: initial_supply.clone(),
+                        owner: owner,
                     },
                 );
             token_address
@@ -702,6 +735,77 @@ pub mod UnrugLiquidity {
 
             // println!("pool id {}", id.clone());
             id
+        }
+
+
+        // Collect fees from the LP
+        // Owner of the LP or Launchpad can call it
+        fn _collect_fees(
+            ref self: ContractState,
+            coin_address: ContractAddress,
+            unrug_params_inputs: WithdrawFeesCallback,
+            // unrug_params: EkuboUnrugLaunchParameters
+        ) -> (u64, u128, u128) {
+            let caller = get_caller_address();
+            // let mut unrug_params = unrug_params_inputs.clone();
+            let mut unrug_params = unrug_params_inputs;
+
+            // let lp_meme_supply = unrug_params.lp_supply.clone();
+
+            let ekubo_core_address = self.core.read();
+            // let ekubo_exchange_address = self.ekubo_exchange_address.read();
+            // let memecoin = EKIERC20Dispatcher {
+            //     contract_address: unrug_params.token_address.clone()
+            // };
+
+            // let positions_ekubo = self.positions.read();
+
+            let base_token = EKIERC20Dispatcher {
+                contract_address: unrug_params.quote_address.clone(),
+            };
+
+            let registry_address = self.ekubo_registry.read();
+            // println!("registry_address {:?}", registry_address);
+
+            let registry = ITokenRegistryDispatcher { contract_address: registry_address.clone() };
+
+            // let amount_register: u256 = 1000000000000000000;
+            // let amount_register = 1_u256;
+            let amount_register = 1000000000000000000;
+
+            let core = ICoreDispatcher { contract_address: ekubo_core_address };
+
+            // Call the core with a callback to deposit and mint the LP tokens.
+            let (id, fees0, fees1) = call_core_with_callback::<
+                UnrugCallbackData, (u64, u128, u128),
+            >(
+                core,
+                @UnrugCallbackData::WithdrawFeesCallback(
+                    WithdrawFeesCallback {
+                        recipient: unrug_params.recipient,
+                        token_address: unrug_params.token_address,
+                        quote_address: unrug_params.quote_address,
+                    },
+                ),
+            );
+
+            let id_cast: u256 = id.try_into().unwrap();
+
+            self
+                .emit(
+                    FeesCollected {
+                        id: id_cast,
+                        pool: coin_address,
+                        asset: coin_address,
+                        quote_token_address: base_token.contract_address,
+                        owner: caller,
+                        exchange: SupportedExchanges::Ekubo,
+                        is_unruggable: true,
+                        fees0: fees0,
+                        fees1: fees1,
+                    },
+                );
+            (id, fees0, fees1)
         }
 
         /// TODO fix change
@@ -1008,6 +1112,25 @@ pub mod UnrugLiquidity {
                         );
 
                     let mut return_data: Array<felt252> = Default::default();
+
+                    let ekubo_lp_store = EkuboLPStore {
+                        id: id,
+                        owner: launch_params.owner,
+                        quote_address: launch_params.quote_address,
+                        token0: token0,
+                        token1: token1,
+                        fee: launch_params.pool_params.fee,
+                        tick_spacing: launch_params.pool_params.tick_spacing,
+                        extension: 0.try_into().unwrap(),
+                        lower_bound: bound_to_use.lower,
+                        upper_bound: bound_to_use.upper,
+                    };
+                    self
+                        .liquidity_per_token
+                        .entry(launch_params.token_address)
+                        .write(ekubo_lp_store);
+
+                    self.token_owner.entry(launch_params.token_address).write(launch_params.owner);
                     Serde::serialize(@id, ref return_data);
                     Serde::serialize(
                         @EkuboLP {
@@ -1019,6 +1142,50 @@ pub mod UnrugLiquidity {
                         },
                         ref return_data,
                     );
+                    return_data.span()
+                },
+                UnrugCallbackData::WithdrawFeesCallback(params) => {
+                    let WithdrawFeesCallback { recipient, token_address, quote_address } = params;
+                    let positions_address = self.positions.read();
+                    let positions = IPositionsDispatcher { contract_address: positions_address };
+                    let (token0, token1) = sort_tokens(token_address, quote_address);
+                    // let memecoin = EKIERC20Dispatcher {
+                    //     contract_address: launch_params.token_address,
+                    // };
+                    // let base_token = EKIERC20Dispatcher {
+                    //     contract_address: launch_params.quote_address,
+                    // };
+
+                    let caller = get_caller_address();
+
+                    let launchpad_address = self.launchpad_address.read();
+                    let owner = self.token_owner.entry(token_address).read();
+
+                    assert(
+                        owner == get_caller_address() && caller == launchpad_address,
+                        errors::CALLER_NOT_OWNER,
+                    );
+
+                    let ekubo_lp_store = self.liquidity_per_token.entry(token_address).read();
+
+                    let pool_key = PoolKey {
+                        token0: ekubo_lp_store.token0,
+                        token1: ekubo_lp_store.token1,
+                        fee: ekubo_lp_store.fee,
+                        tick_spacing: ekubo_lp_store.tick_spacing,
+                        extension: ekubo_lp_store.extension,
+                    };
+                    let bounds = Bounds {
+                        lower: ekubo_lp_store.lower_bound, upper: ekubo_lp_store.upper_bound,
+                    };
+                    let (fees0, fees1) = positions
+                        .collect_fees(ekubo_lp_store.id, pool_key, bounds);
+
+                    // Transfer to recipient is done after the callback
+                    let mut return_data = Default::default();
+                    Serde::serialize(@id, ref return_data);
+                    Serde::serialize(@fees0, ref return_data);
+                    Serde::serialize(@fees1, ref return_data);
                     return_data.span()
                 },
             }

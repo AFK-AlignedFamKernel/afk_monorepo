@@ -1,6 +1,6 @@
 use afk_launchpad::types::launchpad_types::{
-    BondingType, MetadataLaunch, MetadataLaunchParams, SharesTokenUser, SupportedExchanges, TokenLaunch,
-    TokenQuoteBuyCoin,
+    BondingType, MetadataLaunch, MetadataLaunchParams, SharesTokenUser, SupportedExchanges,
+    TokenLaunch, TokenQuoteBuyCoin,
     // MemecoinCreated, MemecoinLaunched
 };
 use starknet::{ClassHash, ContractAddress};
@@ -10,6 +10,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
     // User call
     fn create_token(
         ref self: TContractState,
+        owner: ContractAddress,
         recipient: ContractAddress,
         symbol: ByteArray,
         name: ByteArray,
@@ -19,6 +20,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
 
     fn create_and_launch_token(
         ref self: TContractState,
+        owner: ContractAddress,
         symbol: ByteArray,
         name: ByteArray,
         initial_supply: u256,
@@ -43,6 +45,7 @@ pub trait ILaunchpadMarketplace<TContractState> {
     // fn launch_token(ref self: TContractState, coin_address: ContractAddress);
     fn launch_token(
         ref self: TContractState,
+        owner: ContractAddress,
         coin_address: ContractAddress,
         bonding_type: BondingType,
         creator_fee_percent: u256,
@@ -137,6 +140,12 @@ pub trait ILaunchpadMarketplace<TContractState> {
     );
 
     fn distribute_creator_fee(ref self: TContractState, coin_address: ContractAddress);
+
+
+    fn admin_collect_fees(
+        ref self: TContractState, coin_address: ContractAddress, recipient: ContractAddress,
+    );
+    fn collect_fees_owner(ref self: TContractState, coin_address: ContractAddress);
     fn set_admin(ref self: TContractState, admin: ContractAddress);
     fn set_role_address(ref self: TContractState, contract_address: ContractAddress, role: felt252);
     fn set_revoke_address(

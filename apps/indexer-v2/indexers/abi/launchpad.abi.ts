@@ -1521,13 +1521,13 @@ export const ABI = [
         "kind": "data"
       },
       {
-        "name": "nostr_event_id",
-        "type": "core::integer::u256",
+        "name": "ipfs_hash",
+        "type": "core::byte_array::ByteArray",
         "kind": "data"
       },
       {
-        "name": "timestamp",
-        "type": "core::integer::u64",
+        "name": "nostr_event_id",
+        "type": "core::integer::u256",
         "kind": "data"
       },
       {

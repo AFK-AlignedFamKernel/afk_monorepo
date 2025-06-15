@@ -274,8 +274,6 @@ mod edge_cases_tests {
             unrug_class,
             sender_address,
             token_address.clone(),
-            INITIAL_KEY_PRICE,
-            STEP_LINEAR_INCREASE,
             meme_class.class_hash,
             THRESHOLD_LIQUIDITY,
             THRESHOLD_MARKET_CAP,
@@ -290,8 +288,6 @@ mod edge_cases_tests {
             launch_class,
             sender_address,
             token_address.clone(),
-            INITIAL_KEY_PRICE,
-            STEP_LINEAR_INCREASE,
             meme_class.class_hash,
             THRESHOLD_LIQUIDITY,
             THRESHOLD_MARKET_CAP,
@@ -307,8 +303,6 @@ mod edge_cases_tests {
         class: ContractClass,
         admin: ContractAddress,
         token_address: ContractAddress,
-        initial_key_price: u256,
-        step_increase_linear: u256,
         coin_class_hash: ClassHash,
         threshold_liquidity: u256,
         threshold_marketcap: u256,
@@ -323,12 +317,8 @@ mod edge_cases_tests {
     ) -> IUnrugLiquidityDispatcher {
         // println!("deploy marketplace");
         let mut calldata = array![admin.into()];
-        calldata.append_serde(initial_key_price);
         calldata.append_serde(token_address);
-        calldata.append_serde(step_increase_linear);
         calldata.append_serde(coin_class_hash);
-        calldata.append_serde(threshold_liquidity);
-        calldata.append_serde(threshold_marketcap);
         calldata.append_serde(factory_address);
         calldata.append_serde(ekubo_registry);
         calldata.append_serde(core);
@@ -342,8 +332,6 @@ mod edge_cases_tests {
         class: ContractClass,
         admin: ContractAddress,
         token_address: ContractAddress,
-        initial_key_price: u256,
-        step_increase_linear: u256,
         coin_class_hash: ClassHash,
         threshold_liquidity: u256,
         threshold_marketcap: u256,
@@ -351,9 +339,7 @@ mod edge_cases_tests {
     ) -> ILaunchpadMarketplaceDispatcher {
         // println!("deploy marketplace");
         let mut calldata = array![admin.into()];
-        calldata.append_serde(initial_key_price);
         calldata.append_serde(token_address);
-        calldata.append_serde(step_increase_linear);
         calldata.append_serde(coin_class_hash);
         calldata.append_serde(threshold_liquidity);
         calldata.append_serde(threshold_marketcap);
@@ -750,6 +736,7 @@ mod edge_cases_tests {
         // let total_supply:u256 = *init_supplies.at(i);
         let token_address = launchpad
             .create_and_launch_token(
+                owner: OWNER(),
                 symbol: SYMBOL(),
                 name: NAME(),
                 initial_supply: *init_supplies.at(i),
@@ -866,6 +853,7 @@ mod edge_cases_tests {
             // let total_supply:u256 = *init_supplies.at(i);
             let token_address = launchpad
                 .create_and_launch_token(
+                    owner: OWNER(),
                     symbol: SYMBOL(),
                     name: NAME(),
                     initial_supply: *init_supplies.at(i),
@@ -893,7 +881,7 @@ mod edge_cases_tests {
                 launchpad,
                 quote_token,
                 memecoin,
-                THRESHOLD_LIQUIDITY / 2_u256,
+                THRESHOLD_LIQUIDITY / 3_u256,
                 token_address,
                 OWNER(),
             );
@@ -947,6 +935,8 @@ mod edge_cases_tests {
                 "linear latest init_supply in loop test_buy_coin_with_different_supply {:?}",
                 init_supplies.at(i).clone(),
             );
+
+            println!("perform_swap");
             perform_swap(
                 router,
                 erc20,
@@ -984,6 +974,7 @@ mod edge_cases_tests {
 
             let token_address = launchpad
                 .create_and_launch_token(
+                    owner: OWNER(),
                     symbol: SYMBOL(),
                     name: NAME(),
                     initial_supply: *init_supplies.at(i),

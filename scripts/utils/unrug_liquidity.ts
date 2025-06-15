@@ -37,11 +37,7 @@ const PATH_TOKEN_COMPILED = path.resolve(
 /** @TODO spec need to be discuss. This function serve as an example */
 export const createUnrugLiquidity = async (
   tokenAddress: string,
-  initial_key_price: Uint256,
-  step_increase_linear: Uint256,
   coin_class_hash: string,
-  threshold_liquidity: Uint256,
-  threshold_marketcap: Uint256,
   factory_address: string,
   ekubo_registry: string,
   core: string,
@@ -54,11 +50,7 @@ export const createUnrugLiquidity = async (
     const accountAddress0 = process.env.DEV_PUBLIC_KEY as string;
 
     console.log("tokenAddress", tokenAddress);
-    console.log("initial_key_price", initial_key_price);
-    console.log("step_increase_linear", step_increase_linear);
     console.log("coin_class_hash", coin_class_hash);
-    console.log("threshold_liquidity", threshold_liquidity);
-    console.log("threshold_marketcap", threshold_marketcap);
     // Devnet or Sepolia account
     const account0 = new Account(provider, accountAddress0, privateKey0, "1");
     let UnrugClassHash = process.env.UNRUG_LIQUIDITY_CLASS_HASH as string;
@@ -122,7 +114,9 @@ export const createUnrugLiquidity = async (
 
       if (declareResponse?.class_hash) {    
         console.log("Declare deploy", declareResponse);
-        await provider.waitForTransaction(declareResponse?.transaction_hash);
+        if (declareResponse?.transaction_hash) {
+          await provider.waitForTransaction(declareResponse?.transaction_hash);
+        }
         console.log("DeclareResponse.class_hash", declareResponse.class_hash);
       }
       const contractClassHash = declareResponse.class_hash;
@@ -152,12 +146,8 @@ export const createUnrugLiquidity = async (
         classHash: UnrugClassHash,
         constructorCalldata: [
           accountAddress0,
-          initial_key_price,
           tokenAddress,
-          step_increase_linear,
           coin_class_hash_memecoin_last,
-          threshold_liquidity,
-          threshold_marketcap,
           factory_address,
           ekubo_registry,
           core,
