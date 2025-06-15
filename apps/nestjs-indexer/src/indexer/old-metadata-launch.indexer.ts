@@ -162,6 +162,8 @@ export class MetadataLaunchIndexer {
     ) as ContractAddress;
 
     const [
+      nostrEventIdLow,
+      nostrEventIdHigh,
       ipfsHashFelt,
       urlFelt,
       // twitterFelt,
@@ -173,7 +175,25 @@ export class MetadataLaunchIndexer {
 
     console.log("event.data", event.data.length);
 
-    let i = 1;
+
+    // const nostrEventId = uint256.uint256ToBN({
+    //   low: FieldElement.toBigInt(nostrEventIdLow),
+    //   high: FieldElement.toBigInt(nostrEventIdHigh),
+    // });
+    // let nostrEventId = cairo.felt(0);
+
+
+    const nostrEventIdRaw = uint256.uint256ToBN({
+      low: FieldElement.toBigInt(nostrEventIdLow),
+      high: FieldElement.toBigInt(nostrEventIdHigh),
+    });
+    const nostrEventId = formatUnits(
+      nostrEventIdRaw,
+      constants.DECIMALS,
+    ).toString();
+
+    console.log("nostrEventId", nostrEventId);
+    let i = 0;
 
     // if(event.data.length === 30){
     //   i = 3;
@@ -369,7 +389,7 @@ export class MetadataLaunchIndexer {
       blockHash,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
       memecoinAddress: tokenAddress,
-      nostrEventId:0,
+      nostrEventId,
       url: url,
       timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
       transactionType: 'buy',

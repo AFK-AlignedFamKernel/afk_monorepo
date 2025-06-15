@@ -1177,14 +1177,7 @@ pub mod LaunchpadMarketplace {
                 .emit(
                     MetadataCoinAdded {
                         token_address: coin_address,
-                        nostr_event_id: metadata.nostr_event_id,
-                        ipfs_hash: metadata.ipfs_hash,
-                        url: metadata.url,
-                        twitter: metadata.twitter,
-                        website: metadata.website,
-                        telegram: metadata.telegram,
-                        github: metadata.github,
-                        description: metadata.description,
+                        metadata_url: metadata.url,
                     },
                 );
         }

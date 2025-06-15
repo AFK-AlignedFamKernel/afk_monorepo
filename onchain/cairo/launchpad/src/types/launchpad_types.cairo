@@ -169,6 +169,13 @@ pub struct MetadataLaunch {
 pub struct MetadataCoinAdded {
     #[key]
     pub token_address: ContractAddress,
+    pub metadata_url: ByteArray,
+}
+
+#[derive(Drop, starknet::Event)]
+pub struct OldMetadataCoinAdded {
+    #[key]
+    pub token_address: ContractAddress,
     pub nostr_event_id: u256,
     pub ipfs_hash: ByteArray,
     pub url: ByteArray,
@@ -178,7 +185,6 @@ pub struct MetadataCoinAdded {
     pub github: ByteArray,
     pub description: ByteArray,
 }
-
 
 #[derive(Drop, starknet::Event)]
 pub struct CreatorFeeDistributed {

@@ -59,11 +59,11 @@ export const LAUNCHPAD_ADDRESS = {
 
   // old contract
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x7fbf067657772a454c302354a19e07ce0a920736e2e3b7ca605d813723db883"
-  // new launchpad
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x2df96069550099b5e1f94c38848374e1b7ea1832d5ce17ec459bf5bbaef53ad",
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x34e73d4ff75f922484a9208f506e9aa8acfdb333a648ca68cde276d83678aa9",
-  [constants.StarknetChainId.SN_SEPOLIA]: "0x57ccd649f0df9ca80debb4bd7946bb6267785c74998f4de94514f70a8f691a3",
-
+  // new launchpad
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0x57ccd649f0df9ca80debb4bd7946bb6267785c74998f4de94514f70a8f691a3",
+  [constants.StarknetChainId.SN_SEPOLIA]: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548",
 
 };
 

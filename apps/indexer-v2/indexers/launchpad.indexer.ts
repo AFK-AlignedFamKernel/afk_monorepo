@@ -51,23 +51,23 @@ export default function (config: ApibaraRuntimeConfig & {
     filter: {
       events: [
         {
-          address: "0x438dffae04864ab04c3e7cd679f9c57329a8317d4d80802486a2b2f6658a634" as `0x${string}`,
+          address: "0x57ccd649f0df9ca80debb4bd7946bb6267785c74998f4de94514f70a8f691a3" as `0x${string}`,
           keys: [CREATE_TOKEN],
         },
         {
-          address: "0x438dffae04864ab04c3e7cd679f9c57329a8317d4d80802486a2b2f6658a634" as `0x${string}`,
+          address: "0x57ccd649f0df9ca80debb4bd7946bb6267785c74998f4de94514f70a8f691a3" as `0x${string}`,
           keys: [CREATE_LAUNCH],
         },
         {
-          address: "0x438dffae04864ab04c3e7cd679f9c57329a8317d4d80802486a2b2f6658a634" as `0x${string}`,
+          address: "0x57ccd649f0df9ca80debb4bd7946bb6267785c74998f4de94514f70a8f691a3" as `0x${string}`,
           keys: [BUY_TOKEN],
         },
         {
-          address: "0x438dffae04864ab04c3e7cd679f9c57329a8317d4d80802486a2b2f6658a634" as `0x${string}`,
+          address: "0x57ccd649f0df9ca80debb4bd7946bb6267785c74998f4de94514f70a8f691a3" as `0x${string}`,
           keys: [SELL_TOKEN],
         },
         {
-          address: "0x438dffae04864ab04c3e7cd679f9c57329a8317d4d80802486a2b2f6658a634" as `0x${string}`,
+          address: "0x57ccd649f0df9ca80debb4bd7946bb6267785c74998f4de94514f70a8f691a3" as `0x${string}`,
           keys: [METADATA_COIN_ADDED],
         },
       ],
@@ -78,7 +78,7 @@ export default function (config: ApibaraRuntimeConfig & {
         token_deploy: 'id',
         token_launch: 'id',
         token_metadata: 'id',
-        token_transactions: 'transfer_id',
+        // token_transactions: 'id',
         shares_token_user: 'owner'
       }
     })],
@@ -112,7 +112,7 @@ export default function (config: ApibaraRuntimeConfig & {
                 eventName: 'afk_launchpad::types::launchpad_types::CreateToken',
               });
               console.log("decodeEvent", decodeEvent)
-              await handleCreateTokenEvent(decodedEvent, event.address, header, event);
+              // await handleCreateTokenEvent(decodedEvent, event.address, header, event);
             }
             if (event?.keys[0] == encode.sanitizeHex(CREATE_LAUNCH)) {
               console.log("event CreateLaunch")
@@ -121,7 +121,7 @@ export default function (config: ApibaraRuntimeConfig & {
                 event,
                 eventName: 'afk_launchpad::types::launchpad_types::CreateLaunch',
               });
-              await handleCreateLaunch(decodedEvent, header, event);
+              // await handleCreateLaunch(decodedEvent, header, event);
             }
             if (event?.keys[0] == encode.sanitizeHex(METADATA_COIN_ADDED)) {
               console.log("event Metadata")
@@ -209,21 +209,21 @@ export default function (config: ApibaraRuntimeConfig & {
       });
 
       try {
-        // Check if token already exists
-        const existingToken = await db.query.tokenDeploy.findFirst({
-          where: or(
-            eq(tokenDeploy.memecoin_address, tokenAddress),
-            eq(tokenDeploy.transaction_hash, transactionHash)
-          )
-        });
+        // // Check if token already exists
+        // const existingToken = await db.query.tokenDeploy.findFirst({
+        //   where: or(
+        //     eq(tokenDeploy.memecoin_address, tokenAddress),
+        //     eq(tokenDeploy.transaction_hash, transactionHash)
+        //   )
+        // });
 
-        if (existingToken) {
-          console.log('Token already exists, skipping creation:', {
-            memecoin_address: existingToken.memecoin_address,
-            transaction_hash: existingToken.transaction_hash
-          });
-          return;
-        }
+        // if (existingToken) {
+        //   console.log('Token already exists, skipping creation:', {
+        //     memecoin_address: existingToken.memecoin_address,
+        //     transaction_hash: existingToken.transaction_hash
+        //   });
+        //   return;
+        // }
 
         // Insert new token
         await db.insert(tokenDeploy).values({
@@ -760,6 +760,7 @@ export default function (config: ApibaraRuntimeConfig & {
           // Create transaction record
           console.log("create transferId", transferId)
           await db.insert(tokenTransactions).values({
+            id: randomUUID(),
             transfer_id: transferId,
             network: 'starknet-sepolia',
             block_timestamp: blockTimestamp,
@@ -781,6 +782,7 @@ export default function (config: ApibaraRuntimeConfig & {
           if (insertError.code === '42703') { // Column does not exist
             // Try inserting without the id field
             await db.insert(tokenTransactions).values({
+              id: randomUUID(),
               transfer_id: transferId,
               network: 'starknet-sepolia',
               block_timestamp: blockTimestamp,
