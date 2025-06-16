@@ -15,6 +15,12 @@ export class BrandAnalyticsService {
         this.twitterAnalysis = new TwitterAnalytics(twitterScraper);
     }
 
+    /** Loop between all brands created on AFK
+     * Get all brands
+     * Twitter rank: Get twitter analytics using lib or apify
+     * Update leaderboard_stats
+     * #TODO: Optimize the code, add other social networks. Optimize algo of Ranking/Reputation
+    */
     async getAllBrandsAnalytics(): Promise<{
         dataUser?: any,
         xKaito?: any,
