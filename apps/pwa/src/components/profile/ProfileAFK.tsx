@@ -18,7 +18,7 @@ export default function ProfileAfk() {
   };
 
   return (
-    <div className="container mx-auto p-8">
+    <div className="container py-2">
       <h1 className="text-3xl font-bold mb-6">Identity Management</h1>
       <div>
 

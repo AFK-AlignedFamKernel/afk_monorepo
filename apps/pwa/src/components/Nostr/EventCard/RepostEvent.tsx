@@ -33,7 +33,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   const [isOpenComment, setIsOpenComment] = useState(false);
 
   const repostedContent = useMemo(() => {
-    try {     
+    try {
       return typeof content === 'string' ? JSON.parse(content) : content;
     } catch (error) {
       return null;
@@ -41,7 +41,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   }, [content]);
 
   const pubkeyReposted = useMemo(() => {
-    try {     
+    try {
 
       const content = JSON.parse(event.content);
       return content.pubkey;
@@ -51,7 +51,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
     }
   }, [content]);
 
-  const {data: profile} = useProfile({publicKey: pubkeyReposted});
+  const { data: profile } = useProfile({ publicKey: pubkeyReposted });
 
   const { showToast, showModal } = useUIStore();
   const repostMutation = useRepost({ event });
@@ -95,7 +95,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
     [userReaction.data],
   );
 
- 
+
 
   const toggleLike = async () => {
     if (!event?.id) return;
@@ -228,23 +228,40 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
             <p color="textLight">Reposted</p>
           </div>
         ))}
-     
-     <div>
 
-      <div className="flex items-center gap-2 my-2 shadow-lg rounded-lg p-2">
-        {profile && (
-          <div>
-            {profile?.picture && <Image src={profile?.picture} alt={profile?.name || ''} width={24} height={24} />}
-            <p className="text-sm text-contrast-500">{profile?.name}</p>
-            <p className="text-sm text-contrast-500">{profile?.display_name}</p>
-          </div>
+      <div>
+
+        <div className="flex items-center gap-2 my-2 shadow-lg rounded-lg p-2">
+          {profile && (
+            <div>
+              {profile?.picture && <Image src={profile?.picture} alt={profile?.name || ''} width={24} height={24} />}
+              <p className="text-sm text-contrast-500">{profile?.name}</p>
+              <p className="text-sm text-contrast-500">{profile?.display_name}</p>
+            </div>
+          )}
+        </div>
+
+
+        <div className="flex items-center gap-2">
+          {/* <p className="text-sm text-contrast-500  overflow-hidden whitespace-nowrap">
+            {!isExpanded ? `${repostedContent?.content?.substring(0, 280)}...` : repostedContent?.content}
+
+
+
+          </p> */}
+
+
+          <p className="text-sm text-contrast-500 whitespace-pre-wrap break-words"> {isExpanded ? repostedContent?.content : `${repostedContent?.content?.substring(0, 200)}...`}</p>
+          {/* <p className="text-sm text-contrast-500 whitespace-pre-wrap"> {isExpanded ? repostedContent?.content : `${repostedContent?.content?.substring(0, 200)}...`}</p> */}
+
+        </div>
+        {repostedContent?.content?.length > 280 && (
+          <button className="text-sm text-contrast-500" onClick={() => setIsExpanded(!isExpanded)}>
+            {isExpanded ? 'View less' : 'View more'}
+          </button>
         )}
+
       </div>
-
-
-      <p>{repostedContent?.content}</p>
-   
-     </div>
 
     </div>
   );
