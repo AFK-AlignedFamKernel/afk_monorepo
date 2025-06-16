@@ -130,6 +130,7 @@ export const ManageCreatorProfile: React.FC = () => {
         starknet_address: starknetAddress,
         evm_address: address,
         btc_address: btcAddress,
+        bio: bio,
         is_active: true
       })
     })

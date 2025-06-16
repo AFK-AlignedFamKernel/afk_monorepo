@@ -8,6 +8,7 @@ import PostEventCard from './PostEventCard';
 import ArticleEventCard from './ArticleEventCard';
 import ShortEventCard from './ShortEventCard';
 import { NumberToBytesErrorType } from 'viem';
+import RepostEvent from './RepostEvent';
 
 export interface NostrEventCardProps {
   event: NDKEvent;
@@ -59,7 +60,10 @@ export const NostrEventCard: React.FC<NostrEventCardProps> = ({ event, isLoading
       return <ShortEventCard {...props} />;
     case 34236 :
       return <ShortEventCard {...props} />;
-    case NostrEventKind.Text:
+    case 6:
+      return <RepostEvent {...props} />;
+    case 1:
+      return <PostEventCard {...props} isClickableHashtags={isClickableHashtags} />;
     default:
       return <PostEventCard {...props} isClickableHashtags={isClickableHashtags} />;
   }
