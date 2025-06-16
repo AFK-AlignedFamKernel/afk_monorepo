@@ -6,7 +6,7 @@ import { mindshareScoreProfileRating } from "../scoring";
 import { engagementScoreProfileRating } from "../scoring";
 import { AiService } from "../../ai/ai";
 import { TwitterScraper } from "../../scraper/twitterScraper";
-import { Tweet } from "@the-convocation/twitter-scraper";
+import { SearchMode, Tweet } from "@the-convocation/twitter-scraper";
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -67,8 +67,12 @@ export class TwitterAnalytics {
 
             const user = await this.twitterScraper.getUser(brand_handle);
             console.log("user", user);
-            let query = `(${brand_handle} OR @${brand_handle} OR ${user?.name} OR ${user?.username} ${ticker && `OR $${ticker} OR ${ticker}`}) since:${new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString().split('T')[0]}`;
-            const twitterLatestTweets = await this.twitterScraper.searchTweets(query, 100);
+            // let query = `(${brand_handle} OR @${brand_handle} OR ${user?.name} OR ${user?.username} ${ticker && `OR $${ticker} OR ${ticker}`}) since:${new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString().split('T')[0]}`;
+            let query = `(${brand_handle} OR @${brand_handle} OR ${user?.name} OR ${user?.username} ${ticker ? `OR $${ticker} OR ${ticker}` : ""}) since:${new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString().split('T')[0]}`;
+
+            console.log("query", query);
+
+            const twitterLatestTweets = await this.twitterScraper.searchTweets(query, 100, SearchMode.Top);
 
             if (!twitterLatestTweets) {
                 return null;
