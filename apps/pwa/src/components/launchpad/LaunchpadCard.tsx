@@ -65,15 +65,31 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
             Graduated
           </span>
         )}
+
+
+
+      </div>
+
+      <div className='flex flex-row gap-2 items-baseline'>
+
+
+        {token?.bonding_type && (
+          <div className="text-xs text-shade-500 mt-1 border border-shade-200 rounded-full px-2 py-1">
+            {token?.bonding_type}
+          </div>
+        )}
+
         <div className="text-shade-500 text-xs">
           Created: {formatDate(token.block_timestamp)}
         </div>
 
       </div>
 
-      {token.description && (
-        <p className="text-sm text-shade-600 mb-4 line-clamp-2">{token.description}</p>
-      )}
+      <div className='flex flex-row gap-2'>
+        {token.description && (
+          <p className="text-sm text-shade-600 mb-4 line-clamp-2">{token.description}</p>
+        )}
+      </div>
 
       <div className="flex justify-between items-center text-sm">
         {/* <div className="text-shade-500">
@@ -87,17 +103,20 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
             </div>
             <div className="relative pt-1">
               <div className="flex mb-2 items-center justify-between">
+                <div className="text-xs text-shade-500 mt-1">
+                  {formatLiquidity(Number(token.liquidity_raised))} / {formatLiquidity(Number(token.threshold_liquidity))}
+                </div>
                 <div className="text-xs font-semibold text-shade-600">
                   Progress: {((Number(token.liquidity_raised ?? 0) / Number(token.threshold_liquidity)) * 100).toFixed(1)}%
                 </div>
+
               </div>
               <div className="relative w-full h-3 bg-shade-100 rounded-full overflow-hidden border border-shade-200 shadow-sm">
                 <div
-                  className={`absolute h-full transition-all duration-300 ease-in-out ${
-                    Number(token.liquidity_raised) <= Number(token.threshold_liquidity) - Number(token.threshold_liquidity) * 0.02
-                      ? 'bg-yellow-500'
-                      : 'bg-primary-500'
-                  }`}
+                  className={`absolute h-full transition-all duration-300 ease-in-out ${Number(token.liquidity_raised) <= Number(token.threshold_liquidity) - Number(token.threshold_liquidity) * 0.02
+                    ? 'bg-green-500'
+                    : 'bg-purple-500'
+                    }`}
                   style={{
                     width: `${Math.min(100, (Number(token.liquidity_raised ?? 0) / Number(token.threshold_liquidity)) * 100)}%`,
                     animation: 'slideProgress 1s ease-in-out'
@@ -115,15 +134,15 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
                 }
               `}</style>
 
-              <div className="text-xs text-shade-500 mt-1">
+              {/* <div className="text-xs text-shade-500 mt-1">
                 {formatLiquidity(Number(token.liquidity_raised))} / {formatLiquidity(Number(token.threshold_liquidity))}
-              </div>
+              </div> */}
             </div>
-            {token?.bonding_type && (
+            {/* {token?.bonding_type && (
               <div className="text-xs text-shade-500 mt-1">
                 {token?.bonding_type}
               </div>
-            )}
+            )} */}
           </div>
         )}
       </div>
@@ -135,8 +154,10 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
 
       <div className="mt-4 pt-4 flex">
 
-
-        <Link href={`/launchpad/${token.token_address}`} className="sidebar-nav-item w-full">
+        <Link
+          href={`/launchpad/${token.token_address}`}
+          className="sidebar-nav-item w-full"
+        >
           View Details
         </Link>
 

@@ -190,7 +190,8 @@ table {
   left: 0;
   height: 100vh;
   width: $sidebar-width;
-  padding: 2rem;
+  // padding: 2rem;
+  padding: 0.25rem;
   border-right: 1px solid var(--border);
   background-color: var(--sidebar-bg);
   z-index: 1000;

@@ -1,10 +1,6 @@
 import { supabaseAdmin } from ".";
 import { ContentCreatorAnalytics } from "../analytics/content/contentCreatorAnalytics";
-import ApifyService from "../apify/apifiy";
 import { TwitterScraper } from "../scraper/twitterScraper";
-
-export const NPUBKEY_EXAMPLE = "npub1rtlqca8r6auyaw5n5h3l5422dm4sry5dzfee4696fqe8s6qgudks7djtfs"
-
 
 export class ContentCreatorAnalyticsService {
     private twitterScraper: TwitterScraper;
@@ -14,6 +10,12 @@ export class ContentCreatorAnalyticsService {
         this.contentCreatorAnalytics = new ContentCreatorAnalytics(twitterScraper);
     }
 
+    /** Loop between all content creators created on AFK
+     * Get all identities and social links for one content creator
+     * Twitter analaytics: Get twitter analytics using lib or apify
+     * Create or update creator_analytics for this user
+     * #TODO: Optimize the code, add other social networks
+     */
     async handleAllContentCreatorsAnalytics() {
 
         if (!this.twitterScraper.isInitialized) {
@@ -25,32 +27,31 @@ export class ContentCreatorAnalyticsService {
         }
 
         const supabase = supabaseAdmin
+        console.log("get all content creators");
         const { data, error } = await supabase.from('content_creators').select('*');
-        console.log("data", data);
         console.log("error", error);
 
-        const allContentCreators = data;
 
+        console.log("all content creators data", data);
         if (error) {
             console.log("error", error);
             return;
         }
 
-        console.log("allContentCreators", allContentCreators);
 
         for (let creator of data) {
             console.log("creator", creator);
             const creatorsIdentities = Object.values(creator?.identities).map((identity: any) => {
-                console.log("identity", identity);
+                // console.log("identity", identity);
                 return identity;
             });
 
             const socialIdentities = Object.values(creator?.social_links).map((identity: any) => {
-                console.log("identity", identity);
+                // console.log("identity", identity);
                 return identity;
             });
-            console.log("creatorsIdentities", creatorsIdentities);
-            console.log("socialIdentities", socialIdentities);
+            // console.log("creatorsIdentities", creatorsIdentities);
+            // console.log("socialIdentities", socialIdentities);
 
 
             let socials_llm_classification: any[] = [];
@@ -83,15 +84,12 @@ export class ContentCreatorAnalyticsService {
                                 console.log("twitterAnalytics processData", twitterAnalytics?.processData);
                                 console.log("twitterAnalytics llm output", twitterAnalytics?.result);
                             }
-
-
                             socials_llm_classification.push({
                                 platform: 'twitter',
                                 classification: twitterAnalytics?.result,
                                 updated_at: new Date()
                             });
                             topics.push(twitterAnalytics?.result?.topics);
-
                       
                         }
 
@@ -107,11 +105,12 @@ export class ContentCreatorAnalyticsService {
                 }
 
                 const { data: dataCreator, error: errorCreator } = await supabase.from('creator_analytics').select('*').eq('creator_id', creator.id).eq('platform', 'twitter');
-                console.log("dataCreator exist", true);
-                console.log("errorCreator", errorCreator);
+                // console.log("dataCreator exist", true);
+                // console.log("errorCreator", errorCreator);
+                console.log('Update or create the model of creator_analytics')
                 if (dataCreator && dataCreator.length > 0 && errorCreator === null) {
-                    console.log("dataCreator", dataCreator);
-                    console.log("errorCreator", errorCreator);
+                    // console.log("dataCreator exist", dataCreator);
+                    // console.log("errorCreator exist", errorCreator);
                     const { data, error } = await supabase.from('creator_analytics').update({
                         llm_classification: twitterAnalytics?.result ?? dataCreator[0].llm_classification,
                         llm_process_data: twitterAnalytics?.processData ?? dataCreator[0].llm_process_data,
@@ -120,11 +119,11 @@ export class ContentCreatorAnalyticsService {
                         stats_content: twitterAnalytics?.stats_content ?? dataCreator[0].stats_content,
                         socials_llm_classification: socials_llm_classification ?? dataCreator[0].socials_llm_classification,
                     }).eq('id', dataCreator[0].id).eq('creator_id', creator.id).eq('platform', 'twitter').select().single();
-                    console.log("data", data);
+                    console.log("updated creator_analytics", data);
                     console.log("error", error);
                 } else {
-                    console.log("dataCreator", dataCreator);
-                    console.log("errorCreator", errorCreator);
+                    // console.log("dataCreator", dataCreator);
+                    // console.log("errorCreator", errorCreator);
                     const { data, error } = await supabase.from('creator_analytics').upsert({
                         creator_id: creator.id,
                         platform: 'twitter',

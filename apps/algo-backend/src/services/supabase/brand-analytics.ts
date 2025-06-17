@@ -15,6 +15,12 @@ export class BrandAnalyticsService {
         this.twitterAnalysis = new TwitterAnalytics(twitterScraper);
     }
 
+    /** Loop between all brands created on AFK
+     * Get all brands
+     * Twitter rank: Get twitter analytics using lib or apify
+     * Update leaderboard_stats
+     * #TODO: Optimize the code, add other social networks. Optimize algo of Ranking/Reputation
+    */
     async getAllBrandsAnalytics(): Promise<{
         dataUser?: any,
         xKaito?: any,
@@ -40,14 +46,14 @@ export class BrandAnalyticsService {
                 let resultTwitterAnalytics: any;
                 if (twitterHandle) {
                     let result = await this.twitterAnalysis.getTwitterAnalytics(twitterHandle);
-                    console.log("result twitter analytics", result);
+                    // console.log("result twitter analytics", result);
                     if (!result || result?.usersScores?.length === 0) {
                         console.log("get twitter analytics apify");
                         result = await this.twitterAnalysis.getTwitterAnalyticsApify(twitterHandle);
                     }
                     console.log("len twitter scores", result?.usersScores?.length);
                     console.log("len twitter users names ", result?.usersNamesScores?.length);
-                    console.log("result twitter usersScores ", result?.usersScores);
+                    // console.log("result twitter usersScores ", result?.usersScores);
                     console.log("result twitter users names ", result?.usersNamesScores);
                     resultTwitterAnalytics = result;
                     const { data: leaderboard, error: errorLeaderboard } = await supabase.from('leaderboard_stats').select('*').eq('brand_id', brand.id).eq('platform', 'twitter').single();
@@ -86,6 +92,7 @@ export class BrandAnalyticsService {
                     }
 
                 }
+                // break;
 
             }
         } catch (error) {

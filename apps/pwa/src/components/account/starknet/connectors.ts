@@ -24,6 +24,7 @@ import {
   jsonRpcProvider,
   cartridgeProvider,
 } from "@starknet-react/core";
+import cartridgeConnector from "./CartbridgeConnector"
 // const cartridgeConnector = new ControllerConnector({
 //   url: cartridgeProvider()?.nodeUrl ?? 'https://api.cartridge.gg/x/starknet/sepolia',
 //   // url: 'https://api.cartridge.gg/x/starknet/sepolia',
@@ -35,15 +36,15 @@ import {
 //   ],
 // });
 
-const cartridgeConnector = new ControllerConnector({
-  url: 'https://api.cartridge.gg/x/starknet/sepolia',
-  defaultChainId: CHAIN_ID,
-  chains: [
-    {
-      rpcUrl: 'https://api.cartridge.gg/x/starknet/sepolia',
-    },
-  ],
-});
+// const cartridgeConnector = new ControllerConnector({
+//   url: 'https://api.cartridge.gg/x/starknet/sepolia',
+//   defaultChainId: CHAIN_ID,
+//   chains: [
+//     {
+//       rpcUrl: 'https://api.cartridge.gg/x/starknet/sepolia',
+//     },
+//   ],
+// });
 const isMobileDevice = () => {
   if (typeof window === "undefined") {
     return false

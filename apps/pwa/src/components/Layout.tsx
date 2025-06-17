@@ -232,11 +232,18 @@ const Layout = ({ children }: LayoutProps) => {
           <Link href="/" onClick={() => {
             logClickedEvent("home", "click", "link_drawer")
             closeSidebar()
-          }}>AFK</Link>
+          }}>
+            <Image
+              src="/afk_logo_circle.png"
+              alt="AFK Logo"
+              width={50}
+              height={50}
+            />
+          </Link>
         </div>
 
-        <div className="sidebar-nav overflow-y-hidden scrollbar-hide">
-          <div className="sidebar-nav-header">
+        <div className="sidebar-nav overflow-y-hidden scrollbar-hide ">
+          <div className="sidebar-nav-header items-left align-start justify-left flex flex-wrap gap-4">
             <Link href="/" className="sidebar-nav-item" onClick={() => {
               logClickedEvent("home", "click", "link_drawer")
               closeSidebar()
@@ -268,7 +275,7 @@ const Layout = ({ children }: LayoutProps) => {
               Create</Link>
 
 
-            <div className='sidebar-nav-item'>
+            {/* <div className='sidebar-nav-item'>
               <AccordionMenu title="Nostr"
                 items={[{
                   title: "Social Nostr",
@@ -302,17 +309,10 @@ const Layout = ({ children }: LayoutProps) => {
                         />
                         Login
                       </Link>
-
-                      {/* {publicKey && (
-                        <Link href="/nostr/messages" className="sidebar-nav-item" onClick={closeSidebar}>
-                          <Icon name="MessageIcon" size={24} />
-                          Messages
-                        </Link>
-                      )} */}
                     </>)
                 },
                 ]} />
-            </div>
+            </div> */}
 
 
             <Link href="/launchpad" className="sidebar-nav-item" onClick={() => {
@@ -349,13 +349,16 @@ const Layout = ({ children }: LayoutProps) => {
 
 
 
-            <div className="flex items-center gap-4">
-              <button className="btn btn-gradient-green" onClick={() => showModal(<ProfileManagement />)}>
-                Connect
-              </button>
+            <div className='flex items-center gap-4'>
+           
 
+              <div className="flex items-center gap-4">
+                <button className="btn btn-gradient-green" onClick={() => showModal(<ProfileManagement />)}>
+                  Connect
+                </button>
+              </div>
               <button
-                className="theme-toggle"
+                className=" justify-end theme-toggle"
                 onClick={toggleTheme}
                 aria-label="Toggle theme"
               >
@@ -382,6 +385,9 @@ const Layout = ({ children }: LayoutProps) => {
                 )}
               </button>
             </div>
+
+
+
             {/* <a href="/stream" className="sidebar-nav-item" onClick={closeSidebar}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect
@@ -421,6 +427,8 @@ const Layout = ({ children }: LayoutProps) => {
           </div>
 
           <div className="sidebar-nav-footer">
+
+
             <button
               className="sidebar-nav-footer-item"
               onClick={toggleTheme}
@@ -463,13 +471,18 @@ const Layout = ({ children }: LayoutProps) => {
       ></div>
 
       {/* Main Content */}
-      <main className="main-content">
+      <main 
+      className="main-content"
+      >
         {isLoading && <CryptoLoading />}
-        <div className="content pb-20 md:pb-0">
+        <div 
+        // className="content pb-20 md:pb-0"
+        >
           {children}
-          {/* <RightBarDesktop /> */}
         </div>
       </main>
+      <RightBarDesktop />
+
       <MobileBottomBar />
 
     </div>
