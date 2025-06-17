@@ -238,8 +238,10 @@ export const DAO_FACTORY_ADDRESS = {
 } as { [key in string]: `0x${string}` };
 
 export const MULTI_CANVAS_ADDRESS = {
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   '0x5461b6b463357260de27286586f2384f33ba519be0d31460c9bffc795aa168b',
   [constants.StarknetChainId.SN_SEPOLIA]:
-    '0x5461b6b463357260de27286586f2384f33ba519be0d31460c9bffc795aa168b',
+  '0x3f842da2cb1dbc81cb9ddd88206007494cdc3cac1409d558217794a052e79cf',
   [constants.StarknetChainId.SN_MAIN]: '0x',
 } as { [key in string]: `0x${string}` };
 

@@ -35,7 +35,7 @@ export const Canva = (props: any) => {
         context.imageSmoothingEnabled = false;
 
         const canvasData = await getCanvas(worldId);
-        const colorData = new Uint8Array(canvasData, 0, canvasData.byteLength);
+        const colorData = new Uint8Array(canvasData, 0, canvasData?.byteLength ?? 0);
         const dataArray = [];
         const bitwidth = process.env.NEXT_PUBLIC_CANVAS_BITWIDTH as unknown as number || 5;
         const oneByteBitOffset = 8 - bitwidth;

@@ -92,8 +92,8 @@ export const createWorld = async (
     console.log("account0 address", account0?.address);
     const initParams = {
       host: account0?.address ?? accountAddress0,
-      name: name ?? cairo.felt("AFK WORLD"),
-      unique_name: unique_name ?? cairo.felt("AFK LFG WORLD"),
+      name: name ?? cairo.felt("AFK_bro"),
+      unique_name: unique_name ?? cairo.felt("AFK_bro"),
       width: canvas_width,
       height: canvas_height,
       pixels_per_time: pixels_per_time,

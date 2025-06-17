@@ -201,6 +201,7 @@ CREATE TABLE Stencils (
   width integer NOT NULL,
   height integer NOT NULL,
   position integer NOT NULL,
+  ipfs_hash text,
   UNIQUE (stencil_id, world_id)
 );
 CREATE INDEX stencils_stencil_id_index ON Stencils (stencil_id);

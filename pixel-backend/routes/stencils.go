@@ -596,8 +596,8 @@ func addStencilImg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pinata_jwt:=os.Getenv("PINATA_JWT")
-	
+	pinata_jwt := os.Getenv("PINATA_JWT")
+
 	auth := pinata.NewAuthWithJWT(pinata_jwt)
 	client := pinata.New(auth)
 
@@ -669,6 +669,7 @@ func uploadStencilImg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println("response", response)
 	// Generate a hash for the image
 	hash := fmt.Sprintf("stencil-%s", response.IpfsHash)
 
@@ -693,7 +694,7 @@ func getStencilImg(w http.ResponseWriter, r *http.Request) {
 		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Hash parameter is required")
 		return
 	}
-	
+
 	ipfsHash, err := core.PostgresQuery[string]("SELECT ipfs_hash FROM stencil_images WHERE hash = $1", hash)
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to get ipfs hash for th given hash")

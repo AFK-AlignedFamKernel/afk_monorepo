@@ -10,6 +10,7 @@ import { useFileUpload } from "@/hooks/useFileUpload";
 
 export const StencilCreationTab = (props: any) => {
   const { account } = useAccount();
+  console.log("account address in stencil creation", account?.address);
   const [image, setImage] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const fileUpload = useFileUpload();
@@ -21,6 +22,7 @@ export const StencilCreationTab = (props: any) => {
   }
 
   const submit = async () => {
+    console.log("submit");
     playSoftClick2();
     const hash = hashStencilImage();
 
@@ -42,15 +44,21 @@ export const StencilCreationTab = (props: any) => {
       urlImage = props.stencilImage.image;
       urlHash = props.stencilImage.hash;
     }
-    if (!account) return;
+    // if (!account) return;
     try {
-      // await addStencilCall(account, props.worldId, hash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
-      await addStencilCall(account, props.worldId, urlHash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
+      await addStencilCall(account, props.worldId, hash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
+      // await addStencilCall(account, props.worldId, urlHash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
     } catch (error) {
       console.error("Error submitting stencil:", error);
       return;
     }
-    const res = await uploadStencilImg(props.stencilImage.image, props.stencilColorIds.toString());
+    const formData = new FormData();
+    formData.append('file', image ? new Blob([Buffer.from(image, 'base64')]) : new Blob([Buffer.from(urlImage, 'base64')]));
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/upload-stencil-img`, {
+      method: 'POST',
+      body: formData,
+    });
+    const res = await response.json();
     console.log("Stencil added to DB:", res);
     props.endStencilCreation();
     props.setActiveTab("Stencils");
@@ -60,7 +68,7 @@ export const StencilCreationTab = (props: any) => {
     const newStencil = {
       favorited: true,
       favorites: 1,
-      hash: imgHash,
+      hash: res.hash,
       height: props.stencilImage.height,
       name: "",
       position: props.stencilPosition,
