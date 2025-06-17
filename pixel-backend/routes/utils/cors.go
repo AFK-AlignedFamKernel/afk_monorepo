@@ -125,4 +125,14 @@ func joinStrings(strings []string) string {
 		result += s
 	}
 	return result
+}
+
+// EnableCORS sets CORS headers for the response.
+func EnableCORS(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*") // Or restrict to your frontend origin
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+	}
 } 

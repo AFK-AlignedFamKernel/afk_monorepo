@@ -3,7 +3,7 @@ import { useAccount } from "@starknet-react/core";
 import { BasicTab } from "./basic";
 import { sha256 } from "js-sha256";
 import { playSoftClick2 } from "../utils/sounds";
-import { addStencilData } from "../../api/stencils";
+import { addStencilData, uploadStencilImg } from "../../api/stencils";
 import { addStencilCall } from "../../contract/calls";
 import { useState } from "react";
 import { useFileUpload } from "@/hooks/useFileUpload";
@@ -50,7 +50,7 @@ export const StencilCreationTab = (props: any) => {
       console.error("Error submitting stencil:", error);
       return;
     }
-    const res = await addStencilData(props.worldId, props.stencilImage.width, props.stencilImage.height, props.stencilColorIds.toString());
+    const res = await uploadStencilImg(props.stencilImage.image, props.stencilColorIds.toString());
     console.log("Stencil added to DB:", res);
     props.endStencilCreation();
     props.setActiveTab("Stencils");

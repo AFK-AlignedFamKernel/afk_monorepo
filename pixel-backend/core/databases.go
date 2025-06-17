@@ -55,6 +55,14 @@ func NewDatabases(databaseConfig *config.DatabaseConfig) *Databases {
 	}
 	fmt.Println("Redis connection established:", pong)
 
+
+	postgresHost := os.Getenv("PG_HOST")
+	fmt.Println("Postgres host:", postgresHost)
+	postgresPort := os.Getenv("PG_PORT")
+	fmt.Println("Postgres port:", postgresPort)
+	postgresDatabase := os.Getenv("PG_DATABASE")
+	fmt.Println("Postgres database:", postgresDatabase)
+	
 	// Connect to Postgres
 	// postgresConnString := "postgresql://" + databaseConfig.Postgres.User + ":" + os.Getenv("POSTGRES_PASSWORD") + "@" + databaseConfig.Postgres.Host + ":" + strconv.Itoa(databaseConfig.Postgres.Port) + "/" + databaseConfig.Postgres.Database
 	postgresConnString := "postgresql://" + os.Getenv("POSTGRES_USER") + ":" + os.Getenv("POSTGRES_PASSWORD") + "@" + os.Getenv("PG_HOST") + ":" + os.Getenv("PG_PORT") + "/" + os.Getenv("PG_DATABASE")

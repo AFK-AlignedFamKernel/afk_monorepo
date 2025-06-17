@@ -20,6 +20,7 @@ pub mod interfaces {
     pub mod username_store;
     pub mod vault;
     pub mod voting;
+    pub mod content_contests_interface;
 }
 
 pub mod afk_id {
@@ -76,6 +77,7 @@ pub mod infofi {
     // pub mod nostr_vault;
     pub mod nostrfi_scoring;
     pub mod score_factory;
+    pub mod content_contests;
 }
 
 #[cfg(test)]

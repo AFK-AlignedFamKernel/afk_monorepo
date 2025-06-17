@@ -55,7 +55,7 @@ export const useFileUpload = () => {
                 formData.append('file', file);
             }
 
-            return ApiInstance.post('/file', formData, {
+            return ApiInstance.post('/upload-stencil-img', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
