@@ -35,7 +35,7 @@ export const Canva = (props: any) => {
         context.imageSmoothingEnabled = false;
 
         const canvasData = await getCanvas(worldId);
-        const colorData = new Uint8Array(canvasData, 0, canvasData.byteLength);
+        const colorData = new Uint8Array(canvasData, 0, canvasData?.byteLength);
         const dataArray = [];
         const bitwidth = process.env.NEXT_PUBLIC_CANVAS_BITWIDTH as unknown as number || 5;
         const oneByteBitOffset = 8 - bitwidth;
@@ -55,7 +55,7 @@ export const Canva = (props: any) => {
           }
         }
         const imageDataArray = [];
-        for (let i = 0; i < dataArray.length; i++) {
+        for (let i = 0; i < dataArray?.length; i++) {
           let color = "#" + canvasColors[dataArray[i]] + "FF";
           if (!color) {
             color = "#000000FF";

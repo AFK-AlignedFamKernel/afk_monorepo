@@ -37,7 +37,7 @@ export const deployWorld = async () => {
       // "afklfg",
       // "afklfg",
       cairo.felt("AFK"),
-      cairo.felt("afk"),
+      cairo.felt("afk123"),
       CanvasConfig.canvas?.width,
       CanvasConfig.canvas?.height,
       5,

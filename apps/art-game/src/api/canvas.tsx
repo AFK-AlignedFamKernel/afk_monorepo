@@ -4,7 +4,7 @@ export const getCanvasColors = async (worldId: number): Promise<string[]> => {
   try {
     const canvasColorsEndpoint = `${backendUrl}/get-worlds-colors?worldId=${worldId}`;
     const canvasColors = await fetchJsonData(canvasColorsEndpoint);
-    if (canvasColors.length === 0) {
+    if (!canvasColors || canvasColors?.length === 0) {
       console.error("No colors found for world", worldId);
       return [];
     }
