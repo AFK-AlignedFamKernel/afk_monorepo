@@ -105,12 +105,12 @@ export class ContentCreatorAnalyticsService {
                 }
 
                 const { data: dataCreator, error: errorCreator } = await supabase.from('creator_analytics').select('*').eq('creator_id', creator.id).eq('platform', 'twitter');
-                console.log("dataCreator exist", true);
-                console.log("errorCreator", errorCreator);
+                // console.log("dataCreator exist", true);
+                // console.log("errorCreator", errorCreator);
                 console.log('Update or create the model of creator_analytics')
                 if (dataCreator && dataCreator.length > 0 && errorCreator === null) {
-                    console.log("dataCreator exist", dataCreator);
-                    console.log("errorCreator exist", errorCreator);
+                    // console.log("dataCreator exist", dataCreator);
+                    // console.log("errorCreator exist", errorCreator);
                     const { data, error } = await supabase.from('creator_analytics').update({
                         llm_classification: twitterAnalytics?.result ?? dataCreator[0].llm_classification,
                         llm_process_data: twitterAnalytics?.processData ?? dataCreator[0].llm_process_data,
@@ -122,8 +122,8 @@ export class ContentCreatorAnalyticsService {
                     console.log("updated creator_analytics", data);
                     console.log("error", error);
                 } else {
-                    console.log("dataCreator", dataCreator);
-                    console.log("errorCreator", errorCreator);
+                    // console.log("dataCreator", dataCreator);
+                    // console.log("errorCreator", errorCreator);
                     const { data, error } = await supabase.from('creator_analytics').upsert({
                         creator_id: creator.id,
                         platform: 'twitter',

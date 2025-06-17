@@ -471,9 +471,13 @@ const Layout = ({ children }: LayoutProps) => {
       ></div>
 
       {/* Main Content */}
-      <main className="main-content">
+      <main 
+      className="main-content"
+      >
         {isLoading && <CryptoLoading />}
-        <div className="content pb-20 md:pb-0 lg:flex">
+        <div 
+        // className="content pb-20 md:pb-0"
+        >
           {children}
         </div>
       </main>

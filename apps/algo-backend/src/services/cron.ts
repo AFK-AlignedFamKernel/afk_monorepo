@@ -36,10 +36,10 @@ export const initAllCronJobs = async () => {
    
     // content creator analytics
     // console.log("content creator analytics initialized");
-    // const contentCreatorAnalytics = new ContentCreatorAnalyticsService(twitterScraper)
-    // await contentCreatorAnalytics.handleAllContentCreatorsAnalytics()
-    // console.log("cron job content creator analytics initialized");
-    // setInterval(contentCreatorAnalytics.handleAllContentCreatorsAnalytics, 1000 * 60 * 60 * 24 * 3);
+    const contentCreatorAnalytics = new ContentCreatorAnalyticsService(twitterScraper)
+    await contentCreatorAnalytics.handleAllContentCreatorsAnalytics()
+    console.log("cron job content creator analytics initialized");
+    setInterval(contentCreatorAnalytics.handleAllContentCreatorsAnalytics, 1000 * 60 * 60 * 24 * 3);
     
     // cronJobs.forEach(async (job) => {
     // });

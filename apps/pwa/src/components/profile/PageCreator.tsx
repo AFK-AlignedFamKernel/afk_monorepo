@@ -144,7 +144,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
           {Object.entries(creator.social_links).map(([platformIndex, platform]) => {
             return (
               <div key={platformIndex + platform + platform.url + platform.identity_data.provider}
-                className="flex flex-col items-center gap-3 p-3 rounded-md">
+                className="flex flex-col items-center gap-3 px-3 rounded-md">
 
                 {platform?.identity_data?.provider === "discord" && (
                   <>
@@ -190,7 +190,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
         </div>
       )}
 
-      <div className="flex flex-row gap-4 mt-4 p-4 rounded-lg shadow h-auto overflow-x-auto">
+      <div className="flex flex-row gap-4 mt-1 p-1 rounded-lg shadow h-auto overflow-x-auto">
 
 
         {creator?.token_address && (
@@ -239,7 +239,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
 
         {activeTab === "analytics" && (
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">Analytics</p>
+            {/* <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">Analytics</p> */}
             <AnalyticsCreatorConsumer slug={slug} creator={creator} />
           </div>
         )}
