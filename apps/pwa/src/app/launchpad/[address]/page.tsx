@@ -14,6 +14,7 @@ import { useAccount } from '@starknet-react/core';
 import { Icon } from '@/components/small/icon-component';
 import { useUIStore } from '@/store/uiStore';
 import { Chart } from '@/components/launchpad/Chart';
+import ChartComponent from '@/components/launchpad/CandleGraph';
 // import { Chart } from '@/components/launchpad/Chart';
 
 interface LaunchpadDetailProps {
@@ -137,7 +138,8 @@ export default function LaunchpadDetailPage() {
     { name: 'Overview', component: <Overview data={launchData} /> },
     { name: 'Holders', component: <Holders holders={holders} loading={loading} total_supply={launchData?.total_supply} /> },
     { name: 'Transactions', component: <Transactions transactions={transactions} loading={loading} /> },
-    { name: 'Chart', component: <Chart data={chartData} loading={loading} /> },
+    { name: 'Chart', component: <ChartComponent candleData={chartData as any[]} loading={loading} /> },
+    // { name: 'Chart', component: <Chart data={chartData} loading={loading} /> },
   ];
 
   if (loading) {
@@ -173,6 +175,7 @@ export default function LaunchpadDetailPage() {
           <div className="flex justify-end">
             <button onClick={() => {
               fetchData();
+              fetchCandles();
             }}>
               <Icon name="RefreshIcon" size={16} className="ml-1" />
             </button>

@@ -28,17 +28,18 @@ echarts.use([
   UniversalTransition,
 ]);
 
-const ChartComponent = ({ candleData = [], tokenName = 'Token', theme = 'dark' }) => {
+const ChartComponent = ({ candleData = [], tokenName = 'Token', theme = 'dark' }: { candleData: any[], tokenName: string, theme: string }) => {
 
   const chartRef = useRef<ReactEChartsCore>(null);
 
+  console.log('candleData', candleData);
   const processedData = useMemo(() => {
     if (!candleData || candleData.length === 0) {
       <div
-        className="w-full border rounded-lg p-4 bg-white shadow flex items-center justify-center"
+        className="w-full border rounded-lg p-4 shadow flex items-center justify-center"
         style={{ background: theme === 'dark' ? '#181818' : '#ffffff', height: 500 }}
       >
-        <p style={{ color: theme === 'dark' ? '#e0e0e0' : '#333333' }}>No candle data available.</p>
+        <p style={{}}>No candle data available.</p>
       </div>;
     }
 
@@ -134,7 +135,7 @@ const ChartComponent = ({ candleData = [], tokenName = 'Token', theme = 'dark' }
           const candleParams = params[0];
           const maParams = params.find((p) => p.seriesName === 'MA7');
 
-          console.log('candleprams data is', candleParams.data);
+          // console.log('candleprams data is', candleParams.data);
 
           const date = new Date(candleParams.axisValue);
           const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
@@ -334,15 +335,24 @@ const ChartComponent = ({ candleData = [], tokenName = 'Token', theme = 'dark' }
       className="w-full border rounded-lg m-4 p-4 bg-white shadow"
       style={{ background: theme === 'dark' ? '#181818' : '#ffffff' }}
     >
-      {/* <ReactEChartsCore
-        ref={chartRef}
-        style={{ height: 470 }}
-        echarts={echarts}
-        option={options as any}
-        notMerge
-        lazyUpdate
-        theme={theme}
-      /> */}
+      {candleData && candleData.length > 0 ? (
+        <ReactEChartsCore
+          ref={chartRef}
+          style={{ height: 470 }}
+          echarts={echarts}
+          option={options as any}
+          notMerge
+          lazyUpdate
+          theme={theme}
+        />
+      ) : (
+        <div
+          className="w-full h-full flex items-center justify-center"
+          style={{ height: 470 }}
+        >
+          <p style={{ color: theme === 'dark' ? '#e0e0e0' : '#333333' }}>No candle data available.</p>
+        </div>
+      )}
     </div>
   );
 };
