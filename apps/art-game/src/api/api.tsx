@@ -1,6 +1,7 @@
 export const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL || "http://localhost:8080";
 export const websocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || process.env.EXPO_PUBLIC_WEBSOCKET_URL || "ws://localhost:8083";
 
+export const ipfsUrl = process.env.NEXT_PUBLIC_IPFS_URL || process.env.EXPO_PUBLIC_IPFS_URL || "https://ipfs.io/ipfs/";
 const defaultHeaders = {
   'Accept': 'application/json',
   'Content-Type': 'application/json',

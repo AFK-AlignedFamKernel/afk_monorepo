@@ -671,7 +671,9 @@ func uploadStencilImg(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("response", response)
 	// Generate a hash for the image
+	// hash := fmt.Sprintf("stencil-%s", response.IpfsHash)
 	hash := fmt.Sprintf("stencil-%s", response.IpfsHash)
+	ipfsHash := response.IpfsHash
 
 	// Store the hash and IPFS hash in the database
 	query := `
@@ -685,7 +687,7 @@ func uploadStencilImg(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Return the hash to the client
-	routeutils.WriteResultJson(w, hash)
+	routeutils.WriteResultJson(w, ipfsHash)
 }
 
 func getStencilImg(w http.ResponseWriter, r *http.Request) {
