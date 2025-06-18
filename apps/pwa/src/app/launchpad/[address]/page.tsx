@@ -13,6 +13,7 @@ import { ToastContainer } from '@/components/ui/Toast';
 import { useAccount } from '@starknet-react/core';
 import { Icon } from '@/components/small/icon-component';
 import { useUIStore } from '@/store/uiStore';
+import { Chart } from '@/components/launchpad/Chart';
 // import { Chart } from '@/components/launchpad/Chart';
 
 interface LaunchpadDetailProps {
@@ -34,7 +35,7 @@ export default function LaunchpadDetailPage() {
   const [userShare, setUserShare] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [chartData, setChartData] = useState<any>(null);
+  const [chartData, setChartData] = useState<any[]>([]);
   const { handleBuyCoins } = useBuyCoin();
   const { handleSellCoins } = useSellCoin();
   const { toasts, showToast, removeToast } = useToast();
@@ -56,7 +57,6 @@ export default function LaunchpadDetailPage() {
       setLaunchData(launchData?.data?.launch);
       setHolders(launchData?.data?.holders);
       setTransactions(launchData?.data?.transactions);
-      setChartData(launchData?.data?.chart);
     } catch (error) {
       console.error('Error fetching launchpad data:', error);
       showToast({ title: 'Error loading data', type: 'error' });
@@ -67,10 +67,10 @@ export default function LaunchpadDetailPage() {
 
   const fetchCandles = async () => {
     try {
-      const launchResponse = await fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy-launch/candles/${address}`);
-      const launchData = await launchResponse.json();
-      console.log("launchData", launchData);
-      setChartData(launchData?.data?.candles);
+      const candlesResponse = await fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy-launch/candles/${address}`);
+      const candlesData = await candlesResponse.json();
+      console.log("fetchCandles", candlesData);
+      setChartData(candlesData?.data?.candles);
     } catch (error) {
       console.error('Error fetching launchpad data:', error);
       showToast({ title: 'Error loading candles', type: 'error' });
@@ -137,7 +137,7 @@ export default function LaunchpadDetailPage() {
     { name: 'Overview', component: <Overview data={launchData} /> },
     { name: 'Holders', component: <Holders holders={holders} loading={loading} total_supply={launchData?.total_supply} /> },
     { name: 'Transactions', component: <Transactions transactions={transactions} loading={loading} /> },
-    // { name: 'Chart', component: <Chart data={chartData} loading={loading} /> },
+    { name: 'Chart', component: <Chart data={chartData} loading={loading} /> },
   ];
 
   if (loading) {
