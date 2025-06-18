@@ -64,11 +64,26 @@ export default function LaunchpadDetailPage() {
       setLoading(false);
     }
   };
+
+  const fetchCandles = async () => {
+    try {
+      const launchResponse = await fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy-launch/candles/${address}`);
+      const launchData = await launchResponse.json();
+      console.log("launchData", launchData);
+      setChartData(launchData?.data?.candles);
+    } catch (error) {
+      console.error('Error fetching launchpad data:', error);
+      showToast({ title: 'Error loading candles', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     if (address) {
       setLoading(true);
       fetchData();
       setLoading(false);
+      fetchCandles();
     }
   }, [address, showToast]);
 
