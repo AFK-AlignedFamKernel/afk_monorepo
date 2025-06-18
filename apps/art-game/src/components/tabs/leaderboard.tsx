@@ -68,6 +68,7 @@ export const LeaderboardTab = (props: any) => {
           res = await getLeaderboardPixelsWorld(leaderboardPagination.pageLength, leaderboardPagination.page, props.activeWorld ? props.activeWorld.worldId : 0);
           setUseKeyNames(true);
         }
+        console.log("res leaderboard", res);
         const newKeyNameMap = keyNameMap;
         const keysList = res.map((stat: any) => "0x" + stat.key);
         let usernameMap: any = {};

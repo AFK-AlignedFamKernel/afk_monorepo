@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -25,27 +24,34 @@ func NewDatabases(databaseConfig *config.DatabaseConfig) *Databases {
 	d := &Databases{}
 	d.DatabaseConfig = databaseConfig
 
-
 	// Define a context
 	ctx := context.Background()
 
 	// address := os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT")
-	
+
 	redisHost := os.Getenv("REDIS_HOST")
 	fmt.Println("Redis host:", redisHost)
+
+	redisPort := os.Getenv("REDISPORT")
+	fmt.Println("Redis port:", redisPort)
+
 	// redisPort := strconv.Itoa(os.Getenv("REDIS_PORT"))
 	// address := redisHost + ":" + redisPort
-	address := redisHost + ":" + strconv.Itoa(databaseConfig.Redis.Port)
+	address := redisHost + ":" + redisPort
 	fmt.Println("Redis address:", address)
 
 	password := os.Getenv("REDIS_PASSWORD")
 	fmt.Println("Redis password:", password)
-	
+
+	redisUsername := os.Getenv("REDIS_USERNAME")
+	fmt.Println("Redis username:", redisUsername)
+
 	// Connect to Redis
 	d.Redis = redis.NewClient(&redis.Options{
 		Addr:     address,
 		Password: password,
-		DB:       0,
+		// Username: redisUsername,
+		DB: 0,
 	})
 
 	pong, err := d.Redis.Ping(ctx).Result()
@@ -55,14 +61,13 @@ func NewDatabases(databaseConfig *config.DatabaseConfig) *Databases {
 	}
 	fmt.Println("Redis connection established:", pong)
 
-
 	postgresHost := os.Getenv("PG_HOST")
 	fmt.Println("Postgres host:", postgresHost)
 	postgresPort := os.Getenv("PG_PORT")
 	fmt.Println("Postgres port:", postgresPort)
 	postgresDatabase := os.Getenv("PG_DATABASE")
 	fmt.Println("Postgres database:", postgresDatabase)
-	
+
 	// Connect to Postgres
 	// postgresConnString := "postgresql://" + databaseConfig.Postgres.User + ":" + os.Getenv("POSTGRES_PASSWORD") + "@" + databaseConfig.Postgres.Host + ":" + strconv.Itoa(databaseConfig.Postgres.Port) + "/" + databaseConfig.Postgres.Database
 	postgresConnString := "postgresql://" + os.Getenv("POSTGRES_USER") + ":" + os.Getenv("POSTGRES_PASSWORD") + "@" + os.Getenv("PG_HOST") + ":" + os.Getenv("PG_PORT") + "/" + os.Getenv("PG_DATABASE")

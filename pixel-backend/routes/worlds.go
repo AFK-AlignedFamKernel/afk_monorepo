@@ -2,13 +2,13 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 	"time"
-	"fmt"
 
 	"github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/core"
 	routeutils "github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/routes/utils"
@@ -805,6 +805,10 @@ func getLeaderboardPixels(w http.ResponseWriter, r *http.Request) {
 	}
 	offset := (page - 1) * pageLength
 
+	fmt.Println("pageLength", pageLength)
+	fmt.Println("offset", offset)
+	fmt.Println("page", page)
+
 	query := `
     SELECT
       address AS key,
@@ -817,6 +821,7 @@ func getLeaderboardPixels(w http.ResponseWriter, r *http.Request) {
       score DESC
     LIMIT $1 OFFSET $2`
 	leaderboard, err := core.PostgresQueryJson[LeaderboardEntry](query, pageLength, offset)
+	fmt.Println("leaderboard", string(leaderboard))
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to retrieve leaderboard")
 		return
@@ -839,6 +844,10 @@ func getLeaderboardWorlds(w http.ResponseWriter, r *http.Request) {
 	}
 	offset := (page - 1) * pageLength
 
+	fmt.Println("pageLength", pageLength)
+	fmt.Println("offset", offset)
+	fmt.Println("page", page)
+
 	query := `
     SELECT
       w.name AS key,
@@ -855,6 +864,8 @@ func getLeaderboardWorlds(w http.ResponseWriter, r *http.Request) {
       score DESC
     LIMIT $1 OFFSET $2`
 	leaderboard, err := core.PostgresQueryJson[LeaderboardEntry](query, pageLength, offset)
+
+	fmt.Println("leaderboard", string(leaderboard))
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to retrieve leaderboard")
 		return
@@ -971,8 +982,6 @@ func doesWorldNameExist(name string) (bool, error) {
 	return *exists, nil
 }
 
-
-
 func getAllWorlds(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("getAllWorlds")
 	pageLength, err := strconv.Atoi(r.URL.Query().Get("pageLength"))
@@ -1014,7 +1023,7 @@ func getAllWorlds(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Attempting to query worlds with pageLength:", pageLength, "offset:", offset)
 	if err != nil {
 		fmt.Println("Database error:", err) // Log the actual error
-		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to retrieve Worlds: " + err.Error())
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to retrieve Worlds: "+err.Error())
 		return
 	}
 	fmt.Println("Successfully retrieved worlds, count:", len(worlds))
