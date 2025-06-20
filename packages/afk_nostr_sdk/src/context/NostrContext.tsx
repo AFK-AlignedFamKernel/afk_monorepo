@@ -27,6 +27,7 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
   const isExtension = useAuth((state) => state.isExtension);
   const nwcUrl = useAuth((state) => state.nwcUrl);
   const relays = useSettingsStore((state) => state.relays);
+  const setIsConnected = useSettingsStore((state) => state.setIsConnected);
 
   const [ndk, setNdk] = useState<NDKInstance>(
     new NDK({
@@ -72,7 +73,7 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
 
     // const ndkNewWallet = new NDKWalletNWC(ndk as any);
     // setNDKWallet(ndkNewWallet);
-  }, [privateKey, isExtension]);
+  }, [privateKey, isExtension, relays]);
 
   useEffect(() => {
     if (nwcUrl) {
@@ -82,10 +83,23 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
     }
   }, [nwcUrl, ndk]);
 
+  useEffect(() => {
+    const checkConnection = () => {
+      const connected = ndk.pool.connectedRelays().length > 0;
+      setIsConnected(connected);
+    };
+
+    const interval = setInterval(checkConnection, 1000); // Check every second
+
+    // Initial check
+    checkConnection();
+
+    return () => clearInterval(interval); // Cleanup on component unmount
+  }, [ndk, setIsConnected]);
+
   return (
-    <NostrContext.Provider value={{ndk, nip07Signer, nwcNdk, ndkWallet, ndkCashuWallet, setNdk(ndk) {
-      
-    },}}>
+    <NostrContext.Provider
+      value={{ndk, nip07Signer, nwcNdk, ndkWallet, ndkCashuWallet, setNdk}}>
       {children}
     </NostrContext.Provider>
   );

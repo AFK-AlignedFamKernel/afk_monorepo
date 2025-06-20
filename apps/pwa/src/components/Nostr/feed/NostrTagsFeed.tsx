@@ -94,8 +94,8 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
         kinds: [...kinds],
         authors: authors,
         // until: isUsedUntil ? lastCreatedAt : Math.round(Date.now() / 1000),
-        // until: _until || isUsedUntil ? lastCreatedAt : Math.round(Date.now() / 1000),
-        // until: _until ? Math.round(_until / 1000) : isUsedUntil ? lastCreatedAt : Math.round(Date.now() / 1000),
+        since: Math.round(lastCreatedAt - 1000 * 60 * 60 * 24 * 3),
+        until: _until ? Math.round(_until / 1000) : isUsedUntil ? lastCreatedAt : Math.round(Date.now() / 1000),
         limit: limit ?? 10,
         '#t': [tag || selectedTag],
       });

@@ -2,8 +2,11 @@
 
 import { Box, useColorModeValue } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
+import { useNostrContext } from 'afk_nostr_sdk';
+import { useAppStore } from '@/store/app';
+import CryptoLoading from '@/components/small/crypto-loading';
 
 const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS;
 
@@ -35,9 +38,28 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   const bgColor = useColorModeValue('gray.300', 'gray.700');
   const textColor = useColorModeValue('gray.800', 'gray.300');
 
-  return (
+  const { ndk } = useNostrContext()
+  const [isConnectedLoading, setIsConnectedLoading] = useState(false)
+  const { setIsConnected, isConnected } = useAppStore()
+
+  useEffect(() => {
+    console.log("ndk", ndk)
+
+    if(ndk?.pool?.connectedRelays().length > 0) {
+      console.log("connectedRelays", ndk?.pool?.connectedRelays)
+      setIsConnected(true)
+    } else {
+      console.log("not connected")
+      setIsConnected(false)
+      setIsConnectedLoading(true)
+      ndk?.pool?.connect()
+      setIsConnectedLoading(false)
+    }
+  }, [ndk])
+
+    return (
     <Box bg={bgColor} color={textColor}>
       <Layout>{children}</Layout>
-    </Box>
+      </Box>
   );
 } 
