@@ -28,10 +28,16 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
   const nwcUrl = useAuth((state) => state.nwcUrl);
   const relays = useSettingsStore((state) => state.relays);
   const setIsConnected = useSettingsStore((state) => state.setIsConnected);
+  const nip07Signer = new NDKNip07Signer();
 
   const [ndk, setNdk] = useState<NDKInstance>(
     new NDK({
       explicitRelayUrls: relays ?? AFK_RELAYS,
+         signer: privateKey
+        ? new NDKPrivateKeySigner(privateKey)
+        : isExtension
+        ? nip07Signer
+        : undefined,
     }),
   );
 
@@ -44,7 +50,6 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
 
   const [nwcNdk, setNWCNdk] = useState<NDKNWCWallet | undefined>(undefined);
 
-  const nip07Signer = new NDKNip07Signer();
   const [ndkExtension, setNdkExtension] = useState<NDKInstance>(
     new NDK({
       explicitRelayUrls: relays ?? AFK_RELAYS,

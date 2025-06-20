@@ -1,26 +1,67 @@
 'use client'
 
-import { useState } from 'react'
-import { useContacts, useEditContacts, useProfile } from 'afk_nostr_sdk'
-import { NDKRelay } from '@nostr-dev-kit/ndk'
+import useCallback, { useEffect, useMemo, useState } from 'react'
+import { useContacts, useEditContacts, useProfile, useAuth } from 'afk_nostr_sdk'
+import { NDKKind, NDKRelay } from '@nostr-dev-kit/ndk'
 
 import { FeedTabsProfile } from '@/components/Nostr/feed/FeedTabsProfile'
 import { useUIStore } from '@/store/uiStore'
+import { useNostrContext } from 'afk_nostr_sdk'
 
 export default function NostrProfilePage({ address }: { address: string }) {
+  console.log("address", address)
+  const { ndk } = useNostrContext();
+  const { publicKey } = useAuth();
   const {
-    data: profile,
+    // data: profile,
     isLoading: profileLoading,
     isError,
   } = useProfile({
     publicKey: address as string,
   })
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (ndk.pool?.connectedRelays().length === 0) {
+        await ndk.connect(5000)
+      }
+
+      const user = ndk.getUser({ pubkey: address as string });
+
+      console.log("user", user)
+
+      const profileData = await user.fetchProfile();
+
+      console.log("profile fetched", profileData)
+
+      setProfile(profileData);
+    };
+
+    fetchProfile();
+  }, [address, ndk])
+  console.log("profile", profile)
+
+  // const fetchProfile = useMemo(async () => {
+  //   const profile = await ndk.fetchEvent({
+  //     kinds: [NDKKind.Metadata],
+  //     authors: [address as string],
+  //   })  
+  //   return profile
+  // }, [address])
+
+  // console.log("fetched profile", fetchProfile)
 
   const contacts = useContacts({
     authors: [address as string]
   })
+  console.log("contacts of profile", contacts?.data)
 
-  console.log("contacts", contacts?.data)
+  const myContacts = useContacts({
+    authors: [publicKey]
+  })
+
+  console.log("myContacts", myContacts?.data)
 
   // console.log('profile', profile)
   if (profileLoading) {
@@ -39,9 +80,10 @@ export default function NostrProfilePage({ address }: { address: string }) {
 
   return (
     <div className="p-4">
-      {profile &&
-        <ProfileHeader profile={profile} contacts={contacts} />
-      }
+      {/* {profile &&
+      } */}
+      <ProfileHeader profile={profile} contacts={myContacts?.data} address={address} myContacts={myContacts?.data} />
+
       <FeedTabsProfile authors={[address as string]}></FeedTabsProfile>
     </div>
   )
@@ -49,7 +91,7 @@ export default function NostrProfilePage({ address }: { address: string }) {
 
 
 const ProfileHeader = (props?: any) => {
-  const { profile, contacts } = props
+  const { profile, contacts, address, myContacts } = props
 
   const [showMore, setShowMore] = useState(false)
   // if (!profile) {
@@ -63,7 +105,7 @@ const ProfileHeader = (props?: any) => {
   const contactsData = contacts?.data
   const [isFollowinNow, setIsFollowinNow] = useState(false)
 
-  const isFollowing = contactsData?.some((contact) => contact === profile.pubkey)
+  const isFollowing = contactsData?.some((contact) => contact === profile?.pubkey)
 
   const { showToast } = useUIStore()
   const handleFollow = async () => {
@@ -72,12 +114,12 @@ const ProfileHeader = (props?: any) => {
     console.log("isFollowing", isFollowing)
     if (isFollowing) {
       res = await editContact.mutateAsync({
-        pubkey: profile.pubkey,
+        pubkey: profile?.pubkey,
         type: "remove"
       })
     } else {
       res = await editContact.mutateAsync({
-        pubkey: profile.pubkey,
+        pubkey: profile?.pubkey,
         type: "add"
       })
       console.log("res", res)
@@ -101,36 +143,36 @@ const ProfileHeader = (props?: any) => {
   return (
     <div>
       <div className="flex items-center gap-4">
-        {profile.picture && (
+        {profile?.picture && (
           <img
-            src={profile.picture}
+            src={profile?.picture}
             alt="Profile"
             className="w-32 h-32 rounded-full mb-4"
           />
         )}
         <div>
           <p className="text-2xl font-bold mb-4">
-            {profile?.displayName || profile?.name || 'Anonymous'}
+            {profile?.display_name || profile?.name || 'Anonymous'}
           </p>
           {profile?.lud06 && (
-            <p className="text-sm font-bold mb-4">
+            <p className="text-sm font-bold mb-4 text-gray-500">
               {profile?.lud06}
             </p>
           )}
           {profile?.lud16 && (
-            <p className="text-sm font-bold mb-4">
+            <p className="text-sm font-bold mb-4 text-gray-500">
               {profile?.lud16}
             </p>
           )}
         </div>
       </div>
 
-      {profile.about && (
+      {profile?.about && (
         <div>
           <p className="text-gray-600 mb-4">
-            {profile.about.length > 30 ? (
+            {profile?.about.length > 30 ? (
               <>
-                {showMore ? profile.about : profile.about.slice(0, 30)}...
+                {showMore ? profile?.about : profile?.about.slice(0, 30)}...
                 <button
                   className="text-blue-500 hover:underline ml-1"
                   onClick={() => setShowMore(!showMore)}
@@ -139,19 +181,19 @@ const ProfileHeader = (props?: any) => {
                 </button>
               </>
             ) : (
-              profile.about
+              profile?.about
             )}
           </p>
         </div>
       )}
       {profile?.website && (
         <a
-          href={profile.website}
+          href={profile?.website}
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-500 hover:underline"
         >
-          {profile.website}
+          {profile?.website}
         </a>
       )}
 

@@ -17,6 +17,8 @@ export const useEditContacts = () => {
           kinds: [NDKKind.Contacts],
           authors: [publicKey],
         });
+
+       console.log("ndk.signer", ndk.signer)
   
         console.log("contacts", contacts)
         if (!contacts) {
@@ -29,7 +31,7 @@ export const useEditContacts = () => {
         const connectedRelays = ndk?.pool?.connectedRelays()
         console.log("connectedRelays", connectedRelays)
         if(connectedRelays.length === 0 ) {
-          await ndk.connect()
+          await ndk.connect(5000)
         }
   
         // Resetting the id and created_at to avoid conflicts
@@ -38,12 +40,21 @@ export const useEditContacts = () => {
   
         console.log("contacts", contacts)
   
+        // if (data.type === 'add') {
+        //   contacts.tags.push(['p', data.pubkey, '', '']);
+        // } else {
+        //   contacts.tags = contacts.tags.filter((tag) => tag[1] !== data.pubkey);
+        // }
+
+        // Remove duplicates before adding new contact
         if (data.type === 'add') {
-          contacts.tags.push(['p', data.pubkey, '', '']);
+          const existingContact = contacts.tags.find((tag) => tag[1] === data.pubkey);
+          if (!existingContact) {
+            contacts.tags.push(['p', data.pubkey, '', '']);
+          }
         } else {
           contacts.tags = contacts.tags.filter((tag) => tag[1] !== data.pubkey);
         }
-  
         await contacts.sign();
   
         return contacts.publish();

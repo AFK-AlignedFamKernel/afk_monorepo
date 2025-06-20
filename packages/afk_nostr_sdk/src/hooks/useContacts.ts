@@ -17,8 +17,9 @@ export const useContacts = (options?: UseContactsOptions) => {
     queryFn: async () => {
       const contacts = await ndk.fetchEvent({
         kinds: [NDKKind.Contacts],
-        authors: [publicKey,
-          //  ...options?.authors
+        authors: [
+          // publicKey,
+           ...options?.authors ?? [publicKey]
 
         ],
         search: options?.search,
