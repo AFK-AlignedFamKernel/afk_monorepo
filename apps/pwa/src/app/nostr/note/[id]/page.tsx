@@ -4,21 +4,29 @@ import { useParams } from 'next/navigation'
 import { useNote } from 'afk_nostr_sdk'
 import { ArticleEventCard } from '@/components/Nostr/EventCard/ArticleEventCard'
 import { ShortEventCard } from '@/components/Nostr/EventCard'
+import CryptoLoading from '@/components/small/crypto-loading'
 export default function NotePage() {
   const { id } = useParams()
   const { data: note, isLoading: noteLoading, isError, isFetching } = useNote({
     noteId: id as string,
   })
 
+  console.log("note", note)
   if (noteLoading) {
-    return <div>Loading note...</div>
-  }
-
-  if (isError) {
     return <div>
-      Error: {isError}
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-gray-900 dark:border-white"></div>
+        Loading note...
+        <CryptoLoading />
+      </div>
     </div>
   }
+
+  // if (isError) {
+  //   return <div>
+  //     Error: {isError}
+  //   </div>
+  // }
 
   // if (!profile && !profileLoading) {
   //   return <div>Profile not found</div>

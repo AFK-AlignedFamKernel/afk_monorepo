@@ -276,7 +276,7 @@ pub impl LinkedStarknetAddressEncodeImpl of Encode<LinkedStarknetAddress> {
         let recipient_address: felt252 = (*self.starknet_address).into();
 
         // @format!("link to {:?}", recipient_address_user_felt)
-        @format!("link {}", recipient_address)
+        @format!("link {:?}", recipient_address)
     }
 }
 

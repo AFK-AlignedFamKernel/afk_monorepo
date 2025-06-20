@@ -155,8 +155,8 @@ export const linkedNostrProfile = async () => {
     const starknetAddressFelt = cairo.felt(starknetAddress);
 
     // Format content exactly as in the test
-    const content = `link ${starknetAddress}`;
-    // const content = `link ${starknetAddressFelt}`;
+    // const content = `link ${starknetAddress}`;
+    const content = `link ${starknetAddressFelt}`;
 
     // Use the exact timestamp from the test
     const timestamp = 1716285235;
@@ -189,14 +189,16 @@ export const linkedNostrProfile = async () => {
     // Format calldata exactly as the test expects
     const linkedArrayCalldata = CallData.compile([
         // recipient_public_key from test
-        cairo.uint256(`0x${event?.pubkey}`),
-        // uint256.bnToUint256(BigInt(`0x${event?.pubkey}`)),
+        // cairo.uint256(`0x${event?.pubkey}`),
+        // event?.pubkey,
+        uint256.bnToUint256(BigInt(`0x${event?.pubkey}`)),
         // cairo.uint256("0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc"),
         timestamp,
         1, // kind
         byteArray.byteArrayFromString("[]"),
         {
-            starknet_address: starknetAddressFelt,
+            starknet_address: starknetAddress,
+            // starknet_address: starknetAddressFelt,
         },
         {
             r: cairo.uint256(signatureR),
@@ -215,7 +217,7 @@ export const linkedNostrProfile = async () => {
 
     const tx = await account.execute({
         contractAddress: namespace_address,
-        entrypoint: 'linked_nostr_profile',
+        entrypoint: 'linked_nostr_default_account',
         calldata: linkedArrayCalldata
     });
 

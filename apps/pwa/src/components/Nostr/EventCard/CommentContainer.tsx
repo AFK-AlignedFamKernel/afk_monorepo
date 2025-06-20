@@ -115,13 +115,20 @@ export const CommentContainer: React.FC<CommentContainerProps> = (props) => {
       ))}
 
       <div className="mt-3 flex items-center space-x-2">
-        <input
+        {/* <textarea
+          // type="text-area"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Add a comment"
+          className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+        /> */}
+        {/* <input
           type="text"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="Add a comment"
           className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
-        />
+        /> */}
         <button onClick={handleSendComment}>Send</button>
       </div>
     </div>
