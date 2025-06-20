@@ -1,22 +1,26 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useContacts, useEditContacts, useNostrContext, useProfile } from 'afk_nostr_sdk'
-import { NDKRelay, NDKUserProfile } from '@nostr-dev-kit/ndk'
+import { useState } from 'react'
+import { useContacts, useEditContacts, useProfile } from 'afk_nostr_sdk'
+import { NDKRelay } from '@nostr-dev-kit/ndk'
+
 import { FeedTabsProfile } from '@/components/Nostr/feed/FeedTabsProfile'
 import { useUIStore } from '@/store/uiStore'
 
 export default function NostrProfilePage({ address }: { address: string }) {
-  const { ndk } = useNostrContext()
-  const router = useRouter()
-  const { data: profile, isLoading: profileLoading, isError, isFetching } = useProfile({
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    isError,
+  } = useProfile({
     publicKey: address as string,
   })
 
   const contacts = useContacts({
     authors: [address as string]
   })
+
+  console.log("contacts", contacts?.data)
 
   // console.log('profile', profile)
   if (profileLoading) {
@@ -38,9 +42,7 @@ export default function NostrProfilePage({ address }: { address: string }) {
       {profile &&
         <ProfileHeader profile={profile} contacts={contacts} />
       }
-      {profile &&
-        <FeedTabsProfile authors={[address as string]}></FeedTabsProfile>
-      }
+      <FeedTabsProfile authors={[address as string]}></FeedTabsProfile>
     </div>
   )
 }
@@ -50,9 +52,9 @@ const ProfileHeader = (props?: any) => {
   const { profile, contacts } = props
 
   const [showMore, setShowMore] = useState(false)
-  if (!profile) {
-    return null
-  }
+  // if (!profile) {
+  //   return null
+  // }
 
   const editContact = useEditContacts()
 
@@ -66,7 +68,8 @@ const ProfileHeader = (props?: any) => {
   const { showToast } = useUIStore()
   const handleFollow = async () => {
 
-    let res: Set<NDKRelay> | null = new Set()
+    let res: Set<any> | null = new Set()
+    console.log("isFollowing", isFollowing)
     if (isFollowing) {
       res = await editContact.mutateAsync({
         pubkey: profile.pubkey,

@@ -4,7 +4,7 @@ import { Box, useColorModeValue } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { useNostrContext } from 'afk_nostr_sdk';
+import { useNostrContext, useSettingsStore } from 'afk_nostr_sdk';
 import { useAppStore } from '@/store/app';
 import CryptoLoading from '@/components/small/crypto-loading';
 
@@ -12,7 +12,7 @@ const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS;
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  
+
 
   useEffect(() => {
     console.log('pathname', pathname);
@@ -25,7 +25,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     }
   }, []);
 
-  
+
   // Track page views
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -40,26 +40,27 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   const { ndk } = useNostrContext()
   const [isConnectedLoading, setIsConnectedLoading] = useState(false)
-  const { setIsConnected, isConnected } = useAppStore()
+  const { setIsConnected, isConnected } = useSettingsStore()
+  // console.log("isConnected", isConnected)
+  // useEffect(() => {
+  //   // console.log("ndk", ndk)
 
-  useEffect(() => {
-    console.log("ndk", ndk)
+  //   if(ndk?.pool?.connectedRelays().length > 0 && !isConnected) {
+  //     console.log("connectedRelays", ndk?.pool?.connectedRelays)
+  //     setIsConnected(true)
+  //   } else {
+  //     console.log("not connected")
+  //     setIsConnected(false)
+  //     setIsConnectedLoading(true)
+  //     ndk?.connect()
+  //     setIsConnectedLoading(false)
+  //     setIsConnected(true)
+  //   }
+  // }, [ndk])
 
-    if(ndk?.pool?.connectedRelays().length > 0) {
-      console.log("connectedRelays", ndk?.pool?.connectedRelays)
-      setIsConnected(true)
-    } else {
-      console.log("not connected")
-      setIsConnected(false)
-      setIsConnectedLoading(true)
-      ndk?.pool?.connect()
-      setIsConnectedLoading(false)
-    }
-  }, [ndk])
-
-    return (
+  return (
     <Box bg={bgColor} color={textColor}>
       <Layout>{children}</Layout>
-      </Box>
+    </Box>
   );
 } 

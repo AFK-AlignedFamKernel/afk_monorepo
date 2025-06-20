@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSendNote, useAuth } from 'afk_nostr_sdk';
+import { useSendNote, useNostrContext } from 'afk_nostr_sdk';
 import { NostrForm, NostrFormData } from '@/components/Form/NostrForm';
 import { useUIStore } from '@/store/uiStore';
 import { TokenCreateForm } from '../launchpad/TokenCreateForm';
@@ -17,8 +17,7 @@ export default function CreateAll() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [content, setContent] = useState('');
   const sendNote = useSendNote();
-  const { publicKey } = useAuth();
-
+  const { ndk } = useNostrContext()
   const [createType, setCreateType] = useState<CreateType>(CreateType.POST);
 
   
@@ -26,6 +25,17 @@ export default function CreateAll() {
   const { showToast } = useUIStore();
   const handleSubmit = async (data: NostrFormData) => {
     
+    if(ndk.pool?.connectedRelays().length === 0) {
+      await ndk.connect()
+    }
+
+    if(!content) {
+      showToast({
+        message: 'Content is required',
+        type: 'error'
+      });
+      return
+    }
     try {
       await sendNote.mutate({
         content,
