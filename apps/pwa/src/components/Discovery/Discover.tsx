@@ -13,7 +13,7 @@ export default function DiscoverComponent() {
   // const searchParams = useSearchParams()
   // const query = searchParams.get("query")
 
-  const [activeTab, setActiveTab] = useState<"brand" | "creator" | "topic" | "feed" | "launchpad">("brand");
+  const [activeTab, setActiveTab] = useState<"brand" | "creator" | "topic" | "feed" | "launchpad">("feed");
 
   return (
     <div className="flex flex-col gap-1">
@@ -21,6 +21,11 @@ export default function DiscoverComponent() {
       <div className="p-4">
 
         <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide">
+          <button className={`px-4 py-2 rounded-md ${activeTab === "feed" ? "border border-green-500" : ""}`} onClick={() => {
+            setActiveTab("feed")
+            logClickedEvent("discover_feed", "click", "discover_feed")
+
+          }}>Feed</button>
           <button className={`px-4 py-2 rounded-md ${activeTab === "brand" ? "border border-green-500" : ""}`} onClick={() => {
             setActiveTab("brand")
             logClickedEvent("discover_brand", "click")
@@ -35,11 +40,7 @@ export default function DiscoverComponent() {
             logClickedEvent("discover_launchpad", "click", "discover_launchpad")
           }}>Tokens</button>
           {/* <button className={`px-4 py-2 rounded-md ${activeTab === "topic" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => setActiveTab("topic")}>Topics</button> */}
-          <button className={`px-4 py-2 rounded-md ${activeTab === "feed" ? "border border-green-500" : ""}`} onClick={() => {
-            setActiveTab("feed")
-            logClickedEvent("discover_feed", "click", "discover_feed")
 
-          }}>Feed</button>
         </div>
 
 
@@ -75,7 +76,7 @@ export default function DiscoverComponent() {
             More feeds coming soon
           </p> */}
           <div className="flex flex-row gap-4">
-          <FeedTabs />
+            <FeedTabs />
 
           </div>
         </>
