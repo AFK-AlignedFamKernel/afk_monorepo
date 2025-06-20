@@ -27,10 +27,10 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           price: true,
           total_supply: true,
           liquidity_raised: true,
-          network: true,
+          // network: true,
           created_at: true,
           threshold_liquidity: true,
-          initial_pool_supply_dex: true,
+          // initial_pool_supply_dex: true,
           bonding_type: true,
           total_token_holded: true,
           block_timestamp: true,
@@ -42,12 +42,12 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           website: true,
           twitter: true,
           telegram: true,
-          token_deploy: {
-            select: {
-              name: true,
-              symbol: true,
-            },
-          },
+          // token_deploy: {
+          //   select: {
+          //     name: true,
+          //     symbol: true,
+          //   },
+          // },
         },
       });
 

@@ -34,8 +34,6 @@
     "@fastify/session": "^11.0.1",
     "@fastify/static": "7.0.4",
     "@funkit/api-base": "^1.3.2",
-    "@reclaimprotocol/js-sdk": "^4.2.0",
-    "@reclaimprotocol/zk-fetch": "^0.3.3",
     "@supabase/supabase-js": "^2.49.8",
     "@telegraf/types": "^7.1.0",
     "apify-client": "^2.12.4",
