@@ -54,9 +54,9 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   const [lastCreatedAt, setLastCreatedAt] = useState<number>(Math.round(Date.now() / 1000));
   const [until, setUntil] = useState<number>(untilProps || Math.round(Date.now() / 1000));
   const [isError, setIsError] = useState(false);
-  const [isUsedUntil, setIsUsedUntil] = useState(true);
+  const [isUsedUntil, setIsUsedUntil] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
 
   const [selectedTag, setSelectedTag] = useState<string | null>(selectedTagProps ?? tags[0]);
   const [openFilters, setOpenFilters] = useState(false);
@@ -65,7 +65,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
     // if (isLoadingMore || !hasMoreContent) return;
 
     console.log("lastCreatedAt", lastCreatedAt);
-    if(selectedTag === null || !selectedTag) return;
+    if (selectedTag === null || !selectedTag) return;
     try {
       setIsLoadingMore(true);
       console.log("fetching events");
@@ -74,22 +74,33 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       console.log("lastCreatedAt", lastCreatedAt);
       console.log("until", _until);
       console.log("tag", tag);
+      console.log("fetching events",);
+
+      if (ndk.pool?.relays?.size === 0) {
+        console.log("no relays");
+        return;
+      }
+
+      if (ndk.pool?.connectedRelays().length === 0) {
+        console.log("not connected");
+        await ndk.connect();
+        // return;
+      } else {
+        console.log("connected");
+        console.log("connectedRelays", ndk.pool?.connectedRelays);
+      }
+
       const notes = await ndk.fetchEvents({
         kinds: [...kinds],
         authors: authors,
         // until: isUsedUntil ? lastCreatedAt : Math.round(Date.now() / 1000),
-        // until: _until || isUsedUntil ? lastCreatedAt : Math.round(Date.now() / 1000),
+        since: Math.round(lastCreatedAt - 1000 * 60 * 60 * 24 * 3),
         until: _until ? Math.round(_until / 1000) : isUsedUntil ? lastCreatedAt : Math.round(Date.now() / 1000),
         limit: limit ?? 10,
         '#t': [tag || selectedTag],
       });
 
-      // console.log("notes", notes);
-      if (notes.size === 0) {
-        setHasMoreContent(false);
-        return;
-      }
-
+      console.log("notes", notes);
       // Filter out duplicate events based on their IDs
       const uniqueNotes = Array.from(
         new Set([...notes].map(note => note.id))
@@ -107,20 +118,23 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       } else {
         setHasMoreContent(false);
       }
+      setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
+
       setIsUsedUntil(true);
+      setIsInitialLoading(true);
+
     } catch (error) {
       console.error("Error fetching events:", error);
       setIsError(true);
       setError(error as Error);
     } finally {
       setIsLoadingMore(false);
-      // setIsInitialLoading(false);
     }
   }
 
   const loadInitialData = async () => {
     console.log("loading initial data");
-    setNotesData([]);
+    // setNotesData([]);
 
 
     await fetchEvents();
@@ -128,14 +142,14 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
     setHasMoreContent(true);
     setIsError(false);
     setError(null);
-    setIsInitialLoading(false);
-    setIsUsedUntil(true);
+    // setIsInitialLoading(true);
+    // setIsUsedUntil(true);
   };
 
   // Initial data load
   useEffect(() => {
 
-    if (isInitialLoading) {
+    if (!isInitialLoading) {
       loadInitialData();
     };
 
@@ -195,7 +209,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   };
 
   // Show loading state
-  if (isInitialLoading) {
+  if (!isInitialLoading) {
     return (
       <div className={`nostr-feed__content ${className}`}>
         <div className="flex justify-center items-center py-8">
@@ -213,7 +227,10 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
           <p>Error loading events: {error?.message || 'Unknown error'}</p>
           <button
             className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-            onClick={() => fetchEvents(selectedTag, Math.round(Date.now() / 1000))}
+            onClick={() => {
+              setIsInitialLoading(false);
+              fetchEvents(selectedTag || "bitcoin", Math.round(Date.now() / 1000))
+            }}
           >
             Try Again
           </button>
@@ -224,27 +241,26 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
 
   return (
     <div className={`nostr-feed__content ${className}`}>
-        <div className="nostr-feed__tags-container flex gap-2 overflow-x-auto scrollbar-hide pb-2 px-2" >
-          {tags.map((tag, index) => (
-            <div
-              className={`px-3 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-200 shadow-md border border-indigo-600 ${
-                selectedTag === tag 
-                  ? 'bg-indigo-600 shadow-lg' 
-                  : 'hover:bg-indigo-100 hover:shadow-lg'
+      <div className="nostr-feed__tags-container flex gap-2 overflow-x-auto scrollbar-hide pb-2 px-2" >
+        {tags.map((tag, index) => (
+          <div
+            className={`px-3 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-200 shadow-md border border-indigo-600 ${selectedTag === tag
+                ? 'bg-indigo-600 shadow-lg'
+                : 'hover:bg-indigo-100 hover:shadow-lg'
               }`}
-              key={index} 
-              onClick={() => {
-                setIsUsedUntil(false);
-                setSelectedTag(tag);
-                setLastCreatedAt(new Date().getTime() / 1000);
-                setNotesData([]);
-                fetchEvents(tag, Math.round(Date.now()));
-              }}
-            >
-              <p className="text-sm font-medium">{tag}</p>
-            </div>
-          ))}
-        </div>
+            key={index}
+            onClick={() => {
+              setIsUsedUntil(false);
+              setSelectedTag(tag);
+              setLastCreatedAt(new Date().getTime() / 1000);
+              setNotesData([]);
+              fetchEvents(tag, Math.round(Date.now()));
+            }}
+          >
+            <p className="text-sm font-medium">{tag}</p>
+          </div>
+        ))}
+      </div>
       {notesData.length === 0 && !isLoadingMore ? (
         <div className="nostr-feed__empty-state">
           <p>No events found. Try following more users or changing filters.</p>

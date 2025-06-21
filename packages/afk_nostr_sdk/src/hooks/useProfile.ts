@@ -11,9 +11,24 @@ export const useProfile = (options: UseProfileOptions) => {
   return useQuery({
     queryKey: ['profile', options.publicKey, ndk],
     queryFn: async () => {
+
+      if(!options.publicKey) {
+        return null
+      }
+
+      if(ndk.pool?.connectedRelays().length === 0) {
+        await ndk.connect(5000)
+      }
+
       const user = ndk.getUser({pubkey: options.publicKey});
 
-      return user.fetchProfile();
+      // console.log("user", user)
+
+      const profile = await user.fetchProfile();
+
+      // console.log("profile", profile)
+
+      return profile;
     },
     placeholderData: {} as any,
   });

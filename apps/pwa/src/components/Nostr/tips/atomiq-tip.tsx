@@ -89,18 +89,52 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
     }
   };
 
+  if(profile && !profile?.lud16) {
+    return (
+      <div className="w-full max-w-md mx-auto p-4">
+        <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+          <p className="text-sm text-gray-500">
+            No LUD16 found
+          </p>
+          <p className="text-sm text-gray-500">Ask the user to set a LUD16</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-md mx-auto p-4">
       <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 text-left">
           {/* <Image height={48} src="/assets/afk-logo.png" /> */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 truncate">
-              {profile?.displayName ?? profile?.name ?? event?.pubkey}
+            <h3 className="text-lg font-bold text-gray-900 truncate cursor-pointer"
+            
+            onClick={() => {
+              if(event?.pubkey) {
+                navigator.clipboard.writeText(event?.pubkey);
+                showToast({ message: "LUD16 copied to clipboard", type: 'success' });
+              }
+            }}
+            >
+              {profile?.displayName ?? profile?.name ?? event?.pubkey?.slice(0, 6) + "..." + event?.pubkey?.slice(-4)}
             </h3>
             {profile?.nip05 && (
               <p className="text-sm text-gray-500">
                 @{profile?.nip05}
+              </p>
+            )}
+
+            {profile?.lud16 && (
+              <p className="text-sm text-gray-500 cursor-pointer"
+              onClick={() => {
+                if(profile?.lud16) {
+                  navigator.clipboard.writeText(profile?.lud16);
+                  showToast({ message: "LUD16 copied to clipboard", type: 'success' });
+                }
+              }}
+              >
+                {profile?.lud16}
               </p>
             )}
           </div>

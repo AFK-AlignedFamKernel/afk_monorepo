@@ -29,6 +29,7 @@ func InitStencilsRoutes() {
 	http.HandleFunc("/get-top-stencils", getTopStencils)
 	http.HandleFunc("/get-hot-stencils", getHotStencils)
 	http.HandleFunc("/add-stencil-img", addStencilImg)
+	http.HandleFunc("/upload-stencil-img", uploadStencilImg)
 	http.HandleFunc("/get-stencil-img", getStencilImg)
 	http.HandleFunc("/add-stencil-data", addStencilData)
 	http.HandleFunc("/get-stencil-pixel-data", getStencilPixelData)
@@ -595,8 +596,8 @@ func addStencilImg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pinata_jwt:=os.Getenv("PINATA_JWT")
-	
+	pinata_jwt := os.Getenv("PINATA_JWT")
+
 	auth := pinata.NewAuthWithJWT(pinata_jwt)
 	client := pinata.New(auth)
 
@@ -620,14 +621,82 @@ func addStencilImg(w http.ResponseWriter, r *http.Request) {
 	routeutils.WriteResultJson(w, hash)
 }
 
-func getStencilImg(w http.ResponseWriter, r *http.Request) {
+func uploadStencilImg(w http.ResponseWriter, r *http.Request) {
+	routeutils.EnableCORS(w, r)
+	if r.Method == "OPTIONS" {
+		return
+	}
 
+	// Get the image file from the request
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Failed to read image")
+		return
+	}
+	defer file.Close()
+
+	// Create a temporary file to store the uploaded image
+	tempFile, err := os.CreateTemp("", "upload-*.png")
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to create temporary file")
+		return
+	}
+	defer os.Remove(tempFile.Name())
+	defer tempFile.Close()
+
+	// Copy the uploaded file to the temporary file
+	_, err = io.Copy(tempFile, file)
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to save uploaded file")
+		return
+	}
+
+	// Get Pinata JWT from environment
+	pinata_jwt := os.Getenv("PINATA_JWT")
+	if pinata_jwt == "" {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Pinata JWT not configured")
+		return
+	}
+
+	// Initialize Pinata client
+	auth := pinata.NewAuthWithJWT(pinata_jwt)
+	client := pinata.New(auth)
+
+	// Upload to Pinata
+	response, err := client.PinFile(tempFile.Name(), nil)
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to upload image to IPFS")
+		return
+	}
+
+	fmt.Println("response", response)
+	// Generate a hash for the image
+	// hash := fmt.Sprintf("stencil-%s", response.IpfsHash)
+	hash := fmt.Sprintf("stencil-%s", response.IpfsHash)
+	ipfsHash := response.IpfsHash
+
+	// Store the hash and IPFS hash in the database
+	query := `
+        INSERT INTO stencil_images (hash, ipfs_hash)
+        VALUES ($1, $2)
+    `
+	_, err = core.PostgresQueryJson[StencilData](query, hash, response.IpfsHash)
+	if err != nil {
+		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to store hash and IPFS hash in the database")
+		return
+	}
+
+	// Return the hash to the client
+	routeutils.WriteResultJson(w, ipfsHash)
+}
+
+func getStencilImg(w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("hash")
 	if hash == "" {
 		routeutils.WriteErrorJson(w, http.StatusBadRequest, "Hash parameter is required")
 		return
 	}
-	
+
 	ipfsHash, err := core.PostgresQuery[string]("SELECT ipfs_hash FROM stencil_images WHERE hash = $1", hash)
 	if err != nil {
 		routeutils.WriteErrorJson(w, http.StatusInternalServerError, "Failed to get ipfs hash for th given hash")

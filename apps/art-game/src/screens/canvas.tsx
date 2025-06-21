@@ -53,10 +53,10 @@ const Canvas = (props: any) => {
   }, []);
   useEffect(() => {
     const fetchWorldData = async () => {
-      const world = await getWorld(openedWorldId.toString());
+      const world = await getWorld(openedWorldId?.toString());
       setActiveWorld(world);
-      setWorldWidth(world.width);
-      setTimeBetweenPlacements(world.timeBetweenPixels * 1000);
+      setWorldWidth(world?.width);
+      setTimeBetweenPlacements(world?.timeBetweenPixels * 1000);
     };
 
     setStagingPixels([]);
@@ -204,7 +204,7 @@ const Canvas = (props: any) => {
         continue;
       }
       let minDistance = 1000000;
-      let worldColorOne = worldColors[0].match(/[A-Za-z0-9]{2}/g);
+      let worldColorOne = worldColors[0]?.match(/[A-Za-z0-9]{2}/g);
       if (!worldColorOne) {
         worldColorOne = ["00", "00", "00"];
       }

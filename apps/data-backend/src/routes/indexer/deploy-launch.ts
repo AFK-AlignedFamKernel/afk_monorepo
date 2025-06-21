@@ -14,7 +14,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
   fastify.get('/deploy-launch', async (request, reply) => {
     try {
       const { offset = 0, limit = 20 } = request.query as { offset?: number; limit?: number };
-      
+
       const launches = await prisma.token_launch.findMany({
         skip: offset,
         take: limit,
@@ -27,10 +27,10 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           price: true,
           total_supply: true,
           liquidity_raised: true,
-          network: true,
+          // network: true,
           created_at: true,
           threshold_liquidity: true,
-          initial_pool_supply_dex: true,
+          // initial_pool_supply_dex: true,
           bonding_type: true,
           total_token_holded: true,
           block_timestamp: true,
@@ -42,12 +42,12 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           website: true,
           twitter: true,
           telegram: true,
-          token_deploy: {
-            select: {
-              name: true,
-              symbol: true,
-            },
-          },
+          // token_deploy: {
+          //   select: {
+          //     name: true,
+          //     symbol: true,
+          //   },
+          // },
         },
       });
 
@@ -92,16 +92,16 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           liquidity_raised: true,
           network: true,
           created_at: true,
-          threshold_liquidity:true,
-          bonding_type:true,
-          total_token_holded:true,
-          block_timestamp:true,
-          is_liquidity_added:true,
-          market_cap:true,
-          initial_pool_supply_dex:true,
-          url:true,
-          name:true,
-          symbol:true
+          threshold_liquidity: true,
+          bonding_type: true,
+          total_token_holded: true,
+          block_timestamp: true,
+          is_liquidity_added: true,
+          market_cap: true,
+          initial_pool_supply_dex: true,
+          url: true,
+          name: true,
+          symbol: true
         },
       });
 
@@ -139,24 +139,24 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           liquidity_raised: true,
           network: true,
           created_at: true,
-          threshold_liquidity:true,
-          bonding_type:true,
-          total_token_holded:true,
-          block_timestamp:true,
-          is_liquidity_added:true,
-          market_cap:true,
-          name:true,
-          symbol:true,
-          url:true,
-          description:true,
-          twitter:true,
-          telegram:true,
-          github:true,
-          website:true,
-          initial_pool_supply_dex:true,
-          ipfs_hash:true,
-          creator_fee_raised:true,
-          creator_fee_percent:true,
+          threshold_liquidity: true,
+          bonding_type: true,
+          total_token_holded: true,
+          block_timestamp: true,
+          is_liquidity_added: true,
+          market_cap: true,
+          name: true,
+          symbol: true,
+          url: true,
+          description: true,
+          twitter: true,
+          telegram: true,
+          github: true,
+          website: true,
+          initial_pool_supply_dex: true,
+          ipfs_hash: true,
+          creator_fee_raised: true,
+          creator_fee_percent: true,
           token_deploy: {
             select: {
               name: true,
@@ -171,7 +171,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
         },
       });
 
-    
+
       const holdings = await prisma.shares_token_user.findMany({
         where: { token_address: launch, },
         select: {
@@ -208,11 +208,51 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
       });
 
 
+      const intervalMinutes = 5;
+      let transformedData: any[] = [];
+
+      try {
+        console.log("candles launch", launch);
+        const candles = await prisma.candlesticks.findMany({
+          where: { token_address: launch, interval_minutes: intervalMinutes },
+          orderBy: { timestamp: 'asc' },
+          select: {
+            open: true,
+            close: true,
+            high: true,
+            low: true,
+            timestamp: true,
+          },
+        });
+
+        console.log("candles", candles);
+
+        if (candles.length === 0) {
+
+        } else {
+
+          transformedData = candles.map((candle) => ({
+            open: candle.open,
+            close: candle.close,
+            low: candle.low,
+            high: candle.high,
+            timestamp: candle.timestamp,
+          }));
+        }
+
+
+      } catch (error) {
+        console.error('Error generating candles:', error);
+      }
+
+      console.log("transformedData", transformedData);
+
       const response = {
         launch: launchStats,
         holdings,
         holders: holdings,
         transactions: allTransactions,
+        candles: transformedData,
       };
 
       reply.status(HTTPStatus.OK).send({
@@ -224,6 +264,74 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });
+
+
+  fastify.get<{
+    Params: DeployLaunchParams;
+  }>('/deploy-launch/candles/:launch', async (request, reply) => {
+    try {
+      const { launch } = request.params;
+      if (!isValidStarknetAddress(launch)) {
+        reply.status(HTTPStatus.BadRequest).send({
+          code: HTTPStatus.BadRequest,
+          message: 'Invalid token address',
+        });
+        return;
+      }
+
+      const intervalMinutes = 5;
+      let transformedData: any[] = [];
+
+      try {
+        console.log("candles launch", launch);
+        const candles = await prisma.candlesticks.findMany({
+          where: { token_address: launch, interval_minutes: intervalMinutes },
+          orderBy: { timestamp: 'asc' },
+          select: {
+            open: true,
+            close: true,
+            high: true,
+            low: true,
+            timestamp: true,
+          },
+        });
+
+        console.log("candles", candles);
+
+        if (candles.length === 0) {
+
+        } else {
+
+          transformedData = candles.map((candle) => ({
+            open: candle.open,
+            close: candle.close,
+            low: candle.low,
+            high: candle.high,
+            timestamp: candle.timestamp,
+          }));
+        }
+
+
+      } catch (error) {
+        console.error('Error generating candles:', error);
+      }
+
+      console.log("transformedData", transformedData);
+
+      const response = {
+        candles: transformedData,
+      };
+
+      reply.status(HTTPStatus.OK).send({
+        data: response,
+      });
+
+    } catch (error) {
+      console.error('Error deploying launch:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
+    }
+  });
+
 
 
 

@@ -53,10 +53,10 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
   const [isExpandedAbout, setIsExpandedAbout] = useState(false);
 
   return (
-    <div className="event-card">
-      <div className="flex items-center mb-8"
+    <div className="event-card text-left items-left">
+      <div className="flex items-center"
         onClick={() => {
-          router.push(`/nostr/profile/${event.pubkey}`)
+          router.push(`/nostr/profile/${event?.pubkey}`)
         }}
       >
         {profile?.picture ? (
@@ -80,90 +80,104 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
           </div>
         )}
         <div className="ml-2">
-          <div className="font-medium text-gray-900 dark:text-white">{displayName}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+          <div className="font-medium">{displayName}</div>
+          <div className="text-xs flex items-center">
             {profile?.nip05 && (
               <span className="ml-1 text-blue-500">✓</span>
             )}
           </div>
-          <div className="flex flex-col">
-            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+          <div className="flex flex-row items-left gap-4">
+            <div className="text-xs flex items-center">
               <span>{profile?.displayName}</span>
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+            <div className="text-xs flex items-center">
               <span>{profile?.name}</span>
             </div>
           </div>
 
-        </div>
-      </div>
+          <div className="flex items-left mb-8 gap-4">
 
-      <div className="flex items-center mb-8">
-        <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-          <p>{profile?.nip05}</p>
+
+
+            {profile?.nip05 && (
+              <div className="text-xs flex items-left">
+                <p>{profile?.nip05}</p>
+              </div>
+            )}
+            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-left">
+              {profile?.about && (
+                <span className="about-text" style={{ whiteSpace: 'normal', overflow: 'hidden', wordBreak: 'break-word' }}>
+                  {profile.about.length > 30 ? (
+                    <>
+                      <span>{profile.about.substring(0, 30)}...</span>
+                      <button
+                        className="text-blue-500 ml-1 hover:underline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setIsExpandedAbout(!isExpandedAbout);
+                        }}
+                      >
+                        {isExpandedAbout ? 'Show less' : 'Show more'}
+                      </button>
+                      {isExpandedAbout && <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          setIsExpandedAbout(!isExpandedAbout);
+                        }}
+                        style={{ display: 'block', wordBreak: 'break-word' }}>{profile.about.substring(30)}</span>}
+                    </>
+                  ) : (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setIsExpandedAbout(!isExpandedAbout);
+                      }} style={{ wordBreak: 'break-word' }}>{profile.about}</span>
+                  )}
+                </span>
+              )}
+            </div>
+
+
+
+
+          </div>
+
+
         </div>
-    
       </div>
 
       {profile?.lud16 && (
-        <div className="text-xs text-gray-500 dark:text-gray-400 items-center">
-          <p>{profile?.lud16}</p>
-          <button 
-          className='ml-2 btn btn-sm btn-primary'
-          onClick={() => {
-          showModal(<TipNostrUser profile={profile} pubkey={profilePubkey} />);
-          // router.push(`/nostr/profile/${profilePubkey}`)
-        }}>
-          {/* <Icon name="UserIcon" size={16} /> */}
-          Tips
-        </button>
+        <div className="text-xs items-center">
+          {/* <p className='text-sm font-bold'>{profile?.lud16}</p> */}
+          <button
+            className='btn btn-sm btn-primary'
+            onClick={() => {
+              if (profilePubkey) {
+                showModal(<TipNostrUser profile={profile} pubkey={profilePubkey} />);
+              }
+              // router.push(`/nostr/profile/${profilePubkey}`)
+            }}>
+            Tips
+          </button>
         </div>
       )}
 
-      <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
-        {profile?.about && (
-          <span className="about-text" style={{ whiteSpace: 'normal', overflow: 'hidden', wordBreak: 'break-word' }}>
-            {profile.about.length > 30 ? (
-              <>
-                <span>{profile.about.substring(0, 30)}...</span>
-                <button
-                  className="text-blue-500 ml-1 hover:underline"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setIsExpandedAbout(!isExpandedAbout);
-                  }}
-                >
-                  {isExpandedAbout ? 'Show less' : 'Show more'}
-                </button>
-                {isExpandedAbout && <span
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setIsExpandedAbout(!isExpandedAbout);
-                  }}
-                  style={{ display: 'block', wordBreak: 'break-word' }}>{profile.about.substring(30)}</span>}
-              </>
-            ) : (
-              <span
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  setIsExpandedAbout(!isExpandedAbout);
-                }} style={{ wordBreak: 'break-word' }}>{profile.about}</span>
-            )}
-          </span>
-        )}
-      </div>
-
       {isLinkToProfile && profilePubkey && (
-        <div className="flex items-center mb-8">
-          <Link href={`/nostr/profile/${profilePubkey}`}>
+        <div
+          className="flex flex-row gap-4 items-center mb-8"
+        >
+          <Link href={`/nostr/profile/${profilePubkey}`}
+            className="flex flex-row gap-4 items-center mb-8"
+          >
             <Icon name="UserIcon" size={16} />
             View Profile
           </Link>
         </div>
       )}
+
 
       {children}
     </div>

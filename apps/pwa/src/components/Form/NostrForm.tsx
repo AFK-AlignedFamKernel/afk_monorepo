@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import classNames from 'classnames';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { logClickedEvent } from '@/lib/analytics';
 export type NostrEventType = 'note' | 'article';
 
 interface NostrFormProps {
@@ -10,6 +11,7 @@ interface NostrFormProps {
   initialData?: Partial<NostrFormData>;
   content?: string;
   setContent?: (content: string) => void;
+  setTitle?: (title: string) => void;
 }
 
 export interface NostrFormData {
@@ -25,6 +27,8 @@ export const NostrForm: React.FC<NostrFormProps> = ({
   className,
   initialData,
   content,
+  setContent,
+  setTitle,
 }) => {
   const [formData, setFormData] = useState<NostrFormData>({
     content: initialData?.content || '',
@@ -57,6 +61,7 @@ export const NostrForm: React.FC<NostrFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e?.preventDefault();
     if (validateForm()) {
+      logClickedEvent('publish_note', "nostr_note", formData?.type)
       onSubmit(formData);
     }
   };
@@ -101,7 +106,10 @@ export const NostrForm: React.FC<NostrFormProps> = ({
             })}
             value={formData.title}
             onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
+              {
+                setFormData({ ...formData, title: e.target.value })
+                setContent?.(e.target.value)
+              }
             }
             placeholder="Enter title"
           />
@@ -122,7 +130,10 @@ export const NostrForm: React.FC<NostrFormProps> = ({
           })}
           value={formData.content}
           onChange={(e) =>
-            setFormData({ ...formData, content: e.target.value })
+            {
+              setFormData({ ...formData, content: e.target.value })
+              setContent?.(e.target.value)
+            }
           }
           placeholder="What's on your mind?"
           rows={formData.type === 'article' ? 10 : 4}

@@ -1,6 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import { useAccount } from '@starknet-react/core'
 import { CANVAS_CONTRACT_ADDRESS } from "../components/StarknetProvider";
+import { byteArray } from "starknet";
 
 /*
 export const [submitted, setSubmitted] = useState(false);
@@ -101,14 +102,19 @@ export const createCanvasCall =
 }
 
 export const addStencilCall =
-  async (account: any, worldId: number, hash: string, width: number, height: number, position: number) => {
+  async (account: any, worldId: number, hash: string, width: number, height: number, position: number, ipfsHash?: string) => {
   try {
     if (!account) {
       console.error("Account not connected");
       return;
     }
 
-    const calldata = [worldId, hash, width, height, position];
+    const calldata:any[] = [worldId, hash, width, height, position];
+
+    if(ipfsHash) {
+      calldata.push(byteArray.byteArrayFromString(ipfsHash));
+    }
+
     printCalldata(calldata);
     const result = await account.execute([
       {

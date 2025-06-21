@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAccount } from "@starknet-react/core";
 import { ExpandableTab } from "./expandable";
 import { StencilItem } from "../stencils/item";
-import { backendUrl } from "../../api/api";
+import { backendUrl, ipfsUrl } from "../../api/api";
 import {
   getFavoriteStencils,
   getHotStencils,
@@ -49,12 +49,14 @@ const StencilsMainSection = (props: any) => {
             activeWorld={props.activeWorld}
             setStencilFavorited={props.setStencilFavorited}
             stencil={props.openedStencil}
-            image={
-              backendUrl +
-              "/stencils/stencil-" +
-              props.openedStencil.hash +
-              ".png"
-            }
+            // image={
+            //   backendUrl +
+            //   "/stencils/stencil-" +
+            //   (props.openedStencil.hash ?? props?.openedStencil?.ipfsHash) +
+            //   // ".png"
+            // }
+            image={ipfsUrl + props?.openedStencil?.ipfsHash}
+
             {...props}
           />
           </div>
@@ -72,7 +74,8 @@ const StencilsMainSection = (props: any) => {
                 activeWorld={props.activeWorld}
                 setStencilFavorited={props.setStencilFavorited}
                 stencil={stencil}
-                image={backendUrl + "/stencils/stencil-" + stencil.hash + ".png"}
+                // image={backendUrl + "/stencils/stencil-" + stencil.hash }
+                image={ipfsUrl + stencil.ipfsHash}
                 {...props}
               />
             );

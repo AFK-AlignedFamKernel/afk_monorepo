@@ -1,7 +1,7 @@
 import { provider } from "../../utils/starknet";
 import { Account, cairo, constants } from "starknet";
 import dotenv from "dotenv";
-import { ART_PEACE_ADDRESS } from "common";
+import { ART_PEACE_ADDRESS, MULTI_CANVAS_ADDRESS } from "common";
 import { CanvasConfig } from "../../constants/canvas.config";
 import { prepareAndConnectContract } from "../../utils/contract";
 import { createWorld } from "../../utils/multi_canvas/create_world";
@@ -24,12 +24,20 @@ export const deployWorld = async () => {
     console.log("CanvasConfig", CanvasConfig);
     // const colors = CanvasConfig["colors"]
 
+    let canvas = await prepareAndConnectContract(
+     MULTI_CANVAS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] as any,
+      account
+    );
+
+    // console.log("enalbe word creation")
+    // await canvas.enable_world_creation();
+
     let artPeaceContract = await createWorld(
       accountAddress0 ?? account?.address,
       // "afklfg",
       // "afklfg",
-      cairo.felt("build6"),
-      cairo.felt("build6"),
+      cairo.felt("AFK"),
+      cairo.felt("afk123"),
       CanvasConfig.canvas?.width,
       CanvasConfig.canvas?.height,
       5,

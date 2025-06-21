@@ -47,7 +47,7 @@ import { DaoPage } from '../screens/DaoPage';
 import { DappBrowserScreen } from '../screens/DappBrowser';
 import { Defi } from '../screens/Defi';
 import { EditProfile } from '../screens/EditProfile';
-import { Feed } from '../screens/Feed';
+// import { Feed } from '../screens/Feed';
 import { Games } from '../screens/Games';
 import { LaunchDetail } from '../screens/LaunchDetail';
 import { LaunchpadScreen } from '../screens/Launchpad';
@@ -119,7 +119,7 @@ const HomeBottomTabNavigator: React.FC = () => {
         tabBarStyle: styles.tabBar,
       }}
     >
-      <HomeBottomTabsStack.Screen
+      {/* <HomeBottomTabsStack.Screen
         name="Feed"
         component={Feed}
         options={{
@@ -127,7 +127,7 @@ const HomeBottomTabNavigator: React.FC = () => {
           tabBarInactiveTintColor: theme.colors.background,
           tabBarIcon: ({ focused }) => <TabBarIcon focused={focused} name="HomeIcon" />,
         }}
-      />
+      /> */}
 
       <HomeBottomTabsStack.Screen
         name="Community"
@@ -264,7 +264,7 @@ const MainNavigator: React.FC = () => {
   const FeedWithSidebar: React.FC = () => (
     <View style={{ flexDirection: 'row', flex: 1 }}>
       <View style={{ flex: 1 }}>
-        <Feed navigation={useNavigation()} route={useRoute()} />
+        {/* <Feed navigation={useNavigation()} route={useRoute()} /> */}
       </View>
       {/* {isDesktop && (
         <View style={{width: 300, backgroundColor: theme.theme.colors.surface}}>
@@ -296,7 +296,7 @@ const MainNavigator: React.FC = () => {
     >
       {!isDesktop && <MainStack.Screen name="Home" component={HomeBottomTabNavigator} />}
       {/* <MainStack.Screen name="BottomBar" component={HomeBottomTabNavigator} /> */}
-      <MainStack.Screen name="Feed" component={FeedWithSidebar} />
+      {/* <MainStack.Screen name="Feed" component={FeedWithSidebar} /> */}
 
       {/* <MainStack.Screen name="Auth" component={AuthNavigator} /> */}
       {/* <MainStack.Screen name="Home" component={HomeBottomTabNavigator} /> */}

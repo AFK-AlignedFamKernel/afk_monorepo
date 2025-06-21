@@ -95,6 +95,10 @@ export const createNamespace = async (adminStarknetAddress: string, adminNostrKe
         console.log("Namespace contractClassHash", contractClassHash);
         NamespaceClassHash = contractClassHash;
       }
+
+      if(declareResponse?.class_hash) {
+        NamespaceClassHash = declareResponse?.class_hash;
+      }
       // const nonce = await account0?.getNonce();
       // console.log("nonce", nonce);
     }
@@ -105,6 +109,8 @@ export const createNamespace = async (adminStarknetAddress: string, adminNostrKe
     console.log("adminNostrKey", adminNostrKey);
     const public_key = uint256.bnToUint256(BigInt("0x" + adminNostrKey));
     console.log("public_key", public_key);
+
+    console.log("NamespaceClassHash", NamespaceClassHash);
 
     const { transaction_hash, contract_address } =
       await account0.deployContract({

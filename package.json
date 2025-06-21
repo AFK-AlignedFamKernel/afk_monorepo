@@ -3,8 +3,7 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*",
-    "mobile-template"
+    "packages/*"
   ],
   "prisma": {},
   "scripts": {

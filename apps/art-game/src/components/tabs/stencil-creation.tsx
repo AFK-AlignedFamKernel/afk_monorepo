@@ -3,13 +3,14 @@ import { useAccount } from "@starknet-react/core";
 import { BasicTab } from "./basic";
 import { sha256 } from "js-sha256";
 import { playSoftClick2 } from "../utils/sounds";
-import { addStencilData } from "../../api/stencils";
+import { addStencilData, uploadStencilImg } from "../../api/stencils";
 import { addStencilCall } from "../../contract/calls";
 import { useState } from "react";
 import { useFileUpload } from "@/hooks/useFileUpload";
 
 export const StencilCreationTab = (props: any) => {
   const { account } = useAccount();
+  console.log("account address in stencil creation", account?.address);
   const [image, setImage] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const fileUpload = useFileUpload();
@@ -20,7 +21,20 @@ export const StencilCreationTab = (props: any) => {
     return "0x" + hash;
   }
 
+  function dataURLtoBlob(dataurl: string) {
+    const arr = dataurl.split(',');
+    const mime = arr[0]?.match(/:(.*?);/)?.[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  }
+
   const submit = async () => {
+    console.log("submit");
     playSoftClick2();
     const hash = hashStencilImage();
 
@@ -42,32 +56,62 @@ export const StencilCreationTab = (props: any) => {
       urlImage = props.stencilImage.image;
       urlHash = props.stencilImage.hash;
     }
-    if (!account) return;
-    try {
-      // await addStencilCall(account, props.worldId, hash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
-      await addStencilCall(account, props.worldId, urlHash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
-    } catch (error) {
-      console.error("Error submitting stencil:", error);
-      return;
+
+
+    // --- Robust image upload handling ---
+    let blobToUpload;
+    if (image) {
+      if (image.startsWith("data:image")) {
+        // It's a data URL
+        blobToUpload = dataURLtoBlob(image);
+      } else {
+        // It's just base64, make it a data URL
+        blobToUpload = dataURLtoBlob("data:image/png;base64," + image);
+      }
+    } else if (props.stencilImage?.file) {
+      // If you have the original File object
+      blobToUpload = props.stencilImage.file;
+    } else if (urlImage && urlImage.startsWith("data:image")) {
+      blobToUpload = dataURLtoBlob(urlImage);
+    } else {
+      throw new Error("No valid image to upload");
     }
-    const res = await addStencilData(props.worldId, props.stencilImage.width, props.stencilImage.height, props.stencilColorIds.toString());
+    const formData = new FormData();
+    formData.append('file', blobToUpload);
+    // --- End robust image upload handling ---
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/upload-stencil-img`, {
+      method: 'POST',
+      body: formData,
+    });
+    const res = await response.json();
     console.log("Stencil added to DB:", res);
     props.endStencilCreation();
     props.setActiveTab("Stencils");
     // const imgHash = hash.substr(2).padStart(64, "0");
     // const imgHash = urlHash;
+    let ipfsHash = res?.result;
+
     const imgHash = hash;
+    // if (!account) return;
+    try {
+      await addStencilCall(account, props.worldId, hash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition, ipfsHash);
+      // await addStencilCall(account, props.worldId, urlHash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
+    } catch (error) {
+      console.error("Error submitting stencil:", error);
+      return;
+    }
     const newStencil = {
       favorited: true,
       favorites: 1,
-      hash: imgHash,
+      hash: res?.result,
       height: props.stencilImage.height,
       name: "",
       position: props.stencilPosition,
       stencilId: res.stencilId,
       width: props.stencilImage.width,
       worldId: props.worldId,
-      ipfsHash: urlHash,
+      ipfsHash: ipfsHash,
     };
     props.setOpenedStencil(newStencil);
   };

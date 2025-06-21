@@ -108,6 +108,20 @@ export const addStencilData = async (worldId: number, width: number, height: num
   }
 }
 
+export const uploadStencilImg = async (image: string, ipfsHash?: string): Promise<any> => {
+  try {
+    const uploadStencilImgEndpoint = `${backendUrl}/upload-stencil-img`;
+    const result = await postJsonData(uploadStencilImgEndpoint, {
+      image,
+      ipfsHash
+    });
+    return result;
+  } catch (error) {
+    console.error("Error adding stencil data", error);
+    return null;
+  }
+}
+
 export const getStencilPixelData = async (hash: string, worldId: number): Promise<any> => {
   try {
     const getStencilPixelDataEndpoint = `${backendUrl}/get-stencil-pixel-data?hash=${hash}&worldId=${worldId}`;

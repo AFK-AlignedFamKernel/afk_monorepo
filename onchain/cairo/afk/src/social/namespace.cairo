@@ -651,8 +651,10 @@ mod tests {
             tags: "[]",
             content: linked_wallet.clone(),
             sig: SchnorrSignature {
-                r: 0x4e04216ca171673375916f12e1a56e00dca1d39e44207829d659d06f3a972d6f_u256,
-                s: 0xa16bc69fab00104564b9dad050a29af4d2380c229de984e49ad125fe29b5be8e_u256,
+                r:0x557361f9ccd492f1b07cd2a509c748a6241ad7fe41a6b29dafb9b8f84734809e_u256,
+                s:0x0dd6809914687a652f991f2478a57d4b4242efa14d8b2f3009d3cfb330fd7070_u256,
+                // r: 0x4e04216ca171673375916f12e1a56e00dca1d39e44207829d659d06f3a972d6f_u256,
+                // s: 0xa16bc69fab00104564b9dad050a29af4d2380c229de984e49ad125fe29b5be8e_u256,
                 // r: 0x051b6d408b709d29b6ef55b1aa74d31a9a265c25b0b91c2502108b67b29c0d5c_u256,
             // s: 0xe31f5691af0e950eb8697fdbbd464ba725b2aaf7e5885c4eaa30a1e528269793_u256
             },

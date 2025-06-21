@@ -5,7 +5,13 @@ module.exports = async function (env, argv) {
     {
       ...env,
       babel: {
-        dangerouslyAddModulePathsToTranspile: ['nativewind', '@nostr-dev-kit/ndk']
+        dangerouslyAddModulePathsToTranspile: [
+          'nativewind',
+          '@nostr-dev-kit/ndk',
+          'react-native-css-interop',
+          'react-native-reanimated',
+          '@react-navigation/elements'
+        ]
       }
     },
     argv
@@ -19,7 +25,6 @@ module.exports = async function (env, argv) {
     config.experiments = {};
   }
   config.experiments.topLevelAwait = true;
-  config.experiments.importMeta = true;
   
   return config;
 };

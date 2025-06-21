@@ -2,13 +2,7 @@ module.exports = function (api) {
   // api.cache(true);
   api.cache(false);
   return {
-    presets: [['babel-preset-expo', { jsxImportSource: 'nativewind' }], 'nativewind/babel',
-    ['@babel/preset-env', {
-      targets: {
-        node: 'current',
-      },
-    }],
-    ],
+    presets: [['babel-preset-expo', { jsxImportSource: 'nativewind' }], 'nativewind/babel'],
     plugins: [
       [
         'module-resolver',
@@ -37,7 +31,6 @@ module.exports = function (api) {
         // optional fallback
         replace: '({ url: "" })'
       }],
-      '@babel/plugin-syntax-import-meta',
       'react-native-reanimated/plugin',
       "@babel/plugin-proposal-export-namespace-from",
     ],

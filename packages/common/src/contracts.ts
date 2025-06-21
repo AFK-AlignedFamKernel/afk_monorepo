@@ -238,8 +238,10 @@ export const DAO_FACTORY_ADDRESS = {
 } as { [key in string]: `0x${string}` };
 
 export const MULTI_CANVAS_ADDRESS = {
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   '0x5461b6b463357260de27286586f2384f33ba519be0d31460c9bffc795aa168b',
   [constants.StarknetChainId.SN_SEPOLIA]:
-    '0x5461b6b463357260de27286586f2384f33ba519be0d31460c9bffc795aa168b',
+  '0x3f842da2cb1dbc81cb9ddd88206007494cdc3cac1409d558217794a052e79cf',
   [constants.StarknetChainId.SN_MAIN]: '0x',
 } as { [key in string]: `0x${string}` };
 
@@ -292,7 +294,11 @@ export const NAMESPACE_ADDRESS = {
 
   // MVP
   // [constants.StarknetChainId.SN_SEPOLIA]:"0x07607c8A50b83938ea3f9DA25DC1b7024814C0E5bF4B40bF6D6FF9Bc7387aa7d"
-  [constants.StarknetChainId.SN_SEPOLIA]: "0x11331ec2cefc3804d6ae0fa5f5a077dcb078e59cdaee2f75f1d68f133b363e1"
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0x11331ec2cefc3804d6ae0fa5f5a077dcb078e59cdaee2f75f1d68f133b363e1",
+  [constants.StarknetChainId.SN_SEPOLIA]: "0x6690853be3b6156b181ad02cd6ca665fe9518f3d13d622731593a65bd51104",
+
+
+  
 
 };
 

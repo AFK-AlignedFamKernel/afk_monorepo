@@ -40,7 +40,8 @@ pub struct StencilMetadata {
     hash: felt252,
     width: u128,
     height: u128,
-    position: u128
+    position: u128,
+    ipfs_hash: ByteArray,
 }
 
 #[derive(Drop, Serde, starknet::Store, Clone)]

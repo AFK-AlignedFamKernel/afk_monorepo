@@ -14,6 +14,7 @@ func processStencilAddedEvent(event IndexerEvent) {
 	widthHex := event.Event.Data[1]
 	heightHex := event.Event.Data[2]
 	positionHex := event.Event.Data[3]
+	ipfsHashHex := event.Event.Data[4]
 
 	canvasId, err := strconv.ParseInt(canvasIdHex, 0, 64)
 	if err != nil {
@@ -45,7 +46,7 @@ func processStencilAddedEvent(event IndexerEvent) {
 		return
 	}
 
-	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Stencils (stencil_id, world_id, hash, width, height, position) VALUES ($1, $2, $3, $4, $5, $6)", stencilId, canvasId, hashHex, stencilWidth, stencilHeight, stencilPosition)
+	_, err = core.AFKBackend.Databases.Postgres.Exec(context.Background(), "INSERT INTO Stencils (stencil_id, world_id, hash, width, height, position, ipfs_hash) VALUES ($1, $2, $3, $4, $5, $6, $7)", stencilId, canvasId, hashHex, stencilWidth, stencilHeight, stencilPosition, ipfsHashHex)
 	if err != nil {
 		PrintIndexerError("processStencilAddedEvent", "Failed to insert into Stencils", canvasIdHex, stencilIdHex, hashHex, widthHex, heightHex, positionHex, err)
 		return

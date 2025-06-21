@@ -13,6 +13,8 @@ import { ToastContainer } from '@/components/ui/Toast';
 import { useAccount } from '@starknet-react/core';
 import { Icon } from '@/components/small/icon-component';
 import { useUIStore } from '@/store/uiStore';
+import { Chart } from '@/components/launchpad/Chart';
+import ChartComponent from '@/components/launchpad/CandleGraph';
 // import { Chart } from '@/components/launchpad/Chart';
 
 interface LaunchpadDetailProps {
@@ -34,7 +36,7 @@ export default function LaunchpadDetailPage() {
   const [userShare, setUserShare] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [chartData, setChartData] = useState<any>(null);
+  const [chartData, setChartData] = useState<any[]>([]);
   const { handleBuyCoins } = useBuyCoin();
   const { handleSellCoins } = useSellCoin();
   const { toasts, showToast, removeToast } = useToast();
@@ -56,10 +58,23 @@ export default function LaunchpadDetailPage() {
       setLaunchData(launchData?.data?.launch);
       setHolders(launchData?.data?.holders);
       setTransactions(launchData?.data?.transactions);
-      setChartData(launchData?.data?.chart);
     } catch (error) {
       console.error('Error fetching launchpad data:', error);
       showToast({ title: 'Error loading data', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCandles = async () => {
+    try {
+      const candlesResponse = await fetch(`${process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL}/deploy-launch/candles/${address}`);
+      const candlesData = await candlesResponse.json();
+      console.log("fetchCandles", candlesData);
+      setChartData(candlesData?.data?.candles);
+    } catch (error) {
+      console.error('Error fetching launchpad data:', error);
+      showToast({ title: 'Error loading candles', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -69,6 +84,7 @@ export default function LaunchpadDetailPage() {
       setLoading(true);
       fetchData();
       setLoading(false);
+      fetchCandles();
     }
   }, [address, showToast]);
 
@@ -122,6 +138,7 @@ export default function LaunchpadDetailPage() {
     { name: 'Overview', component: <Overview data={launchData} /> },
     { name: 'Holders', component: <Holders holders={holders} loading={loading} total_supply={launchData?.total_supply} /> },
     { name: 'Transactions', component: <Transactions transactions={transactions} loading={loading} /> },
+    { name: 'Chart', component: <ChartComponent candleData={chartData as any[]} loading={loading} /> },
     // { name: 'Chart', component: <Chart data={chartData} loading={loading} /> },
   ];
 
@@ -158,6 +175,7 @@ export default function LaunchpadDetailPage() {
           <div className="flex justify-end">
             <button onClick={() => {
               fetchData();
+              fetchCandles();
             }}>
               <Icon name="RefreshIcon" size={16} className="ml-1" />
             </button>
