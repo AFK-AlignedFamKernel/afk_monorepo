@@ -5,11 +5,10 @@ import { NDKEvent, NDKUserProfile } from "@nostr-dev-kit/ndk";
 import { useNote, useProfile, useProfileUser, useSearch } from "afk_nostr_sdk";
 interface ITipNostrUser {
   profile?: NDKUserProfile;
-  pubkey?: string;
+  pubkey: string;
 }
 
 export const TipNostrUser = ({ profile, pubkey }: ITipNostrUser) => {
-
 
   const [tipType, setTipType] = useState<'atomiq' | 'ln'>('atomiq');
   

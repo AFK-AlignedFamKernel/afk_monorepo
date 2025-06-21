@@ -72,7 +72,6 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
       userReaction.data[0]?.content !== '-',
     [userReaction.data],
   );
-
  
 
   const toggleLike = async () => {
@@ -94,7 +93,6 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
       },
     );
   };
-
 
   const reply = useMemo(() => {
     return event?.tags?.filter((tag) => tag[0] === 'e').map((tag) => tag[1]) || [];

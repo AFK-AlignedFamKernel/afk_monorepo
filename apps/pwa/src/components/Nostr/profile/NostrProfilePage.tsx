@@ -7,6 +7,7 @@ import { NDKKind, NDKRelay } from '@nostr-dev-kit/ndk'
 import { FeedTabsProfile } from '@/components/Nostr/feed/FeedTabsProfile'
 import { useUIStore } from '@/store/uiStore'
 import { useNostrContext } from 'afk_nostr_sdk'
+import { TipNostrUser } from '../tips/tip-user'
 
 export default function NostrProfilePage({ address }: { address: string }) {
   console.log("address", address)
@@ -28,19 +29,15 @@ export default function NostrProfilePage({ address }: { address: string }) {
       }
 
       const user = ndk.getUser({ pubkey: address as string });
-
-      console.log("user", user)
-
+      // console.log("user", user)
       const profileData = await user.fetchProfile();
-
-      console.log("profile fetched", profileData)
+      // console.log("profile fetched", profileData)
 
       setProfile(profileData);
     };
-
     fetchProfile();
   }, [address, ndk])
-  console.log("profile", profile)
+  // console.log("profile", profile)
 
   // const fetchProfile = useMemo(async () => {
   //   const profile = await ndk.fetchEvent({
@@ -55,14 +52,13 @@ export default function NostrProfilePage({ address }: { address: string }) {
   const contacts = useContacts({
     authors: [address as string]
   })
-  console.log("contacts of profile", contacts?.data)
+  // console.log("contacts of profile", contacts?.data)
 
   const myContacts = useContacts({
     authors: [publicKey]
   })
 
-  console.log("myContacts", myContacts?.data)
-
+  // console.log("myContacts", myContacts?.data)
   // console.log('profile', profile)
   if (profileLoading) {
     return <div>Loading profile...</div>
@@ -89,7 +85,6 @@ export default function NostrProfilePage({ address }: { address: string }) {
   )
 }
 
-
 const ProfileHeader = (props?: any) => {
   const { profile, contacts, address, myContacts } = props
 
@@ -98,9 +93,10 @@ const ProfileHeader = (props?: any) => {
   //   return null
   // }
 
+
+  const { showModal } = useUIStore()
+
   const editContact = useEditContacts()
-
-
 
   const contactsData = contacts?.data
   const [isFollowinNow, setIsFollowinNow] = useState(false)
@@ -108,10 +104,11 @@ const ProfileHeader = (props?: any) => {
   const isFollowing = contactsData?.some((contact) => contact === profile?.pubkey)
 
   const { showToast } = useUIStore()
+  // console.log("profile", profile)
   const handleFollow = async () => {
 
     let res: Set<any> | null = new Set()
-    console.log("isFollowing", isFollowing)
+    // console.log("isFollowing", isFollowing)
     if (isFollowing) {
       res = await editContact.mutateAsync({
         pubkey: profile?.pubkey,
@@ -122,7 +119,7 @@ const ProfileHeader = (props?: any) => {
         pubkey: profile?.pubkey,
         type: "add"
       })
-      console.log("res", res)
+      // console.log("res", res)
 
       if (res && res.size > 0) {
         console.log("success")
@@ -168,14 +165,17 @@ const ProfileHeader = (props?: any) => {
       </div>
 
       {profile?.about && (
-        <div>
-          <p className="text-gray-600 mb-4">
+        <div
+          onClick={() => setShowMore(!showMore)}
+        >
+          <p className="text-gray-600 mb-4 cursor-pointer"
+            onClick={() => setShowMore(!showMore)}
+          >
             {profile?.about.length > 30 ? (
               <>
                 {showMore ? profile?.about : profile?.about.slice(0, 30)}...
                 <button
-                  className="text-blue-500 hover:underline ml-1"
-                  onClick={() => setShowMore(!showMore)}
+                  className="hover:underline ml-1"
                 >
                   {showMore ? 'View less' : 'View more'}
                 </button>
@@ -197,22 +197,34 @@ const ProfileHeader = (props?: any) => {
         </a>
       )}
 
+      {/* {profile?.lud16 && (
+        <div className="text-xs items-center">
+          <button
+            className='btn btn-sm btn-primary'
+            onClick={() => {
+              console.log("address", address);
+              if (address) {
+                showModal(<TipNostrUser profile={profile} pubkey={address} />);
+              }
+            }}>
+            Tips
+          </button>
+        </div>
+      )} */}
 
-      <div className="flex items-center gap-4 mt-4">
+      <div className="flex items-center gap-4 mt-4 my-4">
 
-        <button className="bg-gray-500 text-white px-4 py-2 rounded-md"
-
-
+        <button
+          className="px-4 py-2 rounded-md shadow-md"
           onClick={() => {
             handleFollow()
           }}
         >
-
-          Follow
+          {isFollowing ? "Unfollow" : "Follow"}
         </button>
-        <button className="bg-gray-500 text-white px-4 py-2 rounded-md">
+        {/* <button className="px-4 py-2 rounded-md shadow-md">
           Message
-        </button>
+        </button> */}
       </div>
     </div>
   )

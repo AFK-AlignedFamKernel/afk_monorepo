@@ -31,6 +31,7 @@ export const useEditContacts = () => {
         const connectedRelays = ndk?.pool?.connectedRelays()
         console.log("connectedRelays", connectedRelays)
         if(connectedRelays.length === 0 ) {
+          console.log("connecting to relays")
           await ndk.connect(5000)
         }
   
