@@ -303,6 +303,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
             limit={limit}
             authors={authors}
             searchQuery={searchQuery}
+            activeTabProps={activeTab}
           />
         )}
 

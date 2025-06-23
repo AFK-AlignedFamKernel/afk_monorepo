@@ -15,6 +15,7 @@ interface NostrFeedProps {
   searchQuery?: string;
   since?: number;
   until?: number;
+  activeTabProps?: string;
 }
 
 export const NostrFeed: React.FC<NostrFeedProps> = ({
@@ -24,7 +25,8 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   authors,
   searchQuery,
   since: sinceProps,
-  until: untilProps
+  until: untilProps,
+  activeTabProps
 }) => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
@@ -141,6 +143,21 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   }, [kinds, limit, authors, searchQuery, since, until, isInitialLoading, isLoadingMore]);
 
+
+  useEffect(() => {
+    console.log("activeTabProps", activeTabProps);
+    console.log("kinds", kinds);
+    console.log("fetching events");
+    setNotesData([]);
+    setLastCreatedAt(Math.round(Date.now() / 1000));
+    setHasMoreContent(true);
+    setIsError(false);
+    setError(null);
+    setIsInitialLoading(true);
+    loadInitialData();
+    // fetchEvents();
+  }, [activeTabProps]);
+
   // Intersection Observer for infinite scrolling
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
     const [entry] = entries;
@@ -200,9 +217,9 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   }
 
   return (
-    <div 
-    // className={`nostr-feed__content ${className}`}
-    className={`${className}`}
+    <div
+      // className={`nostr-feed__content ${className}`}
+      className={`${className}`}
     >
 
 
