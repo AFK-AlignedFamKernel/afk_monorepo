@@ -18,6 +18,7 @@ import { AvatarIcon } from './small/icons';
 import AccordionMenu from './small/AccordionMenu';
 import MobileBottomBar from './MobileBottomBar';
 import { logClickedEvent } from '@/lib/analytics';
+import CreateAll from './Form/CreateAll';
 
 interface LayoutProps {
   children: ReactNode;
@@ -135,6 +136,7 @@ const Layout = ({ children }: LayoutProps) => {
       document.body.classList.remove('page-transition');
     };
 
+
     // router?.events?.on('routeChangeStart', handleStart);
     // router?.events?.on('routeChangeComplete', handleComplete);
     // router?.events?.on('routeChangeError', handleComplete);
@@ -145,6 +147,14 @@ const Layout = ({ children }: LayoutProps) => {
     //   router?.events?.off('routeChangeError', handleComplete);
     // };
   }, [router]);
+
+  const handleCreateAll = () => {
+    // if (url.includes('nostr')) {
+    //   setIsLoading(true);
+    //   document.body.classList.add('page-transition');
+    // }
+    showModal(<CreateAll />)
+  }
 
   useEffect(() => {
     setMounted(true);
@@ -267,12 +277,15 @@ const Layout = ({ children }: LayoutProps) => {
               Home
             </Link>
 
-            <Link href="/create" className="sidebar-nav-item" onClick={() => {
-              logClickedEvent("create", "click", "link_drawer")
-              closeSidebar()
-            }}>
+            <button
+              className="sidebar-nav-item"
+              onClick={() => {
+                logClickedEvent("create", "click", "link_drawer")
+                closeSidebar()
+                handleCreateAll()
+              }}>
               <Icon name="AddPostIcon" size={24} />
-              Create</Link>
+              Create</button>
 
 
             {/* <div className='sidebar-nav-item'>
@@ -350,7 +363,7 @@ const Layout = ({ children }: LayoutProps) => {
 
 
             <div className='flex items-center gap-4'>
-           
+
 
               <div className="flex items-center gap-4">
                 <button className="btn btn-gradient-green" onClick={() => showModal(<ProfileManagement />)}>
@@ -471,11 +484,11 @@ const Layout = ({ children }: LayoutProps) => {
       ></div>
 
       {/* Main Content */}
-      <main 
-      className="main-content"
+      <main
+        className="main-content"
       >
         {isLoading && <CryptoLoading />}
-        <div 
+        <div
         // className="content pb-20 md:pb-0"
         >
           {children}

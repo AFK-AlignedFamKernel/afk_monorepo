@@ -9,6 +9,7 @@ import { useAuth, useContacts } from 'afk_nostr_sdk';
 import NostrTagsFeed from './NostrTagsFeed';
 import { TAGS_DEFAULT } from 'common';
 import { NostrFilter, Tab } from './NostrFilter';
+import { logClickedEvent } from '@/lib/analytics';
 
 interface FeedTabsProps {
   className?: string;
@@ -155,7 +156,10 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
             key={tab.id}
             className={`nostr-feed__tabs-button ${activeTab === tab.id ? 'nostr-feed__tabs-button--active' : ''
               } text-xl`}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => {
+              setActiveTab(tab.id)
+              logClickedEvent("feed_nostr_tab", "click_nostr_tab", tab.id)
+            }}
           >
             {tab.icon}
             <span className="text-lg">

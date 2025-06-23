@@ -244,9 +244,9 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       <div className="nostr-feed__tags-container flex gap-2 overflow-x-auto scrollbar-hide pb-2 px-2" >
         {tags.map((tag, index) => (
           <div
-            className={`px-3 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-200 shadow-md border border-indigo-600 ${selectedTag === tag
-                ? 'bg-indigo-600 shadow-lg'
-                : 'hover:bg-indigo-100 hover:shadow-lg'
+            className={`px-3 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-200 shadow-md border border-gray-500 ${selectedTag === tag
+                ? 'bg-green-600 shadow-lg'
+                : 'hover:bg-green-100 hover:shadow-lg'
               }`}
             key={index}
             onClick={() => {

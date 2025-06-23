@@ -20,17 +20,17 @@ export default function DiscoverComponent() {
 
       <div className="p-4">
 
-        <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide">
-          <button className={`px-4 py-2 rounded-md ${activeTab === "feed" ? "border border-green-500" : ""}`} onClick={() => {
+        <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide shadow-md">
+          <button className={`p-2 rounded-md ${activeTab === "feed" ? "border border-green-500" : ""}`} onClick={() => {
             setActiveTab("feed")
             logClickedEvent("discover_feed", "click", "discover_feed")
 
           }}>Feed</button>
-          <button className={`px-4 py-2 rounded-md ${activeTab === "brand" ? "border border-green-500" : ""}`} onClick={() => {
+          <button className={`p-2 rounded-md ${activeTab === "brand" ? "border border-green-500" : ""}`} onClick={() => {
             setActiveTab("brand")
             logClickedEvent("discover_brand", "click")
           }}>Brands</button>
-          <button className={`px-4 py-2 rounded-md ${activeTab === "creator" ? "border border-green-500" : ""}`} onClick={() => {
+          <button className={`p-2 rounded-md ${activeTab === "creator" ? "border border-green-500" : ""}`} onClick={() => {
             setActiveTab("creator")
             logClickedEvent("discover_creator", "click")
 

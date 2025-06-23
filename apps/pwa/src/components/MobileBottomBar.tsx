@@ -12,6 +12,7 @@ import { useUIStore } from '@/store/uiStore';
 import { AvatarIcon } from './small/icons';
 import AccordionMenu from './small/AccordionMenu';
 import { useColorModeValue } from '@chakra-ui/react';
+import CreateAll from './Form/CreateAll';
 
 const MobileBottomBar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -186,14 +187,24 @@ const MobileBottomBar = () => {
               <p className="text-xs font-medium leading-normal tracking-[0.015em]">Discover</p>
             </button>
           </Link> */}
-          <Link href="/create">
+          {/* <Link href="/create">
             <button className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
               <div className="flex h-8 items-center justify-center">
                 <Icon name="CreateIcon" className='w-6 h-6' />
               </div>
               <p className="text-xs font-medium leading-normal tracking-[0.015em]">Create</p>
             </button>
-          </Link>
+          </Link> */}
+          <button className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}
+            onClick={() => {
+              showModal(<CreateAll />)
+            }}
+          >
+            <div className="flex h-8 items-center justify-center">
+              <Icon name="CreateIcon" className='w-6 h-6' />
+            </div>
+            <p className="text-xs font-medium leading-normal tracking-[0.015em]">Create</p>
+          </button>
           <Link href="/launchpad">
 
             <button className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
