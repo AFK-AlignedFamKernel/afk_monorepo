@@ -241,13 +241,12 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
 
   return (
     <div className={`nostr-feed__content ${className}`}>
-      <div className="nostr-feed__tags-container flex gap-2 overflow-x-auto scrollbar-hide pb-2 px-2" >
+      <div className="px-4 nostr-feed__tags-container flex gap-2 overflow-x-auto scrollbar-hide pb-2 px-2" >
         {tags.map((tag, index) => (
           <div
-            className={`px-3 py-1.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-200 shadow-md border border-gray-500 ${selectedTag === tag
-                ? 'bg-green-600 shadow-lg'
-                : 'hover:bg-green-100 hover:shadow-lg'
-              }`}
+            className={`px-2 py-0.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-150 border border-gray-400 text-xs font-medium mr-1
+              ${selectedTag === tag ? 'bg-green-500' : 'hover:bg-green-100 dark:hover:bg-green-900'}
+            `}
             key={index}
             onClick={() => {
               setIsUsedUntil(false);
@@ -257,7 +256,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
               fetchEvents(tag, Math.round(Date.now()));
             }}
           >
-            <p className="text-sm font-medium">{tag}</p>
+            <span>{tag}</span>
           </div>
         ))}
       </div>
