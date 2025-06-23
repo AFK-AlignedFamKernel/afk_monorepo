@@ -9,6 +9,7 @@ import { useAuth, useContacts } from 'afk_nostr_sdk';
 import NostrTagsFeed from './NostrTagsFeed';
 import { TAGS_DEFAULT } from 'common';
 import { NostrFilter, Tab } from './NostrFilter';
+import { logClickedEvent } from '@/lib/analytics';
 
 interface FeedTabsProps {
   className?: string;
@@ -149,18 +150,28 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
 
   return (
     <div className={`nostr-feed__container ${className}`}>
-      <div className="nostr-feed__tabs px-2">
+      <div className="nostr-feed__tabs px-4">
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            className={`nostr-feed__tabs-button ${activeTab === tab.id ? 'nostr-feed__tabs-button--active' : ''
-              } text-xl`}
-            onClick={() => setActiveTab(tab.id)}
+            // className={`nostr-feed__tabs-button flex items-center gap-1 px-2 py-1 rounded-md text-sm font-medium transition-all duration-150
+            //   ${activeTab === tab.id ? 'nostr-feed__tabs-button--active border border-green-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800'}
+            // `}
+            className={`nostr-feed__tabs-button flex items-center gap-1 px-2 py-1 rounded-md text-sm font-medium transition-all duration-150
+              ${activeTab === tab.id ? 'nostr-feed__tabs-button--active border border-green-500' : 'hover:border-gray-100 dark:hover:border-gray-800'}
+            `}
+            // style={{ minHeight: '32px' }}
+            onClick={() => {
+              setActiveTab(tab.id)
+              logClickedEvent("feed_nostr_tab", "click_nostr_tab", tab.id)
+            }}
           >
-            {tab.icon}
-            <span className="text-lg">
+            <span className="inline-flex items-center justify-center h-4 w-4">
+              {/* {React.cloneElement(tab.icon, { className: 'h-4 w-4' })} */}
+              {tab?.icon}
+            </span>
+            <span className="text-sm">
               {tab.label}
-
             </span>
           </button>
         ))}
@@ -299,6 +310,7 @@ export const FeedTabs: React.FC<FeedTabsProps> = ({
             limit={limit}
             authors={authors}
             searchQuery={searchQuery}
+            activeTabProps={activeTab}
           />
         )}
 

@@ -285,7 +285,6 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
                 <>
                   <QuoteRepostComponent event={event} >
                   </QuoteRepostComponent>
-                  <button onClick={() => showModal(null)}>Close</button>
                 </>
               )}
             >

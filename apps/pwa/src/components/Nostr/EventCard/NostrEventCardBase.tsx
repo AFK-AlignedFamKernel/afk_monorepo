@@ -60,15 +60,15 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
             />
           </div>
         ) : (
-          <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
-            <span className="text-gray-600 dark:text-gray-300 text-sm">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center">
+            <span className="text-sm">
               {displayName.substring(0, 2).toUpperCase()}
             </span>
           </div>
         )}
         <div className="ml-2">
-          <div className="font-medium text-gray-900 dark:text-white">{displayName}</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
+          <div className="font-medium">{displayName}</div>
+          <div className="text-xs  flex items-center">
             <span className="text-xs">{timestamp}</span>
             {profile?.nip05 && (
               <span className="ml-1 text-blue-500">✓</span>
