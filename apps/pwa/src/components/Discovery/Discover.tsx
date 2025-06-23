@@ -20,29 +20,30 @@ export default function DiscoverComponent() {
 
       <div className="p-4">
 
-        <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide shadow-md">
-          <button className={`p-2 rounded-md ${activeTab === "feed" ? "border border-green-500" : ""}`} onClick={() => {
-            setActiveTab("feed")
-            logClickedEvent("discover_feed", "click", "discover_feed")
-
-          }}>Feed</button>
-          <button className={`p-2 rounded-md ${activeTab === "brand" ? "border border-green-500" : ""}`} onClick={() => {
-            setActiveTab("brand")
-            logClickedEvent("discover_brand", "click")
-          }}>Brands</button>
-          <button className={`p-2 rounded-md ${activeTab === "creator" ? "border border-green-500" : ""}`} onClick={() => {
-            setActiveTab("creator")
-            logClickedEvent("discover_creator", "click")
-
-          }}>Creators</button>
-          <button className={`px-4 py-2 rounded-md ${activeTab === "launchpad" ? "border border-green-500" : ""}`} onClick={() => {
-            setActiveTab("launchpad")
-            logClickedEvent("discover_launchpad", "click", "discover_launchpad")
-          }}>Tokens</button>
-          {/* <button className={`px-4 py-2 rounded-md ${activeTab === "topic" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => setActiveTab("topic")}>Topics</button> */}
-
+        <div className="flex flex-row gap-2 overflow-x-auto scrollbar-hide rounded-xl p-2 shadow-md w-max justify-start ">
+          {[
+            { key: "feed", label: "Feed" },
+            { key: "brand", label: "Brands" },
+            { key: "creator", label: "Creators" },
+            { key: "launchpad", label: "Tokens" },
+            // { key: "topic", label: "Topics" },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              className={`px-4 py-2 rounded-full transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-green-400 whitespace-nowrap
+                ${activeTab === tab.key
+                  ? "bg-green-500 text-white shadow font-semibold"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"}
+              `}
+              onClick={() => {
+                setActiveTab(tab.key as typeof activeTab);
+                logClickedEvent(`discover_${tab.key}`, "click", `discover_${tab.key}`);
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
-
 
       </div>
 
