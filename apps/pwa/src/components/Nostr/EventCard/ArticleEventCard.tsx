@@ -30,6 +30,7 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
   const queryClient = useQueryClient();
 
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpandedTitle, setIsExpandedTitle] = useState(false);
   const { showToast, showModal } = useUIStore();
   // Parse the article content - typically articles may have JSON metadata
   let title = '';
@@ -93,17 +94,24 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
   }).render(truncatedContent);
 
   return (
-    <div className="article-event-card">
+    <div className="article-event-card max-w-full w-full p-4 sm:p-6 md:p-8 rounded-lg">
       <NostrEventCardBase event={event} profile={profile}>
         <div className="mt-2">
-          <h3>{title}</h3>
+          <div className='flex items-center gap-2 cursor-pointer w-full max-w-full' onClick={() => setIsExpandedTitle(!isExpandedTitle)}>
+            <h3 className='text-lg font-bold break-words whitespace-normal w-full max-w-full overflow-hidden text-ellipsis'>
+              {title?.length > 30 && !isExpandedTitle ? title.substring(0, 30) + '...' : title}
+            </h3>
+            <button className='text-sm text-gray-500'>
+              <Icon name={isExpandedTitle ? "ChevronUpIcon" : "ChevronDownIcon"} size={16} className='w-4 h-4' />
+            </button>
+          </div>
 
           {image && (
-            <div className="media-container mb-3">
+            <div className="media-container mb-3 w-full flex justify-center">
               <img
                 src={image}
                 alt={title}
-                className="image-content"
+                className="image-content max-w-full h-auto rounded-md object-contain"
               />
             </div>
           )}
@@ -114,21 +122,17 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
 
           <div
             onClick={() => setIsExpanded(!isExpanded)}
-            className="cursor-pointer"
+            className="cursor-pointer w-full max-w-full"
           >
             <div
               style={{
-                // backgroundColor: theme.colors.background,
-                // color: theme.colors.text,
-                color: 'var(--text-primary)',
                 padding: 16,
-                // fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                // fontSize: 16,
                 lineHeight: 1.6,
               }}
+              className='text-sm overflow-hidden break-words whitespace-pre-line w-full max-w-full'
               dangerouslySetInnerHTML={{ __html: markdownContent }}
             />
-            <button onClick={() => setIsExpanded(!isExpanded)}>
+            <button onClick={e => { e.stopPropagation(); setIsExpanded(!isExpanded); }}>
               {isExpanded ? 'Read Less' : 'Read More'}
             </button>
           </div>
