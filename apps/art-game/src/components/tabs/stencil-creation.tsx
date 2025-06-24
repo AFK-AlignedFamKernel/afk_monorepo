@@ -90,7 +90,7 @@ export const StencilCreationTab = (props: any) => {
     props.setActiveTab("Stencils");
     // const imgHash = hash.substr(2).padStart(64, "0");
     // const imgHash = urlHash;
-    let ipfsHash = res?.result;
+    const ipfsHash = res?.result;
 
     const imgHash = hash;
     // if (!account) return;
