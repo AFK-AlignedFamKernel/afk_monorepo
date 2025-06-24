@@ -1,0 +1,7 @@
+README.md
+index.md
+apps/pwa/**
+apps/data-backend/**
+packages/common/**
+backend/**
+onchain/**
