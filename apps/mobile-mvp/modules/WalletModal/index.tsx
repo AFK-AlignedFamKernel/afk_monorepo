@@ -1,4 +1,4 @@
-import {useAppKit} from '@reown/appkit-wagmi-react-native';
+// import {useAppKit} from '@reown/appkit-wagmi-react-native';
 import {useConnect} from '@starknet-react/core';
 import * as Linking from 'expo-linking';
 import React from 'react';
@@ -22,7 +22,7 @@ export const WalletModal: React.FC<WalletModalProps> = ({hide}) => {
 
   const {connect, connectors} = useConnect();
   const {showDialog, hideDialog} = useDialog();
-  const {open: openEVM} = useAppKit();
+  // const {open: openEVM} = useAppKit();
   const {showEvmWallet} = useEvmWallet();
   return (
     <Modal style={{zIndex: 1000}}>

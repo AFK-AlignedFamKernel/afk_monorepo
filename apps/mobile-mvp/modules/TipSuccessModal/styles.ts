@@ -1,4 +1,4 @@
-import {Spacing, ThemedStyleSheet} from '../../styles';
+import {Spacing, ThemedStyleSheet} from '@/styles';
 
 export const LOGO_SIZE = 250;
 

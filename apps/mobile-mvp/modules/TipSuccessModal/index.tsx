@@ -1,8 +1,10 @@
 import React from 'react';
 import {Image, View} from 'react-native';
 
-import {Button, Modal, Text} from '../../components';
-import {useStyles} from '../../hooks';
+import {Button} from '@/components/Button';
+import {Modal} from '@/components/Modal';
+import {Text} from '@/components/Text';
+import {useStyles} from '@/hooks';
 import stylesheet from './styles';
 
 export type TipSuccessModalProps = {
