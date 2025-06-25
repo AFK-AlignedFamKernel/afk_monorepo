@@ -7,6 +7,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import CryptoLoading from '../small/crypto-loading';
 import { useAppStore } from '@/store/app';
+import { useUIStore } from '@/store/uiStore';
+import Onboarding from '.';
 
 
 interface OnboardingCheckProps {
@@ -24,6 +26,9 @@ export default function OnboardingCheck({ isLoadingProp, isInitalizedProp, hasOn
   const [isInitalized, setIsInitalized] = useState(user ? true : false);
   const [hasOnboarded, setHasOnboarded] = useState(false);
 
+
+  const { showModal } = useUIStore();
+
   const handleOnboarding = () => {
     console.log('pathname', pathname);
     const hasOnboarded = localStorage.getItem('hasOnboarded');
@@ -34,7 +39,8 @@ export default function OnboardingCheck({ isLoadingProp, isInitalizedProp, hasOn
       localStorage.setItem('hasOnboarded', 'true');
       setIsLoading(true);
       // window.location.href = '/onboarding';
-      router.push('/onboarding');
+      // router.push('/onboarding');
+      showModal(<Onboarding />)
       setIsLoading(false);
     }
     setIsInitalized(true);

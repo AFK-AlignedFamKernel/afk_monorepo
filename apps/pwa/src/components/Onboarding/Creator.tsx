@@ -8,6 +8,7 @@ import SupabaseLink from '../profile/SupabaseLink';
 import CreatorProfile from '../profile/CreatorProfile';
 import Accordion from '../small/accordion';
 import ManageCreatorProfile from '../profile/ManageCreatorProfile';
+import NostrCreateAccountComponent from '../Nostr/login/NostrCreateAccount';
 
 export default function Creator() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function Creator() {
           <div>
 
             {/* <SupabaseLink /> */}
+            <NostrCreateAccountComponent />
             <ManageCreatorProfile />
             {/* <Accordion className='w-full' items={[
               { title: 'Link your social accounts', content: <SocialAccountLinker /> },
