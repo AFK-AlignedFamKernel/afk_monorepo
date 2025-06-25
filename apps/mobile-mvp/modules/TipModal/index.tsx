@@ -2,13 +2,15 @@ import { NDKEvent } from '@nostr-dev-kit/ndk';
 import { forwardRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Modalize, Text } from '../../components';
-import { useStyles, useTheme } from '../../hooks';
+import { Modalize } from '@/components/Modalize';
+import { Text } from '@/components/Text';
+import { useStyles, useTheme } from '@/hooks';
 import { TipSuccessModalProps } from '../TipSuccessModal';
 import { FormLightningZap } from './lightning/form';
 import { FormTipStarknet } from './starknet/form';
 import { FormTipAtomiq } from './atomiq/form';
 import stylesheet from './styles';
+import React from 'react';
 
 export type TipModal = Modalize;
 

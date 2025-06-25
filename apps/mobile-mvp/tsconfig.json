@@ -23,9 +23,6 @@
     "**/*.json",
     "**/*.css",
     "**/*.scss",
-    "**/*.less",
-    "**/*.styl",
-    "**/*.stylus",
     "**/*.sass",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
