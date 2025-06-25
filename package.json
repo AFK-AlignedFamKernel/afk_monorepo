@@ -101,7 +101,30 @@
   "packageManager": "pnpm@10.10.0",
   "pnpm": {
     "onlyBuiltDependencies": [
-      "supabase"
+      "@apollo/protobufjs",
+      "@llama-node/core",
+      "@nestjs/core",
+      "@parcel/watcher",
+      "@prisma/client",
+      "@prisma/engines",
+      "@swc/core",
+      "bufferutil",
+      "cbor-extract",
+      "core-js",
+      "core-js-pure",
+      "es5-ext",
+      "esbuild",
+      "fastify-socket.io",
+      "keccak",
+      "onnxruntime-node",
+      "postinstall-postinstall",
+      "prisma",
+      "protobufjs",
+      "puppeteer",
+      "sharp",
+      "supabase",
+      "unrs-resolver",
+      "utf-8-validate"
     ]
   }
 }

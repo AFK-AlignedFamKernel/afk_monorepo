@@ -1,0 +1,33 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "jsx": "react",
+    "strict": true,
+    "paths": {
+      "@/*": [
+        "./*"
+      ],
+      "afk_nostr_sdk": [
+        "../../packages/afk_nostr_sdk/src"
+      ],
+      "common": [
+        "../../packages/common/src"
+      ],
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
+    "**/*.json",
+    "**/*.css",
+    "**/*.scss",
+    "**/*.less",
+    "**/*.styl",
+    "**/*.stylus",
+    "**/*.sass",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
+}
