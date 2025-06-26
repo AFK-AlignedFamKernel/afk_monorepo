@@ -1,6 +1,6 @@
 import {useContext, useMemo} from 'react';
 
-import { QuoteNostrModalContext } from 'src/context/QuoteNostrModal';
+import { QuoteNostrModalContext } from '@/context/QuoteNostrModal';
 
 export const useQuoteNoteModal = () => {
   const context = useContext(QuoteNostrModalContext);
