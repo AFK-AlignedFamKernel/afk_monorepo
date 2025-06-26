@@ -119,6 +119,7 @@ $feed-animation-speed: 0.2s;
     // border-bottom: 1px solid var(--border-color, #e5e7eb);
     // border: 1px 0 0 3px solid var(--border-color, #e5e7eb);
     transition: box-shadow 0.2s ease;
+    // max-width: 500px;
 
     &:hover {
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
