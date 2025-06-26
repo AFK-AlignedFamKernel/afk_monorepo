@@ -35,10 +35,15 @@ export const TableCreators: React.FC = () => {
         return;
       }
 
-      const res = await api.content_creator.list();
+      // const res = await api.content_creator.list();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/content-creator`, {
+        method: 'GET',
+      });
+      const data = await res.json();
+      console.log("data", data)
       // console.log("res", res)
-      setCreators(res);
-      setContentCreatorsStore(res);
+      setCreators(data.length > 0 ? data : []);
+      setContentCreatorsStore(data.length > 0 ? data : []);
       setIsFetchContentDone(true)
     } catch (error) {
       console.error("Error fetching creators:", error);
@@ -50,7 +55,7 @@ export const TableCreators: React.FC = () => {
 
   useEffect(() => {
 
-    if (!isFetchContentDone && contentCreators.length === 0) {
+    if (!isFetchContentDone && contentCreators?.length === 0) {
       console.log("fetching creators")
       fetchCreators();
     }
@@ -96,7 +101,7 @@ export const TableCreators: React.FC = () => {
     <div className="rounded-xl shadow-lg bg-card p-4 w-full md:max-w-3xl mx-auto overflow-x-auto">
       {/* <h3 className="text-sm font-semibold mb-2">All Connected & Verified Creators</h3> */}
 
-      {creators.length === 0 && (
+      {creators?.length === 0 && (
         <div className="flex flex-row justify-center">
           <p className="text-sm text-muted-foreground">No creators found</p>
           <div className="flex flex-row justify-center">
@@ -122,7 +127,7 @@ export const TableCreators: React.FC = () => {
 
         <tbody>
 
-          {creators && creators.length > 0 && creators
+          {creators && creators?.length > 0 && creators
             .map((creator: IContentCreator | any, index: number) => (
               <tr
                 key={`${creator.id}-${index}`}
