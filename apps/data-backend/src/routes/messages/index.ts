@@ -4,22 +4,23 @@ import { supabaseAuthMiddleware } from '../../middleware/supabase-auth';
 import { z } from 'zod';
 
 const messageSchema = z.object({
-  group_id: z.string().min(1),
-  group_provider: z.string().min(1),
-  brand_id: z.string().min(1),
-  brand: z.string().min(1),
-  community_name: z.string().min(1),
-  community_id: z.string().min(1),
-  text: z.string().min(1),
-  timestamp: z.string().min(1),
-  signature: z.string().min(1),
-  pubkey: z.string().min(1),
+  group_id: z.string().optional(),
+  group_provider: z.string().optional(),
+  brand_id: z.string().optional(),
+  brand: z.string().optional(),
+  community_name: z.string().optional(),
+  community_id: z.string().optional(),
+  text: z.string().optional(),
+  content: z.string().min(1),
+  timestamp: z.string().optional(),
+  signature: z.string().optional(),
+  pubkey: z.string().optional(),
   internal: z.boolean().default(false),
   likes: z.number().default(0),
   tweeted: z.boolean().default(false),
   parent_id: z.string().optional(),
   reply_count: z.number().default(0),
-  owner_id: z.string().min(1),
+  owner_id: z.string().optional(),
   image_url: z.string().optional(),
   video_url: z.string().optional(),
   created_at: z.string().optional(),
@@ -29,7 +30,7 @@ const messageSchema = z.object({
 export default async function messageRoutes(fastify: FastifyInstance) {
  
 
-  fastify.get('/message', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/messages', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       let query = supabaseAdmin
         .from('messages')
@@ -45,7 +46,7 @@ export default async function messageRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.get('/message/owned', {
+  fastify.get('/messages/owned', {
     preHandler: [supabaseAuthMiddleware],
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -74,7 +75,7 @@ export default async function messageRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.post('/message/create', {
+  fastify.post('/messages/create', {
     preHandler: [supabaseAuthMiddleware],
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -102,13 +103,14 @@ export default async function messageRoutes(fastify: FastifyInstance) {
       }
     
       const { data: message, error: messageError } = await supabaseAdmin.from('messages').insert({
-        group_id: res.data.group_id,
-        group_provider: res.data.group_provider,
+        group_id: res.data.group_id ?? res?.data?.community_id ,
+        group_provider: res.data.group_provider ?? res?.data?.community_name ?? res?.data?.community_id ?? '',
         brand_id: res.data.brand_id,
-        brand: res.data.brand,
+        brand: res.data.brand ?? '',
         community_name: res.data.community_name,
         community_id: res.data.community_id,
-        text: res.data.text,
+        text: res?.data?.content ?? res?.data?.text ?? '',
+        content: res.data.content ?? res?.data?.text ?? '',
         timestamp: res.data.timestamp,
         signature: res.data.signature,
         pubkey: res.data.pubkey,
@@ -124,6 +126,8 @@ export default async function messageRoutes(fastify: FastifyInstance) {
         updated_at: new Date().toISOString()
       }).select('*').single();
 
+      console.log("message error", messageError)
+
       if (messageError) {
         return reply.code(500).send({ error: messageError.message });
       }
@@ -136,7 +140,7 @@ export default async function messageRoutes(fastify: FastifyInstance) {
   });  
 
 
-  fastify.post('/message/update', {
+  fastify.post('/messages/update', {
     preHandler: [supabaseAuthMiddleware],
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {

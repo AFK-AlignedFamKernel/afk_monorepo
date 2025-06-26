@@ -47,3 +47,34 @@ export interface GeneratedCodeVerification {
   handle: string;
   user_id?: string;
 }
+
+export interface ICommunity {
+  id: string;
+  name: string;
+  description: string;
+  logo_url: string;
+  slug_name: string;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  is_deleted: boolean;
+  is_pinned: boolean;
+  owner_id: string;
+}
+
+export interface IMessage {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  tags: string[];
+  community_id: string;
+  owner_id: string;
+  created_at: string;
+  updated_at: string;
+  type: string;
+  content: string;
+  is_active: boolean;
+  is_deleted: boolean;
+  is_pinned: boolean;
+}

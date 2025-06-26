@@ -14,14 +14,14 @@ export default function DiscoverComponent() {
   // const searchParams = useSearchParams()
   // const query = searchParams.get("query")
 
-  const [activeTab, setActiveTab] = useState<"brand" | "creator" | "topic" | "feed" | "launchpad" | "communities" >("feed");
+  const [activeTab, setActiveTab] = useState<"brand" | "creator" | "topic" | "feed" | "launchpad" | "communities">("feed");
 
   return (
     <div className="flex flex-col gap-1">
 
       <div className="p-4">
 
-        <div className="flex flex-row gap-2 overflow-x-auto scrollbar-hide rounded-xl p-2 shadow-md w-max justify-start ">
+        <div className="flex flex-row gap-2 overflow-x-auto scrollbar-hide rounded-xl p-2 shadow-md justify-start ">
           {[
             { key: "feed", label: "Feed" },
             { key: "brand", label: "Brands" },
@@ -50,52 +50,56 @@ export default function DiscoverComponent() {
       </div>
 
 
-      {activeTab === "brand" && (
-        <>
-          <TableBrand />
-          {/* <ListBrand /> */}
-        </>
-      )}
+      <div className="p-4">
 
-      {activeTab === "creator" && (
-        <>
-          {/* <AllCreators /> */}
-          <TableCreators />
-        </>
-      )}
+        {activeTab === "brand" && (
+          <>
+            <TableBrand />
+            {/* <ListBrand /> */}
+          </>
+        )}
 
-      {activeTab === "topic" && (
-        <>
-          <h2 className="text-xl font-bold">Topics</h2>
-          <p>
-            More topics coming soon
-          </p>
-        </>
-      )}
+        {activeTab === "creator" && (
+          <>
+            {/* <AllCreators /> */}
+            <TableCreators />
+          </>
+        )}
 
-      {activeTab === "feed" && (
-        <>
-          {/* <p>
+        {activeTab === "topic" && (
+          <>
+            <h2 className="text-xl font-bold">Topics</h2>
+            <p>
+              More topics coming soon
+            </p>
+          </>
+        )}
+
+        {activeTab === "feed" && (
+          <>
+            {/* <p>
             More feeds coming soon
           </p> */}
-          <div className="flex flex-row gap-4">
-            <FeedTabs />
+            <div className="flex flex-row gap-4">
+              <FeedTabs />
 
+            </div>
+          </>
+        )}
+
+        {activeTab === "launchpad" && (
+          <div className="px-4">
+            <PumpComponent />
           </div>
-        </>
-      )}
+        )}
 
-      {activeTab === "launchpad" && (
-        <div className="px-4">
-          <PumpComponent />
-        </div>
-      )}
+        {activeTab === "communities" && (
+          <div className="px-4">
+            <CommunitiesList />
+          </div>
+        )}
 
-      {activeTab === "communities" && (
-        <div className="px-4">
-          <CommunitiesList />
-        </div>
-      )}
+      </div>
 
     </div>
   );

@@ -7,11 +7,14 @@ import { useUIStore } from '@/store/uiStore';
 import { TokenCreateForm } from '../launchpad/TokenCreateForm';
 import { NostrArticleForm } from './NostrArticleForm';
 import { CreateBrandForm } from '../Brand/CreateBrandForm';
+import DebateCreateForm from '../Debate/DebateCreateForm';
 enum CreateType {
   POST = 'post',
   ARTICLE = 'article',
   TOKEN = 'token',
   BRAND = 'brand',
+  DEBATE = 'debate',
+  COMMUNITY = 'community',
 }
 export default function CreateAll() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,8 +22,6 @@ export default function CreateAll() {
   const sendNote = useSendNote();
   const { ndk } = useNostrContext()
   const [createType, setCreateType] = useState<CreateType>(CreateType.POST);
-
-  
   
   const { showToast } = useUIStore();
   const handleSubmit = async (data: NostrFormData) => {
@@ -64,13 +65,13 @@ export default function CreateAll() {
     <div className="container mx-auto p-4">
 
 
-      <div className="flex flex-row gap-2"> 
+      <div className="flex flex-row gap-2 overflow-x-auto scrollbar-hide rounded-xl p-2 shadow-md justify-start"> 
         <button className={`btn btn-secondary ${createType === CreateType.POST ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.POST)}>Post</button>
         <button className={`btn btn-secondary ${createType === CreateType.TOKEN ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.TOKEN)}>Token</button>
 
         <button className={`btn btn-secondary ${createType === CreateType.ARTICLE ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.ARTICLE)}>Article</button>
         <button className={`btn btn-secondary ${createType === CreateType.BRAND ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.BRAND)}>Brand</button>
-
+        <button className={`btn btn-secondary ${createType === CreateType.DEBATE ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.DEBATE)}>Debate</button>
 
       </div>
 
@@ -100,6 +101,13 @@ export default function CreateAll() {
         <div>
           <h1>Brand</h1>
           <CreateBrandForm></CreateBrandForm>
+        </div>
+      )}
+
+      {createType === CreateType.DEBATE && (
+        <div>
+          <h1>Debate</h1>
+          <DebateCreateForm></DebateCreateForm>
         </div>
       )}
       
