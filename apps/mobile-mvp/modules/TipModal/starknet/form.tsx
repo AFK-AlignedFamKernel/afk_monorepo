@@ -6,10 +6,8 @@ import {View} from 'react-native';
 import {CallData, uint256} from 'starknet';
 
 import {Avatar, Button, Input, Modalize, Picker, Text} from '../../../components';
-import {ESCROW_ADDRESSES} from '../../../constants/contracts';
-import {CHAIN_ID} from '../../../constants/env';
-import {DEFAULT_TIMELOCK, Entrypoint} from '../../../constants/misc';
-import {TOKENS, TokenSymbol} from '../../../constants/tokens';
+import {ESCROW_ADDRESSES} from 'common';
+import {CHAIN_ID, DEFAULT_TIMELOCK, Entrypoint, TOKENS, TokenSymbol} from '@/constants';
 import {useStyles, useWaitConnection} from '../../../hooks';
 import {useTransactionModal} from '../../../hooks/modals';
 import {useDialog} from '../../../hooks/modals/useDialog';

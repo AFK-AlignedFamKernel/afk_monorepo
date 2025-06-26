@@ -5,11 +5,8 @@ import React, { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { CallData, uint256 } from 'starknet';
 
-import { Avatar, Button, Input, Modalize, Picker, Text } from '../../../components';
-import { ESCROW_ADDRESSES } from '../../../constants/contracts';
-import { CHAIN_ID } from '../../../constants/env';
-import { DEFAULT_TIMELOCK, Entrypoint } from '../../../constants/misc';
-import { TOKENS, TokenSymbol } from '../../../constants/tokens';
+import { Avatar, Button, Input, Modalize, Picker, Text } from '@/components';
+import { TokenSymbol } from '@/constants/tokens';
 import { useAtomiqLab, useStyles, useWaitConnection } from '../../../hooks';
 import { useToast, useTransactionModal } from '../../../hooks/modals';
 import { useDialog } from '../../../hooks/modals/useDialog';

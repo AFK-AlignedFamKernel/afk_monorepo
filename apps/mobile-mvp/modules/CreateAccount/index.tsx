@@ -11,6 +11,7 @@ import stylesheet from './styles';
 import { View, Text, TextInput, TouchableOpacity, Image } from 'react-native';
 import { useCashuContext } from '../../providers/CashuProvider';
 import { NDKUser, NDKUserProfile } from '@nostr-dev-kit/ndk';
+import React from 'react';
 
 interface ISignup {
   navigationProps?: MainStackNavigationProps | any;
