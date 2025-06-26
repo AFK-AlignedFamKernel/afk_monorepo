@@ -489,12 +489,13 @@ const Layout = ({ children }: LayoutProps) => {
       >
         {isLoading && <CryptoLoading />}
         <div
-        // className="content pb-20 md:pb-0"
+          className="content pb-20 md:pb-0"
         >
           {children}
+          <RightBarDesktop />
+
         </div>
       </main>
-      <RightBarDesktop />
 
       <MobileBottomBar />
 

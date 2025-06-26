@@ -80,6 +80,8 @@ export const StencilCreationTab = (props: any) => {
     formData.append('file', blobToUpload);
     // --- End robust image upload handling ---
 
+    
+
     const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/upload-stencil-img`, {
       method: 'POST',
       body: formData,
@@ -91,11 +93,12 @@ export const StencilCreationTab = (props: any) => {
     // const imgHash = hash.substr(2).padStart(64, "0");
     // const imgHash = urlHash;
     const ipfsHash = res?.result;
+    console.log("ipfsHash",ipfsHash)
 
     const imgHash = hash;
     // if (!account) return;
     try {
-      await addStencilCall(account, props.worldId, hash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition, ipfsHash);
+      await addStencilCall(account ?? props?.account, props.worldId, hash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition, ipfsHash);
       // await addStencilCall(account, props.worldId, urlHash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
     } catch (error) {
       console.error("Error submitting stencil:", error);

@@ -26,12 +26,15 @@ $feed-animation-speed: 0.2s;
 // Feed SCSS Styles
 .nostr-feed {
   &__container {
+    // justify-content: left;
     width: 100%;
     margin: 0 auto;
     // max-width: 1200px;
   }
 
   &__tags-container {
+    width: 100%;
+    margin: 0 auto;
     scrollbar-width: none; // Firefox
     -ms-overflow-style: none; // IE/Edge
 
@@ -336,7 +339,7 @@ $feed-animation-speed: 0.2s;
 .nostr-short-feed {
   &__container {
     position: relative;
-    width: 100%;
+    width: calc(100% - $sidebar-width);
     height: 100vh;
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
