@@ -7,13 +7,14 @@ import TableCreators from "@/components/ContentCreator/TableCreators";
 import { FeedTabs } from "@/components/Nostr/feed";
 import { logClickedEvent } from "@/lib/analytics";
 import PumpComponent from "../launchpad/PumpComponent";
+import CommunitiesList from "../Communities";
 
 export default function DiscoverComponent() {
 
   // const searchParams = useSearchParams()
   // const query = searchParams.get("query")
 
-  const [activeTab, setActiveTab] = useState<"brand" | "creator" | "topic" | "feed" | "launchpad">("feed");
+  const [activeTab, setActiveTab] = useState<"brand" | "creator" | "topic" | "feed" | "launchpad" | "communities" >("feed");
 
   return (
     <div className="flex flex-col gap-1">
@@ -26,6 +27,7 @@ export default function DiscoverComponent() {
             { key: "brand", label: "Brands" },
             { key: "creator", label: "Creators" },
             { key: "launchpad", label: "Tokens" },
+            { key: "communities", label: "Communities" },
             // { key: "topic", label: "Topics" },
           ].map(tab => (
             <button
@@ -86,6 +88,12 @@ export default function DiscoverComponent() {
       {activeTab === "launchpad" && (
         <div className="px-4">
           <PumpComponent />
+        </div>
+      )}
+
+      {activeTab === "communities" && (
+        <div className="px-4">
+          <CommunitiesList />
         </div>
       )}
 
