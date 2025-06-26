@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, View, Text } from 'react-native';
 import { useStyles, useTheme } from '../../hooks';
-import { ThemedStyleSheet } from 'src/styles';
-import MarkdownIt from 'markdown-it';
+import { ThemedStyleSheet } from '@/styles';
+// import MarkdownIt from 'markdown-it';
 import { MarkdownIt as MarkdownItNative } from "react-native-markdown-display";
 // import style manually
-import 'react-markdown-editor-lite/lib/index.css';
+// import 'react-markdown-editor-lite/lib/index.css';
 // import { MarkdownIt } from 'react-native-markdown-display';
 // import stylesheet from './styles';
 
@@ -39,15 +39,15 @@ const MarkdownViewer: React.FC<MarkdownViewerProps> = ({ content, isExpanded, to
   });
   const truncatedContent = !isExpanded && content.length > 200 ? `${content.slice(0, 200)}...` : content;
 
-  const markdownContent = MarkdownIt({
-    // html: false,
-    html: true,
-    linkify: true,
-    typographer: true
-  }).render(truncatedContent);
+  // const markdownContent = MarkdownIt({
+  //   // html: false,
+  //   html: true,
+  //   linkify: true,
+  //   typographer: true
+  // }).render(truncatedContent);
 
 
-  const markdownContent2 = MarkdownIt().render(content).replace(/<[^>]*>?/g, '');
+  // const markdownContent2 = MarkdownIt().render(content).replace(/<[^>]*>?/g, '');
 
   // console.log("content article: ", content)
   // console.log("markdownContent: ", markdownContent)

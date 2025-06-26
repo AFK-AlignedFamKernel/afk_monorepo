@@ -208,15 +208,18 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
         <div className="mt-2">
           <div
             // className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words"
-            className="dark:text-gray-200 whitespace-pre-wrap break-words"
+            className="dark:text-gray-200 whitespace-pre-wrap break-words  sm:max-w-[300px] lg:max-w-[500px]"
+            onClick={() => {
+              setIsExpanded(!isExpanded)
+            }}
           >
             {formatContent(displayContent)}
             {shouldTruncate && (
               <button
-                onClick={() => setIsExpanded(true)}
+                onClick={() => setIsExpanded(!isExpanded)}
                 className="text-blue-500 hover:text-blue-700 ml-1 text-sm"
               >
-                Show more
+                Show {isExpanded ? 'less' : 'more'}
               </button>
             )}
           </div>

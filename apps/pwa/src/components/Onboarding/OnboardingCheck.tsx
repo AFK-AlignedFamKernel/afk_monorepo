@@ -39,8 +39,11 @@ export default function OnboardingCheck({ isLoadingProp, isInitalizedProp, hasOn
       localStorage.setItem('hasOnboarded', 'true');
       setIsLoading(true);
       // window.location.href = '/onboarding';
-      // router.push('/onboarding');
-      showModal(<Onboarding />)
+      setTimeout(() => {
+        router.push('/onboarding');
+      // showModal(<Onboarding />)
+
+      }, 3000);
       setIsLoading(false);
     }
     setIsInitalized(true);
@@ -54,7 +57,9 @@ export default function OnboardingCheck({ isLoadingProp, isInitalizedProp, hasOn
   }, [isInitalized, user, isLoading]);
 
   if (!isInitalized || isLoading) {
-    return <div><CryptoLoading /></div>;
+    return <div>
+      {/* <p>Loading...</p> */}
+    </div>;
   }
 
   return (

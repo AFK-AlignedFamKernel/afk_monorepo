@@ -218,8 +218,8 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   return (
     <div
-      // className={`nostr-feed__content ${className}`}
-      className={`${className}`}
+      className={`nostr-feed__content ${className}`}
+      // className={`${className}`}
     >
 
 

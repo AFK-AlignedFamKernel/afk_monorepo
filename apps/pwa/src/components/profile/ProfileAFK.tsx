@@ -26,19 +26,9 @@ export default function ProfileAfk() {
 
       {activeTab === undefined && (
 
-        <div className="flex flex-col md:flex-row gap-8 overflow-x-auto">
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-8 overflow-x-auto">
 
-          <div className="bg-contrast-100 p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-semibold mb-4 italic">Rewards Center</h2>
-            <div className="space-y-4">
-              <button onClick={() => handleTabChange("rewards")} className="btn w-full flex items-center justify-between border-2 border-contrast-200 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Icon name="RewardsIcon" size={24} />
-                  <p className="font-semibold">Rewards</p>
-                </div>
-              </button>
-            </div>
-          </div>
+
 
           <div className="bg-contrast-100 p-6 rounded-lg shadow-lg text-left">
             <h2 className="text-xl font-semibold mb-4 italic">Decentralized Identities</h2>
@@ -100,6 +90,17 @@ export default function ProfileAfk() {
               <p className="text-lg font-medium mb-2">Wallet Connections</p>
               <p className="text-sm text-contrast-500">Link your crypto wallets to access web3 features and manage digital assets.</p>
             </div> */}
+            </div>
+          </div>
+          <div className="bg-contrast-100 p-6 rounded-lg shadow-lg">
+            <h2 className="text-xl font-semibold mb-4 italic">Rewards Center</h2>
+            <div className="space-y-4">
+              <button onClick={() => handleTabChange("rewards")} className="btn w-full flex items-center justify-between border-2 border-contrast-200 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Icon name="RewardsIcon" size={24} />
+                  <p className="font-semibold">Rewards</p>
+                </div>
+              </button>
             </div>
           </div>
           <div className="bg-contrast-100 p-6 rounded-lg shadow-lg text-left">
