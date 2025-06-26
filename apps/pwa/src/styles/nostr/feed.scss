@@ -340,7 +340,8 @@ $feed-animation-speed: 0.2s;
 .nostr-short-feed {
   &__container {
     position: relative;
-    width: calc(100% - $sidebar-width);
+    // width: calc(100% - $sidebar-width);
+    width: 100%;
     height: 100vh;
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
