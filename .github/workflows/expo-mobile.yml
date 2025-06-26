@@ -4,13 +4,13 @@ on:
   push:
     paths:
       - ".github/workflows/expo-mobile.yaml"
-      - "apps/mobile/**"
+      - "apps/mobile-mvp/**"
       - "package.json"
   pull_request:
     branches:
       - main
     paths:
-      - "apps/mobile/**"
+      - "apps/mobile-mvp/**"
 
 jobs:
   check-app:
@@ -18,7 +18,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ./apps/mobile
+        working-directory: ./apps/mobile-mvp
 
     steps:
       - name: Checkout Code
@@ -48,7 +48,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          if [ -f "apps/mobile/pnpm-lock.yaml" ]; then
+          if [ -f "apps/mobile-mvp/pnpm-lock.yaml" ]; then
             pnpm install --frozen-lockfile
           else
             pnpm install
