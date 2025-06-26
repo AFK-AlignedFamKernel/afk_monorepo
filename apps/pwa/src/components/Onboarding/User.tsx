@@ -75,9 +75,9 @@ export default function User() {
 
           </div>}
 
-          <div className='flex flex-row gap-4 mt-8'>
+          <div className='flex flex-row gap-4 mt-4'>
             <button onClick={handleBackStep}>Back</button>
-            <button onClick={handleNextStep}>Next</button>
+            <button className='border border-gray-300 px-4 py-2 rounded-md' onClick={handleNextStep}>Next</button>
           </div>
 
         </div>

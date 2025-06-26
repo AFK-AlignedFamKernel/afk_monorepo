@@ -8,6 +8,8 @@ import * as bip39 from 'bip39';
 import { useUIStore } from '@/store/uiStore';
 import { Icon } from '@/components/small/icon-component';
 import { logClickedEvent } from '@/lib/analytics';
+import NDK, { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
+import { AFK_RELAYS } from 'afk_nostr_sdk';
 
 export default function NostrCreateAccountComponent() {
     const [passkey, setPasskey] = useState(false);
@@ -27,6 +29,7 @@ export default function NostrCreateAccountComponent() {
         e.preventDefault();
 
         try {
+            await logClickedEvent('create_account', 'nostr', 'create_account', 1)
 
             const { privateKey, publicKey } = generateRandomKeypair()
 
@@ -67,17 +70,48 @@ export default function NostrCreateAccountComponent() {
             // Redirect to home page on success
             //   router.push('/');
 
-            editProfile.mutate({
-                username: username,
-            }, {
-                onSuccess: () => {
-                    showToast({
-                        message: 'Profile updated successfully',
-                        type: 'success',
-                    })
+
+        
+            try {
+                editProfile.mutate({
+                    username: username,
+                }, {
+                    onSuccess: () => {
+                        showToast({
+                            message: 'Profile updated successfully',
+                            type: 'success',
+                        })
+                    }
+                })
+            } catch (error) {
+                console.log('error', error)
+            }
+
+            try {
+                console.log('create nostr profile')
+
+                const ndk = new NDK({
+                    explicitRelayUrls: AFK_RELAYS,
+                    signer: new NDKPrivateKeySigner(privateKey),
+                })
+
+                await ndk.connect()
+                console.log('ndk', ndk)
+
+                const user = ndk.getUser({ pubkey: publicKey });
+                await user.fetchProfile();
+                // console.log('user.profile', user.profile);
+
+                if (!user.profile) {
+                    // throw new Error('Profile not found');
                 }
-            })
-            await logClickedEvent('create_account', 'nostr', 'create_account', 1)
+
+                user.profile = { ...user.profile, name: username, display_name: username };
+
+                user.publish();
+            } catch (error) {
+
+            }
 
 
         } catch (err) {

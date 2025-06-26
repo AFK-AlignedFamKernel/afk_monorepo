@@ -21,7 +21,11 @@ export default function Creator() {
       >
 
         {!user && !session &&
-          <Oauth />
+          <div>
+            <NostrCreateAccountComponent />
+            <p>Connect your to manage your creator profile</p>
+            <Oauth />
+          </div>
         }
 
         {user && session &&

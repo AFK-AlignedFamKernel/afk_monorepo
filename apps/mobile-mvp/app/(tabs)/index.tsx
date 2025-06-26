@@ -1,13 +1,13 @@
 import { Image } from 'expo-image';
 import { Platform, StyleSheet } from 'react-native';
 
-// import { CashuView } from '@/components/CashuWallet';
+import { CashuView } from '@/components/CashuWallet';
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React from 'react';
-import { FeedComponent } from '@/modules/Feed';
+// import { FeedComponent } from '@/modules/Feed';
 
 export default function HomeScreen() {
   return (
@@ -54,8 +54,8 @@ export default function HomeScreen() {
           <ThemedText type="defaultSemiBold">app-example</ThemedText>.
         </ThemedText>
       </ThemedView>
-      {/* <CashuView /> */}
-      <FeedComponent />
+      <CashuView />
+      {/* <FeedComponent /> */}
     </ParallaxScrollView>
   );
 }
