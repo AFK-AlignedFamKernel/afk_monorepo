@@ -28,7 +28,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
   }
 
   return (
-    <div className="p-4 shadow flex flex-col items-center dark:bg-contrast-100">
+    <div className="p-4 flex flex-col items-center">
       {creator.avatar_url ? (
         <img
           src={creator.avatar_url}
