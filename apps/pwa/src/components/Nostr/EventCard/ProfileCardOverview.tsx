@@ -95,9 +95,7 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-left mb-8 gap-4">
-
-
+          <div className="items-left mb-8 gap-4">
 
             {profile?.nip05 && (
               <div className="text-xs flex items-left">
