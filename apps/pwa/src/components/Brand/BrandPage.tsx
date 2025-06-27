@@ -62,12 +62,12 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
 
     return (
         <div
-            className="break-words px-2 sm:px-6 md:px-12 py-4 max-w-3xl mx-auto w-full"
+            className=""
         >
             {/* <button onClick={() => setIsInitialLoading(false)} className="mb-4"><Icon name="RefreshIcon" size={20} /></button> */}
 
             {brand && (
-                <div className="flex flex-col items-center gap-4 break-words whitespace-normal w-full">
+                <div className="items-center gap-4 break-words whitespace-normal w-full">
                     <div className="flex flex-row items-center gap-2 baseline items-baseline">
                         <h2 className="text-2xl font-bold text-center break-words w-full">{brand?.name} </h2>
                         {brand?.is_verified && <Icon name="CheckIcon" size={20} className="text-green-600" />}
@@ -107,7 +107,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
             </div>
 
 
-            <div className="shadow-md rounded-md p-4">
+            <div className="px-2">
                 {activeTab === "feed" && (
                     <div className="mt-8 w-full">
                         <h2 className="text-xl font-semibold mb-4">Feeds</h2>
@@ -115,7 +115,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                     </div>
                 )}
                 {leaderboards && activeTab === "leaderboard" &&
-                    <div className="mt-8 w-full">
+                    <div className="mt-8">
                         <h2 className="text-xl font-semibold mb-4">Leaderboard</h2>
 
                         <div className="flex flex-row gap-4 overflow-x-auto shadow-md rounded-md p-2 mb-4 w-full">
@@ -130,15 +130,15 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                         </div>
 
                         {leaderboard && (
-                            <div className="overflow-x-auto w-full">
-                                <h3 className="text-lg font-semibold mb-2">{leaderboard.platform}</h3>
+                            <div className="overflow-x-auto scrollbar-hide">
+                                <h3 className="font-semibold mb-2">{leaderboard.platform}</h3>
                                 <div className="flex flex-wrap gap-4 mb-2">
                                     <p className="rounded px-2 py-1 text-sm">Total Score: <span className="font-bold">{leaderboard.total_score}</span></p>
                                     <p className="rounded px-2 py-1 text-sm">Total Users: <span className="font-bold">{leaderboard.total_users}</span></p>
                                     <p className="rounded px-2 py-1 text-sm">Rank Position: <span className="font-bold">{leaderboard.rank_position}</span></p>
                                 </div>
-                                <div className="overflow-x-auto rounded shadow border border-gray-200">
-                                    <table className="min-w-[500px] w-full text-sm">
+                                <div className="overflow-x-auto rounded">
+                                    <table className="max-w-[500px] w-full text-sm">
                                         <thead className="sticky top-0 z-10 border-b border-gray-300">
                                             <tr>
                                                 <th className="px-4 py-2 text-left">Username</th>
