@@ -49,7 +49,7 @@ const AnalyticsCreatorConsumer: React.FC<AnalyticsCreatorConsumerProps> = ({ slu
 
 
   return (
-    <div className="shadow flex flex-col items-center dark:bg-contrast-100">
+    <div className="mx-0 sm:mx-auto shadow flex flex-col items-center bg-white/90 dark:bg-contrast-100 rounded-xl p-2 sm:p-6">
 
       {creator &&
         <>
@@ -67,7 +67,7 @@ const AnalyticsCreatorConsumer: React.FC<AnalyticsCreatorConsumerProps> = ({ slu
 
 
       {selectedAnalytics && (
-        <div className="w-full max-w-md">
+        <div className="w-full">
           <h4 className="font-bold text-lg mb-1">{selectedAnalytics?.platform}</h4>
           <div>
 

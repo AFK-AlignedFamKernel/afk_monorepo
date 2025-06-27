@@ -1,5 +1,5 @@
 "use client";
-import PageCreator from "@/components/profile/PageCreator";
+import PageCreator from "@/components/ContentCreator/PageCreator";
 import { useParams } from "next/navigation";
 
 export default function CreatorProfilePage() {

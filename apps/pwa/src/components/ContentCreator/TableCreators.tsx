@@ -13,7 +13,7 @@ import { IContentCreator } from '@/types/brand';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Icon } from '../small/icon-component';
-import PageCreator from '../profile/PageCreator';
+import PageCreator from './PageCreator';
 
 interface ITableCreatorsProps {
   isRedirect?: boolean;

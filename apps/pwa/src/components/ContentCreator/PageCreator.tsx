@@ -4,7 +4,7 @@ import { ContentCreator } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
 import { LaunchpadWrapperCard } from "../launchpad/LaunchpadWrapperCard";
-import AnalyticsCreatorConsumer from "./AnalyticsCreatorConsumer";
+import AnalyticsCreatorConsumer from "../profile/AnalyticsCreatorConsumer";
 
 const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
 
@@ -28,7 +28,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
   }
 
   return (
-    <div className="p-4 flex flex-col items-center">
+    <div className="flex flex-col items-center">
       {creator.avatar_url ? (
         <img
           src={creator.avatar_url}
@@ -42,24 +42,6 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
       )}
       <h4 className="font-bold text-lg mb-1">{creator.name}</h4>
       {creator.bio && <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">{creator.bio}</p>}
-      {/* {creator.social_links && (
-        <div className="flex gap-2 mt-2">
-          {Object.entries(creator.social_links).map(([platformIndex , platform]) => {
-            console.log("platform", platform)
-            console.log("url", platform.url)
-            return (
-              <div key={platform + platform.url}>
-                <p
-                  key={platform + platform.url}
-                  className="text-blue-500 hover:underline text-sm"
-                >
-                  {JSON.stringify(platform?.identity_data)}
-                </p>
-              </div>
-            )
-          })}
-        </div>
-      )} */}
 
       {creator.slug_name && (
         <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">{creator.slug_name}</p>
