@@ -61,7 +61,7 @@ export default function DebateCreateForm({ community_id, community_name }: Debat
             method: 'POST',
             body: JSON.stringify({ ...form, image_url: imageUrl, url_hash: urlHash }),
         })
-        console.log("res", res)
+        // console.log("res", res)
         if (res.message) {
             showToast({ message: 'Debate created', type: 'success', duration: 3000 })
         } else {

@@ -11,9 +11,7 @@ interface ITipNostrUser {
 export const TipNostrUser = ({ profile, pubkey }: ITipNostrUser) => {
 
   const [tipType, setTipType] = useState<'atomiq' | 'ln'>('atomiq');
-  
 
-  console.log("profile", profile);
   // const {data:profileUser} = useProfileUser({publicKey:pubkey});
   // console.log('profileUser', profileUser);
 
