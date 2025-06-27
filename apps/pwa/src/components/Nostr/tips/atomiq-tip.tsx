@@ -13,7 +13,7 @@ interface TipSuccessModalProps {
 }
 export type FormAtomiqProps = {
   event?: NDKEvent;
-  profile?:NDKUserProfile;
+  profile?: NDKUserProfile;
   show: (event: NDKEvent) => void;
   hide: () => void;
   showSuccess: (props: TipSuccessModalProps) => void;
@@ -25,6 +25,7 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
   hide: hideTipModal,
   showSuccess,
   hideSuccess,
+  profile: profileUser
 }: FormAtomiqProps) => {
   const [token, setToken] = useState<TokenSymbol>(TokenSymbol.STRK);
   const [amount, setAmount] = useState<string>('');
@@ -66,7 +67,7 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
       }
 
       showToast({ message: "Paying invoice in process", type: 'info' });
-      
+
       const res = await handlePayLnurl(profile?.lud16, Number(amount));
 
       if (res.success && res?.lightningSecret) {
@@ -89,7 +90,7 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
     }
   };
 
-  if(profile && !profile?.lud16) {
+  if (profile && !profile?.lud16) {
     return (
       <div className="w-full max-w-md mx-auto p-4">
         <div className="bg-white rounded-lg shadow-md p-4 mb-4">
@@ -109,15 +110,15 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
           {/* <Image height={48} src="/assets/afk-logo.png" /> */}
           <div>
             <h3 className="text-lg font-bold text-gray-900 truncate cursor-pointer"
-            
-            onClick={() => {
-              if(event?.pubkey) {
-                navigator.clipboard.writeText(event?.pubkey);
-                showToast({ message: "LUD16 copied to clipboard", type: 'success' });
-              }
-            }}
+
+              onClick={() => {
+                if (event?.pubkey) {
+                  navigator.clipboard.writeText(event?.pubkey);
+                  showToast({ message: "LUD16 copied to clipboard", type: 'success' });
+                }
+              }}
             >
-              {profile?.displayName ?? profile?.name ?? event?.pubkey?.slice(0, 6) + "..." + event?.pubkey?.slice(-4)}
+              {profile?.displayName ?? profile?.name ?? profileUser?.displayName ?? profileUser?.name ?? event?.pubkey?.slice(0, 6) + "..." + event?.pubkey?.slice(-4)}
             </h3>
             {profile?.nip05 && (
               <p className="text-sm text-gray-500">
@@ -125,16 +126,31 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
               </p>
             )}
 
-            {profile?.lud16 && (
+            {profile?.lud16 ? (
               <p className="text-sm text-gray-500 cursor-pointer"
-              onClick={() => {
-                if(profile?.lud16) {
-                  navigator.clipboard.writeText(profile?.lud16);
-                  showToast({ message: "LUD16 copied to clipboard", type: 'success' });
-                }
-              }}
+                onClick={() => {
+                  if (profile?.lud16) {
+                    navigator.clipboard.writeText(profile?.lud16);
+                    showToast({ message: "LUD16 copied to clipboard", type: 'success' });
+                  }
+                }}
               >
                 {profile?.lud16}
+              </p>
+            ): profileUser?.lud16 ? ( 
+              <p className="text-sm text-gray-500 cursor-pointer"
+                onClick={() => {
+                  if (profileUser?.lud16) {
+                    navigator.clipboard.writeText(profileUser?.lud16);
+                    showToast({ message: "LUD16 copied to clipboard", type: 'success' });
+                  }
+                }}
+              >
+                {profileUser?.lud16}
+              </p>
+            ) : (
+              <p className="text-sm text-gray-500">
+                No LUD16 found
               </p>
             )}
           </div>
@@ -176,6 +192,8 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
             {(profile?.nip05 && `@${profile.nip05}`) ??
               profile?.displayName ??
               profile?.name ??
+              profileUser?.displayName ??
+              profileUser?.name ??
               event?.pubkey}
           </span>
         </div>

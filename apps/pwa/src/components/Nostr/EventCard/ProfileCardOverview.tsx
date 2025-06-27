@@ -153,8 +153,8 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
           <button
             className='btn btn-sm btn-primary'
             onClick={() => {
-              if (profilePubkey) {
-                showModal(<TipNostrUser profile={profile} pubkey={profilePubkey} />);
+              if (profilePubkey && profile && profile?.lud16) {
+                showModal(<TipNostrUser profile={profile} pubkey={event?.pubkey || ''} />);
               }
               // router.push(`/nostr/profile/${profilePubkey}`)
             }}>
