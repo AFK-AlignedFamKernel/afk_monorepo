@@ -58,7 +58,7 @@ export default function CommentCard({ message, parent_id }: CommentCardProps) {
     }
 
     return (
-        <div className="border-b border-gray-200 pb-4 flex flex-col gap-4 items-left">
+        <div className="pb-4 flex flex-col gap-4 items-left">
             <div className="flex flex-row gap-3 items-center">
                 <div className="flex flex-row gap-3 items-center">
                     {message?.user?.profile_image_url

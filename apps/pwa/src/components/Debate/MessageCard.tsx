@@ -55,33 +55,34 @@ export default function MessageCard({ message }: MessageCardProps) {
     }
 
     return (
-        <div className="card card-bordered flex flex-col gap-4 items-left">
-
+        <div className="card card-bordered shadow-md rounded-xl p-4 bg-base-200 hover:bg-base-300 transition flex flex-col gap-4">
             <div className="flex flex-row gap-3 items-center">
-                <div className="flex flex-row gap-3 items-center">
-                    {message?.user?.profile_image_url
-                        ? <Image src={message?.user?.profile_image_url} alt={message?.user?.name} width={40} height={40}
-                            className="rounded-full bg-gray-200"
-                        />
-                        : <span className="text-xs text-gray-500">{message?.user?.name}</span>
-                    }
-                </div>
+                {message?.user?.profile_image_url ? (
+                    <Image src={message?.user?.profile_image_url} alt={message?.user?.name} width={40} height={40} className="rounded-full bg-gray-200" />
+                ) : (
+                    <span className="text-xs text-gray-500">{message?.user?.name}</span>
+                )}
                 <div className="flex flex-col">
                     <h2 className="font-semibold text-base">{message?.user?.name}</h2>
-                    <p className="">{message?.content}</p>
+                    <span className="text-xs text-gray-400">{/* message?.created_at */}</span>
+                    <p className="mt-1">{message?.content}</p>
                 </div>
-
             </div>
             <div className="flex flex-row gap-4 items-center">
                 <button className="flex flex-row gap-2 items-center" onClick={() => setIsOpenReply(!isOpenReply)}>
-                    {/* {isOpenReply ? 'Close' : 'Reply'} */}
                     <Icon name="CommentIcon" size={16} />
+                    <span className="text-xs">Reply</span>
                 </button>
-                <button className="flex flex-row gap-2 items-center" onClick={() => handleLike()}>
+                <button className="flex flex-row gap-2 items-center" onClick={handleLike}>
                     <Icon name="LikeIcon" size={16} strokeWidth={2} />
+                    <span className="text-xs">{message?.likes || 0}</span>
                 </button>
             </div>
-            {isOpenReply && <CommentContainer message={message} parent_id={message?.id} />}
+            {isOpenReply && (
+                <div className="ml-6 border-l-2 border-gray-300 pl-4">
+                    <CommentContainer message={message} parent_id={message?.id} />
+                </div>
+            )}
         </div>
     )
 }       

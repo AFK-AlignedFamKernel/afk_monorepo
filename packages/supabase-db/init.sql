@@ -945,6 +945,8 @@ CREATE TABLE IF NOT EXISTS messages (
     community_name TEXT,
     community_id UUID REFERENCES communities(id) ON DELETE CASCADE,
     text TEXT,
+    title TEXT,
+    user_metadata JSONB DEFAULT '{}',
     content TEXT NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     signature TEXT,
