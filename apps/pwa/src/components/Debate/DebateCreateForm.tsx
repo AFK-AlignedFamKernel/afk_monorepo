@@ -32,17 +32,22 @@ export default function DebateCreateForm() {
         setForm({ ...form, community_id: e.target.value })
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         console.log(form)
         if(!user && !session) {
             showToast({message: 'Please login to create a debate', type: 'error', duration: 3000})
             return;
         }
-        fetchWithAuth('/messages/create', {
+       const res = await fetchWithAuth('/messages/create', {
             method: 'POST',
             body: JSON.stringify(form),
         })
-
+        console.log("res", res)
+        if(res.message) {
+            showToast({message: 'Debate created', type: 'success', duration: 3000})
+        } else {
+            showToast({message: 'Failed to create debate', type: 'error', duration: 3000})
+        }
     }
 
     return (

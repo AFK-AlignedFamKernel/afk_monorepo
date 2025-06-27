@@ -28,7 +28,7 @@ const messageSchema = z.object({
 });
 
 export default async function messageRoutes(fastify: FastifyInstance) {
- 
+
 
   fastify.get('/messages', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -91,19 +91,21 @@ export default async function messageRoutes(fastify: FastifyInstance) {
       const res = messageSchema.safeParse(request.body);
       console.log("zod res", res?.error?.issues)
 
+      console.log("request.body", request.body)
 
       if (!res.success) {
         return reply.code(400).send({ error: 'Invalid request body' });
       }
-      const { group_id } = res.data;
-      const { data, error } = await supabaseAdmin.from('messages').select('*').eq('group_id', group_id).single();
+      // const { group_id } = res.data;
+      // const { data, error } = await supabaseAdmin.from('messages').select('*').single();
 
-      if (data) {
-        return reply.code(400).send({ error: 'Message already exists' });
-      }
-    
+      // if (data) {
+      //   return reply.code(400).send({ error: 'Message already exists' });
+      // }
+
+      console.log("res.data", res?.data)
       const { data: message, error: messageError } = await supabaseAdmin.from('messages').insert({
-        group_id: res.data.group_id ?? res?.data?.community_id ,
+        group_id: res.data.group_id ?? res?.data?.community_id,
         group_provider: res.data.group_provider ?? res?.data?.community_name ?? res?.data?.community_id ?? '',
         brand_id: res.data.brand_id,
         brand: res.data.brand ?? '',
@@ -137,7 +139,7 @@ export default async function messageRoutes(fastify: FastifyInstance) {
       console.log("error", error)
       return reply.code(500).send({ error: error.message });
     }
-  });  
+  });
 
 
   fastify.post('/messages/update', {
@@ -154,7 +156,7 @@ export default async function messageRoutes(fastify: FastifyInstance) {
       const res = messageSchema.safeParse(request.body);
 
       console.log("res", res)
-      console.log("res error", res?.error?.issues) 
+      console.log("res error", res?.error?.issues)
       if (!res.success) {
         return reply.code(400).send({ error: 'Invalid request body' });
       }
@@ -204,11 +206,123 @@ export default async function messageRoutes(fastify: FastifyInstance) {
         return reply.code(500).send({ error: updateError.message });
       }
 
-        return reply.code(200).send({ message: updatedMessage });
+      return reply.code(200).send({ message: updatedMessage });
     } catch (error) {
       console.log("error", error);
       return reply.code(500).send({ error: error.message });
     }
   });
 
+  fastify.post('/messages/create-reply', {
+    preHandler: [supabaseAuthMiddleware],
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      if (!request.user) {
+        return reply.status(401).send({ error: 'Unauthorized' });
+      }
+      const res = messageSchema.safeParse(request.body);
+      console.log("res", res)
+      console.log("res error", res?.error?.issues)
+      if (!res.success) {
+        return reply.code(400).send({ error: 'Invalid request body' });
+      }
+
+      if (!res.data.parent_id) {
+        return reply.code(400).send({ error: 'Parent ID is required' });
+      }
+
+      const { data: parentMessage, error: parentMessageError } = await supabaseAdmin.from('messages').select('*').eq('id', res.data.parent_id).single();
+
+      if (parentMessageError) {
+        return reply.code(500).send({ error: parentMessageError.message });
+      }
+
+      if (!parentMessage) {
+        return reply.code(400).send({ error: 'Parent message not found' });
+      }
+
+      const { data: message, error: messageError } = await supabaseAdmin.from('messages').insert({
+        group_id: res.data.group_id ?? res?.data?.community_id,
+        group_provider: res.data.group_provider ?? res?.data?.community_name ?? res?.data?.community_id ?? '',
+        brand_id: res.data.brand_id,
+        brand: res.data.brand ?? '',
+        community_name: res.data.community_name,
+        community_id: res.data.community_id,
+        text: res?.data?.content ?? res?.data?.text ?? '',
+        content: res.data.content ?? res?.data?.text ?? '',
+        timestamp: res.data.timestamp,
+        signature: res.data.signature,
+        pubkey: res.data.pubkey,
+        internal: res.data.internal,
+        likes: res.data.likes,
+        tweeted: res.data.tweeted,
+        parent_id: res.data.parent_id,
+        reply_count: res.data.reply_count,
+        owner_id: res.data.owner_id,
+        image_url: res.data.image_url,
+        video_url: res.data.video_url,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }).select('*').single();
+
+      if (messageError) {
+        return reply.code(500).send({ error: messageError.message });
+      }
+
+      return reply.code(200).send({ message: message });
+    } catch (error) {
+      console.log("error", error);
+      return reply.code(500).send({ error: error.message });
+    }
+  });
+
+  fastify.get('/messages/get-replies', async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { parent_id } = request.query as any;
+
+      console.log("parent_id", parent_id)
+      if (!parent_id) {
+        return reply.code(400).send({ error: 'Parent ID is required' });
+      }
+
+      const { data, error } = await supabaseAdmin.from('messages').select('*').eq('parent_id', parent_id);
+      if (error) {
+        return reply.code(500).send({ error: error.message });
+      }
+      return reply.code(200).send({ messages: data });
+    } catch (error) {
+      console.log("error", error);
+      return reply.code(500).send({ error: error.message });
+    }
+  });
+
+  fastify.post('/messages/like', {
+    preHandler: [supabaseAuthMiddleware],
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const { parent_id, } = request.body as any;
+      if (!parent_id) {
+        return reply.code(400).send({ error: 'Parent ID is required' });
+      }
+
+      const { data: message, error: messageError } = await supabaseAdmin.from('messages').select('*').eq('id', parent_id).single();
+      if (messageError) {
+        return reply.code(500).send({ error: messageError.message });
+      }
+
+      const { data, error } = await supabaseAdmin.from('messages').update({
+        likes: message.likes + 1
+      }).eq('id', parent_id).select('*').single();
+
+      console.log("like message", data)
+      console.log("error", error)
+      if (error) {
+        return reply.code(500).send({ error: error.message });
+      }
+      return reply.code(200).send({ message: data });
+    } catch (error) {
+      console.log("error", error);
+      return reply.code(500).send({ error: error.message });
+    }
+  });
 }

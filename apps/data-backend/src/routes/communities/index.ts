@@ -42,11 +42,13 @@ const communitySchema = z.object({
 
 export default async function communityRoutes(fastify: FastifyInstance) {
 
-  fastify.get('/community/view-profile', async (request: FastifyRequest, reply: FastifyReply) => {
+  fastify.get('/community/view', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       const { slug_name } = request.query as any;
 
-      if(!slug_name) {
+      console.log("slug_name", slug_name)
+
+      if (!slug_name) {
         return reply.code(400).send({ error: 'Slug name is required' });
       }
 
@@ -54,29 +56,33 @@ export default async function communityRoutes(fastify: FastifyInstance) {
         .from('communities')
         .select('*')
         .eq('slug_name', slug_name)
-        .single();  
+        .single();
+
+      console.log("community data", data)
+
+      console.log("community error", error)
 
       if (error) {
         return reply.code(500).send({ error: error.message });
       }
 
-      const { data: leaderboards, error: leaderboardError } = await supabaseAdmin
-        .from('leaderboard_stats')
+      const { data: messages, error: messagesError } = await supabaseAdmin
+        .from('messages')
         .select('*')
-        .eq('brand_id', data?.id)
+        .eq('community_id', data?.id)
 
-      console.log("leaderboards", leaderboards);
-
-      if (leaderboardError) {
-        return reply.code(500).send({ error: leaderboardError.message });
-      }
-
-      return reply.code(200).send({ brand: data, leaderboards: leaderboards });  
+      console.log("messages data", messages)
+   
+      return reply.code(200).send({
+        community: data,
+        messages: messages,
+        // leaderboards: leaderboards 
+      });
     } catch (error) {
       console.log("error", error)
       return reply.code(500).send({ error: error.message });
     }
-  }); 
+  });
 
   fastify.get('/communities', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
@@ -149,7 +155,7 @@ export default async function communityRoutes(fastify: FastifyInstance) {
       if (data) {
         return reply.code(400).send({ error: 'Community already exists' });
       }
-    
+
       const { data: community, error: communityError } = await supabaseAdmin.from('communities').insert({
         name: res.data.name,
         slug_name: res.data.slug_name,
@@ -194,7 +200,7 @@ export default async function communityRoutes(fastify: FastifyInstance) {
       console.log("error", error)
       return reply.code(500).send({ error: error.message });
     }
-  });  
+  });
 
 
   fastify.post('/community/update', {
@@ -211,7 +217,7 @@ export default async function communityRoutes(fastify: FastifyInstance) {
       const res = communitySchema.safeParse(request.body);
 
       console.log("res", res)
-      console.log("res error", res?.error?.issues) 
+      console.log("res error", res?.error?.issues)
       if (!res.success) {
         return reply.code(400).send({ error: 'Invalid request body' });
       }

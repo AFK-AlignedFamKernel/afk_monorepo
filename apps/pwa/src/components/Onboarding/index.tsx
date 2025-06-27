@@ -101,7 +101,10 @@ export default function Onboarding() {
                 <div className='mt-8 flex justify-center items-center w-full'>
                     <button
                         className='text-sm italic hover:text-primary transition underline underline-offset-2'
-                        onClick={() => { router.push('/discover'); }}>
+                        onClick={() => {
+                            logClickedEvent('onboarding_skip', 'skip', 'onboarding', 1);    
+                            router.push('/discover');
+                        }}>
                         Skip
                     </button>
                 </div>
