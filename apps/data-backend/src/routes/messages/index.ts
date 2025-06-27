@@ -269,6 +269,15 @@ export default async function messageRoutes(fastify: FastifyInstance) {
         return reply.code(500).send({ error: messageError.message });
       }
 
+      try {
+        console.log("update reply count")
+        const { data: message, error: messageError } = await supabaseAdmin.from('messages').update({
+          reply_count: parentMessage.reply_count + 1
+        }).eq('id', parentMessage.id).select('*').single();
+      } catch (error) {
+        console.log("error", error);
+      }
+
       return reply.code(200).send({ message: message });
     } catch (error) {
       console.log("error", error);

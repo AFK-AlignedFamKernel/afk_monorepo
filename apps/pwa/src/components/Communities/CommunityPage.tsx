@@ -1,8 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCommunitiesStore } from "@/store/communities";
 import MessageCard from "../Debate/MessageCard";
+import { Icon } from "../small/icon-component";
 
-export default function CommunityPage({ communityId }: { communityId: string }) {
+interface ICommunityPageProps {
+  communityId?: string;
+  communityName?: string;
+  community?: any;
+  isViewCommunity?: boolean;
+}
+
+export default function CommunityPage({ communityId, communityName }: ICommunityPageProps) {
   const { community, setCommunity } = useCommunitiesStore();
   const { data, isLoading, error } = useQuery({
     queryKey: ["community", communityId],
@@ -22,6 +30,7 @@ export default function CommunityPage({ communityId }: { communityId: string }) 
 
   return (
     <div className="flex flex-col gap-4 max-w-2xl mx-auto full-width full-height">
+      
       <div className="h-[80vh] overflow-y-auto flex flex-col gap-3">
         {data?.messages?.map((message: any, index: number) => (
           <div key={index} className="flex flex-col gap-4"  >

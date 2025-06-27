@@ -23,24 +23,7 @@ export default function MessageCard({ message }: MessageCardProps) {
     })
 
     const [isOpenReply, setIsOpenReply] = useState(false);
-    const handleSubmit = async () => {
-        console.log(form)
-        if (!user && !session) {
-            showToast({ message: 'Please login to create a debate', type: 'error', duration: 3000 })
-            return;
-        }
-        const res = await fetchWithAuth('/messages/create', {
-            method: 'POST',
-            body: JSON.stringify(form),
-        })
-        console.log("res", res)
-        if (res.message) {
-            showToast({ message: 'Debate created', type: 'success', duration: 3000 })
-        } else {
-            showToast({ message: 'Failed to create debate', type: 'error', duration: 3000 })
-        }
-    }
-
+   
     const handleLike = async () => {
         console.log("like")
         const res = await fetchWithAuth(`/messages/like`, {
@@ -76,7 +59,7 @@ export default function MessageCard({ message }: MessageCardProps) {
             <div className="flex flex-row gap-4 items-center">
                 <button className="flex flex-row gap-2 items-center" onClick={() => setIsOpenReply(!isOpenReply)}>
                     <Icon name="CommentIcon" size={16} />
-                    <span className="text-xs">Reply</span>
+                    <span className="text-xs">Reply {message?.reply_count || 0}</span>
                 </button>
                 <button className="flex flex-row gap-2 items-center" onClick={handleLike}>
                     <Icon name="LikeIcon" size={16} strokeWidth={2} />

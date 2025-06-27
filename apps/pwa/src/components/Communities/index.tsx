@@ -7,10 +7,14 @@ import { ICommunity } from "@/types";
 import { useEffect, useState } from "react";
 import CommunityPage from "./CommunityPage";
 import { Icon } from "../small/icon-component";
+import { useUIStore } from "@/store/uiStore";
+import DebateCreateForm from "../Debate/DebateCreateForm";
 
 export default function CommunitiesList() {
   const { communities, setCommunities, isInitialLoad, setIsInitialLoad } = useCommunitiesStore();
   // const router = useRouter();
+
+  const { showModal, hideModal } = useUIStore();
   const [selectedCommunity, setSelectedCommunity] = useState<ICommunity | null>(null);
   const [selectedCommunityId, setSelectedCommunityId] = useState<string | null>(null);
   const fetchCommunities = async () => {
@@ -80,6 +84,16 @@ export default function CommunitiesList() {
                 className="rounded-full bg-gray-200"
               />
             </div>
+            <div className="flex flex-col">
+              <p className="font-semibold text-sm italic text-base text-gray-500">{selectedCommunity.name}</p>
+            </div>
+            <button
+              className="btn btn-primary"
+              onClick={() => showModal(<DebateCreateForm community_id={selectedCommunity?.id}
+                community_name={selectedCommunity?.slug_name}
+              ></DebateCreateForm>)}>
+              Create
+            </button>
           </div>
           <h2 className="font-semibold text-base">{selectedCommunity.name}</h2>
           <p className="">{selectedCommunity.description}</p>

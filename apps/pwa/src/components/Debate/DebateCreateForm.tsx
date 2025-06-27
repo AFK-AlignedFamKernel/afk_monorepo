@@ -6,7 +6,12 @@ import { useState } from "react";
 import { Oauth } from "../profile/Oauth";
 import { useFileUpload } from "@/hooks/useFileUpload";
 
-export default function DebateCreateForm() {
+interface DebateCreateFormProps {
+    community_id?: string;
+    community_name?: string;
+}
+
+export default function DebateCreateForm({ community_id, community_name }: DebateCreateFormProps) {
     const { user, session } = useAppStore();
     const { showModal, hideModal, showToast } = useUIStore();
     const { communities } = useCommunitiesStore();
@@ -15,7 +20,7 @@ export default function DebateCreateForm() {
         description: '',
         image: '',
         tags: [],
-        community_id: '',
+        community_id: community_id || '',
         content: '',
     })
     const [image, setImage] = useState<File | null>(null);
@@ -86,7 +91,9 @@ export default function DebateCreateForm() {
                 className="input input-bordered w-full max-w-xs my-4"
             />
             {image && <img src={URL.createObjectURL(image)} alt="Image" className="w-full max-w-xs my-4" />}
-            <button onClick={handleSubmit}>Create debate</button>
+            <button
+            className="btn btn-primary"
+            onClick={handleSubmit}>Create debate</button>
 
             <p className="text-sm text-gray-500">
                 This will be a debate in the community.
