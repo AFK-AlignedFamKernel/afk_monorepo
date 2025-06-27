@@ -15,6 +15,7 @@ interface MessageCardProps {
 export default function MessageCard({ message }: MessageCardProps) {
    
     const { user, session } = useAppStore();
+    const [isLiked, setIsLiked] = useState(false);
     const { showModal, hideModal, showToast } = useUIStore();
     const { communities } = useCommunitiesStore();
     const [form, setForm] = useState({
@@ -42,7 +43,7 @@ export default function MessageCard({ message }: MessageCardProps) {
 
     const handleLike = async () => {
         console.log("like")
-        const res = await fetchWithAuth(`${process.env.NEXT_PUBLIC_BACKEND_URL}/messages/like`, {
+        const res = await fetchWithAuth(`/messages/like`, {
             method: 'POST',
             body: JSON.stringify({parent_id: message?.id}),
         })
@@ -63,11 +64,15 @@ export default function MessageCard({ message }: MessageCardProps) {
                     <span className="text-xs text-gray-500">{message?.user?.name}</span>
                 )}
                 <div className="flex flex-col">
-                    <h2 className="font-semibold text-base">{message?.user?.name}</h2>
-                    <span className="text-xs text-gray-400">{/* message?.created_at */}</span>
+                    <span className="text-xs text-gray-400">{message?.created_at}</span>
                     <p className="mt-1">{message?.content}</p>
                 </div>
             </div>
+            <div className="flex flex-row gap-4 items-center">
+                {message?.image_url && (
+                    <Image src={message?.image_url} alt="Image" width={100} height={100} className="rounded-md bg-gray-200" />
+                )}
+            </div>  
             <div className="flex flex-row gap-4 items-center">
                 <button className="flex flex-row gap-2 items-center" onClick={() => setIsOpenReply(!isOpenReply)}>
                     <Icon name="CommentIcon" size={16} />

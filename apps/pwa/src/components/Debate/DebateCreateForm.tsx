@@ -4,10 +4,11 @@ import { useCommunitiesStore } from "@/store/communities";
 import { useUIStore } from "@/store/uiStore";
 import { useState } from "react";
 import { Oauth } from "../profile/Oauth";
+import { useFileUpload } from "@/hooks/useFileUpload";
 
 export default function DebateCreateForm() {
-    const {user, session} = useAppStore();
-    const {showModal, hideModal, showToast} = useUIStore();
+    const { user, session } = useAppStore();
+    const { showModal, hideModal, showToast } = useUIStore();
     const { communities } = useCommunitiesStore();
     const [form, setForm] = useState({
         title: '',
@@ -18,6 +19,8 @@ export default function DebateCreateForm() {
         content: '',
     })
     const [image, setImage] = useState<File | null>(null);
+    const fileUpload = useFileUpload();
+
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setImage(e.target.files?.[0] || null)
@@ -34,19 +37,30 @@ export default function DebateCreateForm() {
 
     const handleSubmit = async () => {
         console.log(form)
-        if(!user && !session) {
-            showToast({message: 'Please login to create a debate', type: 'error', duration: 3000})
+        if (!user && !session) {
+            showToast({ message: 'Please login to create a debate', type: 'error', duration: 3000 })
             return;
         }
-       const res = await fetchWithAuth('/messages/create', {
+
+        if (form.content.length < 10) {
+            showToast({ message: 'Content must be at least 10 characters', type: 'error', duration: 3000 })
+            return;
+        }
+
+
+        let imageUrl = '';
+        let urlHash = '';
+
+
+        const res = await fetchWithAuth('/messages/create', {
             method: 'POST',
-            body: JSON.stringify(form),
+            body: JSON.stringify({ ...form, image_url: imageUrl, url_hash: urlHash }),
         })
         console.log("res", res)
-        if(res.message) {
-            showToast({message: 'Debate created', type: 'success', duration: 3000})
+        if (res.message) {
+            showToast({ message: 'Debate created', type: 'success', duration: 3000 })
         } else {
-            showToast({message: 'Failed to create debate', type: 'error', duration: 3000})
+            showToast({ message: 'Failed to create debate', type: 'error', duration: 3000 })
         }
     }
 
@@ -65,9 +79,9 @@ export default function DebateCreateForm() {
             <textarea
                 name="content"
                 placeholder="Content"
-                className="input input-bordered w-full my-4"
+                className="input input-bordered w-full my-4 bg-base-200 text-gray-500"
                 value={form.content} onChange={handleChange} />
-     
+
             <input type="file" name="image" onChange={handleFileChange}
                 className="input input-bordered w-full max-w-xs my-4"
             />
