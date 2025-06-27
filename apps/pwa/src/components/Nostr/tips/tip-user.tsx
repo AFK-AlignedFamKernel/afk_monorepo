@@ -11,9 +11,9 @@ interface ITipNostrUser {
 export const TipNostrUser = ({ profile, pubkey }: ITipNostrUser) => {
 
   const [tipType, setTipType] = useState<'atomiq' | 'ln'>('atomiq');
-  
 
-  const {data:profileUser} = useProfileUser({publicKey:pubkey});
+  // const {data:profileUser} = useProfileUser({publicKey:pubkey});
+  // console.log('profileUser', profileUser);
 
   const {data:profileNotes} = useSearch({authors:[pubkey], kinds:[0], limit:5});
   const [showTipModal, setShowTipModal] = useState(false);
@@ -40,14 +40,14 @@ export const TipNostrUser = ({ profile, pubkey }: ITipNostrUser) => {
     setShowSuccessModal(false);
   };
 
-  if (!selectedEvent) return (<>
-  </>);
+  if (!selectedEvent && !profile ) return (<p>No event selected</p>);
 
   return (
     <>
       {tipType === 'atomiq' ? (
         <FormTipAtomiq
-          event={selectedEvent}
+          event={selectedEvent  }
+          profile={profile}
           show={showTip}
           hide={hideTip}
           showSuccess={showSuccess}

@@ -95,9 +95,7 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
             </div>
           </div>
 
-          <div className="flex items-left mb-8 gap-4">
-
-
+          <div className="items-left mb-8 gap-4">
 
             {profile?.nip05 && (
               <div className="text-xs flex items-left">
@@ -155,8 +153,8 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
           <button
             className='btn btn-sm btn-primary'
             onClick={() => {
-              if (profilePubkey) {
-                showModal(<TipNostrUser profile={profile} pubkey={profilePubkey} />);
+              if (profilePubkey && profile && profile?.lud16) {
+                showModal(<TipNostrUser profile={profile} pubkey={event?.pubkey || ''} />);
               }
               // router.push(`/nostr/profile/${profilePubkey}`)
             }}>

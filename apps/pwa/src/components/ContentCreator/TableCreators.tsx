@@ -13,8 +13,12 @@ import { IContentCreator } from '@/types/brand';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Icon } from '../small/icon-component';
+import PageCreator from './PageCreator';
 
-export const TableCreators: React.FC = () => {
+interface ITableCreatorsProps {
+  isRedirect?: boolean;
+}
+export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = false }) => {
   const { user, session } = useAppStore();
   const { showToast } = useUIStore();
   const [platform, setPlatform] = useState<Provider>();
@@ -22,7 +26,7 @@ export const TableCreators: React.FC = () => {
   const [proofUrl, setProofUrl] = useState('');
   const [status, setStatus] = useState<'idle' | 'verifying' | 'verified' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
-
+  const [selectedCreator, setSelectedCreator] = useState<any>(null);
 
   const { contentCreators: contentCreatorsStore, setContentCreators: setContentCreatorsStore } = useCreatorsStore()
   const [creators, setCreators] = useState<IContentCreator[]>(contentCreatorsStore || []);
@@ -116,96 +120,116 @@ export const TableCreators: React.FC = () => {
         </div>
       )}
 
-      <table className="min-w-full text-sm">
+      {!selectedCreator && (
+        <table className="min-w-full text-sm">
 
-        <thead>
-          <tr className="bg-muted">
-            <th className="px-4 py-2 text-left font-semibold">Creator</th>
-            <th className="px-4 py-2 text-left font-semibold">Socials</th>
-          </tr>
-        </thead>
+          <thead>
+            <tr className="bg-muted">
+              <th className="px-4 py-2 text-left font-semibold">Creator</th>
+              <th className="px-4 py-2 text-left font-semibold">Socials</th>
+            </tr>
+          </thead>
 
-        <tbody>
+          <tbody>
 
-          {creators && creators?.length > 0 && creators
-            .map((creator: IContentCreator | any, index: number) => (
-              <tr
-                key={`${creator.id}-${index}`}
-                className={
-                  `transition hover:bg-muted/60 ${index % 2 === 0 ? 'bg-muted/40' : 'bg-transparent'}`
-                }
-              >
-                <td className="px-4 py-3 flex items-center gap-3 min-w-[180px]">
-                  <div className="flex items-center gap-2">
-                    <Image
-                      src={creator?.avatar_url || `/assets/icons/${creator.slug_name}.png`}
-                      alt={creator.name}
-                      width={32}
-                      height={32}
-                      className="w-8 h-8 rounded-full object-cover border shadow"
-                      onError={(e) => { (e.target as HTMLImageElement).src = '/assets/icons/default.png'; }}
-                    />
-                    <span className="font-medium">{creator.name}</span>
-                  </div>
-                </td>
-
-                <td>
-                  {creator.identities && (
-                    <div className="flex gap-2 mt-2">
-                      {Object.entries(creator.identities).map(([platformIndex, platform]: [string, any]) => {
-
-                        if (platform && typeof platform === 'object' && 'provider' in platform && platform.provider === "twitter") {
-                          return (
-                            <div key={platformIndex}>
-                              {/* <p
-                                key={platformIndex}
-                                className="text-blue-500 hover:underline text-sm"
-                              >
-                                {platform?.name}
-                              </p> */}
-                              <Link href={`https://x.com/${platform?.identity_data?.user_name ?? platform?.identity_data?.name}`} target="_blank" rel="noopener noreferrer">
-                                <Image src="/assets/icons/twitter.svg" alt="Twitter" width={20} height={20} className="hover:opacity-80 bg-gray-500 rounded-full p-1" />
-                              </Link>
-                            </div>
-                          )
-                        }
-                        // return (
-                        //   <div key={platformIndex}>
-                        //     <p
-                        //       key={platformIndex}
-                        //       className="text-blue-500 hover:underline text-sm"
-                        //     >
-                        //     </p>
-                        //   </div>
-                        // )
-                      })}
+            {creators && creators?.length > 0 && creators
+              .map((creator: IContentCreator | any, index: number) => (
+                <tr
+                  key={`${creator.id}-${index}`}
+                  className={
+                    `transition hover:bg-muted/60 ${index % 2 === 0 ? 'bg-muted/40' : 'bg-transparent'}`
+                  }
+                  onClick={() => {
+                    if (!isRedirect) {
+                      setSelectedCreator(creator)
+                    } else {
+                      // router.push(`/content-creator/profile/${creator.slug_name}`)
+                    }
+                  }}
+                >
+                  <td className="px-4 py-3 flex items-center gap-3 min-w-[180px]">
+                    <div className="flex items-center gap-2">
+                      <Image
+                        src={creator?.avatar_url || `/assets/icons/${creator.slug_name}.png`}
+                        alt={creator.name}
+                        width={32}
+                        height={32}
+                        className="w-8 h-8 rounded-full object-cover border shadow"
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/assets/icons/default.png'; }}
+                      />
+                      <span className="font-medium">{creator.name}</span>
                     </div>
-                  )}
-                </td>
-                <td>
-                  <Link href={`/content-creator/profile/${creator.slug_name}`}>
-                    View
-                  </Link>
-                </td>
-                {/* <td className="px-4 py-3 min-w-[120px]">
-                  {creator?.twitter_handle ? (
-                    <a
-                      href={`https://x.com/${creator.twitter_handle.replace('@', '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                    >
-                      {creator.twitter_handle}
-                    </a>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
-                </td> */}
-              </tr>
-            ))}
+                  </td>
 
-        </tbody>
-      </table>
+                  <td>
+                    {creator.identities && (
+                      <div className="flex gap-2 mt-2">
+                        {Object.entries(creator.identities).map(([platformIndex, platform]: [string, any]) => {
+
+                          if (platform && typeof platform === 'object' && 'provider' in platform && platform.provider === "twitter") {
+                            return (
+                              <div key={platformIndex}>
+                                {/* <p
+                                    key={platformIndex}
+                                    className="text-blue-500 hover:underline text-sm"
+                                  >
+                                    {platform?.name}
+                                  </p> */}
+                                <Link href={`https://x.com/${platform?.identity_data?.user_name ?? platform?.identity_data?.name}`} target="_blank" rel="noopener noreferrer">
+                                  <Image src="/assets/icons/twitter.svg" alt="Twitter" width={20} height={20} className="hover:opacity-80 bg-gray-500 rounded-full p-1" />
+                                </Link>
+                              </div>
+                            )
+                          }
+                          // return (
+                          //   <div key={platformIndex}>
+                          //     <p
+                          //       key={platformIndex}
+                          //       className="text-blue-500 hover:underline text-sm"
+                          //     >
+                          //     </p>
+                          //   </div>
+                          // )
+                        })}
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <Link href={`/content-creator/profile/${creator.slug_name}`}>
+                      View
+                    </Link>
+                  </td>
+                  {/* <td className="px-4 py-3 min-w-[120px]">
+                      {creator?.twitter_handle ? (
+                        <a
+                          href={`https://x.com/${creator.twitter_handle.replace('@', '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          {creator.twitter_handle}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td> */}
+                </tr>
+              ))}
+
+          </tbody>
+        </table>
+      )}
+
+
+
+      {selectedCreator && selectedCreator.slug_name && (
+        <div className="">
+          <div >
+            <Icon name="BackIcon" size={20} onClick={() => setSelectedCreator(null)} />
+          </div>
+          <PageCreator slug={selectedCreator.slug_name} />
+        </div>
+      )}
 
 
     </div>

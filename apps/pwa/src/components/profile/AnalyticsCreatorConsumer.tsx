@@ -49,7 +49,7 @@ const AnalyticsCreatorConsumer: React.FC<AnalyticsCreatorConsumerProps> = ({ slu
 
 
   return (
-    <div className="shadow flex flex-col items-center dark:bg-contrast-100">
+    <div className="w-full sm:max-w-md mx-0 sm:mx-auto shadow flex flex-col items-center bg-white/90 dark:bg-contrast-100 rounded-xl p-2 sm:p-6 overflow-x-auto scrollbar-hide">
 
       {creator &&
         <>
@@ -67,31 +67,22 @@ const AnalyticsCreatorConsumer: React.FC<AnalyticsCreatorConsumerProps> = ({ slu
 
 
       {selectedAnalytics && (
-        <div className="w-full max-w-md">
+        <>
           <h4 className="font-bold text-lg mb-1">{selectedAnalytics?.platform}</h4>
-          <div>
 
-            {/* {analytic.llm_process_data && (
-              <div>
-                <p>{JSON.stringify(analytic.llm_process_data)}</p>
 
-              </div>
-            )} */}
+          {selectedAnalytics?.llm_classification && (
+            <div className="w-full bg-contrast-100 p-4 rounded-lg shadow overflow-x-auto scrollbar-hide">
+                {Object.entries(selectedAnalytics?.llm_classification).map(([key, value], index) => (
+                  <div key={index} className="flex flex-row gap-2">
+                    <span className="font-semibold">{key}:</span>
+                    <span>{String(value)}</span>
+                  </div>
+                ))}
+            </div>
+          )}
 
-            {selectedAnalytics?.llm_classification && (
-              <div className="bg-contrast-100 p-4 rounded-lg shadow overflow-x-auto scrollbar-hide">
-                <div className="flex flex-col gap-1">
-                  {Object.entries(selectedAnalytics?.llm_classification).map(([key, value], index) => (
-                    <div key={index} className="flex flex-row gap-2">
-                      <span className="font-semibold">{key}:</span>
-                      <span>{String(value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* {selectedAnalytics?.recommendations && (
+          {/* {selectedAnalytics?.recommendations && (
                 <div className="bg-contrast-100 p-4 rounded-lg shadow overflow-x-auto scrollbar-hide">
                   <p className="text-sm break-words whitespace-pre-wrap">{JSON.stringify(selectedAnalytics?.recommendations, null, 2)}</p>
                 </div>
@@ -116,11 +107,7 @@ const AnalyticsCreatorConsumer: React.FC<AnalyticsCreatorConsumerProps> = ({ slu
                 </div>
               )}
                */}
-
-
-
-          </div>
-        </div>
+        </>
       )}
       {/* 
       {analytics?.map((analytic: any, index: number) => {

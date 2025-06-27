@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import { SliderImages } from '@/components/small/slider-image';
 import Image from 'next/image';
 import { TipNostr } from '../tips';
-import { ContentWithClickableHashtags } from './ClickableHashtags';
+import ProfileCardOverview from './ProfileCardOverview';
 
 export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   const { event } = props;
@@ -51,7 +51,8 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
     }
   }, [content]);
 
-  const { data: profile } = useProfile({ publicKey: pubkeyReposted });
+  const { data: profileRepost } = useProfile({ publicKey: pubkeyReposted });
+  const { data: profile } = useProfile({ publicKey: event?.pubkey });
 
   const { showToast, showModal } = useUIStore();
   const repostMutation = useRepost({ event });
@@ -209,8 +210,22 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
         reply && reply?.length > 0 &&
         (
           <div
-            style={{ display: 'flex', alignItems: 'center', gap: 4 }}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
+            onClick={() => {
+              showModal(<ProfileCardOverview event={event} profile={profile || undefined} profilePubkey={event?.pubkey || ''} isLinkToProfile={true} />)
+            }}
           >
+            {profile && (
+              <div className='flex items-center gap-2'>
+                {profile?.picture && <Image
+                  className='rounded-full'
+                  src={profile?.picture} alt={profile?.name || ''}
+                  width={24}
+                  height={24} />}
+                <p className="text-sm text-contrast-500">{profile?.name}</p>
+                <p className="text-sm text-contrast-500">{profile?.display_name}</p>
+              </div>
+            )}
             <button onClick={handleToReplyView}>
               <p className="text-gray-500 dark:text-gray-400 text-sm"
               >
@@ -229,14 +244,22 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
           </div>
         ))}
 
-      <div>
+      <div className='shadow-lg rounded-lg p-2'>
 
-        <div className="flex items-center gap-2 my-2 shadow-lg rounded-lg p-2">
-          {profile && (
-            <div>
-              {profile?.picture && <Image src={profile?.picture} alt={profile?.name || ''} width={24} height={24} />}
-              <p className="text-sm text-contrast-500">{profile?.name}</p>
-              <p className="text-sm text-contrast-500">{profile?.display_name}</p>
+        <div className="flex items-center gap-2 my-2 cursor-pointer"
+          onClick={() => {
+            showModal(<ProfileCardOverview event={event} profile={profileRepost || undefined} profilePubkey={pubkeyReposted || ''} isLinkToProfile={true} />)
+          }}
+        >
+          {profileRepost && (
+            <div className="flex items-center gap-2">
+              {profileRepost?.picture && <Image
+                className='rounded-full'
+                src={profileRepost?.picture} alt={profileRepost?.name || ''}
+                width={24}
+                height={24} />}
+              <p className="text-sm text-contrast-500">{profileRepost?.name}</p>
+              <p className="text-sm text-contrast-500">{profileRepost?.display_name}</p>
             </div>
           )}
         </div>
