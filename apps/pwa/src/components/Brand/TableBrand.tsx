@@ -195,7 +195,7 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
             {selectedBrand && (
                 <div>
                     <button onClick={() => setSelectedBrand(null)} className="text-blue-600 hover:text-blue-900">
-                        <Icon name="CloseIcon" size={20} />
+                        <Icon name="BackIcon" size={20} />
                     </button>
                     <div className="px-2">
                         <BrandPage slug_name={selectedBrand.slug_name} />

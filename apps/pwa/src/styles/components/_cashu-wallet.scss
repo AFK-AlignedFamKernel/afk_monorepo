@@ -1,10 +1,10 @@
 .cashu-wallet {
-  background-color: var(--card-bg);
+  // background-color: var(--card-bg);
   border-radius: 8px;
-  padding: 1.5rem;
+  // padding: 1.5rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--border);
+  // border: 1px solid var(--border);
   transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
   
   &__header {
@@ -131,10 +131,10 @@
         }
         
         &-icon {
-          width: 40px;
-          height: 40px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
-          background-color: var(--primary-100);
+          // background-color: var(--primary-100);
           color: var(--primary-600);
           display: flex;
           align-items: center;
