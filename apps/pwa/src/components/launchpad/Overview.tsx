@@ -41,7 +41,7 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
               />
             </div>
 
-            {data?.url && (
+            {data?.url && data?.url?.includes('https://') && data?.url?.length > 0 && (
               <div className="flex justify-between">
                 <Image src={data?.url} alt="URL" width={100} height={100} />
               </div>

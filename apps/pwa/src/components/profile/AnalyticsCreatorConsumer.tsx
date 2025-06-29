@@ -49,7 +49,7 @@ const AnalyticsCreatorConsumer: React.FC<AnalyticsCreatorConsumerProps> = ({ slu
 
 
   return (
-    <div className="w-full sm:max-w-md mx-0 sm:mx-auto shadow flex flex-col items-center bg-white/90 dark:bg-contrast-100 rounded-xl p-2 sm:p-6 overflow-x-auto scrollbar-hide">
+    <div className="w-full sm:max-w-md mx-0 sm:mx-auto shadow flex flex-col items-center rounded-xl p-2 sm:p-6 overflow-x-auto scrollbar-hide">
 
       {creator &&
         <>
@@ -72,7 +72,7 @@ const AnalyticsCreatorConsumer: React.FC<AnalyticsCreatorConsumerProps> = ({ slu
 
 
           {selectedAnalytics?.llm_classification && (
-            <div className="w-full bg-contrast-100 p-4 rounded-lg shadow overflow-x-auto scrollbar-hide">
+            <div className="w-full p-4 rounded-lg shadow overflow-x-auto scrollbar-hide">
                 {Object.entries(selectedAnalytics?.llm_classification).map(([key, value], index) => (
                   <div key={index} className="flex flex-row gap-2">
                     <span className="font-semibold">{key}:</span>
