@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useNote } from 'afk_nostr_sdk'
 import { ArticleEventCard } from '@/components/Nostr/EventCard/ArticleEventCard'
-import { ShortEventCard } from '@/components/Nostr/EventCard'
+import { PostEventCard, ShortEventCard } from '@/components/Nostr/EventCard'
 import CryptoLoading from '@/components/small/crypto-loading'
 export default function NotePage() {
   const { id } = useParams()
@@ -40,8 +40,9 @@ export default function NotePage() {
         {note && (
           <>
             {note.kind === 1 && (
-              <div className="border rounded-lg p-4">
-                <p className="text-lg">{note.content}</p>
+              <div className="rounded-lg p-4">
+                {/* <p className="text-lg">{note.content}</p> */}
+                <PostEventCard event={note} />
               </div>
             )}
 
@@ -54,14 +55,17 @@ export default function NotePage() {
             {note.kind === 6 && (
               <div className="border rounded-lg p-4">
                 <h2 className="font-bold text-xl mb-2">Repost</h2>
-                <p>{note.content}</p>
+                {/* <p>{note.content}</p> */}
+                <PostEventCard event={note} />
+
               </div>
             )}
 
             {note.kind === 7 && (
               <div className="border rounded-lg p-4">
                 <h2 className="font-bold text-xl mb-2">Reaction</h2>
-                <p>{note.content}</p>
+                {/* <p>{note.content}</p> */}
+                <PostEventCard event={note} />
               </div>
             )}
 
