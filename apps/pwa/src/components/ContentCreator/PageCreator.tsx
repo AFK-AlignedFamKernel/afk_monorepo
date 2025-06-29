@@ -39,25 +39,25 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
               className="w-20 h-20 rounded-full object-cover mb-2"
             />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center mb-2 text-2xl font-bold">
+            <div className="w-20 h-20 rounded-full  flex items-center justify-center mb-2 text-2xl font-bold">
               {creator.name?.slice(0, 2).toUpperCase()}
             </div>
           )}
           <h4 className="font-bold text-lg mb-1">{creator.name}</h4>
-          {creator.bio && <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">{creator.bio}</p>}
+          {creator.bio && <p className="text-sm mb-2 text-center">{creator.bio}</p>}
 
           {creator.slug_name && (
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">{creator.slug_name}</p>
+            <p className="text-sm mb-2 text-center">{creator.slug_name}</p>
           )}
 
           {creator?.token_address && (
             <div className="flex flex-col gap-4">
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">{creator.token_address?.slice(0, 6) + "..." + creator.token_address?.slice(-4)}</p>
+              <p className="text-sm  mb-2 text-center">{creator.token_address?.slice(0, 6) + "..." + creator.token_address?.slice(-4)}</p>
             </div>
           )}
 
           {creator.bio && (
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2 text-center">{creator.bio}</p>
+            <p className="text-sm mb-2 text-center">{creator.bio}</p>
           )}
 
           {creator?.topics && creator?.topics?.length > 0 && (
@@ -108,8 +108,8 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                     )}
 
                     {platform?.identity_data?.provider === "twitter" && (
-                      <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank" className="flex flex-row items-center gap-2 bg-black dark:bg-white rounded-full p-2">
-                        <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className={`w-8 h-8 rounded-full object-cover text-white dark:text-black bg-black dark:bg-white`} />
+                      <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank" className="flex flex-row items-center gap-2 rounded-full p-2">
+                        <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className={`w-8 h-8 rounded-full object-cover`} />
                         {/* <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" /> */}
                       </Link>
                     )}
@@ -159,7 +159,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
 
                     {platform?.identity_data?.provider === "twitter" && (
                       <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank">
-                        <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover bg-black dark:bg-white" />
+                        <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
 
                         {/* <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" /> */}
                       </Link>
