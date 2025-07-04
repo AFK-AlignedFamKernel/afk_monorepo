@@ -50,8 +50,8 @@ func NewDatabases(databaseConfig *config.DatabaseConfig) *Databases {
 	d.Redis = redis.NewClient(&redis.Options{
 		Addr:     address,
 		Password: password,
-		// Username: redisUsername,
-		DB: 0,
+		Username: redisUsername,
+		DB:       0,
 	})
 
 	pong, err := d.Redis.Ping(ctx).Result()

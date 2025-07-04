@@ -2,6 +2,7 @@ package indexer
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +10,29 @@ import (
 
 	routeutils "github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/routes/utils"
 )
+
+type BatchItem struct {
+	Status string         `json:"status"`
+	Events []IndexerEvent `json:"events"`
+}
+
+// Custom type for batch
+type Batch []BatchItem
+
+func (b *Batch) UnmarshalJSON(data []byte) error {
+	// If it's an object ({}), treat as empty array
+	if string(data) == "{}" {
+		*b = Batch{}
+		return nil
+	}
+	// Otherwise, unmarshal as usual
+	var arr []BatchItem
+	if err := json.Unmarshal(data, &arr); err != nil {
+		return err
+	}
+	*b = arr
+	return nil
+}
 
 func InitIndexerRoutes() {
 	http.HandleFunc("/consume-indexer-msg", consumeIndexerMsg)
@@ -32,10 +56,7 @@ type IndexerMessage struct {
 		Cursor    IndexerCursor `json:"cursor"`
 		EndCursor IndexerCursor `json:"end_cursor"`
 		Finality  string        `json:"finality"`
-		Batch     []struct {
-			Status string         `json:"status"`
-			Events []IndexerEvent `json:"events"`
-		} `json:"batch"`
+		Batch     Batch         `json:"batch"`
 	} `json:"data"`
 }
 
@@ -262,44 +283,70 @@ func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("Raw request body:", string(body))
-	
+
 	// Restore body for further processing
 	r.Body = io.NopCloser(bytes.NewBuffer(body))
-	
-	message, err := routeutils.ReadJsonBody[IndexerMessage](r)
-	// message, err := routeutils.ReadJsonBody[IndexerMessage](body)
 
-	fmt.Println("message", message)
-	if err != nil {
-		PrintIndexerError("consumeIndexerMsg", "error reading indexer message", err)
+	var raw map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
+		// handle error
+		fmt.Println("Error decoding message", err)
 		return
 	}
 
-	if len(message.Data.Batch) == 0 {
-		fmt.Println("No events in batch")
-		return
-	}
+	if _, ok := raw["data"]; ok {
+		// This is a data batch, decode as IndexerMessage
+		// var msg IndexerMessage
+		// decode again or use the already-decoded data
+		// ... your existing logic ...
+		message, err := routeutils.ReadJsonBody[IndexerMessage](r)
 
-	if message.Data.Finality == DATA_STATUS_FINALIZED {
-		// TODO: Track diffs with accepted messages? / check if accepted message processed
-		FinalizedMessageLock.Lock()
-		FinalizedMessageQueue = append(FinalizedMessageQueue, *message)
-		FinalizedMessageLock.Unlock()
-		return
-	} else if message.Data.Finality == DATA_STATUS_ACCEPTED {
-		AcceptedMessageLock.Lock()
-		// TODO: Ensure ordering w/ EndCursor?
-		AcceptedMessageQueue = append(AcceptedMessageQueue, *message)
-		AcceptedMessageLock.Unlock()
-		return
-	} else if message.Data.Finality == DATA_STATUS_PENDING {
-		PendingMessageLock.Lock()
-		LatestPendingMessage = message
-		PendingMessageLock.Unlock()
+		fmt.Println("message", message)
+		if err != nil {
+			PrintIndexerError("consumeIndexerMsg", "error reading indexer message", err)
+			return
+		}
+
+		if len(message.Data.Batch) == 0 {
+			fmt.Println("No events in batch")
+			// return
+		} else {
+			fmt.Println("Processing message", message)
+			// ProcessMessage(message)
+		}
+
+		if message.Data.Finality == DATA_STATUS_FINALIZED {
+			// TODO: Track diffs with accepted messages? / check if accepted message processed
+			FinalizedMessageLock.Lock()
+			FinalizedMessageQueue = append(FinalizedMessageQueue, *message)
+			FinalizedMessageLock.Unlock()
+			return
+		} else if message.Data.Finality == DATA_STATUS_ACCEPTED {
+			AcceptedMessageLock.Lock()
+			// TODO: Ensure ordering w/ EndCursor?
+			AcceptedMessageQueue = append(AcceptedMessageQueue, *message)
+			AcceptedMessageLock.Unlock()
+			return
+		} else if message.Data.Finality == DATA_STATUS_PENDING {
+			PendingMessageLock.Lock()
+			LatestPendingMessage = message
+			PendingMessageLock.Unlock()
+
+			return
+		} else {
+			fmt.Println("Unknown message type")
+			return
+		}
+	} else if _, ok := raw["invalidate"]; ok {
+		// This is an invalidate message
+		fmt.Println("Received invalidate message, cursor:", raw["invalidate"])
+		// handle reorg/rollback logic here if needed
 		return
 	} else {
-		fmt.Println("Unknown finality status")
+		fmt.Println("Unknown message type")
+		return
 	}
+
 }
 
 func ProcessMessageEvents(message IndexerMessage) {
