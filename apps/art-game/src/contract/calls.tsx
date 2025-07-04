@@ -112,11 +112,13 @@ export const addStencilCall =
       const calldata: any[] = [worldId, hash, width, height, position];
       console.log('calldata ', calldata)
 
+      console.log("hash", hash)
       console.log("ipfsHash", ipfsHash)
       if (ipfsHash) {
         calldata.push(byteArray.byteArrayFromString(ipfsHash));
       }
 
+      console.log("calldata", calldata)
       const calldataCompile = CallData.compile([
         worldId,
         {
