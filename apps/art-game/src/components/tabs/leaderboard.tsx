@@ -171,7 +171,7 @@ export const LeaderboardTab = (props: any) => {
               className="cursor-pointer hover:scale-105 transform transition-transform active:scale-100 mr-8"/>
             </div>
             <div className="flex items-center">
-              <div className="text-black text-bold text-[1.4rem] w-[8rem] text-right">{shortFormNumber(stat.score)}</div>
+              <div className="text-black text-bold text-[1.4rem] w-[8rem] text-right">{shortFormNumber(stat?.score ?? 0)}</div>
             </div>
           </div>
         ))}
@@ -180,11 +180,11 @@ export const LeaderboardTab = (props: any) => {
         <div>
         <div className="flex flex-row justify-between align-center mx-[2rem] my-[1rem]">
           <p className="Text__medium">Main Canvas:</p>
-          <p className="Text__medium">{shortFormNumber(mainWorldStats.score)}</p>
+          <p className="Text__medium">{shortFormNumber(mainWorldStats?.score ?? 0)}</p>
         </div>
         <div className="flex flex-row justify-between align-center mx-[2rem] my-[1rem]">
           <p className="Text__medium">Total Pixels:</p>
-          <p className="Text__medium">{shortFormNumber(leaderboardStats.reduce((acc, stat) => acc + stat.score, 0) + mainWorldStats.score)}</p>
+          <p className="Text__medium">{shortFormNumber(leaderboardStats.reduce((acc, stat) => acc + (stat?.score ?? 0), 0) + (mainWorldStats?.score ?? 0))}</p>
         </div>
         </div>
       )}
@@ -194,7 +194,7 @@ export const LeaderboardTab = (props: any) => {
         setState={setLeaderboardPagination}
       />
       {selectedOption.name === "World Pxs" && (
-        <p className="Text__xsmall mx-[0.5rem] my-[1rem] truncate">Stats for world: {props.activeWorld.name}</p>
+        <p className="Text__xsmall mx-[0.5rem] my-[1rem] truncate">Stats for world: {props?.activeWorld?.name}</p>
       )}
     </BasicTab>
   );

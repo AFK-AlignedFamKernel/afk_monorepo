@@ -184,6 +184,32 @@ export const config = {
   }
 };
 
+function filterDeployedContracts(block) {
+  console.log("Filtering deployed contracts on block", block);
+  return [];
+}
+
+function deployedContractsInfo(block) {
+  console.log("Storing deployed contracts on block", block);
+  return {};
+}
+
+export function factory(block) {
+  const filter = {
+    header: { weak: true },
+    // Build event filters based on the events in the current block.
+    events: filterDeployedContracts(block),
+  };
+  // Store deployed contracts in the integration.
+  const data = deployedContractsInfo(block);
+
+  return {
+    filter,
+    data,
+  };
+}
+
+
 export default function transform(block) {
   return block;
 }
