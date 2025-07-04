@@ -284,8 +284,11 @@ func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("Raw request body:", string(body))
 
+	// Patch: Replace '"batch":{}' with '"batch":[]' to avoid JSON decode errors
+	patchedBody := bytes.Replace(body, []byte("\"batch\":{}"), []byte("\"batch\":[]"), 1)
+
 	// Restore body for further processing
-	r.Body = io.NopCloser(bytes.NewBuffer(body))
+	r.Body = io.NopCloser(bytes.NewBuffer(patchedBody))
 
 	var raw map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
@@ -294,11 +297,12 @@ func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Restore body again for routeutils.ReadJsonBody
+	r.Body = io.NopCloser(bytes.NewBuffer(patchedBody))
+
+	fmt.Println("raw", raw)
 	if _, ok := raw["data"]; ok {
 		// This is a data batch, decode as IndexerMessage
-		// var msg IndexerMessage
-		// decode again or use the already-decoded data
-		// ... your existing logic ...
 		message, err := routeutils.ReadJsonBody[IndexerMessage](r)
 
 		fmt.Println("message", message)
@@ -350,6 +354,10 @@ func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 }
 
 func ProcessMessageEvents(message IndexerMessage) {
+	if len(message.Data.Batch) == 0 {
+		fmt.Println("No events in batch")
+		return
+	}
 	for _, event := range message.Data.Batch[0].Events {
 		eventKey := event.Event.Keys[0]
 		eventProcessor, ok := eventProcessors[eventKey]
