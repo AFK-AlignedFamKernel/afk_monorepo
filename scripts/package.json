@@ -31,6 +31,7 @@
     "run:profile_score": "ts-node ./run/nostr/profile_score.ts",
     "run:deposit": "ts-node ./run/escrow/deposit.ts",
     "run:claim": "ts-node ./run/escrow/claim.ts",
+    "run:add_stencil": "ts-node ./run/canvas/add_stencil.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",
     "relay:dev": "nodemon --ext *"

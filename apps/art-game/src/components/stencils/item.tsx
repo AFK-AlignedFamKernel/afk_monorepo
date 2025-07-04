@@ -62,12 +62,12 @@ export const StencilItem = (props: any) => {
 
   const [showInfo, setShowInfo] = useState(false);
 
-  console.log("props.stencil", props.stencil);
-  console.log("props.image", props.image);
+  // console.log("props.stencil", props.stencil);
+  // console.log("props.image", props.image);
 
-  console.log("ipfsHash", ipfsHash);
-  console.log("IPFS_URL", IPFS_URL);
-  console.log("props.image", `${IPFS_URL}/${ipfsHash}`);
+  // console.log("ipfsHash", ipfsHash);
+  // console.log("IPFS_URL", IPFS_URL);
+  // console.log("props.image", `${IPFS_URL}/${ipfsHash}`);
   return (
     <div
       className="relative w-full h-[20rem] bg-[rgba(255,255,255,0.4)]
