@@ -6,8 +6,6 @@ import (
 	"net/http"
 	"sync"
 	"time"
-
-	routeutils "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/utils"
 )
 
 func InitIndexerRoutes() {
@@ -205,35 +203,37 @@ const (
 )
 
 func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
-	message, err := routeutils.ReadJsonBody[IndexerMessage](r)
+	var msg IndexerMessage
+	err := json.NewDecoder(r.Body).Decode(&msg)
 	if err != nil {
 		PrintIndexerError("consumeIndexerMsg", "error reading indexer message", err)
 		return
 	}
 
-	if len(message.Data.Batch) == 0 {
+	if len(msg.Data.Batch) == 0 {
 		fmt.Println("No events in batch")
 		return
 	}
 
-	if message.Data.Finality == DATA_STATUS_FINALIZED {
+	switch msg.Data.Finality {
+	case DATA_STATUS_FINALIZED:
 		// TODO: Track diffs with accepted messages? / check if accepted message processed
 		FinalizedMessageLock.Lock()
-		FinalizedMessageQueue = append(FinalizedMessageQueue, *message)
+		FinalizedMessageQueue = append(FinalizedMessageQueue, msg)
 		FinalizedMessageLock.Unlock()
 		return
-	} else if message.Data.Finality == DATA_STATUS_ACCEPTED {
+	case DATA_STATUS_ACCEPTED:
 		AcceptedMessageLock.Lock()
 		// TODO: Ensure ordering w/ EndCursor?
-		AcceptedMessageQueue = append(AcceptedMessageQueue, *message)
+		AcceptedMessageQueue = append(AcceptedMessageQueue, msg)
 		AcceptedMessageLock.Unlock()
 		return
-	} else if message.Data.Finality == DATA_STATUS_PENDING {
+	case DATA_STATUS_PENDING:
 		PendingMessageLock.Lock()
-		LatestPendingMessage = message
+		LatestPendingMessage = &msg
 		PendingMessageLock.Unlock()
 		return
-	} else {
+	default:
 		fmt.Println("Unknown finality status")
 	}
 }
