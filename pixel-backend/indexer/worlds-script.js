@@ -1,8 +1,9 @@
 export const config = {
   streamUrl: Deno.env.get("APIBARA_STREAM_URL"),
-  startingBlock: Deno.env.get("STARTING_BLOCK") ? Deno.env.get("STARTING_BLOCK") : 850000,
+  startingBlock: Deno.env.get("STARTING_BLOCK") ? Number(Deno.env.get("STARTING_BLOCK")) : 850000,
   network: "starknet",
-  finality: "DATA_STATUS_PENDING",
+  // finality: "DATA_STATUS_PENDING",
+  finality: "DATA_STATUS_FINALIZED",
   filter: {
     events: [
       {
@@ -184,6 +185,40 @@ export const config = {
   }
 };
 
+function filterDeployedContracts(block) {
+  console.log("Filtering deployed contracts on block", block);
+  return [];
+}
+
+function deployedContractsInfo(block) {
+  console.log("Storing deployed contracts on block", block);
+  return {};
+}
+
+// export function factory(block) {
+//   const filter = {
+//     header: { weak: true },
+//     // Build event filters based on the events in the current block.
+//     events: filterDeployedContracts(block),
+//   };
+//   // Store deployed contracts in the integration.
+//   const data = deployedContractsInfo(block);
+
+//   return {
+//     filter,
+//     data,
+//   };
+// }
+
 export default function transform(block) {
-  return block;
+  const events = [];
+  for (const event of block.events) {
+    events.push(event);
+  }
+  return [
+    {
+      status: "DATA_STATUS_FINALIZED",
+      events: events
+    }
+  ];
 }

@@ -12,6 +12,8 @@ import (
 
 func InitIndexerRoutes() {
 	http.HandleFunc("/consume-indexer-msg", consumeIndexerMsg)
+	// http.HandleFunc("/enable-turboda", enableTurboda)
+	// http.HandleFunc("/disable-turboda", disableTurboda)
 }
 
 type IndexerCursor struct {
@@ -254,21 +256,27 @@ const (
 )
 
 func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
-	// Log raw request body for debugging
-	fmt.Println("Received request")
+	// Read the raw body
 	body, err := io.ReadAll(r.Body)
+	fmt.Println("r", r.Body)
+	fmt.Println("body", string(body))
 	if err != nil {
 		PrintIndexerError("consumeIndexerMsg", "error reading request body", err)
-		return
+		// return
 	}
-	fmt.Println("Raw request body:", string(body))
-	
-	// Restore body for further processing
-	r.Body = io.NopCloser(bytes.NewBuffer(body))
-	
-	message, err := routeutils.ReadJsonBody[IndexerMessage](r)
-	// message, err := routeutils.ReadJsonBody[IndexerMessage](body)
 
+	// Debug: Print the raw incoming webhook payload
+	fmt.Println("[DEBUG] Raw webhook payload:", string(body))
+
+	// Patch: Replace '"batch":{}' with '"batch":[]'
+	patchedBody := bytes.Replace(body, []byte("\"batch\":{}"), []byte("\"batch\":[]"), 1)
+
+	fmt.Println("body", string(body))
+	fmt.Println("patchedBody", string(patchedBody))
+	// Restore body for further processing
+	r.Body = io.NopCloser(bytes.NewBuffer(patchedBody))
+
+	message, err := routeutils.ReadJsonBody[IndexerMessage](r)
 	fmt.Println("message", message)
 	if err != nil {
 		PrintIndexerError("consumeIndexerMsg", "error reading indexer message", err)
@@ -277,40 +285,53 @@ func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 
 	if len(message.Data.Batch) == 0 {
 		fmt.Println("No events in batch")
-		return
+		// return
 	}
 
-	if message.Data.Finality == DATA_STATUS_FINALIZED {
+	switch message.Data.Finality {
+	case DATA_STATUS_FINALIZED:
 		// TODO: Track diffs with accepted messages? / check if accepted message processed
 		FinalizedMessageLock.Lock()
 		FinalizedMessageQueue = append(FinalizedMessageQueue, *message)
 		FinalizedMessageLock.Unlock()
 		return
-	} else if message.Data.Finality == DATA_STATUS_ACCEPTED {
+	case DATA_STATUS_ACCEPTED:
 		AcceptedMessageLock.Lock()
 		// TODO: Ensure ordering w/ EndCursor?
 		AcceptedMessageQueue = append(AcceptedMessageQueue, *message)
 		AcceptedMessageLock.Unlock()
 		return
-	} else if message.Data.Finality == DATA_STATUS_PENDING {
+	case DATA_STATUS_PENDING:
 		PendingMessageLock.Lock()
 		LatestPendingMessage = message
 		PendingMessageLock.Unlock()
 		return
-	} else {
-		fmt.Println("Unknown finality status")
 	}
 }
 
 func ProcessMessageEvents(message IndexerMessage) {
-	for _, event := range message.Data.Batch[0].Events {
-		eventKey := event.Event.Keys[0]
-		eventProcessor, ok := eventProcessors[eventKey]
-		if !ok {
-			PrintIndexerError("consumeIndexerMsg", "error processing event", eventKey)
-			return
+	if len(message.Data.Batch) == 0 {
+		fmt.Println("No batches in message")
+		return
+	}
+	for _, batch := range message.Data.Batch {
+		if len(batch.Events) == 0 {
+			fmt.Println("No events in batch")
+			continue
 		}
-		eventProcessor(event)
+		for _, event := range batch.Events {
+			if len(event.Event.Keys) == 0 {
+				fmt.Println("[WARN] Event with empty Keys array, skipping event:", event)
+				continue
+			}
+			eventKey := event.Event.Keys[0]
+			eventProcessor, ok := eventProcessors[eventKey]
+			if !ok {
+				PrintIndexerError("consumeIndexerMsg", "error processing event", eventKey)
+				return
+			}
+			eventProcessor(event)
+		}
 	}
 }
 
@@ -441,7 +462,19 @@ func TryProcessFinalizedMessages() bool {
 		// Skip message
 		return true
 	}
+
+	// Submit to Avail Turbo DA on Finalized messages
+	/*
+		go func() {
+			if err := submitToAvailTurboDA(message); err != nil {
+				fmt.Printf("Failed to submit to Avail Turbo DA: %v\n", err)
+				// Continue processing even if submission fails
+			}
+		}()
+	*/
+
 	ProcessMessage(message)
+
 	fmt.Println("Processed finalized message:", message.Data.Cursor.OrderKey)
 	LastFinalizedCursor = message.Data.Cursor.OrderKey
 	return true
@@ -459,9 +492,15 @@ func TryProcessAcceptedMessages() bool {
 		return false
 	}
 
-	// TODO: Check if message is already processed?
+	go func() {
+		// if err := submitToAvailTurboDA(message); err != nil {
+		// 	fmt.Printf("Failed to submit to Avail Turbo DA: %v\n", err)
+		// 	// Continue processing even if submission fails
+		// }
+	}()
+
 	ProcessMessage(message)
-	// TODO
+
 	fmt.Println("Processed accepted message:", message.Data.Cursor.OrderKey)
 	LastFinalizedCursor = message.Data.Cursor.OrderKey
 	return true

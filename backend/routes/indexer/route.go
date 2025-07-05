@@ -1,12 +1,11 @@
 package indexer
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
 	"time"
-
-	routeutils "github.com/AFK-AlignedFamKernel/afk_monorepo/backend/routes/utils"
 )
 
 func InitIndexerRoutes() {
@@ -26,15 +25,35 @@ type IndexerEvent struct {
 	} `json:"event"`
 }
 
+type BatchItem struct {
+	Status string         `json:"status"`
+	Events []IndexerEvent `json:"events"`
+}
+
+// Custom type for batch
+type Batch []BatchItem
+
+func (b *Batch) UnmarshalJSON(data []byte) error {
+	// If it's an object ({}), treat as empty array
+	if string(data) == "{}" {
+		*b = Batch{}
+		return nil
+	}
+	// Otherwise, unmarshal as usual
+	var arr []BatchItem
+	if err := json.Unmarshal(data, &arr); err != nil {
+		return err
+	}
+	*b = arr
+	return nil
+}
+
 type IndexerMessage struct {
 	Data struct {
 		Cursor    IndexerCursor `json:"cursor"`
 		EndCursor IndexerCursor `json:"end_cursor"`
 		Finality  string        `json:"finality"`
-		Batch     []struct {
-			Status string         `json:"status"`
-			Events []IndexerEvent `json:"events"`
-		} `json:"batch"`
+		Batch     Batch         `json:"batch"`
 	} `json:"data"`
 }
 
@@ -57,7 +76,7 @@ const (
 	newDayEvent                      = "0x00df776faf675d0c64b0f2ec596411cf1509d3966baba3478c84771ddbac1784"
 	colorAddedEvent                  = "0x0004a301e4d01f413a1d4d0460c4ba976e23392f49126d90f5bd45de7dd7dbeb"
 	pixelPlacedEvent                 = "0x02d7b50ebf415606d77c7e7842546fc13f8acfbfd16f7bcf2bc2d08f54114c23"
-	pixelShieldPlacedEvent			 = "0x02d7b50ebf415606d77c7e7842546fc13f8acfbfd16f7bcf2bc2d08f54114c24"
+	pixelShieldPlacedEvent           = "0x02d7b50ebf415606d77c7e7842546fc13f8acfbfd16f7bcf2bc2d08f54114c24"
 	basicPixelPlacedEvent            = "0x03089ae3085e1c52442bb171f26f92624095d32dc8a9c57c8fb09130d32daed8"
 	factionPixelsPlacedEvent         = "0x02838056c6784086957f2252d4a36a24d554ea2db7e09d2806cc69751d81f0a2"
 	chainFactionPixelsPlacedEvent    = "0x02e4d1feaacd0627a6c7d5002564bdb4ca4877d47f00cad4714201194690a7a9"
@@ -184,35 +203,37 @@ const (
 )
 
 func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
-	message, err := routeutils.ReadJsonBody[IndexerMessage](r)
+	var msg IndexerMessage
+	err := json.NewDecoder(r.Body).Decode(&msg)
 	if err != nil {
 		PrintIndexerError("consumeIndexerMsg", "error reading indexer message", err)
 		return
 	}
 
-	if len(message.Data.Batch) == 0 {
+	if len(msg.Data.Batch) == 0 {
 		fmt.Println("No events in batch")
 		return
 	}
 
-	if message.Data.Finality == DATA_STATUS_FINALIZED {
+	switch msg.Data.Finality {
+	case DATA_STATUS_FINALIZED:
 		// TODO: Track diffs with accepted messages? / check if accepted message processed
 		FinalizedMessageLock.Lock()
-		FinalizedMessageQueue = append(FinalizedMessageQueue, *message)
+		FinalizedMessageQueue = append(FinalizedMessageQueue, msg)
 		FinalizedMessageLock.Unlock()
 		return
-	} else if message.Data.Finality == DATA_STATUS_ACCEPTED {
+	case DATA_STATUS_ACCEPTED:
 		AcceptedMessageLock.Lock()
 		// TODO: Ensure ordering w/ EndCursor?
-		AcceptedMessageQueue = append(AcceptedMessageQueue, *message)
+		AcceptedMessageQueue = append(AcceptedMessageQueue, msg)
 		AcceptedMessageLock.Unlock()
 		return
-	} else if message.Data.Finality == DATA_STATUS_PENDING {
+	case DATA_STATUS_PENDING:
 		PendingMessageLock.Lock()
-		LatestPendingMessage = message
+		LatestPendingMessage = &msg
 		PendingMessageLock.Unlock()
 		return
-	} else {
+	default:
 		fmt.Println("Unknown finality status")
 	}
 }

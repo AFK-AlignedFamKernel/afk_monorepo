@@ -15,7 +15,7 @@ import ControllerConnector from "@cartridge/connector/controller";
 import { SessionPolicies } from "@cartridge/controller";
 
 export const CANVAS_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CANVAS_CONTRACT_ADDRESS || 
-"0x05461b6b463357260de27286586f2384f33ba519be0d31460c9bffc795aa168b"
+"0x1fa80c2a03bb724e7b6cf7836a32ba5e300e10914c48a7109d6ff86045e1e70"
 
 // Define session policies
 const policies: SessionPolicies = {

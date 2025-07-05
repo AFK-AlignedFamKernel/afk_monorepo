@@ -7,10 +7,11 @@ import { addStencilData, uploadStencilImg } from "../../api/stencils";
 import { addStencilCall } from "../../contract/calls";
 import { useState } from "react";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import { cairo } from "starknet";
 
 export const StencilCreationTab = (props: any) => {
   const { account } = useAccount();
-  console.log("account address in stencil creation", account?.address);
+  // console.log("account address in stencil creation", account?.address);
   const [image, setImage] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const fileUpload = useFileUpload();
@@ -98,7 +99,15 @@ export const StencilCreationTab = (props: any) => {
     const imgHash = hash;
     // if (!account) return;
     try {
-      await addStencilCall(account ?? props?.account, props.worldId, hash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition, ipfsHash);
+      let hashFelt = cairo.felt(hash);
+      // console.log("hashFelt", hashFelt)
+      // console.log("props.worldId", props.worldId)
+      // console.log("props.stencilImage.width", props.stencilImage.width)
+      // console.log("props.stencilImage.height", props.stencilImage.height)
+      // console.log("props.stencilPosition", props.stencilPosition)
+      // console.log("ipfsHash", ipfsHash)
+      console.log("props",props)
+      await addStencilCall(account ?? props?.account, props.worldId, hashFelt, props.stencilImage.width, props.stencilImage.height, props.stencilPosition, ipfsHash);
       // await addStencilCall(account, props.worldId, urlHash, props.stencilImage.width, props.stencilImage.height, props.stencilPosition);
     } catch (error) {
       console.error("Error submitting stencil:", error);

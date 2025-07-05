@@ -109,13 +109,19 @@ export const addStencilCall =
         return;
       }
 
-      const calldata: any[] = [worldId, hash, width, height, position];
-      console.log('calldata ', calldata)
+      console.log("addStencilCall")
 
-      console.log("ipfsHash", ipfsHash)
-      if (ipfsHash) {
-        calldata.push(byteArray.byteArrayFromString(ipfsHash));
-      }
+      const calldata: any[] = [worldId, {hash, width, height, position, ipfs_hash: ipfsHash ? byteArray.byteArrayFromString(ipfsHash) : byteArray.byteArrayFromString("")}];
+      // console.log('calldata ', calldata)
+
+      // console.log("hash", hash)
+      // console.log("ipfsHash to", ipfsHash)
+      // if (ipfsHash) {
+      //   calldata.push(byteArray.byteArrayFromString(ipfsHash));
+      // } else {
+      //   calldata.push(byteArray.byteArrayFromString(""));
+      // }
+
 
       const calldataCompile = CallData.compile([
         worldId,
@@ -128,7 +134,7 @@ export const addStencilCall =
         }
       ]);
 
-      printCalldata(calldata);
+      printCalldata(calldataCompile);
       const result = await account.execute([
         {
           contractAddress: CANVAS_CONTRACT_ADDRESS,
