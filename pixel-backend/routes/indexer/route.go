@@ -2,7 +2,6 @@ package indexer
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,31 +10,10 @@ import (
 	routeutils "github.com/AFK_AlignedFamKernel/afk_monorepo/pixel-backend/routes/utils"
 )
 
-type BatchItem struct {
-	Status string         `json:"status"`
-	Events []IndexerEvent `json:"events"`
-}
-
-// Custom type for batch
-type Batch []BatchItem
-
-func (b *Batch) UnmarshalJSON(data []byte) error {
-	// If it's an object ({}), treat as empty array
-	if string(data) == "{}" {
-		*b = Batch{}
-		return nil
-	}
-	// Otherwise, unmarshal as usual
-	var arr []BatchItem
-	if err := json.Unmarshal(data, &arr); err != nil {
-		return err
-	}
-	*b = arr
-	return nil
-}
-
 func InitIndexerRoutes() {
 	http.HandleFunc("/consume-indexer-msg", consumeIndexerMsg)
+	// http.HandleFunc("/enable-turboda", enableTurboda)
+	// http.HandleFunc("/disable-turboda", disableTurboda)
 }
 
 type IndexerCursor struct {
@@ -56,7 +34,10 @@ type IndexerMessage struct {
 		Cursor    IndexerCursor `json:"cursor"`
 		EndCursor IndexerCursor `json:"end_cursor"`
 		Finality  string        `json:"finality"`
-		Batch     Batch         `json:"batch"`
+		Batch     []struct {
+			Status string         `json:"status"`
+			Events []IndexerEvent `json:"events"`
+		} `json:"batch"`
 	} `json:"data"`
 }
 
@@ -275,82 +256,57 @@ const (
 )
 
 func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
-	// Log raw request body for debugging
-	fmt.Println("Received request")
+	// Read the raw body
 	body, err := io.ReadAll(r.Body)
+	fmt.Println("r", r.Body)
+	fmt.Println("body", string(body))
 	if err != nil {
 		PrintIndexerError("consumeIndexerMsg", "error reading request body", err)
-		return
+		// return
 	}
-	fmt.Println("Raw request body:", string(body))
 
-	// Patch: Replace '"batch":{}' with '"batch":[]' to avoid JSON decode errors
+	// Debug: Print the raw incoming webhook payload
+	fmt.Println("[DEBUG] Raw webhook payload:", string(body))
+
+	// Patch: Replace '"batch":{}' with '"batch":[]'
 	patchedBody := bytes.Replace(body, []byte("\"batch\":{}"), []byte("\"batch\":[]"), 1)
 
+	fmt.Println("body", string(body))
+	fmt.Println("patchedBody", string(patchedBody))
 	// Restore body for further processing
-	r.Body = io.NopCloser(bytes.NewBuffer(patchedBody))
+	r.Body = io.NopCloser(bytes.NewBuffer(body))
 
-	var raw map[string]interface{}
-	if err := json.NewDecoder(r.Body).Decode(&raw); err != nil {
-		// handle error
-		fmt.Println("Error decoding message", err)
+	message, err := routeutils.ReadJsonBody[IndexerMessage](r)
+	fmt.Println("message", message)
+	if err != nil {
+		PrintIndexerError("consumeIndexerMsg", "error reading indexer message", err)
 		return
 	}
 
-	// Restore body again for routeutils.ReadJsonBody
-	r.Body = io.NopCloser(bytes.NewBuffer(patchedBody))
-
-	fmt.Println("raw", raw)
-	if _, ok := raw["data"]; ok {
-		// This is a data batch, decode as IndexerMessage
-		message, err := routeutils.ReadJsonBody[IndexerMessage](r)
-
-		fmt.Println("message", message)
-		if err != nil {
-			PrintIndexerError("consumeIndexerMsg", "error reading indexer message", err)
-			return
-		}
-
-		if len(message.Data.Batch) == 0 {
-			fmt.Println("No events in batch")
-			// return
-		} else {
-			fmt.Println("Processing message", message)
-			// ProcessMessage(message)
-		}
-
-		if message.Data.Finality == DATA_STATUS_FINALIZED {
-			// TODO: Track diffs with accepted messages? / check if accepted message processed
-			FinalizedMessageLock.Lock()
-			FinalizedMessageQueue = append(FinalizedMessageQueue, *message)
-			FinalizedMessageLock.Unlock()
-			return
-		} else if message.Data.Finality == DATA_STATUS_ACCEPTED {
-			AcceptedMessageLock.Lock()
-			// TODO: Ensure ordering w/ EndCursor?
-			AcceptedMessageQueue = append(AcceptedMessageQueue, *message)
-			AcceptedMessageLock.Unlock()
-			return
-		} else if message.Data.Finality == DATA_STATUS_PENDING {
-			PendingMessageLock.Lock()
-			LatestPendingMessage = message
-			PendingMessageLock.Unlock()
-
-			return
-		} else {
-			fmt.Println("Unknown message type")
-			return
-		}
-	} else if _, ok := raw["invalidate"]; ok {
-		// This is an invalidate message
-		fmt.Println("Received invalidate message, cursor:", raw["invalidate"])
-		// handle reorg/rollback logic here if needed
-		return
-	} else {
-		fmt.Println("Unknown message type")
-		return
+	if len(message.Data.Batch) == 0 {
+		fmt.Println("No events in batch")
+		// return
 	}
 
+	switch message.Data.Finality {
+	case DATA_STATUS_FINALIZED:
+		// TODO: Track diffs with accepted messages? / check if accepted message processed
+		FinalizedMessageLock.Lock()
+		FinalizedMessageQueue = append(FinalizedMessageQueue, *message)
+		FinalizedMessageLock.Unlock()
+		return
+	case DATA_STATUS_ACCEPTED:
+		AcceptedMessageLock.Lock()
+		// TODO: Ensure ordering w/ EndCursor?
+		AcceptedMessageQueue = append(AcceptedMessageQueue, *message)
+		AcceptedMessageLock.Unlock()
+		return
+	case DATA_STATUS_PENDING:
+		PendingMessageLock.Lock()
+		LatestPendingMessage = message
+		PendingMessageLock.Unlock()
+		return
+	}
 }
 
 func ProcessMessageEvents(message IndexerMessage) {
@@ -496,7 +452,19 @@ func TryProcessFinalizedMessages() bool {
 		// Skip message
 		return true
 	}
+
+	// Submit to Avail Turbo DA on Finalized messages
+	/*
+		go func() {
+			if err := submitToAvailTurboDA(message); err != nil {
+				fmt.Printf("Failed to submit to Avail Turbo DA: %v\n", err)
+				// Continue processing even if submission fails
+			}
+		}()
+	*/
+
 	ProcessMessage(message)
+
 	fmt.Println("Processed finalized message:", message.Data.Cursor.OrderKey)
 	LastFinalizedCursor = message.Data.Cursor.OrderKey
 	return true
@@ -514,9 +482,15 @@ func TryProcessAcceptedMessages() bool {
 		return false
 	}
 
-	// TODO: Check if message is already processed?
+	go func() {
+		// if err := submitToAvailTurboDA(message); err != nil {
+		// 	fmt.Printf("Failed to submit to Avail Turbo DA: %v\n", err)
+		// 	// Continue processing even if submission fails
+		// }
+	}()
+
 	ProcessMessage(message)
-	// TODO
+
 	fmt.Println("Processed accepted message:", message.Data.Cursor.OrderKey)
 	LastFinalizedCursor = message.Data.Cursor.OrderKey
 	return true

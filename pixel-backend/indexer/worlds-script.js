@@ -2,7 +2,8 @@ export const config = {
   streamUrl: Deno.env.get("APIBARA_STREAM_URL"),
   startingBlock: Deno.env.get("STARTING_BLOCK") ? Number(Deno.env.get("STARTING_BLOCK")) : 850000,
   network: "starknet",
-  finality: "DATA_STATUS_PENDING",
+  // finality: "DATA_STATUS_PENDING",
+  finality: "DATA_STATUS_FINALIZED",
   filter: {
     events: [
       {
@@ -209,7 +210,14 @@ export function factory(block) {
   };
 }
 
-
 export default function transform(block) {
-  return block;
+  // Extract events from the block
+  const events = [];
+  for (const tx of block.transactions) {
+    for (const event of tx.events) {
+      // Optionally filter for your event types
+      events.push(event);
+    }
+  }
+  return events;
 }
