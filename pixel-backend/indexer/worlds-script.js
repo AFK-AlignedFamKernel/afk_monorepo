@@ -211,15 +211,13 @@ function deployedContractsInfo(block) {
 // }
 
 export default function transform(block) {
-  // Wrap each event as { event: ... }
   const events = [];
   for (const event of block.events) {
-    events.push({ event });
+    events.push(event);
   }
-  // Return a single batch with status and events
   return [
     {
-      status: "DATA_STATUS_FINALIZED", // or "ACCEPTED" if you want to match pending/accepted
+      status: "DATA_STATUS_FINALIZED",
       events: events
     }
   ];

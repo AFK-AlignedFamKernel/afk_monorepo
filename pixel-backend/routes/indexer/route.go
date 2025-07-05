@@ -311,17 +311,27 @@ func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 
 func ProcessMessageEvents(message IndexerMessage) {
 	if len(message.Data.Batch) == 0 {
-		fmt.Println("No events in batch")
+		fmt.Println("No batches in message")
 		return
 	}
-	for _, event := range message.Data.Batch[0].Events {
-		eventKey := event.Event.Keys[0]
-		eventProcessor, ok := eventProcessors[eventKey]
-		if !ok {
-			PrintIndexerError("consumeIndexerMsg", "error processing event", eventKey)
-			return
+	for _, batch := range message.Data.Batch {
+		if len(batch.Events) == 0 {
+			fmt.Println("No events in batch")
+			continue
 		}
-		eventProcessor(event)
+		for _, event := range batch.Events {
+			if len(event.Event.Keys) == 0 {
+				fmt.Println("[WARN] Event with empty Keys array, skipping event:", event)
+				continue
+			}
+			eventKey := event.Event.Keys[0]
+			eventProcessor, ok := eventProcessors[eventKey]
+			if !ok {
+				PrintIndexerError("consumeIndexerMsg", "error processing event", eventKey)
+				return
+			}
+			eventProcessor(event)
+		}
 	}
 }
 
