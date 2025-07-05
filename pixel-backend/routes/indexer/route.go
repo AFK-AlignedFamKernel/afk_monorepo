@@ -274,7 +274,7 @@ func consumeIndexerMsg(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("body", string(body))
 	fmt.Println("patchedBody", string(patchedBody))
 	// Restore body for further processing
-	r.Body = io.NopCloser(bytes.NewBuffer(body))
+	r.Body = io.NopCloser(bytes.NewBuffer(patchedBody))
 
 	message, err := routeutils.ReadJsonBody[IndexerMessage](r)
 	fmt.Println("message", message)

@@ -195,29 +195,32 @@ function deployedContractsInfo(block) {
   return {};
 }
 
-export function factory(block) {
-  const filter = {
-    header: { weak: true },
-    // Build event filters based on the events in the current block.
-    events: filterDeployedContracts(block),
-  };
-  // Store deployed contracts in the integration.
-  const data = deployedContractsInfo(block);
+// export function factory(block) {
+//   const filter = {
+//     header: { weak: true },
+//     // Build event filters based on the events in the current block.
+//     events: filterDeployedContracts(block),
+//   };
+//   // Store deployed contracts in the integration.
+//   const data = deployedContractsInfo(block);
 
-  return {
-    filter,
-    data,
-  };
-}
+//   return {
+//     filter,
+//     data,
+//   };
+// }
 
 export default function transform(block) {
-  // Extract events from the block
+  // Wrap each event as { event: ... }
   const events = [];
-  for (const tx of block.transactions) {
-    for (const event of tx.events) {
-      // Optionally filter for your event types
-      events.push(event);
-    }
+  for (const event of block.events) {
+    events.push({ event });
   }
-  return events;
+  // Return a single batch with status and events
+  return [
+    {
+      status: "DATA_STATUS_FINALIZED", // or "ACCEPTED" if you want to match pending/accepted
+      events: events
+    }
+  ];
 }
