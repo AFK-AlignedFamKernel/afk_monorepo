@@ -17,4 +17,8 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 
 config.resolver.unstable_conditionNames = ['browser', 'require', 'react-native'];
 
+config.resolver.extraNodeModules = {
+  '@': path.resolve(__dirname, ''), // or your src root
+};
+
 module.exports = config;
