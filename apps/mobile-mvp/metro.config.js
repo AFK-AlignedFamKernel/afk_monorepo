@@ -1,8 +1,10 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
 
+const projectRoot = __dirname;
+
 /** @type {import('expo/metro-config').MetroConfig} */
-const config = getDefaultConfig(__dirname);
+const config = getDefaultConfig(projectRoot);
 
 // Add .wasm to assetExts
 const { assetExts } = config.resolver;
@@ -17,8 +19,12 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 
 config.resolver.unstable_conditionNames = ['browser', 'require', 'react-native'];
 
+// Alias '@' to the project root
 config.resolver.extraNodeModules = {
-  '@': path.resolve(__dirname, '.'),
+  '@': projectRoot,
 };
+
+// (Optional, but helps in monorepos)
+config.watchFolders = [projectRoot];
 
 module.exports = config;
