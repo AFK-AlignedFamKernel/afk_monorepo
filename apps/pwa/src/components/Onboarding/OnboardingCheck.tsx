@@ -12,10 +12,10 @@ import Onboarding from '.';
 
 
 interface OnboardingCheckProps {
-  isLoadingProp: boolean;
-  isInitalizedProp: boolean;
-  hasOnboardedProp: boolean;
-  isDescriptionVisible: boolean;
+  isLoadingProp?: boolean;
+  isInitalizedProp?: boolean;
+  hasOnboardedProp?: boolean;
+  isDescriptionVisible?: boolean;
 }
 export default function OnboardingCheck({ isLoadingProp, isInitalizedProp, hasOnboardedProp, isDescriptionVisible }: OnboardingCheckProps) {
 

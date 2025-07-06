@@ -1,11 +1,18 @@
+import { Buffer } from 'buffer';
 const TextEncodingPolyfill = require('text-encoding');
 import 'react-native-url-polyfill/auto';
 import 'react-native-get-random-values';
+
+// If not already present in applyGlobalPolyfills.ts, add:
+if (typeof globalThis.Buffer === 'undefined') {
+  globalThis.Buffer = Buffer;
+}
 
 const applyGlobalPolyfills = () => {
   Object.assign(global, {
     TextEncoder: TextEncodingPolyfill.TextEncoder,
     TextDecoder: TextEncodingPolyfill.TextDecoder,
+    Buffer: Buffer,
   });
 
   // // Add import.meta polyfill for web platform
