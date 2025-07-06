@@ -35,7 +35,8 @@ export const useSendGroupMessages = () => {
 
       event.content = data.content;
       // Set the kind based on whether it's a reply or not
-      event.kind = data.replyId ? NDKKind.GroupReply : NDKKind.GroupNote; // Using literal kind values
+      event.kind = data.replyId ? 12 as NDKKind : 11 as NDKKind; // Using literal kind values
+      // kinds: [NDKKind.GroupNote = 11, NDKKind.GroupReply = 12],
 
       // Base tags
       event.tags = [

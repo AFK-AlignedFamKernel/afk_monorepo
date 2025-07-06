@@ -58,8 +58,8 @@
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
-    "@nostr-dev-kit/ndk": "^2.10.1",
-    "@nostr-dev-kit/ndk-wallet": "^0.2.0",
+    "@nostr-dev-kit/ndk": "^2.14.9",
+    "@nostr-dev-kit/ndk-wallet": "^0.5.13",
     "@tanstack/react-query": "^5.40.0",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.0",

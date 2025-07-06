@@ -37,7 +37,7 @@
     "@langchain/ollama": "^0.2.0",
     "@langchain/openai": "^0.3.10",
     "@langchain/pinecone": "^0.2.0",
-    "@nostr-dev-kit/ndk": "2.10.1",
+    "@nostr-dev-kit/ndk": "^2.14.9",
     "@openrouter/ai-sdk-provider": "^0.7.0",
     "@pinecone-database/pinecone": "^5.1.1",
     "@prisma/client": "^5.22.0",
