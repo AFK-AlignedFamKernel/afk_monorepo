@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer';
 const TextEncodingPolyfill = require('text-encoding');
-import 'react-native-url-polyfill/auto';
-import 'react-native-get-random-values';
+// import 'react-native-url-polyfill/auto';
+// import 'react-native-get-random-values';
 
 // If not already present in applyGlobalPolyfills.ts, add:
 if (typeof globalThis.Buffer === 'undefined') {

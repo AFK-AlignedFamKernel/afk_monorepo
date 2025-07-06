@@ -21,6 +21,7 @@
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
     "afk_nostr_sdk": "workspace:*",
+    "buffer": "^6.0.3",
     "crypto-es": "^2.1.0",
     "dexie": "^4.0.11",
     "expo": "~53.0.12",
