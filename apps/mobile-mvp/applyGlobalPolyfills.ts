@@ -53,3 +53,4 @@ const applyGlobalPolyfills = () => {
 };
 
 applyGlobalPolyfills();
+console.log('Polyfills loaded', typeof globalThis.Buffer);

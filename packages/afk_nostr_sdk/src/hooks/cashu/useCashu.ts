@@ -31,6 +31,7 @@ import { MintData } from '../../types';
 import { NDKCashuToken } from '@nostr-dev-kit/ndk';
 
 export interface ICashu {
+  activeMint?: string;
   wallet: CashuWallet;
   mint: CashuMint;
   activeMintIndex?: number;

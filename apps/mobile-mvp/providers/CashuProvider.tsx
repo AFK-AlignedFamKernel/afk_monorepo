@@ -2,7 +2,7 @@ import {useCashu} from 'afk_nostr_sdk';
 import {ICashu} from 'afk_nostr_sdk';
 import React, {createContext, useContext} from 'react';
 
-const CashuContext = createContext<ICashu | undefined>(undefined);
+const CashuContext = createContext<ICashu>({} as ICashu);
 
 export const CashuProvider = ({children}: {children: React.ReactNode}) => {
   const cashu = useCashu();
