@@ -25,6 +25,6 @@ config.resolver.extraNodeModules = {
 };
 
 // (Optional, but helps in monorepos)
-config.watchFolders = [projectRoot];
+// config.watchFolders = [projectRoot];
 
 module.exports = config;
