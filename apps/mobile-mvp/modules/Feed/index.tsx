@@ -1,3 +1,4 @@
+import React from 'react';
 import { NDKEvent, NDKKind } from '@nostr-dev-kit/ndk';
 import { useAllProfiles, useNostrContext, useProfile, useSearch } from 'afk_nostr_sdk';
 import { useAuth, useContacts } from 'afk_nostr_sdk';
@@ -29,16 +30,16 @@ export const FeedComponent: React.FC = () => {
   const profiles = useAllProfiles({ limit: 10 });
   const [activeSortBy, setSortBy] = useState<string | undefined>(SORT_OPTION_EVENT_NOSTR.TIME?.toString());
   const [search, setSearch] = useState<string | undefined>(undefined);
-  const [feedData, setFeedData] = useState(null);
+  const [feedData, setFeedData] = useState([]);
   const [kinds, setKinds] = useState<NDKKind[]>([
     NDKKind.Text,
     NDKKind.ChannelMessage,
-    NDKKind.Metadata,
-    NDKKind.VerticalVideo,
-    NDKKind.HorizontalVideo,
+    // NDKKind.Metadata,
+    // NDKKind.VerticalVideo,
+    // NDKKind.HorizontalVideo,
     30311 as NDKKind,
-    NDKKind.ChannelCreation,
-    NDKKind.GroupChat,
+    // NDKKind.ChannelCreation,
+    // NDKKind.GroupChat,
     NDKKind.Article,
   ]);
 
@@ -71,6 +72,21 @@ export const FeedComponent: React.FC = () => {
     // authors: []
   });
 
+  
+  const fetchEvents = async () => {
+    const events = await ndk.fetchEvents({
+      kinds: [NDKKind.Text],
+      limit: 10,
+    });
+    console.log("events", events);
+    setFeedData(Array.from(events) as any);
+  } 
+
+  useEffect(() => { 
+    fetchEvents();
+  }, []);
+
+  console.log("notes", notes?.data);
   const notesForYou = useSearch({
     kinds,
     limit: 10,
@@ -93,10 +109,11 @@ export const FeedComponent: React.FC = () => {
     [];
 
   const filteredNotes = async () => {
-    const flattenedPages = notes?.data?.pages.flat();
-
+    // const flattenedPages = notes?.data?.pages?.flat() ?? feedData;
+    const flattenedPages = feedData;
+    console.log("flattenedPages", feedData);
     // if (!notes.data?.pages || flattenedPages?.length == 0) return [];
-    if (!notes.data?.pages || flattenedPages?.length == 0) return [];
+    if (!notes.data?.pages || feedData?.length == 0) return [];
 
     // console.log('flattenedPages', flattenedPages);
     // console.log(flattenedPages, 'note pages');
@@ -141,6 +158,7 @@ export const FeedComponent: React.FC = () => {
     ) {
 
       // const profileNdk = new NDKUserProfile({publicKey});
+      if(!publicKey) return [];
       const user = ndk.getUser({ pubkey: publicKey });
       // const profileNdk = await user.fetchProfile();
 
@@ -210,115 +228,10 @@ export const FeedComponent: React.FC = () => {
   const filtedNotesCallback = useCallback(async () => {
     return filteredNotes();
   }, [notes.data?.pages, search, activeSortBy, publicKey, contacts?.data, followersPubkey]);
-  // const filteredNotes = useCallback(async () => {
-  //   const flattenedPages = notes?.data?.pages.flat();
-
-  //   // if (!notes.data?.pages || flattenedPages?.length == 0) return [];
-  //   if (!notes.data?.pages || flattenedPages?.length == 0) return [];
-
-  //   // console.log('flattenedPages', flattenedPages);
-  //   // console.log(flattenedPages, 'note pages');
-  //   // if (!search || search.length === 0) {
-  //   //   setFeedData(flattenedPages as any);
-  //   //   return flattenedPages;
-  //   // }
-  //   const searchLower = search?.toLowerCase();
-  //   let filtered: any[] | undefined = [];
-  //   if (
-  //     // activeSortBy == "0" || 
-  //     activeSortBy == SORT_OPTION_EVENT_NOSTR.TIME?.toString()
-  //   ) {
-  //     console.log('RECENT SORT',);
-  //     filtered = flattenedPages?.filter((item) =>
-  //       item?.content?.toLowerCase().includes(searchLower),
-  //     )
-  //       .sort((a, b) => {
-  //         const aCreated = a?.created_at || 0;
-  //         const bCreated = b?.created_at || 0;
-  //         return bCreated - aCreated; // Sort descending (most recent first)
-  //       }) ?? flattenedPages;
-
-  //     // filtered = flattenedPages?.filter((item) =>
-  //     //   item?.content?.toLowerCase().includes(searchLower),
-  //     // ) ?? flattenedPages;
-  //   }
-  //   else if (activeSortBy == SORT_OPTION_EVENT_NOSTR.TRENDING?.toString()
-  //     // || activeSortBy == "1"
-  //   ) {
-  //     console.log('TRENDING SORT');
-  //     // TODO add trending notes
-  //     filtered = flattenedPages?.filter((item) =>
-  //       item?.content?.toLowerCase().includes(searchLower),
-  //     ) ?? flattenedPages;
-  //     return filtered;
-  //   } else if (
-  //     // activeSortBy == '2' || 
-  //     activeSortBy == SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString()
-  //     && contacts && contacts?.data
-
-  //   ) {
-
-  //     // const profileNdk = new NDKUserProfile({publicKey});
-  //     const user = ndk.getUser({ pubkey: publicKey });
-  //     const profileNdk = await user.fetchProfile();
-
-  //     // const followers = profile?.data?.followers;
-  //     const followers = await user?.follows();
-  //     // console.log("followers", followers);
-  //     // console.log("contacts", contacts?.data);
-
-  //     setFollowersPubkey([...followers].map((n) => n?.pubkey) || []);
-  //     // let forYouNotes =
-  //     //   notes.data?.pages.flat().filter((item) =>{
-  //     //     contacts?.data?.some(contactPubkey => item?.pubkey === contactPubkey)
-  //     //   || [...followers]?.flat()?.some((n) => item?.pubkey === n?.pubkey)
-  //     //   }
-  //     //   ) ?? [];
-  //     let forYouNotes =
-  //       notes.data?.pages.flat().filter((item) => {
-  //         contacts?.data?.some(contactPubkey => item?.pubkey === contactPubkey)
-  //           || [...followers]?.flat()?.some((n) => item?.pubkey === n?.pubkey)
-  //       }
-  //       ) ?? [];
-  //     // console.log('forYouNotes', forYouNotes);
-
-  //     forYouNotes =
-  //       notes?.data?.pages?.flat().map((item) =>
-  //         [...followers]?.flat()?.some((n) => item?.pubkey === n?.pubkey)
-  //       ) ?? [];
-
-  //     // notes.data?.pages.flat().filter((item) => item?.pubkey === contacts?.data[0]) ?? [];
-  //     console.log('forYouNotes', forYouNotes);
-  //     setFeedData(forYouNotes as any);
-  //     // setForYouNotes(forYouNotes as any);
-  //   }
-  //   else if (
-  //     // activeSortBy == "3" ||
-  //     activeSortBy == SORT_OPTION_EVENT_NOSTR.INTERESTS?.toString()) {
-  //     console.log('INTERESTS SORT');
-  //     // TODO add interests notes
-  //     // filtered = flattenedPages?.filter((item) =>
-  //     //   item?.content?.toLowerCase().includes(searchLower) || item?.tags?.some((tag: string) => tag[1]?.match(/^#(.*)$/)),
-  //     // ) ?? flattenedPages;
-  //   }
-  //   if (searchLower && searchLower?.length > 0) {
-  //     filtered = flattenedPages?.filter((item) =>
-  //       item?.content?.toLowerCase().includes(searchLower),
-  //     ) ?? flattenedPages;
-  //     // console.log('search result is => ', filtered);
-  //   }
-  //   // return filtered;
-  //   // setFeedData(filtered as any);
-  //   setFeedData(filtered?.filter((note, index, self) =>
-  //     index === self.findIndex((n) => n.id === note.id)
-  //   ) as any);
-
-  //   // console.log('filtered notes => ', filtered);
-  //   return filtered;
-  //   // }, [notes.data?.pages, search, activeSortBy, publicKey, contacts?.data, followersPubkey]);
-  // }, [search, activeSortBy, publicKey, contacts?.data, followersPubkey]);
+ 
   // Filter notes based on the search query
   useEffect(() => {
+    fetchEvents();
     filteredNotes();
     // console.log('Filtered notes:', filtered);
     // setFeedData(filtered as any);
@@ -361,9 +274,9 @@ export const FeedComponent: React.FC = () => {
         sortBy={activeSortBy}
       />
 
-      {notes?.isFetching && (
+      {/* {notes?.isFetching && (
         <ActivityIndicator color={theme.colors.primary} size={20}></ActivityIndicator>
-      )}
+      )} */}
 
       {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() && !publicKey && (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

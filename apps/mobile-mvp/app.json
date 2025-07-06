@@ -23,6 +23,9 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+    "router": {
+      "origin": "./app/_layout.tsx"
+    },
     "plugins": [
       "expo-router",
       [

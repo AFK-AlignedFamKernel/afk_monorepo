@@ -1,3 +1,5 @@
+import '../applyGlobalPolyfills';
+import React from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -5,6 +7,17 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { NostrProvider, TanstackProvider } from 'afk_nostr_sdk';
+import { CashuProvider } from '@/providers/CashuProvider';
+import { ToastProvider } from '@/context/Toast/ToastContext';
+import { DialogProvider } from '@/context/Dialog';
+import { LoginModalProvider } from '@/context/LoginModalProvider';
+import { StarknetProvider } from '@/providers/StarknetProvider';
+import { QuoteNostrModalProvider } from '@/context/QuoteNostrModal';
+import { TipModalProvider } from '@/context/TipModal';
+import { WalletModalProvider } from '@/context/WalletModal';
+import { TransactionModalProvider } from '@/context/TransactionModal';
+import { ModalParentProvider } from '@/context/modal/ModalParent';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -19,11 +32,40 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+      <TanstackProvider>
+        <StarknetProvider>
+
+          <NostrProvider>
+            <CashuProvider>
+              <ToastProvider>
+
+                <DialogProvider>
+                  <LoginModalProvider>
+                    <QuoteNostrModalProvider>
+                      <WalletModalProvider>
+                        <TransactionModalProvider
+                        >
+                          <ModalParentProvider
+                          >
+                            <TipModalProvider>
+                              <Stack>
+                                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                                <Stack.Screen name="+not-found" />
+                              </Stack>
+                            </TipModalProvider>
+                          </ModalParentProvider>
+                        </TransactionModalProvider>
+                      </WalletModalProvider>
+                    </QuoteNostrModalProvider>
+                  </LoginModalProvider>
+                </DialogProvider>
+              </ToastProvider>
+            </CashuProvider>
+          </NostrProvider>
+        </StarknetProvider>
+
+      </TanstackProvider>
       <StatusBar style="auto" />
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }

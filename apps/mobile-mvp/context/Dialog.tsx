@@ -1,3 +1,4 @@
+import React from 'react';
 import {createContext, useCallback, useMemo, useState} from 'react';
 
 import {Dialog, DialogProps} from '../components/Dialog';

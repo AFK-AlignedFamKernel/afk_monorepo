@@ -63,6 +63,7 @@ export const useSearch = (options?: UseSearch): UseInfiniteQueryResult<any> => {
           limit: options?.limit ?? 10,
         });
 
+        console.log("notes", notes);
         // Filter out duplicate events based on their IDs
         const uniqueNotes = Array.from(
           new Set([...notes].map(note => note.id))

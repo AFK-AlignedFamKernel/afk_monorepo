@@ -95,11 +95,9 @@ export const StencilCreationTab = (props: any) => {
     // const imgHash = urlHash;
     const ipfsHash = res?.result;
     console.log("ipfsHash",ipfsHash)
-
-    const imgHash = hash;
     // if (!account) return;
     try {
-      let hashFelt = cairo.felt(hash);
+      const hashFelt = cairo.felt(hash);
       // console.log("hashFelt", hashFelt)
       // console.log("props.worldId", props.worldId)
       // console.log("props.stencilImage.width", props.stencilImage.width)

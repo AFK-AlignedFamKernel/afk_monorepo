@@ -1,6 +1,6 @@
 export const RELAYS_PROD = [
   'wss://relay.primal.net',
-  // 'wss://relay.damus.io',
+  'wss://relay.damus.io',
   'wss://nos.lol'
   // 'wss://relay.snort.social',
   // 'wss://nos.lol'
@@ -8,7 +8,7 @@ export const RELAYS_PROD = [
 ];
 
 export const RELAYS_TEST = [
-  'wss://nos.lol'
+  // 'wss://nos.lol'
 ];
 
 // export const RELAYS_TEST = ['wss://relay.n057r.club', 'wss://relay.nostr.net'];

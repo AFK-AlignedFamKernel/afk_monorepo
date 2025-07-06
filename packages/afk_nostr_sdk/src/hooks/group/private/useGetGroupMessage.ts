@@ -27,7 +27,7 @@ export const useGetGroupMessages = (options: UseGetActiveGroupListOptions):UseIn
     queryFn: async ({pageParam}) => {
       const events = await ndk.fetchEvents({
         '#h': [options.groupId],
-        kinds: [NDKKind.GroupNote, NDKKind.GroupReply],
+        kinds: [11 as NDKKind, 12 as NDKKind], // NDKKind.GroupNote, NDKKind.GroupReply
         // authors: [options?.authors],
         search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),

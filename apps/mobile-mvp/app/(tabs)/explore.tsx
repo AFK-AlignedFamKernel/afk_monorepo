@@ -1,3 +1,4 @@
+import React from 'react';
 import { Image } from 'expo-image';
 import { Platform, StyleSheet } from 'react-native';
 
@@ -7,6 +8,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { FeedComponent } from '@/modules/Feed';
 
 export default function TabTwoScreen() {
   return (
@@ -92,6 +94,7 @@ export default function TabTwoScreen() {
           ),
         })}
       </Collapsible>
+      <FeedComponent />
     </ParallaxScrollView>
   );
 }

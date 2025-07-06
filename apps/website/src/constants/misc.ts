@@ -15,7 +15,7 @@ export enum Entrypoint {
 }
 
 export const NETWORK_NAME = process.env.NETWORK_NAME as constants.NetworkName;
-if (!NETWORK_NAME) throw new Error('NETWORK_NAME is not set');
+// if (!NETWORK_NAME) throw new Error('NETWORK_NAME is not set');
 
 export const CHAIN_ID = constants.StarknetChainId[NETWORK_NAME];
 
