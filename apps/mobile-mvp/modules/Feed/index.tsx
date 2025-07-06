@@ -30,16 +30,16 @@ export const FeedComponent: React.FC = () => {
   const profiles = useAllProfiles({ limit: 10 });
   const [activeSortBy, setSortBy] = useState<string | undefined>(SORT_OPTION_EVENT_NOSTR.TIME?.toString());
   const [search, setSearch] = useState<string | undefined>(undefined);
-  const [feedData, setFeedData] = useState(null);
+  const [feedData, setFeedData] = useState([]);
   const [kinds, setKinds] = useState<NDKKind[]>([
     NDKKind.Text,
     NDKKind.ChannelMessage,
-    NDKKind.Metadata,
-    NDKKind.VerticalVideo,
-    NDKKind.HorizontalVideo,
+    // NDKKind.Metadata,
+    // NDKKind.VerticalVideo,
+    // NDKKind.HorizontalVideo,
     30311 as NDKKind,
-    NDKKind.ChannelCreation,
-    NDKKind.GroupChat,
+    // NDKKind.ChannelCreation,
+    // NDKKind.GroupChat,
     NDKKind.Article,
   ]);
 
@@ -73,9 +73,20 @@ export const FeedComponent: React.FC = () => {
   });
 
   
+  const fetchEvents = async () => {
+    const events = await ndk.fetchEvents({
+      kinds: [NDKKind.Text],
+      limit: 10,
+    });
+    console.log("events", events);
+    setFeedData(Array.from(events) as any);
+  } 
+
+  useEffect(() => { 
+    fetchEvents();
+  }, []);
 
   console.log("notes", notes?.data);
-
   const notesForYou = useSearch({
     kinds,
     limit: 10,
@@ -98,10 +109,11 @@ export const FeedComponent: React.FC = () => {
     [];
 
   const filteredNotes = async () => {
-    const flattenedPages = notes?.data?.pages.flat();
-
+    // const flattenedPages = notes?.data?.pages?.flat() ?? feedData;
+    const flattenedPages = feedData;
+    console.log("flattenedPages", feedData);
     // if (!notes.data?.pages || flattenedPages?.length == 0) return [];
-    if (!notes.data?.pages || flattenedPages?.length == 0) return [];
+    if (!notes.data?.pages || feedData?.length == 0) return [];
 
     // console.log('flattenedPages', flattenedPages);
     // console.log(flattenedPages, 'note pages');
@@ -146,6 +158,7 @@ export const FeedComponent: React.FC = () => {
     ) {
 
       // const profileNdk = new NDKUserProfile({publicKey});
+      if(!publicKey) return [];
       const user = ndk.getUser({ pubkey: publicKey });
       // const profileNdk = await user.fetchProfile();
 
@@ -218,6 +231,7 @@ export const FeedComponent: React.FC = () => {
  
   // Filter notes based on the search query
   useEffect(() => {
+    fetchEvents();
     filteredNotes();
     // console.log('Filtered notes:', filtered);
     // setFeedData(filtered as any);

@@ -20,6 +20,7 @@ import { randomUUID } from 'expo-crypto';
 import { Proof, ProofState, CheckStateEnum, MeltQuoteState } from '@cashu/cashu-ts';
 import { invoicesApi, proofsApi, proofsByMintApi, proofsSpentsByMintApi, settingsApi } from '@/utils/database';
 import { Icon } from '@/components/Icon';
+// import { usePayment } from '@/hooks/usePayment';
 
 export const Balance = () => {
   const { getUnitBalance, setActiveUnit, getUnitBalanceWithProofsChecked, wallet, activeMint, activeUnit, setActiveMint, } = useCashuContext()!;
@@ -35,7 +36,7 @@ export const Balance = () => {
   const { value: proofs, setValue: setProofsStore } = useProofsStorage();
 
 
-  const { handleReceivedInvoicePayment } = usePayment();
+  // const { handleReceivedInvoicePayment } = usePayment();
   const { data: tokensEvents } = useGetCashuTokenEvents();
   const { data: walletsInfo } = useGetCashuWalletsInfo();
   const { data: spendingEvents } = useGetSpendingTokens();

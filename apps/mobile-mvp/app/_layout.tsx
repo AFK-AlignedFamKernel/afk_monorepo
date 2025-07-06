@@ -12,6 +12,12 @@ import { CashuProvider } from '@/providers/CashuProvider';
 import { ToastProvider } from '@/context/Toast/ToastContext';
 import { DialogProvider } from '@/context/Dialog';
 import { LoginModalProvider } from '@/context/LoginModalProvider';
+import { StarknetProvider } from '@/providers/StarknetProvider';
+import { QuoteNostrModalProvider } from '@/context/QuoteNostrModal';
+import { TipModalProvider } from '@/context/TipModal';
+import { WalletModalProvider } from '@/context/WalletModal';
+import { TransactionModalProvider } from '@/context/TransactionModal';
+import { ModalParentProvider } from '@/context/modal/ModalParent';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -27,26 +33,39 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <TanstackProvider>
+        <StarknetProvider>
 
-        <NostrProvider>
-          <CashuProvider>
-            <ToastProvider>
+          <NostrProvider>
+            <CashuProvider>
+              <ToastProvider>
 
-              <DialogProvider>
-                <LoginModalProvider>
+                <DialogProvider>
+                  <LoginModalProvider>
+                    <QuoteNostrModalProvider>
+                      <WalletModalProvider>
+                        <TransactionModalProvider
+                        >
+                          <ModalParentProvider
+                          >
+                            <TipModalProvider>
+                              <Stack>
+                                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                                <Stack.Screen name="+not-found" />
+                              </Stack>
+                            </TipModalProvider>
+                          </ModalParentProvider>
+                        </TransactionModalProvider>
+                      </WalletModalProvider>
+                    </QuoteNostrModalProvider>
+                  </LoginModalProvider>
+                </DialogProvider>
+              </ToastProvider>
+            </CashuProvider>
+          </NostrProvider>
+        </StarknetProvider>
 
-                  <Stack>
-                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                    <Stack.Screen name="+not-found" />
-                  </Stack>
-                </LoginModalProvider>
-
-              </DialogProvider>
-            </ToastProvider>
-          </CashuProvider>
-        </NostrProvider>
       </TanstackProvider>
       <StatusBar style="auto" />
-    </ThemeProvider>
+    </ThemeProvider >
   );
 }
