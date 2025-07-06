@@ -31,15 +31,17 @@ export default function RootLayout() {
         <NostrProvider>
           <CashuProvider>
             <ToastProvider>
-              <LoginModalProvider>
 
-                <DialogProvider>
+              <DialogProvider>
+                <LoginModalProvider>
+
                   <Stack>
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                     <Stack.Screen name="+not-found" />
                   </Stack>
-                </DialogProvider>
-              </LoginModalProvider>
+                </LoginModalProvider>
+
+              </DialogProvider>
             </ToastProvider>
           </CashuProvider>
         </NostrProvider>

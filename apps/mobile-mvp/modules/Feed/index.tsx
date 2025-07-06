@@ -72,7 +72,9 @@ export const FeedComponent: React.FC = () => {
     // authors: []
   });
 
-  console.log("notes", notes);
+  
+
+  console.log("notes", notes?.data);
 
   const notesForYou = useSearch({
     kinds,
@@ -364,9 +366,9 @@ export const FeedComponent: React.FC = () => {
         sortBy={activeSortBy}
       />
 
-      {notes?.isFetching && (
+      {/* {notes?.isFetching && (
         <ActivityIndicator color={theme.colors.primary} size={20}></ActivityIndicator>
-      )}
+      )} */}
 
       {activeSortBy === SORT_OPTION_EVENT_NOSTR.FOR_YOU?.toString() && !publicKey && (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
