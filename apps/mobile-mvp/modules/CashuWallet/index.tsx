@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import '../../../applyGlobalPolyfills';
-
 import { NostrKeyManager, useAuth, useCashu, useCashuStore, useCreateWalletEvent, useGetCashuTokenEvents } from 'afk_nostr_sdk';
 import { getRandomBytes, randomUUID } from 'expo-crypto';
 import React, { useEffect, useState } from 'react';
@@ -34,8 +33,7 @@ import { Send } from './components/Send';
 import { Settings } from './components/Settings';
 import stylesheet from './styles';
 import NfcPayment from '../NfcPayment';
-import { NfcIcon } from 'src/assets/icons';
-import { mintsApi } from 'src/utils/database';
+import { mintsApi } from '../../utils/database';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -53,7 +51,8 @@ export const CashuView = () => {
 
   const { seed, setSeed } = useCashuStore();
 
-  const {activeMint, activeUnit, setActiveMint, setActiveUnit} = useCashuContext()
+  const { activeMint } = useCashuContext() || {};
+  const { activeUnit, setActiveMint, setActiveUnit } = useCashuContext();
   // states
   const [isOpenContactManagement, setIsOpenContactManagement] = useState(false);
   const [selectedTab, setSelectedTab] = useState<SelectedTab | undefined>(SelectedTab.CASHU_MINT);
@@ -75,10 +74,9 @@ export const CashuView = () => {
 
   //context
   const { buildMintData, setMints, setProofs } = useCashuContext()!;
-  const { publicKey, privateKey } = useAuth();
+  // const { publicKey, privateKey } = useAuth();
 
   const { mutateAsync: createWalletEvent } = useCreateWalletEvent();
-
 
   const [isInit, setIsInit] = useState<boolean>(false);
 
@@ -123,8 +121,8 @@ export const CashuView = () => {
 
   useEffect(() => {
     if (activeUnit && !isInit) {
-      setActiveUnit(activeUnit);
-      setActiveUnitStorage(activeUnit);
+      setActiveUnit(activeUnit!);
+      setActiveUnitStorage(activeUnit!);
       setIsInit(true);
     }
 

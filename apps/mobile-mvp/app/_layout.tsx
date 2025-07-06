@@ -7,6 +7,11 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { NostrProvider, TanstackProvider } from 'afk_nostr_sdk';
+import { CashuProvider } from '@/providers/CashuProvider';
+import { ToastProvider } from '@/context/Toast/ToastContext';
+import { DialogProvider } from '@/context/Dialog';
+import { LoginModalProvider } from '@/context/LoginModalProvider';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -21,10 +26,24 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
+      <TanstackProvider>
+
+        <NostrProvider>
+          <CashuProvider>
+            <ToastProvider>
+              <LoginModalProvider>
+
+                <DialogProvider>
+                  <Stack>
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="+not-found" />
+                  </Stack>
+                </DialogProvider>
+              </LoginModalProvider>
+            </ToastProvider>
+          </CashuProvider>
+        </NostrProvider>
+      </TanstackProvider>
       <StatusBar style="auto" />
     </ThemeProvider>
   );

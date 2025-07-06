@@ -18,6 +18,7 @@ import { RenderEventCard } from '../Studio';
 import { Button } from '../../components';
 import { useNavigation } from '@react-navigation/native';
 import { ArticleCard } from '../ArticleCard';
+import React from 'react';
 
 export const FeedComponent: React.FC = () => {
 
@@ -70,6 +71,8 @@ export const FeedComponent: React.FC = () => {
     // limit: 20,
     // authors: []
   });
+
+  console.log("notes", notes);
 
   const notesForYou = useSearch({
     kinds,

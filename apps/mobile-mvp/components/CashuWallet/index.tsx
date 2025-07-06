@@ -32,9 +32,9 @@ import { Receive } from './components/Receive';
 import { Send } from './components/Send';
 import { Settings } from './components/Settings';
 import stylesheet from './styles';
-import { SelectedTab } from '@/types/tab';
+import { SelectedTab, TABS_CASHU } from '@/types/tab';
 import { useCashuContext } from '@/providers/CashuProvider';
-import { useCashuStore } from 'afk_nostr_sdk';
+import { NostrKeyManager, useAuth, useCashuStore, useCreateWalletEvent } from 'afk_nostr_sdk';
 
 export const CashuWalletView: React.FC = () => {
   return (
@@ -114,7 +114,7 @@ export const CashuView = () => {
 
   useEffect(() => {
     if (!activeMint && !isInit) {
-      setActiveMint(activeMint);
+      setActiveMint(activeMint!);
       setIsInit(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

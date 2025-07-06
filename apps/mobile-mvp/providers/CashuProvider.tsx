@@ -11,5 +11,9 @@ export const CashuProvider = ({children}: {children: React.ReactNode}) => {
 };
 
 export const useCashuContext = () => {
-  return useContext(CashuContext);
+  const ctx = useContext(CashuContext);
+  if (!ctx) {
+    throw new Error('useCashuContext must be used within a CashuProvider');
+  }
+  return ctx;
 };

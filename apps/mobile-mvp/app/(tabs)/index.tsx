@@ -7,6 +7,7 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import React from 'react';
+import { FeedComponent } from '@/modules/Feed';
 // import { FeedComponent } from '@/modules/Feed';
 
 export default function HomeScreen() {
@@ -55,7 +56,7 @@ export default function HomeScreen() {
         </ThemedText>
       </ThemedView>
       <CashuView />
-      {/* <FeedComponent /> */}
+      <FeedComponent />
     </ParallaxScrollView>
   );
 }
