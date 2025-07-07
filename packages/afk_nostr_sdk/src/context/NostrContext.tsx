@@ -17,6 +17,8 @@ export type NostrContextType = {
   ndkCashuWallet?: NDKCashuWallet;
   ndkWallet?: NDKWallet;
   setNdk: (ndk: NDKInstance) => void;
+  isNdkConnected: boolean;
+  setIsNdkConnected: (isNdkConnected: boolean) => void;
 };
 
 export const NostrContext = createContext<NostrContextType | null>(null);
@@ -29,7 +31,7 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
   const relays = useSettingsStore((state) => state.relays);
   const setIsConnected = useSettingsStore((state) => state.setIsConnected);
   const nip07Signer = new NDKNip07Signer();
-
+  const [isNdkConnected, setIsNdkConnected] = useState(false);
   const [ndk, setNdk] = useState<NDKInstance>(
     new NDK({
       explicitRelayUrls: relays ?? AFK_RELAYS,
@@ -68,6 +70,10 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
 
     newNdk.connect().then(() => {
       setNdk(newNdk);
+      setIsNdkConnected(true);
+    }).catch((err) => {
+      console.error('Failed to connect to relays', err);
+      setIsNdkConnected(false);
     });
 
     // Use any type to avoid type incompatibility issues
@@ -104,7 +110,7 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
 
   return (
     <NostrContext.Provider
-      value={{ndk, nip07Signer, nwcNdk, ndkWallet, ndkCashuWallet, setNdk}}>
+      value={{ndk, nip07Signer, nwcNdk, ndkWallet, ndkCashuWallet, setNdk, isNdkConnected, setIsNdkConnected}}>
       {children}
     </NostrContext.Provider>
   );
