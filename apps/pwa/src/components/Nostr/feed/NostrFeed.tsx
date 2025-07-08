@@ -30,7 +30,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 }) => {
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
-  const { ndk } = useNostrContext();
+  const { ndk, isNdkConnected } = useNostrContext();
 
   // Debug log the NDK instance and relays
   // useEffect(() => {
@@ -67,6 +67,21 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     try {
       setIsLoadingMore(true);
       console.log("fetching events");
+
+      if (ndk.pool?.relays?.size === 0) {
+        console.log("no relays");
+        return;
+      }
+
+      if (ndk.pool?.connectedRelays().length === 0) {
+        console.log("not connected");
+        await ndk.connect();
+        // return;
+      } else {
+        console.log("connected");
+        console.log("connectedRelays", ndk.pool?.connectedRelays);
+      }
+      
       const notes = await ndk.fetchEvents({
         kinds: [...kinds],
         authors: authors,
@@ -128,12 +143,10 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   // Initial data load
   useEffect(() => {
-    if (isInitialLoading) {
+    if (isNdkConnected) {
       loadInitialData();
-      setIsInitialLoading(false);
-    };
-    // loadInitialData();
-  }, [kinds, limit, authors, searchQuery, since, until, isInitialLoading]);
+    }
+  }, [isNdkConnected, kinds, limit, authors, searchQuery, since, until]);
 
 
   useEffect(() => {

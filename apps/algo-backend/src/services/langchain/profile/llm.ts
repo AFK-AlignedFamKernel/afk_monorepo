@@ -1,4 +1,3 @@
-
 import { Pinecone } from "@pinecone-database/pinecone";
 import { ChatPromptTemplate } from "@langchain/core/prompts"
 
@@ -159,9 +158,8 @@ export const handleClassificationProfile = async (profileContent: string, conten
                 .describe("The language the text is written in"),
         });
 
-        console.log("llmWihStructuredOutput");
-        // Name is optional, but gives the models more clues as to what your schema represents
-        const llmWihStructuredOutput = llm.withStructuredOutput(classificationSchema, {
+        type Classification = z.infer<typeof classificationSchema>;
+        const llmWihStructuredOutput = llm.withStructuredOutput<Classification>(classificationSchema, {
             name: "extractor",
         });
 
