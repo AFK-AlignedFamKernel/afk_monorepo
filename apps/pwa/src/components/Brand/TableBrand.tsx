@@ -6,6 +6,7 @@ import { useBrandStore } from "@/store/brand";
 import Link from "next/link";
 import Image from "next/image";
 import BrandPage from "./BrandPage";
+import CryptoLoading from "../small/crypto-loading";
 
 interface ITableBrandProps {
     brandsProps?: any[]
@@ -59,7 +60,10 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
     return (
         <div>
 
-            {loading && <div>Loading...</div>}
+            {loading && <div className="flex flex-row gap-2 items-center">
+                Loading...
+                <CryptoLoading />
+            </div>}
 
             {isRefreshButton && (
                 <button onClick={() => setIsInitialLoading(false)}><Icon name="RefreshIcon" size={20} /></button>

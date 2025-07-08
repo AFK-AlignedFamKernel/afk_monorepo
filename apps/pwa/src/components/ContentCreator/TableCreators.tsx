@@ -14,6 +14,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Icon } from '../small/icon-component';
 import PageCreator from './PageCreator';
+import CryptoLoading from '../small/crypto-loading';
 
 interface ITableCreatorsProps {
   isRedirect?: boolean;
@@ -31,6 +32,8 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
   const { contentCreators: contentCreatorsStore, setContentCreators: setContentCreatorsStore } = useCreatorsStore()
   const [creators, setCreators] = useState<IContentCreator[]>(contentCreatorsStore || []);
 
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [contentCreators, setContentCreators] = useState<IContentCreator[]>(contentCreatorsStore || []);
   const [isFetchContentDone, setIsFetchContentDone] = useState(false);
   const fetchCreators = async () => {
@@ -39,6 +42,7 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
         return;
       }
 
+      setLoading(true)
       // const res = await api.content_creator.list();
       const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/content-creator`, {
         method: 'GET',
@@ -49,11 +53,13 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
       setCreators(data.length > 0 ? data : []);
       setContentCreatorsStore(data.length > 0 ? data : []);
       setIsFetchContentDone(true)
+      setLoading(false)
     } catch (error) {
       console.error("Error fetching creators:", error);
     }
     finally {
       setIsFetchContentDone(true)
+      setLoading(false)
     }
   };
 
@@ -104,6 +110,11 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
   return (
     <div className="rounded-xl shadow-lg bg-card p-4 w-full md:max-w-3xl mx-auto overflow-x-auto">
       {/* <h3 className="text-sm font-semibold mb-2">All Connected & Verified Creators</h3> */}
+
+      {loading && <div className="flex flex-row gap-2 items-center">
+        Loading...
+        <CryptoLoading />
+      </div>}
 
       {creators?.length === 0 && (
         <div className="flex flex-row justify-center">
