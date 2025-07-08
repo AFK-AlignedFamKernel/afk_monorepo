@@ -10,6 +10,7 @@ export class TwitterScraper {
   private scraper: Scraper;
 
   public isInitialized = false;
+  public cookies: any[] = [];
 
   constructor() {
     console.log("PROXY_URL", PROXY_URL);
@@ -42,14 +43,26 @@ export class TwitterScraper {
       console.log("cookies", cookies);
       if (!cookies || cookies.length === 0) {
 
-        console.log("login");
+        console.log("login twitter scraper");
         const user = await this.scraper.login(credentials.username, credentials.password, credentials.email);
         console.log("user", user);
-        this.isInitialized = true;
+        const cookies = await this.scraper.getCookies();
+        console.log("cookies after login", cookies);
+        if(cookies && cookies.length > 0) {
+          this.scraper.setCookies(cookies);
+          this.cookies = cookies;
+          this.isInitialized = true;
+          console.log("twitter scraper initialized");
+          return true;
+        } else {
+          console.log("twitter scraper not initialized after login");
+          // return false;
+        }
         return true;
       }
 
       this.scraper.setCookies(cookies);
+      this.cookies = cookies;
       this.isInitialized = true;
       return true;
     } catch (error) {

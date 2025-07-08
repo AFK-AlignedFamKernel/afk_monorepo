@@ -58,20 +58,20 @@ export class TwitterAnalytics {
             let lastTwitter = null;
 
             if (!this.twitterScraper.isInitialized) {
+                console.log("twitter scraper not initialized");
                 await this.twitterScraper.init({
                     username: process.env.TWITTER_USERNAME!,
                     password: process.env.TWITTER_PASSWORD!,
                     email: process.env.TWITTER_EMAIL!,
                 });
+                console.log("twitter scraper initialized");
             }
 
             const user = await this.twitterScraper.getUser(brand_handle);
             console.log("user", user);
             // let query = `(${brand_handle} OR @${brand_handle} OR ${user?.name} OR ${user?.username} ${ticker && `OR $${ticker} OR ${ticker}`}) since:${new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString().split('T')[0]}`;
             let query = `(${brand_handle} OR @${brand_handle} OR ${user?.name} OR ${user?.username} ${ticker ? `OR $${ticker} OR ${ticker}` : ""}) since:${new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString().split('T')[0]}`;
-
             console.log("query", query);
-
             const twitterLatestTweets = await this.twitterScraper.searchTweets(query, 100, SearchMode.Top);
 
             if (!twitterLatestTweets) {
@@ -263,15 +263,7 @@ export class TwitterAnalytics {
             //     twitterHandles: [user]
             // });
             // console.log("lastTwitter apify", lastTwitter);
-            // const lastXkaito = await this.apifyService.runApifyActorWithDataset(this.actorsApify["x-kaito"], {
-            //     searchTerms: [brand_handle],
-            //     since: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
-            //     "@": brand_handle,
-            //     queryType: "Top",
-            //     maxItems: 100,
-            //     twitterContent: brand_handle,
-            // });
-            const lastXkaito = await this.apifyService.getLastRunItemsApifyActorWithDataset(this.actorsApify["x-kaito"], {
+            const lastXkaito = await this.apifyService.runApifyActorWithDataset(this.actorsApify["x-kaito"], {
                 searchTerms: [brand_handle],
                 since: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
                 "@": brand_handle,
@@ -279,6 +271,14 @@ export class TwitterAnalytics {
                 maxItems: 100,
                 twitterContent: brand_handle,
             });
+            // const lastXkaito = await this.apifyService.getLastRunItemsApifyActorWithDataset(this.actorsApify["x-kaito"], {
+            //     searchTerms: [brand_handle],
+            //     since: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+            //     "@": brand_handle,
+            //     queryType: "Top",
+            //     maxItems: 100,
+            //     twitterContent: brand_handle,
+            // });
             console.log("lastXkaito apify", lastXkaito);
 
             const usersNames = new Set();
@@ -287,7 +287,6 @@ export class TwitterAnalytics {
             const userTweets = new Map();
             const userTweet = new Map();
             const userTweetsWithData = new Map();
-
 
             if (lastXkaito && Array.isArray(lastXkaito)) {
                 lastXkaito.forEach((tweet: any) => {
