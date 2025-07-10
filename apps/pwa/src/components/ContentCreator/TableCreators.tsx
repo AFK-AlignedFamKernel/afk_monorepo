@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { Icon } from '../small/icon-component';
 import PageCreator from './PageCreator';
 import CryptoLoading from '../small/crypto-loading';
+import { logClickedEvent } from '@/lib/analytics';
 
 interface ITableCreatorsProps {
   isRedirect?: boolean;
@@ -153,6 +154,7 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
                   onClick={() => {
                     if (!isRedirect) {
                       setSelectedCreator(creator)
+                      logClickedEvent(`content_creator_${creator.slug_name}`, "click", `content_creator_${creator.slug_name}`);
                     } else {
                       // router.push(`/content-creator/profile/${creator.slug_name}`)
                     }
@@ -186,7 +188,11 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
                                   >
                                     {platform?.name}
                                   </p> */}
-                                <Link href={`https://x.com/${platform?.identity_data?.user_name ?? platform?.identity_data?.name}`} target="_blank" rel="noopener noreferrer">
+                                <Link href={`https://x.com/${platform?.identity_data?.user_name ?? platform?.identity_data?.name}`} target="_blank" rel="noopener noreferrer"
+                                  onClick={() => {
+                                    logClickedEvent(`view_x_${platform?.identity_data?.user_name ?? platform?.identity_data?.name}`, "click", `view_x_${platform?.identity_data?.user_name ?? platform?.identity_data?.name}`);
+                                  }}
+                                >
                                   <Image src="/assets/icons/twitter.svg" alt="Twitter" width={20} height={20} className="hover:opacity-80 bg-gray-500 rounded-full p-1" />
                                 </Link>
                               </div>
@@ -205,11 +211,15 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
                       </div>
                     )}
                   </td>
-                  <td>
-                    <Link href={`/content-creator/profile/${creator.slug_name}`}>
+                  {/* <td>
+                    <Link href={`/content-creator/profile/${creator.slug_name}`}
+                      onClick={() => {
+                        logClickedEvent(`content_creator_${creator.slug_name}`, "click", `content_creator_${creator.slug_name}`);
+                      }}
+                    >
                       View
                     </Link>
-                  </td>
+                  </td> */}
                   {/* <td className="px-4 py-3 min-w-[120px]">
                       {creator?.twitter_handle ? (
                         <a

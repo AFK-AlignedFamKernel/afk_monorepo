@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import BrandPage from "./BrandPage";
 import CryptoLoading from "../small/crypto-loading";
+import { logClickedEvent } from "@/lib/analytics";
 
 interface ITableBrandProps {
     brandsProps?: any[]
@@ -87,6 +88,7 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
                                     onClick={() => {
                                         if (!isRedirect) {
                                             setSelectedBrand(brand)
+                                            logClickedEvent(`brand_${brand?.slug_name}`, "click", `brand_${brand?.slug_name}`);
                                         } else {
                                             // router.push(`/brand/${brand.slug_name}`)
                                         }
@@ -154,7 +156,10 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
                             >
                                 {brands?.map((brand, index) => (
                                     <tr key={index}
-                                        onClick={() => setSelectedBrand(brand)}
+                                        onClick={() => {
+                                            setSelectedBrand(brand)
+                                            logClickedEvent(`brand_${brand?.slug_name}`, "click", `brand_${brand?.slug_name}`);
+                                        }}
                                         className="cursor-pointer"
                                     >
                                         <td className="px-6 py-4 whitespace-nowrap flex items-center gap-2">

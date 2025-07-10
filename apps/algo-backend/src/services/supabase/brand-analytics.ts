@@ -15,6 +15,19 @@ export class BrandAnalyticsService {
         this.twitterAnalysis = new TwitterAnalytics(twitterScraper);
     }
 
+    async initTwitterScraper() {
+        console.log("init twitter scraper");
+        console.log("twitterScraper.isInitialized", this.twitterScraper.isInitialized);
+        console.log("twitterScraper.cookies", this.twitterScraper.cookies);
+        if (!this.twitterScraper.isInitialized || this.twitterScraper.cookies.length === 0) {
+            console.log("init twitter scraper");
+            await this.twitterScraper.init({
+                username: process.env.TWITTER_USERNAME!,
+                password: process.env.TWITTER_PASSWORD!,
+                email: process.env.TWITTER_EMAIL!,
+            });
+        }
+    }
     /** Loop between all brands created on AFK
      * Get all brands
      * Twitter rank: Get twitter analytics using lib or apify
@@ -45,6 +58,8 @@ export class BrandAnalyticsService {
                 const twitterHandle = brand.twitter_handle;
                 let resultTwitterAnalytics: any;
                 if (twitterHandle) {
+                    console.log("get twitter analytics");
+                    await this.initTwitterScraper();
                     let result = await this.twitterAnalysis.getTwitterAnalytics(twitterHandle);
                     // console.log("result twitter analytics", result);
                     if (!result || result?.usersScores?.length === 0) {
