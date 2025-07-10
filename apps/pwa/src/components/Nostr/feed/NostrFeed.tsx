@@ -349,7 +349,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
           </div>
         </div>
       ) : (
-        <div className="nostr-feed__content overflow-y-auto max-h-[80vh] ">
+        <div className="nostr-feed__content">
           {notesData.map((event, index) => {
             if (!event?.id) return null;
             const isLastItem = index === notesData.length - 1;
