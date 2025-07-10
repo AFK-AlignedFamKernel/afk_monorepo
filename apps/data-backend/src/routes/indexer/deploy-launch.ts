@@ -42,6 +42,7 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           website: true,
           twitter: true,
           telegram: true,
+          image_url: true,
           // token_deploy: {
           //   select: {
           //     name: true,
@@ -101,7 +102,9 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           initial_pool_supply_dex: true,
           url: true,
           name: true,
-          symbol: true
+          symbol: true,
+          image_url: true,
+          description: true,
         },
       });
 
@@ -157,6 +160,8 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           ipfs_hash: true,
           creator_fee_raised: true,
           creator_fee_percent: true,
+          image_url: true,
+          current_supply: true,
           token_deploy: {
             select: {
               name: true,
