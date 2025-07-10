@@ -173,14 +173,17 @@ const Layout = ({ children }: LayoutProps) => {
 
 
         <div className="mobile-header-logo">
-          <a href="/">
+          <Link href="/" onClick={() => {
+            logClickedEvent("home", "click", "link_drawer")
+            // closeSidebar()
+          }}> 
             <Image
               src="/afk_logo_circle.png"
               alt="AFK Logo"
               width={50}
               height={50}
             />
-          </a>
+          </Link>
         </div>
 
         {/* <div className="flex items-center gap-4">
