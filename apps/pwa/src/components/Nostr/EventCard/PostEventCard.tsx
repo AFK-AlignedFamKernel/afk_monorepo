@@ -16,6 +16,7 @@ import { SliderImages } from '@/components/small/slider-image';
 import Image from 'next/image';
 import { TipNostr } from '../tips';
 import { ContentWithClickableHashtags } from './ClickableHashtags';
+import { logClickedEvent } from '@/lib/analytics';
 
 export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const { event } = props;
@@ -183,7 +184,11 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
     <NostrEventCardBase event={event} profile={props.profile} isLoading={props.isLoading}>
       {isReplyView && reply && reply.length > 0 && (
         <div className="reply-container" aria-label="Reply to note">
-          <button onClick={handleToReplyView} className="action-button" aria-label="Go to parent note">
+          <button onClick={() => {
+            handleToReplyView();
+            logClickedEvent('reply_to_note', 'Interaction', 'Button Click', 1);
+            // setIsOpenComment(false);
+          }} className="action-button" aria-label="Go to parent note">
             <p className="text-gray-500 dark:text-gray-400 text-sm truncate-ellipsis mono">Reply to this note</p>
           </button>
         </div>
@@ -234,21 +239,36 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
           </div>
         )}
         <div className="action-buttons flex flex-row gap-3 mt-3 mb-1 px-1 py-1 border-t border-gray-100 dark:border-gray-800">
-          <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Reply" onClick={() => setIsOpenComment(!isOpenComment)}>
+          <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Reply" onClick={() => {
+            setIsOpenComment(!isOpenComment);
+            logClickedEvent('reply_to_note', 'Interaction', 'Button Click', 1);
+          }}>
             <Icon name="CommentIcon" size={20} />
           </button>
-          <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Repost" onClick={() => showModal(<QuoteRepostComponent event={event} />)}>
+          <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Repost" onClick={() => {
+            showModal(<QuoteRepostComponent event={event} />);
+            logClickedEvent('repost_note', 'Interaction', 'Button Click', 1);
+          }}>
             <Icon name="RepostIcon" size={20} />
           </button>
-          <button className={`action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition ${isLiked ? 'text-red-500 animate-pulse' : ''}`} aria-label="Like" onClick={toggleLike}>
-            <Icon name="LikeIcon" size={20} />
+          <button className={`action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition ${isLiked ? '' : ''}`} aria-label="Like" onClick={toggleLike}>
+            <Icon name="LikeIcon" size={20}
+              className={`${isLiked ? 'text-red-500' : ''}`}
+              onClick={() => {
+                logClickedEvent('like_note', 'Interaction', 'Button Click', 1);
+              }}
+            />
           </button>
-          <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Tip" onClick={handleTipsModal}>
+          <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Tip" onClick={() => {
+            handleTipsModal();  
+            logClickedEvent('tip_note', 'Interaction', 'Button Click', 1);
+          }}>
             <Icon name="GiftIcon" size={20} />
           </button>
           <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Share" onClick={() => {
             navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
             showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
+            logClickedEvent('share_note_link', 'Interaction', 'Button Click', 1);
           }}>
             <Icon name="ShareIcon" size={20} />
           </button>

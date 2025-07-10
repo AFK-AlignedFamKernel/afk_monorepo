@@ -14,6 +14,7 @@ import { Icon } from '@/components/small/icon-component';
 import CommentContainer from './CommentContainer';
 import { QuoteRepostComponent } from './quote-repost-component';
 import { ContentWithClickableHashtags } from './ClickableHashtags';
+import { logClickedEvent } from '@/lib/analytics';
 interface ArticleEventCardProps extends NostrArticleEventProps {
   profile?: NDKUserProfile;
   event: NDKEvent;
@@ -132,19 +133,33 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
           </button>
         </div>
         <div className="action-buttons flex flex-wrap gap-2 my-2" role="group" aria-label="Article actions">
-          <button className="action-button" aria-label="Reply" onClick={() => setIsOpenComment(!isOpenComment)}>
+          <button className="action-button" aria-label="Reply" onClick={() => {
+            setIsOpenComment(!isOpenComment);
+            logClickedEvent('reply_to_note', 'Interaction', 'Button Click', 1);
+          }}>
             <Icon name="CommentIcon" size={20} />
           </button>
-          <button className={`action-button ${isLiked ? 'text-blue-500 animate-pulse' : ''}`} aria-label="Like" onClick={toggleLike}>
-            <Icon name="LikeIcon" size={20}></Icon>
+          <button className={`action-button ${isLiked ? '' : ''}`} aria-label="Like" onClick={toggleLike}>
+            <Icon name="LikeIcon" size={20}
+              className={`${isLiked ? 'text-red-500' : ''}`}
+              onClick={() => {
+                logClickedEvent('like_note', 'Interaction', 'Button Click', 1);
+              }}
+            />
           </button>
-          <button className="action-button" aria-label="Repost" onClick={() => showModal(<QuoteRepostComponent event={event} />)}>
+          <button className="action-button" aria-label="Repost" onClick={() => {
+            showModal(<QuoteRepostComponent event={event} />);
+            logClickedEvent('repost_note', 'Interaction', 'Button Click', 1);
+          }}>
             <Icon name="RepostIcon" size={20}></Icon>
           </button>
           <button className="action-button" aria-label="Share">
             <Icon name="ShareIcon" size={20} />
           </button>
-          <button className="action-button" aria-label="Tip" onClick={handleTipsModal}>
+          <button className="action-button" aria-label="Tip" onClick={() => {
+            handleTipsModal();
+            logClickedEvent('tip_note', 'Interaction', 'Button Click', 1);
+          }}>
             <Icon name="GiftIcon" size={20} ></Icon>
           </button>
         </div>

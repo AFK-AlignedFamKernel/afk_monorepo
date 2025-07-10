@@ -18,6 +18,7 @@ import { TipNostr } from '../tips';
 import ProfileCardOverview from './ProfileCardOverview';
 import PostEventCard from './PostEventCard';
 import ArticleEventCard from './ArticleEventCard';
+import { logClickedEvent } from '@/lib/analytics';
 
 export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   const { event } = props;
@@ -207,13 +208,19 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   }
 
   return (
-    <div className="repost-event-ui rounded-xl border border-gray-500 dark:border-gray-800 p-4 mb-4">
+    <div className="repost-event-ui rounded-xl border border-gray-500 dark:border-gray-800 p-2 mb-4">
       {/* Reposted by (header) */}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="flex items-center gap-2 mb-2"
+      onClick={() => {
+        logClickedEvent('click_profile_who_reposted', 'Interaction', 'Button Click', 1);
+        showModal(<ProfileCardOverview profile={profile ?? undefined} event={event} />);
+      }}
+      >
         {profile && (
           <>
             {profile?.picture && <Image className="rounded-full w-7 h-7" src={profile?.picture} alt={profile?.name || ''} width={28} height={28} />}
-            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">Reposted by {profile?.name || profile?.display_name || event?.pubkey?.slice(0, 8)}</span>
+            <Icon name="RepostIcon" size={16} className="text-blue-600 dark:text-blue-400" />
+            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">Reposted by {profile?.name || profile?.display_name || event?.pubkey?.slice(0, 8)} </span>
           </>
         )}
       </div>
@@ -227,11 +234,13 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
       )}
 
       {/* Original post - FLAT, no extra card */}
-      <div className="pl-2 border-l-2 border-gray-500 dark:border-gray-700">
-        <div className="flex items-center gap-2 mb-1 mt-1">
+      <div 
+      // className="pl-2 border-l-2 border-gray-500 dark:border-gray-700"
+      >
+        {/* <div className="flex items-center gap-2 mb-1 mt-1">
           {profileRepost?.picture && <Image className="rounded-full w-6 h-6" src={profileRepost?.picture} alt={profileRepost?.name || ''} width={24} height={24} />}
           <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Original post by {profileRepost?.name || profileRepost?.display_name || pubkeyReposted?.slice(0, 8)}</span>
-        </div>
+        </div> */}
         {/* Render correct card by kind, but FLAT */}
         {(() => {
           const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
@@ -262,19 +271,33 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
           if (!original) return null;
           return (
             <div className="action-buttons flex flex-wrap gap-2 my-2" role="group" aria-label="Repost actions">
-              <button className="action-button" aria-label="Reply" onClick={() => setIsOpenComment(!isOpenComment)}>
+              <button className="action-button" aria-label="Reply" onClick={() => {
+                setIsOpenComment(!isOpenComment);
+                logClickedEvent('reply_to_note', 'Interaction', 'Button Click', 1);
+              }}>
                 <Icon name="CommentIcon" size={20} />
               </button>
-              <button className={`action-button ${isLiked ? 'text-blue-500 animate-pulse' : ''}`} aria-label="Like" onClick={toggleLike}>
-                <Icon name="LikeIcon" size={20}></Icon>
+              <button className={`action-button ${isLiked ? '' : ''}`} aria-label="Like" onClick={toggleLike}>
+                <Icon name="LikeIcon" size={20}
+                  className={`${isLiked ? 'text-red-500' : ''}`}
+                  onClick={() => {
+                    logClickedEvent('like_note', 'Interaction', 'Button Click', 1);
+                  }}
+                />
               </button>
-              <button className="action-button" aria-label="Repost" onClick={() => showModal(<QuoteRepostComponent event={original} />)}>
+              <button className="action-button" aria-label="Repost" onClick={() => {
+                showModal(<QuoteRepostComponent event={original} />);
+                logClickedEvent('repost_note', 'Interaction', 'Button Click', 1);
+              }}>
                 <Icon name="RepostIcon" size={20}></Icon>
               </button>
               <button className="action-button" aria-label="Share">
                 <Icon name="ShareIcon" size={20} />
               </button>
-              <button className="action-button" aria-label="Tip" onClick={handleTipsModal}>
+              <button className="action-button" aria-label="Tip" onClick={() => {
+                handleTipsModal();
+                logClickedEvent('tip_note', 'Interaction', 'Button Click', 1);
+              }}>
                 <Icon name="GiftIcon" size={20} ></Icon>
               </button>
             </div>
