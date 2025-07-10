@@ -94,79 +94,72 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
   }).render(truncatedContent);
 
   return (
-    <div className="article-event-card max-w-full w-full overflow-x-hidden">
-      <NostrEventCardBase event={event} profile={profile}>
-        <div className="mt-2">
-          <div className='flex items-center gap-2 cursor-pointer w-full max-w-full' onClick={() => setIsExpandedTitle(!isExpandedTitle)}>
-            <h3 className='text-lg font-bold break-words whitespace-normal w-full max-w-full overflow-hidden text-ellipsis'>
-              {title?.length > 30 && !isExpandedTitle ? title.substring(0, 30) + '...' : title}
-            </h3>
-            <button className='text-sm text-gray-500 touch-target' aria-label={isExpandedTitle ? "Collapse title" : "Expand title"}>
-              <Icon name={isExpandedTitle ? "ChevronUpIcon" : "ChevronDownIcon"} size={16} className='w-4 h-4' />
-            </button>
-          </div>
-
-          {image && (
-            <div className="media-container mb-3 w-full flex justify-center">
-              <img
-                src={image}
-                alt={title}
-                className="image-content max-w-full h-auto rounded-md object-contain"
-                style={{ maxHeight: '200px', width: '100%', objectFit: 'cover' }}
-              />
-            </div>
-          )}
-
-          <div
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="cursor-pointer w-full max-w-full"
-            aria-label={isExpanded ? 'Collapse article content' : 'Expand article content'}
-          >
-            <div
-              style={{
-                padding: 12,
-                lineHeight: 1.6,
-              }}
-              className='text-sm overflow-hidden break-words whitespace-pre-line w-full max-w-full'
-              dangerouslySetInnerHTML={{ __html: markdownContent }}
-            />
-            <button className="text-blue-500 hover:underline text-xs ml-1" onClick={e => { e.stopPropagation(); setIsExpanded(!isExpanded); }} aria-label={isExpanded ? 'Read less' : 'Read more'}>
-              {isExpanded ? 'Read Less' : 'Read More'}
-            </button>
-          </div>
-
-          <div className="action-buttons flex flex-wrap gap-2 my-2" role="group" aria-label="Article actions">
-            <button className="action-button" aria-label="Reply" onClick={() => setIsOpenComment(!isOpenComment)}>
-              <Icon name="CommentIcon" size={20} />
-            </button>
-            <button className={`action-button ${isLiked ? 'text-blue-500 animate-pulse' : ''}`} aria-label="Like" onClick={toggleLike}>
-              <Icon name="LikeIcon" size={20}></Icon>
-            </button>
-            <button className="action-button" aria-label="Repost" onClick={() => showModal(<QuoteRepostComponent event={event} />)}>
-              <Icon name="RepostIcon" size={20}></Icon>
-            </button>
-            <button className="action-button" aria-label="Share">
-              <Icon name="ShareIcon" size={20} />
-            </button>
-            <button className="action-button" aria-label="Tip" onClick={handleTipsModal}>
-              <Icon name="GiftIcon" size={20} ></Icon>
-            </button>
-          </div>
-
-          {isOpenComment && (
-            <div className="mt-3">
-              <CommentContainer event={event} />
-            </div>
-          )}
+    <NostrEventCardBase event={event} profile={profile}>
+      <div className="mt-2">
+        <div className='flex items-center gap-2 cursor-pointer w-full max-w-full' onClick={() => setIsExpandedTitle(!isExpandedTitle)}>
+          <h3 className='text-lg font-bold break-words whitespace-normal w-full max-w-full overflow-hidden text-ellipsis'>
+            {title?.length > 30 && !isExpandedTitle ? title.substring(0, 30) + '...' : title}
+          </h3>
+          <button className='text-sm text-gray-500 touch-target' aria-label={isExpandedTitle ? "Collapse title" : "Expand title"}>
+            <Icon name={isExpandedTitle ? "ChevronUpIcon" : "ChevronDownIcon"} size={16} className='w-4 h-4' />
+          </button>
         </div>
-      </NostrEventCardBase>
-
+        {image && (
+          <div className="media-container mb-3 w-full flex justify-center">
+            <img
+              src={image}
+              alt={title}
+              className="image-content max-w-full h-auto rounded-md object-contain"
+              style={{ maxHeight: '200px', width: '100%', objectFit: 'cover' }}
+            />
+          </div>
+        )}
+        <div
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="cursor-pointer w-full max-w-full"
+          aria-label={isExpanded ? 'Collapse article content' : 'Expand article content'}
+        >
+          <div
+            style={{
+              padding: 12,
+              lineHeight: 1.6,
+            }}
+            className='text-sm overflow-hidden break-words whitespace-pre-line w-full max-w-full'
+            dangerouslySetInnerHTML={{ __html: markdownContent }}
+          />
+          <button className="text-blue-500 hover:underline text-xs ml-1" onClick={e => { e.stopPropagation(); setIsExpanded(!isExpanded); }} aria-label={isExpanded ? 'Read less' : 'Read more'}>
+            {isExpanded ? 'Read Less' : 'Read More'}
+          </button>
+        </div>
+        <div className="action-buttons flex flex-wrap gap-2 my-2" role="group" aria-label="Article actions">
+          <button className="action-button" aria-label="Reply" onClick={() => setIsOpenComment(!isOpenComment)}>
+            <Icon name="CommentIcon" size={20} />
+          </button>
+          <button className={`action-button ${isLiked ? 'text-blue-500 animate-pulse' : ''}`} aria-label="Like" onClick={toggleLike}>
+            <Icon name="LikeIcon" size={20}></Icon>
+          </button>
+          <button className="action-button" aria-label="Repost" onClick={() => showModal(<QuoteRepostComponent event={event} />)}>
+            <Icon name="RepostIcon" size={20}></Icon>
+          </button>
+          <button className="action-button" aria-label="Share">
+            <Icon name="ShareIcon" size={20} />
+          </button>
+          <button className="action-button" aria-label="Tip" onClick={handleTipsModal}>
+            <Icon name="GiftIcon" size={20} ></Icon>
+          </button>
+        </div>
+        {isOpenComment && (
+          <div className="mt-3">
+            <CommentContainer event={event} />
+          </div>
+        )}
+      </div>
       {isClickableHashtags && (
         <div className="mt-3">
           <ContentWithClickableHashtags content={event.content} onHashtagPress={() => { }} />
         </div>
       )}
-    </div>
+    </NostrEventCardBase>
   );
 };
 

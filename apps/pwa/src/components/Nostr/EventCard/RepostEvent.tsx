@@ -236,9 +236,9 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
         {(() => {
           const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
           if (original?.kind === 1) {
-            return <PostEventCard event={original} profile={profileRepost ?? undefined} />;
+            return <PostEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} />;
           } else if (original?.kind === 30023) {
-            return <ArticleEventCard event={original} profile={profileRepost ?? undefined} />;
+            return <ArticleEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} isReadMore={false} />;
           } else if (original) {
             return (
               <div>
@@ -256,6 +256,35 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
             return <div className="text-gray-400 italic">Original post unavailable</div>;
           }
         })()}
+        {/* Action buttons for the reposted event */}
+        {(() => {
+          const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
+          if (!original) return null;
+          return (
+            <div className="action-buttons flex flex-wrap gap-2 my-2" role="group" aria-label="Repost actions">
+              <button className="action-button" aria-label="Reply" onClick={() => setIsOpenComment(!isOpenComment)}>
+                <Icon name="CommentIcon" size={20} />
+              </button>
+              <button className={`action-button ${isLiked ? 'text-blue-500 animate-pulse' : ''}`} aria-label="Like" onClick={toggleLike}>
+                <Icon name="LikeIcon" size={20}></Icon>
+              </button>
+              <button className="action-button" aria-label="Repost" onClick={() => showModal(<QuoteRepostComponent event={original} />)}>
+                <Icon name="RepostIcon" size={20}></Icon>
+              </button>
+              <button className="action-button" aria-label="Share">
+                <Icon name="ShareIcon" size={20} />
+              </button>
+              <button className="action-button" aria-label="Tip" onClick={handleTipsModal}>
+                <Icon name="GiftIcon" size={20} ></Icon>
+              </button>
+            </div>
+          );
+        })()}
+        {isOpenComment && (
+          <div className="mt-3">
+            <CommentContainer event={repostedContent && repostedContent.event ? repostedContent.event : repostedContent} />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -81,7 +81,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
         console.log("connected");
         console.log("connectedRelays", ndk.pool?.connectedRelays);
       }
-      
+
       const notes = await ndk.fetchEvents({
         kinds: [...kinds],
         authors: authors,
@@ -232,7 +232,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   return (
     <div
       className={`nostr-feed__content ${className}`}
-      // className={`${className}`}
+    // className={`${className}`}
     >
 
 
@@ -355,20 +355,17 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
             const isLastItem = index === notesData.length - 1;
 
             return (
+
               <div
-                // key={event.id}
+                // className="nostr-feed__card"
                 key={index}
+                onClick={() => handleEventClick(event.id)}
+                ref={isLastItem ? loaderRef : null}
               >
-                <div
-                  className="nostr-feed__card"
-                  onClick={() => handleEventClick(event.id)}
-                  ref={isLastItem ? loaderRef : null}
-                >
-                  <NostrEventCard
-                    event={event}
-                    isClickableHashtags={true}
-                  />
-                </div>
+                <NostrEventCard
+                  event={event}
+                  isClickableHashtags={true}
+                />
               </div>
             );
           })}

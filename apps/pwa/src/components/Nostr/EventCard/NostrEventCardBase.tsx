@@ -40,8 +40,8 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
   const timestamp = formatTimestamp(event.created_at || 0);
 
   return (
-    <div className="event-card">
-      <header className="flex items-center mb-8 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-1 transition" aria-label="Post header"
+    <div className="event-card p-2 sm:p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+      <header className="flex items-center mb-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-1 transition"
         onClick={() => {
           showModal(<>
             <ProfileCardOverview event={event} profile={profile} profilePubkey={event.pubkey} isLinkToProfile={true} />
