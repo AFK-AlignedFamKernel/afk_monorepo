@@ -260,9 +260,13 @@ $feed-animation-speed: 0.2s;
 
 // Event card styles
 .event-card {
-  // background-color: var(--card-bg, white);
-  border-radius: 0.5rem;
-  padding: 1rem;
+  background-color: var(--card-bg, #fff);
+  border-radius: 0.75rem;
+  padding: 1.5rem 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  border: 1.5px solid var(--border, #e5e7eb);
+  transition: box-shadow 0.2s, border-color 0.2s;
   width: 100%;
 
   // Post specific styles
@@ -309,6 +313,70 @@ $feed-animation-speed: 0.2s;
       }
     }
   }
+}
+
+.post-event-card {
+  .username {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--contrast-900, #0f172a);
+    @extend .truncate-ellipsis;
+  }
+  .timestamp {
+    font-size: 0.85rem;
+    color: var(--contrast-500, #64748b);
+    margin-left: 0.5em;
+  }
+  .post-content {
+    font-size: 1.05rem;
+    color: var(--foreground, #212529);
+    margin-bottom: 1.25em;
+    line-height: 1.6;
+  }
+  .reply-container {
+    margin-bottom: 0.75em;
+    padding-left: 1.5em;
+    border-left: 2px solid var(--primary-color, #22c55e);
+  }
+  .action-buttons {
+    display: flex;
+    gap: 1.5em;
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+  }
+  .action-button {
+    @extend .touch-target;
+    font-size: 1.1rem;
+    color: var(--contrast-600, #475569);
+    background: none;
+    border: none;
+    border-radius: 0.5em;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    cursor: pointer;
+    position: relative;
+    &:hover, &:focus {
+      color: var(--primary-color, #22c55e);
+      background: rgba(34,197,94,0.08);
+      outline: none;
+    }
+    &:active {
+      color: var(--primary-color-hover, #16a34a);
+      background: rgba(34,197,94,0.18);
+    }
+  }
+}
+
+// Ensure high contrast in dark mode
+.dark-mode .event-card {
+  background-color: var(--card-bg, #181a20);
+  border-color: var(--border, #334155);
+  color: var(--foreground, #f9fafb);
+}
+.dark-mode .post-event-card .username {
+  color: var(--contrast-100, #f8fafc);
+}
+.dark-mode .post-event-card .timestamp {
+  color: var(--contrast-500, #94a3b8);
 }
 
 @keyframes pulse {

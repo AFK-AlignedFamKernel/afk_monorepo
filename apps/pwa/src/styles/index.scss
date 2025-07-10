@@ -28,35 +28,45 @@
 html, body {
   width: 100%;
   height: 100%;
-  font-family: monospace;
-  // font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', 'Manrope', 'IBM Plex Sans', Arial, sans-serif;
+  font-size: 16px;
   overflow-x: hidden;
   background-color: var(--background);
   color: var(--foreground);
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  letter-spacing: 0.01em;
+}
+
+.hash, .user-id, .mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', 'monospace';
+  font-size: 0.95em;
+  letter-spacing: 0.01em;
 }
 
 // Typography
 h1 {
   color: var(--contrast-900);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75em;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 // Typography
 h2 {
   color: var(--contrast-900);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75em;
   font-size: 1.75rem;
   font-weight: 500;
+  line-height: 1.2;
 }
 
 h3, h4, h5, h6 {
   color: var(--contrast-900);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75em;
   font-size: 1.5rem;
   font-weight: 300;
+  line-height: 1.2;
 }
 
 div {
@@ -108,6 +118,7 @@ p {
   // margin-bottom: 1rem;
   line-height: 1.5;
   font-size: 1.25rem;
+  margin-bottom: 1em;
 }
 
 input {
@@ -664,3 +675,27 @@ button.sidebar-nav-footer-item {
     transform: translateY(-10px);
   }
 } 
+
+.truncate-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 100%;
+}
+
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[role="main"], main {
+  outline: none;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  display: block;
+}

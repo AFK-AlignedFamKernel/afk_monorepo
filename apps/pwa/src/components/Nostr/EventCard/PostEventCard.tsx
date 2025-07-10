@@ -184,16 +184,10 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
       {isReplyView &&
         reply && reply?.length > 0 &&
         (
-          <div
-            style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-          >
-            <button onClick={handleToReplyView}>
-              <p className="text-gray-500 dark:text-gray-400 text-sm"
-              >
-                Reply to this note
-              </p>
+          <div className="reply-container" aria-label="Reply to note">
+            <button onClick={handleToReplyView} className="action-button" aria-label="Go to parent note">
+              <p className="text-gray-500 dark:text-gray-400 text-sm truncate-ellipsis mono">Reply to this note</p>
             </button>
-            {/* <Text>Reply View</Text> */}
           </div>
         )}
       {isRepost ||
@@ -205,10 +199,9 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
           </div>
         ))}
       <NostrEventCardBase {...props}>
-        <div className="mt-2">
+        <section className="post-content" aria-label="Post content">
           <div
-            // className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words"
-            className="dark:text-gray-200 whitespace-pre-wrap break-words  sm:max-w-[300px] lg:max-w-[500px]"
+            className="dark:text-gray-200 whitespace-pre-wrap break-words sm:max-w-[300px] lg:max-w-[500px]"
             onClick={() => {
               setIsExpanded(!isExpanded)
             }}
@@ -217,7 +210,8 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
             {shouldTruncate && (
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="text-blue-500 hover:text-blue-700 ml-1 text-sm"
+                className="text-blue-500 hover:text-blue-700 ml-1 text-sm action-button"
+                aria-label={isExpanded ? 'Show less' : 'Show more'}
               >
                 Show {isExpanded ? 'less' : 'more'}
               </button>
@@ -225,104 +219,55 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
           </div>
 
           <div>
-
             {postSource && (
               <Image
                 src={postSource.uri}
                 alt="Post Source"
                 width={postSource.width}
                 height={postSource.height}
-              // style={[
-              //   styles.contentImage,
-              //   {
-              //     height: dimensionsMedia[1],
-              //     aspectRatio: getImageRatio(postSource.width, postSource.height),
-              //   },
-              // ]}
               />
             )}
-
             {imgUrls.length > 0 && (
               <SliderImages imgUrls={imgUrls} />
             )}
           </div>
 
-
           {props?.isClickableHashtags && (
             <div className="mt-3">
               <ContentWithClickableHashtags content={content}
-                // tagsHash={tagsHash}
                 tags={event?.tags}
                 onHashtagPress={handleHashtagPress}
-                // hashtagsRender={hashtags}
               />
             </div>
           )}
-          {/* {hashtags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {hashtags.map((tag, index) => (
-                <span
-                  onClick={() => {
-                    router.push(`/nostr/tags/${tag}`);
-                  }}
-                  key={index}
-                  className="cursor-pointer hashtag inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full text-xs"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )} */}
 
-          <div className="mt-6 mb-2 flex items-center text-gray-500 dark:text-gray-400 text-sm space-x-4 gap-4">
-            <button className="flex items-center hover:text-blue-500 gap-1"
-              onClick={() => setIsOpenComment(!isOpenComment)}
-            >
-
-              <Icon name="CommentIcon" size={16}
-              />
-              {/* Reply */}
+          <div className="action-buttons" role="group" aria-label="Post actions">
+            <button className="action-button" aria-label="Reply" onClick={() => setIsOpenComment(!isOpenComment)}>
+              <Icon name="CommentIcon" size={20} />
             </button>
-            <button className="flex items-center hover:text-green-500 gap-1"
-              onClick={() => showModal(
-                <>
-                  <QuoteRepostComponent event={event} >
-                  </QuoteRepostComponent>
-                </>
-              )}
-            >
-              <Icon name="RepostIcon" size={16} ></Icon>
-              {/* Repost */}
+            <button className="action-button" aria-label="Repost" onClick={() => showModal(<QuoteRepostComponent event={event} />)}>
+              <Icon name="RepostIcon" size={20} />
             </button>
-            <button className={`flex items-center hover:text-red-500 gap-1 ${isLiked ? 'text-red-500' : ''}`} onClick={toggleLike}>
-              <Icon name="LikeIcon" size={16} ></Icon>
-              {/* Like */}
+            <button className={`action-button ${isLiked ? 'text-red-500 animate-pulse' : ''}`} aria-label="Like" onClick={toggleLike}>
+              <Icon name="LikeIcon" size={20} />
             </button>
-            <button className={`flex items-center hover:text-purple-500 gap-1 ${isLiked ? 'text-red-500' : ''}`} onClick={handleTipsModal}>
-              <Icon name="GiftIcon" size={16} ></Icon>
-              {/* Tips */}
+            <button className="action-button" aria-label="Tip" onClick={handleTipsModal}>
+              <Icon name="GiftIcon" size={20} />
             </button>
-            <button className="flex items-center hover:text-green-500 gap-1"
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
-                showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
-              }}
-            >
-              <Icon name="ShareIcon" size={16} ></Icon>
-              {/* Share */}
+            <button className="action-button" aria-label="Share" onClick={() => {
+              navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
+              showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
+            }}>
+              <Icon name="ShareIcon" size={20} />
             </button>
           </div>
-        </div>
-
+        </section>
         {isOpenComment && (
           <div className="mt-3">
             <CommentContainer event={event} />
           </div>
         )}
-
       </NostrEventCardBase>
-
-
     </div>
   );
 };

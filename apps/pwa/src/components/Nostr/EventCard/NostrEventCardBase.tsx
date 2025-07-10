@@ -41,12 +41,11 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
 
   return (
     <div className="event-card">
-      <div className="flex items-center mb-8"
+      <header className="flex items-center mb-8" aria-label="Post header"
         onClick={() => {
           showModal(<>
             <ProfileCardOverview event={event} profile={profile} profilePubkey={event.pubkey} isLinkToProfile={true} />
           </>)
-          // router.push(`/nostr/profile/${event.pubkey}`)
         }}
       >
         {profile?.picture ? (
@@ -56,26 +55,23 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
               alt={displayName}
               width={50}
               height={50}
-              // className="object-cover w-10 h-10"
             />
           </div>
         ) : (
-          <div className="w-10 h-10 rounded-full flex items-center justify-center">
-            <span className="text-sm">
-              {displayName.substring(0, 2).toUpperCase()}
-            </span>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+            <span className="text-sm mono truncate-ellipsis">{displayName.substring(0, 2).toUpperCase()}</span>
           </div>
         )}
         <div className="ml-2">
-          <div className="font-medium">{displayName}</div>
-          <div className="text-xs  flex items-center">
-            <span className="text-xs">{timestamp}</span>
+          <div className="username truncate-ellipsis" title={displayName}>{displayName}</div>
+          <div className="text-xs flex items-center">
+            <time className="timestamp" dateTime={String(event.created_at)} aria-label="Post timestamp">{timestamp}</time>
             {profile?.nip05 && (
-              <span className="ml-1 text-blue-500">✓</span>
+              <span className="ml-1 text-blue-500" aria-label="Verified">✓</span>
             )}
           </div>
         </div>
-      </div>
+      </header>
 
       {children}
     </div>
