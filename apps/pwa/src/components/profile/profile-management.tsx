@@ -31,21 +31,33 @@ export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeader
         <div className="w-full max-w-md mx-auto p-4">
             <div className="flex justify-center gap-2 mb-4">
                 <button
-                    className={`px-4 py-2 rounded font-semibold transition-colors focus:outline-none ${activeTab === 'nostr' ? 'bg-blue-700 text-white shadow' : 'bg-[var(--card-bg)] dark:bg-[var(--card-bg)] text-gray-700 dark:text-gray-200 border border-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900'}`}
+                    className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none border text-base shadow-none
+                        ${activeTab === 'nostr'
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-50 font-bold'
+                            : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}
+                    `}
                     onClick={() => setActiveTab('nostr')}
                     aria-label="Show Nostr profile section"
                 >
                     Nostr
                 </button>
                 <button
-                    className={`px-4 py-2 rounded font-semibold transition-colors focus:outline-none ${activeTab === 'onchain' ? 'bg-blue-700 text-white shadow' : 'bg-[var(--card-bg)] dark:bg-[var(--card-bg)] text-gray-700 dark:text-gray-200 border border-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900'}`}
+                    className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none border text-base shadow-none
+                        ${activeTab === 'onchain'
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-50 font-bold'
+                            : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}
+                    `}
                     onClick={() => setActiveTab('onchain')}
                     aria-label="Show Onchain wallet section"
                 >
                     Onchain
                 </button>
                 <button
-                    className={`px-4 py-2 rounded font-semibold transition-colors focus:outline-none ${activeTab === 'oauth' ? 'bg-blue-700 text-white shadow' : 'bg-[var(--card-bg)] dark:bg-[var(--card-bg)] text-gray-700 dark:text-gray-200 border border-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900'}`}
+                    className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none border text-base shadow-none
+                        ${activeTab === 'oauth'
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-50 font-bold'
+                            : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}
+                    `}
                     onClick={() => setActiveTab('oauth')}
                     aria-label="Show OAuth section"
                 >
