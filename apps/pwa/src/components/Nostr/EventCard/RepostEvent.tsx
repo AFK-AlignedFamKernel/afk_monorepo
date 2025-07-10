@@ -19,6 +19,7 @@ import ProfileCardOverview from './ProfileCardOverview';
 import PostEventCard from './PostEventCard';
 import ArticleEventCard from './ArticleEventCard';
 import { logClickedEvent } from '@/lib/analytics';
+import { useNostrAuth } from '@/hooks/useNostrAuth';
 
 export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   const { event } = props;
@@ -64,7 +65,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
   const [dimensionsMedia, setMediaDimensions] = useState([250, 300]);
   const [imgUrls, setImageUrls] = useState<string[]>([]);
-
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const handleTipsModal = () => {
     showModal(<TipNostr event={event} profile={props?.profile}></TipNostr>)
   }
@@ -104,7 +105,9 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   const toggleLike = async () => {
     if (!event?.id) return;
 
-    // await handleCheckNostrAndSendConnectDialog();
+    const isNostrConnected = handleCheckNostrAndSendConnectDialog();
+    if (!isNostrConnected) return;
+
     await react.mutateAsync(
       { event, type: isLiked ? 'dislike' : 'like' },
       {
@@ -286,12 +289,19 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
                 />
               </button>
               <button className="action-button" aria-label="Repost" onClick={() => {
-                showModal(<QuoteRepostComponent event={original} />);
+                const isNostrConnected = handleCheckNostrAndSendConnectDialog();
+                if (isNostrConnected) {
+                  showModal(<QuoteRepostComponent event={original} />);
+                }
                 logClickedEvent('repost_note', 'Interaction', 'Button Click', 1);
               }}>
                 <Icon name="RepostIcon" size={20}></Icon>
               </button>
-              <button className="action-button" aria-label="Share">
+              <button className="action-button" aria-label="Share" onClick={() => {
+                navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
+                showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
+                logClickedEvent('share_note_link', 'Interaction', 'Button Click', 1);
+              }}>
                 <Icon name="ShareIcon" size={20} />
               </button>
               <button className="action-button" aria-label="Tip" onClick={() => {
