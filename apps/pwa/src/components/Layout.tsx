@@ -174,7 +174,7 @@ const Layout = ({ children }: LayoutProps) => {
 
         <div className="mobile-header-logo">
           <Link href="/" onClick={() => {
-            logClickedEvent("home", "click", "link_drawer")
+            logClickedEvent("go_to_home_nav", "click", "link_drawer")
             // closeSidebar()
           }}> 
             <Image
@@ -222,7 +222,10 @@ const Layout = ({ children }: LayoutProps) => {
           </button>
           <button
             // className="sidebar-toggle"
-            onClick={toggleSidebar}
+            onClick={() => {
+              toggleSidebar()
+              logClickedEvent("toggle_sidebar", "click", "link_drawer")
+            }}
             aria-label="Toggle navigation"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -243,7 +246,7 @@ const Layout = ({ children }: LayoutProps) => {
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''} `}>
         <div className="logo">
           <Link href="/" onClick={() => {
-            logClickedEvent("home", "click", "link_drawer")
+            logClickedEvent("go_to_home", "click", "link_drawer")
             closeSidebar()
           }}>
             <Image
@@ -258,7 +261,7 @@ const Layout = ({ children }: LayoutProps) => {
         <div className="sidebar-nav overflow-y-hidden scrollbar-hide ">
           <div className="sidebar-nav-header items-left align-start justify-left flex flex-wrap gap-4">
             <Link href="/" className="sidebar-nav-item" onClick={() => {
-              logClickedEvent("home", "click", "link_drawer")
+              logClickedEvent("go_to_home", "click", "link_drawer")
               closeSidebar()
             }}>
               <svg className="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -369,13 +372,19 @@ const Layout = ({ children }: LayoutProps) => {
 
 
               <div className="flex items-center gap-4">
-                <button className="btn btn-gradient-green" onClick={() => showModal(<ProfileManagement />)}>
+                <button className="btn btn-gradient-green" onClick={() => {
+                  showModal(<ProfileManagement />)
+                  logClickedEvent("connect_modal_open", "click", "link_drawer")
+                }}>
                   Connect
                 </button>
               </div>
               <button
                 className=" justify-end theme-toggle"
-                onClick={toggleTheme}
+                onClick={() => {
+                  toggleTheme()
+                  logClickedEvent(`toggle_theme_${darkMode ? "dark" : "light"}`, "click", "link_drawer")
+                }}
                 aria-label="Toggle theme"
               >
                 {darkMode ? (
@@ -447,7 +456,10 @@ const Layout = ({ children }: LayoutProps) => {
 
             <button
               className="sidebar-nav-footer-item"
-              onClick={toggleTheme}
+              onClick={() => {
+                toggleTheme()
+                logClickedEvent(`toggle_theme_${darkMode ? "dark" : "light"}`, "click", "link_drawer")
+              }}
               aria-label="Toggle theme"
             >
               {darkMode ? (
