@@ -48,6 +48,7 @@
     max-height: calc(100vh - 2rem);
     overflow-y: auto;
     color: var(--text);
+    overflow-x: hidden;
 
     .dark & {
       background: var(--contrast-background);
@@ -59,6 +60,18 @@
       // transform: scale(1);
       background: var(--gray-800);
       opacity: 1;
+    }
+
+    // Responsive mobile styles
+    @media (max-width: 640px) {
+      width: 100vw;
+      max-width: 100vw;
+      min-width: 0;
+      border-radius: 0;
+      padding: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      max-height: 100vh;
+      overflow-x: hidden;
     }
 
     // Size variants
