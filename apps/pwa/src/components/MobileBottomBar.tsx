@@ -161,6 +161,14 @@ const MobileBottomBar = () => {
             <p className="text-xs font-medium leading-normal tracking-[0.015em]">Home</p>
           </Link>
 
+          <Link href="/launchpad" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
+            <div className="flex h-8 items-center justify-center">
+              <Icon name="UpwardTrendGraphIcon" className='w-6 h-6' />
+            </div>
+            <p className="text-xs font-medium leading-normal tracking-[0.015em]">Swap</p>
+          </Link>
+
+
           <button 
             className="flex flex-1 flex-col items-center justify-end gap-1" 
             style={{ color: secondaryTextColor }}
@@ -174,13 +182,14 @@ const MobileBottomBar = () => {
             <p className="text-xs font-medium leading-normal tracking-[0.015em]">Create</p>
           </button>
 
-          <Link href="/launchpad" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
+          <Link href="/wallet" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
             <div className="flex h-8 items-center justify-center">
-              <Icon name="UpwardTrendGraphIcon" className='w-6 h-6' />
+              <Icon name="WalletIcon" className='w-6 h-6' />
             </div>
-            <p className="text-xs font-medium leading-normal tracking-[0.015em]">Swap</p>
+            <p className="text-xs font-medium leading-normal tracking-[0.015em]">Wallet</p>
           </Link>
 
+      
           <Link href="/profile" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
             <div className="flex h-8 items-center justify-center">
               <Icon name="UserIcon" className='w-6 h-6' />
