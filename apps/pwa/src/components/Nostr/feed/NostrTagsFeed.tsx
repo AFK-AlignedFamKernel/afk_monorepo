@@ -7,6 +7,7 @@ import { NostrEventCard } from '../EventCard';
 import { NostrEventKind } from '@/types/nostr';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { TAGS_DEFAULT } from 'common';
+import { logClickedEvent } from '@/lib/analytics';
 
 interface NostrTagsFeedProps {
   kinds?: number[];
@@ -249,6 +250,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
             `}
             key={index}
             onClick={() => {
+              logClickedEvent(`select_tag_${tag}`, "click", tag)
               setIsUsedUntil(false);
               setSelectedTag(tag);
               setLastCreatedAt(new Date().getTime() / 1000);
@@ -264,7 +266,6 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
         <div className="nostr-feed__empty-state">
           <p>No events found. Try following more users or changing filters.</p>
           <div className="mt-4 text-sm text-gray-500">
-            <p>Debug info:</p>
             <p>- Connected to {ndk.pool?.relays?.size || 0} relays</p>
             <p>- Kinds: {kinds?.join(', ')}</p>
             <button
@@ -276,27 +277,27 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
           </div>
         </div>
       ) : (
-        <div className="nostr-feed__content overflow-y-auto max-h-[80vh] ">
+        <div 
+        // className="nostr-feed__content overflow-y-auto max-h-[80vh] "
+        className="nostr-feed__content"
+        >
 
           {notesData.map((event, index) => {
             if (!event?.id) return null;
             const isLastItem = index === notesData.length - 1;
 
             return (
+
               <div
-                // key={event.id}
                 key={index}
+                // className="nostr-feed__card"
+                onClick={() => handleEventClick(event.id)}
+                ref={isLastItem ? loaderRef : null}
               >
-                <div
-                  className="nostr-feed__card"
-                  onClick={() => handleEventClick(event.id)}
-                  ref={isLastItem ? loaderRef : null}
-                >
-                  <NostrEventCard
-                    event={event}
-                    isClickableHashtags={true}
-                  />
-                </div>
+                <NostrEventCard
+                  event={event}
+                  isClickableHashtags={true}
+                />
               </div>
             );
           })}
