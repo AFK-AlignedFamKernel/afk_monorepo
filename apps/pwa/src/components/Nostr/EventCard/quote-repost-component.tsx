@@ -3,6 +3,8 @@ import { NDKEvent } from "@nostr-dev-kit/ndk";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQuote, useRepost } from "afk_nostr_sdk";
 import { useState } from "react";
+import React from "react";
+import { useNostrAuth } from "@/hooks/useNostrAuth";
 
 
 enum QuoteNostrTypeMode {
@@ -16,11 +18,12 @@ interface QuoteRepostComponentProps {
 
 export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
 
+    const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
     const repostMutation = useRepost({ event });
     const [quoteContent, setQuoteContent] = useState<string>('');
     const queryClient = useQueryClient();
 
-    const [type, setType] = useState<QuoteNostrTypeMode>(QuoteNostrTypeMode.QUOTE);
+    const [type, setType] = useState<QuoteNostrTypeMode>(QuoteNostrTypeMode.REPOST);
     const quoteMutation = useQuote({ event, content: quoteContent, tags: [['e', event?.id ?? '', '', 'root', event?.pubkey ?? '']] });
 
     const { showToast } = useUIStore()
@@ -29,7 +32,8 @@ export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
         try {
             // @TODO fix
             // await handleCheckNostrAndSendConnectDialog();
-
+            const isNostrConnected = handleCheckNostrAndSendConnectDialog();
+            if (!isNostrConnected) return;
             await repostMutation.mutateAsync();
             showToast({ message: 'Post reposted successfully', type: 'success' });
         } catch (error) {
@@ -43,8 +47,8 @@ export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
             showToast({ type: 'error', message: 'Please write your comment' });
             return;
         }
-        // await handleCheckNostrAndSendConnectDialog();
-
+        const isNostrConnected = handleCheckNostrAndSendConnectDialog();
+        if (!isNostrConnected) return;
         quoteMutation.mutate(
             {
                 // event, content: quoteContent, tags: [['e', event?.id ?? '', '', 'root', event?.pubkey ?? '']] 
@@ -67,26 +71,91 @@ export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
     };
 
     return (
-
         <div className="mb-2">
-            <p>Quote or Repost</p>
-
-            <textarea
-                className="input-text"
-                placeholder="Write your comment or just repost"
-                value={quoteContent} onChange={(e) => setQuoteContent(e.target.value)} />
-            <div className="
-            flex gap-2 justify-center items-center space-x-2" >
+            <div className="flex flex-row gap-2 justify-center mb-4">
                 <button
-                    className="btn btn-primary"
-                    onClick={handleRepost}>Repost</button>
-
+                    onClick={() => setType(QuoteNostrTypeMode.REPOST)}
+                    style={{
+                        border: 'none',
+                        outline: 'none',
+                        background: type === QuoteNostrTypeMode.REPOST
+                            ? (typeof window !== 'undefined' && document.body.classList.contains('dark-mode') ? '#18181b' : '#e5e7eb')
+                            : (typeof window !== 'undefined' && document.body.classList.contains('dark-mode') ? 'transparent' : 'transparent'),
+                        color: type === QuoteNostrTypeMode.REPOST
+                            ? (typeof window !== 'undefined' && document.body.classList.contains('dark-mode') ? '#fff' : '#18181b')
+                            : (typeof window !== 'undefined' && document.body.classList.contains('dark-mode') ? '#cbd5e1' : '#334155'),
+                        fontWeight: type === QuoteNostrTypeMode.REPOST ? 700 : 500,
+                        fontFamily: 'var(--afk-font-primary, IBM Plex Sans, Arial, sans-serif)',
+                        borderRadius: '999px',
+                        padding: '0.5rem 1.25rem',
+                        fontSize: '1rem',
+                        transition: 'background 0.18s, color 0.18s',
+                        cursor: 'pointer',
+                        boxShadow: type === QuoteNostrTypeMode.REPOST ? '0 2px 8px 0 rgba(0,0,0,0.04)' : 'none',
+                        position: 'relative',
+                        zIndex: 1,
+                    }}
+                >
+                    Repost
+                </button>
                 <button
-                    className="btn btn-primary"
-                    onClick={handleSendQuote}>Quote</button>
-
+                    onClick={() => setType(QuoteNostrTypeMode.QUOTE)}
+                    style={{
+                        border: 'none',
+                        outline: 'none',
+                        background: type === QuoteNostrTypeMode.QUOTE
+                            ? (typeof window !== 'undefined' && document.body.classList.contains('dark-mode') ? '#18181b' : '#e5e7eb')
+                            : (typeof window !== 'undefined' && document.body.classList.contains('dark-mode') ? 'transparent' : 'transparent'),
+                        color: type === QuoteNostrTypeMode.QUOTE
+                            ? (typeof window !== 'undefined' && document.body.classList.contains('dark-mode') ? '#fff' : '#18181b')
+                            : (typeof window !== 'undefined' && document.body.classList.contains('dark-mode') ? '#cbd5e1' : '#334155'),
+                        fontWeight: type === QuoteNostrTypeMode.QUOTE ? 700 : 500,
+                        fontFamily: 'var(--afk-font-primary, IBM Plex Sans, Arial, sans-serif)',
+                        borderRadius: '999px',
+                        padding: '0.5rem 1.25rem',
+                        fontSize: '1rem',
+                        transition: 'background 0.18s, color 0.18s',
+                        cursor: 'pointer',
+                        boxShadow: type === QuoteNostrTypeMode.QUOTE ? '0 2px 8px 0 rgba(0,0,0,0.04)' : 'none',
+                        position: 'relative',
+                        zIndex: 1,
+                    }}
+                >
+                    Quote
+                </button>
             </div>
 
+            {type === QuoteNostrTypeMode.QUOTE && (
+                <>
+                    <div className="mb-2 font-semibold text-base">Write a comment</div>
+                    <textarea
+                        className="input-text w-full mb-4"
+                        placeholder="Write your comment"
+                        value={quoteContent}
+                        onChange={(e) => setQuoteContent(e.target.value)}
+                        rows={3}
+                    />
+                    <div className="flex gap-2 justify-end">
+                        <button
+                            className="btn btn-primary"
+                            onClick={handleSendQuote}
+                        >
+                            Quote
+                        </button>
+                    </div>
+                </>
+            )}
+            {type === QuoteNostrTypeMode.REPOST && (
+                <div className="flex flex-col items-center justify-center py-4">
+                    <div className="mb-4 font-semibold text-base">Repost this event?</div>
+                    <button
+                        className="btn btn-primary"
+                        onClick={handleRepost}
+                    >
+                        Repost
+                    </button>
+                </div>
+            )}
         </div>
-    )
+    );
 }
