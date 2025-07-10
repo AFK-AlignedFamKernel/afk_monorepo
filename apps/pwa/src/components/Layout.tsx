@@ -244,7 +244,7 @@ const Layout = ({ children }: LayoutProps) => {
 
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''} `}>
-        <div className="logo">
+        <div className="logo hidden md:block">
           <Link href="/" onClick={() => {
             logClickedEvent("go_to_home", "click", "link_drawer")
             closeSidebar()
