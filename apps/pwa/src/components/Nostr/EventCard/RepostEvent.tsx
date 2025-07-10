@@ -209,7 +209,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   return (
     <div className="repost-event-ui bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 mb-4">
       {/* Reposted by (header) */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-2">
         {profile && (
           <>
             {profile?.picture && <Image className="rounded-full w-7 h-7" src={profile?.picture} alt={profile?.name || ''} width={28} height={28} />}
@@ -220,21 +220,20 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
 
       {/* Quoted comment (if any) */}
       {repostedContent && repostedContent.content && repostedContent.event && (
-        <div className="bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500 dark:border-blue-400 mb-4 p-3 rounded">
+        <div className="bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500 dark:border-blue-400 mb-3 p-3 rounded">
           <span className="block text-xs font-semibold text-blue-700 dark:text-blue-200 mb-1">Comment by {profile?.name || profile?.display_name || event?.pubkey?.slice(0, 8)}</span>
           <div className="text-sm text-contrast-500 whitespace-pre-wrap break-words">{repostedContent.content}</div>
         </div>
       )}
 
-      {/* Original post (modern card) */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-2 mb-2">
+      {/* Original post - FLAT, no extra card */}
+      <div className="pl-2 border-l-2 border-gray-200 dark:border-gray-700">
+        <div className="flex items-center gap-2 mb-1 mt-1">
           {profileRepost?.picture && <Image className="rounded-full w-6 h-6" src={profileRepost?.picture} alt={profileRepost?.name || ''} width={24} height={24} />}
           <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Original post by {profileRepost?.name || profileRepost?.display_name || pubkeyReposted?.slice(0, 8)}</span>
         </div>
-        {/* Render correct card by kind */}
+        {/* Render correct card by kind, but FLAT */}
         {(() => {
-          // If repostedContent is a quote, use repostedContent.event as the original event
           const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
           if (original?.kind === 1) {
             return <PostEventCard event={original} profile={profileRepost ?? undefined} />;
