@@ -41,7 +41,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
 
   return (
     <div className="event-card">
-      <header className="flex items-center mb-8" aria-label="Post header"
+      <header className="flex items-center mb-8 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-1 transition" aria-label="Post header"
         onClick={() => {
           showModal(<>
             <ProfileCardOverview event={event} profile={profile} profilePubkey={event.pubkey} isLinkToProfile={true} />
@@ -49,21 +49,22 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
         }}
       >
         {profile?.picture ? (
-          <div className="w-30 h-30 rounded-full overflow-hidden">
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0">
             <img
               src={profile.picture}
               alt={displayName}
-              width={50}
-              height={50}
+              width={40}
+              height={40}
+              className="object-cover w-10 h-10"
             />
           </div>
         ) : (
-          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
-            <span className="text-sm mono truncate-ellipsis">{displayName.substring(0, 2).toUpperCase()}</span>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 flex-shrink-0">
+            <span className="text-lg mono truncate-ellipsis" aria-label="No profile image">🕵️</span>
           </div>
         )}
-        <div className="ml-2">
-          <div className="username truncate-ellipsis" title={displayName}>{displayName}</div>
+        <div className="ml-2 min-w-0">
+          <div className="username truncate-ellipsis font-semibold" title={displayName}>{displayName}</div>
           <div className="text-xs flex items-center">
             <time className="timestamp" dateTime={String(event.created_at)} aria-label="Post timestamp">{timestamp}</time>
             {profile?.nip05 && (
