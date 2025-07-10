@@ -207,7 +207,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   }
 
   return (
-    <div className="repost-event-ui bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 mb-4">
+    <div className="repost-event-ui rounded-xl border border-gray-500 dark:border-gray-800 p-4 mb-4">
       {/* Reposted by (header) */}
       <div className="flex items-center gap-2 mb-2">
         {profile && (
@@ -227,7 +227,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
       )}
 
       {/* Original post - FLAT, no extra card */}
-      <div className="pl-2 border-l-2 border-gray-200 dark:border-gray-700">
+      <div className="pl-2 border-l-2 border-gray-500 dark:border-gray-700">
         <div className="flex items-center gap-2 mb-1 mt-1">
           {profileRepost?.picture && <Image className="rounded-full w-6 h-6" src={profileRepost?.picture} alt={profileRepost?.name || ''} width={24} height={24} />}
           <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Original post by {profileRepost?.name || profileRepost?.display_name || pubkeyReposted?.slice(0, 8)}</span>
