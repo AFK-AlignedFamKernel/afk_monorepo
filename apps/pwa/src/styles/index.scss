@@ -240,10 +240,8 @@ div {
 }
 
 input {
-  color: var(--contrast-900);
-  background-color: var(--contrast-500);
-  border: 1px solid var(--border);
-  text-wrap: nowrap;
+  color: var(--foreground);
+  background-color: var(--background);
 }
 
 select {
@@ -284,11 +282,6 @@ p {
   line-height: 1.5;
   font-size: 1.25rem;
   margin-bottom: 1em;
-}
-
-input {
-  color: var(--foreground);
-  background-color: var(--background);
 }
 
 a {

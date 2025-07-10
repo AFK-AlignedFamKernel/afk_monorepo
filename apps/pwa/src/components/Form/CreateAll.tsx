@@ -65,14 +65,50 @@ export default function CreateAll() {
     <div className="container mx-auto p-4">
 
 
-      <div className="flex flex-row gap-2 overflow-x-auto scrollbar-hide rounded-xl p-2 shadow-md justify-start"> 
-        <button className={`btn btn-secondary ${createType === CreateType.POST ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.POST)}>Post</button>
-        <button className={`btn btn-secondary ${createType === CreateType.TOKEN ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.TOKEN)}>Token</button>
-
-        <button className={`btn btn-secondary ${createType === CreateType.ARTICLE ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.ARTICLE)}>Article</button>
-        <button className={`btn btn-secondary ${createType === CreateType.BRAND ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.BRAND)}>Brand</button>
-        <button className={`btn btn-secondary ${createType === CreateType.DEBATE ? 'btn-primary' : ''}`} onClick={() => setCreateType(CreateType.DEBATE)}>Debate</button>
-
+      <div className="flex flex-row gap-2 overflow-x-auto scrollbar-hide rounded-xl p-2 shadow-md justify-start">
+        {Object.entries(CreateType).filter(([key]) => key !== 'COMMUNITY').map(([key, value]) => (
+          <button
+            key={value}
+            onClick={() => setCreateType(value as CreateType)}
+            style={{
+              border: 'none',
+              outline: 'none',
+              background: createType === value
+                ? (typeof window !== 'undefined' && document.body.classList.contains('dark-mode')
+                    ? 'var(--shade-600)' : 'var(--shade-300)')
+                : (typeof window !== 'undefined' && document.body.classList.contains('dark-mode')
+                    ? 'var(--shade-800)' : 'var(--shade-100)'),
+              color: createType === value
+                ? (typeof window !== 'undefined' && document.body.classList.contains('dark-mode')
+                    ? 'var(--contrast-50)' : 'var(--contrast-900)')
+                : (typeof window !== 'undefined' && document.body.classList.contains('dark-mode')
+                    ? 'var(--contrast-100)' : 'var(--contrast-900)'),
+              fontWeight: createType === value ? 700 : 500,
+              fontFamily: 'var(--afk-font-primary, IBM Plex Sans, Arial, sans-serif)',
+              borderRadius: '999px',
+              padding: '0.5rem 1.25rem',
+              fontSize: '1rem',
+              transition: 'background 0.18s, color 0.18s, box-shadow 0.18s',
+              cursor: 'pointer',
+              boxShadow: createType === value ? '0 2px 8px 0 rgba(0,0,0,0.04)' : 'none',
+              position: 'relative',
+              zIndex: 1,
+            }}
+            onMouseOver={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = (typeof window !== 'undefined' && document.body.classList.contains('dark-mode'))
+                ? 'var(--shade-700)' : 'var(--shade-200)';
+            }}
+            onMouseOut={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = createType === value
+                ? (typeof window !== 'undefined' && document.body.classList.contains('dark-mode')
+                    ? 'var(--shade-600)' : 'var(--shade-300)')
+                : (typeof window !== 'undefined' && document.body.classList.contains('dark-mode')
+                    ? 'var(--shade-800)' : 'var(--shade-100)');
+            }}
+          >
+            {key.charAt(0) + key.slice(1).toLowerCase()}
+          </button>
+        ))}
       </div>
 
       {createType === CreateType.POST && (
