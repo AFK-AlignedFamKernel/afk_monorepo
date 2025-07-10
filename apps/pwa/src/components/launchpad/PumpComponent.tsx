@@ -38,6 +38,7 @@ interface TokenDeployInterface {
   instagram?: string;
   youtube?: string;
   tiktok?: string;
+  image_url?: string;
 }
 
 export default function PumpComponent() {
@@ -275,7 +276,7 @@ export default function PumpComponent() {
                     ))}
                   </tbody>
                 </table> */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-1">
               {filteredData.map((item: TokenDeployInterface) => (
                 <LaunchpadCard
                   key={item.memecoin_address || item.token_address}
@@ -289,6 +290,7 @@ export default function PumpComponent() {
                     is_liquidity_added: item.is_liquidity_added,
                     threshold_liquidity: Number(item.threshold_liquidity) || 0,
                     url: item.url,
+                    image_url: item.image_url,
                     price: item.price,
                     total_supply: item.total_supply,
                     network: item.network,

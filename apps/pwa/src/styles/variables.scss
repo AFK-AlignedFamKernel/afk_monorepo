@@ -40,6 +40,21 @@ $afk-black-text: #000000;
   --afk-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
+// AFK Brand Colors for dark mode
+.dark-mode {
+  --afk-bg-dark: #0E0E0E;
+  --afk-bg-panel: #1A1A1A;
+  --afk-bg-light: #F9F9F9;
+  --afk-accent-green: #00FF9C;
+  --afk-accent-cyan: #00F0FF;
+  --afk-accent-magenta: #FF2EC4;
+  --afk-muted: #888888;
+  --afk-text-dark: #FFFFFF;
+  --afk-text-light: #000000;
+  --afk-font-primary: 'IBM Plex Sans', Arial, sans-serif;
+  --afk-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
 // Theme variables
 :root {
   // Primary colors (grays)

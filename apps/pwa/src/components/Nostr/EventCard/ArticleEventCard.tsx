@@ -14,6 +14,8 @@ import { Icon } from '@/components/small/icon-component';
 import CommentContainer from './CommentContainer';
 import { QuoteRepostComponent } from './quote-repost-component';
 import { ContentWithClickableHashtags } from './ClickableHashtags';
+import { logClickedEvent } from '@/lib/analytics';
+import { useNostrAuth } from '@/hooks/useNostrAuth';
 interface ArticleEventCardProps extends NostrArticleEventProps {
   profile?: NDKUserProfile;
   event: NDKEvent;
@@ -28,7 +30,7 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
   const router = useRouter();
   const [isOpenComment, setIsOpenComment] = useState(false);
   const queryClient = useQueryClient();
-
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isExpandedTitle, setIsExpandedTitle] = useState(false);
   const { showToast, showModal } = useUIStore();
@@ -64,7 +66,9 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
   const toggleLike = async () => {
     if (!event?.id) return;
 
-    // await handleCheckNostrAndSendConnectDialog();
+    const isNostrConnected = handleCheckNostrAndSendConnectDialog();
+    if (!isNostrConnected) return;
+
     await react.mutateAsync(
       { event, type: isLiked ? 'dislike' : 'like' },
       {
@@ -132,19 +136,40 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
           </button>
         </div>
         <div className="action-buttons flex flex-wrap gap-2 my-2" role="group" aria-label="Article actions">
-          <button className="action-button" aria-label="Reply" onClick={() => setIsOpenComment(!isOpenComment)}>
+          <button className="action-button" aria-label="Reply" onClick={() => {
+            setIsOpenComment(!isOpenComment);
+            logClickedEvent('reply_to_note', 'Interaction', 'Button Click', 1);
+          }}>
             <Icon name="CommentIcon" size={20} />
           </button>
-          <button className={`action-button ${isLiked ? 'text-blue-500 animate-pulse' : ''}`} aria-label="Like" onClick={toggleLike}>
-            <Icon name="LikeIcon" size={20}></Icon>
+          <button className={`action-button ${isLiked ? '' : ''}`} aria-label="Like" onClick={toggleLike}>
+            <Icon name="LikeIcon" size={20}
+              className={`${isLiked ? 'text-red-500' : ''}`}
+              onClick={() => {
+                logClickedEvent('like_note', 'Interaction', 'Button Click', 1);
+              }}
+            />
           </button>
-          <button className="action-button" aria-label="Repost" onClick={() => showModal(<QuoteRepostComponent event={event} />)}>
+          <button className="action-button" aria-label="Repost" onClick={() => {
+            const isNostrConnected = handleCheckNostrAndSendConnectDialog();
+            if (isNostrConnected) {
+              showModal(<QuoteRepostComponent event={event} />);
+            }
+            logClickedEvent('repost_note', 'Interaction', 'Button Click', 1);
+          }}>
             <Icon name="RepostIcon" size={20}></Icon>
           </button>
-          <button className="action-button" aria-label="Share">
+          <button className="action-button" aria-label="Share" onClick={() => {
+            navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
+            showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
+            logClickedEvent('share_note_link', 'Interaction', 'Button Click', 1);
+          }}>
             <Icon name="ShareIcon" size={20} />
           </button>
-          <button className="action-button" aria-label="Tip" onClick={handleTipsModal}>
+          <button className="action-button" aria-label="Tip" onClick={() => {
+            handleTipsModal();
+            logClickedEvent('tip_note', 'Interaction', 'Button Click', 1);
+          }}>
             <Icon name="GiftIcon" size={20} ></Icon>
           </button>
         </div>

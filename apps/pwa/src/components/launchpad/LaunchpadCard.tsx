@@ -21,6 +21,7 @@ interface LaunchpadCardProps {
     network?: string;
     created_at?: string;
     market_cap?: string;
+    image_url?: string;
   };
   type: 'TOKEN' | 'LAUNCH';
 }
@@ -42,7 +43,7 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
     });
   };
 
-  // console.log("token", token)
+  console.log("token", token)
   // console.log("type", type)
 
   return (
@@ -50,8 +51,8 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
       <div className="flex justify-between items-start gap-2">
         <div className="flex justify-between items-center text-sm">
 
-          {token?.url && (token?.url !== "" && token?.url !== null && token?.url !== undefined) && (
-            <Image src={token?.url} alt={token.name} width={50} height={50}
+          {token?.image_url && (token?.image_url !== "" && token?.image_url !== null && token?.image_url !== undefined) && (
+            <Image src={token?.image_url} alt={token.name} width={50} height={50}
               className="rounded-lg"
             />
           )}

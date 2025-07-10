@@ -2,18 +2,14 @@
   &__overlay {
     position: fixed;
     inset: 0;
-    background-color: var(--contrast-background);
+    background: rgba(0,0,0,0.35);
     z-index: 50;
-    opacity: 0;
+    opacity: 1;
     transition: opacity 0.3s ease-in-out;
-    // backdrop-filter: blur(2px);
-
+    pointer-events: auto;
+    // No strong contrast, just a subtle dark overlay for both light and dark mode
     &--visible {
-      opacity: 0.7;
-    }
-
-    .dark & {
-      background-color: var(--contrast-background);
+      opacity: 1;
     }
   }
 
@@ -24,6 +20,12 @@
     // z-index: 50;
     z-index: 900;
     padding: 0.25rem;
+
+    @media (max-width: 640px) {
+      padding: 0;
+      z-index: 900;
+      width: 100%;
+    }
   }
 
   &__content {
@@ -36,29 +38,50 @@
   }
 
   &__panel {
-    width: 100%;
-    max-width: 28rem;
+    width: calc(100% - 20px);
+    max-width: none;
+    margin-left: 10px;
+    margin-right: 10px;
     transform: scale(0.95);
     opacity: 0;
     transition: all 0.3s ease-in-out;
-    background: var(--background);
-    padding: 1.5rem;
+    background: var(--background) !important;
+    box-shadow: 0 4px 32px 0 rgba(0,0,0,0.10);
+    border-radius: 8px;
+    margin: 0 auto;
+    padding: 1rem;
     border-radius: 1rem;
     box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     max-height: calc(100vh - 2rem);
     overflow-y: auto;
     color: var(--text);
+    overflow-x: hidden;
 
     .dark & {
-      background: var(--contrast-background);
       color: var(--text);
       box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
     }
 
     &--visible {
       // transform: scale(1);
-      background: var(--gray-800);
+      background: var(--background) !important;
       opacity: 1;
+    }
+
+    // Responsive mobile styles
+    @media (max-width: 640px) {
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      height: 80vh;
+      max-height: 90vh;
+      border-radius: 0.5rem;
+      padding: 0;
+      box-shadow: none;
+      overflow-x: hidden;
+      overflow-y: auto;
+      margin-left: 0;
+      margin-right: 0;
     }
 
     // Size variants
@@ -164,13 +187,39 @@
   }
 
   &__content-container {
-
+    padding-top: 1rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    background: var(--background) !important;
+    @media (max-width: 640px) {
+      padding-top: 0.5rem;
+      padding-left: 0.25rem;
+      padding-right: 0.25rem;
+    }
     // background: var(--gray-100);
     // padding: 1.5rem;
     // border-radius: 1rem;
     // box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     // max-height: calc(100vh - 2rem);
     // overflow-y: auto;
+  }
+
+  &__card {
+    background: var(--background);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin: 2rem auto 0 auto;
+    width: 100%;
+    max-width: 28rem;
+
+    @media (max-width: 640px) {
+      border-radius: 0;
+      padding: 0.5rem;
+      box-shadow: none;
+      max-width: 100vw;
+      margin-top: 1rem;
+    }
   }
 
   // Close button styling
@@ -180,6 +229,7 @@
     right: 1rem;
     color: #6b7280;
     transition: color 0.2s ease-in-out;
+    z-index: 10;
 
     &:hover {
       color: #374151;
@@ -190,6 +240,15 @@
 
       &:hover {
         color: #d1d5db;
+      }
+    }
+
+    @media (max-width: 640px) {
+      top: 0.5rem;
+      right: 0.5rem;
+      svg {
+        width: 1.5rem;
+        height: 1.5rem;
       }
     }
   }

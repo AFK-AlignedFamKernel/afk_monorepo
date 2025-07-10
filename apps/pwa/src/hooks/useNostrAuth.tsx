@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useUIStore } from '@/store/uiStore';
 import { NostrProfileManagement } from '@/components/Nostr/profile/nostr-profile-management';
 import NostrCreateAccountComponent from '@/components/Nostr/login/NostrCreateAccount';
+import { logClickedEvent } from '@/lib/analytics';
 
 export const useNostrAuth = () => {
   const { publicKey, privateKey } = useAuth();
@@ -14,12 +15,15 @@ export const useNostrAuth = () => {
 
   const isNostrConnected = useMemo(() => {
     return publicKey ? true : false;
+    // return false;
   }, [publicKey]);
 
-  const handleCheckNostrAndSendConnectDialog = async () => {
+  const handleCheckNostrAndSendConnectDialog = () => {
     // @todo fix
+    console.log('isNostrConnected', isNostrConnected);
     if (!isNostrConnected) {
-
+      logClickedEvent('click_nostr_connect_dialog', 'Interaction', 'Button Click', 1);
+      console.log('showModal');
       showModal((
         <>
           <div>

@@ -13,6 +13,7 @@ import { AvatarIcon } from './small/icons';
 import AccordionMenu from './small/AccordionMenu';
 import { useColorModeValue } from '@chakra-ui/react';
 import CreateAll from './Form/CreateAll';
+import { logClickedEvent } from '@/lib/analytics';
 
 const MobileBottomBar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -152,7 +153,11 @@ const MobileBottomBar = () => {
 
       <div>
         <div className="flex gap-8 border-t px-4 pb-3 pt-2 justify-between">
-          <Link href="/" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
+          <Link href="/" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}
+          onClick={() => {
+            logClickedEvent('home_button_link_mobile');
+          }}
+          >
             <div className="flex h-8 items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
                 <path d="M218.83,103.77l-80-75.48a1.14,1.14,0,0,1-.11-.11,16,16,0,0,0-21.53,0l-.11.11L37.17,103.77A16,16,0,0,0,32,115.55V208a16,16,0,0,0,16,16H96a16,16,0,0,0,16-16V160h32v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V115.55A16,16,0,0,0,218.83,103.77ZM208,208H160V160a16,16,0,0,0-16-16H112a16,16,0,0,0-16,16v48H48V115.55l.11-.1L128,40l79.9,75.43.11.1Z"></path>
@@ -161,7 +166,11 @@ const MobileBottomBar = () => {
             <p className="text-xs font-medium leading-normal tracking-[0.015em]">Home</p>
           </Link>
 
-          <Link href="/launchpad" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
+          <Link href="/launchpad" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}
+          onClick={() => {
+            logClickedEvent('swap_button_link_mobile');
+          }}
+          >
             <div className="flex h-8 items-center justify-center">
               <Icon name="UpwardTrendGraphIcon" className='w-6 h-6' />
             </div>
@@ -173,6 +182,7 @@ const MobileBottomBar = () => {
             className="flex flex-1 flex-col items-center justify-end gap-1" 
             style={{ color: secondaryTextColor }}
             onClick={() => {
+              logClickedEvent('create_button_link_mobile');
               showModal(<CreateAll />)
             }}
           >
@@ -182,7 +192,11 @@ const MobileBottomBar = () => {
             <p className="text-xs font-medium leading-normal tracking-[0.015em]">Create</p>
           </button>
 
-          <Link href="/wallet" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
+          <Link href="/wallet" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}
+          onClick={() => {
+            logClickedEvent('wallet_button_link_mobile');
+          }}
+          >
             <div className="flex h-8 items-center justify-center">
               <Icon name="WalletIcon" className='w-6 h-6' />
             </div>
@@ -190,7 +204,11 @@ const MobileBottomBar = () => {
           </Link>
 
       
-          <Link href="/profile" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}>
+          <Link href="/profile" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}
+          onClick={() => {
+            logClickedEvent('profile_button_link_mobile');
+          }}
+          >
             <div className="flex h-8 items-center justify-center">
               <Icon name="UserIcon" className='w-6 h-6' />
             </div>

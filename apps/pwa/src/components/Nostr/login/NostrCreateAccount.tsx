@@ -81,7 +81,17 @@ export default function NostrCreateAccountComponent() {
                             message: 'Profile updated successfully',
                             type: 'success',
                         })
-                    }
+                    },
+                    onError: (error: any) => {
+                        console.log('error', error)
+                        if (error.message.includes('Profile already exists')) {
+                            showToast({
+                                message: 'Username already exists',
+                                type: 'error',
+                            })
+                        }
+                    
+                    }   
                 })
             } catch (error) {
                 console.log('error', error)
@@ -108,8 +118,17 @@ export default function NostrCreateAccountComponent() {
 
                 user.profile = { ...user.profile, name: username, display_name: username };
 
-                user.publish();
+                await user.publish();
+                showToast({
+                    message: 'Account created successfully',
+                    type: 'success',
+                })
             } catch (error) {
+                console.log('error', error)
+                showToast({
+                    message: 'Failed to create account, please try again',
+                    type: 'error',
+                })
 
             }
 
@@ -178,6 +197,12 @@ export default function NostrCreateAccountComponent() {
                                 <button
                                     onClick={() => {
                                         navigator.clipboard.writeText(newPrivateKey);
+                                        showToast({
+                                            message: 'Private key copied to clipboard',
+                                            description:"Don't share this with anyone",
+                                            type: 'success',
+                                        })
+                                        logClickedEvent('create_account_copy_private_key', 'nostr', 'copy_private_key', 1)
                                     }}
                                     className="text-sm hover:text-indigo-500"
                                 >
@@ -198,6 +223,11 @@ export default function NostrCreateAccountComponent() {
                                 <button
                                     onClick={() => {
                                         navigator.clipboard.writeText(newPublicKey);
+                                        showToast({
+                                            message: 'Public key copied to clipboard',
+                                            type: 'success',
+                                        })
+                                        logClickedEvent('create_account_copy_public_key', 'nostr', 'copy_public_key', 1)
                                     }}
                                     className="text-sm hover:text-indigo-500"
                                 >

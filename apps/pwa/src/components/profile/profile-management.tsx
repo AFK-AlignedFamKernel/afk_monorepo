@@ -23,106 +23,68 @@ interface CustomHeaderInterface {
 
 
 export const ProfileManagement = ({ title, showLogo, isModalMode }: CustomHeaderInterface) => {
-    // const isDesktop = React.useMemo(() => {
-    //     return dimensions.width >= 1024;
-    // }, [dimensions]);
-
     const { publicKey, setAuth } = useAuth();
-    const [isOpenProfile, setIsOpenProfile] = React.useState(false);
-    const [activeTab, setActiveTab] = React.useState<'all' | 'nostr' | 'onchain' | 'oauth'>('all');
-    const nostrAccounts = NostrKeyManager.getAllNostrAccountsFromStorage();
-    const [isWalletSelectOpen, setIsWalletSelectOpen] = React.useState(false);
+    const [activeTab, setActiveTab] = React.useState<'nostr' | 'onchain' | 'oauth'>('nostr');
     const { showToast } = useUIStore();
-    const handleIsOpenProfile = () => {
-        setIsOpenProfile(!isOpenProfile);
-    };
-
-
-    const nostrProfiles = useMemo(() => {
-        if (!nostrAccounts) return [];
-        const users: any[] = [];
-        for (const [key, value] of Object.entries(nostrAccounts)) {
-            users.push(value);
-        }
-        return users;
-    }, [nostrAccounts]);
-
-    const handleConnectWallet = (item: any) => {
-        setIsWalletSelectOpen(!isWalletSelectOpen);
-        setAuth(item?.publicKey, item?.secretKey);
-        NostrKeyManager.setAccountConnected(item);
-        showToast({
-            message: `Wallet connected: ${item?.publicKey}`,
-            description: "You are now connected to the wallet",
-            type: "success"
-        })
-        // handleIsOpenProfile();
-
-    }
 
     return (
-        <div style={{
-            width: '100%',
-            padding: 8,
-        }}>
-            <div style={{
-                display: 'flex',
-                gap: 8,
-                marginBottom: 8,
-            }}>
-                <button className={`btn btn-secondary ${activeTab == 'all' ? 'btn-active' : ''}`} onClick={() => setActiveTab('all')}>All</button>
-                <button className={`btn btn-secondary ${activeTab == 'nostr' ? 'btn-active' : ''}`} onClick={() => setActiveTab('nostr')}>Nostr</button>
-                <button className={`btn btn-secondary ${activeTab == 'onchain' ? 'btn-active' : ''}`} onClick={() => setActiveTab('onchain')}>Onchain</button>
-                <button className={`btn btn-secondary ${activeTab == 'oauth' ? 'btn-active' : ''}`} onClick={() => setActiveTab('oauth')}>Oauth</button>
+        <div className="w-full max-w-md mx-auto p-4">
+            <div className="flex justify-center gap-2 mb-4">
+                <button
+                    className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none border text-base shadow-none
+                        ${activeTab === 'nostr'
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-50 font-bold'
+                            : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}
+                    `}
+                    onClick={() => setActiveTab('nostr')}
+                    aria-label="Show Nostr profile section"
+                >
+                    Nostr
+                </button>
+                <button
+                    className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none border text-base shadow-none
+                        ${activeTab === 'onchain'
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-50 font-bold'
+                            : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}
+                    `}
+                    onClick={() => setActiveTab('onchain')}
+                    aria-label="Show Onchain wallet section"
+                >
+                    Onchain
+                </button>
+                <button
+                    className={`px-5 py-2 rounded-full font-semibold transition-colors focus:outline-none border text-base shadow-none
+                        ${activeTab === 'oauth'
+                            ? 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-50 font-bold'
+                            : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700'}
+                    `}
+                    onClick={() => setActiveTab('oauth')}
+                    aria-label="Show OAuth section"
+                >
+                    OAuth
+                </button>
             </div>
-            {activeTab === 'oauth' && (
-                <div className='shadow p-4'>
-                    <Oauth></Oauth>
-                </div>
-            )}
-
-            {activeTab === 'all' && (
-                <div className='shadow'>
-                    <div>
-                        <p>Socials</p>
-                        <AccordionMenu
-                            isOpenProps={true}
-                            items={[{
-                                title: 'Nostr',
-                                content: <NostrProfileManagement></NostrProfileManagement>
-                            }]}></AccordionMenu>
-
-                    </div>
-                    <Divider></Divider>
-                    <div>
-                        <p>Wallet</p>
-                        <WalletConnectButton></WalletConnectButton>
-                    </div>
-                    <Divider></Divider>
-                    <div>
-                        <AccordionMenu 
-                        
-                        items={[{
-                            title: 'Oauth',
-                            content: <Oauth></Oauth>
-                        }]}></AccordionMenu>
-                    </div>
-                    {/* <Divider></Divider> */}
-                </div>
-            )}
 
             {activeTab === 'nostr' && (
-                <div className="card shadow p-4">
-                    <NostrProfileManagement></NostrProfileManagement>
+                <div className="card shadow rounded p-4 mb-4">
+                    <h2 className="text-lg font-bold mb-2">Nostr Profile</h2>
+                    <NostrProfileManagement />
                 </div>
             )}
 
             {activeTab === 'onchain' && (
-                <div className="card shadow p-4">
-                    <WalletConnectButton></WalletConnectButton>
+                <div className="card shadow rounded p-4 mb-4">
+                    <h2 className="text-lg font-bold mb-2">Onchain Wallet</h2>
+                    <WalletConnectButton />
                 </div>
             )}
 
+            {activeTab === 'oauth' && (
+                <div className="card shadow rounded p-4 mb-4">
+                    <h2 className="text-lg font-bold mb-2">OAuth Accounts</h2>
+                    <Oauth />
+                </div>
+            )}
         </div>
     );
 };
