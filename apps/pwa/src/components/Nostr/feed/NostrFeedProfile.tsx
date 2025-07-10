@@ -59,6 +59,10 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   const [openFilters, setOpenFilters] = useState(false);
 
+  // Memoize authors and kinds for effect dependencies
+  const authorsMemo = React.useMemo(() => authors, [JSON.stringify(authors)]);
+  const kindsMemo = React.useMemo(() => kinds, [JSON.stringify(kinds)]);
+
   const fetchEvents = async () => {
     // if (isLoadingMore || !hasMoreContent) return;
     console.log("isLoadingMore")
@@ -83,8 +87,8 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       }
 
       const notes = await ndk.fetchEvents({
-        kinds: [...kinds],
-        authors: authors,
+        kinds: [...kindsMemo],
+        authors: authorsMemo,
         // searchQuery: searchQuery,
         // since: since,
         // until: until,
@@ -127,26 +131,19 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     }
   }
 
-  const loadInitialData = async () => {
-    console.log("loading initial data");
-    setNotesData([]);
-    setIsLoadingMore(true)
-    await fetchEvents();
-
-    setIsInitialLoading(true);
-    // setLastCreatedAt(0);
-    setHasMoreContent(true);
-    setIsError(false);
-    setError(null);
-    setIsInitialLoading(false);
-  };
-
-  // Initial data load
+  // Only reset and load when actual prop changes
   useEffect(() => {
     if (isNdkConnected) {
-      loadInitialData();
+      setNotesData([]);
+      setLastCreatedAt(Math.round(Date.now() / 1000));
+      setHasMoreContent(true);
+      setIsError(false);
+      setError(null);
+      setIsInitialLoading(true);
+      fetchEvents();
     }
-  }, [isNdkConnected, kinds, limit, authors, searchQuery, since, until]);
+    // Only depend on stable/memoized props
+  }, [isNdkConnected, JSON.stringify(authorsMemo), JSON.stringify(kindsMemo), limit, searchQuery, sinceProps, untilProps, activeTabProps]);
 
 
   useEffect(() => {
@@ -167,7 +164,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     setIsError(false);
     setError(null);
     setIsInitialLoading(true);
-    loadInitialData();
+    fetchEvents();
     // fetchEvents();
   }, [activeTabProps]);
 

@@ -14,6 +14,32 @@ $bottom-height: 50px;
 // $button-warning-color: var(--warning-color, var(--yellow-500));
 // $button-info-color: var(--info-color, var(--blue-500));
 
+// AFK Brand Colors
+$afk-black: #0E0E0E;
+$afk-charcoal: #1A1A1A;
+$afk-offwhite: #F9F9F9;
+$afk-electric-green: #00FF9C;
+$afk-cyber-cyan: #00F0FF;
+$afk-neon-magenta: #FF2EC4;
+$afk-slate-gray: #888888;
+$afk-white: #FFFFFF;
+$afk-black-text: #000000;
+
+// Semantic CSS variables
+:root {
+  --afk-bg-dark: #0E0E0E;
+  --afk-bg-panel: #1A1A1A;
+  --afk-bg-light: #F9F9F9;
+  --afk-accent-green: #00FF9C;
+  --afk-accent-cyan: #00F0FF;
+  --afk-accent-magenta: #FF2EC4;
+  --afk-muted: #888888;
+  --afk-text-dark: #FFFFFF;
+  --afk-text-light: #000000;
+  --afk-font-primary: 'IBM Plex Sans', Arial, sans-serif;
+  --afk-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
 // Theme variables
 :root {
   // Primary colors (grays)
@@ -234,3 +260,63 @@ $bottom-height: 50px;
   --contrast-900: #f8fafc;
   --contrast-950: #ffffff;
 }
+
+// Font stacks
+$font-primary: 'IBM Plex Sans', Arial, sans-serif;
+$font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+body {
+  font-family: $font-primary;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.code, .mono, pre, code {
+  font-family: $font-mono;
+}
+
+.btn-primary {
+  background: var(--afk-accent-green);
+  color: var(--afk-bg-dark);
+  border-radius: 8px;
+  text-transform: uppercase;
+  font-weight: bold;
+  box-shadow: 0 0 8px 0 rgba(0,255,156,0.3);
+  transition: box-shadow 0.2s, background 0.2s;
+  &:hover {
+    background: darken(#00FF9C, 10%);
+    box-shadow: 0 0 16px 2px #00FF9C;
+  }
+}
+.btn-secondary {
+  border: 1px solid var(--afk-accent-cyan);
+  color: var(--afk-accent-cyan);
+  background: transparent;
+  border-radius: 8px;
+  text-transform: uppercase;
+  font-weight: bold;
+  &:hover {
+    background: rgba(0,240,255,0.1);
+    box-shadow: 0 0 8px 0 #00F0FF;
+  }
+}
+
+input, textarea {
+  background: var(--afk-bg-panel);
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: var(--afk-text-dark);
+  &:focus {
+    border-color: var(--afk-accent-green);
+    outline: none;
+    box-shadow: 0 0 0 2px #00FF9C33;
+  }
+}
+body.light-mode input, body.light-mode textarea {
+  background: var(--afk-bg-light);
+  border: 1px solid #CCC;
+  color: var(--afk-text-light);
+}
+
+.mt-8 { margin-top: 8px; }
+.p-16 { padding: 16px; }
+.gap-24 { gap: 24px; }

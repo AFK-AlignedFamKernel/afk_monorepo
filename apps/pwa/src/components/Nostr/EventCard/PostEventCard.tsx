@@ -180,150 +180,86 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   }
 
   return (
-    <div className="post-event-card">
-      {isReplyView &&
-        reply && reply?.length > 0 &&
-        (
-          <div
-            style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-          >
-            <button onClick={handleToReplyView}>
-              <p className="text-gray-500 dark:text-gray-400 text-sm"
-              >
-                Reply to this note
-              </p>
-            </button>
-            {/* <Text>Reply View</Text> */}
-          </div>
-        )}
-      {isRepost ||
-        event?.kind == NDKKind.Repost ||
-        (isRepost && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <RepostIcon height={18} />
-            <p color="textLight">Reposted</p>
-          </div>
-        ))}
-      <NostrEventCardBase {...props}>
-        <div className="mt-2">
-          <div
-            // className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap break-words"
-            className="dark:text-gray-200 whitespace-pre-wrap break-words  sm:max-w-[300px] lg:max-w-[500px]"
-            onClick={() => {
-              setIsExpanded(!isExpanded)
-            }}
-          >
-            {formatContent(displayContent)}
-            {shouldTruncate && (
-              <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="text-blue-500 hover:text-blue-700 ml-1 text-sm"
-              >
-                Show {isExpanded ? 'less' : 'more'}
-              </button>
-            )}
-          </div>
-
-          <div>
-
-            {postSource && (
-              <Image
-                src={postSource.uri}
-                alt="Post Source"
-                width={postSource.width}
-                height={postSource.height}
-              // style={[
-              //   styles.contentImage,
-              //   {
-              //     height: dimensionsMedia[1],
-              //     aspectRatio: getImageRatio(postSource.width, postSource.height),
-              //   },
-              // ]}
-              />
-            )}
-
-            {imgUrls.length > 0 && (
-              <SliderImages imgUrls={imgUrls} />
-            )}
-          </div>
-
-
-          {props?.isClickableHashtags && (
-            <div className="mt-3">
-              <ContentWithClickableHashtags content={content}
-                // tagsHash={tagsHash}
-                tags={event?.tags}
-                onHashtagPress={handleHashtagPress}
-                // hashtagsRender={hashtags}
-              />
-            </div>
-          )}
-          {/* {hashtags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {hashtags.map((tag, index) => (
-                <span
-                  onClick={() => {
-                    router.push(`/nostr/tags/${tag}`);
-                  }}
-                  key={index}
-                  className="cursor-pointer hashtag inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded-full text-xs"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )} */}
-
-          <div className="mt-6 mb-2 flex items-center text-gray-500 dark:text-gray-400 text-sm space-x-4 gap-4">
-            <button className="flex items-center hover:text-blue-500 gap-1"
-              onClick={() => setIsOpenComment(!isOpenComment)}
-            >
-
-              <Icon name="CommentIcon" size={16}
-              />
-              {/* Reply */}
-            </button>
-            <button className="flex items-center hover:text-green-500 gap-1"
-              onClick={() => showModal(
-                <>
-                  <QuoteRepostComponent event={event} >
-                  </QuoteRepostComponent>
-                </>
-              )}
-            >
-              <Icon name="RepostIcon" size={16} ></Icon>
-              {/* Repost */}
-            </button>
-            <button className={`flex items-center hover:text-red-500 gap-1 ${isLiked ? 'text-red-500' : ''}`} onClick={toggleLike}>
-              <Icon name="LikeIcon" size={16} ></Icon>
-              {/* Like */}
-            </button>
-            <button className={`flex items-center hover:text-purple-500 gap-1 ${isLiked ? 'text-red-500' : ''}`} onClick={handleTipsModal}>
-              <Icon name="GiftIcon" size={16} ></Icon>
-              {/* Tips */}
-            </button>
-            <button className="flex items-center hover:text-green-500 gap-1"
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
-                showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
-              }}
-            >
-              <Icon name="ShareIcon" size={16} ></Icon>
-              {/* Share */}
-            </button>
-          </div>
+    <NostrEventCardBase event={event} profile={props.profile} isLoading={props.isLoading}>
+      {isReplyView && reply && reply.length > 0 && (
+        <div className="reply-container" aria-label="Reply to note">
+          <button onClick={handleToReplyView} className="action-button" aria-label="Go to parent note">
+            <p className="text-gray-500 dark:text-gray-400 text-sm truncate-ellipsis mono">Reply to this note</p>
+          </button>
         </div>
-
-        {isOpenComment && (
+      )}
+      {isRepost || event?.kind == NDKKind.Repost || (isRepost && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <RepostIcon height={18} />
+          <p color="textLight">Reposted</p>
+        </div>
+      ))}
+      <section className="post-content" aria-label="Post content">
+        <div
+          className="dark:text-gray-200 whitespace-pre-wrap break-words sm:max-w-[300px] lg:max-w-[500px]"
+          onClick={() => {
+            setIsExpanded(!isExpanded)
+          }}
+        >
+          {formatContent(displayContent)}
+          {shouldTruncate && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-blue-500 hover:text-blue-700 ml-1 text-sm action-button"
+              aria-label={isExpanded ? 'Show less' : 'Show more'}
+            >
+              Show {isExpanded ? 'less' : 'more'}
+            </button>
+          )}
+        </div>
+        <div>
+          {postSource && (
+            <Image
+              src={postSource.uri}
+              alt="Post Source"
+              width={postSource.width}
+              height={postSource.height}
+            />
+          )}
+          {imgUrls.length > 0 && (
+            <SliderImages imgUrls={imgUrls} />
+          )}
+        </div>
+        {props?.isClickableHashtags && (
           <div className="mt-3">
-            <CommentContainer event={event} />
+            <ContentWithClickableHashtags content={content}
+              tags={event?.tags}
+              onHashtagPress={handleHashtagPress}
+            />
           </div>
         )}
-
-      </NostrEventCardBase>
-
-
-    </div>
+        <div className="action-buttons flex flex-row gap-3 mt-3 mb-1 px-1 py-1 border-t border-gray-100 dark:border-gray-800">
+          <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Reply" onClick={() => setIsOpenComment(!isOpenComment)}>
+            <Icon name="CommentIcon" size={20} />
+          </button>
+          <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Repost" onClick={() => showModal(<QuoteRepostComponent event={event} />)}>
+            <Icon name="RepostIcon" size={20} />
+          </button>
+          <button className={`action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition ${isLiked ? 'text-red-500 animate-pulse' : ''}`} aria-label="Like" onClick={toggleLike}>
+            <Icon name="LikeIcon" size={20} />
+          </button>
+          <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Tip" onClick={handleTipsModal}>
+            <Icon name="GiftIcon" size={20} />
+          </button>
+          <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Share" onClick={() => {
+            navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
+            showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
+          }}>
+            <Icon name="ShareIcon" size={20} />
+          </button>
+        </div>
+      </section>
+      {isOpenComment && (
+        <div className="mt-3">
+          <CommentContainer event={event} />
+        </div>
+      )}
+    </NostrEventCardBase>
   );
 };
 

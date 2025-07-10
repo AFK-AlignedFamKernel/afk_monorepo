@@ -84,12 +84,12 @@ export default function MyNostrProfileComponent() {
       {profile &&
         <div className='w-full mb-4'>
           <ProfileHeader profile={profile} />
-          <button onClick={() => {
+          {/* <button onClick={() => {
             setIsEditOpen(!isEditOpen)
             showModal(<NostrProfileEditForm />)
           }}
             className='bg-blue-500 text-white px-4 py-2 rounded-md'
-          >{isEditOpen ? 'Edit' : 'Edit'}</button>
+          >{isEditOpen ? 'Edit' : 'Edit'}</button> */}
         </div>
       }
       {profile && publicKey && (
@@ -117,69 +117,41 @@ export const NostrProfileCreate = () => {
 export const ProfileHeader = (props?: any) => {
   const { profile } = props
 
+  const { showModal } = useUIStore()
   const [showMore, setShowMore] = useState(false)
   if (!profile) {
     return null
   }
 
   return (
-    <div className="w-full">
+    <div className="relative rounded-xl shadow-md overflow-hidden mb-4">
       {profile.banner && (
         <img
           src={profile.banner}
           alt="Profile Banner"
-          className="w-full h-32 md:h-48 object-cover rounded-t-lg mb-4"
+          className="w-full h-32 md:h-48 object-cover"
         />
       )}
-
-      <div className="flex flex-col md:flex-row items-center gap-4">
-        {profile.picture && (
-          <img
-            src={profile.picture}
-            alt="Profile"
-            className="w-24 h-24 md:w-32 md:h-32 rounded-full"
-          />
-        )}
-        <div className="text-center md:text-left">
-          <p className="text-xl md:text-2xl font-bold mb-2">
-            {profile?.displayName || profile?.name || profile?.username || 'Anonymous'}
-          </p>
-
-          <p className="text-lg md:text-xl font-bold mb-2">
-            {profile?.lud06 || profile?.lud16 || 'Anonymous'}
-          </p>
-        </div>
+      <div className="flex flex-col items-center -mt-12 pb-4">
+        <img
+          src={profile.picture}
+          alt="Profile"
+          className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-900 shadow-lg"
+        />
+        <h2 className="mt-2 text-2xl font-bold">{profile.displayName || 'Anonymous'}</h2>
+        <p className="text-gray-500 text-sm">{profile.lud06 || profile.lud16}</p>
+        <p className="text-gray-700 dark:text-gray-300 mt-2 text-center max-w-xs">
+          {profile.about}
+        </p>
+        <button
+        onClick={() => {
+          // setIsEditOpen(!isEditOpen)
+          showModal(<NostrProfileEditForm />)
+        }}
+        className="mt-3 px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+          Edit Profile
+        </button>
       </div>
-
-      {profile.about && (
-        <div>
-          <p className="text-gray-600 mb-4">
-            {profile.about.length > 30 ? (
-              <>
-                {showMore ? profile.about : profile.about.slice(0, 30)}...
-                <button
-                  className="text-blue-500 hover:underline ml-1"
-                  onClick={() => setShowMore(!showMore)}
-                >
-                  {showMore ? 'View less' : 'View more'}
-                </button>
-              </>
-            ) : (
-              profile.about
-            )}
-          </p>
-        </div>
-      )}
-      {profile?.website && (
-        <a
-          href={profile.website}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-500 hover:underline"
-        >
-          {profile.website}
-        </a>
-      )}
     </div>
   )
 }

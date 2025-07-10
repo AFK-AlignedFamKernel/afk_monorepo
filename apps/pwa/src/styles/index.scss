@@ -18,6 +18,171 @@
 // @import 'variables.scss';
 
 
+// AFK Global Styles
+body {
+  font-family: var(--afk-font-primary, $font-primary);
+  color: var(--afk-text-dark);
+  background: var(--afk-bg-dark);
+  line-height: 1.5;
+}
+
+body.light-mode {
+  color: var(--afk-text-light);
+  background: var(--afk-bg-light);
+}
+
+.code, .mono, pre, code {
+  font-family: var(--afk-font-mono, $font-mono);
+}
+
+// Button Styles
+.btn-primary {
+  background: var(--afk-accent-green);
+  color: var(--afk-bg-dark);
+  border-radius: 8px;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: var(--afk-font-primary, $font-primary);
+  box-shadow: 0 0 8px 0 rgba(0,255,156,0.3);
+  transition: box-shadow 0.2s, background 0.2s;
+  &:hover {
+    background: darken($afk-electric-green, 10%);
+    box-shadow: 0 0 16px 2px $afk-electric-green;
+  }
+}
+
+.btn-secondary {
+  border: 1px solid var(--afk-accent-cyan);
+  color: var(--afk-accent-cyan);
+  background: transparent;
+  border-radius: 8px;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: var(--afk-font-primary, $font-primary);
+  &:hover {
+    background: rgba(0,240,255,0.1);
+    box-shadow: 0 0 8px 0 $afk-cyber-cyan;
+  }
+}
+
+// Input Styles
+input, textarea {
+  background: var(--afk-bg-panel);
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: var(--afk-text-dark);
+  font-family: var(--afk-font-primary, $font-primary);
+  &:focus {
+    border-color: var(--afk-accent-green);
+    outline: none;
+    box-shadow: 0 0 0 2px #00FF9C33;
+  }
+}
+body.light-mode input, body.light-mode textarea {
+  background: var(--afk-bg-light);
+  border: 1px solid #CCC;
+  color: var(--afk-text-light);
+}
+
+.afk-post, .afk-card {
+  background: var(--afk-bg-panel);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px 0 rgba(0,255,156,0.08);
+  color: var(--afk-text-dark);
+  padding: 24px;
+  margin-bottom: 24px;
+  transition: box-shadow 0.2s, border 0.2s;
+  border: 1px solid transparent;
+  font-family: var(--afk-font-primary, $font-primary);
+  &.light-mode {
+    background: var(--afk-bg-light);
+    color: var(--afk-text-light);
+  }
+  &:hover {
+    box-shadow: 0 0 24px 2px var(--afk-accent-green);
+    border: 1px solid var(--afk-accent-green);
+  }
+}
+
+.afk-post-meta, .afk-card-meta {
+  color: var(--afk-muted);
+  font-size: 14px;
+  font-family: var(--afk-font-mono, $font-mono);
+}
+
+.afk-tag, .afk-badge {
+  display: inline-block;
+  border-radius: 16px;
+  padding: 2px 12px;
+  font-family: var(--afk-font-mono, $font-mono);
+  font-size: 13px;
+  border: 1px solid var(--afk-accent-cyan);
+  color: var(--afk-accent-cyan);
+  background: transparent;
+  margin-right: 8px;
+  margin-bottom: 4px;
+  &.magenta {
+    border-color: var(--afk-accent-magenta);
+    color: var(--afk-accent-magenta);
+  }
+}
+
+.afk-heading {
+  font-family: var(--afk-font-primary, $font-primary);
+  font-weight: bold;
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+.afk-heading-lg {
+  font-size: 32px;
+}
+.afk-body {
+  font-family: var(--afk-font-primary, $font-primary);
+  font-size: 16px;
+}
+.afk-metadata {
+  font-family: var(--afk-font-mono, $font-mono);
+  font-size: 14px;
+  color: var(--afk-muted);
+}
+
+// 8px grid spacing utilities
+.afk-m-8 { margin: 8px !important; }
+.afk-mt-8 { margin-top: 8px !important; }
+.afk-mb-8 { margin-bottom: 8px !important; }
+.afk-ml-8 { margin-left: 8px !important; }
+.afk-mr-8 { margin-right: 8px !important; }
+.afk-p-8 { padding: 8px !important; }
+.afk-pt-8 { padding-top: 8px !important; }
+.afk-pb-8 { padding-bottom: 8px !important; }
+.afk-pl-8 { padding-left: 8px !important; }
+.afk-pr-8 { padding-right: 8px !important; }
+.afk-gap-8 { gap: 8px !important; }
+
+.afk-m-16 { margin: 16px !important; }
+.afk-mt-16 { margin-top: 16px !important; }
+.afk-mb-16 { margin-bottom: 16px !important; }
+.afk-ml-16 { margin-left: 16px !important; }
+.afk-mr-16 { margin-right: 16px !important; }
+.afk-p-16 { padding: 16px !important; }
+.afk-pt-16 { padding-top: 16px !important; }
+.afk-pb-16 { padding-bottom: 16px !important; }
+.afk-pl-16 { padding-left: 16px !important; }
+.afk-pr-16 { padding-right: 16px !important; }
+.afk-gap-16 { gap: 16px !important; }
+
+.afk-m-24 { margin: 24px !important; }
+.afk-mt-24 { margin-top: 24px !important; }
+.afk-mb-24 { margin-bottom: 24px !important; }
+.afk-ml-24 { margin-left: 24px !important; }
+.afk-mr-24 { margin-right: 24px !important; }
+.afk-p-24 { padding: 24px !important; }
+.afk-pt-24 { padding-top: 24px !important; }
+.afk-pb-24 { padding-bottom: 24px !important; }
+.afk-pl-24 { padding-left: 24px !important; }
+.afk-pr-24 { padding-right: 24px !important; }
+.afk-gap-24 { gap: 24px !important; }
+
 // Global styles
 * {
   box-sizing: border-box;
@@ -28,35 +193,45 @@
 html, body {
   width: 100%;
   height: 100%;
-  font-family: monospace;
-  // font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Inter', 'Manrope', 'IBM Plex Sans', Arial, sans-serif;
+  font-size: 16px;
   overflow-x: hidden;
   background-color: var(--background);
   color: var(--foreground);
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  letter-spacing: 0.01em;
+}
+
+.hash, .user-id, .mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', 'monospace';
+  font-size: 0.95em;
+  letter-spacing: 0.01em;
 }
 
 // Typography
 h1 {
   color: var(--contrast-900);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75em;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 // Typography
 h2 {
   color: var(--contrast-900);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75em;
   font-size: 1.75rem;
   font-weight: 500;
+  line-height: 1.2;
 }
 
 h3, h4, h5, h6 {
   color: var(--contrast-900);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75em;
   font-size: 1.5rem;
   font-weight: 300;
+  line-height: 1.2;
 }
 
 div {
@@ -108,6 +283,7 @@ p {
   // margin-bottom: 1rem;
   line-height: 1.5;
   font-size: 1.25rem;
+  margin-bottom: 1em;
 }
 
 input {
@@ -664,3 +840,55 @@ button.sidebar-nav-footer-item {
     transform: translateY(-10px);
   }
 } 
+
+.truncate-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 100%;
+}
+
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[role="main"], main {
+  outline: none;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  display: block;
+}
+
+.afk-nav-active {
+  position: relative;
+  color: var(--afk-accent-green) !important;
+}
+.afk-nav-active.underline::after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 3px;
+  background: var(--afk-accent-green);
+  border-radius: 2px;
+  box-shadow: 0 0 8px 2px var(--afk-accent-green);
+}
+.afk-nav-active.dot::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--afk-accent-green);
+  box-shadow: 0 0 8px 2px var(--afk-accent-green);
+  margin-right: 6px;
+  vertical-align: middle;
+}

@@ -18,6 +18,8 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
 
     const [activePlatformLeaderboard, setActivePlatformLeaderboard] = useState<string>("twitter")
 
+    const [showFullDescription, setShowFullDescription] = useState(false);
+
 
     const leaderboard = useMemo(() => {
         return leaderboards.find((leaderboard: any) => leaderboard.platform === activePlatformLeaderboard)
@@ -61,102 +63,109 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
     }
 
     return (
-        <div className="w-full flex justify-center items-start px-0 sm:px-2 py-4">
-            <div className="w-full sm:max-w-2xl  p-2 sm:p-6 mx-0 sm:mx-auto flex flex-col gap-4">
+        <div className="w-full flex justify-center items-start px-0 sm:px-2 py-2">
+            <div className="w-full sm:max-w-2xl p-2 sm:p-4 mx-0 sm:mx-auto flex flex-col gap-2">
                 {/* <button onClick={() => setIsInitialLoading(false)} className="mb-4"><Icon name="RefreshIcon" size={20} /></button> */}
 
                 {brand && (
-                    <div className="flex flex-col items-center gap-4 break-words whitespace-normal w-full">
-                        <div className="flex flex-row items-center gap-2 items-baseline w-full justify-center">
-                            <h2 className="text-2xl font-bold text-center break-words w-full">{brand?.name} </h2>
-
-                            {<Icon name="CheckIcon" size={20} className="text-green-600" />}
-                        </div>
-                        {/* <p className="text-gray-500 text-sm">{brand?.slug_name}</p> */}
-
-                        <img src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-20 h-20 object-cover rounded-full border border-gray-200 shadow-md" />
-
-                        <p className="break-words whitespace-normal text-center w-full px-2 text-gray-800 dark:text-gray-200">{brand?.description}</p>
-                        {/* 
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 w-full justify-center items-center">
-                            <p className="text-xs text-gray-600 break-all">Starknet: {brand?.starknet_address ? `${brand.starknet_address.slice(0, 6)}...${brand.starknet_address.slice(-4)}` : '-'}</p>
-                            <p className="text-xs text-gray-600 break-all">EVM: {brand?.evm_address ? `${brand.evm_address.slice(0, 6)}...${brand.evm_address.slice(-4)}` : '-'}</p>
-                        </div> */}
-
-                        <div className="w-full flex justify-center">
-                            <div className="flex flex-row gap-2">
-                                <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank">
-                                    <button 
-                                    className="flex flex-row items-center gap-2 px-1 py-1 rounded hover:bg-blue-200 transition "
-                                    >
-                                        <Image src={`/assets/icons/twitter.svg`} alt="Twitter" width={30} height={30} />
-                                        <span className="truncate">Twitter</span>
-                                    </button>
+                    <div className="w-full max-w-lg mx-auto flex flex-col items-center gap-2 mb-1" aria-label="Brand summary card">
+                        <img src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-20 h-20 object-cover rounded-full border-2 border-green-400 shadow-md mb-1" />
+                        <h2 className="text-base font-semibold text-center truncate-ellipsis mb-1" title={brand?.name}>{brand?.name}</h2>
+                        {brand?.description && brand.description.length > 40 ? (
+                            <p className="break-words whitespace-normal text-center w-full px-2 text-gray-800 dark:text-gray-200 truncate-ellipsis relative" title={brand?.description}>
+                                {showFullDescription ? (
+                                    <>
+                                        {brand?.description}
+                                        <button className="ml-1 text-xs text-blue-700 dark:text-blue-300 underline hover:text-blue-900 dark:hover:text-blue-400 focus:outline-none" onClick={() => setShowFullDescription(v => !v)}>
+                                            Show less
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        {brand?.description.slice(0, 40)}
+                                        <span className="inline text-gray-500 dark:text-gray-400 font-bold">&hellip;</span>
+                                        <button className="ml-1 text-xs text-blue-700 dark:text-blue-300 underline hover:text-blue-900 dark:hover:text-blue-400 focus:outline-none" onClick={() => setShowFullDescription(v => !v)}>
+                                            View more
+                                        </button>
+                                    </>
+                                )}
+                            </p>
+                        ) : (
+                            <p className="break-words whitespace-normal text-center w-full px-2 text-gray-800 dark:text-gray-200">{brand?.description}</p>
+                        )}
+                        <div className="w-full flex justify-center mt-1">
+                            {brand?.twitter_handle && (
+                                <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank" aria-label={`Twitter for ${brand?.name}`}
+                                    className="inline-block touch-target">
+                                    <Image src={`/assets/icons/twitter.svg`} alt="Twitter" width={28} height={28} className="hover:opacity-80" />
                                 </Link>
-                            </div>
+                            )}
                         </div>
                     </div>
                 )}
-
-                <div className="flex flex-row gap-2 sm:gap-4 w-full justify-center my-4">
-                    <button className={`px-4 py-2 rounded-md w-1/2 sm:w-auto ${activeTab === "leaderboard" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => setActiveTab("leaderboard")}>Leaderboard</button>
-                    <button className={`px-4 py-2 rounded-md w-1/2 sm:w-auto ${activeTab === "feed" ? "bg-blue-700 text-white" : "border border-gray-300"}`} onClick={() => setActiveTab("feed")}>Feeds</button>
+                <div className="flex flex-row gap-2 sm:gap-4 w-full justify-center my-2">
+                    <button className={`px-3 py-1 rounded-md w-1/2 sm:w-auto font-semibold transition-colors touch-target ${activeTab === "leaderboard" ? "bg-blue-700 text-white shadow" : "border border-gray-300 bg-[var(--card-bg)] dark:bg-[var(--card-bg)] text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900"}`} onClick={() => setActiveTab("leaderboard")} aria-label="Show leaderboard">Leaderboard</button>
+                    <button className={`px-3 py-1 rounded-md w-1/2 sm:w-auto font-semibold transition-colors touch-target ${activeTab === "feed" ? "bg-blue-700 text-white shadow" : "border border-gray-300 bg-[var(--card-bg)] dark:bg-[var(--card-bg)] text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900"}`} onClick={() => setActiveTab("feed")} aria-label="Show feeds">Feeds</button>
                 </div>
-
-                <div className="px-0 sm:px-2 w-full">
+                <div className="px-0 sm:px-1 w-full">
                     {activeTab === "feed" && (
-                        <div className="my-8 w-full">
-                            <h2 className="text-xl font-semibold mb-4">Feeds</h2>
+                        <div className="my-4 w-full">
+                            <h2 className="text-lg font-semibold mb-2">Feeds</h2>
                             <p>Feeds is coming soon</p>
                         </div>
                     )}
                     {leaderboards && activeTab === "leaderboard" &&
-                        <div className="my-4 w-full">
-                            {/* <h2 className="text-xl font-semibold mb-4">Leaderboard</h2> */}
-
-                            <div className="flex flex-row gap-2 sm:gap-4 overflow-x-auto shadow-md rounded-md p-2 mb-4 w-full scrollbar-hide">
+                        <div className="my-2 w-full">
+                            <div className="flex flex-row gap-2 sm:gap-4 overflow-x-auto shadow-md rounded-md p-1 mb-2 w-full scrollbar-hide">
                                 {leaderboards?.map((leaderboard: any) => (
                                     <div key={leaderboard.id}
-                                        className={`rounded-md p-2 max-w-[75px] flex flex-row items-center gap-2 cursor-pointer transition ${activePlatformLeaderboard === leaderboard.platform ? "" : ""}`}
+                                        className={`rounded-md p-1 max-w-[60px] flex flex-row items-center gap-1 cursor-pointer transition ${activePlatformLeaderboard === leaderboard.platform ? "ring-2 ring-blue-500" : ""}`}
                                         onClick={() => setActivePlatformLeaderboard(leaderboard.platform)}>
-                                        <p className="font-medium mb-1 italic">{leaderboard.platform}</p>
-                                        <img src={`/assets/icons/${leaderboard.platform}.svg`} alt={leaderboard.platform} className="w-10 h-10 object-cover rounded-full" />
+                                        <p className="font-medium mb-1 italic text-xs">{leaderboard.platform}</p>
+                                        <img src={`/assets/icons/${leaderboard.platform}.svg`} alt={leaderboard.platform} className="w-8 h-8 object-cover rounded-full" />
                                     </div>
                                 ))}
                             </div>
-
                             {leaderboard && (
                                 <div className="overflow-x-auto scrollbar-hide w-full">
-                                    {/* <h3 className="font-semibold mb-2">{leaderboard.platform}</h3> */}
-                                    <div className="flex flex-wrap gap-2 sm:gap-4 mb-2 overflow-x-auto scrollbar-hide" >
-                                        {/* <p className="rounded px-2 py-1 text-sm ">Total Score: <span className="font-bold">{leaderboard.total_score}</span></p> */}
-                                        <p className="rounded px-2 py-1 text-sm ">Top Users: <span className="font-bold">{leaderboard.total_users}</span></p>
-                                        {/* <p className="rounded px-2 py-1 text-sm ">Rank Position: <span className="font-bold">{leaderboard.rank_position}</span></p> */}
+                                    <div className="flex flex-wrap gap-2 sm:gap-4 mb-1 overflow-x-auto scrollbar-hide" >
+                                        <p className="rounded px-2 py-1 text-xs ">Top Users: <span className="font-bold">{leaderboard.total_users}</span></p>
                                     </div>
                                     <div className="overflow-x-auto rounded w-full">
-                                        <table className="min-w-full w-full text-sm  rounded-lg">
-                                            <thead className="sticky top-0 z-10 border-b border-gray-300 dark:border-gray-700">
+                                        <table className="min-w-full w-full text-xs rounded-lg">
+                                            <thead className="sticky top-0 z-10 border-b border-gray-300 dark:border-gray-700 bg-[var(--card-bg)] dark:bg-[var(--background)]">
                                                 <tr>
-                                                    <th className="px-2 sm:px-4 py-2 text-left">Username</th>
-                                                    <th className="px-2 sm:px-4 py-2 text-left">Handle</th>
-                                                    <th className="px-2 sm:px-4 py-2 text-right">Mindshare</th>
-                                                    <th className="px-2 sm:px-4 py-2 text-right">Engagement</th>
+                                                    <th className="px-2 sm:px-3 py-2 text-left">User</th>
+                                                    <th className="px-2 sm:px-3 py-2 text-left">Handle</th>
+                                                    <th className="px-2 sm:px-3 py-2 text-right">Mindshare (%)</th>
+                                                    <th className="px-2 sm:px-3 py-2 text-right">Engagement (%)</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {leaderboard?.users_scores && leaderboard?.users_scores?.length > 0 && leaderboard?.users_scores?.map((user: any) => {
+                                                {leaderboard?.users_scores && leaderboard?.users_scores?.length > 0 && leaderboard?.users_scores?.map((user: any, idx: number) => {
                                                     return (
-                                                        <tr key={user.id} className="border-b hover:bg-gray-200 dark:hover:bg-gray-700">
-                                                            <td className="px-2 sm:px-4 py-2 break-words max-w-[120px]">{user?.name}</td>
-                                                            <td className="px-2 sm:px-4 py-2 break-all max-w-[120px]">
+                                                        <tr key={user.id} className={`border-b transition ${idx % 2 === 0 ? 'bg-[var(--card-bg)] dark:bg-[var(--background)]' : 'bg-[var(--background)] dark:bg-[var(--card-bg)]'}`}>
+                                                            {/* Avatar + Username */}
+                                                            <td className="px-2 sm:px-3 py-2 flex items-center gap-2 max-w-[120px]">
+                                                                {user?.avatar_url && (
+                                                                    <img src={user.avatar_url} alt={user.name} className="w-7 h-7 object-cover rounded-full" />
+                                                                )}
+                                                                <span className="truncate-ellipsis" title={user?.name}>
+                                                                    {user?.name && user.name.length > 14 ? user.name.slice(0, 14) + '…' : user?.name}
+                                                                </span>
+                                                            </td>
+                                                            {/* Handle as link */}
+                                                            <td className="px-2 sm:px-3 py-2 max-w-[100px]">
                                                                 {activePlatformLeaderboard === "twitter" && (
-                                                                    <Link href={`https://x.com/${user.handle ?? user?.userName ?? user?.username}`} target="_blank" className="text-blue-600 hover:underline truncate inline-block max-w-[100px]">
-                                                                        {user.handle ?? user?.userName ?? user?.username}
+                                                                    <Link href={`https://x.com/${user.handle ?? user?.userName ?? user?.username}`} target="_blank" className="text-blue-600 hover:underline truncate inline-block max-w-[90px]" title={user.handle ?? user?.userName ?? user?.username} aria-label={`Twitter for ${user?.name}`}>
+                                                                        {(user.handle ?? user?.userName ?? user?.username)?.length > 12 ? (user.handle ?? user?.userName ?? user?.username).slice(0, 12) + '…' : (user.handle ?? user?.userName ?? user?.username)}
                                                                     </Link>
                                                                 )}
                                                             </td>
-                                                            <td className="px-2 sm:px-4 py-2 text-right">{(user.totalMindshareScore / leaderboard.total_mindshare_score * 100).toFixed(2)}%</td>
-                                                            <td className="px-2 sm:px-4 py-2 text-right">{(user.totalEngagementScore / leaderboard.total_engagement_score * 100).toFixed(2)}%</td>
+                                                            {/* Mindshare */}
+                                                            <td className="px-2 sm:px-3 py-2 text-right">{(user.totalMindshareScore / leaderboard.total_mindshare_score * 100).toFixed(2)}%</td>
+                                                            {/* Engagement */}
+                                                            <td className="px-2 sm:px-3 py-2 text-right">{(user.totalEngagementScore / leaderboard.total_engagement_score * 100).toFixed(2)}%</td>
                                                         </tr>
                                                     )
                                                 })}

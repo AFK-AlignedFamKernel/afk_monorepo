@@ -16,6 +16,8 @@ import { SliderImages } from '@/components/small/slider-image';
 import Image from 'next/image';
 import { TipNostr } from '../tips';
 import ProfileCardOverview from './ProfileCardOverview';
+import PostEventCard from './PostEventCard';
+import ArticleEventCard from './ArticleEventCard';
 
 export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   const { event } = props;
@@ -205,87 +207,85 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   }
 
   return (
-    <div className="post-event-card">
-      {isReplyView &&
-        reply && reply?.length > 0 &&
-        (
-          <div
-            style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
-            onClick={() => {
-              showModal(<ProfileCardOverview event={event} profile={profile || undefined} profilePubkey={event?.pubkey || ''} isLinkToProfile={true} />)
-            }}
-          >
-            {profile && (
-              <div className='flex items-center gap-2'>
-                {profile?.picture && <Image
-                  className='rounded-full'
-                  src={profile?.picture} alt={profile?.name || ''}
-                  width={24}
-                  height={24} />}
-                <p className="text-sm text-contrast-500">{profile?.name}</p>
-                <p className="text-sm text-contrast-500">{profile?.display_name}</p>
-              </div>
-            )}
-            <button onClick={handleToReplyView}>
-              <p className="text-gray-500 dark:text-gray-400 text-sm"
-              >
-                Repost this
-              </p>
-            </button>
-            {/* <Text>Reply View</Text> */}
-          </div>
+    <div className="repost-event-ui rounded-xl border border-gray-500 dark:border-gray-800 p-4 mb-4">
+      {/* Reposted by (header) */}
+      <div className="flex items-center gap-2 mb-2">
+        {profile && (
+          <>
+            {profile?.picture && <Image className="rounded-full w-7 h-7" src={profile?.picture} alt={profile?.name || ''} width={28} height={28} />}
+            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">Reposted by {profile?.name || profile?.display_name || event?.pubkey?.slice(0, 8)}</span>
+          </>
         )}
-      {isRepost ||
-        event?.kind == NDKKind.Repost ||
-        (isRepost && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <RepostIcon height={18} />
-            <p color="textLight">Reposted</p>
-          </div>
-        ))}
-
-      <div className='shadow-lg rounded-lg p-2'>
-
-        <div className="flex items-center gap-2 my-2 cursor-pointer"
-          onClick={() => {
-            showModal(<ProfileCardOverview event={event} profile={profileRepost || undefined} profilePubkey={pubkeyReposted || ''} isLinkToProfile={true} />)
-          }}
-        >
-          {profileRepost && (
-            <div className="flex items-center gap-2">
-              {profileRepost?.picture && <Image
-                className='rounded-full'
-                src={profileRepost?.picture} alt={profileRepost?.name || ''}
-                width={24}
-                height={24} />}
-              <p className="text-sm text-contrast-500">{profileRepost?.name}</p>
-              <p className="text-sm text-contrast-500">{profileRepost?.display_name}</p>
-            </div>
-          )}
-        </div>
-
-
-        <div className="flex items-center gap-2">
-          {/* <p className="text-sm text-contrast-500  overflow-hidden whitespace-nowrap">
-            {!isExpanded ? `${repostedContent?.content?.substring(0, 280)}...` : repostedContent?.content}
-
-
-
-          </p> */}
-
-
-          <p className="text-sm text-contrast-500 whitespace-pre-wrap break-words"> {isExpanded ? repostedContent?.content : `${repostedContent?.content?.substring(0, 200)}...`}</p>
-          {/* <p className="text-sm text-contrast-500 whitespace-pre-wrap"> {isExpanded ? repostedContent?.content : `${repostedContent?.content?.substring(0, 200)}...`}</p> */}
-
-        </div>
-        {repostedContent?.content?.length > 280 && (
-          <button className="text-sm text-contrast-500" onClick={() => setIsExpanded(!isExpanded)}>
-            {isExpanded ? 'View less' : 'View more'}
-          </button>
-        )}
-
       </div>
 
+      {/* Quoted comment (if any) */}
+      {repostedContent && repostedContent.content && repostedContent.event && (
+        <div className="bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500 dark:border-blue-400 mb-3 p-3 rounded">
+          <span className="block text-xs font-semibold text-blue-700 dark:text-blue-200 mb-1">Comment by {profile?.name || profile?.display_name || event?.pubkey?.slice(0, 8)}</span>
+          <div className="text-sm text-contrast-500 whitespace-pre-wrap break-words">{repostedContent.content}</div>
+        </div>
+      )}
+
+      {/* Original post - FLAT, no extra card */}
+      <div className="pl-2 border-l-2 border-gray-500 dark:border-gray-700">
+        <div className="flex items-center gap-2 mb-1 mt-1">
+          {profileRepost?.picture && <Image className="rounded-full w-6 h-6" src={profileRepost?.picture} alt={profileRepost?.name || ''} width={24} height={24} />}
+          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Original post by {profileRepost?.name || profileRepost?.display_name || pubkeyReposted?.slice(0, 8)}</span>
+        </div>
+        {/* Render correct card by kind, but FLAT */}
+        {(() => {
+          const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
+          if (original?.kind === 1) {
+            return <PostEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} />;
+          } else if (original?.kind === 30023) {
+            return <ArticleEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} isReadMore={false} />;
+          } else if (original) {
+            return (
+              <div>
+                <div className="text-sm text-contrast-500 whitespace-pre-wrap break-words">
+                  {isExpanded ? original?.content : `${original?.content?.substring(0, 200)}${original?.content?.length > 200 ? '...' : ''}`}
+                </div>
+                {original?.content?.length > 200 && (
+                  <button className="text-xs text-blue-500 mt-1" onClick={() => setIsExpanded(!isExpanded)}>
+                    {isExpanded ? 'View less' : 'View more'}
+                  </button>
+                )}
+              </div>
+            );
+          } else {
+            return <div className="text-gray-400 italic">Original post unavailable</div>;
+          }
+        })()}
+        {/* Action buttons for the reposted event */}
+        {(() => {
+          const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
+          if (!original) return null;
+          return (
+            <div className="action-buttons flex flex-wrap gap-2 my-2" role="group" aria-label="Repost actions">
+              <button className="action-button" aria-label="Reply" onClick={() => setIsOpenComment(!isOpenComment)}>
+                <Icon name="CommentIcon" size={20} />
+              </button>
+              <button className={`action-button ${isLiked ? 'text-blue-500 animate-pulse' : ''}`} aria-label="Like" onClick={toggleLike}>
+                <Icon name="LikeIcon" size={20}></Icon>
+              </button>
+              <button className="action-button" aria-label="Repost" onClick={() => showModal(<QuoteRepostComponent event={original} />)}>
+                <Icon name="RepostIcon" size={20}></Icon>
+              </button>
+              <button className="action-button" aria-label="Share">
+                <Icon name="ShareIcon" size={20} />
+              </button>
+              <button className="action-button" aria-label="Tip" onClick={handleTipsModal}>
+                <Icon name="GiftIcon" size={20} ></Icon>
+              </button>
+            </div>
+          );
+        })()}
+        {isOpenComment && (
+          <div className="mt-3">
+            <CommentContainer event={repostedContent && repostedContent.event ? repostedContent.event : repostedContent} />
+          </div>
+        )}
+      </div>
     </div>
   );
 };
