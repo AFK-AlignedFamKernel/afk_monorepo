@@ -166,7 +166,7 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
                 // className="w-full max-w-lg mx-auto bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mt-4 flex flex-col items-center gap-4"
                 >
                     <button onClick={() => setSelectedBrand(null)} className="text-blue-600 hover:text-blue-900 touch-target self-start mb-2" aria-label="Back to brand list">
-                        <Icon name="BackIcon" size={24} />
+                        <Icon name="BackIcon" size={16} />
                     </button>
                     {/* <Image
                         src={selectedBrand?.avatar_url ?? `/assets/icons/${selectedBrand.slug_name}.png`}
@@ -182,7 +182,7 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
                             <Image src="/assets/icons/twitter.svg" alt="Twitter" width={28} height={28} className="hover:opacity-80" />
                         </Link>
                     )} */}
-                    <div className="w-full mt-4">
+                    <div className="w-full">
                         <BrandPage slug_name={selectedBrand.slug_name} />
                     </div>
                 </div>
