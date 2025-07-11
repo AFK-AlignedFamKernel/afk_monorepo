@@ -109,7 +109,7 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
 
   // console.log("creators", creators)
   return (
-    <div className="rounded-xl shadow-lg bg-card p-4 w-full md:max-w-3xl mx-auto overflow-x-auto">
+    <div className="rounded-xl bg-card p-4 w-full md:max-w-3xl mx-auto overflow-x-auto">
       {/* <h3 className="text-sm font-semibold mb-2">All Connected & Verified Creators</h3> */}
 
       {loading && <div className="flex flex-row gap-2 items-center">
@@ -117,7 +117,7 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
         <CryptoLoading />
       </div>}
 
-      {creators?.length === 0 && (
+      {creators?.length === 0 && !loading && (
         <div className="flex flex-row justify-center">
           <p className="text-sm text-muted-foreground">No creators found</p>
           <div className="flex flex-row justify-center">
@@ -133,7 +133,7 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
       )}
 
       {!selectedCreator && (
-        <table className="min-w-full text-sm">
+        <table className="min-w-full text-sm divide-y divide-[var(--border)]">
 
           <thead>
             <tr className="bg-muted">
@@ -142,7 +142,10 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
             </tr>
           </thead>
 
-          <tbody>
+          <tbody
+            className="divide-y divide-[var(--border)]"
+          >
+
 
             {creators && creators?.length > 0 && creators
               .map((creator: IContentCreator | any, index: number) => (
