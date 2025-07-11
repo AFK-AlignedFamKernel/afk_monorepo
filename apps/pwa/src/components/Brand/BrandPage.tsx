@@ -72,14 +72,14 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                         <div className="flex flex-row items-center gap-2">
                             <img src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-20 h-20 object-cover rounded-full" />
                             <h2 className="text-base font-semibold text-center truncate-ellipsis mb-1" title={brand?.name}>{brand?.name}</h2>
-                            <div className="flex justify-center">
+                            {/* <div className="flex justify-center">
                                 {brand?.twitter_handle && (
                                     <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank" aria-label={`Twitter for ${brand?.name}`}
                                         className="inline-block touch-target">
                                         <Image src={`/assets/icons/twitter.svg`} alt="Twitter" width={28} height={28} className="hover:opacity-80" />
                                     </Link>
                                 )}
-                            </div>
+                            </div> */}
                         </div>
                         {brand?.description && (
                             brand?.description && brand.description.length > 40 ? (

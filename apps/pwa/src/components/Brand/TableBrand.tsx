@@ -72,12 +72,15 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
 
             {!selectedBrand && (
                 <div className="overflow-x-auto w-full gap-2">
-                    <table className="min-w-full divide-y divide-[var(--border)] bg-[var(--card-bg)] text-[var(--foreground)]">
-                        <thead className="bg-[var(--card-bg)] text-[var(--foreground)]">
+                    <table 
+                    // className="min-w-full divide-y divide-[var(--border)] bg-[var(--card-bg)] text-[var(--foreground)]"
+                    className="min-w-full divide-y divide-[var(--border)] text-[var(--foreground)]"
+                    >
+                        <thead className="text-[var(--foreground)]">
                             <tr>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{color: 'var(--foreground)'}}>Brand</th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{color: 'var(--foreground)'}}>Social</th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{color: 'var(--foreground)'}}>Actions</th>
+                                {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{color: 'var(--foreground)'}}>Actions</th> */}
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" style={{color: 'var(--foreground)'}}>Description</th>
                             </tr>
                         </thead>
@@ -92,7 +95,7 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
                                     }}
                                     className={`cursor-pointer transition`}
                                     style={{
-                                        background: index % 2 === 0 ? 'var(--card-bg)' : 'var(--background)',
+                                        // background: index % 2 === 0 ? 'var(--card-bg)' : 'var(--background)',
                                         transition: 'background 0.2s',
                                     }}
                                     onMouseEnter={e => e.currentTarget.style.background = 'var(--primary-color)'}
@@ -130,13 +133,13 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
                                             </Link>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    {/* <td className="px-6 py-4 whitespace-nowrap">
                                         {isRedirect ? (
                                             <button onClick={() => setSelectedBrand(brand)} className="underline touch-target text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-400" aria-label={`View ${brand?.name}`}>View</button>
                                         ) : (
                                             <Link href={`/brand/${brand.slug_name}`} className="underline touch-target text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-400" aria-label={`Go to ${brand?.name} page`}>View</Link>
                                         )}
-                                    </td>
+                                    </td> */}
                                     <td className="px-6 py-4 whitespace-nowrap ellipsis max-w-[180px]">
                                         {brand?.description && brand.description.length > 40 ? (
                                             <div className="text-sm truncate-ellipsis text-[var(--foreground)]" title={brand?.description}>
