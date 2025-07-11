@@ -24,21 +24,21 @@ export class MetadataLaunchService {
 
         await this.prismaService.token_metadata.create({
           data: {
-            memecoin_address: data.memecoinAddress,
-            transaction_hash: data.transactionHash,
-            network: data.network,
-            block_hash: data.blockHash,
-            block_number: data.blockNumber,
-            block_timestamp: data.blockTimestamp,
+            memecoin_address: data?.memecoinAddress,
+            transaction_hash: data?.transactionHash,
+            network: data?.network,
+            block_hash: data?.blockHash,
+            block_number: data?.blockNumber,
+            block_timestamp: data?.blockTimestamp,
             // contract_address: LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA],
-            url: data.url,
-            nostr_id: data.nostr_event_id,
+            url: data?.url,
+            nostr_id: data?.nostr_event_id,
             nostr_event_id: data?.nostr_event_id,
-            description: data.description,
-            website: data.website,
-            telegram: data.telegram,
-            github: data.github,
-            ipfs_hash: data.ipfsHash,
+            description: data?.description,
+            website: data?.website,
+            telegram: data?.telegram,
+            github: data?.github,
+            ipfs_hash: data?.ipfsHash,
           },
         });
 
@@ -57,10 +57,11 @@ export class MetadataLaunchService {
             url: data?.url,
             nostr_id: data?.nostr_event_id,
             nostr_event_id: data?.nostr_event_id,
-            description: data.description,
-            website: data.website,
-            telegram: data.telegram,
-            github: data.github,
+            description: data?.description,
+            website: data?.website,
+            telegram: data?.telegram,
+            github: data?.github,
+            image_url: data?.image_url,
           },
         });
       } else {
@@ -68,9 +69,14 @@ export class MetadataLaunchService {
         await this.prismaService.token_metadata.update({
           where: { transaction_hash: tokenMetadataRecord.transaction_hash },
           data: {
-            url: data.url,
-            nostr_id: data.nostr_event_id,
+            url: data?.url,
+            nostr_id: data?.nostr_event_id,
             nostr_event_id: data?.nostr_event_id,
+            image_url: data?.image_url,
+            description: data?.description,
+            website: data?.website,
+            telegram: data?.telegram,
+            github: data?.github,
           },
         });
         await this.prismaService.token_deploy.updateMany({
@@ -79,6 +85,11 @@ export class MetadataLaunchService {
             url: data?.url,
             nostr_id: data?.nostr_event_id,
             nostr_event_id: data?.nostr_event_id,
+            image_url: data?.image_url,
+            description: data?.description,
+            website: data?.website,
+            telegram: data?.telegram,
+            github: data?.github,
           },
         });
       }

@@ -20,7 +20,7 @@ interface NostrFeedProps {
 
 export const NostrFeed: React.FC<NostrFeedProps> = ({
   kinds = [1], // Default to showing text posts and articles
-  limit = 10,
+  limit = 5,
   className = '',
   authors,
   searchQuery,
@@ -59,6 +59,10 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   const [openFilters, setOpenFilters] = useState(false);
 
+  // Memoize authors and kinds for effect dependencies
+  const authorsMemo = React.useMemo(() => authors, [JSON.stringify(authors)]);
+  const kindsMemo = React.useMemo(() => kinds, [JSON.stringify(kinds)]);
+
   const fetchEvents = async () => {
     // if (isLoadingMore || !hasMoreContent) return;
     console.log("isLoadingMore")
@@ -78,19 +82,19 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
         await ndk.connect();
         // return;
       } else {
-        console.log("connected");
-        console.log("connectedRelays", ndk.pool?.connectedRelays);
+        // console.log("connected");
+        // console.log("connectedRelays", ndk.pool?.connectedRelays);
       }
 
       const notes = await ndk.fetchEvents({
-        kinds: [...kinds],
-        authors: authors,
+        kinds: [...kindsMemo],
+        authors: authorsMemo,
         // searchQuery: searchQuery,
         // since: since,
         // until: until,
         // tags: tags,
         until: lastCreatedAt || Math.round(Date.now() / 1000),
-        limit: limit ?? 10,
+        limit: limit ?? 5,
       });
 
       console.log("notes", notes);
@@ -127,26 +131,19 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
     }
   }
 
-  const loadInitialData = async () => {
-    console.log("loading initial data");
-    setNotesData([]);
-    setIsLoadingMore(true)
-    await fetchEvents();
-
-    setIsInitialLoading(true);
-    // setLastCreatedAt(0);
-    setHasMoreContent(true);
-    setIsError(false);
-    setError(null);
-    setIsInitialLoading(false);
-  };
-
-  // Initial data load
+  // Only reset and load when actual prop changes
   useEffect(() => {
     if (isNdkConnected) {
-      loadInitialData();
+      setNotesData([]);
+      setLastCreatedAt(Math.round(Date.now() / 1000));
+      setHasMoreContent(true);
+      setIsError(false);
+      setError(null);
+      setIsInitialLoading(true);
+      fetchEvents();
     }
-  }, [isNdkConnected, kinds, limit, authors, searchQuery, since, until]);
+    // Only depend on stable/memoized props
+  }, [isNdkConnected, JSON.stringify(authorsMemo), JSON.stringify(kindsMemo), limit, searchQuery, sinceProps, untilProps, activeTabProps]);
 
 
   useEffect(() => {
@@ -156,20 +153,6 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   }, [kinds, limit, authors, searchQuery, since, until, isInitialLoading, isLoadingMore]);
 
-
-  useEffect(() => {
-    console.log("activeTabProps", activeTabProps);
-    console.log("kinds", kinds);
-    console.log("fetching events");
-    setNotesData([]);
-    setLastCreatedAt(Math.round(Date.now() / 1000));
-    setHasMoreContent(true);
-    setIsError(false);
-    setError(null);
-    setIsInitialLoading(true);
-    loadInitialData();
-    // fetchEvents();
-  }, [activeTabProps]);
 
   // Intersection Observer for infinite scrolling
   const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {

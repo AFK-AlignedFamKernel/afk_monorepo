@@ -116,6 +116,7 @@ model token_metadata {
   updated_at       DateTime? @default(now()) @db.Timestamp(6)
   nostr_event_id   String?
   ipfs_hash String?
+  image_url String?
 
   // One-to-one relation with token_launch
   token_launch    token_launch? @relation("TokenMetadataToLaunch", fields: [memecoin_address], references: [memecoin_address], map: "token_metadata_to_launch_fkey")

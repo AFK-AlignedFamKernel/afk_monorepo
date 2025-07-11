@@ -258,7 +258,7 @@ export class ContentCreatorAnalytics {
             });
             console.log("lastXkaito apify", lastXkaito);
 
-            let prompt = `Generate a summary of the last 10 tweets of the user ${user}.
+            let prompt = `Generate a summary of the last ${lastXkaito?.length ?? 30} tweets of the user ${user}.
                 `
 
             // if (lastTwitter) {

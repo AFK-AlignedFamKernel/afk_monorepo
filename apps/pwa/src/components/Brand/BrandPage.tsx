@@ -68,32 +68,45 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                 {/* <button onClick={() => setIsInitialLoading(false)} className="mb-4"><Icon name="RefreshIcon" size={20} /></button> */}
 
                 {brand && (
-                    <div className="w-full max-w-lg mx-auto flex flex-col items-center gap-2 mb-1" aria-label="Brand summary card">
-                        <img src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-20 h-20 object-cover rounded-full border-2 border-green-400 shadow-md mb-1" />
-                        <h2 className="text-base font-semibold text-center truncate-ellipsis mb-1" title={brand?.name}>{brand?.name}</h2>
-                        {brand?.description && brand.description.length > 40 ? (
-                            <p className="break-words whitespace-normal text-center w-full px-2 text-gray-800 dark:text-gray-200 truncate-ellipsis relative" title={brand?.description}>
-                                {showFullDescription ? (
-                                    <>
-                                        {brand?.description}
-                                        <button className="ml-1 text-xs text-blue-700 dark:text-blue-300 underline hover:text-blue-900 dark:hover:text-blue-400 focus:outline-none" onClick={() => setShowFullDescription(v => !v)}>
-                                            Show less
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        {brand?.description.slice(0, 40)}
-                                        <span className="inline text-gray-500 dark:text-gray-400 font-bold">&hellip;</span>
-                                        <button className="ml-1 text-xs text-blue-700 dark:text-blue-300 underline hover:text-blue-900 dark:hover:text-blue-400 focus:outline-none" onClick={() => setShowFullDescription(v => !v)}>
-                                            View more
-                                        </button>
-                                    </>
+                    <div className="w-full max-w-lg mx-auto flex flex-col items-left gap-2 mb-1" aria-label="Brand summary card">
+                        <div className="flex flex-row items-center gap-2">
+                            <img src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-20 h-20 object-cover rounded-full" />
+                            <h2 className="text-base font-semibold text-center truncate-ellipsis mb-1" title={brand?.name}>{brand?.name}</h2>
+                            {/* <div className="flex justify-center">
+                                {brand?.twitter_handle && (
+                                    <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank" aria-label={`Twitter for ${brand?.name}`}
+                                        className="inline-block touch-target">
+                                        <Image src={`/assets/icons/twitter.svg`} alt="Twitter" width={28} height={28} className="hover:opacity-80" />
+                                    </Link>
                                 )}
-                            </p>
-                        ) : (
-                            <p className="break-words whitespace-normal text-center w-full px-2 text-gray-800 dark:text-gray-200">{brand?.description}</p>
+                            </div> */}
+                        </div>
+                        {brand?.description && (
+                            brand?.description && brand.description.length > 40 ? (
+                                <p className="break-words whitespace-normal text-center w-full px-2 text-gray-800 dark:text-gray-200 truncate-ellipsis relative" title={brand?.description}>
+                                    {showFullDescription ? (
+                                        <>
+                                            {brand?.description}
+                                            <button className="ml-1 text-xs text-blue-700 dark:text-blue-300 underline hover:text-blue-900 dark:hover:text-blue-400 focus:outline-none" onClick={() => setShowFullDescription(v => !v)}>
+                                                Show less
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {brand?.description.slice(0, 40)}
+                                            <span className="inline text-gray-500 dark:text-gray-400 font-bold">&hellip;</span>
+                                            <button className="ml-1 text-xs text-blue-700 dark:text-blue-300 underline hover:text-blue-900 dark:hover:text-blue-400 focus:outline-none" onClick={() => setShowFullDescription(v => !v)}>
+                                                View more
+                                            </button>
+                                        </>
+                                    )}
+                                </p>
+                            ) : (
+                                <p className="break-words whitespace-normal text-center w-full px-2 text-gray-800 dark:text-gray-200">{brand?.description}</p>
+                            )
                         )}
-                        <div className="w-full flex justify-center mt-1">
+
+                        <div className="w-full flex">
                             {brand?.twitter_handle && (
                                 <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank" aria-label={`Twitter for ${brand?.name}`}
                                     className="inline-block touch-target">
@@ -103,9 +116,9 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                         </div>
                     </div>
                 )}
-                <div className="flex flex-row gap-2 sm:gap-4 w-full justify-center my-2">
-                    <button className={`px-3 py-1 rounded-md w-1/2 sm:w-auto font-semibold transition-colors touch-target ${activeTab === "leaderboard" ? "bg-blue-700 text-white shadow" : "border border-gray-300 bg-[var(--card-bg)] dark:bg-[var(--card-bg)] text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900"}`} onClick={() => setActiveTab("leaderboard")} aria-label="Show leaderboard">Leaderboard</button>
-                    <button className={`px-3 py-1 rounded-md w-1/2 sm:w-auto font-semibold transition-colors touch-target ${activeTab === "feed" ? "bg-blue-700 text-white shadow" : "border border-gray-300 bg-[var(--card-bg)] dark:bg-[var(--card-bg)] text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900"}`} onClick={() => setActiveTab("feed")} aria-label="Show feeds">Feeds</button>
+                <div className="flex flex-row gap-2 sm:gap-4 w-full my-2">
+                    <button className={`text-md px-1 py-1 rounded-md w-1/3 sm:w-auto font-semibold transition-colors touch-target ${activeTab === "leaderboard" ? "bg-blue-700 text-white shadow" : "border border-gray-300 bg-[var(--card-bg)] dark:bg-[var(--card-bg)] text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900"}`} onClick={() => setActiveTab("leaderboard")} aria-label="Show leaderboard">Leaderboard</button>
+                    <button className={`text-sm px-1 py-1 rounded-md w-1/3 sm:w-auto font-semibold transition-colors touch-target ${activeTab === "feed" ? "bg-blue-700 text-white shadow" : "border border-gray-300 bg-[var(--card-bg)] dark:bg-[var(--card-bg)] text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900"}`} onClick={() => setActiveTab("feed")} aria-label="Show feeds">Feeds</button>
                 </div>
                 <div className="px-0 sm:px-1 w-full">
                     {activeTab === "feed" && (
@@ -119,7 +132,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                             <div className="flex flex-row gap-2 sm:gap-4 overflow-x-auto shadow-md rounded-md p-1 mb-2 w-full scrollbar-hide">
                                 {leaderboards?.map((leaderboard: any) => (
                                     <div key={leaderboard.id}
-                                        className={`rounded-md p-1 max-w-[60px] flex flex-row items-center gap-1 cursor-pointer transition ${activePlatformLeaderboard === leaderboard.platform ? "ring-2 ring-blue-500" : ""}`}
+                                        className={`rounded-md p-1  flex flex-row items-center gap-1 cursor-pointer transition ${activePlatformLeaderboard === leaderboard.platform ? "ring-2 ring-blue-500" : ""}`}
                                         onClick={() => setActivePlatformLeaderboard(leaderboard.platform)}>
                                         <p className="font-medium mb-1 italic text-xs">{leaderboard.platform}</p>
                                         <img src={`/assets/icons/${leaderboard.platform}.svg`} alt={leaderboard.platform} className="w-8 h-8 object-cover rounded-full" />

@@ -26,7 +26,7 @@ interface FeedTabsProps {
 
 export const FeedTabs: React.FC<FeedTabsProps> = ({
   className = '',
-  limit = 10,
+  limit = 5,
   authors,
   searchQuery,
   sinceProps,
