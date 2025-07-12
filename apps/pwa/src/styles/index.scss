@@ -53,6 +53,19 @@ body.light-mode {
 
 .btn-secondary {
   border: 1px solid var(--afk-accent-cyan);
+  background: transparent;
+  border-radius: 8px;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: var(--afk-font-primary, $font-primary);
+  &:hover {
+    background: rgba(0,240,255,0.1);
+    box-shadow: 0 0 8px 0 $afk-cyber-cyan;
+  }
+}
+
+.btn-secondary-full {
+  border: 1px solid var(--afk-accent-cyan);
   color: var(--afk-accent-cyan);
   background: transparent;
   border-radius: 8px;
@@ -64,6 +77,24 @@ body.light-mode {
     box-shadow: 0 0 8px 0 $afk-cyber-cyan;
   }
 }
+
+
+
+.btn-basic {
+  border: 1px solid var(--afk-text-dark);
+  color: var(--afk-text-dark);
+  background: transparent;
+  border-radius: 8px;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: var(--afk-font-primary, $font-primary);
+  &:hover {
+    background: var(--afk-text-dark);
+    color: var(--afk-bg-dark);
+    box-shadow: 0 0 8px 0 var(--afk-text-dark);
+  }
+}
+
 
 // Input Styles
 input, textarea {

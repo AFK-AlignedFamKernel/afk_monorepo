@@ -39,7 +39,7 @@ export const ImportPrivateKey = ({ title, showLogo, isModalMode }: CustomHeaderI
     const editProfile = useEditProfile();
 
 
-    const {ndk} = useNostrContext();
+    const { ndk } = useNostrContext();
     const [error, setError] = useState('');
     const nostrProfiles = useMemo(() => {
         if (!nostrAccounts) return [];
@@ -65,7 +65,7 @@ export const ImportPrivateKey = ({ title, showLogo, isModalMode }: CustomHeaderI
 
             const publicKey = NostrKeyManager.getPublicKeyFromSecret(privateKey);
 
-            if(!publicKey) {
+            if (!publicKey) {
                 return showToast({
                     message: 'Invalid private key',
                     type: 'error',
@@ -105,7 +105,7 @@ export const ImportPrivateKey = ({ title, showLogo, isModalMode }: CustomHeaderI
             // Redirect to home page on success
             //   router.push('/');
 
-        
+
 
 
         } catch (err) {
@@ -118,7 +118,7 @@ export const ImportPrivateKey = ({ title, showLogo, isModalMode }: CustomHeaderI
     };
 
     const updateMyProfile = async () => {
-     
+
         try {
             console.log('create nostr profile')
 
@@ -155,15 +155,12 @@ export const ImportPrivateKey = ({ title, showLogo, isModalMode }: CustomHeaderI
         }
 
     }
-  
+
 
     return (
-        <div style={{
-            padding: 8,
-            textAlign:"left"
-        }}>
+        <div className='flex flex-col gap-2 py-4'>
 
-     
+
 
             <div style={{
                 display: 'flex',
@@ -172,11 +169,13 @@ export const ImportPrivateKey = ({ title, showLogo, isModalMode }: CustomHeaderI
                 gap: '10px'
             }}>
 
-                <input type="text" placeholder='Enter private key' value={privateKey} onChange={(e) => setPrivateKey(e.target.value)} />
-                <button className='btn btn-secondary' onClick={() => {
+                <input type="text"
+                    className='border-afk-accent-cyan w-full p-2 rounded-md'
+                    placeholder='Enter private key' value={privateKey} onChange={(e) => setPrivateKey(e.target.value)} />
+                <button className='btn btn-primary' onClick={() => {
                     handleImportPrivateKey();
                 }}>Import</button>
-           
+
 
             </div>
 
