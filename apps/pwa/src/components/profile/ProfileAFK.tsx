@@ -20,7 +20,7 @@ export default function ProfileAfk() {
 
   return (
     <div className="container py-2">
-      <h1 className="text-3xl font-bold mb-6">Identity Management</h1>
+      <h1 className="text-xl font-bold mb-2 italic text-center">Identity Management</h1>
       <div>
 
       </div>
@@ -30,9 +30,8 @@ export default function ProfileAfk() {
         <div className="flex flex-col md:grid md:grid-cols-2 gap-8 overflow-x-auto">
 
 
-
           <div className="bg-contrast-100 p-6 rounded-lg shadow-lg text-left">
-            <h2 className="text-xl font-semibold mb-4 italic">Decentralized Identities</h2>
+            <h2 className="text-sm font-semibold mb-4 italic">Decentralized Identities</h2>
             <div
               className="space-y-4 text-left">
               <button onClick={() => handleTabChange("nostr")} className="btn w-full flex items-center justify-between border-2 border-contrast-200 rounded-lg">
@@ -49,7 +48,7 @@ export default function ProfileAfk() {
           </div>
 
           <div className="bg-contrast-100 p-6 rounded-lg shadow-lg text-left">
-            <h2 className="text-xl font-semibold mb-4 italic">Connected Accounts</h2>
+            <h2 className="text-sm font-semibold mb-4 italic">Connected Accounts</h2>
             <div className="space-y-4">
 
 
@@ -72,7 +71,7 @@ export default function ProfileAfk() {
                 </svg>
               </button>
 
-              <button onClick={() => handleTabChange("messages")} className="btn w-full flex items-center justify-between border-2 border-contrast-200 rounded-lg">
+              <button onClick={() => handleTabChange("messages")} className="btn w-full flex justify-between border-2 border-contrast-200 rounded-lg">
                 <div>
                   <p className="font-semibold">Messages</p>
                   <p className="text-sm opacity-80">Manage your messages</p>
@@ -104,7 +103,7 @@ export default function ProfileAfk() {
             </div>
           </div>
           <div className="bg-contrast-100 p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-semibold mb-4 italic">Rewards Center</h2>
+              <h2 className="text-sm font-semibold mb-4 italic">Rewards Center</h2>
             <div className="space-y-4">
               <button onClick={() => handleTabChange("rewards")} className="btn w-full flex items-center justify-between border-2 border-contrast-200 rounded-lg">
                 <div className="flex items-center gap-2">

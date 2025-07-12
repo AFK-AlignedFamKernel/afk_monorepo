@@ -211,7 +211,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   }
 
   return (
-    <div className="repost-event-ui rounded-xl border border-gray-500 dark:border-gray-800 p-2 mb-4">
+    <div className="repost-event-ui rounded-xl border border-gray-300 dark:border-gray-800 p-2">
       {/* Reposted by (header) */}
       <div className="flex items-center gap-2 mb-2"
       onClick={() => {
@@ -273,7 +273,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
           const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
           if (!original) return null;
           return (
-            <div className="action-buttons flex flex-wrap gap-2 my-2" role="group" aria-label="Repost actions">
+            <div className="action-buttons flex flex-wrap gap-8 my-4" role="group" aria-label="Repost actions">
               <button className="action-button" aria-label="Reply" onClick={() => {
                 setIsOpenComment(!isOpenComment);
                 logClickedEvent('reply_to_note', 'Interaction', 'Button Click', 1);

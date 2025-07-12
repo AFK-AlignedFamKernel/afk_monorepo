@@ -242,7 +242,10 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
             />
           </div>
         )}
-        <div className="action-buttons flex flex-row gap-3 mt-3 mb-1 px-1 py-1 border-t border-gray-100 dark:border-gray-800">
+        <div
+        //  className="action-buttons flex flex-row gap-3 mt-3 mb-1 px-1 py-1 border-t border-gray-100 dark:border-gray-800"
+         className="action-buttons flex flex-row gap-4 mt-3 mb-1 py-1"
+        >
           <button className="action-button flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition" aria-label="Reply" onClick={() => {
             setIsOpenComment(!isOpenComment);
             // handleCheckNostrAndSendConnectDialog();
