@@ -7,12 +7,15 @@ import ManageCreatorProfile from "./ManageCreatorProfile";
 import ManageBrandProfile from "../Brand/ManageBrandProfile";
 import RewardsCenter from "../Rewards/RewardsCenter";
 import { NostrMessagesComponent } from "../Nostr/Messages/nip17";
+import { useUIStore } from "@/store/uiStore";
+import { ProfileManagement } from "./profile-management";
 
 export default function ProfileAfk() {
 
   const [activeTab, setActiveTab] = useState<"nostr" | "starknet" | "lens" | "farcaster" | "zap" | "brand" | "content-creator" | "messages" | "rewards" | undefined>(undefined);
 
 
+  const { showModal } = useUIStore();
 
   const handleTabChange = (tab: "rewards" | "nostr" | "starknet" | "lens" | "farcaster" | "zap" | "brand" | "content-creator" | "messages" | undefined) => {
     setActiveTab(tab);
@@ -21,9 +24,6 @@ export default function ProfileAfk() {
   return (
     <div className="container py-2">
       <h1 className="text-xl font-bold mb-2 italic text-center">Identity Management</h1>
-      <div>
-
-      </div>
 
       {activeTab === undefined && (
 
@@ -32,6 +32,16 @@ export default function ProfileAfk() {
 
           <div className="bg-contrast-100 p-6 rounded-lg shadow-lg text-left">
             <h2 className="text-sm font-semibold mb-4 italic">Decentralized Identities</h2>
+            <div>
+
+              <button className="btn btn-basic flex items-center gap-2" onClick={() => {
+                showModal(<ProfileManagement />)
+              }}>
+                <Icon name="LoginIcon" size={24} />
+                Login
+              </button>
+
+            </div>
             <div
               className="space-y-4 text-left">
               <button onClick={() => handleTabChange("nostr")} className="btn w-full flex items-center justify-between border-2 border-contrast-200 rounded-lg">
@@ -103,7 +113,7 @@ export default function ProfileAfk() {
             </div>
           </div>
           <div className="bg-contrast-100 p-6 rounded-lg shadow-lg">
-              <h2 className="text-sm font-semibold mb-4 italic">Rewards Center</h2>
+            <h2 className="text-sm font-semibold mb-4 italic">Rewards Center</h2>
             <div className="space-y-4">
               <button onClick={() => handleTabChange("rewards")} className="btn w-full flex items-center justify-between border-2 border-contrast-200 rounded-lg">
                 <div className="flex items-center gap-2">

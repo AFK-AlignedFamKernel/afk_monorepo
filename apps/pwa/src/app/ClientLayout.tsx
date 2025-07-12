@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { useNostrContext, useSettingsStore } from 'afk_nostr_sdk';
-import { useAppStore } from '@/store/app';
-import CryptoLoading from '@/components/small/crypto-loading';
+// import { useAppStore } from '@/store/app';
+// import CryptoLoading from '@/components/small/crypto-loading';
 
 const GA_TRACKING_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS;
 
@@ -21,7 +21,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
     if (!hasOnboarded) {
       localStorage.setItem('hasOnboarded', 'true');
-      window.location.href = '/onboarding';
+      // window.location.href = '/onboarding';
+
     }
   }, []);
 

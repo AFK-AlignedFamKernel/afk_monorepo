@@ -4,6 +4,7 @@
 import * as Bip39 from 'bip39';
 import { generateRandomKeypair } from './keypair';
 import { NDKUserProfile } from '@nostr-dev-kit/ndk';
+import { schnorr } from '@noble/curves/secp256k1';
 
 
 const localStorage = typeof window !== 'undefined' ? window.localStorage : null;
@@ -54,6 +55,16 @@ export class NostrKeyManager {
       nostrProfile?: any;
     };
   } = {};
+
+  static getPublicKeyFromSecret(privateKey: string) {
+    try {
+      const publicKey = schnorr.getPublicKey(privateKey);
+      return Buffer.from(publicKey).toString('hex');
+    } catch (error) {
+      // We shouldn't throw the original error for security reasons
+      throw new Error('Failed to get public key from secret key');
+    }
+  };
 
   static setNostrWalletConnectedStorage(nostrWallet: NostrWallet, nostrProfileMetadata?: NDKUserProfile) {
     // Add multi account
