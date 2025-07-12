@@ -150,14 +150,14 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                 </div>
 
                 {nostrProfiles.length > 1 && (
-                    <button className='btn btn-secondary' onClick={() => {
+                    <button className='btn btn-basic' onClick={() => {
                         setIsOpenProfile(!isOpenProfile);
                     }}>View more</button>
                 )}
 
             </div>
 
-            <div>
+            <div className="my-2">
                 <button className='btn btn-secondary' onClick={() => {
                     setActiveTab('import');
                 }}>Import</button>
