@@ -9,6 +9,7 @@ import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
 import { Avatar } from '@chakra-ui/react';
 import { useUIStore } from '@/store/uiStore';
 import { Icon } from '@/components/small/icon-component';
+import { ImportPrivateKey } from './import-privatekey';
 interface CustomHeaderInterface {
     title?: string;
     showLogo?: boolean;
@@ -30,6 +31,7 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
         setIsOpenProfile(!isOpenProfile);
     };
 
+    const [activeTab, setActiveTab] = React.useState<"create" | "manage" | 'import'>('create');
 
     const nostrProfiles = useMemo(() => {
         if (!nostrAccounts) return [];
@@ -66,6 +68,15 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
             ) : (
                 <div>
                     <p className='text-sm'>No Nostr Accounts</p>
+                    <button className='btn btn-secondary' onClick={() => {
+                        setActiveTab('create');
+                    }}>Create</button>
+                    {/* <button className='btn btn-secondary' onClick={() => {
+                        setActiveTab('import');
+                    }}>Import</button>
+                    <button className='btn btn-secondary' onClick={() => {  
+                        setActiveTab('manage');
+                    }}>Manage</button> */}
                 </div>
             )}
 
@@ -144,6 +155,16 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                     }}>View more</button>
                 )}
 
+            </div>
+
+            <div>
+                <button className='btn btn-secondary' onClick={() => {
+                    setActiveTab('import');
+                }}>Import</button>
+
+                {activeTab === 'import' && (
+                    <ImportPrivateKey />
+                )}
             </div>
 
 
