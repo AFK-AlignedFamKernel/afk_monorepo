@@ -6,9 +6,11 @@ import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 // importuseMyMessagesSent, useAuth, useProfile,  { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 // import { NDKUser } from '@nostr-dev-kit/ndk';
-import { useAuth, useSendPrivateMessage, useProfile, useIncomingMessageUsers, useMyMessagesSent } from 'afk_nostr_sdk';
+import { useAuth, useSendPrivateMessage, useProfile, useMyMessagesSent, useIncomingMessageUsers } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import CryptoLoading from '@/components/small/crypto-loading';
+import { logClickedEvent } from '@/lib/analytics';
+import { useUIStore } from '@/store/uiStore';
 
 interface ChatProps {
     item: any;
@@ -31,55 +33,84 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const { publicKey } = useAuth();
     const { mutateAsync: sendMessage } = useSendPrivateMessage();
     const queryClient = useQueryClient();
+    const { showToast } = useUIStore();
+    const [isSendingMessage, setIsSendingMessage] = useState(false);
 
+    // Guard: Only proceed if both keys are valid
+    if (!publicKey || !receiverPublicKey) {
+        return <div className="flex items-center justify-center h-full">No conversation selected.</div>;
+    }
+
+    // Use the old hooks for fetching conversation messages
     const roomIds = useMemo(() => [publicKey, receiverPublicKey], [publicKey, receiverPublicKey]);
-
-    // 1. Fetch messages with proper filters
     const { data: messagesSent, isLoading: isLoadingSent } = useMyMessagesSent({
         authors: roomIds,
     });
-
     const { data: incomingMessages, isLoading: isLoadingIncoming } = useIncomingMessageUsers({
         authors: roomIds,
     });
 
-    // 2. Combine and sort messages properly
+    // Combine and sort messages
     const allMessages = useMemo(() => {
-        const sent = messagesSent?.pages.flat() || [];
-        const received = incomingMessages?.pages.flat() || [];
+        const sent = messagesSent?.pages?.flat() || [];
+        const received = incomingMessages?.pages?.flat() || [];
         return [...sent, ...received]
             .filter(Boolean)
             .sort((a, b) => a.created_at - b.created_at);
     }, [messagesSent?.pages, incomingMessages?.pages]);
 
-    // 3. Scroll to bottom when new messages arrive
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [allMessages]);
 
-    // 4. Handle message sending with proper invalidation
     const handleSendMessage = useCallback(() => {
-        if (!message.trim()) return;
-
-        sendMessage(
-            {
-                content: message,
-                receiverPublicKeyProps: receiverPublicKey,
-            },
-            {
-                onSuccess: () => {
-                    setMessage('');
-                    // Invalidate both queries to refresh messages
-                    queryClient.invalidateQueries({ queryKey: ['myMessagesSent'] });
-                    queryClient.invalidateQueries({ queryKey: ['messageUsers'] });
-                },
-                onError: (error) => {
-                    console.error('Error sending message:', error);
-                },
+      
+        try {
+            setIsSendingMessage(true);
+            if (!message.trim()) {
+                showToast({ message: 'Please enter a message', type: 'error' });
+                return;
             }
-        );
+            let receiverPublicKey = roomIds.find((id) => id !== publicKey);
+    
+            // TODO auto saved message
+            if (roomIds[0] === roomIds[1]) {
+                receiverPublicKey = roomIds[0] ?? publicKey;
+            }
+            if (!receiverPublicKey && roomIds.length > 1 && roomIds[0] != roomIds[1]) {
+                showToast({ message: 'Invalid receiver', type: 'error' });
+                return;
+            }
+    
+            if (!receiverPublicKey) {
+                showToast({ message: 'Invalid receiver', type: 'error' });
+                return;
+            }
+    
+            sendMessage(
+                {
+                    content: message,
+                    receiverPublicKeyProps: receiverPublicKey,
+                },
+                {
+                    onSuccess: () => {
+                        setMessage('');
+                        showToast({ message: 'Message sent', type: 'success' });    
+                        queryClient.invalidateQueries({ queryKey: ['myMessagesSent'] });
+                        queryClient.invalidateQueries({ queryKey: ['messageUsers'] });
+                    },
+                    onError: (error) => {
+                        console.error('Error sending message:', error);
+                        showToast({ message: 'Error sending message', type: 'error' });
+                    },
+                }
+            );
+            setIsSendingMessage(false);
+        } catch (error) {
+            setIsSendingMessage(false);
+        }
     }, [message, receiverPublicKey, sendMessage, queryClient]);
 
     if (isLoadingSent || isLoadingIncoming) {
@@ -97,8 +128,8 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 <button
                     onClick={() => {
                         handleGoBack();
+                        logClickedEvent('go_conversation_nip17', 'messages_data');
                         setMessage('');
-                        // setMess
                     }}
                     className="p-2 hover:bg-gray-100 rounded"
                 >
@@ -125,15 +156,15 @@ export const ChatConversation: React.FC<ChatProps> = ({
             </div>
 
             {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4  max-h-[350px] lg:max-h-[500px]">
                 <div className="space-y-4">
-
-                    {isLoadingSent || isLoadingIncoming ? <CryptoLoading></CryptoLoading>
-                        : allMessages.map((msg: any) => (
+                    {allMessages.length === 0 ? (
+                        <div className="text-center text-gray-400">No messages yet.</div>
+                    ) : (
+                        allMessages.map((msg: any) => (
                             <div
                                 key={msg.id}
-                                className={`flex ${msg.senderPublicKey === publicKey ? 'justify-end' : 'justify-start'
-                                    }`}
+                                className={`flex ${msg.senderPublicKey === publicKey ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div
                                     className={`max-w-[70%] rounded-lg p-3 ${msg.senderPublicKey === publicKey
@@ -141,13 +172,14 @@ export const ChatConversation: React.FC<ChatProps> = ({
                                         : 'bg-gray-100'
                                         }`}
                                 >
-                                    <p className="text-sm">{msg.content}</p>
+                                    <p className="text-sm">{msg.decryptedContent || msg.content}</p>
                                     <span className="text-xs opacity-70">
                                         {/* {formatDistanceToNow(new Date(msg?.created_at * 1000), { addSuffix: true })} */}
                                     </span>
                                 </div>
                             </div>
-                        ))}
+                        ))
+                    )}
                 </div>
             </div>
 
@@ -159,10 +191,14 @@ export const ChatConversation: React.FC<ChatProps> = ({
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Type a message..."
                         className="flex-1 p-2 border rounded"
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    // onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                     />
                     <button
-                        onClick={handleSendMessage}
+                        disabled={isSendingMessage}
+                        onClick={() => {
+                            handleSendMessage();
+                            logClickedEvent('send_message_nip17', 'messages_data');
+                        }}
                         className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
                         Send

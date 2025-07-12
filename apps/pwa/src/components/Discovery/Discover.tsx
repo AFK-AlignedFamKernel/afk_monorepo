@@ -50,7 +50,7 @@ export default function DiscoverComponent() {
       </div>
 
 
-      <div className="p-4">
+      <div>
 
         {activeTab === "brand" && (
           <>
@@ -76,15 +76,11 @@ export default function DiscoverComponent() {
         )}
 
         {activeTab === "feed" && (
-          <>
-            {/* <p>
-            More feeds coming soon
-          </p> */}
-            <div className="flex flex-row gap-4">
-              <FeedTabs />
-
+            <div
+            // className="flex flex-row gap-4"
+            >
+              <FeedTabs className="w-full" />
             </div>
-          </>
         )}
 
         {activeTab === "launchpad" && (

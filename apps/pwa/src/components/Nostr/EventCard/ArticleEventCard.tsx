@@ -119,7 +119,10 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
           </div>
         )}
         <div
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={() => {
+            setIsExpanded(!isExpanded)
+            logClickedEvent('show_more_article', 'Interaction', 'Button Click', 1);
+          }}
           className="cursor-pointer w-full max-w-full"
           aria-label={isExpanded ? 'Collapse article content' : 'Expand article content'}
         >

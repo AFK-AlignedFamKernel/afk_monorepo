@@ -58,7 +58,7 @@ export const NostrMessagesComponent: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       {/* Tabs */}
-      <div className="flex border-b">
+      <div className="flex border-b overflow-x-auto scrollbar-hide">
         <button
           className={`flex-1 py-2 px-4 ${activeTab === 'messages' ? 'border-b-2 border-blue-500' : ''}`}
           onClick={() => setActiveTab('messages')}
@@ -77,6 +77,12 @@ export const NostrMessagesComponent: React.FC = () => {
         >
           Followers
         </button>
+        <button
+          className={`flex-1 py-2 px-4 ${activeTab === 'direct_messages' ? 'border-b-2 border-blue-500' : ''}`}
+          onClick={() => setActiveTab('direct_messages')}
+        >
+          Direct Messages
+        </button> 
       </div>
 
       {activeTab == "messages" && (
@@ -88,6 +94,12 @@ export const NostrMessagesComponent: React.FC = () => {
 
       {activeTab == "contacts" && (
         <NostrContactList />
+      )}
+
+      {activeTab == "direct_messages" && (
+        <div className="flex">
+          <FormPrivateMessage onClose={() => setActiveTab('messages')} type="NIP17" />
+        </div>
       )}
 
     </div>
