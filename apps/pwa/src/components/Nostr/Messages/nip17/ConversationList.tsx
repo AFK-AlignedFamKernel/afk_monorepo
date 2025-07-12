@@ -8,6 +8,7 @@ import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
 import { ChatConversation } from './ChatConversation';
 import { useUIStore } from '@/store/uiStore';
 import CryptoLoading from '@/components/small/crypto-loading';
+import { logClickedEvent } from '@/lib/analytics';
 
 interface NostrConversationListProps {
   type: "NIP4" | "NIP17";
@@ -17,7 +18,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const { publicKey, privateKey } = useAuth();
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<string>('messages');
+  const [activeTab, setActiveTab] = useState<"messages" | "contacts" | "followers" | "direct_messages">('messages');
   const [isProcessingMessages, setIsProcessingMessages] = useState(false);
   const [messagesData, setMessages] = useState<any>([]);
   const [isBack, setIsBack] = useState(false);
@@ -84,6 +85,26 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     refetch();
   };
 
+  // Helper to get the other participant's public key
+  const getOtherUserPublicKey = (conversation: any, currentUserPublicKey: string) => {
+    if (!conversation) return undefined;
+    if (!currentUserPublicKey) return undefined;
+    if (conversation.senderPublicKey === currentUserPublicKey) return conversation.receiverPublicKey;
+    return conversation.senderPublicKey;
+  };
+
+  const handleConversationClick = (item: any) => {
+    // Always set senderPublicKey and receiverPublicKey so that sender is always the current user
+    let sender = publicKey || '';
+    let receiver = getOtherUserPublicKey(item, publicKey || '');
+    setSelectedConversation({
+      ...item,
+      senderPublicKey: sender,
+      receiverPublicKey: receiver,
+    });
+    setIsBack(false);
+  };
+
   if (!publicKey) {
     return (
       <div className="flex flex-col items-center justify-center p-4 space-y-4">
@@ -139,16 +160,29 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     })
     .sort((a, b) => b.created_at - a.created_at); // Sort by timestamp, newest first
 
-  const groupedMessages = messages.reduce((groups: any, message) => {
-    const date = new Date(message.created_at * 1000).toLocaleDateString();
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(message);
-    return groups;
-  }, {});
+  // const groupedMessages = messages.reduce((groups: any, message) => {
+  //   const date = new Date(message.created_at * 1000).toLocaleDateString();
+  //   if (!groups[date]) {
+  //     groups[date] = [];
+  //   }
+  //   groups[date].push(message);
+  //   return groups;
+  // }, {});
+  // console.log('messages', messages);
+  const groupedMessages = (messages || [])
+    .filter(msg => msg && typeof msg.created_at === 'number' && !isNaN(msg.created_at))
+    .reduce((groups, message) => {
+      const dateObj = new Date(message.created_at * 1000);
+      if (isNaN(dateObj.getTime())) return groups;
+      const date = dateObj.toLocaleDateString();
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(message);
+      return groups;
+    }, {});
 
-  console.log('groupedMessages', groupedMessages);
+  // console.log('groupedMessages', groupedMessages);
 
 
   return (
@@ -181,108 +215,46 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       <div className="flex-1 overflow-hidden">
         {activeTab === 'messages' && (
           <div className="h-full">
-            {selectedConversation ? (
+            {selectedConversation && selectedConversation.receiverPublicKey && publicKey ? (
               <div className="flex flex-col h-full">
-                {/* <div className="flex items-center p-4 border-b">
-                  <button
-                    onClick={handleGoBack}
-                    className="mr-2 p-2 hover:bg-gray-100 rounded"
-                  >
-                    ←
-                  </button>
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 mr-2" />
-                    <span>{selectedConversation?.senderPublicKey?.slice(0, 8)}</span>
-                  </div>
-
-                </div> */}
-                {/* {messagesSentRoom?.pages.flat().map(async (msg: any) => {
-                  // console.log('msg', msg);
-                  // const isSender = msg?.senderPublicKey === selectedConversation?.senderPublicKey;
-                  // const conversationPublicKey = deriveSharedKey(publicKey, selectedConversation?.receiverPublicKey);
-                  // const decryptedContent = v2.decrypt(msg?.content, conversationPublicKey);
-                  // console.log('decryptedContent', decryptedContent);
-                  return (
-                    <div
-                      key={msg.id}
-                      className={`flex ${msg?.senderPublicKey === selectedConversation?.senderPublicKey ? 'justify-start' : 'justify-end'
-                        }`}
-                    >
-                      <div
-                        className={`max-w-[70%] rounded-lg p-3 ${msg?.senderPublicKey === selectedConversation?.senderPublicKey
-                          ? 'bg-gray-100'
-                          : 'bg-primary text-primary-foreground'
-                          }`}
-                      >
-                        <span className="text-xs opacity-70">
-                        </span>
-                      </div>
-                    </div>
-                  )
-                })} */}
-                {/* Messages */}
-                {/* <div className="flex-1 overflow-y-auto p-4">
-                  {messagesSentState.map((msg: any) => (
-                    <div
-                      key={msg.id}
-                      className={`mb-4 ${msg.senderPublicKey === selectedConversation.senderPublicKey
-                        ? 'text-left'
-                        : 'text-right'
-                        }`}
-                    >
-                      <div
-                        className={`inline-block p-3 rounded-lg ${msg.senderPublicKey === selectedConversation.senderPublicKey
-                          ? 'bg-gray-100'
-                          : 'bg-blue-500 text-white'
-                          }`}
-                      >
-                      </div>
-                    </div>
-                  ))}
-                </div> */}
-
-                {/* Message Input */}
-                <div className="p-4 border-t">
-
-                  <ChatConversation
-                    item={selectedConversation}
-                    publicKeyProps={publicKey}
-                    receiverPublicKey={selectedConversation.receiverPublicKey}
-                    handleGoBack={handleGoBack}
-                    messagesSentParents={messagesSentState}
+                <ChatConversation
+                  item={selectedConversation}
+                  publicKeyProps={publicKey || ''}
+                  receiverPublicKey={selectedConversation.receiverPublicKey || ''}
+                  handleGoBack={handleGoBack}
+                  messagesSentParents={messagesSentState}
+                />
+                {/* <div className="flex">
+                  <input
+                    type="text"
+                    placeholder="Type a message..."
+                    className="flex-1 p-2 border rounded-l"
+                    onChange={(e) => setMessage(e.target.value)}
                   />
-                  <div className="flex">
-                    <input
-                      type="text"
-                      placeholder="Type a message..."
-                      className="flex-1 p-2 border rounded-l"
-                      onChange={(e) => setMessage(e.target.value)}
-                    />
-                    <button className="px-4 py-2 bg-blue-500 text-white rounded-r"
-                      onClick={() => handleSendMessage(message)}
-                    >
-                      Send
-                    </button>
-                  </div>
-                </div>
+                  <button className="px-4 py-2 bg-blue-500 text-white rounded-r"
+                    onClick={() => {
+                      if (message) {
+                        handleSendMessage(message);
+                        logClickedEvent('send_message_nip17', 'messages_data');
+                      }
+                    }}
+                  >
+                    Send
+                  </button>
+                </div> */}
               </div>
             ) : (
               <div className="h-full">
-                {messagesData.length === 0 && !incomingMessages?.pages.flat().length && (
-                  <div className="flex items-center justify-center h-24">
-
-                    {/* {isLoadingMessagesSent && <CryptoLoading></CryptoLoading>} */}
-                    {/* {!isLoadingMessagesSent && <p className="text-gray-500">You don't have any messages</p>} */}
-                  </div>
+                {messagesData.length === 0 && !incomingMessages?.pages?.flat()?.length && (
+                  <div className="flex items-center justify-center h-24"></div>
                 )}
                 <div className="overflow-y-auto h-full">
-                  {/* Incoming Messages */}
                   {messagesData.map((item: any) => (
                     <button
                       key={item.id}
                       onClick={() => {
-                        setSelectedConversation(item);
-                        setIsBack(false);
+                        handleConversationClick(item);
+                        logClickedEvent('open_conversation_nip17', 'messages_data');
                       }}
                       className="w-full p-4 hover:bg-gray-100 border-b"
                     >
@@ -290,24 +262,19 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                         <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
                         <div className="flex-1 text-left">
                           <p className="font-medium">
-                            {item.senderPublicKey.slice(0, 8)}
+                            {item.senderPublicKey?.slice(0, 8) || ''}
                           </p>
-                          <p className="text-sm text-gray-500 truncate">
-                            {/* {ndkSigner?.decrypt(ndkUser, item?.content, "nip44")} */}
-                          </p>
+                          <p className="text-sm text-gray-500 truncate"></p>
                         </div>
                       </div>
                     </button>
                   ))}
-
-                  {messagesSent && messagesSent?.pages.flat().length > 0 && messagesSent?.pages.flat().map((item: any) => {
-                    console.log('item message sent', item);
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                        setSelectedConversation(item);
-                        setIsBack(false);
+                  {messagesSent && messagesSent?.pages?.flat()?.length > 0 && messagesSent?.pages?.flat().map((item: any) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        handleConversationClick(item);
+                        logClickedEvent('open_conversation_nip17', 'messages_sent');
                       }}
                       className="w-full p-4 hover:bg-gray-100 border-b"
                     >
@@ -315,30 +282,19 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                         <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
                         <div className="flex-1 text-left">
                           <p className="font-medium">
-                            {item.senderPublicKey.slice(0, 8)}
+                            {item.senderPublicKey?.slice(0, 8) || ''}
                           </p>
-                          <p className="text-sm text-gray-500 truncate">
-                          </p>
+                          <p className="text-sm text-gray-500 truncate"></p>
                         </div>
                       </div>
                     </button>
-                  )})}
-
-                  {/* Sent Messages */}
-
-                  {incomingMessages?.pages.flat()?.length > 0 && incomingMessages?.pages.flat()?.map((item: any) => {
-                    console.log('item', item);
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                        setSelectedConversation({
-                          senderPublicKey: item.receiverPublicKey,
-                          receiverPublicKey: publicKey,
-                          content: item.content,
-                          id: item.id
-                        });
-                        setIsBack(false);
+                  ))}
+                  {incomingMessages && incomingMessages?.pages?.flat()?.length > 0 && incomingMessages?.pages?.flat().map((item: any) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        handleConversationClick(item);
+                        logClickedEvent('open_conversation_nip17', 'incoming_messages');
                       }}
                       className="w-full p-4 hover:bg-gray-100 border-b"
                     >
@@ -346,38 +302,14 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                         <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
                         <div className="flex-1 text-left">
                           <p className="font-medium">
-                            {item?.receiverPublicKey?.slice(0, 8)}
+                            {item?.receiverPublicKey?.slice(0, 8) || ''}
                           </p>
-                          <p className="text-sm text-gray-500 truncate">
-                          </p>
+                          <p className="text-sm text-gray-500 truncate"></p>
                         </div>
                       </div>
                     </button>
-                  )})}
+                  ))}
                 </div>
-
-                {/* New Message Button and Form */}
-                <>
-                  <button
-                    className="fixed bottom-4 right-4 w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center"
-                    onClick={() => setShowNewMessageForm(true)}
-                  >
-                    +
-                  </button>
-
-                  {showNewMessageForm && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                      <div className="rounded-lg w-full max-w-md">
-                        <FormPrivateMessage
-                          type={type}
-                          setType={setType}
-                          onClose={() => setShowNewMessageForm(false)}
-                          onMessageSent={handleNewMessageSent}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </>
               </div>
             )}
           </div>
@@ -409,6 +341,12 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
           </div>
         )}
       </div>
+
+      {activeTab === 'direct_messages' && (
+        <div className="flex justify-center p-4">
+          <FormPrivateMessage onClose={() => setActiveTab('messages')} type="NIP17" />
+        </div>
+      )}
     </div>
   );
 };

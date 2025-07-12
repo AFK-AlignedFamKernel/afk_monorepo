@@ -132,7 +132,6 @@ export const useRoomMessages = (options?: UseRoomMessageOptions) => {
     queryFn: async ({ pageParam }) => {
       const giftWraps = await ndk.fetchEvents({
         kinds: [1059 as NDKKind],
-        // authors: options.roomParticipants,
         since: pageParam ? pageParam : undefined,
         limit: options?.limit || 20,
         "#p": options.roomParticipants,
@@ -141,9 +140,6 @@ export const useRoomMessages = (options?: UseRoomMessageOptions) => {
       const decryptedMessages: DecryptedMessage[] = await Promise.all(
         [...giftWraps].map(async (giftWrap: NDKEvent) => {
           try {
-
-
-            //--> Get receiver's public key from tags (recipient)
             const receiverPublicKey = giftWrap.tags.find((tag) => tag[0] === 'p')?.[1];
             const senderName = giftWrap.tags.find((tag) => tag[0] === 'sender')?.[2];
             const receiverName = giftWrap.tags.find((tag) => tag[0] === 'receiverName')?.[1];
@@ -157,59 +153,48 @@ export const useRoomMessages = (options?: UseRoomMessageOptions) => {
               throw new Error('User is neither sender nor recipient');
             }
 
-            //--> Derive the shared secret based on who the current user is
+            // Derive the shared secret based on who the current user is
             const conversationKey = isSender
-              ? deriveSharedKey(privateKey, fixPubKey(receiverPublicKey)) // Sender's private key, recipient's public key
-              : deriveSharedKey(privateKey, fixPubKey(senderPublicKey)); // Recipient's private key, sender's public key
+              ? deriveSharedKey(privateKey, fixPubKey(receiverPublicKey))
+              : deriveSharedKey(privateKey, fixPubKey(senderPublicKey));
 
-            //--> Decrypt gift wrap content to get the sealed event
+            // Decrypt gift wrap content to get the sealed event
             const sealedEventJson = v2.decrypt(giftWrap.content, conversationKey);
             const sealedEvent = JSON.parse(sealedEventJson);
 
-            //--> Verify the sealed event is valid (kind 13)
             if (sealedEvent.kind !== 13) {
               throw new Error('Invalid sealed event kind');
             }
 
-            //--> Decrypt the sealed event content to get the original message
+            // Decrypt the sealed event content to get the original message
             const originalMessageJson = v2.decrypt(sealedEvent.content, conversationKey);
-            console.log('originalMessageJson', originalMessageJson);
-
             const originalMessage = JSON.parse(originalMessageJson);
-            console.log('originalMessage', originalMessage);
 
-            //--> Verify the original message is valid (kind 14)
             if (originalMessage.kind !== 14) {
               throw new Error('Invalid original message kind');
             }
 
-            const roomSender = options.roomParticipants[0]
-            const rommReceiver = options.roomParticipants[1]
-
-            // console.log('roomSender', roomSender, senderPublicKey);
-            // console.log('senderPublicKey', senderPublicKey);
-            // console.log('receiverPublicKey', receiverPublicKey);
-            // console.log('rommReceiver', rommReceiver, receiverPublicKey);
-            if (roomSender !== senderPublicKey || rommReceiver !== receiverPublicKey) {
-              // console.log('not in the room');
+            // Instead of strict order, check that both participants are present
+            const participants = [senderPublicKey, receiverPublicKey];
+            const required = options.roomParticipants || [];
+            if (!required.every((k) => participants.includes(k))) {
               return null;
-            } else {
-              //--> Return the decrypted message
-              return {
-                id: giftWrap?.id,
-                pubkey: senderPublicKey, // Use the sender's public key
-                created_at: giftWrap?.created_at,
-                kind: giftWrap?.kind,
-                tags: giftWrap?.tags,
-                content: giftWrap?.content,
-                decryptedContent: originalMessage?.content,
-                senderName,
-                receiverName,
-                senderPublicKey,
-                receiverPublicKey,
-              };
             }
 
+            // Return the decrypted message
+            return {
+              id: giftWrap?.id,
+              pubkey: senderPublicKey, // Use the sender's public key
+              created_at: giftWrap?.created_at,
+              kind: giftWrap?.kind,
+              tags: giftWrap?.tags,
+              content: giftWrap?.content,
+              decryptedContent: originalMessage?.content,
+              senderName,
+              receiverName,
+              senderPublicKey,
+              receiverPublicKey,
+            };
           } catch (error) {
             console.error('Failed to decrypt message:', error);
             return null; // Return null for failed decryptions
@@ -217,8 +202,7 @@ export const useRoomMessages = (options?: UseRoomMessageOptions) => {
         }),
       );
 
-      console.log('decryptedMessages', decryptedMessages);
-      // Filter out null values (failed decryptions)
+      // Filter out null values (failed decryptions or not matching participants)
       return decryptedMessages.filter((message): message is DecryptedMessage => message !== null);
     },
   });
