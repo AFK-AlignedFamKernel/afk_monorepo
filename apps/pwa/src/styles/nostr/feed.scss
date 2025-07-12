@@ -131,7 +131,7 @@ $feed-animation-speed: 0.2s;
       border-radius: 0.5rem;
       padding: 1rem;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      border: 1px solid var(--border-color, #e5e7eb);
+      // border: 1px solid var(--border-color, #e5e7eb);
     }
   }
 
@@ -148,8 +148,8 @@ $feed-animation-speed: 0.2s;
       background-color: var(--card-bg, white);
       border-radius: 0.5rem;
       padding: 0.5rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      border: 1px solid var(--border-color, #e5e7eb);
+      box-shadow: 0 1px 3px #0000001a;
+      // border: 1px solid var(--border-color, #e5e7eb);
     }
 
     &-title {
@@ -244,7 +244,7 @@ $feed-animation-speed: 0.2s;
 
     &-content {
       background-color: var(--card-bg, white);
-      border: 1px solid var(--border-color, #e5e7eb);
+      // border: 1px solid var(--border-color, #e5e7eb);
       border-top: none;
       border-radius: 0 0 0.5rem 0.5rem;
       padding: 1rem;
@@ -261,7 +261,7 @@ $feed-animation-speed: 0.2s;
 // Event card styles
 .event-card {
   // background-color: var(--card-bg, #fff);
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   padding: 1.5rem 1.25rem;
   // margin-bottom: 1.5rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.07);
@@ -270,6 +270,11 @@ $feed-animation-speed: 0.2s;
   width: 100%;
   overflow-x: hidden;
   max-width: 100%;
+  color: var(--afk-text-dark);
+
+  p {
+    color: var(--afk-text-dark);
+  }
 
   // Post specific styles
   .post-event-card & {
@@ -317,6 +322,20 @@ $feed-animation-speed: 0.2s;
   }
 }
 
+// .post-content {
+//   font-size: 1.05rem;
+//   color: var(--afk-text-dark);
+//   margin-bottom: 1.25em;
+//   line-height: 1.6;
+// }
+.reply-container {
+  margin-bottom: 0.25em;
+  // padding-left: 1.5em;
+  font-size: 0.85rem;
+  // border-left: 2px solid var(--primary-color, #22c55e);
+  color: var(--contrast-900, #0f172a);
+}
+
 .post-event-card {
   .username {
     font-size: 1.1rem;
@@ -331,7 +350,7 @@ $feed-animation-speed: 0.2s;
   }
   .post-content {
     font-size: 1.05rem;
-    color: var(--foreground, #212529);
+    // color: var(--afk-text-dark);
     margin-bottom: 1.25em;
     line-height: 1.6;
   }
@@ -339,6 +358,7 @@ $feed-animation-speed: 0.2s;
     margin-bottom: 0.75em;
     padding-left: 1.5em;
     border-left: 2px solid var(--primary-color, #22c55e);
+    color: var(--contrast-900, #0f172a);
   }
   .action-buttons {
     display: flex;
@@ -423,7 +443,7 @@ $feed-animation-speed: 0.2s;
   .nostr-feed {
     --card-bg: var(--background);
     --card-bg-constrast: #1f2937;
-    --border-color: #374151;
+    // --border-color: #374151;
     --text-primary: #f9fafb;
     --text-secondary: #d1d5db;
     --primary-bg-light: #1e3a8a;

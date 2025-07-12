@@ -211,7 +211,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   }
 
   return (
-    <div className="repost-event-ui rounded-xl border border-gray-300 dark:border-gray-800 p-2">
+    <div className="event-card rounded-md">
       {/* Reposted by (header) */}
       <div className="flex items-center gap-2 mb-2"
       onClick={() => {

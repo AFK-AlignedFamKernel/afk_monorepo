@@ -8,6 +8,7 @@ import { TokenCreateForm } from '../launchpad/TokenCreateForm';
 import { NostrArticleForm } from './NostrArticleForm';
 import { CreateBrandForm } from '../Brand/CreateBrandForm';
 import DebateCreateForm from '../Debate/DebateCreateForm';
+import { logClickedEvent } from '@/lib/analytics';
 enum CreateType {
   POST = 'post',
   ARTICLE = 'article',
@@ -72,7 +73,10 @@ export default function CreateAll() {
           return (
             <button
               key={value}
-              onClick={() => setCreateType(value as CreateType)}
+              onClick={() => {
+                setCreateType(value as CreateType)
+                logClickedEvent(`create_${value}`, 'Interaction', 'Button Click', 1);
+              }}
               style={{
                 border: 'none',
                 outline: 'none',
@@ -110,35 +114,31 @@ export default function CreateAll() {
 
       {createType === CreateType.ARTICLE && (
         <div>
-          <h1>Article</h1>
+          {/* <h1>Article</h1> */}
           <NostrArticleForm onSubmit={handleSubmit}></NostrArticleForm>
         </div>
       )}
 
       {createType === CreateType.TOKEN && (
         <div>
-          <h1>Token</h1>
+          {/* <h1>Token</h1> */}
           <TokenCreateForm></TokenCreateForm>
         </div>
       )}
 
       {createType === CreateType.BRAND && (
         <div>
-          <h1>Brand</h1>
+          {/* <h1>Brand</h1> */}
           <CreateBrandForm></CreateBrandForm>
         </div>
       )}
 
       {createType === CreateType.DEBATE && (
         <div>
-          <h1>Debate</h1>
+          {/* <h1>Debate</h1> */}
           <DebateCreateForm></DebateCreateForm>
         </div>
       )}
-      
-      
-
-    
   
     </div>
   );

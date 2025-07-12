@@ -41,7 +41,8 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
 
   return (
     <div 
-    className="event-card p-2 sm:p-3 rounded-xl border border-gray-200 dark:border-gray-800"
+    className="event-card p-2 sm:p-3"
+    // className="event-card p-2 sm:p-3 rounded-xl border border-gray-200 dark:border-gray-800"
     // className="event-card p-2 sm:p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
     
     >

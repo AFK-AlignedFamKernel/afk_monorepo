@@ -53,6 +53,7 @@ body.light-mode {
 
 .btn-secondary {
   border: 1px solid var(--afk-accent-cyan);
+  color: var(--afk-text-dark);
   background: transparent;
   border-radius: 8px;
   text-transform: uppercase;
@@ -81,16 +82,17 @@ body.light-mode {
 
 
 .btn-basic {
-  border: 1px solid var(--afk-text-dark);
-  color: var(--afk-text-dark);
+  // border: 1px solid var(--afk-text-dark);
+  color: var(--contrast-500);
   background: transparent;
   border-radius: 8px;
-  text-transform: uppercase;
+  // border-color: var(--afk-text-dark);
+  // text-transform: uppercase;
   font-weight: bold;
   font-family: var(--afk-font-primary, $font-primary);
   &:hover {
     background: var(--afk-text-dark);
-    color: var(--afk-bg-dark);
+    color: var(--afk-text-light);
     box-shadow: 0 0 8px 0 var(--afk-text-dark);
   }
 }

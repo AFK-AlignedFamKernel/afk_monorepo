@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import classNames from 'classnames';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { logClickedEvent } from '@/lib/analytics';
+import { Icon } from '../small/icon-component';
 export type NostrEventType = 'note' | 'article';
 
 interface NostrFormProps {
@@ -140,17 +141,17 @@ export const NostrForm: React.FC<NostrFormProps> = ({
       </div>
 
       <div className="nostr-form__field flex flex-col gap-1">
-        <label htmlFor="file" className="nostr-form__label font-semibold text-sm">File</label>
+        {/* <label htmlFor="file" className="nostr-form__label font-semibold text-sm">File</label> */}
         <label htmlFor="file" className="inline-block w-full cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 rounded px-4 py-2 text-center font-medium transition flex items-center justify-center gap-2">
           {/* File icon */}
           <svg className="inline-block mr-2" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
           </svg>
           {file ? file.name : 'Choose File'}
-          <input 
-          
-          type="file" id="file" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+          <input
+
+            type="file" id="file" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
         </label>
       </div>
 
@@ -170,16 +171,27 @@ export const NostrForm: React.FC<NostrFormProps> = ({
               </button>
             </span>
           ))}
-          <input
-            type="text"
-            id="tags"
-            className="flex-1 min-w-[100px] px-2 py-1 rounded border border-gray-300 focus:border-blue-400 focus:outline-none text-xs"
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={handleTagAdd}
-            placeholder="Add tags (press Enter)"
-            aria-label="Add tag"
-          />
+
+          <>
+            <input
+              type="text"
+              id="tags"
+              className="flex-1 min-w-[175px] px-2 py-1 rounded border border-gray-300 focus:border-blue-400 focus:outline-none text-xs"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={handleTagAdd}
+              placeholder="Add tags (press Enter)"
+              aria-label="Add tag"
+            />
+
+            <div className='flex flex-row gap-2 items-center justify-center'>
+              <p className='text-xs text-contrast-500 italic hightlight'>Press enter to add tag </p>
+              {/* <button className='btn btn-basic border border-afk-accent-cyan' onClick={() => handleTagAdd}>
+                Click to add tag <Icon name="AddIcon" size={16} />
+              </button> */}
+            </div>
+          </>
+
         </div>
       </div>
 
