@@ -207,6 +207,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
           className="dark:text-gray-200 whitespace-pre-wrap break-words sm:max-w-[300px] lg:max-w-[500px]"
           onClick={() => {
             setIsExpanded(!isExpanded)
+            logClickedEvent('show_more_note', 'Interaction', 'Button Click', 1);
           }}
         >
           {formatContent(displayContent)}

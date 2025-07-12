@@ -22,7 +22,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
     return (
       <div className="nostr-feed__card--skeleton">
         <div className="flex items-center mb-4">
-          <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+          <div className="w-10 h-10  rounded-full"></div>
           <div className="ml-2">
             <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-24"></div>
             <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 mt-1"></div>
@@ -40,7 +40,11 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
   const timestamp = formatTimestamp(event.created_at || 0);
 
   return (
-    <div className="event-card p-2 sm:p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+    <div 
+    className="event-card p-2 sm:p-3 rounded-xl border border-gray-200 dark:border-gray-800"
+    // className="event-card p-2 sm:p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+    
+    >
       <header className="flex items-center mb-2 cursor-pointer rounded-lg p-1 transition"
         onClick={() => {
           showModal(<>
