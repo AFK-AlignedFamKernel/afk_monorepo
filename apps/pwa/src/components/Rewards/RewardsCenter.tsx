@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { ContentCreator } from "@/types";
 
 interface RewardsCenterProps {
-  slug: string;
+  slug?: string;
   creator?: ContentCreator;
 }
 

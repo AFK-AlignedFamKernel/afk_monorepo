@@ -6,14 +6,15 @@ import { Icon } from "../small/icon-component";
 import ManageCreatorProfile from "./ManageCreatorProfile";
 import ManageBrandProfile from "../Brand/ManageBrandProfile";
 import RewardsCenter from "../Rewards/RewardsCenter";
+import { NostrMessagesComponent } from "../Nostr/Messages/nip17";
 
 export default function ProfileAfk() {
 
-  const [activeTab, setActiveTab] = useState<"nostr" | "starknet" | "lens" | "farcaster" | "zap" | "brand" | "content-creator" | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState<"nostr" | "starknet" | "lens" | "farcaster" | "zap" | "brand" | "content-creator" | "messages" | "rewards" | undefined>(undefined);
 
 
 
-  const handleTabChange = (tab: "rewards" | "nostr" | "starknet" | "lens" | "farcaster" | "zap" | "brand" | "content-creator") => {
+  const handleTabChange = (tab: "rewards" | "nostr" | "starknet" | "lens" | "farcaster" | "zap" | "brand" | "content-creator" | "messages" | undefined) => {
     setActiveTab(tab);
   };
 
@@ -65,6 +66,16 @@ export default function ProfileAfk() {
                 <div>
                   <p className="font-semibold">Content Creator</p>
                   <p className="text-sm opacity-80">Manage your content creator identity</p>
+                </div>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              <button onClick={() => handleTabChange("nostr")} className="btn w-full flex items-center justify-between border-2 border-contrast-200 rounded-lg">
+                <div>
+                  <p className="font-semibold">Nostr Profile</p>
+                  <p className="text-sm opacity-80">Manage your decentralized social identity</p>
                 </div>
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -149,6 +160,7 @@ export default function ProfileAfk() {
           {activeTab === "brand" && <ManageBrandProfile />}
           {activeTab === "content-creator" && <ManageCreatorProfile />}
           {activeTab === "rewards" && <RewardsCenter />}
+          {activeTab === "messages" && <NostrMessagesComponent />}
         </div>
       )}
 

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Icon } from '@/components/small/icon-component';
 import { useUIStore } from '@/store/uiStore';
 import { TipNostrUser } from '../tips/tip-user';
+import { logClickedEvent } from '@/lib/analytics';
 interface IProfileCardOverviewProps extends NostrEventBase {
   children?: ReactNode;
   profileParent?: string;
@@ -34,15 +35,15 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
     return (
       <div className="nostr-feed__card--skeleton">
         <div className="flex items-center mb-4">
-          <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+          <div className="w-10 h-10  rounded-full"></div>
           <div className="ml-2">
-            <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-24"></div>
-            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16 mt-1"></div>
+            <div className="h-4  rounded w-24"></div>
+            <div className="h-3 rounded w-16 mt-1"></div>
           </div>
         </div>
         <div className="space-y-2">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+          <div className="h-4 rounded w-full"></div>
+          <div className="h-4 rounded w-3/4"></div>
         </div>
       </div>
     );
@@ -53,10 +54,11 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
   const [isExpandedAbout, setIsExpandedAbout] = useState(false);
 
   return (
-    <div className="event-card text-left items-left bg-white dark:bg-gray-900 rounded-xl shadow-lg p-4 max-w-[95vw] w-full" aria-label="Profile overview modal">
-      <div className="flex items-center gap-3 mb-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg p-1 transition"
+    <div className="event-card text-left items-left rounded-xl shadow-lg p-4 max-w-[95vw] w-full" aria-label="Profile overview modal">
+      <div className="flex items-center gap-3 mb-4 cursor-pointer rounded-lg p-1 transition"
         onClick={() => {
           router.push(`/nostr/profile/${event?.pubkey}`)
+          logClickedEvent('view_full_profile', 'Interaction', 'Button Click', 1);
         }}
         aria-label="Go to full profile"
       >
@@ -71,13 +73,13 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
             />
           </div>
         ) : (
-          <div className="w-14 h-14 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center border-2 border-gray-300 dark:border-gray-600 flex-shrink-0">
+          <div className="w-14 h-14 rounded-full flex items-center justify-center border-2 border-gray-300 dark:border-gray-600 flex-shrink-0">
             <span className="text-2xl" aria-label="No profile image">🕵️</span>
           </div>
         )}
         <div className="ml-2 min-w-0">
           <div className="font-bold text-lg truncate-ellipsis" title={displayName}>{displayName}</div>
-          <div className="text-xs flex items-center text-gray-500 dark:text-gray-400">
+          <div className="text-xs flex items-center">
             {profile?.nip05 && (
               <span className="ml-1 text-blue-500" aria-label="Verified">✓</span>
             )}
@@ -93,7 +95,7 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
       </div>
       <div className="mb-4 mt-2">
         {profile?.about && (
-          <div className="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded p-2" style={{ wordBreak: 'break-word' }}>
+          <div className="text-xs rounded p-2" style={{ wordBreak: 'break-word' }}>
             {profile.about.length > 60 && !isExpandedAbout ? (
               <>
                 <span>{profile.about.substring(0, 60)}...</span>
@@ -137,6 +139,7 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
             onClick={() => {
               if (profilePubkey && profile && profile?.lud16) {
                 showModal(<TipNostrUser profile={profile} pubkey={event?.pubkey || ''} />);
+                logClickedEvent('tip_note_modal_open', 'Interaction', 'Button Click', 1);
               }
             }}
             aria-label="Send tip"
