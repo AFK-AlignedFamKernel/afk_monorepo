@@ -79,6 +79,7 @@ export const ChatScreen: React.FC = () => {
   };
 
   // Sidebar handlers
+  const handleSidebarToggle = () => setSidebarVisible(!sidebarVisible);
   const handleSidebarOpen = () => setSidebarVisible(true);
   const handleSidebarClose = () => setSidebarVisible(false);
   const handleChannelSelect = (channel: string) => {
@@ -115,7 +116,7 @@ export const ChatScreen: React.FC = () => {
   }, []);
 
   return (
-    <div className="bitchat-container flex flex-col h-[80vh] w-full max-w-2xl mx-auto shadow-lg">
+    <div className="bitchat-container flex flex-col h-[80vh] w-full max-w-2xl mx-auto shadow-lg relative z-30">
       <div className="bitchat-header flex items-center">
         <ChatHeader
           nickname={nickname}
@@ -123,7 +124,7 @@ export const ChatScreen: React.FC = () => {
           peerCount={selectedPeer ? 1 : channels.length}
           currentChannel={currentChannel || undefined}
           selectedPrivatePeer={selectedPeer || undefined}
-          onSidebarToggle={handleSidebarOpen}
+          onSidebarToggle={handleSidebarToggle}
         />
       </div>
       <div className="bitchat-message-list flex-1 overflow-y-auto">
@@ -149,16 +150,18 @@ export const ChatScreen: React.FC = () => {
           onSuggestionClick={handleSuggestionClick}
         />
       </div>
-      <Sidebar
-        visible={sidebarVisible}
-        onClose={handleSidebarClose}
-        channels={channels}
-        currentChannel={currentChannel || undefined}
-        onChannelSelect={handleChannelSelect}
-        onChannelLeave={handleChannelLeave}
-        peers={rtcPeers}
-        onPeerSelect={handlePeerSelect}
-      />
+      {sidebarVisible && (
+        <Sidebar
+          visible={sidebarVisible}
+          onClose={handleSidebarClose}
+          channels={channels}
+          currentChannel={currentChannel || undefined}
+          onChannelSelect={handleChannelSelect}
+          onChannelLeave={handleChannelLeave}
+          peers={rtcPeers}
+          onPeerSelect={handlePeerSelect}
+        />
+      )}
     </div>
   );
 };
