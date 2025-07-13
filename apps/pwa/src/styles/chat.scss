@@ -1,0 +1,255 @@
+@import './variables';
+
+// Bitchat Chat UI Styles
+
+.bitchat-container {
+  background: var(--afk-bg-panel);
+  color: var(--afk-text-dark);
+  font-family: var(--afk-font-primary);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px 0 rgba(0,255,156,0.08);
+  padding: 0;
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.bitchat-header {
+  background: var(--afk-bg-dark);
+  color: var(--afk-accent-green);
+  font-family: var(--afk-font-mono);
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+}
+
+.bitchat-nickname-input {
+  background: var(--afk-bg-panel);
+  color: var(--afk-accent-green);
+  border: 1px solid var(--afk-accent-green);
+  border-radius: 6px;
+  font-family: var(--afk-font-mono);
+  font-size: 1rem;
+  margin-left: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  min-width: 60px;
+  max-width: 120px;
+}
+
+.bitchat-channel-label {
+  color: var(--afk-accent-magenta);
+  font-family: var(--afk-font-mono);
+  font-size: 1rem;
+  margin-left: 1rem;
+}
+
+.bitchat-peer-count {
+  color: var(--afk-accent-green);
+  font-family: var(--afk-font-mono);
+  font-size: 0.95rem;
+  margin-left: auto;
+}
+
+.bitchat-message-list {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--afk-bg-panel);
+  padding: 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bitchat-message-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+.bitchat-message-timestamp {
+  color: var(--afk-muted);
+  font-size: 0.85rem;
+  font-family: var(--afk-font-mono);
+}
+.bitchat-message-sender {
+  color: var(--afk-accent-green);
+  font-weight: bold;
+  font-family: var(--afk-font-mono);
+  font-size: 1rem;
+}
+.bitchat-message-sender-self {
+  color: var(--afk-accent-magenta);
+}
+.bitchat-message-content {
+  color: var(--afk-text-dark);
+  font-size: 1rem;
+  font-family: var(--afk-font-mono);
+  word-break: break-word;
+}
+
+.bitchat-input-section {
+  background: var(--afk-bg-dark);
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.bitchat-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.bitchat-input-label {
+  color: var(--afk-accent-green);
+  font-family: var(--afk-font-mono);
+  font-size: 1rem;
+}
+.bitchat-input {
+  flex: 1;
+  background: var(--afk-bg-panel);
+  color: var(--afk-text-dark);
+  border: 1px solid var(--afk-accent-green);
+  border-radius: 6px;
+  font-family: var(--afk-font-mono);
+  font-size: 1rem;
+  padding: 0.25rem 0.5rem;
+}
+.bitchat-send-btn {
+  background: var(--afk-accent-green);
+  color: var(--afk-bg-dark);
+  border-radius: 6px;
+  font-family: var(--afk-font-mono);
+  font-weight: bold;
+  padding: 0.25rem 1rem;
+  text-transform: uppercase;
+  transition: background 0.2s;
+  &:hover {
+    background: darken(#00FF9C, 10%);
+  }
+}
+
+.bitchat-suggestions-box {
+  margin-bottom: 0.25rem;
+  background: var(--afk-bg-panel);
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+}
+.bitchat-suggestion {
+  color: var(--afk-accent-green);
+  font-family: var(--afk-font-mono);
+  font-size: 1rem;
+  background: var(--afk-bg-dark);
+  border-radius: 4px;
+  padding: 0.1rem 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover {
+    background: var(--afk-accent-green);
+    color: var(--afk-bg-dark);
+  }
+}
+
+// Sidebar
+.bitchat-sidebar {
+  background: var(--afk-bg-dark);
+  color: var(--afk-text-dark);
+  width: 320px;
+  max-width: 90vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1000;
+  box-shadow: -2px 0 12px 0 rgba(0,255,156,0.08);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+}
+.bitchat-sidebar-section-title {
+  color: var(--afk-accent-green);
+  font-family: var(--afk-font-mono);
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+.bitchat-sidebar-channel-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.bitchat-sidebar-channel-btn {
+  flex: 1;
+  background: none;
+  color: var(--afk-text-dark);
+  border: none;
+  font-family: var(--afk-font-mono);
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: left;
+  &:hover {
+    color: var(--afk-accent-green);
+  }
+}
+.bitchat-sidebar-channel-active {
+  color: var(--afk-accent-magenta);
+  font-weight: bold;
+}
+.bitchat-sidebar-leave-btn {
+  color: var(--danger-color);
+  font-size: 0.95rem;
+  font-family: var(--afk-font-mono);
+  background: none;
+  border: none;
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+.bitchat-sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 1rem 0;
+}
+.bitchat-sidebar-peer-row {
+  padding: 0.5rem 0;
+}
+.bitchat-sidebar-peer-btn {
+  background: none;
+  color: var(--afk-accent-green);
+  border: none;
+  font-family: var(--afk-font-mono);
+  font-size: 1rem;
+  cursor: pointer;
+  text-align: left;
+  &:hover {
+    color: var(--afk-accent-magenta);
+  }
+}
+
+// DM Logs
+.bitchat-dm-logs {
+  max-height: 120px;
+  background: var(--afk-bg-dark);
+  padding: 0.5rem 1rem;
+  color: var(--afk-text-dark);
+  font-family: var(--afk-font-mono);
+  font-size: 0.95rem;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+}
+.bitchat-dm-log-title {
+  color: var(--afk-accent-green);
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+.bitchat-dm-log-entry {
+  color: var(--afk-text-dark);
+  font-size: 0.95rem;
+  margin-bottom: 0.1rem;
+}

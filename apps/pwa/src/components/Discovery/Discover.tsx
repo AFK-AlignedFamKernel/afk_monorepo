@@ -8,13 +8,14 @@ import { FeedTabs } from "@/components/Nostr/feed";
 import { logClickedEvent } from "@/lib/analytics";
 import PumpComponent from "../launchpad/PumpComponent";
 import CommunitiesList from "../Communities";
+import { ChatScreen } from "@/components/Bitchat/ChatScreen";
 
 export default function DiscoverComponent() {
 
   // const searchParams = useSearchParams()
   // const query = searchParams.get("query")
 
-  const [activeTab, setActiveTab] = useState<"brand" | "creator" | "topic" | "feed" | "launchpad" | "communities">("feed");
+  const [activeTab, setActiveTab] = useState<"brand" | "chat" | "creator" | "topic" | "feed" | "launchpad" | "communities">("feed");
 
   return (
     <div className="flex flex-col gap-1">
@@ -25,6 +26,7 @@ export default function DiscoverComponent() {
           {[
             { key: "feed", label: "Feed" },
             { key: "brand", label: "Brands" },
+            { key: "chat", label: "Chat" },
             { key: "creator", label: "Creators" },
             { key: "launchpad", label: "Tokens" },
             { key: "communities", label: "Communities" },
@@ -86,6 +88,12 @@ export default function DiscoverComponent() {
         {activeTab === "launchpad" && (
           <div className="px-4">
             <PumpComponent />
+          </div>
+        )}
+
+{activeTab === "chat" && (
+          <div className="px-4">
+            <ChatScreen />
           </div>
         )}
 
