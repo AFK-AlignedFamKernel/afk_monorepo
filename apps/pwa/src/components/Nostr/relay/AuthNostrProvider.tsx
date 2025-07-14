@@ -27,6 +27,7 @@ const AuthNostrProviderComponent = () => {
       await checkIsConnected(ndk);
       const origin = window && window.location?.origin ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL;
       await Promise.all(relayUrls.map(url => authenticateWithRelay(url)));
+      
       // showToast({
       //   message: 'Authenticated with all relays!',
       //   description: 'You can now use the app',

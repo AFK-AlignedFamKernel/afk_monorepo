@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { checkIsConnected, deriveSharedKey, useAuth, useContacts, useGetAllMessages, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages, useSendPrivateMessage, v2 } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
@@ -22,6 +22,27 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const [activeTab, setActiveTab] = useState<"messages" | "contacts" | "followers" | "direct_messages">('messages');
   const [isProcessingMessages, setIsProcessingMessages] = useState(false);
   const [messagesData, setMessages] = useState<any>([]);
+  const messagesMemo = useMemo(() => {
+
+    console.log("messagesData", messagesData);
+    const unique = new Map();
+    messagesData.forEach((msg: any) => {
+
+      let tagReceiver = msg.tags?.find((t: any) => t[0] === 'p' && t[1] === publicKey);
+      console.log("tagReceiver", tagReceiver);
+      console.log("msg", msg);
+      if (
+        msg.type === "NIP4" &&
+        (tagReceiver || msg.pubkey === publicKey)
+      ) {
+        unique.set(msg.id, msg);
+      }
+    });
+    // Sort by created_at
+    console.log("unique", unique);
+    return Array.from(unique.values()).sort((a, b) => a.created_at - b.created_at);
+
+  }, [messagesData]);
   const [isBack, setIsBack] = useState(false);
   const [showNewMessageForm, setShowNewMessageForm] = useState(false);
 
@@ -63,11 +84,10 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     });
 
 
-    subscription.on("event", (event) => {
-      console.log("event sent", event);
-      setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
-    });
-
+    // subscription.on("event", (event) => {
+    //   console.log("event sent", event);
+    //   setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
+    // });
 
     const subscriptionReceived = ndk.subscribe({
       kinds: [4 as NDKKind],
@@ -75,10 +95,10 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       limit: 10,
     });
 
-    subscriptionReceived.on("event", (event) => {
-      console.log("event received", event);
-      setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
-    });
+    // subscriptionReceived.on("event", (event) => {
+    //   console.log("event received", event);
+    //   setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
+    // });
 
     subscriptionReceived.on("event:dup", (event) => {
       console.log("event received dup", event);
@@ -91,7 +111,6 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       await checkIsConnected(ndk);
 
       console.log("fetchMessagesSent");
-
 
       const directMessagesSent = await ndk.fetchEvents({
         kinds: [4 as NDKKind],
@@ -407,18 +426,18 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
               </div>
             ) : (
               <div className="h-full">
-                {messagesData.length === 0 && !incomingMessages?.pages?.flat()?.length && (
+                {messagesMemo?.length === 0 && !incomingMessages?.pages?.flat()?.length && (
                   <div className="flex items-center justify-center h-24"></div>
                 )}
                 <div className="overflow-y-auto h-full">
-                  {messagesData.map((item: any) => (
+                  {messagesMemo?.map((item: any) => (
                     <button
                       key={item.id}
                       onClick={() => {
                         handleConversationClick(item);
                         logClickedEvent('open_conversation_nip17', 'messages_data');
                       }}
-                      className="w-full p-4 hover:bg-gray-100 border-b"
+                      className="w-full p-4 border-b"
                     >
                       <div className="flex items-center">
                         <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
@@ -438,7 +457,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                         handleConversationClick(item);
                         logClickedEvent('open_conversation_nip17', 'messages_sent');
                       }}
-                      className="w-full p-4 hover:bg-gray-100 border-b"
+                      className="w-full p-4 border-b"
                     >
                       <div className="flex items-center">
                         <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
@@ -458,7 +477,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                         handleConversationClick(item);
                         logClickedEvent('open_conversation_nip17', 'incoming_messages');
                       }}
-                      className="w-full p-4 hover:bg-gray-100 border-b"
+                      className="w-full p-4 border-b"
                     >
                       <div className="flex items-center">
                         <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
@@ -482,7 +501,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
             {contacts.data?.flat().map((contact) => (
               <div
                 key={contact}
-                className="p-4 hover:bg-gray-100 border-b"
+                className="p-4 border-b"
               >
                 {contact}
               </div>
@@ -495,7 +514,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
             {contacts.data?.flat().map((contact) => (
               <div
                 key={contact}
-                className="p-4 hover:bg-gray-100 border-b"
+                className="p-4 border-b"
               >
                 {contact}
               </div>

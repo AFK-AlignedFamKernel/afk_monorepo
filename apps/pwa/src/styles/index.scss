@@ -27,6 +27,12 @@ body {
   line-height: 1.5;
 }
 
+body.blue-mode {
+  font-family: var(--afk-font-primary, $font-primary);
+  color: var(--afk-text-dark);
+  background: var(--afk-bg-dark);
+}
+
 body.light-mode {
   color: var(--afk-text-light);
   background: var(--afk-bg-light);

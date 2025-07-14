@@ -53,13 +53,28 @@ export const ChatConversation: React.FC<ChatProps> = ({
 
     const [allMessagesState, setAllMessagesState] = useState<any[]>([]);
 
+    // Combine all NIP4 messages between the two parties
     const allMessagesNip4 = useMemo(() => {
-        return allMessagesState.filter((msg: any) => {
-            if (msg.type === "NIP4") {
-                return msg;
+        // Remove duplicates by event id
+        const unique = new Map();
+        allMessagesState.forEach((msg: any) => {
+            if (
+                msg.type === "NIP4" &&
+                (
+                    (msg.senderPublicKey === publicKey && msg.tags?.some((t: any) => t[0] === 'p' && t[1] === receiverPublicKey)) ||
+                    (msg.senderPublicKey === receiverPublicKey && msg.tags?.some((t: any) => t[0] === 'p' && t[1] === publicKey))
+                )
+            ) {
+                unique.set(msg.id, msg);
+            }
+            else {
+                unique.set(msg.id, msg);
             }
         });
-    }, [allMessagesState]);
+        // Sort by created_at
+        return Array.from(unique.values()).sort((a, b) => a.created_at - b.created_at);
+    
+    }, [allMessagesState, publicKey, receiverPublicKey]);
 
     const allMessagesNip17 = useMemo(() => {
         return allMessagesState.filter((msg: any) => msg.type === "NIP17");
@@ -123,7 +138,8 @@ export const ChatConversation: React.FC<ChatProps> = ({
             const subscription = ndk.subscribe({
                 kinds: [4 as NDKKind],
                 authors: [publicKey],
-                limit: 10,
+                '#p': [receiverPublicKey],
+                limit: 20,
             });
 
             subscription.on("event:dup", (event) => {
@@ -340,7 +356,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
                         logClickedEvent('go_conversation_nip17', 'messages_data');
                         setMessage('');
                     }}
-                    className="p-2 hover:bg-gray-100 rounded"
+                    className="p-2 rounded"
                 >
                     ←
                 </button>
