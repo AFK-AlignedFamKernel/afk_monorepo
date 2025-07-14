@@ -46,46 +46,55 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const { showToast } = useUIStore();
 
   // const { data: allMessages, isLoading: isLoadingAllMessages } = useGetAllMessages();
-
+  // console.log('allMessages', allMessages);
   const fetchMessagesSent = async (ndk: NDK, publicKey: string, limit: number): Promise<NDKEvent[]> => {
 
+    try {
     await checkIsConnected(ndk);
     console.log("fetchMessagesSent");
     const directMessagesSent = await ndk.fetchEvents({
-      kinds: [NDKKind.EncryptedDirectMessage],
-      // authors: [publicKey],
-      // limit: limit || 30,
+      kinds: [ 4],
+      authors: [publicKey],
+      limit: limit || 30,
     });
-    console.log("directMessagesSent", directMessagesSent);
-    return Array.from(directMessagesSent);
+      console.log("directMessagesSent", directMessagesSent);
+      return Array.from(directMessagesSent);
+    } catch (error) {
+      console.log("error", error);
+      return [];
+    }
   };
   
   const fetchMessagesReceived = async (ndk: NDK, publicKey: string, limit: number): Promise<NDKEvent[]> => {
   
+    try {
     console.log("fetchMessagesReceived");
     await checkIsConnected(ndk);
     const directMessagesReceived = await ndk.fetchEvents({
-      kinds: [NDKKind.EncryptedDirectMessage],
-      // '#p': [publicKey],  
-      // limit: limit || 30,
+      kinds: [4],
+      '#p': [publicKey],  
+      limit: limit || 30,
     });
   
-    console.log("directMessagesReceived", directMessagesReceived);
-    return Array.from(directMessagesReceived);
+      console.log("directMessagesReceived", directMessagesReceived);
+      return Array.from(directMessagesReceived);
+    } catch (error) {
+      console.log("error fetchMessagesReceived", error);
+      return [];
+    }
   };
   
 
   const handleAllMessages = async () => {
     console.log("publicKey", publicKey);
-    const messages = await fetchMessagesSent(ndk, publicKey, 100);
-    console.log("messages", messages);
+    const messages = await fetchMessagesSent(ndk, publicKey, 10);
+    console.log("messages Sent", messages);
 
-    const messagesReceived = await fetchMessagesReceived(ndk, publicKey, 100);
+    const messagesReceived = await fetchMessagesReceived(ndk, publicKey, 10);
     console.log("messagesReceived", messagesReceived);
-
     const allMessages = [...messages, ...messagesReceived];
-    console.log("allMessages", allMessages);
-    setMessages(allMessages);
+    // console.log("allMessages", allMessages);
+    // setMessages(allMessages);
   };
 
   useEffect(() => {
@@ -149,6 +158,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     // Always set senderPublicKey and receiverPublicKey so that sender is always the current user
     let sender = publicKey || '';
     let receiver = getOtherUserPublicKey(item, publicKey || '');
+    console.log('item', item);
     setSelectedConversation({
       ...item,
       senderPublicKey: sender,

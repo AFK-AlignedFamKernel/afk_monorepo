@@ -4,7 +4,7 @@ import { Box, useColorModeValue } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { useNostrContext, useSettingsStore } from 'afk_nostr_sdk';
+import { checkIsConnected, useNostrContext, useSettingsStore } from 'afk_nostr_sdk';
 // import { useAppStore } from '@/store/app';
 // import CryptoLoading from '@/components/small/crypto-loading';
 // import PageLoader from '@/components/loading/PageLoader';
@@ -59,6 +59,12 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   //     setIsConnected(true)
   //   }
   // }, [ndk])
+
+  useEffect(() => {
+    checkIsConnected(ndk).then((res) => {
+      setIsConnected(res);
+    });
+  }, [ndk]);
 
   const [isReady, setIsReady] = useState(false);
   useEffect(() => {
