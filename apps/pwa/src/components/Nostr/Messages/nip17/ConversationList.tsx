@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { deriveSharedKey, useAuth, useContacts, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages, useSendPrivateMessage, v2 } from 'afk_nostr_sdk';
+import { checkIsConnected, deriveSharedKey, useAuth, useContacts, useGetAllMessages, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages, useSendPrivateMessage, v2 } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
-import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
+import NDK, { NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
 import { ChatConversation } from './ChatConversation';
 import { useUIStore } from '@/store/uiStore';
 import CryptoLoading from '@/components/small/crypto-loading';
@@ -44,6 +44,58 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   // });
   // console.log('messagesSentRoom', messagesSentRoom?.pages?.flat()?.length);
   const { showToast } = useUIStore();
+
+  // const { data: allMessages, isLoading: isLoadingAllMessages } = useGetAllMessages();
+
+  const fetchMessagesSent = async (ndk: NDK, publicKey: string, limit: number): Promise<NDKEvent[]> => {
+
+    await checkIsConnected(ndk);
+    console.log("fetchMessagesSent");
+    const directMessagesSent = await ndk.fetchEvents({
+      kinds: [NDKKind.EncryptedDirectMessage],
+      // authors: [publicKey],
+      // limit: limit || 30,
+    });
+    console.log("directMessagesSent", directMessagesSent);
+    return Array.from(directMessagesSent);
+  };
+  
+  const fetchMessagesReceived = async (ndk: NDK, publicKey: string, limit: number): Promise<NDKEvent[]> => {
+  
+    console.log("fetchMessagesReceived");
+    await checkIsConnected(ndk);
+    const directMessagesReceived = await ndk.fetchEvents({
+      kinds: [NDKKind.EncryptedDirectMessage],
+      // '#p': [publicKey],  
+      // limit: limit || 30,
+    });
+  
+    console.log("directMessagesReceived", directMessagesReceived);
+    return Array.from(directMessagesReceived);
+  };
+  
+
+  const handleAllMessages = async () => {
+    console.log("publicKey", publicKey);
+    const messages = await fetchMessagesSent(ndk, publicKey, 100);
+    console.log("messages", messages);
+
+    const messagesReceived = await fetchMessagesReceived(ndk, publicKey, 100);
+    console.log("messagesReceived", messagesReceived);
+
+    const allMessages = [...messages, ...messagesReceived];
+    console.log("allMessages", allMessages);
+    setMessages(allMessages);
+  };
+
+  useEffect(() => {
+    handleAllMessages();
+  }, []);
+
+  useEffect(() => {
+    handleAllMessages();
+  }, [activeTab]);
+
   useEffect(() => {
     if (privateKey && publicKey && ndkSigner == null) {
       setNdkSigner(new NDKPrivateKeySigner(privateKey));

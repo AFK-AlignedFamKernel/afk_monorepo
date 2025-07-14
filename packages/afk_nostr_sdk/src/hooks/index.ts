@@ -94,3 +94,6 @@ export {useProfileTags} from './search/useProfileTags';
 export {useMessageGifts} from './messages/useMessageGifts';
 export {useProfileUser} from './useProfileUser';
 export {useFetchEvents} from "./search/useFetchEvents"
+export {useGetAllMessages, useGetMessagesSent, useGetMessagesReceived, fetchMessagesSent, fetchMessagesReceived} from './messages/nip4/useGetMessages';
+export {useEncryptedMessage} from './messages/nip4/useEncryptedMessage';
+export {useConnect, checkIsConnected} from './connect';

@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useAuth, useContacts, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages } from 'afk_nostr_sdk';
+import { useAuth, useContacts, useGetAllMessages, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
-import { NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
+import NDK, { NDKKind, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
 import { NostrConversationList } from './ConversationList';
 import { NostrContactList } from '../NostrContactList';
 export const NostrMessagesComponent: React.FC = () => {
-  const [type, setType] = useState<"NIP4" | "NIP17">('NIP17');
+  const [type, setType] = useState<"NIP4" | "NIP17">('NIP4');
   const { publicKey, privateKey } = useAuth();
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
@@ -55,6 +55,30 @@ export const NostrMessagesComponent: React.FC = () => {
     );
   }
 
+
+  // if (isLoadingAllMessages) {
+  //   return <div>Loading...</div>;
+  // }
+  //   useEffect(() => {
+  //   if (publicKey) {
+
+  //     ndk.fetchEvents({
+  //       kinds: [NDKKind.PrivateDirectMessage],
+  //       authors: [publicKey],
+  //     }).then((events) => {
+  //       console.log(events);
+  //     });
+
+  //     ndk.fetchEvents({
+  //       kinds: [NDKKind.PrivateDirectMessage],
+  //       '#p': [publicKey],
+  //     }).then((events) => {
+  //       console.log(events);
+  //     });
+
+  //   }
+  // }, [publicKey, privateKey]);
+
   return (
     <div className="flex flex-col h-full">
       {/* Tabs */}
@@ -82,7 +106,7 @@ export const NostrMessagesComponent: React.FC = () => {
           onClick={() => setActiveTab('direct_messages')}
         >
           Direct Messages
-        </button> 
+        </button>
       </div>
 
       {activeTab == "messages" && (
@@ -98,7 +122,7 @@ export const NostrMessagesComponent: React.FC = () => {
 
       {activeTab == "direct_messages" && (
         <div className="flex">
-          <FormPrivateMessage onClose={() => setActiveTab('messages')} type="NIP17" />
+          <FormPrivateMessage onClose={() => setActiveTab('messages')} type={type} />
         </div>
       )}
 

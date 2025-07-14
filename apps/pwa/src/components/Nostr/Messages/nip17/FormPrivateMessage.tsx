@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth, useSendPrivateMessage } from 'afk_nostr_sdk';
+import { useAuth, useEncryptedMessage, useSendPrivateMessage } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
 
@@ -24,9 +24,22 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { mutateAsync, mutate } = useSendPrivateMessage();
+  const { mutateAsync: sendMessage } = useEncryptedMessage();
   const roomIds = [publicKey, recipient];
   const { showToast } = useUIStore();
   const queryClient = useQueryClient();
+
+  const [activeTab, setActiveTab] = useState<"NIP4" | "NIP17">('NIP4');
+
+  const handleActiveType = (type: "NIP4" | "NIP17") => {
+    if(type == "NIP4"){
+      setActiveTab("NIP4");
+      setType?.("NIP4");
+    } else if(type == "NIP17"){
+      setActiveTab("NIP17");
+      setType?.("NIP17");
+    }
+  }
 
   const handleSendMessage = async (message: string) => {
     if (!message) return;
@@ -42,24 +55,41 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
       showToast({ message: 'Invalid receiver', type: 'error' });
       return;
     }
+
+    if(!receiverPublicKey){
+      showToast({ message: 'Invalid receiver', type: 'error' });
+      return;
+    }
+
     console.log('receiverPublicKey', receiverPublicKey);
-    await mutateAsync(
-      {
+
+
+    if(type == "NIP4"){
+
+      sendMessage({
         content: message,
-        receiverPublicKeyProps: receiverPublicKey,
-      },
-      {
-        onSuccess: () => {
-          showToast({ message: 'Message sent', type: 'success' });
-          //   queryClient.invalidateQueries({
-          //     queryKey: ['messagesSent'],
-          //   });
+        receiverPublicKey: receiverPublicKey,
+      })
+    } else if(type == "NIP17"){
+      await mutateAsync(
+        {
+          content: message,
+          receiverPublicKeyProps: receiverPublicKey,
         },
-        onError() {
-          showToast({ message: 'Error sending message', type: 'error' });
+        {
+          onSuccess: () => {
+            showToast({ message: 'Message sent', type: 'success' });
+            //   queryClient.invalidateQueries({
+            //     queryKey: ['messagesSent'],
+            //   });
+          },
+          onError() {
+            showToast({ message: 'Error sending message', type: 'error' });
+          },
         },
-      },
-    );
+      );
+    }
+ 
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +127,15 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
           className="p-2 rounded"
         >
           ×
+        </button>
+      </div>
+
+      <div className="flex justify-between items-center mb-4"> 
+        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP4' ? 'border-b-2 border-blue-500' : ''}`} onClick={() => handleActiveType("NIP4")}>
+          NIP4
+        </button>
+        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP17' ? 'border-b-2 border-blue-500' : ''}`} onClick={() => handleActiveType("NIP17")}>
+          NIP17
         </button>
       </div>
 

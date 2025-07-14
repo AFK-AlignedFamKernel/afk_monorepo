@@ -10,11 +10,11 @@ import { NostrMessagesComponent } from "../Nostr/Messages/nip17";
 
 export default function ProfileAfk() {
 
-  const [activeTab, setActiveTab] = useState<"nostr" | "starknet" | "lens" | "farcaster" | "zap" | "brand" | "content-creator" | "messages" | "rewards" | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState<"nostr" | "starknet" | "lens" | "farcaster" | "zap" | "brand" | "content-creator" | "dm" | "rewards" | undefined>(undefined);
 
 
 
-  const handleTabChange = (tab: "rewards" | "nostr" | "starknet" | "lens" | "farcaster" | "zap" | "brand" | "content-creator" | "messages" | undefined) => {
+  const handleTabChange = (tab: "rewards" | "nostr" | "starknet" | "lens" | "farcaster" | "zap" | "brand" | "content-creator" | "dm" | undefined) => {
     setActiveTab(tab);
   };
 
@@ -71,7 +71,7 @@ export default function ProfileAfk() {
                 </svg>
               </button>
 
-              {/* <button onClick={() => handleTabChange("messages")} className="btn w-full flex justify-between border-2 border-contrast-200 rounded-lg">
+              <button onClick={() => handleTabChange("dm")} className="btn w-full flex justify-between border-2 border-contrast-200 rounded-lg">
                 <div>
                   <p className="font-semibold">Messages</p>
                   <p className="text-sm opacity-80">Manage your messages</p>
@@ -79,7 +79,7 @@ export default function ProfileAfk() {
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </button> */}
+              </button>
 
               {/* <Link href="/brand" className="btn btn-gradient-blue w-full flex items-center justify-between">
               <div>
@@ -159,7 +159,7 @@ export default function ProfileAfk() {
           {activeTab === "brand" && <ManageBrandProfile />}
           {activeTab === "content-creator" && <ManageCreatorProfile />}
           {activeTab === "rewards" && <RewardsCenter />}
-          {activeTab === "messages" && <NostrMessagesComponent />}
+          {activeTab === "dm" && <NostrMessagesComponent />}
         </div>
       )}
 

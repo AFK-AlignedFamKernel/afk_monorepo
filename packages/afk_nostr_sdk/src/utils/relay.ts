@@ -8,7 +8,7 @@ export const RELAYS_PROD = [
 ];
 
 export const RELAYS_TEST = [
-  // 'wss://nos.lol'
+  'wss://nos.lol'
 ];
 
 // export const RELAYS_TEST = ['wss://relay.n057r.club', 'wss://relay.nostr.net'];
