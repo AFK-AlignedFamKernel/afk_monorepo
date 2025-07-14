@@ -37,7 +37,7 @@
  * const allAuthenticated = areAllRelaysAuthenticated();
  */
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNostrContext } from "../../context/NostrContext";
 import { useAuth } from "../../store/auth";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
@@ -67,6 +67,7 @@ interface AuthResponse {
 export const useRelayAuth = () => {
   const { ndk } = useNostrContext();
   const { publicKey, privateKey } = useAuth();
+  const [relayAuthState, setRelayAuthState] = useState<{ [relayUrl: string]: 'pending' | 'authenticated' | 'failed' }>({});
 
   // 1. Set up the default auth policy for all relays
   useEffect(() => {
@@ -88,19 +89,50 @@ export const useRelayAuth = () => {
   // 2. Listen for AUTH challenges and update state
   const setupAuthListeners = () => {
     try {
-    ndk.pool.on("relay:auth", async (relay, challenge) => {
-      // This will trigger the default policy, but you can also handle UI here
-      console.log(`AUTH challenge from ${relay.url}: ${challenge}`);
-      // Optionally, you can call ndk.relayAuthDefaultPolicy(relay, challenge) here
-    });
-
-    ndk.pool.on("relay:authed", (relay) => {
-      console.log(`Authenticated with relay: ${relay.url}`);
-      // Update your state here
-    });
-  } catch (error) {
-    console.error(`Failed to setup auth listeners:`, error);
-  }
+      ndk.pool.on("relay:auth", async (relay, challenge) => {
+        // Respond only to real relay challenges
+        try {
+          const { publicKey, privateKey } = useAuth();
+          // console.log("relay:auth", relay);
+          if (!privateKey || !publicKey) {
+            console.warn("No private/public key available for AUTH response");
+            return;
+          }
+          // Create and sign AUTH event
+          const authEvent = new NDKEvent(ndk);
+          authEvent.kind = 22242;
+          authEvent.content = challenge;
+          authEvent.tags = [
+            ["relay", relay.url],
+            ["challenge", challenge],
+            ["origin", typeof window !== "undefined" ? window.location.origin : ""],
+          ];
+          await authEvent.sign();
+          // Send AUTH event via direct WebSocket
+          sendRawAuthWs(relay.url, authEvent);
+        } catch (err) {
+          console.error("Failed to handle real AUTH challenge:", err);
+        }
+      });
+      ndk.pool.on("relay:authed", (relay) => {
+        console.log("relay:authed");
+        setRelayAuthState(prev => ({ ...prev, [relay.url]: 'authenticated' }));
+        console.log(`Authenticated with relay: ${relay.url}`);
+        // console.log("relayAuthState", relayAuthState);
+        // Update your state here
+      });
+      // ndk.pool.on("relay:connect", (relay) => {
+      //   setRelayAuthState(prev => ({ ...prev, [relay.url]: 'pending' }));
+      // });
+      ndk.pool.on("notice", (relay, notice) => {
+        if (notice.includes('auth') || notice.includes('AUTH')) {
+          console.log("notice", notice);
+          setRelayAuthState(prev => ({ ...prev, [relay.url]: 'failed' }));
+        }
+      });
+    } catch (error) {
+      console.error(`Failed to setup auth listeners:`, error);
+    }
   };
 
   /**
@@ -174,6 +206,7 @@ export const useRelayAuth = () => {
 
   /**
    * Authenticate with a specific relay
+   * Now only triggers a connection, does not send a fake challenge
    */
   const authenticateWithRelay = async (relayUrl: string, origin?: string) => {
     try {
@@ -181,14 +214,8 @@ export const useRelayAuth = () => {
       if (!relay) {
         throw new Error(`Relay ${relayUrl} not found in pool`);
       }
-
-      // Generate a challenge (in practice, the relay would send this)
-      const challenge = `auth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const authEvent = await createAuthResponse(challenge, relayUrl, origin);
-
-      // Try to send AUTH via NDKRelay (not possible), fallback to direct WebSocket
-      sendRawAuthWs(relayUrl, authEvent);
-
+      // Just ensure connection; real challenge will be handled by listener
+      await relay.connect();
       return { success: true, relay: relayUrl };
     } catch (error) {
       console.error(`Failed to authenticate with ${relayUrl}:`, error);
@@ -211,6 +238,7 @@ export const useRelayAuth = () => {
     authenticateWithRelay,
     checkRelayAuthRequirement,
     isAuthenticating: false, // No longer tracking pending mutations
+    relayAuthState,
   };
 };
 

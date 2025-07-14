@@ -9,6 +9,7 @@ import { ChatConversation } from './ChatConversation';
 import { useUIStore } from '@/store/uiStore';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { logClickedEvent } from '@/lib/analytics';
+import { Icon } from '@/components/small/icon-component';
 
 interface NostrConversationListProps {
   type: "NIP4" | "NIP17";
@@ -47,16 +48,44 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
   // const { data: allMessages, isLoading: isLoadingAllMessages } = useGetAllMessages();
   // console.log('allMessages', allMessages);
+
+  const subscriptionEvent = () => {
+    console.log("subscriptionEvent");
+   const subscription = ndk.subscribe({
+      kinds: [4 as NDKKind],
+      authors: [publicKey],
+      limit: 10,
+    });
+
+    subscription.on("event", (event) => {
+      console.log("event received", event);
+      setMessages((prev: any) => [...prev, event]);
+    });
+
+    const subscriptionReceived = ndk.subscribe({
+      kinds: [4 as NDKKind],
+      '#p': [publicKey],
+      limit: 10,
+    });
+
+    subscriptionReceived.on("event", (event) => {
+      console.log("event received", event);
+      setMessages((prev: any) => [...prev, event]);
+    });
+  }
   const fetchMessagesSent = async (ndk: NDK, publicKey: string, limit: number): Promise<NDKEvent[]> => {
 
     try {
-    await checkIsConnected(ndk);
-    console.log("fetchMessagesSent");
-    const directMessagesSent = await ndk.fetchEvents({
-      kinds: [ 4 as NDKKind],
-      authors: [publicKey],
-      limit: limit || 10,
-    });
+      await checkIsConnected(ndk);
+
+      console.log("fetchMessagesSent");
+
+    
+      const directMessagesSent = await ndk.fetchEvents({
+        kinds: [4 as NDKKind],
+        authors: [publicKey],
+        limit: limit || 10,
+      });
       console.log("directMessagesSent", directMessagesSent);
       return Array.from(directMessagesSent);
     } catch (error) {
@@ -64,18 +93,18 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       return [];
     }
   };
-  
+
   const fetchMessagesReceived = async (ndk: NDK, publicKey: string, limit: number): Promise<NDKEvent[]> => {
-  
+
     try {
-    console.log("fetchMessagesReceived");
-    await checkIsConnected(ndk);
-    const directMessagesReceived = await ndk.fetchEvents({
-      kinds: [4],
-      '#p': [publicKey],  
-      limit: limit || 30,
-    });
-  
+      console.log("fetchMessagesReceived");
+      await checkIsConnected(ndk);
+      const directMessagesReceived = await ndk.fetchEvents({
+        kinds: [4],
+        '#p': [publicKey],
+        limit: limit || 30,
+      });
+
       console.log("directMessagesReceived", directMessagesReceived);
       return Array.from(directMessagesReceived);
     } catch (error) {
@@ -83,7 +112,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       return [];
     }
   };
-  
+
 
   const handleAllMessages = async () => {
     console.log("publicKey", publicKey);
@@ -94,10 +123,41 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     console.log("messagesReceived", messagesReceived);
     const allMessages = [...messages, ...messagesReceived];
     // console.log("allMessages", allMessages);
-    // setMessages(allMessages);
+
+    let uniqueDm: any[] = [];
+
+    const uniqueConversations = allMessages.reduce((acc: any, message: any) => {
+      const key = `${message.pubkey}`;
+      if (!acc[key]) {
+        acc[key] = message;
+      }
+
+      uniqueDm.push(message);
+      return acc;
+    }, {});
+
+    console.log('allMessages', allMessages);
+
+    // Only add Nostr event if its pubkey is not already included in the accumulator
+    const seenPubkeys = new Set();
+    uniqueDm = uniqueDm.filter((item: any) => {
+      if (!item?.pubkey) return false;
+      if (seenPubkeys.has(item.pubkey)) {
+        return false;
+      }
+      seenPubkeys.add(item.pubkey);
+      return true;
+    });
+
+    console.log("uniqueDm", uniqueDm);
+    const uniqueConversationsArray = Array.from(new Set(uniqueDm));
+    console.log("uniqueConversationsArray", uniqueConversationsArray);
+
+    setMessages((prev: any) => [...prev, Array.from(uniqueConversationsArray)]);
   };
 
   useEffect(() => {
+    subscriptionEvent();
     handleAllMessages();
   }, []);
 
@@ -156,7 +216,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
   const handleConversationClick = (item: any) => {
     // Always set senderPublicKey and receiverPublicKey so that sender is always the current user
-    let sender = publicKey || '';
+    let sender = item?.pubkey || item?.senderPublicKey;
     let receiver = getOtherUserPublicKey(item, publicKey || '');
     console.log('item', item);
     setSelectedConversation({
@@ -277,6 +337,15 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       <div className="flex-1 overflow-hidden">
         {activeTab === 'messages' && (
           <div className="h-full">
+
+            <button
+              className="py-4"
+              onClick={() => {
+                subscriptionEvent();
+                handleAllMessages();
+              }}>
+              <Icon name="RefreshIcon" size={20} />
+            </button>
             {selectedConversation && selectedConversation.receiverPublicKey && publicKey ? (
               <div className="flex flex-col h-full">
                 <ChatConversation
@@ -324,7 +393,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                         <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
                         <div className="flex-1 text-left">
                           <p className="font-medium">
-                            {item.senderPublicKey?.slice(0, 8) || ''}
+                            {item.senderPublicKey?.slice(0, 8) || item?.pubkey?.slice(0, 8) || ''}
                           </p>
                           <p className="text-sm text-gray-500 truncate"></p>
                         </div>

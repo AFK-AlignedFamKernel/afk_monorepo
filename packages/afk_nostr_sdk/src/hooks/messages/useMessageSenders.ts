@@ -92,7 +92,7 @@ export const useIncomingMessageUsers = (options?: UseMyMessagesSentOptions):UseI
                 id: giftWrap.id,
               };
             } catch (error) {
-              console.error('Failed to decrypt message:', error);
+              // console.error('Failed to decrypt message:', error);
               return null;
             }
           }),
