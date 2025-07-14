@@ -1,5 +1,5 @@
 import { useUIStore } from '@/store/uiStore';
-import { AFK_RELAYS, RELAY_AFK_PRODUCTION, useAuth, useNostrContext, useRelayAuth, useRelayAuthState } from 'afk_nostr_sdk';
+import { AFK_RELAYS, checkIsConnected, RELAY_AFK_PRODUCTION, useAuth, useNostrContext, useRelayAuth, useRelayAuthState } from 'afk_nostr_sdk';
 import { useEffect } from 'react';
 
 const AuthNostrProviderComponent = () => {
@@ -7,7 +7,6 @@ const AuthNostrProviderComponent = () => {
   const { ndk, isNdkConnected } = useNostrContext();
   const { setupAuthListeners, authenticateWithRelay, isAuthenticating } = useRelayAuth();
   const { getAuthStatus, areAllRelaysAuthenticated } = useRelayAuthState();
-
   const {showToast} = useUIStore();
   useEffect(() => {
 
@@ -25,6 +24,7 @@ const AuthNostrProviderComponent = () => {
   const handleMultiAuth = async (relayUrls: string[]) => {
     console.log('handleMultiAuth', relayUrls);
     try {
+      await checkIsConnected(ndk);
       const origin = window && window.location?.origin ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL;
       await Promise.all(relayUrls.map(url => authenticateWithRelay(url)));
       // showToast({

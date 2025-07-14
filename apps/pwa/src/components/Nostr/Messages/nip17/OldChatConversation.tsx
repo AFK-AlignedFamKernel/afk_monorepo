@@ -6,12 +6,11 @@ import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 // importuseMyMessagesSent, useAuth, useProfile,  { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 // import { NDKUser } from '@nostr-dev-kit/ndk';
-import { useAuth, useSendPrivateMessage, useProfile, useMyMessagesSent, useIncomingMessageUsers, useNostrContext, checkIsConnected } from 'afk_nostr_sdk';
+import { useAuth, useSendPrivateMessage, useProfile, useMyMessagesSent, useIncomingMessageUsers } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { logClickedEvent } from '@/lib/analytics';
 import { useUIStore } from '@/store/uiStore';
-import { NDKKind } from '@nostr-dev-kit/ndk';
 
 interface ChatProps {
     item: any;
@@ -19,16 +18,14 @@ interface ChatProps {
     receiverPublicKey: string;
     handleGoBack: () => void;
     messagesSentParents: any[];
-    type?: "NIP4" | "NIP17";
 }
 
-export const ChatConversation: React.FC<ChatProps> = ({
+export const OldChatConversation: React.FC<ChatProps> = ({
     item,
     handleGoBack,
     messagesSentParents,
     publicKeyProps,
     receiverPublicKey,
-    type
 }) => {
     const { data: profile } = useProfile(item.senderPublicKey);
     const [message, setMessage] = useState('');
@@ -38,7 +35,12 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const queryClient = useQueryClient();
     const { showToast } = useUIStore();
     const [isSendingMessage, setIsSendingMessage] = useState(false);
-    const { ndk } = useNostrContext();
+
+    // Guard: Only proceed if both keys are valid
+    if (!publicKey || !receiverPublicKey) {
+        return <div className="flex items-center justify-center h-full">No conversation selected.</div>;
+    }
+
     // Use the old hooks for fetching conversation messages
     const roomIds = useMemo(() => [publicKey, receiverPublicKey], [publicKey, receiverPublicKey]);
     const { data: messagesSent, isLoading: isLoadingSent } = useMyMessagesSent({
@@ -48,11 +50,6 @@ export const ChatConversation: React.FC<ChatProps> = ({
         authors: roomIds,
     });
 
-    const [allMessagesState, setAllMessagesState] = useState<any[]>([]);
-    useEffect(() => {
-        fetchAllMessages();
-        fetchAllMessagesSubscription();
-    }, [publicKey, receiverPublicKey]);
     // Combine and sort messages
     const allMessages = useMemo(() => {
         const sent = messagesSent?.pages?.flat() || [];
@@ -62,96 +59,6 @@ export const ChatConversation: React.FC<ChatProps> = ({
             .sort((a, b) => a.created_at - b.created_at);
     }, [messagesSent?.pages, incomingMessages?.pages]);
 
-    const fetchAllMessages = async () => {
-
-        console.log("fetchAllMessages", publicKey, receiverPublicKey);
-        try {
-            await checkIsConnected(ndk);
-
-            const events = await ndk.fetchEvents(
-                [
-                    {
-                        kinds: [4 as NDKKind],
-                        authors: [publicKey],
-                        '#p': [receiverPublicKey],
-                        limit: 100,
-
-                    },
-                    {
-                        kinds: [4 as NDKKind],
-                        authors: [receiverPublicKey],
-                        '#p': [publicKey],
-                        limit: 100,
-                    }
-                ]
-            )
-            console.log("fetchAllMessages events", events);
-        } catch (error) {
-            console.error("Error fetching events:", error);
-        }
-    }
-
-
-    const fetchAllMessagesSubscription = async () => {
-
-        console.log("fetchAllMessagesSubscription", publicKey, receiverPublicKey);
-        try {
-            await checkIsConnected(ndk);
-            console.log("subscriptionEvent");
-            const subscription = ndk.subscribe({
-                kinds: [4 as NDKKind],
-                authors: [publicKey],
-                limit: 10,
-            });
-
-            subscription.on("event:dup", (event) => {
-                console.log("event sent dup", event);
-                setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
-            });
-
-
-            subscription.on("event", (event) => {
-                console.log("event sent", event);
-                setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
-            });
-
-
-            const subscriptionReceived = ndk.subscribe({
-                kinds: [4 as NDKKind],
-                '#p': [publicKey],
-                limit: 10,
-            });
-
-            subscriptionReceived.on("event", (event) => {
-                console.log("event received", event);
-                setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
-            });
-
-            subscriptionReceived.on("event:dup", (event) => {
-                console.log("event received dup", event);
-                setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
-            });
-            console.log("fetchAllMessagesSubscription events", allMessagesState);
-        } catch (error) {
-            console.error("Error fetching events:", error);
-        }
-    }
-    useEffect(() => {
-        console.log("item", item);
-
-        if (type === "NIP4") {
-            fetchAllMessages();
-            fetchAllMessagesSubscription();
-        }
-    }, [item]);
-
-    // Guard: Only proceed if both keys are valid
-    if (!publicKey || !receiverPublicKey) {
-        return <div className="flex items-center justify-center h-full">No conversation selected.</div>;
-    }
-
-
-
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -159,7 +66,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
     }, [allMessages]);
 
     const handleSendMessage = useCallback(() => {
-
+      
         try {
             setIsSendingMessage(true);
             if (!message.trim()) {
@@ -167,7 +74,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 return;
             }
             let receiverPublicKey = roomIds.find((id) => id !== publicKey);
-
+    
             // TODO auto saved message
             if (roomIds[0] === roomIds[1]) {
                 receiverPublicKey = roomIds[0] ?? publicKey;
@@ -176,12 +83,12 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 showToast({ message: 'Invalid receiver', type: 'error' });
                 return;
             }
-
+    
             if (!receiverPublicKey) {
                 showToast({ message: 'Invalid receiver', type: 'error' });
                 return;
             }
-
+    
             sendMessage(
                 {
                     content: message,
@@ -190,7 +97,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 {
                     onSuccess: () => {
                         setMessage('');
-                        showToast({ message: 'Message sent', type: 'success' });
+                        showToast({ message: 'Message sent', type: 'success' });    
                         queryClient.invalidateQueries({ queryKey: ['myMessagesSent'] });
                         queryClient.invalidateQueries({ queryKey: ['messageUsers'] });
                     },

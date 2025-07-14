@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { checkIsConnected, deriveSharedKey, useAuth, useContacts, useGetAllMessages, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages, useSendPrivateMessage, v2 } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
-import { FormPrivateMessage } from './FormPrivateMessage';
+import { FormPrivateMessage } from './nip17/FormPrivateMessage';
 import NDK, { NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
-import { ChatConversation } from './ChatConversation';
+import { ChatConversation } from './nip17/ChatConversation';
 import { useUIStore } from '@/store/uiStore';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { logClickedEvent } from '@/lib/analytics';
@@ -59,13 +59,13 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
     subscription.on("event:dup", (event) => {
       console.log("event sent dup", event);
-      setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
+      setMessages((prev: any) => [...prev, event]);
     });
 
 
     subscription.on("event", (event) => {
       console.log("event sent", event);
-      setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
+      setMessages((prev: any) => [...prev, event]);
     });
 
 
@@ -77,12 +77,12 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
     subscriptionReceived.on("event", (event) => {
       console.log("event received", event);
-      setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
+      setMessages((prev: any) => [...prev, event]);
     });
 
     subscriptionReceived.on("event:dup", (event) => {
       console.log("event received dup", event);
-      setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
+      setMessages((prev: any) => [...prev, event]);
     });
   }
   const fetchMessagesSent = async (ndk: NDK, publicKey: string, limit: number): Promise<NDKEvent[]> => {
@@ -169,9 +169,11 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   };
 
   useEffect(() => {
-    subscriptionEvent();
+    // subscriptionEvent();
     handleAllMessages();
   }, []);
+
+  console.log("selectedConversation", selectedConversation);
 
   useEffect(() => {
     handleAllMessages();
@@ -239,8 +241,6 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     });
     setIsBack(false);
   };
-
-  console.log("selectedConversation", selectedConversation);
 
   if (!publicKey) {
     return (
@@ -353,29 +353,14 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
         {activeTab === 'messages' && (
           <div className="h-full">
 
-
-            <div className="flex justify-between gap-8">
-              {selectedConversation &&
-                <button
-                  className="py-4"
-                  onClick={() => {
-                    setSelectedConversation(null);
-                  }}>
-                  <Icon name="BackIcon" size={20} />
-                </button>
-              }
-              <button
-                className="py-4"
-                onClick={() => {
-                  subscriptionEvent();
-                  handleAllMessages();
-                }}>
-                <Icon name="RefreshIcon" size={20} />
-              </button>
-
-
-            </div>
-
+            <button
+              className="py-4"
+              onClick={() => {
+                subscriptionEvent();
+                handleAllMessages();
+              }}>
+              <Icon name="RefreshIcon" size={20} />
+            </button>
             {selectedConversation && selectedConversation.receiverPublicKey && publicKey ? (
               <div className="flex flex-col h-full">
                 <ChatConversation
