@@ -32,9 +32,9 @@ export const MessageInput: React.FC<MessageInputProps> = ({
           ))}
         </div>
       )}
-      <div className="bitchat-input-row flex items-center align-center gap-2">
+      <div className="bitchat-input-row flex items-baseline align-end gap-2 w-full">
 
-        <div className="lg:flex-1 lg:flex lg:flex-row items-center gap-2">
+        <div className="lg:flex-1 lg:flex lg:flex-row items-end gap-2 w-full">
 
           <div className="bitchat-input-label text-green-300 font-mono text-sm">{`<@${nickname}>`}</div>
           <input
