@@ -16,7 +16,7 @@ interface NostrConversationListProps {
   setType?: (type: "NIP4" | "NIP17") => void;
 }
 export const NostrConversationList: React.FC<NostrConversationListProps> = ({ type, setType }) => {
-  const { publicKey, privateKey } = useAuth();
+  const { publicKey, privateKey, isNostrAuthed } = useAuth();
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"messages" | "contacts" | "followers" | "direct_messages">('messages');
@@ -24,13 +24,13 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const [messagesData, setMessages] = useState<any>([]);
   const messagesMemo = useMemo(() => {
 
-    console.log("messagesData", messagesData);
+    // console.log("messagesData", messagesData);
     const unique = new Map();
     messagesData.forEach((msg: any) => {
 
       let tagReceiver = msg.tags?.find((t: any) => t[0] === 'p' && t[1] === publicKey);
-      console.log("tagReceiver", tagReceiver);
-      console.log("msg", msg);
+      // console.log("tagReceiver", tagReceiver);
+      // console.log("msg", msg);
       if (
         msg.type === "NIP4" &&
         (tagReceiver || msg.pubkey === publicKey)
@@ -39,7 +39,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       }
     });
     // Sort by created_at
-    console.log("unique", unique);
+    // console.log("unique", unique);
     return Array.from(unique.values()).sort((a, b) => a.created_at - b.created_at);
 
   }, [messagesData]);
@@ -180,17 +180,20 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       return true;
     });
 
-    console.log("uniqueDm", uniqueDm);
-    const uniqueConversationsArray = Array.from(new Set(uniqueDm));
-    console.log("uniqueConversationsArray", uniqueConversationsArray);
+    // console.log("uniqueDm", uniqueDm);
+    // const uniqueConversationsArray = Array.from(new Set(uniqueDm));
+    // console.log("uniqueConversationsArray", uniqueConversationsArray);
 
-    setMessages((prev: any) => [...prev, Array.from(uniqueConversationsArray)]);
+    // setMessages((prev: any) => [...prev, Array.from(uniqueConversationsArray)]);
   };
 
   useEffect(() => {
-    subscriptionEvent();
-    handleAllMessages();
-  }, []);
+    console.log("isNostrAuthed", isNostrAuthed);
+    if (isNostrAuthed) {
+      subscriptionEvent();
+      handleAllMessages();
+    }
+  }, [isNostrAuthed]);
 
   useEffect(() => {
     handleAllMessages();
@@ -248,9 +251,9 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const handleConversationClick = (item: any) => {
     // Always set senderPublicKey and receiverPublicKey so that sender is always the current user
     let sender = item?.pubkey || item?.senderPublicKey;
-    console.log('sender', sender);
+    // console.log('sender', sender);
     let receiver = getOtherUserPublicKey(item, publicKey || '');
-    console.log('item', item);
+    // console.log('item', item);
     setSelectedConversation({
       ...item,
       senderPublicKey: sender,
@@ -259,7 +262,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     setIsBack(false);
   };
 
-  console.log("selectedConversation", selectedConversation);
+  // console.log("selectedConversation", selectedConversation);
 
   if (!publicKey) {
     return (
@@ -277,7 +280,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
   const handleSendMessage = async (message: string) => {
     if (!message) return;
-    console.log('roomIds', roomIds);
+    // console.log('roomIds', roomIds);
     let receiverPublicKey = roomIds.find((id) => id !== publicKey);
 
 
@@ -289,7 +292,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       showToast({ message: 'Invalid receiver', type: 'error' });
       return;
     }
-    console.log('receiverPublicKey', receiverPublicKey);
+    // console.log('receiverPublicKey', receiverPublicKey);
     await sendMessage(
       {
         content: message,
@@ -400,7 +403,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                 <ChatConversation
                   item={selectedConversation}
                   publicKeyProps={publicKey || ''}
-                  receiverPublicKey={selectedConversation.receiverPublicKey || selectedConversation.pubkey || ''}
+                  receiverPublicKey={selectedConversation.receiverPublicKey}
                   handleGoBack={handleGoBack}
                   messagesSentParents={messagesSentState}
                   type={selectedConversation?.type || "NIP4"}

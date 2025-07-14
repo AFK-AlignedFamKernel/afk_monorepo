@@ -8,6 +8,7 @@ type State = {
   privateKey: string;
   isExtension?: boolean;
   nwcUrl?: string;
+  isNostrAuthed?:boolean;
 
   // Cashu store auth
   isSeedCashuStorage?: boolean;
@@ -41,6 +42,7 @@ type Action = {
   setNWCUrl: (nwcUrl: string) => void;
   setEVMWallet: (evmPublicKey?: string, evmPrivateKey?: string) => void;
   setStrkWallet: (strkPublicKey?: string, strkPrivateKey?: string) => void;
+  setIsNostrAuthed: (isNostrAuthed: boolean) => void;
 };
 
 export const authStore = createStore<State & Action>((set, get) => ({
@@ -58,6 +60,7 @@ export const authStore = createStore<State & Action>((set, get) => ({
   strkPublicKey: undefined as unknown as string,
   evmPublicKey: undefined as unknown as string,
   evmPrivateKey: undefined as unknown as string,
+  isNostrAuthed: false,
 
   setAuth: (publicKey, privateKey) => {
     set({publicKey, privateKey});
@@ -99,6 +102,9 @@ export const authStore = createStore<State & Action>((set, get) => ({
   },
   setStrkWallet: (strkPublicKey, strkPrivateKey) => {
     set({strkPrivateKey, strkPublicKey});
+  },
+  setIsNostrAuthed: (isNostrAuthed) => {
+    set({isNostrAuthed});
   },
 }));
 

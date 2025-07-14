@@ -18,6 +18,10 @@ export default function User() {
 
   const [step, setStep] = useState(0);
 
+
+  const handleLfg = ()=> {
+    router.push("/")
+  }
   const handleNextStep = () => {
     setStep(step + 1);
   };
@@ -52,7 +56,7 @@ export default function User() {
                 onClick={() => {
                   logClickedEvent('feed', 'nostr', 'feed', 1)
                 }}
-              className="border border-gray-300 rounded-md p-2">
+                className="border border-gray-300 rounded-md p-2">
                 <span className='text-sm'>Feed</span>
               </Link>
 
@@ -75,9 +79,17 @@ export default function User() {
 
           </div>}
 
+
+
+
           <div className='flex flex-row gap-4 mt-4'>
             <button onClick={handleBackStep}>Back</button>
-            <button className='border border-gray-300 px-4 py-2 rounded-md' onClick={handleNextStep}>Next</button>
+
+            {step == 3 ?
+              <button className='border border-gray-300 px-4 py-2 rounded-md' onClick={handleLfg}>LFG</button>
+              :
+              <button className='border border-gray-300 px-4 py-2 rounded-md' onClick={handleNextStep}>Next</button>
+            }
           </div>
 
         </div>

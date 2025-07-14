@@ -34,7 +34,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const { data: profile } = useProfile(item.senderPublicKey);
     const [message, setMessage] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
-    const { publicKey, privateKey } = useAuth();
+    const { publicKey, privateKey, isNostrAuthed } = useAuth();
     const { mutateAsync: sendMessage } = useSendPrivateMessage();
     const { mutateAsync: sendEncryptedMessageNip4 } = useEncryptedMessage();
 
@@ -80,9 +80,13 @@ export const ChatConversation: React.FC<ChatProps> = ({
         return allMessagesState.filter((msg: any) => msg.type === "NIP17");
     }, [allMessagesState]);
     useEffect(() => {
-        fetchAllMessages();
-        fetchAllMessagesSubscription();
-    }, [publicKey, receiverPublicKey]);
+
+        if(isNostrAuthed){
+            console.log("isNostrAuthed", isNostrAuthed);
+            fetchAllMessages();
+            fetchAllMessagesSubscription();
+        }
+    }, [publicKey, receiverPublicKey, isNostrAuthed]);
     // Combine and sort messages
     const allMessages = useMemo(() => {
         const sent = messagesSent?.pages?.flat() || [];
@@ -104,6 +108,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
             if (!publicKey || !receiverPublicKey) {
                 return;
             }
+            
 
             const events = await ndk.fetchEvents(
                 [
@@ -130,7 +135,9 @@ export const ChatConversation: React.FC<ChatProps> = ({
 
 
     const fetchAllMessagesSubscription = async () => {
-
+        if (!publicKey || !receiverPublicKey) {
+            return;
+        }
         console.log("fetchAllMessagesSubscription", publicKey, receiverPublicKey);
         try {
             await checkIsConnected(ndk);
@@ -212,6 +219,10 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 if (!privateKey) {
                     return;
                 }
+
+                // if(event?.pubkey != publicKey){
+                //     return;
+                // }
                 (async () => {
                     let decryptedContent = '';
                     try {
@@ -252,7 +263,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
         }
     }
     useEffect(() => {
-        console.log("item", item);
+        // console.log("item", item);
 
         if (type === "NIP4") {
             fetchAllMessages();
@@ -265,15 +276,12 @@ export const ChatConversation: React.FC<ChatProps> = ({
         return <div className="flex items-center justify-center h-full">No conversation selected.</div>;
     }
 
-
-
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [allMessages]);
-
-    console.log("allMessagesState", allMessagesState);
+    // console.log("allMessagesState", allMessagesState);
 
     const handleSendMessage = useCallback(() => {
 
@@ -283,12 +291,13 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 showToast({ message: 'Please enter a message', type: 'error' });
                 return;
             }
-            let receiverPublicKey = roomIds.find((id) => id !== publicKey);
+            // let receiverPublicKey = roomIds.find((id) => id !== publicKey);
 
+            console.log("receiverPublicKey", receiverPublicKey);
             // TODO auto saved message
-            if (roomIds[0] === roomIds[1]) {
-                receiverPublicKey = roomIds[0] ?? publicKey;
-            }
+            // if (roomIds[0] === roomIds[1]) {
+            //     receiverPublicKey = roomIds[0] ?? publicKey;
+            // }
             if (!receiverPublicKey && roomIds.length > 1 && roomIds[0] != roomIds[1]) {
                 showToast({ message: 'Invalid receiver', type: 'error' });
                 return;
@@ -304,7 +313,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 sendEncryptedMessageNip4({
                     content: message,
                     receiverPublicKey: receiverPublicKey,
-                    subject: "test",
+                    // subject: "test",
                 })
             } else {
                 console.log("nip17 message", message);
@@ -334,6 +343,9 @@ export const ChatConversation: React.FC<ChatProps> = ({
 
             setIsSendingMessage(false);
         } catch (error) {
+            setIsSendingMessage(false);
+        }
+        finally {
             setIsSendingMessage(false);
         }
     }, [message, receiverPublicKey, sendMessage, queryClient]);
@@ -386,26 +398,43 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 <div>
 
                     {allMessagesNip4.map((msg: any) => {
-
-                        if (msg.pubkey === publicKey) {
-
-                            return (
-                                <div key={msg.id} className="flex justify-start">
-                                    <p>{msg.content}</p>
-                                </div>
-                            )
-                        }
+                        const isSent = msg.pubkey === publicKey;
                         return (
-                            <div key={msg.id} 
-                            className='flex justify-end border '
+                            <div
+                                key={msg.id}
+                                className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-2`}
                             >
-                                <p>{msg.content}</p>
+                                <div
+                                    className={`
+                                        max-w-[70%]
+                                        rounded-lg
+                                        px-4 py-2
+                                        text-sm
+                                        shadow
+                                        ${isSent
+                                            ? 'bg-blue-500 text-white rounded-br-none'
+                                            : 'bg-neutral-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-bl-none'
+                                        }
+                                    `}
+                                    style={{
+                                        wordBreak: 'break-word',
+                                        borderTopRightRadius: isSent ? 0 : undefined,
+                                        borderTopLeftRadius: !isSent ? 0 : undefined,
+                                    }}
+                                >
+                                    <p>{msg.content}</p>
+                                    <span className="block text-xs opacity-60 mt-1 text-right">
+                                        {msg.created_at
+                                            ? formatDistanceToNow(new Date(msg.created_at * 1000), { addSuffix: true })
+                                            : ''}
+                                    </span>
+                                </div>
                             </div>
-                        )
+                        );
                     })}
                 </div>
                 <div className="space-y-4">
-                    {allMessages.length === 0 ? (
+                    {/* {allMessages.length === 0 ? (
                         <div className="text-center text-gray-400">No messages yet.</div>
                     ) : (
                         allMessages.map((msg: any) => (
@@ -421,12 +450,12 @@ export const ChatConversation: React.FC<ChatProps> = ({
                                 >
                                     <p className="text-sm">{msg.decryptedContent || msg.content}</p>
                                     <span className="text-xs opacity-70">
-                                        {/* {formatDistanceToNow(new Date(msg?.created_at * 1000), { addSuffix: true })} */}
+                                        {formatDistanceToNow(new Date(msg?.created_at * 1000), { addSuffix: true })}
                                     </span>
                                 </div>
                             </div>
                         ))
-                    )}
+                    )} */}
                 </div>
             </div>
 

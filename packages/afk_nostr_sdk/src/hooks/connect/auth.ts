@@ -66,7 +66,7 @@ interface AuthResponse {
  */
 export const useRelayAuth = () => {
   const { ndk } = useNostrContext();
-  const { publicKey, privateKey } = useAuth();
+  const { publicKey, privateKey, setIsNostrAuthed } = useAuth();
   const [relayAuthState, setRelayAuthState] = useState<{ [relayUrl: string]: 'pending' | 'authenticated' | 'failed' }>({});
 
   // 1. Set up the default auth policy for all relays
@@ -118,6 +118,7 @@ export const useRelayAuth = () => {
         console.log("relay:authed");
         setRelayAuthState(prev => ({ ...prev, [relay.url]: 'authenticated' }));
         console.log(`Authenticated with relay: ${relay.url}`);
+        setIsNostrAuthed(true);
         // console.log("relayAuthState", relayAuthState);
         // Update your state here
       });
