@@ -116,8 +116,8 @@ export const ChatScreen: React.FC = () => {
   }, []);
 
   return (
-    <div className="bitchat-container flex flex-col h-[80vh] w-full max-w-2xl mx-auto shadow-lg relative z-30">
-      <div className="bitchat-header flex items-center">
+    <div className="bitchat-container flex flex-col h-[80vh] w-full max-w-2xl mx-auto shadow-lg relative z-30 min-w-0 box-border overflow-hidden">
+      <div className="bitchat-header flex items-center w-full min-w-0 box-border">
         <ChatHeader
           nickname={nickname}
           onNicknameChange={setNickname}
@@ -127,11 +127,11 @@ export const ChatScreen: React.FC = () => {
           onSidebarToggle={handleSidebarToggle}
         />
       </div>
-      <div className="bitchat-message-list flex-1 overflow-y-auto">
+      <div className="bitchat-message-list flex-1 overflow-y-auto w-full min-w-0 box-border">
         <MessageList messages={messagesToShow} currentUserNickname={nickname} />
       </div>
       {selectedPeer && (
-        <div className="bitchat-dm-logs border-t bitchat-dm-logs">
+        <div className="bitchat-dm-logs border-t bitchat-dm-logs w-full min-w-0 box-border">
           <div className="bitchat-dm-log-title">Connection Logs:</div>
           <div className="max-h-[100px] overflow-y-auto flex flex-col gap-1">
             {logs.slice(-5).map((log, i) => (
@@ -140,7 +140,7 @@ export const ChatScreen: React.FC = () => {
           </div>
         </div>
       )}
-      <div className="bitchat-input-section">
+      <div className="bitchat-input-section w-full min-w-0 box-border">
         <MessageInput
           value={messageText}
           onValueChange={handleInputChange}

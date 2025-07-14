@@ -204,7 +204,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
       ))}
       <section className="post-content" aria-label="Post content">
         <div
-          className="dark:text-gray-200 whitespace-pre-wrap break-words sm:max-w-[300px] lg:max-w-[500px]"
+          className="whitespace-pre-wrap break-words sm:max-w-[300px] lg:max-w-[500px]"
           onClick={() => {
             setIsExpanded(!isExpanded)
             logClickedEvent('show_more_note', 'Interaction', 'Button Click', 1);
