@@ -41,39 +41,39 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   const [relayUrl, setRelayUrl] = useState('');
 
   const handleSubmitMessage = async (message: string) => {
-  
+
     try {
-      
+
       if (!message) return;
       console.log('roomIds', roomIds);
       let receiverPublicKey = roomIds.find((id) => id !== publicKey);
-  
+
       if (!receiverPublicKey) {
         showToast({ message: 'Invalid receiver', type: 'error' });
         return;
       }
-  
+
       if (!privateKey) {
         showToast({ message: 'Please connect your wallet', type: 'error' });
         return;
       }
-  
+
       // 1. Convert keys to Uint8Array
       const privateKeyBytes = hexToBytes(privateKey); // 32 bytes
       const receiverPublicKeyBytes = hexToBytes(receiverPublicKey); // 32 bytes
-  
+
       // 2. Derive shared key using X25519
       const sharedKey = x25519.scalarMult(privateKeyBytes, receiverPublicKeyBytes); // 32 bytes
-  
+
       // 3. Use sharedKey directly for AES-256-CBC
       const iv = generateRandomBytesLength(16);
       const ciphertext = await aes256cbcEncrypt(message, sharedKey, iv);
-  
+
       // 4. Format as NIP-4 requires
       const ciphertextB64 = encodeBase64(ciphertext);
       const ivB64 = encodeBase64(iv);
       const encryptedContent = `${ciphertextB64}?iv=${ivB64}`;
-  
+
       // 5. Create and send event
       const eventDirectMessage = new NDKEvent(ndk);
       eventDirectMessage.kind = NDKKind.EncryptedDirectMessage;
@@ -128,7 +128,7 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
 
     if (type == "NIP4") {
 
-    const event = await sendMessage({
+      const event = await sendMessage({
         content: message,
         receiverPublicKey: receiverPublicKey,
       })
@@ -136,7 +136,7 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
       console.log('event', event);
       if (!event) {
         const eventTry = await handleSubmitMessage(message);
-        console.log('eventTry', eventTry  );
+        console.log('eventTry', eventTry);
         // showToast({ message: 'Error sending message', type: 'error' });
         return;
       }

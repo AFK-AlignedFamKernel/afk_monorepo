@@ -384,6 +384,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                   receiverPublicKey={selectedConversation.receiverPublicKey || selectedConversation.pubkey || ''}
                   handleGoBack={handleGoBack}
                   messagesSentParents={messagesSentState}
+                  type={selectedConversation?.type || "NIP4"}
                 />
                 {/* <div className="flex">
                   <input

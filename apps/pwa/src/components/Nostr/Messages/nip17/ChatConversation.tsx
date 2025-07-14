@@ -6,12 +6,13 @@ import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 // importuseMyMessagesSent, useAuth, useProfile,  { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 // import { NDKUser } from '@nostr-dev-kit/ndk';
-import { useAuth, useSendPrivateMessage, useProfile, useMyMessagesSent, useIncomingMessageUsers, useNostrContext, checkIsConnected } from 'afk_nostr_sdk';
+import { useAuth, useSendPrivateMessage, useProfile, useMyMessagesSent, useIncomingMessageUsers, useNostrContext, checkIsConnected, useEncryptedMessage } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { logClickedEvent } from '@/lib/analytics';
 import { useUIStore } from '@/store/uiStore';
 import { NDKKind } from '@nostr-dev-kit/ndk';
+import { nip04 } from 'nostr-tools';
 
 interface ChatProps {
     item: any;
@@ -33,8 +34,10 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const { data: profile } = useProfile(item.senderPublicKey);
     const [message, setMessage] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
-    const { publicKey } = useAuth();
+    const { publicKey, privateKey } = useAuth();
     const { mutateAsync: sendMessage } = useSendPrivateMessage();
+    const { mutateAsync: sendEncryptedMessageNip4 } = useEncryptedMessage();
+
     const queryClient = useQueryClient();
     const { showToast } = useUIStore();
     const [isSendingMessage, setIsSendingMessage] = useState(false);
@@ -49,6 +52,18 @@ export const ChatConversation: React.FC<ChatProps> = ({
     });
 
     const [allMessagesState, setAllMessagesState] = useState<any[]>([]);
+
+    const allMessagesNip4 = useMemo(() => {
+        return allMessagesState.filter((msg: any) => {
+            if (msg.type === "NIP4") {
+                return msg;
+            }
+        });
+    }, [allMessagesState]);
+
+    const allMessagesNip17 = useMemo(() => {
+        return allMessagesState.filter((msg: any) => msg.type === "NIP17");
+    }, [allMessagesState]);
     useEffect(() => {
         fetchAllMessages();
         fetchAllMessagesSubscription();
@@ -57,8 +72,11 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const allMessages = useMemo(() => {
         const sent = messagesSent?.pages?.flat() || [];
         const received = incomingMessages?.pages?.flat() || [];
+
+
         return [...sent, ...received]
             .filter(Boolean)
+            .filter((a) => a?.pubkey === publicKey || a?.pubkey === receiverPublicKey)
             .sort((a, b) => a.created_at - b.created_at);
     }, [messagesSent?.pages, incomingMessages?.pages]);
 
@@ -68,20 +86,24 @@ export const ChatConversation: React.FC<ChatProps> = ({
         try {
             await checkIsConnected(ndk);
 
+            if (!publicKey || !receiverPublicKey) {
+                return;
+            }
+
             const events = await ndk.fetchEvents(
                 [
                     {
                         kinds: [4 as NDKKind],
                         authors: [publicKey],
                         '#p': [receiverPublicKey],
-                        limit: 100,
+                        limit: 10,
 
                     },
                     {
                         kinds: [4 as NDKKind],
                         authors: [receiverPublicKey],
                         '#p': [publicKey],
-                        limit: 100,
+                        limit: 10,
                     }
                 ]
             )
@@ -106,13 +128,60 @@ export const ChatConversation: React.FC<ChatProps> = ({
 
             subscription.on("event:dup", (event) => {
                 console.log("event sent dup", event);
-                setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
+
+                if (!privateKey) {
+                    return;
+                }
+                (async () => {
+                    let decryptedContent = '';
+
+                    if (!privateKey) {
+                        return;
+                    }
+                    try {
+                        // event.pubkey is the sender, publicKey is the receiver (us)
+                        // If we are the sender, decrypt with our private key and receiver's pubkey
+                        // If we are the receiver, decrypt with our private key and sender's pubkey
+                        let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
+                        decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
+                        console.log("decryptedContent", decryptedContent);
+                    } catch (e) {
+                        decryptedContent = '[Unable to decrypt]';
+                    }
+                    setAllMessagesState((prev: any) => [
+                        ...prev,
+                        { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent }
+                    ]);
+                })();
+                // setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
             });
 
 
             subscription.on("event", (event) => {
                 console.log("event sent", event);
-                setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
+
+                // Decrypt NIP4 message content
+
+                (async () => {
+                    let decryptedContent = '';
+
+                    if (!privateKey) {
+                        return;
+                    }
+                    try {
+                        // event.pubkey is the sender, publicKey is the receiver (us)
+                        // If we are the sender, decrypt with our private key and receiver's pubkey
+                        // If we are the receiver, decrypt with our private key and sender's pubkey
+                        let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
+                        decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
+                    } catch (e) {
+                        decryptedContent = '[Unable to decrypt]';
+                    }
+                    setAllMessagesState((prev: any) => [
+                        ...prev,
+                        { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent }
+                    ]);
+                })();
             });
 
 
@@ -124,12 +193,42 @@ export const ChatConversation: React.FC<ChatProps> = ({
 
             subscriptionReceived.on("event", (event) => {
                 console.log("event received", event);
-                setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
+                if (!privateKey) {
+                    return;
+                }
+                (async () => {
+                    let decryptedContent = '';
+                    try {
+                        // event.pubkey is the sender, publicKey is the receiver (us)
+                        // If we are the sender, decrypt with our private key and receiver's pubkey
+                        // If we are the receiver, decrypt with our private key and sender's pubkey
+                        let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
+                        decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
+                    } catch (e) {
+                        decryptedContent = '[Unable to decrypt]';
+                    }
+                    setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent }]);
+                })();
             });
 
             subscriptionReceived.on("event:dup", (event) => {
                 console.log("event received dup", event);
-                setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
+                if (!privateKey) {
+                    return;
+                }
+                (async () => {
+                    let decryptedContent = '';
+                    try {
+                        // event.pubkey is the sender, publicKey is the receiver (us)
+                        // If we are the sender, decrypt with our private key and receiver's pubkey
+                        // If we are the receiver, decrypt with our private key and sender's pubkey
+                        let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
+                        decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
+                    } catch (e) {
+                        decryptedContent = '[Unable to decrypt]';
+                    }
+                    setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent }]);
+                })();
             });
             console.log("fetchAllMessagesSubscription events", allMessagesState);
         } catch (error) {
@@ -158,6 +257,8 @@ export const ChatConversation: React.FC<ChatProps> = ({
         }
     }, [allMessages]);
 
+    console.log("allMessagesState", allMessagesState);
+
     const handleSendMessage = useCallback(() => {
 
         try {
@@ -182,37 +283,52 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 return;
             }
 
-            sendMessage(
-                {
+            if (type === "NIP4") {
+                console.log("nip4 message", message);
+                sendEncryptedMessageNip4({
                     content: message,
-                    receiverPublicKeyProps: receiverPublicKey,
-                },
-                {
-                    onSuccess: () => {
-                        setMessage('');
-                        showToast({ message: 'Message sent', type: 'success' });
-                        queryClient.invalidateQueries({ queryKey: ['myMessagesSent'] });
-                        queryClient.invalidateQueries({ queryKey: ['messageUsers'] });
+                    receiverPublicKey: receiverPublicKey,
+                    subject: "test",
+                })
+            } else {
+                console.log("nip17 message", message);
+
+                sendMessage(
+                    {
+                        content: message,
+                        receiverPublicKeyProps: receiverPublicKey,
                     },
-                    onError: (error) => {
-                        console.error('Error sending message:', error);
-                        showToast({ message: 'Error sending message', type: 'error' });
-                    },
-                }
-            );
+                    {
+                        onSuccess: () => {
+                            setMessage('');
+                            showToast({ message: 'Message sent', type: 'success' });
+                            queryClient.invalidateQueries({ queryKey: ['myMessagesSent'] });
+                            queryClient.invalidateQueries({ queryKey: ['messageUsers'] });
+                        },
+                        onError: (error) => {
+                            console.error('Error sending message:', error);
+                            showToast({ message: 'Error sending message', type: 'error' });
+                        },
+                    }
+                );
+
+            }
+
+            showToast({ message: 'Message sent', type: 'success' });
+
             setIsSendingMessage(false);
         } catch (error) {
             setIsSendingMessage(false);
         }
     }, [message, receiverPublicKey, sendMessage, queryClient]);
 
-    if (isLoadingSent || isLoadingIncoming) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <p>Loading messages...</p>
-            </div>
-        );
-    }
+    // if (isLoadingSent || isLoadingIncoming) {
+    //     return (
+    //         <div className="flex items-center justify-center h-full">
+    //             <p>Loading messages...</p>
+    //         </div>
+    //     );
+    // }
 
     return (
         <div className="flex flex-col h-full">
@@ -250,6 +366,28 @@ export const ChatConversation: React.FC<ChatProps> = ({
 
             {/* Messages */}
             <div ref={scrollRef} className="flex-1 overflow-y-auto p-4  max-h-[350px] lg:max-h-[500px]">
+
+                <div>
+
+                    {allMessagesNip4.map((msg: any) => {
+
+                        if (msg.pubkey === publicKey) {
+
+                            return (
+                                <div key={msg.id} className="flex justify-start">
+                                    <p>{msg.content}</p>
+                                </div>
+                            )
+                        }
+                        return (
+                            <div key={msg.id} 
+                            className='flex justify-end border '
+                            >
+                                <p>{msg.content}</p>
+                            </div>
+                        )
+                    })}
+                </div>
                 <div className="space-y-4">
                     {allMessages.length === 0 ? (
                         <div className="text-center text-gray-400">No messages yet.</div>
@@ -290,7 +428,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
                         disabled={isSendingMessage}
                         onClick={() => {
                             handleSendMessage();
-                            logClickedEvent('send_message_nip17', 'messages_data');
+                            logClickedEvent(`send_message_${type}`, 'messages_data');
                         }}
                         className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
