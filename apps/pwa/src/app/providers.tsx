@@ -11,6 +11,7 @@ import dynamic from 'next/dynamic';
 import { AFK_RELAYS } from 'common';
 import { UIProvider } from '@/providers/UIProvider';
 import { CashuProvider } from '@/providers/CashuProvider';
+import AuthNostrProviderComponent from '@/components/Nostr/relay/AuthNostrProvider';
 
 // Dynamically import StarknetProvider with SSR disabled
 const StarknetProvider = dynamic(() => import('@/context/StarknetProvider'), {
@@ -18,19 +19,19 @@ const StarknetProvider = dynamic(() => import('@/context/StarknetProvider'), {
 });
 
 // Custom wrapper for NostrProvider that ensures relays are configured
-const RelayInitializer: React.FC<{children: React.ReactNode}> = ({ children }) => {
+const RelayInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   useEffect(() => {
     // Set relays in the settings store
     settingsStore.getState().setRelays(AFK_RELAYS);
   }, []);
-  
+
   return <>{children}</>;
 };
 
 // Add NDK functionality to children components
-const NDKConnector: React.FC<{children: React.ReactNode}> = ({ children }) => {
+const NDKConnector: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { ndk, setNdk, setIsNdkConnected } = useNostrContext();
-  
+
   useEffect(() => {
     // When relay settings are already loaded, connect NDK
     if (settingsStore.getState().relays.length > 0 && !ndk) {
@@ -38,7 +39,7 @@ const NDKConnector: React.FC<{children: React.ReactNode}> = ({ children }) => {
       const ndkInstance = new NDK({
         explicitRelayUrls: settingsStore.getState().relays,
       });
-      
+
       // Connect to relays
       ndkInstance.connect().then(() => {
         console.log('Connected to relays!');
@@ -49,14 +50,14 @@ const NDKConnector: React.FC<{children: React.ReactNode}> = ({ children }) => {
         console.error('Failed to connect to relays', err);
         setIsNdkConnected(false);
       });
-    
+
       // Cleanup on unmount
       return () => {
         // ndkInstance.disconnect();
       };
     }
   }, [ndk, setNdk, setIsNdkConnected]);
-  
+
   return <>{children}</>;
 };
 
@@ -77,6 +78,7 @@ const ClientProviders = ({ children }: { children: React.ReactNode }) => {
         <TanstackProvider>
           <RelayInitializer>
             <NostrProvider>
+              <AuthNostrProviderComponent />
               <CashuProvider>
                 <UIProvider>
                   <NDKConnector>

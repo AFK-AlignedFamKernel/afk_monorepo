@@ -193,10 +193,9 @@ export function fixPubKey(pubkey: string): string {
   // const fixedPubKey = pubkey.padStart(desiredLength, '0');
   /** TODO fix pubkey padding way */
   const fixedPubKey = pubkey.padStart(desiredLength, '02');
-
   // Validate the corrected public key using secp256k1 library
   try {
-    console.log("assure verification key")
+    // console.log("assure verification key")
     // secp.getSharedSecret(fixedPubKey);
     // const publicKeyPoint = secp.getPublicKey(fixedPubKey);
     // publicKeyPoint.assertValidity(); // Check if the point is valid on the curve

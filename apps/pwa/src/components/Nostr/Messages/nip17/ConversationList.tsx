@@ -53,9 +53,9 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     await checkIsConnected(ndk);
     console.log("fetchMessagesSent");
     const directMessagesSent = await ndk.fetchEvents({
-      kinds: [ 4],
+      kinds: [ 4 as NDKKind],
       authors: [publicKey],
-      limit: limit || 30,
+      limit: limit || 10,
     });
       console.log("directMessagesSent", directMessagesSent);
       return Array.from(directMessagesSent);
