@@ -78,11 +78,11 @@ export default function DiscoverComponent() {
         )}
 
         {activeTab === "feed" && (
-            <div
-            // className="flex flex-row gap-4"
-            >
-              <FeedTabs className="w-full" />
-            </div>
+          <div
+          // className="flex flex-row gap-4"
+          >
+            <FeedTabs className="w-full" />
+          </div>
         )}
 
         {activeTab === "launchpad" && (
@@ -91,7 +91,7 @@ export default function DiscoverComponent() {
           </div>
         )}
 
-{activeTab === "chat" && (
+        {activeTab === "chat" && (
           <div className="px-4">
             <ChatScreen />
           </div>
