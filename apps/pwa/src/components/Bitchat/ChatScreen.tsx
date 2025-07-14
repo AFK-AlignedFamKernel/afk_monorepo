@@ -116,7 +116,7 @@ export const ChatScreen: React.FC = () => {
   }, []);
 
   return (
-    <div className="bitchat-container flex flex-col h-[80vh] w-full max-w-2xl mx-auto shadow-lg relative z-30 min-w-0 box-border overflow-hidden">
+    <div className="bitchat-container flex flex-col flex-1 h-full min-h-0 w-full max-w-2xl mx-auto shadow-lg relative z-30 min-w-0 box-border overflow-hidden">
       <div className="bitchat-header flex items-center w-full min-w-0 box-border">
         <ChatHeader
           nickname={nickname}
