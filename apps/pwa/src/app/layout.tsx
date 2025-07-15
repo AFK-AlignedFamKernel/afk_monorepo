@@ -20,12 +20,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         {/* <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" /> */}
         <Script
-          strategy="afterInteractive"
+          strategy="lazyOnload"
+          // strategy="afterInteractive"
+
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
         />
         <Script
           id="google-analytics"
-          strategy="afterInteractive"
+          // strategy="afterInteractive"
+          strategy="lazyOnload"
           dangerouslySetInnerHTML={{
             __html: `
             window.dataLayer = window.dataLayer || [];

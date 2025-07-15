@@ -5,6 +5,18 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { checkIsConnected, useNostrContext, useSettingsStore } from 'afk_nostr_sdk';
+// import { IBM_Plex_Sans, JetBrains_Mono } from 'next/font/google'
+ 
+// const ibmPlexSans = IBM_Plex_Sans({
+//   subsets: ['latin'],
+//   weight: '100'
+// })
+// const jetBrainsMono = JetBrains_Mono({
+//   subsets: ['latin'],
+//   weight: '100'
+// })
+// --afk-font-primary: 'IBM Plex Sans', Arial, sans-serif;
+// --afk-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 // import { useAppStore } from '@/store/app';
 // import CryptoLoading from '@/components/small/crypto-loading';
 // import PageLoader from '@/components/loading/PageLoader';
@@ -79,7 +91,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <Box 
-    
+      // className={`${ibmPlexSans.className} ${jetBrainsMono.className}`}
     // bg={bgColor} color={textColor}
     >
       <Layout>{children}</Layout>
