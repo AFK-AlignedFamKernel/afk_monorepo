@@ -242,8 +242,8 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   }
 
   return (
-    <div className={`${styles.nostrFeedContent} ${className}`}>
-      <div className={styles.nostrFeedTagsContainer}>
+    <div className={`${styles["nostr-feed"]} ${className}`}>
+      <div className={styles["nostr-feed__tags-container"] + " " + styles["nostr-feed__tags-container-tags"] + "flex flex-row overflow-x scrollbar-hide"}>
         {tags.map((tag, index) => (
           <div
             className={`px-2 py-0.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-150 border border-gray-400 text-xs font-medium mr-1
@@ -264,7 +264,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
         ))}
       </div>
       {notesData.length === 0 && !isLoadingMore ? (
-        <div className={styles.nostrFeedEmptyState}>
+        <div className={styles["nostr-feed__empty-state"]}>
           <p>No events found. Try following more users or changing filters.</p>
           <div className="mt-4 text-sm text-gray-500">
             <p>- Connected to {ndk.pool?.relays?.size || 0} relays</p>
@@ -280,7 +280,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       ) : (
         <div 
         // className="nostr-feed__content overflow-y-auto max-h-[80vh] "
-        className={styles.nostrFeedContent}
+        className={styles["nostr-feed__content"]}
         >
 
           {notesData.map((event, index) => {
@@ -310,7 +310,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
           )}
 
           {!hasMoreContent && notesData.length > 0 && (
-            <div className={styles.nostrFeedEnd}>
+            <div className={styles["nostr-feed__end"]}>
               No more content to load
             </div>
           )}
