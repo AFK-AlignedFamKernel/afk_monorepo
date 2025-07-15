@@ -11,6 +11,8 @@ import { useUIStore } from '@/store/uiStore';
 import { Icon } from '@/components/small/icon-component';
 import { nip19 } from 'nostr-tools';
 
+import { ImportPrivateKey } from './import-privatekey';
+import NostrCreateAccountComponent from '../login/NostrCreateAccount';
 interface CustomHeaderInterface {
     title?: string;
     showLogo?: boolean;
@@ -32,6 +34,7 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
         setIsOpenProfile(!isOpenProfile);
     };
 
+    const [activeTab, setActiveTab] = React.useState<"create" | "manage" | 'import'>('manage');
 
     const nostrProfiles = useMemo(() => {
         if (!nostrAccounts) return [];
@@ -68,6 +71,14 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
             ) : (
                 <div>
                     <p className='text-sm'>No Nostr Accounts</p>
+
+
+                    {/* <button className='btn btn-secondary' onClick={() => {
+                        setActiveTab('import');
+                    }}>Import</button>
+                    <button className='btn btn-secondary' onClick={() => {  
+                        setActiveTab('manage');
+                    }}>Manage</button> */}
                 </div>
             )}
 
@@ -176,9 +187,36 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                 </div>
 
                 {nostrProfiles.length > 1 && (
-                    <button className='btn btn-secondary' onClick={() => {
+                    <button className='btn btn-basic' onClick={() => {
                         setIsOpenProfile(!isOpenProfile);
                     }}>View more</button>
+                )}
+
+            </div>
+
+            <div className="my-2">
+
+                <div className='flex flex-row gap-2 justify-start'>
+
+                    <button className={`btn btn-basic ${activeTab === 'import' ? 'border-afk-accent-cyan' : ''}`} onClick={() => {
+                        setActiveTab('import');
+                    }}>Import</button>
+
+                    <button className={`btn btn-basic ${activeTab === 'create' ? 'border-afk-accent-cyan' : ''}`} onClick={() => {
+                        setActiveTab('create');
+                    }}>Create</button>
+
+                </div>
+
+                {activeTab === 'import' && (
+                    <ImportPrivateKey />
+                )}
+
+
+                {activeTab === 'create' && (
+                    <div>
+                        <NostrCreateAccountComponent />
+                    </div>
                 )}
 
             </div>

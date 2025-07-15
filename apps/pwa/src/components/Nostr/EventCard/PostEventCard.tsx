@@ -192,7 +192,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
             logClickedEvent('reply_to_note', 'Interaction', 'Button Click', 1);
             // setIsOpenComment(false);
           }} className="action-button" aria-label="Go to parent note">
-            <p className="text-gray-500 dark:text-gray-400 text-sm truncate-ellipsis mono">Reply to this note</p>
+            <p className="text-sm truncate-ellipsis mono">Reply to this note</p>
           </button>
         </div>
       )}

@@ -6,6 +6,7 @@ import { Session } from "@supabase/supabase-js";
 import Image from "next/image";
 import { useAppStore } from "@/store/app";
 import CryptoLoading from "../small/crypto-loading";
+import { logClickedEvent } from "@/lib/analytics";
 export const Oauth = () => {
     const { user, session, setUser, setSession, isInitialFetchUser, setIsInitialFetchUser } = useAppStore();
     const { showToast } = useUIStore();
@@ -31,6 +32,7 @@ export const Oauth = () => {
 
 
     const handleLogin = async (provider: Provider) => {
+        logClickedEvent(`login_oauth_${  provider}`, 'Interaction', 'Button Click', 1);
         const res = await supabase.auth.signInWithOAuth({
             provider: provider
         })
@@ -48,6 +50,7 @@ export const Oauth = () => {
         })
     }
     const handleLogout = async () => {
+        logClickedEvent('logout_oauth', 'Interaction', 'Button Click', 1);
         const res = await supabase.auth.signOut()
         console.log('res', res);
 
