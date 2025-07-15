@@ -9,10 +9,12 @@ export function Footer() {
       <Box className="flex tab:flex-row flex-col items-center tab:items-start justify-between border-b-[1px] border-b-[#484040] border-b-solid pb-[30px]">
         <Box className="flex flex-col items-center tab:items-start text-center tab:text-left">
           <Image
-            src="/assets/afk_logo_circle.svg"
+            src="/assets/afk_logo_circle.png"
             // src="/assets/pepe-logo.png"
             className="w-[30px] h-[30px] tab:h-auto tab:w-auto"
             alt=""
+            width={30}
+            height={30}
           />
           <Text className="text-base leading-[18px] font-normal mt-[15px] tab:mb-[66px] mb-6 w-[278px]">
             Free, open-source decentralized social media platform.
