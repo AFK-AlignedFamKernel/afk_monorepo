@@ -391,7 +391,7 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
 // Dark mode styles
 @media (prefers-color-scheme: dark) {
   .nostr-feed {
-    --card-bg: var(--background);
+    // --card-bg: var(--background);
     --card-bg-constrast: #1f2937;
     // --border-color: #374151;
     --text-primary: #f9fafb;

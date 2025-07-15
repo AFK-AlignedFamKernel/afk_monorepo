@@ -260,7 +260,9 @@ $afk-black-text: #000000;
   --border: var(--shade-200);
   --sidebar-bg: var(--shade-50);
   --header-bg: var(--shade-50);
-  --card-bg: var(--shade-100);
+  // --card-bg: var(--shade-100);
+  // --card-bg: var(--afk-bg-dark);
+  --card-bg: var(--background);
   --contrast-background: var(--shade-50);
 
   --contrast-50: #020617;
