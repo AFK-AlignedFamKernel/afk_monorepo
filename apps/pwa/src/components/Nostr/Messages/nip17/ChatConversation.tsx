@@ -58,22 +58,16 @@ export const ChatConversation: React.FC<ChatProps> = ({
         // Remove duplicates by event id
         const unique = new Map();
         allMessagesState.forEach((msg: any) => {
-            if (
-                msg.type === "NIP4" &&
-                (
-                    (msg.senderPublicKey === publicKey && msg.tags?.some((t: any) => t[0] === 'p' && t[1] === receiverPublicKey)) ||
-                    (msg.senderPublicKey === receiverPublicKey && msg.tags?.some((t: any) => t[0] === 'p' && t[1] === publicKey))
-                )
-            ) {
-                unique.set(msg.id, msg);
-            }
-            else {
+            // Only include messages where (sender, receiver) matches (publicKey, receiverPublicKey) or (receiverPublicKey, publicKey)
+            const isBetweenUsers =
+                (msg.pubkey === publicKey && msg.tags?.some((t: any) => t[0] === 'p' && t[1] === receiverPublicKey)) ||
+                (msg.pubkey === receiverPublicKey && msg.tags?.some((t: any) => t[0] === 'p' && t[1] === publicKey));
+            if (msg.type === "NIP4" && isBetweenUsers) {
                 unique.set(msg.id, msg);
             }
         });
         // Sort by created_at
         return Array.from(unique.values()).sort((a, b) => a.created_at - b.created_at);
-    
     }, [allMessagesState, publicKey, receiverPublicKey]);
 
     const allMessagesNip17 = useMemo(() => {
@@ -100,34 +94,40 @@ export const ChatConversation: React.FC<ChatProps> = ({
     }, [messagesSent?.pages, incomingMessages?.pages]);
 
     const fetchAllMessages = async () => {
-
-        console.log("fetchAllMessages", publicKey, receiverPublicKey);
+        if (!publicKey || !receiverPublicKey) {
+            return;
+        }
         try {
             await checkIsConnected(ndk);
-
-            if (!publicKey || !receiverPublicKey) {
-                return;
-            }
-            
-
-            const events = await ndk.fetchEvents(
-                [
-                    {
-                        kinds: [4 as NDKKind],
-                        authors: [publicKey],
-                        '#p': [receiverPublicKey],
-                        limit: 10,
-
-                    },
-                    {
-                        kinds: [4 as NDKKind],
-                        authors: [receiverPublicKey],
-                        '#p': [publicKey],
-                        limit: 10,
+            // Fetch both directions in a single call
+            const events = await ndk.fetchEvents([
+                {
+                    kinds: [4 as NDKKind],
+                    authors: [publicKey],
+                    '#p': [receiverPublicKey],
+                    limit: 20,
+                },
+                {
+                    kinds: [4 as NDKKind],
+                    authors: [receiverPublicKey],
+                    '#p': [publicKey],
+                    limit: 20,
+                }
+            ]);
+            // Decrypt and set state
+            const decryptedEvents = await Promise.all(
+                Array.from(events).map(async (event: any) => {
+                    let decryptedContent = '';
+                    try {
+                        let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
+                        decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
+                    } catch (e) {
+                        decryptedContent = '[Unable to decrypt]';
                     }
-                ]
-            )
-            console.log("fetchAllMessages events", events);
+                    return { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent };
+                })
+            );
+            setAllMessagesState(decryptedEvents);
         } catch (error) {
             console.error("Error fetching events:", error);
         }
@@ -138,128 +138,41 @@ export const ChatConversation: React.FC<ChatProps> = ({
         if (!publicKey || !receiverPublicKey) {
             return;
         }
-        console.log("fetchAllMessagesSubscription", publicKey, receiverPublicKey);
         try {
             await checkIsConnected(ndk);
-            console.log("subscriptionEvent");
-            const subscription = ndk.subscribe({
-                kinds: [4 as NDKKind],
-                authors: [publicKey],
-                '#p': [receiverPublicKey],
-                limit: 20,
-            });
-
-            subscription.on("event:dup", (event) => {
-                console.log("event sent dup", event);
-
-                if (!privateKey) {
-                    return;
+            // Subscribe to both directions in a single subscription
+            const subscription = ndk.subscribe([
+                {
+                    kinds: [4 as NDKKind],
+                    authors: [publicKey],
+                    '#p': [receiverPublicKey],
+                    limit: 20,
+                },
+                {
+                    kinds: [4 as NDKKind],
+                    authors: [receiverPublicKey],
+                    '#p': [publicKey],
+                    limit: 20,
                 }
-                (async () => {
-                    let decryptedContent = '';
-
-                    if (!privateKey) {
-                        return;
-                    }
-                    try {
-                        // event.pubkey is the sender, publicKey is the receiver (us)
-                        // If we are the sender, decrypt with our private key and receiver's pubkey
-                        // If we are the receiver, decrypt with our private key and sender's pubkey
-                        let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
-                        decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
-                        console.log("decryptedContent", decryptedContent);
-                    } catch (e) {
-                        decryptedContent = '[Unable to decrypt]';
-                    }
-                    setAllMessagesState((prev: any) => [
-                        ...prev,
-                        { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent }
-                    ]);
-                })();
-                // setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
-            });
-
-
-            subscription.on("event", (event) => {
-                console.log("event sent", event);
-
-                // Decrypt NIP4 message content
-
-                (async () => {
-                    let decryptedContent = '';
-
-                    if (!privateKey) {
-                        return;
-                    }
-                    try {
-                        // event.pubkey is the sender, publicKey is the receiver (us)
-                        // If we are the sender, decrypt with our private key and receiver's pubkey
-                        // If we are the receiver, decrypt with our private key and sender's pubkey
-                        let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
-                        decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
-                    } catch (e) {
-                        decryptedContent = '[Unable to decrypt]';
-                    }
-                    setAllMessagesState((prev: any) => [
-                        ...prev,
-                        { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent }
-                    ]);
-                })();
-            });
-
-
-            const subscriptionReceived = ndk.subscribe({
-                kinds: [4 as NDKKind],
-                '#p': [publicKey],
-                limit: 10,
-            });
-
-            subscriptionReceived.on("event", (event) => {
-                console.log("event received", event);
-                if (!privateKey) {
-                    return;
+            ]);
+            const handleEvent = async (event: any) => {
+                let decryptedContent = '';
+                try {
+                    let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
+                    decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
+                } catch (e) {
+                    decryptedContent = '[Unable to decrypt]';
                 }
-
-                // if(event?.pubkey != publicKey){
-                //     return;
-                // }
-                (async () => {
-                    let decryptedContent = '';
-                    try {
-                        // event.pubkey is the sender, publicKey is the receiver (us)
-                        // If we are the sender, decrypt with our private key and receiver's pubkey
-                        // If we are the receiver, decrypt with our private key and sender's pubkey
-                        let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
-                        decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
-                    } catch (e) {
-                        decryptedContent = '[Unable to decrypt]';
-                    }
-                    setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent }]);
-                })();
-            });
-
-            subscriptionReceived.on("event:dup", (event) => {
-                console.log("event received dup", event);
-                if (!privateKey) {
-                    return;
-                }
-                (async () => {
-                    let decryptedContent = '';
-                    try {
-                        // event.pubkey is the sender, publicKey is the receiver (us)
-                        // If we are the sender, decrypt with our private key and receiver's pubkey
-                        // If we are the receiver, decrypt with our private key and sender's pubkey
-                        let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
-                        decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
-                    } catch (e) {
-                        decryptedContent = '[Unable to decrypt]';
-                    }
-                    setAllMessagesState((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent }]);
-                })();
-            });
-            console.log("fetchAllMessagesSubscription events", allMessagesState);
+                setAllMessagesState((prev: any) => {
+                    // Avoid duplicates
+                    if (prev.some((m: any) => m.id === event.id)) return prev;
+                    return [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent }];
+                });
+            };
+            subscription.on("event", handleEvent);
+            subscription.on("event:dup", handleEvent);
         } catch (error) {
-            console.error("Error fetching events:", error);
+            console.error("Error subscribing to events:", error);
         }
     }
     useEffect(() => {

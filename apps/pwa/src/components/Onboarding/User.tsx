@@ -9,17 +9,19 @@ import Link from 'next/link';
 import { useAuth } from 'afk_nostr_sdk';
 import { useAccount } from '@starknet-react/core';
 import { logClickedEvent } from '@/lib/analytics';
+import ImportPrivateKeyComponent from '../Nostr/login/ImportPrivateKeyComponent';
 
 export default function User() {
   const router = useRouter();
 
   const { publicKey } = useAuth();
   const { address } = useAccount();
+  const [isImportOpen, setIsImportOpen] = useState(false);
 
   const [step, setStep] = useState(0);
 
-
-  const handleLfg = ()=> {
+  const handleLfg = () => {
+    logClickedEvent('finished_onboarding_user', 'nostr', 'onboarding_user', 1)
     router.push("/")
   }
   const handleNextStep = () => {
@@ -39,6 +41,10 @@ export default function User() {
 
           {step === 0 && <>
             <NostrCreateAccountComponent />
+            <button onClick={() => setIsImportOpen(!isImportOpen)}>{!isImportOpen ? 'Import' : 'Close'}</button>
+            {isImportOpen && <div className='flex flex-col gap-4'>
+              <ImportPrivateKeyComponent />
+            </div>}
           </>}
 
           {step === 1 && (!isNostrConnected || !isWalletConnected) && <div className='flex flex-col gap-4'>
@@ -46,7 +52,7 @@ export default function User() {
             <WalletConnectButton />
           </div>}
 
-          {step === 2 || (isNostrConnected && isWalletConnected) && <div className='flex flex-col gap-4'>
+          {step === 2 && (isNostrConnected) && <div className='flex flex-col gap-4'>
             <p>You are all set up!</p>
 
             <div className='flex flex-row gap-4 grid grid-cols-2'>
@@ -85,7 +91,7 @@ export default function User() {
           <div className='flex flex-row gap-4 mt-4'>
             <button onClick={handleBackStep}>Back</button>
 
-            {step == 3 ?
+            {step >= 1 ?
               <button className='border border-gray-300 px-4 py-2 rounded-md' onClick={handleLfg}>LFG</button>
               :
               <button className='border border-gray-300 px-4 py-2 rounded-md' onClick={handleNextStep}>Next</button>
