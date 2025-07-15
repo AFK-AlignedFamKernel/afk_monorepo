@@ -10,14 +10,16 @@ import { Icon } from '@/components/small/icon-component';
 import { logClickedEvent } from '@/lib/analytics';
 import NDK, { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 import { AFK_RELAYS } from 'afk_nostr_sdk';
+import { ImportPrivateKey } from '../profile/import-privatekey';
 
-export default function NostrCreateAccountComponent() {
+export default function NostrCreateAccountComponent({ onClose, isImportAvailable = true }: { onClose?: () => void, isImportAvailable?: boolean }) {
     const [passkey, setPasskey] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
     const { ndk } = useNostrContext();
     const [username, setUsername] = useState('');
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [isImportOpen, setIsImportOpen] = useState(false);
 
     const editProfile = useEditProfile();
 
@@ -71,7 +73,7 @@ export default function NostrCreateAccountComponent() {
             //   router.push('/');
 
 
-        
+
             try {
                 editProfile.mutate({
                     username: username,
@@ -90,8 +92,8 @@ export default function NostrCreateAccountComponent() {
                                 type: 'error',
                             })
                         }
-                    
-                    }   
+
+                    }
                 })
             } catch (error) {
                 console.log('error', error)
@@ -140,7 +142,7 @@ export default function NostrCreateAccountComponent() {
 
     return (
         <div className="flex items-center justify-center">
-            <div className="max-w-md w-full space-y-8 p-8 rounded-lg shadow">
+            <div className="max-w-md w-full space-y-8 rounded-lg shadow">
                 <div>
                     <h2 className="mt-6 text-center text-2xl font-extrabold">
                         Create a Nostr account
@@ -176,69 +178,110 @@ export default function NostrCreateAccountComponent() {
                         onChange={(e) => setUsername(e.target.value)}
                     />
 
-                    <div>
+                    <div className='flex flex-row gap-2 justify-between items-center'>
+
+
                         <button
                             type="submit"
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                            className="group relative w-full flex justify-center py-2 px-4 btn btn-primary text-sm font-medium rounded-md"
                         >
                             Create Account
                         </button>
+
+                        {isImportAvailable &&
+
+                            <button onClick={() => { setIsImportOpen(!isImportOpen); }}
+                                className='flex flex-row gap-2 border border-primary px-4 py-2 rounded-md'
+                            >{!isImportOpen ? 'Import' : 'Close'}
+                                {isImportOpen && <Icon name="CloseIcon"
+                                    className='w-4 h-4'
+                                />}
+                                <Icon name="ImportIcon"
+                                    className='w-4 h-4'
+                                />
+                            </button>
+                        }
                     </div>
                 </form>
 
 
-                <div
-                    className="mt-8 space-y-6"
-                >
-                    {newPrivateKey &&
-                        <div>
-                            <div className="flex items-center justify-between">
-                                <p className="font-medium">Private key</p>
+                <div className="mt-8 space-y-8">
+                    {newPrivateKey && (
+                        <div className="rounded-lg border border-yellow-400 p-4 bg-background-secondary dark:bg-background-secondary-dark transition-shadow shadow-md">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <Icon name="ConsoleIcon" size={18} className="text-yellow-500" />
+                                    <p className="font-semibold text-yellow-700 dark:text-yellow-300">Private key</p>
+                                </div>
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         navigator.clipboard.writeText(newPrivateKey);
                                         showToast({
                                             message: 'Private key copied to clipboard',
-                                            description:"Don't share this with anyone",
+                                            description: "Don't share this with anyone",
                                             type: 'success',
-                                        })
-                                        logClickedEvent('create_account_copy_private_key', 'nostr', 'copy_private_key', 1)
+                                        });
+                                        logClickedEvent('create_account_copy_private_key', 'nostr', 'copy_private_key', 1);
                                     }}
-                                    className="text-sm hover:text-indigo-500"
+                                    className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-yellow-700 dark:text-yellow-200 hover:bg-yellow-100 dark:hover:bg-yellow-900 transition"
+                                    aria-label="Copy private key"
                                 >
                                     <Icon name="CopyIcon" size={16} />
                                     Copy
                                 </button>
                             </div>
-                            <span className="mt-1 break-all p-2 rounded text-sm font-mono">
-                                {newPrivateKey}
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <span className="mt-1 break-all p-2 rounded bg-background-light dark:bg-background-dark text-sm font-mono select-all border border-yellow-200 dark:border-yellow-800 w-full">
+                                    {newPrivateKey}
+                                </span>
+                                <span className="ml-2 text-xs text-yellow-600 dark:text-yellow-300 font-medium">Keep this safe!</span>
+                            </div>
+                            <div className="mt-2 text-xs text-yellow-700 dark:text-yellow-300">
+                                <strong>Warning:</strong> Your private key gives full access to your account. Never share it with anyone.
+                            </div>
                         </div>
-                    }
+                    )}
 
                     {newPublicKey && (
-                        <div>
-                            <div className="flex items-center justify-between">
-                                <p className="font-medium">Public key</p>
+                        <div className="rounded-lg border border-green-400 p-4 bg-background-secondary dark:bg-background-secondary-dark transition-shadow shadow">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <Icon name="LoginIcon" size={18} className="text-green-500" />
+                                    <p className="font-semibold text-green-700 dark:text-green-300">Public key</p>
+                                </div>
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         navigator.clipboard.writeText(newPublicKey);
                                         showToast({
                                             message: 'Public key copied to clipboard',
                                             type: 'success',
-                                        })
-                                        logClickedEvent('create_account_copy_public_key', 'nostr', 'copy_public_key', 1)
+                                        });
+                                        logClickedEvent('create_account_copy_public_key', 'nostr', 'copy_public_key', 1);
                                     }}
-                                    className="text-sm hover:text-indigo-500"
+                                    className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-green-700 dark:text-green-200 hover:bg-green-100 dark:hover:bg-green-900 transition"
+                                    aria-label="Copy public key"
                                 >
+                                    <Icon name="CopyIcon" size={16} />
                                     Copy
                                 </button>
                             </div>
-                            <span className="mt-1 break-all p-2 rounded text-sm font-mono">
+                            <span className="mt-1 break-all p-2 rounded bg-background-light dark:bg-background-dark text-sm font-mono select-all border border-green-200 dark:border-green-800 w-full">
                                 {newPublicKey}
                             </span>
+                            <div className="mt-2 text-xs text-green-700 dark:text-green-300">
+                                Share your public key so others can find you.
+                            </div>
                         </div>
                     )}
+                </div>
+
+
+                <div className='flex flex-col gap-4'>
+                    {isImportOpen && <div className='flex flex-col gap-4'>
+                        <ImportPrivateKey />
+                    </div>}
                 </div>
             </div>
         </div>

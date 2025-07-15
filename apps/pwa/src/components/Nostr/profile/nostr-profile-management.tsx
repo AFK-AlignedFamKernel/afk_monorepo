@@ -9,6 +9,8 @@ import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
 import { Avatar } from '@chakra-ui/react';
 import { useUIStore } from '@/store/uiStore';
 import { Icon } from '@/components/small/icon-component';
+import { nip19 } from 'nostr-tools';
+
 import { ImportPrivateKey } from './import-privatekey';
 import NostrCreateAccountComponent from '../login/NostrCreateAccount';
 interface CustomHeaderInterface {
@@ -81,23 +83,58 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
             )}
 
             {publicKey && (
-                <div className='flex flex-row gap-2'>
-                    <p className='text-sm' style={{
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                    }}>Connected: {publicKey?.slice(0, 5)}...{publicKey?.slice(-5)}</p>
+                <div className='flex flex-col gap-2'>
+                    <div className='flex flex-row gap-2 cursor-pointer'
+                        onClick={() => {
+                            navigator.clipboard.writeText(publicKey);
+                            showToast({
+                                message: "Public key copied to clipboard",
+                                type: "success"
+                            });
+                        }}
+                    >
+                        <p className='text-sm' style={{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                        }}>Connected: {publicKey?.slice(0, 5)}...{publicKey?.slice(-5)}</p>
 
+                        <div onClick={() => {
+                            navigator.clipboard.writeText(publicKey);
+                            showToast({
+                                message: "Public key copied to clipboard",
+                                type: "success"
+                            });
+                        }}><Icon name="CopyIcon" size={16} /></div>
 
-                    <div onClick={() => {
-                        navigator.clipboard.writeText(publicKey);
-                        showToast({
-                            message: "Public key copied to clipboard",
-                            type: "success"
-                        });
-                    }}><Icon name="CopyIcon" size={16} /></div>
+                    </div>
 
+                    <div className='flex flex-row gap-2 align-baseline cursor-pointer'
+                        onClick={() => {
+                            navigator.clipboard.writeText(nip19.npubEncode(publicKey));
+                            showToast({
+                                message: "Npub copied to clipboard",
+                                type: "success"
+                            });
+                        }}>
+                        <p className='text-sm overflow-hidden text-ellipsis'>{nip19.npubEncode(publicKey)}</p>
+                        <div
+                            className='cursor-pointer'
+                        >
+                            <Icon name="CopyIcon"
+                                className='cursor-pointer'
+                                size={16}
+                                onClick={() => {
+                                    navigator.clipboard.writeText(nip19.npubEncode(publicKey));
+                                    showToast({
+                                        message: "Npub copied to clipboard",
+                                        type: "success"
+                                    });
+                                }}
+                            /></div>
+                    </div>
                 </div>
+
             )}
 
             <div style={{
@@ -243,6 +280,25 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                                                             navigator.clipboard.writeText(item?.publicKey);
                                                             showToast({
                                                                 message: "Public key copied to clipboard",
+                                                                type: "success"
+                                                            });
+                                                        }}
+                                                    /></div>
+                                            </div>
+                                            <div className='flex flex-row gap-2 align-baseline'>
+                                                <p className='text-sm overflow-hidden text-ellipsis'>{nip19.npubEncode(item?.publicKey)}</p>
+                                                <div onClick={() => {
+                                                    navigator.clipboard.writeText(nip19.npubEncode(item?.publicKey));
+                                                    showToast({
+                                                        message: "Npub copied to clipboard",
+                                                        type: "success"
+                                                    });
+                                                }}>
+                                                    <Icon name="CopyIcon" size={16}
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(nip19.npubEncode(item?.publicKey));
+                                                            showToast({
+                                                                message: "Npub copied to clipboard",
                                                                 type: "success"
                                                             });
                                                         }}

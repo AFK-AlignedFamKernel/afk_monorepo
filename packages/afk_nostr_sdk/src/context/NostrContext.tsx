@@ -6,6 +6,7 @@ import {createContext, useContext, useEffect, useState} from 'react';
 import {useSettingsStore} from '../store';
 import {useAuth} from '../store/auth';
 import {AFK_RELAYS} from '../utils/relay';
+import { checkIsConnected } from '../hooks/connect';
 
 // Create a separate type for the NDK instance to avoid direct type conflicts
 type NDKInstance = NDK;
@@ -100,13 +101,21 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
       setIsConnected(connected);
     };
 
-    const interval = setInterval(checkConnection, 1000); // Check every second
+    const interval = setInterval(checkConnection, 1000*60); // Check every minute
 
     // Initial check
     checkConnection();
 
     return () => clearInterval(interval); // Cleanup on component unmount
   }, [ndk, setIsConnected]);
+
+  useEffect(() => {
+    checkIsConnected(ndk).then((res) => {
+      setIsNdkConnected(true);
+    }).catch((err) => {
+      setIsNdkConnected(false);
+    });
+  }, [ndk]);
 
   return (
     <NostrContext.Provider

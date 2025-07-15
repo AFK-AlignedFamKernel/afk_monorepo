@@ -103,6 +103,29 @@ export function deriveSharedKey(
   }
 }
 
+// Derive the shared conversation key
+export function deriveSharedKeyFromHex(
+  authorPrivateKeyHex: string,
+  recipientPublicKeyHex: string,
+): Uint8Array {
+  try {
+    // Convert the private key from a hex string to Uint8Array
+    const privateKey = hexToUint8Array(authorPrivateKeyHex);
+
+    // Convert the public key from a hex string to a secp256k1 Point
+    const publicKeyPoint = recipientPublicKeyHex;
+
+    // Compute shared secret using the ECDH method
+    const sharedSecret = secp.getSharedSecret(privateKey, publicKeyPoint.toString(), true);
+
+    // Return the shared secret (skip the first byte which is used for parity)
+    return sharedSecret.slice(1);
+  } catch (error) {
+    console.error('Error deriving shared key:', error);
+    return null;
+  }
+}
+
 export const getPublicKeyFromSecret = (privateKey: string) => {
   try {
     const publicKey = schnorr.getPublicKey(privateKey);
@@ -170,10 +193,9 @@ export function fixPubKey(pubkey: string): string {
   // const fixedPubKey = pubkey.padStart(desiredLength, '0');
   /** TODO fix pubkey padding way */
   const fixedPubKey = pubkey.padStart(desiredLength, '02');
-
   // Validate the corrected public key using secp256k1 library
   try {
-    console.log("assure verification key")
+    // console.log("assure verification key")
     // secp.getSharedSecret(fixedPubKey);
     // const publicKeyPoint = secp.getPublicKey(fixedPubKey);
     // publicKeyPoint.assertValidity(); // Check if the point is valid on the curve

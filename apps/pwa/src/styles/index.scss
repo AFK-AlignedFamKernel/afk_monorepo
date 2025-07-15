@@ -15,6 +15,7 @@
 @import 'launchpad.scss';
 @import 'components/_cashu-wallet.scss';
 @import 'components/nostr-form.scss';
+@import './chat.scss';
 // @import 'variables.scss';
 
 
@@ -26,6 +27,12 @@ body {
   line-height: 1.5;
 }
 
+body.blue-mode {
+  font-family: var(--afk-font-primary, $font-primary);
+  color: var(--afk-text-dark);
+  background: var(--afk-bg-dark);
+}
+
 body.light-mode {
   color: var(--afk-text-light);
   background: var(--afk-bg-light);
@@ -33,6 +40,10 @@ body.light-mode {
 
 .code, .mono, pre, code {
   font-family: var(--afk-font-mono, $font-mono);
+}
+
+.border-primary {
+  border: 1px solid var(--afk-accent-green);
 }
 
 // Button Styles
@@ -117,104 +128,106 @@ body.light-mode input, body.light-mode textarea {
   color: var(--afk-text-light);
 }
 
-.afk-post, .afk-card {
-  background: var(--afk-bg-panel);
-  border-radius: 12px;
-  box-shadow: 0 2px 12px 0 rgba(0,255,156,0.08);
-  color: var(--afk-text-dark);
-  padding: 24px;
-  margin-bottom: 24px;
-  transition: box-shadow 0.2s, border 0.2s;
-  border: 1px solid transparent;
-  font-family: var(--afk-font-primary, $font-primary);
-  &.light-mode {
-    background: var(--afk-bg-light);
-    color: var(--afk-text-light);
-  }
-  &:hover {
-    box-shadow: 0 0 24px 2px var(--afk-accent-green);
-    border: 1px solid var(--afk-accent-green);
-  }
-}
-
-.afk-post-meta, .afk-card-meta {
-  color: var(--afk-muted);
-  font-size: 14px;
-  font-family: var(--afk-font-mono, $font-mono);
-}
-
-.afk-tag, .afk-badge {
-  display: inline-block;
-  border-radius: 16px;
-  padding: 2px 12px;
-  font-family: var(--afk-font-mono, $font-mono);
-  font-size: 13px;
-  border: 1px solid var(--afk-accent-cyan);
-  color: var(--afk-accent-cyan);
-  background: transparent;
-  margin-right: 8px;
-  margin-bottom: 4px;
-  &.magenta {
-    border-color: var(--afk-accent-magenta);
-    color: var(--afk-accent-magenta);
-  }
-}
-
-.afk-heading {
-  font-family: var(--afk-font-primary, $font-primary);
-  font-weight: bold;
-  font-size: 24px;
-  margin-bottom: 16px;
-}
-.afk-heading-lg {
-  font-size: 32px;
-}
-.afk-body {
-  font-family: var(--afk-font-primary, $font-primary);
-  font-size: 16px;
-}
-.afk-metadata {
-  font-family: var(--afk-font-mono, $font-mono);
-  font-size: 14px;
-  color: var(--afk-muted);
-}
-
-// 8px grid spacing utilities
-.afk-m-8 { margin: 8px !important; }
-.afk-mt-8 { margin-top: 8px !important; }
-.afk-mb-8 { margin-bottom: 8px !important; }
-.afk-ml-8 { margin-left: 8px !important; }
-.afk-mr-8 { margin-right: 8px !important; }
-.afk-p-8 { padding: 8px !important; }
-.afk-pt-8 { padding-top: 8px !important; }
-.afk-pb-8 { padding-bottom: 8px !important; }
-.afk-pl-8 { padding-left: 8px !important; }
-.afk-pr-8 { padding-right: 8px !important; }
-.afk-gap-8 { gap: 8px !important; }
-
-.afk-m-16 { margin: 16px !important; }
-.afk-mt-16 { margin-top: 16px !important; }
-.afk-mb-16 { margin-bottom: 16px !important; }
-.afk-ml-16 { margin-left: 16px !important; }
-.afk-mr-16 { margin-right: 16px !important; }
-.afk-p-16 { padding: 16px !important; }
-.afk-pt-16 { padding-top: 16px !important; }
-.afk-pb-16 { padding-bottom: 16px !important; }
-.afk-pl-16 { padding-left: 16px !important; }
-.afk-pr-16 { padding-right: 16px !important; }
-.afk-gap-16 { gap: 16px !important; }
-
-.afk-m-24 { margin: 24px !important; }
-.afk-mt-24 { margin-top: 24px !important; }
-.afk-mb-24 { margin-bottom: 24px !important; }
-.afk-ml-24 { margin-left: 24px !important; }
-.afk-mr-24 { margin-right: 24px !important; }
-.afk-p-24 { padding: 24px !important; }
-.afk-pt-24 { padding-top: 24px !important; }
-.afk-pb-24 { padding-bottom: 24px !important; }
-.afk-pl-24 { padding-left: 24px !important; }
-.afk-pr-24 { padding-right: 24px !important; }
-.afk-gap-24 { gap: 24px !important; }
+// --- BEGIN: Unused afk-* classes commented out for cleanup ---
+// .afk-post, .afk-card {
+//   background: var(--afk-bg-panel);
+//   border-radius: 12px;
+//   box-shadow: 0 2px 12px 0 rgba(0,255,156,0.08);
+//   color: var(--afk-text-dark);
+//   padding: 24px;
+//   margin-bottom: 24px;
+//   transition: box-shadow 0.2s, border 0.2s;
+//   border: 1px solid transparent;
+//   font-family: var(--afk-font-primary, $font-primary);
+//   &.light-mode {
+//     background: var(--afk-bg-light);
+//     color: var(--afk-text-light);
+//   }
+//   &:hover {
+//     box-shadow: 0 0 24px 2px var(--afk-accent-green);
+//     border: 1px solid var(--afk-accent-green);
+//   }
+// }
+//
+// .afk-post-meta, .afk-card-meta {
+//   color: var(--afk-muted);
+//   font-size: 14px;
+//   font-family: var(--afk-font-mono, $font-mono);
+// }
+//
+// .afk-tag, .afk-badge {
+//   display: inline-block;
+//   border-radius: 16px;
+//   padding: 2px 12px;
+//   font-family: var(--afk-font-mono, $font-mono);
+//   font-size: 13px;
+//   border: 1px solid var(--afk-accent-cyan);
+//   color: var(--afk-accent-cyan);
+//   background: transparent;
+//   margin-right: 8px;
+//   margin-bottom: 4px;
+//   &.magenta {
+//     border-color: var(--afk-accent-magenta);
+//     color: var(--afk-accent-magenta);
+//   }
+// }
+//
+// .afk-heading {
+//   font-family: var(--afk-font-primary, $font-primary);
+//   font-weight: bold;
+//   font-size: 24px;
+//   margin-bottom: 16px;
+// }
+// .afk-heading-lg {
+//   font-size: 32px;
+// }
+// .afk-body {
+//   font-family: var(--afk-font-primary, $font-primary);
+//   font-size: 16px;
+// }
+// .afk-metadata {
+//   font-family: var(--afk-font-mono, $font-mono);
+//   font-size: 14px;
+//   color: var(--afk-muted);
+// }
+//
+// // 8px grid spacing utilities
+// .afk-m-8 { margin: 8px !important; }
+// .afk-mt-8 { margin-top: 8px !important; }
+// .afk-mb-8 { margin-bottom: 8px !important; }
+// .afk-ml-8 { margin-left: 8px !important; }
+// .afk-mr-8 { margin-right: 8px !important; }
+// .afk-p-8 { padding: 8px !important; }
+// .afk-pt-8 { padding-top: 8px !important; }
+// .afk-pb-8 { padding-bottom: 8px !important; }
+// .afk-pl-8 { padding-left: 8px !important; }
+// .afk-pr-8 { padding-right: 8px !important; }
+// .afk-gap-8 { gap: 8px !important; }
+//
+// .afk-m-16 { margin: 16px !important; }
+// .afk-mt-16 { margin-top: 16px !important; }
+// .afk-mb-16 { margin-bottom: 16px !important; }
+// .afk-ml-16 { margin-left: 16px !important; }
+// .afk-mr-16 { margin-right: 16px !important; }
+// .afk-p-16 { padding: 16px !important; }
+// .afk-pt-16 { padding-top: 16px !important; }
+// .afk-pb-16 { padding-bottom: 16px !important; }
+// .afk-pl-16 { padding-left: 16px !important; }
+// .afk-pr-16 { padding-right: 16px !important; }
+// .afk-gap-16 { gap: 16px !important; }
+//
+// .afk-m-24 { margin: 24px !important; }
+// .afk-mt-24 { margin-top: 24px !important; }
+// .afk-mb-24 { margin-bottom: 24px !important; }
+// .afk-ml-24 { margin-left: 24px !important; }
+// .afk-mr-24 { margin-right: 24px !important; }
+// .afk-p-24 { padding: 24px !important; }
+// .afk-pt-24 { padding-top: 24px !important; }
+// .afk-pb-24 { padding-bottom: 24px !important; }
+// .afk-pl-24 { padding-left: 24px !important; }
+// .afk-pr-24 { padding-right: 24px !important; }
+// .afk-gap-24 { gap: 24px !important; }
+// --- END: Unused afk-* classes commented out ---
 
 // Global styles
 * {

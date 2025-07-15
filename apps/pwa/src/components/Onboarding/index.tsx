@@ -12,6 +12,7 @@ type UserType = 'user' | 'brand' | 'creator';
 export default function Onboarding() {
     const [selectedType, setSelectedType] = useState<UserType | null>(null);
     const router = useRouter();
+    const [mainStep, setMainStep] = useState(0);    
 
     const handleSelection = (type: UserType) => {
         setSelectedType(type);

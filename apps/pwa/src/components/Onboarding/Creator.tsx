@@ -24,6 +24,7 @@ export default function Creator() {
           <div>
             <NostrCreateAccountComponent />
             <p>Connect your to manage your creator profile</p>
+            <p className='text-sm italic'>You can create your creator profile later</p>
             <Oauth />
           </div>
         }
@@ -33,6 +34,7 @@ export default function Creator() {
 
             {/* <SupabaseLink /> */}
             <NostrCreateAccountComponent />
+            <p className='text-sm italic'>You can create your creator profile later</p>
             <ManageCreatorProfile />
             {/* <Accordion className='w-full' items={[
               { title: 'Link your social accounts', content: <SocialAccountLinker /> },

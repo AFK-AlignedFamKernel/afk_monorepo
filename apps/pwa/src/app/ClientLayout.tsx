@@ -4,7 +4,11 @@ import { Box, useColorModeValue } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { useNostrContext, useSettingsStore } from 'afk_nostr_sdk';
+import { checkIsConnected, useNostrContext, useSettingsStore } from 'afk_nostr_sdk';
+// import { useAppStore } from '@/store/app';
+// import CryptoLoading from '@/components/small/crypto-loading';
+// import PageLoader from '@/components/loading/PageLoader';
+// import dynamic from 'next/dynamic';
 // import { useAppStore } from '@/store/app';
 // import CryptoLoading from '@/components/small/crypto-loading';
 
@@ -58,6 +62,20 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   //     setIsConnected(true)
   //   }
   // }, [ndk])
+
+  useEffect(() => {
+    checkIsConnected(ndk).then((res) => {
+      setIsConnected(res);
+    });
+  }, [ndk]);
+
+  const [isReady, setIsReady] = useState(false);
+  useEffect(() => {
+    // Simulate map/content loading, replace with real check
+    setTimeout(() => setIsReady(true), 1000); // Replace with actual map/content ready event
+  }, []);
+
+  // if (!isReady) return <PageLoader />;
 
   return (
     <Box bg={bgColor} color={textColor}>

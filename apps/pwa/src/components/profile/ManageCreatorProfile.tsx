@@ -17,7 +17,8 @@ import { LaunchpadCard } from '../launchpad/LaunchpadCard';
 import Link from 'next/link';
 import { useCreatorsStore } from '@/store/creators';
 import { IContentCreator } from '@/types/brand';
-
+import { logClickedEvent } from '@/lib/analytics';
+  
 
 export const ManageCreatorProfile: React.FC = () => {
   const { user, session } = useAppStore();
@@ -117,6 +118,8 @@ export const ManageCreatorProfile: React.FC = () => {
     console.log("btcAddress", btcAddress)
     console.log("slugName", slugName)
     console.log("topics", topics)
+
+    logClickedEvent('update_creator_profile', 'creator', 'update_creator_profile', 1)
 
     const res = await fetchWithAuth("/content-creator/update/verify_identity", {
       method: 'POST',

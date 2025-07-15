@@ -8,7 +8,7 @@ export const RELAYS_PROD = [
 ];
 
 export const RELAYS_TEST = [
-  // 'wss://nos.lol'
+  'wss://nos.lol'
 ];
 
 // export const RELAYS_TEST = ['wss://relay.n057r.club', 'wss://relay.nostr.net'];
@@ -25,6 +25,7 @@ export const AFK_RELAYS =
       'wss://nostr-relay-nestjs-production.up.railway.app',
     ]
     : [
-      ...RELAYS_TEST,
+      // ...RELAYS_TEST,
+      // ...RELAYS_PROD,
       'wss://nostr-relay-nestjs-production.up.railway.app',
     ];
