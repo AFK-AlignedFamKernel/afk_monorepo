@@ -1,4 +1,5 @@
 import {Box, useColorModeValue} from '@chakra-ui/react';
+import Image from 'next/image';
 
 export function Footer() {
   const bgColor = useColorModeValue('gray.300', 'gray.700');
@@ -16,7 +17,7 @@ export function Footer() {
         className="flex tab:flex-row flex-col items-center tab:items-start justify-between border-b-solid pb-[30px]"
       >
         <Box className="flex flex-col items-center tab:items-start text-center tab:text-left">
-          <img
+          <Image
             src="/assets/afkMascot.png"
             // src="/assets/pepe-logo.png"
             className="w-[50px] h-[50px] tab:h-auto tab:w-auto"
@@ -27,10 +28,10 @@ export function Footer() {
           </p>
           <Box className="flex items-center gap-x-5">
             <button>
-              <img src="/assets/appStoreBtn.svg" className="w-[100px] tab:w-auto" alt="" />
+              <Image src="/assets/appStoreBtn.svg" className="w-[100px] tab:w-auto" alt="" />
             </button>
             <button>
-              <img src="/assets/googlePlaybtn.svg" className="w-[100px] tab:w-auto" alt="" />
+              <Image src="/assets/googlePlaybtn.svg" className="w-[100px] tab:w-auto" alt="" />
             </button>
           </Box>
         </Box>
@@ -48,16 +49,12 @@ export function Footer() {
         </Box>
         <Box className="flex items-center gap-x-[14px] mt-5 tab:mt-0 self-center tab:self-end">
           <a href="https://x.com/AFK_AlignedFamK" target="_blank">
-            <img src="/assets/twitterIcon.svg" alt="AFK Aligned Fam Community Twitter / X" />
+            <Image src="/assets/twitterIcon.svg" alt="AFK Aligned Fam Community Twitter / X" />
           </a>
 
-          {/* <a
-            href="https://t.me/AFKStarknet"
-            target="_blank">
-            <img src="/assets/telegramIcon.svg" alt="" />
-          </a> */}
+    
           <a href="https://t.me/afk_aligned_fam_kernel" target="_blank">
-            <img src="/assets/telegramIcon.svg" alt="AFK Community Telegram " />
+            <Image src="/assets/telegramIcon.svg" alt="AFK Community Telegram " />
           </a>
         </Box>
       </Box>

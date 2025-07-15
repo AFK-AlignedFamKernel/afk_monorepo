@@ -8,6 +8,7 @@ import { NostrEventKind } from '@/types/nostr';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { TAGS_DEFAULT } from 'common';
 import { logClickedEvent } from '@/lib/analytics';
+import styles from '@/styles/nostr/feed.module.scss';
 
 interface NostrTagsFeedProps {
   kinds?: number[];
@@ -212,7 +213,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   // Show loading state
   if (!isInitialLoading) {
     return (
-      <div className={`nostr-feed__content ${className}`}>
+      <div className={`${styles.nostrFeedContent} ${className}`}>
         <div className="flex justify-center items-center py-8">
           <CryptoLoading />
         </div>
@@ -223,8 +224,8 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   // Show error state
   if (isError && notesData.length === 0) {
     return (
-      <div className={`nostr-feed__content ${className}`}>
-        <div className="nostr-feed__error">
+      <div className={`${styles.nostrFeedContent} ${className}`}>
+        <div className={styles.nostrFeedError}>
           <p>Error loading events: {error?.message || 'Unknown error'}</p>
           <button
             className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -241,8 +242,8 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
   }
 
   return (
-    <div className={`nostr-feed__content ${className}`}>
-      <div className="px-4 nostr-feed__tags-container flex gap-2 overflow-x-auto scrollbar-hide pb-2 px-2" >
+    <div className={`${styles.nostrFeedContent} ${className}`}>
+      <div className={styles.nostrFeedTagsContainer}>
         {tags.map((tag, index) => (
           <div
             className={`px-2 py-0.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-150 border border-gray-400 text-xs font-medium mr-1
@@ -263,7 +264,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
         ))}
       </div>
       {notesData.length === 0 && !isLoadingMore ? (
-        <div className="nostr-feed__empty-state">
+        <div className={styles.nostrFeedEmptyState}>
           <p>No events found. Try following more users or changing filters.</p>
           <div className="mt-4 text-sm text-gray-500">
             <p>- Connected to {ndk.pool?.relays?.size || 0} relays</p>
@@ -279,7 +280,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
       ) : (
         <div 
         // className="nostr-feed__content overflow-y-auto max-h-[80vh] "
-        className="nostr-feed__content"
+        className={styles.nostrFeedContent}
         >
 
           {notesData.map((event, index) => {
@@ -309,7 +310,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
           )}
 
           {!hasMoreContent && notesData.length > 0 && (
-            <div className="nostr-feed__end py-4 text-center text-gray-500">
+            <div className={styles.nostrFeedEnd}>
               No more content to load
             </div>
           )}

@@ -3,6 +3,7 @@ import { useEditProfile, useAuth, useProfile } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useUIStore } from '@/store/uiStore';
+import Image from 'next/image';
 export const NostrProfileEditForm = () => {
 
     const editProfile = useEditProfile()
@@ -171,7 +172,7 @@ export const NostrProfileEditForm = () => {
               hover:file:bg-blue-100"
                     />
                     {formData.picture && (
-                        <img
+                        <Image
                             src={formData.picture}
                             alt="Profile preview"
                             className="h-12 w-12 rounded-full object-cover"
@@ -221,7 +222,7 @@ export const NostrProfileEditForm = () => {
               hover:file:bg-blue-100"
                     />
                     {formData.banner && (
-                        <img
+                            <Image
                             src={formData.banner}
                             alt="Banner preview"
                             className="h-20 w-32 object-cover rounded"

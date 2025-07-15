@@ -70,7 +70,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                 {brand && (
                     <div className="w-full max-w-lg mx-auto flex flex-col items-left gap-2 mb-1" aria-label="Brand summary card">
                         <div className="flex flex-row items-center gap-2">
-                            <img src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-20 h-20 object-cover rounded-full" />
+                            <Image src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-20 h-20 object-cover rounded-full" />
                             <h2 className="text-base font-semibold text-center truncate-ellipsis mb-1" title={brand?.name}>{brand?.name}</h2>
                             {/* <div className="flex justify-center">
                                 {brand?.twitter_handle && (
@@ -135,7 +135,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                                         className={`rounded-md p-1  flex flex-row items-center gap-1 cursor-pointer transition ${activePlatformLeaderboard === leaderboard.platform ? "ring-2 ring-blue-500" : ""}`}
                                         onClick={() => setActivePlatformLeaderboard(leaderboard.platform)}>
                                         <p className="font-medium mb-1 italic text-xs">{leaderboard.platform}</p>
-                                        <img src={`/assets/icons/${leaderboard.platform}.svg`} alt={leaderboard.platform} className="w-8 h-8 object-cover rounded-full" />
+                                        <Image src={`/assets/icons/${leaderboard.platform}.svg`} alt={leaderboard.platform} className="w-8 h-8 object-cover rounded-full" />
                                     </div>
                                 ))}
                             </div>
@@ -161,7 +161,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                                                             {/* Avatar + Username */}
                                                             <td className="px-2 sm:px-3 py-2 flex items-center gap-2 max-w-[120px]">
                                                                 {user?.avatar_url && (
-                                                                    <img src={user.avatar_url} alt={user.name} className="w-7 h-7 object-cover rounded-full" />
+                                                                    <Image src={user.avatar_url} alt={user.name} className="w-7 h-7 object-cover rounded-full" />
                                                                 )}
                                                                 <span className="truncate-ellipsis" title={user?.name}>
                                                                     {user?.name && user.name.length > 14 ? user.name.slice(0, 14) + '…' : user?.name}

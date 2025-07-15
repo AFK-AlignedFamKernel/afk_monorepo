@@ -61,7 +61,7 @@ export const Holders: React.FC<HoldersProps> = ({ holders, loading, total_supply
                 </th>
               </tr>
             </thead>
-            <tbody className="dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 min-h-[300px] max-h-[300px] overflow-y-auto">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700 min-h-[300px] max-h-[300px] overflow-y-auto">
               {holders && holders.length > 0 && holders?.map((holder, index) => {
                 const amount = Number(holder.amount_owned) || 0;
                 const supplyPercentage = total_supply ? (amount / total_supply) * 100 : 0;

@@ -6,11 +6,11 @@ import NDK from "@nostr-dev-kit/ndk";
 export const checkIsConnected = async (ndk: NDK) => {
   try {
     const connectedRelays = ndk.pool.connectedRelays();
-    console.log("connectedRelays", connectedRelays);
+    //  console.log("connectedRelays", connectedRelays);
     if (connectedRelays.length === 0) {
-      console.log("no connected relays");
+      console.log("no connected relays, please wait");
       await ndk.connect();
-      console.log("connected relays", ndk.pool.connectedRelays());
+      // console.log("connected relays", ndk.pool.connectedRelays());
     }
 
     return true;

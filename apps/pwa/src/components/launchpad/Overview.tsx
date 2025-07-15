@@ -3,6 +3,7 @@ import React from 'react';
 import { Icon } from '../small/icon-component';
 import Image from 'next/image';
 import Link from 'next/link';
+// import styles from '@/styles/launchpad.module.scss';
 interface OverviewProps {
   data: any; // Replace with your actual data type
 }

@@ -38,4 +38,26 @@ const cartridgeConnector = new ControllerConnector(
   options
 ) as never as Connector;
 
+
+// const cartridgeConnector = new ControllerConnector({
+//   url: cartridgeProvider()?.nodeUrl ?? 'https://api.cartridge.gg/x/starknet/sepolia',
+//   // url: 'https://api.cartridge.gg/x/starknet/sepolia',
+//   defaultChainId: CHAIN_ID,
+//   chains: [
+//     {
+//       rpcUrl: cartridgeProvider()?.nodeUrl ?? 'https://api.cartridge.gg/x/starknet/sepolia',
+//     },
+//   ],
+// });
+
+// const cartridgeConnector = new ControllerConnector({
+//   url: 'https://api.cartridge.gg/x/starknet/sepolia',
+//   defaultChainId: CHAIN_ID,
+//   chains: [
+//     {
+//       rpcUrl: 'https://api.cartridge.gg/x/starknet/sepolia',
+//     },
+//   ],
+// });
+
 export default cartridgeConnector;

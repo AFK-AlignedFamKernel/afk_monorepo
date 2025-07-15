@@ -1,6 +1,6 @@
 import { useConnect, Connector } from "@starknet-react/core"
 import {  StarknetkitConnector, useStarknetkitConnectModal } from "starknetkit"
-import { connectors } from "./connectors"
+import { connectors } from "../../../context/connectors"
 
 const ConnectStarknetkitModal = () => {
   const { connectAsync, connectors:connectorsConnect } = useConnect()

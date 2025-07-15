@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from '../../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
 import QRCode from 'react-qr-code';
-
+import styles from '@/styles/components/_cashu-wallet.module.scss';
 interface CashuReceiveModalProps {
   onClose: () => void;
   mint: string;
@@ -234,12 +234,12 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
   };
 
   return (
-    <div className="cashu-wallet__modal">
-      <div className="cashu-wallet__modal-content">
-        <div className="cashu-wallet__modal-content-header">
-          <h3 className="cashu-wallet__modal-content-header-title">Receive</h3>
+    <div className={styles['cashu-wallet__modal']}>
+      <div className={styles['cashu-wallet__modal-content']}>
+        <div className={styles['cashu-wallet__modal-content-header']}>
+          <h3 className={styles['cashu-wallet__modal-content-header-title']}>Receive</h3>
           <button
-            className="cashu-wallet__modal-content-header-close"
+            className={styles['cashu-wallet__modal-content-header-close']}
             onClick={onClose}
             aria-label="Close"
           >
@@ -247,33 +247,33 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
           </button>
         </div>
         
-        <div className="cashu-wallet__tabs">
+        <div className={styles['cashu-wallet__tabs']}>
           <div
-            className={`cashu-wallet__tabs-item ${activeTab === 'lightning' ? 'cashu-wallet__tabs-item--active' : ''}`}
+            className={styles['cashu-wallet__tabs-item'] + ' ' + (activeTab === 'lightning' ? styles['cashu-wallet__tabs-item--active'] : '')}
             onClick={() => handleTabChange('lightning')}
           >
             Lightning
           </div>
           <div
-            className={`cashu-wallet__tabs-item ${activeTab === 'ecash' ? 'cashu-wallet__tabs-item--active' : ''}`}
+            className={styles['cashu-wallet__tabs-item'] + ' ' + (activeTab === 'ecash' ? styles['cashu-wallet__tabs-item--active'] : '')}
             onClick={() => handleTabChange('ecash')}
           >
             Ecash
           </div>
         </div>
         
-        <div className="cashu-wallet__modal-content-body">
+        <div className={styles['cashu-wallet__modal-content-body']}>
           {activeTab === 'lightning' && (
             <>
               {!invoice ? (
                 <form onSubmit={handleCreateInvoice}>
-                  <div className="cashu-wallet__form-group">
-                    <label className="cashu-wallet__form-group-label">
+                  <div className={styles['cashu-wallet__form-group']}>
+                    <label className={styles['cashu-wallet__form-group-label']}>
                       Amount ({unit})
                     </label>
                     <input
                       type="number"
-                      className="cashu-wallet__form-group-input"
+                      className={styles['cashu-wallet__form-group-input']}
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       min="1"
@@ -284,14 +284,14 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
                   
                   <button
                     type="submit"
-                    className="cashu-wallet__button cashu-wallet__button--primary"
+                    className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
                     disabled={isProcessing || !amount}
                   >
                     {isProcessing ? 'Processing...' : 'Create Invoice'}
                   </button>
                 </form>
               ) : (
-                <div className="cashu-wallet__invoice">
+                <div className={styles['cashu-wallet__invoice']}>
                   {/* QR Code Display */}
                   <div style={{ 
                     display: 'flex', 
@@ -334,15 +334,15 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
                     
                     <button
                       onClick={downloadQRCode}
-                      className="cashu-wallet__button cashu-wallet__button--secondary"
+                      className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--secondary']}
                       style={{ marginTop: '12px' }}
                     >
                       Download QR Code
                     </button>
                   </div>
                   
-                  <div className="cashu-wallet__form-group">
-                    <label className="cashu-wallet__form-group-label">
+                  <div className={styles['cashu-wallet__form-group']}>
+                    <label className={styles['cashu-wallet__form-group-label']}>
                       Invoice Details
                     </label>
                     <div style={{ 
@@ -350,7 +350,7 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
                       marginBottom: '8px' 
                     }}>
                       <textarea
-                        className="cashu-wallet__form-group-textarea"
+                        className={styles['cashu-wallet__form-group-textarea']}
                         value={invoice}
                         readOnly
                         style={{ 
@@ -391,13 +391,13 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
                   
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button
-                      className="cashu-wallet__button cashu-wallet__button--primary"
+                      className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
                       onClick={handleCopyInvoice}
                     >
                       {isCopied ? 'Copied!' : 'Copy Invoice'}
                     </button>
                     <button
-                      className="cashu-wallet__button cashu-wallet__button--secondary"
+                      className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--secondary']}
                       onClick={() => setInvoice('')}
                     >
                       New Invoice
@@ -407,7 +407,7 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
                   {onCheckPayment && (
                     <div>
                       <button
-                        className="cashu-wallet__button cashu-wallet__button--secondary"
+                        className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--secondary']}
                         onClick={() => onCheckPayment(transaction)}
                       >
                         Check Payment
@@ -423,12 +423,12 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
           
           {activeTab === 'ecash' && (
             <form onSubmit={handleReceiveEcash}>
-              <div className="cashu-wallet__form-group">
-                <label className="cashu-wallet__form-group-label">
+              <div className={styles['cashu-wallet__form-group']}>
+                <label className={styles['cashu-wallet__form-group-label']}>
                   Ecash Token
                 </label>
                 <textarea
-                  className="cashu-wallet__form-group-textarea"
+                  className={styles['cashu-wallet__form-group-textarea']}
                   value={ecashToken}
                   onChange={(e) => setEcashToken(e.target.value)}
                   placeholder="Paste Cashu token (cashuXYZ...)"
@@ -438,7 +438,7 @@ export const CashuReceiveModal: React.FC<CashuReceiveModalProps> = ({
               
               <button
                 type="submit"
-                className="cashu-wallet__button cashu-wallet__button--primary"
+                className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
                 disabled={isProcessing || !ecashToken}
               >
                 {isProcessing ? 'Processing...' : 'Redeem Token'}

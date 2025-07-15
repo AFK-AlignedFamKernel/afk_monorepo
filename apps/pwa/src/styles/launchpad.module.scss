@@ -1,0 +1,128 @@
+// Launchpad styles
+.launchpadCard {
+  background-color: var(--shade-50);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--shade-200);
+}
+
+.launchpad {
+  &-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    .filter-button {
+      padding: 0.5rem 1rem;
+      border-radius: 0.25rem;
+      background-color: var(--shade-100);
+      border: 1px solid var(--shade-200);
+      color: var(--shade-800);
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+
+      &:hover {
+        background-color: var(--shade-200);
+      }
+
+      &.active {
+        background-color: var(--shade-300);
+        border-color: var(--shade-400);
+      }
+    }
+  }
+
+  &-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+
+  .filter-section {
+    .filter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      background-color: var(--shade-100);
+      border-radius: 0.25rem;
+      cursor: pointer;
+      margin-bottom: 1rem;
+
+      &:hover {
+        background-color: var(--shade-200);
+      }
+    }
+
+    .filter-body {
+      padding: 1rem;
+      background-color: var(--shade-50);
+      border-radius: 0.25rem;
+      border: 1px solid var(--shade-200);
+    }
+  }
+
+  .action-toggle {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: var(--shade-100);
+      border-radius: 2px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: var(--shade-300);
+      border-radius: 2px;
+    }
+
+    button {
+      white-space: nowrap;
+    }
+  }
+}
+
+// Dark mode adjustments
+.dark-mode {
+  .launchpad {
+    &-filters {
+      .filter-button {
+        background-color: var(--shade-800);
+        border-color: var(--shade-700);
+        color: var(--shade-200);
+
+        &:hover {
+          background-color: var(--shade-700);
+        }
+
+        &.active {
+          background-color: var(--shade-600);
+          border-color: var(--shade-500);
+        }
+      }
+    }
+
+    .filter-section {
+      .filter-header {
+        background-color: var(--shade-800);
+
+        &:hover {
+          background-color: var(--shade-700);
+        }
+      }
+
+      .filter-body {
+        background-color: var(--shade-900);
+        border-color: var(--shade-700);
+      }
+    }
+  }
+}

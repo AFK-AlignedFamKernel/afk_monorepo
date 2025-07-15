@@ -3,22 +3,19 @@
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import { useAccount } from '@starknet-react/core';
-import { WalletConnectButton } from './account/WalletConnectButton';
 import { NostrKeyManager, useAuth } from 'afk_nostr_sdk';
 import { Icon } from './small/icon-component';
 import { useRouter } from 'next/navigation';
 import CryptoLoading from './small/crypto-loading';
 import Image from 'next/image';
 import { useUIStore } from '@/store/uiStore';
-import Accordion from './small/accordion';
 import RightBarDesktop from './RightBarDesktop';
-
 import { ProfileManagement } from '@/components/profile/profile-management';
 import { AvatarIcon } from './small/icons';
-import AccordionMenu from './small/AccordionMenu';
 import MobileBottomBar from './MobileBottomBar';
 import { logClickedEvent } from '@/lib/analytics';
 import CreateAll from './Form/CreateAll';
+import { ButtonPrimary } from './button/Buttons';
 
 interface LayoutProps {
   children: ReactNode;
@@ -372,12 +369,19 @@ const Layout = ({ children }: LayoutProps) => {
 
 
               <div className="flex items-center gap-4">
-                <button className="btn btn-gradient-green" onClick={() => {
+
+                <ButtonPrimary
+                  onClick={() => {
+                    showModal(<ProfileManagement />)
+                    logClickedEvent("connect_modal_open", "click", "link_drawer")
+                  }}
+                >Connect</ButtonPrimary>
+                {/* <button className="btn btn-gradient-green" onClick={() => {
                   showModal(<ProfileManagement />)
                   logClickedEvent("connect_modal_open", "click", "link_drawer")
                 }}>
                   Connect
-                </button>
+                </button> */}
               </div>
               <button
                 className=" justify-end theme-toggle"

@@ -16,6 +16,8 @@ import { QuoteRepostComponent } from './quote-repost-component';
 import { ContentWithClickableHashtags } from './ClickableHashtags';
 import { logClickedEvent } from '@/lib/analytics';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
+import Image from 'next/image';
+import styles from '@/styles/nostr/feed.module.scss';
 interface ArticleEventCardProps extends NostrArticleEventProps {
   profile?: NDKUserProfile;
   event: NDKEvent;
@@ -109,11 +111,13 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
           </button>
         </div>
         {image && (
-          <div className="media-container mb-3 w-full flex justify-center">
-            <img
+          <div className={styles.mediaContainer + ' mb-3 w-full flex justify-center'}>
+            <Image
               src={image}
               alt={title}
-              className="image-content max-w-full h-auto rounded-md object-contain"
+              width={400}
+              height={300}
+              className={styles.imageContent + ' max-w-full h-auto rounded-md object-contain'}
               style={{ maxHeight: '200px', width: '100%', objectFit: 'cover' }}
             />
           </div>
@@ -138,14 +142,14 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
             {isExpanded ? 'Read Less' : 'Read More'}
           </button>
         </div>
-        <div className="action-buttons flex flex-wrap gap-2 my-2" role="group" aria-label="Article actions">
-          <button className="action-button" aria-label="Reply" onClick={() => {
+        <div className={styles.actionButtons + " flex flex-wrap gap-8 my-2"} role="group" aria-label="Article actions">
+          <button className={styles.actionButton} aria-label="Reply" onClick={() => {
             setIsOpenComment(!isOpenComment);
             logClickedEvent('reply_to_note', 'Interaction', 'Button Click', 1);
           }}>
             <Icon name="CommentIcon" size={20} />
           </button>
-          <button className={`action-button ${isLiked ? '' : ''}`} aria-label="Like" onClick={toggleLike}>
+          <button className={`${styles.actionButton} ${isLiked ? '' : ''}`} aria-label="Like" onClick={toggleLike}>
             <Icon name="LikeIcon" size={20}
               className={`${isLiked ? 'text-red-500' : ''}`}
               onClick={() => {
@@ -153,7 +157,7 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
               }}
             />
           </button>
-          <button className="action-button" aria-label="Repost" onClick={() => {
+          <button className={styles.actionButton} aria-label="Repost" onClick={() => {
             const isNostrConnected = handleCheckNostrAndSendConnectDialog();
             if (isNostrConnected) {
               showModal(<QuoteRepostComponent event={event} />);
@@ -162,14 +166,14 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
           }}>
             <Icon name="RepostIcon" size={20}></Icon>
           </button>
-          <button className="action-button" aria-label="Share" onClick={() => {
+          <button className={styles.actionButton} aria-label="Share" onClick={() => {
             navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
             showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
             logClickedEvent('share_note_link', 'Interaction', 'Button Click', 1);
           }}>
             <Icon name="ShareIcon" size={20} />
           </button>
-          <button className="action-button" aria-label="Tip" onClick={() => {
+          <button className={styles.actionButton} aria-label="Tip" onClick={() => {
             handleTipsModal();
             logClickedEvent('tip_note', 'Interaction', 'Button Click', 1);
           }}>

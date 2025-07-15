@@ -18,6 +18,7 @@ import Link from 'next/link';
 import { useCreatorsStore } from '@/store/creators';
 import { IContentCreator } from '@/types/brand';
 import { logClickedEvent } from '@/lib/analytics';
+import Image from 'next/image';
   
 
 export const ManageCreatorProfile: React.FC = () => {
@@ -247,7 +248,7 @@ export const ManageCreatorProfile: React.FC = () => {
         </button> */}
         {fileUrl && (
           <div className="mt-2 flex justify-center">
-            <img src={fileUrl} alt="File" className="max-w-[160px] h-auto rounded-lg border shadow object-cover" />
+            <Image src={fileUrl} alt="File" className="max-w-[160px] h-auto rounded-lg border shadow object-cover" />
           </div>
         )}
       </div>

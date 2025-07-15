@@ -5,6 +5,7 @@ import { useUIStore } from "@/store/uiStore";
 import { useState } from "react";
 import { Oauth } from "../profile/Oauth";
 import { useFileUpload } from "@/hooks/useFileUpload";
+import Image from "next/image";
 
 interface DebateCreateFormProps {
     community_id?: string;
@@ -90,7 +91,7 @@ export default function DebateCreateForm({ community_id, community_name }: Debat
             <input type="file" name="image" onChange={handleFileChange}
                 className="input input-bordered w-full max-w-xs my-4"
             />
-            {image && <img src={URL.createObjectURL(image)} alt="Image" className="w-full max-w-xs my-4" />}
+            {image && <Image src={URL.createObjectURL(image)} alt="Image" className="w-full max-w-xs my-4" />}
             <button
             className="btn btn-primary"
             onClick={handleSubmit}>Create debate</button>

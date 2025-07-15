@@ -2,6 +2,7 @@
 
 import {Box} from '@chakra-ui/react';
 import {motion} from 'framer-motion';
+import Image from 'next/image';
 import Link from 'next/link';
 import {useEffect} from 'react';
 
@@ -36,7 +37,7 @@ export function MobileNavBar({setToggle, toggle}: Props) {
     <Box className="absolute inset-0 z-[900]   backdrop-blur-[30px] lg:hidden">
       <Box className={`list-none pt-[60px] text-center`}>
         <div className="absolute right-[51px] top-[39px] h-fit w-fit" onClick={toggleNav}>
-          <img src="/assets/cancel-icon.svg" alt="" />
+          <Image src="/assets/cancel-icon.svg" alt="" />
         </div>
 
         <motion.div

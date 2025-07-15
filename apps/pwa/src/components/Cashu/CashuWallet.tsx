@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Icon } from '../small/icon-component';
-
+import styles from '@/styles/components/_cashu-wallet.module.scss';
 interface CashuWalletProps {
   children: ReactNode;
   onOpenSettings: () => void;
@@ -11,11 +11,11 @@ export const CashuWallet: React.FC<CashuWalletProps> = ({
   onOpenSettings,
 }) => {
   return (
-    <div className="cashu-wallet">
-      <div className="cashu-wallet__header">
-        <h2 className="cashu-wallet__header-title">Cashu Wallet</h2>
+    <div className={styles['cashu-wallet']}>
+      <div className={styles['cashu-wallet__header']}>
+        <h2 className={styles['cashu-wallet__header-title']}>Cashu Wallet</h2>
         <button
-          className="cashu-wallet__header-settings"
+          className={styles['cashu-wallet__header-settings']}
           onClick={onOpenSettings}
           aria-label="Settings"
         >

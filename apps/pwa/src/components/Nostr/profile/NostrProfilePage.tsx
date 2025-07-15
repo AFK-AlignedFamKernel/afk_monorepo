@@ -10,6 +10,7 @@ import { useNostrContext } from 'afk_nostr_sdk'
 import { TipNostrUser } from '../tips/tip-user'
 import { logClickedEvent } from '@/lib/analytics'
 import { Icon } from '@/components/small/icon-component'
+import Image from 'next/image'
 
 export default function NostrProfilePage({ address }: { address: string }) {
   console.log("address", address)
@@ -227,7 +228,7 @@ const ProfileHeader = (props?: any) => {
     <div>
       <div className="flex items-center gap-4">
         {profile?.picture && (
-          <img
+          <Image
             src={profile?.picture}
             alt="Profile"
             className="w-32 h-32 rounded-full mb-4"

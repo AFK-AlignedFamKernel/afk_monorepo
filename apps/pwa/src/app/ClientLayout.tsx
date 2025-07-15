@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
@@ -40,8 +40,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     }
   }, [pathname]);
 
-  const bgColor = useColorModeValue('gray.300', 'gray.700');
-  const textColor = useColorModeValue('gray.800', 'gray.300');
+  // const bgColor = useColorModeValue('gray.300', 'gray.700');
+  // const textColor = useColorModeValue('gray.800', 'gray.300');
 
   const { ndk } = useNostrContext()
   const [isConnectedLoading, setIsConnectedLoading] = useState(false)
@@ -78,7 +78,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   // if (!isReady) return <PageLoader />;
 
   return (
-    <Box bg={bgColor} color={textColor}>
+    <Box 
+    
+    // bg={bgColor} color={textColor}
+    >
       <Layout>{children}</Layout>
     </Box>
   );

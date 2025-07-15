@@ -11,40 +11,21 @@ import {
 import { InjectedConnector } from "starknetkit/injected"
 import { WebWalletConnector } from "starknetkit/webwallet"
 import { getStarknet } from "@starknet-io/get-starknet-core"
-import { ControllerConnector } from "@cartridge/connector"
-import { sepolia, mainnet } from "@starknet-react/chains";
-import {
-  StarknetConfig,
-  publicProvider,
-  argent,
-  braavos,
-  useInjectedConnectors,
-  voyager,
-  Connector,
-  jsonRpcProvider,
-  cartridgeProvider,
-} from "@starknet-react/core";
-import cartridgeConnector from "./CartbridgeConnector"
-// const cartridgeConnector = new ControllerConnector({
-//   url: cartridgeProvider()?.nodeUrl ?? 'https://api.cartridge.gg/x/starknet/sepolia',
-//   // url: 'https://api.cartridge.gg/x/starknet/sepolia',
-//   defaultChainId: CHAIN_ID,
-//   chains: [
-//     {
-//       rpcUrl: cartridgeProvider()?.nodeUrl ?? 'https://api.cartridge.gg/x/starknet/sepolia',
-//     },
-//   ],
-// });
+// import { ControllerConnector } from "@cartridge/connector"
+// import { sepolia, mainnet } from "@starknet-react/chains";
+// import {
+//   StarknetConfig,
+//   publicProvider,
+//   argent,
+//   braavos,
+//   useInjectedConnectors,
+//   voyager,
+//   Connector,
+//   jsonRpcProvider,
+//   cartridgeProvider,
+// } from "@starknet-react/core";
+// import cartridgeConnector from "./CartbridgeConnector"
 
-// const cartridgeConnector = new ControllerConnector({
-//   url: 'https://api.cartridge.gg/x/starknet/sepolia',
-//   defaultChainId: CHAIN_ID,
-//   chains: [
-//     {
-//       rpcUrl: 'https://api.cartridge.gg/x/starknet/sepolia',
-//     },
-//   ],
-// });
 const isMobileDevice = () => {
   if (typeof window === "undefined") {
     return false
@@ -94,7 +75,7 @@ export const availableConnectors = () => {
     }),
     isMobileDevice() ? BraavosMobileConnector.init({}) : null,
     new WebWalletConnector({ url: ARGENT_WEBWALLET_URL, theme: "dark" }),
-    cartridgeConnector
+    // cartridgeConnector
   ].filter((connector) => connector !== null)
 }
 

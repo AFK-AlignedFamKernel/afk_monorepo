@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import classNames from 'classnames';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import styles from '@/styles/components/_nostr-form.module.scss';
 export type NostrEventType = 'note' | 'article';
 
 interface TagsFormProps {
@@ -59,17 +60,17 @@ export const TagsForm: React.FC<TagsFormProps> = ({
 
 
 
-      <div className="nostr-form__field">
-        <label htmlFor="tags" className="nostr-form__label">
+      <div className={styles['nostr-form__field']}>
+        <label htmlFor="tags" className={styles['nostr-form__label']}>
           Tags
         </label>
-        <div className="nostr-form__tags">
+        <div className={styles['nostr-form__tags']}>
           {tagsRendered?.map((tag) => (
-            <span key={tag} className="nostr-form__tag">
+            <span key={tag} className={styles['nostr-form__tag']}>
               #{tag}
               <button
                 type="button"
-                className="nostr-form__tag-remove"
+                className={styles['nostr-form__tag-remove']}
                 onClick={() => removeTag(tag)}
               >
                 ×
@@ -79,7 +80,7 @@ export const TagsForm: React.FC<TagsFormProps> = ({
           <input
             type="text"
             id="tags"
-            className="nostr-form__tag-input"
+            className={styles['nostr-form__tag-input']}
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={handleTagAdd}

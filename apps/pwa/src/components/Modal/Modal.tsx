@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import classNames from 'classnames';
-import '../../styles/components/_modal.scss';
+import styles from '../../styles/components/modal.module.scss';
 
 type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 type ModalHeight = 'auto' | 'sm' | 'md' | 'lg' | 'full';
@@ -62,39 +62,39 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="modal" data-theme={theme}>
+    <div className={styles.modal} data-theme={theme}>
       <div
-        className={classNames('modal__overlay', {
-          'modal__overlay--visible': isOpen,
+        className={classNames(styles['modal__overlay'], {
+          [styles['modal__overlay--visible']]: isOpen,
         })}
         onClick={handleOverlayClick}
       />
-      <div className="modal__container">
-        <div className="modal__content">
+      <div className={styles['modal__container']}>
+        <div className={styles['modal__content']}>
           <div
             className={classNames(
-              'modal__panel',
+              styles['modal__panel'],
               {
-                'modal__panel--visible': isOpen,
-                [`modal__panel--${size}`]: size,
-                [`modal__panel--h-${height}`]: height,
-                [`modal__panel--${position}`]: position,
-                [`modal__panel--scroll-${scrollBehavior}`]: scrollBehavior,
+                [styles['modal__panel--visible']]: isOpen,
+                [styles[`modal__panel--${size}`]]: size,
+                [styles[`modal__panel--h-${height}`]]: height,
+                [styles[`modal__panel--${position}`]]: position,
+                [styles[`modal__panel--scroll-${scrollBehavior}`]]: scrollBehavior,
               },
               className
             )}
             onClick={(e) => e.stopPropagation()}
           >
 
-            <div className='modal__content-container'>
+            <div className={styles['modal__content-container']}>
               {showCloseButton && (
                 <button
-                  className="modal__close-button"
+                  className={styles['modal__close-button']}
                   onClick={onClose}
                   aria-label="Close modal"
                 >
                   <svg
-                    className="h-6 w-6"
+                    className={' h-6 w-6'}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"

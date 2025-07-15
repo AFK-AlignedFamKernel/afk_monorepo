@@ -9,6 +9,7 @@ import { useUIStore } from '@/store/uiStore'
 import { FeedTabsProfile } from '@/components/Nostr/feed/FeedTabsProfile'
 import NostrCreateAccountComponent from './login/NostrCreateAccount'
 import { NostrProfileManagement } from './profile/nostr-profile-management'
+import Image from 'next/image'
 export default function MyNostrProfileComponent() {
   const { publicKey, setAuth } = useAuth()
   const { ndk } = useNostrContext()
@@ -126,14 +127,14 @@ export const ProfileHeader = (props?: any) => {
   return (
     <div className="relative rounded-xl shadow-md overflow-hidden mb-4">
       {profile.banner && (
-        <img
+        <Image
           src={profile.banner}
           alt="Profile Banner"
           className="w-full h-32 md:h-48 object-cover"
         />
       )}
       <div className="flex flex-col items-center -mt-12 pb-4">
-        <img
+        <Image
           src={profile.picture}
           alt="Profile"
           className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-900 shadow-lg"
