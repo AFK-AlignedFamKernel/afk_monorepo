@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import classNames from 'classnames';
-import '../../styles/components/_toast.scss';
+import styles from '../../styles/components/toast.module.scss';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -36,18 +36,18 @@ export const Toast: React.FC<ToastProps> = ({
   return (
     <div
       className={classNames(
-        'toast',
+        styles.toast,
         {
-          'toast--visible': visible,
-          [`toast--${type}`]: type,
+          [styles['toast--visible']]: visible,
+          [styles[`toast--${type}`]]: type,
         },
         className
       )}
     >
-      <div className="toast__content flex items-center justify-between">
+      <div className={styles['toast__content']}>
         <p>{message}</p>
         <button
-          className="toast__close ml-4 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
+          className={styles['toast__close']}
           aria-label="Close toast"
           onClick={onHide}
         >

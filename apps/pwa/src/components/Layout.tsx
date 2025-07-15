@@ -15,6 +15,7 @@ import { AvatarIcon } from './small/icons';
 import MobileBottomBar from './MobileBottomBar';
 import { logClickedEvent } from '@/lib/analytics';
 import CreateAll from './Form/CreateAll';
+import { ButtonPrimary } from './button/Buttons';
 
 interface LayoutProps {
   children: ReactNode;
@@ -368,12 +369,19 @@ const Layout = ({ children }: LayoutProps) => {
 
 
               <div className="flex items-center gap-4">
-                <button className="btn btn-gradient-green" onClick={() => {
+
+                <ButtonPrimary
+                  onClick={() => {
+                    showModal(<ProfileManagement />)
+                    logClickedEvent("connect_modal_open", "click", "link_drawer")
+                  }}
+                >Connect</ButtonPrimary>
+                {/* <button className="btn btn-gradient-green" onClick={() => {
                   showModal(<ProfileManagement />)
                   logClickedEvent("connect_modal_open", "click", "link_drawer")
                 }}>
                   Connect
-                </button>
+                </button> */}
               </div>
               <button
                 className=" justify-end theme-toggle"

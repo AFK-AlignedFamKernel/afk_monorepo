@@ -1,22 +1,22 @@
-@import './launchpad.scss';
-@import './loading.scss';
+// @import './launchpad.scss';
+// @import './loading.scss';
 @import './animations.scss';
-@import './components/_button.scss';
+// @import './components/_button.scss';
 @import './components/_input.scss';
 @import './components/_editor.scss';
 // @import './nostr/feed.scss';
-@import './components/_cashu-wallet.scss';
-@import './cashu.css';
-@import './components/modal.scss';
-@import './components/toast.scss'; 
+// @import './components/_cashu-wallet.scss';
+// @import './cashu.css';
+// @import './components/modal.scss';
+// @import './components/toast.scss'; 
 @import 'quill/dist/quill.snow.css';
 @import 'animations.scss';
-@import 'loading.scss';
-@import 'launchpad.scss';
-@import 'components/_cashu-wallet.scss';
+// @import 'loading.scss';
+// @import 'launchpad.scss';
+// @import 'components/_cashu-wallet.scss';
 // @import 'components/nostr-form.scss';
 // @import './chat.scss';
-// @import 'variables.scss';
+@import './variables.scss';
 
 // Use theme colors from the root variables
 :root {
@@ -904,27 +904,6 @@ button.sidebar-nav-footer-item {
 
 
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-} 
-
-@keyframes slideUp {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-} 
 
 .truncate-ellipsis {
   overflow: hidden;
@@ -950,30 +929,30 @@ button.sidebar-nav-footer-item {
   display: block;
 }
 
-.afk-nav-active {
-  position: relative;
-  color: var(--afk-accent-green) !important;
-}
-.afk-nav-active.underline::after {
-  content: '';
-  display: block;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -2px;
-  height: 3px;
-  background: var(--afk-accent-green);
-  border-radius: 2px;
-  box-shadow: 0 0 8px 2px var(--afk-accent-green);
-}
-.afk-nav-active.dot::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--afk-accent-green);
-  box-shadow: 0 0 8px 2px var(--afk-accent-green);
-  margin-right: 6px;
-  vertical-align: middle;
-}
+// .afk-nav-active {
+//   position: relative;
+//   color: var(--afk-accent-green) !important;
+// }
+// .afk-nav-active.underline::after {
+//   content: '';
+//   display: block;
+//   position: absolute;
+//   left: 0;
+//   right: 0;
+//   bottom: -2px;
+//   height: 3px;
+//   background: var(--afk-accent-green);
+//   border-radius: 2px;
+//   box-shadow: 0 0 8px 2px var(--afk-accent-green);
+// }
+// .afk-nav-active.dot::before {
+//   content: '';
+//   display: inline-block;
+//   width: 8px;
+//   height: 8px;
+//   border-radius: 50%;
+//   background: var(--afk-accent-green);
+//   box-shadow: 0 0 8px 2px var(--afk-accent-green);
+//   margin-right: 6px;
+//   vertical-align: middle;
+// }

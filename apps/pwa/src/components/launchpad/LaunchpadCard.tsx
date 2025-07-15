@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import React from 'react';
 import Image from 'next/image';
+import styles from '@/styles/launchpad.module.scss';
 interface LaunchpadCardProps {
   token: {
     token_address: string;
@@ -47,7 +48,7 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
   // console.log("type", type)
 
   return (
-    <div className="card hover:shadow-lg transition-shadow duration-200">
+    <div className={`${styles.launchpadCard} card hover:shadow-lg transition-shadow duration-200`}>
       <div className="flex justify-between items-start gap-2">
         <div className="flex justify-between items-center text-sm">
 

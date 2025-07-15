@@ -104,7 +104,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
 
 
       console.log('imageUrl', imageUrl);
-      values.metadata.url = imageUrl;
+      values.metadata!.url = imageUrl;
       console.log('values', values);
 
       let metadata = {
@@ -268,9 +268,9 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
                     <input type="file" id="file" className="nostr-form__input w-100" onChange={(e) => setFile(e.target.files?.[0] || null)} />
 
 
-                    {errors.metadata?.url && touched.metadata?.url && (
-                      <p className="mt-1 text-sm text-red-600">{errors.metadata.url}</p>
-                    )}
+                      {errors.metadata?.url && touched.metadata?.url && (
+                        <p className="mt-1 text-sm text-red-600">{errors.metadata.url}</p>
+                      )}
                   </div>
 
                   <div>

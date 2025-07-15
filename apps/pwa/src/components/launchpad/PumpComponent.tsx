@@ -11,6 +11,7 @@ import { useUIStore } from '@/store/uiStore';
 import Image from 'next/image';
 import Link from "next/link"
 import { Icon } from '../small/icon-component';
+import styles from '@/styles/launchpad.module.scss';
 
 interface TokenDeployInterface {
   token_address: string;
