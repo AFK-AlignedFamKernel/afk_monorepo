@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import classNames from 'classnames';
-import '../../styles/components/_nostr-form.scss';
+import styles from '../../styles/components/_nostr-form.module.scss';
 import { useAuth, useSendArticle } from "afk_nostr_sdk"
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useUIStore } from '@/store/uiStore';
@@ -204,19 +204,19 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
 
   return (
     <form
-      className={classNames('nostr-form', className)}
+      className={classNames(styles['nostr-form'], className)}
       onSubmit={handleSubmit}
       data-theme="light"
     >
-      <div className="nostr-form__field">
-        <label htmlFor="title" className="nostr-form__label">
+      <div className={styles['nostr-form__field']}>
+        <label htmlFor="title" className={styles['nostr-form__label']}>
           Title
         </label>
         <input
           type="text"
           id="title"
-          className={classNames('nostr-form__input', {
-            'nostr-form__input--error': errors.title,
+          className={classNames(styles['nostr-form__input'], {
+            [styles['nostr-form__input--error']]: errors.title,
           })}
           value={formData.title}
           onChange={(e) => {
@@ -226,13 +226,13 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
           placeholder="Enter title"
         />
         {errors.title && (
-          <span className="nostr-form__error">{errors.title}</span>
+          <span className={styles['nostr-form__error']}>{errors.title}</span>
         )}
       </div>
 
 
-      <div className="nostr-form__field">
-        <label htmlFor="content" className="nostr-form__label">
+      <div className={styles['nostr-form__field']}>
+        <label htmlFor="content" className={styles['nostr-form__label']}>
           Content
         </label>
         <Editor
@@ -256,8 +256,8 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
         />
         {/* <textarea
           id="content"
-          className={classNames('nostr-form__textarea', {
-            'nostr-form__textarea--error': errors.content,
+          className={classNames(styles['nostr-form__textarea'], {
+            [styles['nostr-form__textarea--error']]: errors.content,
           })}
           value={formData.content}
           onChange={(e) =>
@@ -267,21 +267,21 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
           rows={formData.type === 'article' ? 10 : 4}
         /> */}
         {errors.content && (
-          <span className="nostr-form__error">{errors.content}</span>
+          <span className={styles['nostr-form__error']}>{errors.content}</span>
         )}
       </div>
 
-      <div className="nostr-form__field">
-        <label htmlFor="tags" className="nostr-form__label">
+      <div className={styles['nostr-form__field']}>
+        <label htmlFor="tags" className={styles['nostr-form__label']}>
           Tags
         </label>
-        <div className="nostr-form__tags">
+        <div className={styles['nostr-form__tags']}>
           {formData?.tags?.map((tag) => (
-            <span key={tag} className="nostr-form__tag">
+            <span key={tag} className={styles['nostr-form__tag']}>
               #{tag}
               <button
                 type="button"
-                className="nostr-form__tag-remove"
+                className={styles['nostr-form__tag-remove']}
                 onClick={() => removeTag(tag)}
               >
                 ×
@@ -291,7 +291,7 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
           <input
             type="text"
             id="tags"
-            className="nostr-form__tag-input"
+            className={styles['nostr-form__tag-input']}
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
             onKeyDown={handleTagAdd}
@@ -300,8 +300,8 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
         </div>
       </div>
 
-      <div className="nostr-form__actions">
-        <button type="submit" className="nostr-form__submit">
+      <div className={styles['nostr-form__actions']}>
+        <button type="submit" className={styles['nostr-form__submit']}>
           {formData.type === 'article' ? 'Publish Article' : 'Post Note'}
         </button>
       </div>
