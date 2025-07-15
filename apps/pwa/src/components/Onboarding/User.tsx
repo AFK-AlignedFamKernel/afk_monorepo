@@ -10,6 +10,7 @@ import { useAuth } from 'afk_nostr_sdk';
 import { useAccount } from '@starknet-react/core';
 import { logClickedEvent } from '@/lib/analytics';
 import ImportPrivateKeyComponent from '../Nostr/login/ImportPrivateKeyComponent';
+import { Icon } from '../small/icon-component';
 
 export default function User() {
   const router = useRouter();
@@ -29,7 +30,11 @@ export default function User() {
   };
 
   const handleBackStep = () => {
-    setStep(step - 1);
+    if (step === 0) {
+      // setIsImportOpen(!isImportOpen);
+    } else {
+      setStep(step - 1);
+    }
   };
 
   const isNostrConnected = useMemo(() => publicKey && address, [publicKey, address]);
@@ -41,7 +46,13 @@ export default function User() {
 
           {step === 0 && <>
             <NostrCreateAccountComponent />
-            <button onClick={() => setIsImportOpen(!isImportOpen)}>{!isImportOpen ? 'Import' : 'Close'}</button>
+            <button onClick={() => setIsImportOpen(!isImportOpen)}
+              className='flex flex-row gap-2 border border-gray-300 px-4 py-2 rounded-md'
+            >{!isImportOpen ? 'Import' : 'Close'}
+            <Icon name="ImportIcon"
+              className='w-4 h-4'
+            />
+            </button>
             {isImportOpen && <div className='flex flex-col gap-4'>
               <ImportPrivateKeyComponent />
             </div>}
@@ -89,7 +100,10 @@ export default function User() {
 
 
           <div className='flex flex-row gap-4 mt-4'>
-            <button onClick={handleBackStep}>Back</button>
+
+            {step != 0 &&
+              <button onClick={handleBackStep}>Back</button>
+            }
 
             {step >= 1 ?
               <button className='border border-gray-300 px-4 py-2 rounded-md' onClick={handleLfg}>LFG</button>

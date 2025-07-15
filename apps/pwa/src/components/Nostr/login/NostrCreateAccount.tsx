@@ -11,7 +11,7 @@ import { logClickedEvent } from '@/lib/analytics';
 import NDK, { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 import { AFK_RELAYS } from 'afk_nostr_sdk';
 
-export default function NostrCreateAccountComponent() {
+export default function NostrCreateAccountComponent({onClose}: {onClose?: () => void}) {
     const [passkey, setPasskey] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
@@ -187,56 +187,74 @@ export default function NostrCreateAccountComponent() {
                 </form>
 
 
-                <div
-                    className="mt-8 space-y-6"
-                >
-                    {newPrivateKey &&
-                        <div>
-                            <div className="flex items-center justify-between">
-                                <p className="font-medium">Private key</p>
+                <div className="mt-8 space-y-8">
+                    {newPrivateKey && (
+                        <div className="rounded-lg border border-yellow-400 p-4 bg-background-secondary dark:bg-background-secondary-dark transition-shadow shadow-md">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <Icon name="ConsoleIcon" size={18} className="text-yellow-500" />
+                                    <p className="font-semibold text-yellow-700 dark:text-yellow-300">Private key</p>
+                                </div>
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         navigator.clipboard.writeText(newPrivateKey);
                                         showToast({
                                             message: 'Private key copied to clipboard',
-                                            description:"Don't share this with anyone",
+                                            description: "Don't share this with anyone",
                                             type: 'success',
-                                        })
-                                        logClickedEvent('create_account_copy_private_key', 'nostr', 'copy_private_key', 1)
+                                        });
+                                        logClickedEvent('create_account_copy_private_key', 'nostr', 'copy_private_key', 1);
                                     }}
-                                    className="text-sm hover:text-indigo-500"
+                                    className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-yellow-700 dark:text-yellow-200 hover:bg-yellow-100 dark:hover:bg-yellow-900 transition"
+                                    aria-label="Copy private key"
                                 >
                                     <Icon name="CopyIcon" size={16} />
                                     Copy
                                 </button>
                             </div>
-                            <span className="mt-1 break-all p-2 rounded text-sm font-mono">
-                                {newPrivateKey}
-                            </span>
+                            <div className="flex items-center gap-2">
+                                <span className="mt-1 break-all p-2 rounded bg-background-light dark:bg-background-dark text-sm font-mono select-all border border-yellow-200 dark:border-yellow-800 w-full">
+                                    {newPrivateKey}
+                                </span>
+                                <span className="ml-2 text-xs text-yellow-600 dark:text-yellow-300 font-medium">Keep this safe!</span>
+                            </div>
+                            <div className="mt-2 text-xs text-yellow-700 dark:text-yellow-300">
+                                <strong>Warning:</strong> Your private key gives full access to your account. Never share it with anyone.
+                            </div>
                         </div>
-                    }
+                    )}
 
                     {newPublicKey && (
-                        <div>
-                            <div className="flex items-center justify-between">
-                                <p className="font-medium">Public key</p>
+                        <div className="rounded-lg border border-green-400 p-4 bg-background-secondary dark:bg-background-secondary-dark transition-shadow shadow">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <Icon name="LoginIcon" size={18} className="text-green-500" />
+                                    <p className="font-semibold text-green-700 dark:text-green-300">Public key</p>
+                                </div>
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         navigator.clipboard.writeText(newPublicKey);
                                         showToast({
                                             message: 'Public key copied to clipboard',
                                             type: 'success',
-                                        })
-                                        logClickedEvent('create_account_copy_public_key', 'nostr', 'copy_public_key', 1)
+                                        });
+                                        logClickedEvent('create_account_copy_public_key', 'nostr', 'copy_public_key', 1);
                                     }}
-                                    className="text-sm hover:text-indigo-500"
+                                    className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-green-700 dark:text-green-200 hover:bg-green-100 dark:hover:bg-green-900 transition"
+                                    aria-label="Copy public key"
                                 >
+                                    <Icon name="CopyIcon" size={16} />
                                     Copy
                                 </button>
                             </div>
-                            <span className="mt-1 break-all p-2 rounded text-sm font-mono">
+                            <span className="mt-1 break-all p-2 rounded bg-background-light dark:bg-background-dark text-sm font-mono select-all border border-green-200 dark:border-green-800 w-full">
                                 {newPublicKey}
                             </span>
+                            <div className="mt-2 text-xs text-green-700 dark:text-green-300">
+                                Share your public key so others can find you.
+                            </div>
                         </div>
                     )}
                 </div>

@@ -944,3 +944,16 @@ export const UnfollowIcon: React.FC<SVGProps<SVGSVGElement>> = (props) => (
     />
   </svg>
 );
+
+
+// Import account icon
+export const ImportIcon: React.FC<SVGProps<SVGSVGElement>> = (props) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" {...props}>
+    {/* User circle */}
+    <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" fill="none" />
+    {/* User shoulders */}
+    <path d="M4 20c0-2.5 3.5-4 8-4s8 1.5 8 4" stroke="currentColor" strokeWidth="2" fill="none" />
+    {/* Import arrow */}
+    <path d="M12 14v5m0 0l-2-2m2 2l2-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
