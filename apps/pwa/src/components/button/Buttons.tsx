@@ -19,7 +19,7 @@ export const ButtonPrimary: React.FC<ButtonProps> = ({ children, onClick, classN
 
 export const ButtonSecondary: React.FC<ButtonProps> = ({ children, onClick, className, disabled, type='button' }) => {
   return (
-    <div className={classNames(styles['btn-secondary'], className)}>
+    <div className={classNames(styles['btn'], styles['btn-secondary'], className)}>
       <button onClick={onClick} disabled={disabled} type={type}>{children}</button>
     </div>
   );
@@ -27,7 +27,7 @@ export const ButtonSecondary: React.FC<ButtonProps> = ({ children, onClick, clas
 
 export const ButtonTertiary: React.FC<ButtonProps> = ({ children, onClick, className, disabled, type='button' }) => {
   return (
-    <div className={classNames(styles['btn-tertiary'], className)}>
+    <div className={classNames(styles['btn'], styles['btn-tertiary'], className)}>
       <button onClick={onClick} disabled={disabled} type={type}>{children}</button>
     </div>
   );
@@ -35,7 +35,7 @@ export const ButtonTertiary: React.FC<ButtonProps> = ({ children, onClick, class
 
 export const BasicButton: React.FC<ButtonProps> = ({ children, onClick, className, disabled, type='button' }) => {
   return (
-    <div className={classNames(styles['btn-basic'], className)}>
+    <div className={classNames(styles['btn'], styles['btn-basic'], className)}>
       <button onClick={onClick} disabled={disabled} type={type}>{children}</button>
     </div>
   );

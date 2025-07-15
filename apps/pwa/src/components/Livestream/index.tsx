@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEditEvent, useGetSingleEvent } from 'afk_nostr_sdk';
 import { Socket } from 'socket.io-client';
-import Hls from 'hls.js';
 import styles from './styles.module.css';
 
 interface LivestreamProps {

@@ -61,8 +61,12 @@ export default function CommunitiesList() {
               className="align-center items-center rounded-lg shadow p-3 flex flex-row gap-3 items-center cursor-pointer">
 
               {community?.logo_url
-                ? <Image src={community?.logo_url} alt={community?.name} width={40} height={40}
-
+                ? <Image
+                  src={community?.logo_url}
+                  alt={community?.name}
+                  width={40}
+                  height={40}
+                  // loading="lazy"
                   className="rounded-full bg-gray-200"
                 />
                 : <span className="text-sm">r/{community.slug_name}</span>
@@ -80,7 +84,11 @@ export default function CommunitiesList() {
           <div> <Icon name="BackIcon" size={24} onClick={() => setSelectedCommunity(null)} /></div>
           <div className="flex flex-row gap-3 items-center">
             <div className="flex flex-row gap-3 items-center">
-              <Image src={selectedCommunity.logo_url} alt={selectedCommunity.name} width={40} height={40}
+              <Image
+                src={selectedCommunity.logo_url}
+                alt={selectedCommunity.name}
+                width={40}
+                height={40}
                 className="rounded-full bg-gray-200"
               />
             </div>

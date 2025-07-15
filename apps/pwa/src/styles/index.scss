@@ -3,13 +3,13 @@
 @import './animations.scss';
 // @import './components/_button.scss';
 @import './components/_input.scss';
-@import './components/_editor.scss';
+// @import './components/_editor.scss';
 // @import './nostr/feed.scss';
 // @import './components/_cashu-wallet.scss';
 // @import './cashu.css';
 // @import './components/modal.scss';
 // @import './components/toast.scss'; 
-@import 'quill/dist/quill.snow.css';
+// @import 'quill/dist/quill.snow.css';
 @import 'animations.scss';
 // @import 'loading.scss';
 // @import 'launchpad.scss';
@@ -92,67 +92,67 @@ body.light-mode {
   border: 1px solid var(--afk-accent-green);
 }
 
-// Button Styles
-.btn-primary {
-  background: var(--afk-accent-green);
-  color: var(--afk-bg-dark);
-  border-radius: 8px;
-  text-transform: uppercase;
-  font-weight: bold;
-  font-family: var(--afk-font-primary, $font-primary);
-  box-shadow: 0 0 8px 0 rgba(0,255,156,0.3);
-  transition: box-shadow 0.2s, background 0.2s;
-  &:hover {
-    background: darken($afk-electric-green, 10%);
-    box-shadow: 0 0 16px 2px $afk-electric-green;
-  }
-}
+// // Button Styles
+// .btn-primary {
+//   background: var(--afk-accent-green);
+//   color: var(--afk-bg-dark);
+//   border-radius: 8px;
+//   text-transform: uppercase;
+//   font-weight: bold;
+//   font-family: var(--afk-font-primary, $font-primary);
+//   box-shadow: 0 0 8px 0 rgba(0,255,156,0.3);
+//   transition: box-shadow 0.2s, background 0.2s;
+//   &:hover {
+//     background: darken($afk-electric-green, 10%);
+//     box-shadow: 0 0 16px 2px $afk-electric-green;
+//   }
+// }
 
-.btn-secondary {
-  border: 1px solid var(--afk-accent-cyan);
-  color: var(--afk-text-dark);
-  background: transparent;
-  border-radius: 8px;
-  text-transform: uppercase;
-  font-weight: bold;
-  font-family: var(--afk-font-primary, $font-primary);
-  &:hover {
-    background: rgba(0,240,255,0.1);
-    box-shadow: 0 0 8px 0 $afk-cyber-cyan;
-  }
-}
+// .btn-secondary {
+//   border: 1px solid var(--afk-accent-cyan);
+//   color: var(--afk-text-dark);
+//   background: transparent;
+//   border-radius: 8px;
+//   text-transform: uppercase;
+//   font-weight: bold;
+//   font-family: var(--afk-font-primary, $font-primary);
+//   &:hover {
+//     background: rgba(0,240,255,0.1);
+//     box-shadow: 0 0 8px 0 $afk-cyber-cyan;
+//   }
+// }
 
-.btn-secondary-full {
-  border: 1px solid var(--afk-accent-cyan);
-  color: var(--afk-accent-cyan);
-  background: transparent;
-  border-radius: 8px;
-  text-transform: uppercase;
-  font-weight: bold;
-  font-family: var(--afk-font-primary, $font-primary);
-  &:hover {
-    background: rgba(0,240,255,0.1);
-    box-shadow: 0 0 8px 0 $afk-cyber-cyan;
-  }
-}
+// .btn-secondary-full {
+//   border: 1px solid var(--afk-accent-cyan);
+//   color: var(--afk-accent-cyan);
+//   background: transparent;
+//   border-radius: 8px;
+//   text-transform: uppercase;
+//   font-weight: bold;
+//   font-family: var(--afk-font-primary, $font-primary);
+//   &:hover {
+//     background: rgba(0,240,255,0.1);
+//     box-shadow: 0 0 8px 0 $afk-cyber-cyan;
+//   }
+// }
 
 
 
-.btn-basic {
-  // border: 1px solid var(--afk-text-dark);
-  color: var(--contrast-500);
-  background: transparent;
-  border-radius: 8px;
-  // border-color: var(--afk-text-dark);
-  // text-transform: uppercase;
-  font-weight: bold;
-  font-family: var(--afk-font-primary, $font-primary);
-  &:hover {
-    background: var(--afk-text-dark);
-    color: var(--afk-text-light);
-    box-shadow: 0 0 8px 0 var(--afk-text-dark);
-  }
-}
+// .btn-basic {
+//   // border: 1px solid var(--afk-text-dark);
+//   color: var(--contrast-500);
+//   background: transparent;
+//   border-radius: 8px;
+//   // border-color: var(--afk-text-dark);
+//   // text-transform: uppercase;
+//   font-weight: bold;
+//   font-family: var(--afk-font-primary, $font-primary);
+//   &:hover {
+//     background: var(--afk-text-dark);
+//     color: var(--afk-text-light);
+//     box-shadow: 0 0 8px 0 var(--afk-text-dark);
+//   }
+// }
 
 
 // Input Styles
