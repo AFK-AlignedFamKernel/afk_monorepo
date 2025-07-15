@@ -15,6 +15,7 @@ import { InjectedConnector } from 'starknetkit/injected';
 import { ArgentMobileConnector } from 'starknetkit/argentMobile';
 import { WebWalletConnector } from 'starknetkit/webwallet';
 import { ControllerConnector } from '@cartridge/connector';
+
 import { RpcProvider } from 'starknet';
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {

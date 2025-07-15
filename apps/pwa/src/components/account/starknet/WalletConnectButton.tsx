@@ -9,7 +9,7 @@ import { WebWalletConnector } from 'starknetkit/webwallet';
 // import { ControllerConnector } from '@cartridge/connector';
 import ControllerConnector from "@cartridge/connector/controller";
 import { constants } from 'starknet';
-import { connectors } from './connectors';
+import { connectors } from '../../../context/connectors';
 import { useUIStore } from '@/store/uiStore';
 
 export const WalletConnectButtonController: React.FC = () => {
