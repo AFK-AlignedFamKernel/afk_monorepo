@@ -6,7 +6,7 @@ import { useAtomiqLab } from '@/hooks/atomiqlab';
 import { useCashu } from 'afk_nostr_sdk';
 import { proofsApi, proofsSpentsApi, proofsSpentsByMintApi, Transaction, transactionsApi } from '@/utils/storage';
 import { v4 as uuidv4 } from 'uuid';
-
+import styles from '@/styles/components/_cashu-wallet.module.scss';
 interface CashuSendModalProps {
   onClose: () => void;
   balance: number;
@@ -331,12 +331,12 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
   };
 
   return (
-    <div className="cashu-wallet__modal">
-      <div className="cashu-wallet__modal-content">
-        <div className="cashu-wallet__modal-content-header">
-          <h3 className="cashu-wallet__modal-content-header-title">Send</h3>
+    <div className={styles['cashu-wallet__modal']}>
+      <div className={styles['cashu-wallet__modal-content']}>
+        <div className={styles['cashu-wallet__modal-content-header']}>
+          <h3 className={styles['cashu-wallet__modal-content-header-title']}>Send</h3>
           <button
-            className="cashu-wallet__modal-content-header-close"
+            className={styles['cashu-wallet__modal-content-header-close']}
             onClick={onClose}
             aria-label="Close"
           >
@@ -344,31 +344,31 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
           </button>
         </div>
 
-        <div className="cashu-wallet__tabs">
+        <div className={styles['cashu-wallet__tabs']}>
           <div
-            className={`cashu-wallet__tabs-item ${activeTab === 'lightning' ? 'cashu-wallet__tabs-item--active' : ''}`}
+            className={styles['cashu-wallet__tabs-item'] + ' ' + (activeTab === 'lightning' ? styles['cashu-wallet__tabs-item--active'] : '')}
             onClick={() => handleTabChange('lightning')}
           >
             Lightning
           </div>
           <div
-            className={`cashu-wallet__tabs-item ${activeTab === 'ecash' ? 'cashu-wallet__tabs-item--active' : ''}`}
+            className={styles['cashu-wallet__tabs-item'] + ' ' + (activeTab === 'ecash' ? styles['cashu-wallet__tabs-item--active'] : '')}
             onClick={() => handleTabChange('ecash')}
           >
             Ecash
           </div>
         </div>
 
-        <div className="cashu-wallet__modal-content-body">
+        <div className={styles['cashu-wallet__modal-content-body']}>
           {activeTab === 'lightning' && (
             <form onSubmit={handlePayLightningInvoice}>
 
-              <div className="cashu-wallet__form-group">
-                <label className="cashu-wallet__form-group-label">
+              <div className={styles['cashu-wallet__form-group']}>
+                <label className={styles['cashu-wallet__form-group-label']}>
                   Payment Type
                 </label>
-                <div className="cashu-wallet__form-group-radio-container">
-                  <label className="cashu-wallet__form-group-radio">
+                <div className={styles['cashu-wallet__form-group-radio-container']}>
+                  <label className={styles['cashu-wallet__form-group-radio']}>
                     <input
                       type="radio"
                       name="paymentType"
@@ -378,7 +378,7 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
                     />
                     <span>Lightning (Cashu)</span>
                   </label>
-                  <label className="cashu-wallet__form-group-radio">
+                  <label className={styles['cashu-wallet__form-group-radio']}>
                     <input
                       type="radio"
                       name="paymentType"
@@ -390,12 +390,12 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
                   </label>
                 </div>
               </div>
-              <div className="cashu-wallet__form-group">
-                <label className="cashu-wallet__form-group-label">
+              <div className={styles['cashu-wallet__form-group']}>
+                <label className={styles['cashu-wallet__form-group-label']}>
                   Invoice
                 </label>
                 <textarea
-                  className="cashu-wallet__form-group-textarea"
+                  className={styles['cashu-wallet__form-group-textarea']}
                   value={invoice}
                   onChange={(e) => setInvoice(e.target.value)}
                   placeholder="Paste Lightning Invoice"
@@ -403,8 +403,8 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
                 />
               </div>
 
-              <div className="cashu-wallet__form-group">
-                <small className="cashu-wallet__form-group-label">
+              <div className={styles['cashu-wallet__form-group']}>
+                <small className={styles['cashu-wallet__form-group-label']}>
                   Amount ({unit})
                 </small>
                 <small>Available balance: {balance} {unit}</small>
@@ -412,8 +412,8 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
 
 
               {invoice && (
-                <div className="cashu-wallet__form-group">
-                  <label className="cashu-wallet__form-group-label">
+                <div className={styles['cashu-wallet__form-group']}>
+                  <label className={styles['cashu-wallet__form-group-label']}>
                     Amount
                   </label>
                   {decodeInvoiceAmount(invoice)}
@@ -422,7 +422,7 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
 
               <button
                 type="submit"
-                className="cashu-wallet__button cashu-wallet__button--primary"
+                className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
                 disabled={isProcessing || !invoice}
               >
                 {isProcessing ? 'Processing...' : 'Pay Invoice'}
@@ -432,13 +432,13 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
 
           {activeTab === 'ecash' && !generatedToken && (
             <form onSubmit={handleSendEcash}>
-              <div className="cashu-wallet__form-group">
-                <label className="cashu-wallet__form-group-label">
+              <div className={styles['cashu-wallet__form-group']}>
+                <label className={styles['cashu-wallet__form-group-label']}>
                   Amount ({unit})
                 </label>
                 <input
                   type="number"
-                  className="cashu-wallet__form-group-input"
+                  className={styles['cashu-wallet__form-group-input']}
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   min="1"
@@ -451,7 +451,7 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
 
               <button
                 type="submit"
-                className="cashu-wallet__button cashu-wallet__button--primary"
+                className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
                 disabled={isProcessing || !amount || Number(amount) > balance}
               >
                 {isProcessing ? 'Processing...' : 'Generate Ecash Token'}
@@ -460,21 +460,21 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
           )}
 
           {activeTab === 'ecash' && generatedToken && (
-            <div className="cashu-wallet__token-result">
-              <div className="cashu-wallet__token-info">
+            <div className={styles['cashu-wallet__token-result']}>
+              <div className={styles['cashu-wallet__token-info']}>
                 <h4>Ecash Token Generated</h4>
-                <div className="cashu-wallet__token-amount">
+                <div className={styles['cashu-wallet__token-amount']}>
                   {tokenAmount} {unit}
                 </div>
               </div>
 
-              <div className="cashu-wallet__form-group">
-                <label className="cashu-wallet__form-group-label">
+              <div className={styles['cashu-wallet__form-group']}>
+                <label className={styles['cashu-wallet__form-group-label']}>
                   Token
                 </label>
                 <div style={{ position: 'relative', marginBottom: '8px' }}>
                   <textarea
-                    className="cashu-wallet__form-group-textarea"
+                    className={styles['cashu-wallet__form-group-textarea']}
                     value={generatedToken}
                     readOnly
                     style={{
@@ -504,16 +504,16 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
                 </div>
               </div>
 
-              <div className="cashu-wallet__token-actions">
+              <div className={styles['cashu-wallet__token-actions']}>
                 <button
-                  className="cashu-wallet__button cashu-wallet__button--secondary"
+                  className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--secondary']}
                   onClick={toggleQRCode}
                 >
                   {showQR ? 'Hide QR Code' : 'Show QR Code'}
                 </button>
 
                 <button
-                  className="cashu-wallet__button cashu-wallet__button--primary"
+                  className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
                   onClick={handleCreateNewToken}
                 >
                   Create New Token
@@ -556,7 +556,7 @@ export const CashuSendModal: React.FC<CashuSendModalProps> = ({
 
                   <button
                     onClick={downloadQRCode}
-                    className="cashu-wallet__button cashu-wallet__button--secondary"
+                    className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--secondary']}
                     style={{ marginTop: '12px' }}
                   >
                     Download QR Code

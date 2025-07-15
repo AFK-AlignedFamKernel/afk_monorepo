@@ -15,82 +15,10 @@
 @import 'launchpad.scss';
 @import 'components/_cashu-wallet.scss';
 // @import 'components/nostr-form.scss';
-// @import './chat.scss';
+@import './chat.scss';
 // @import 'variables.scss';
 
-// Use theme colors from the root variables
-:root {
-  --feed-bg: var(--background);
-  --feed-text: var(--foreground);
-  --feed-border: var(--border);
-  --feed-tab-active: var(--primary-500);
-  --feed-tab-inactive: var(--primary-400);
-  --feed-hover: var(--shade-100);
-  --form-bg: var(--background);
-  --form-text: var(--contrast-900);
-  --form-border: var(--border);
-  --form-focus: var(--primary-500);
-  --form-error: #ef4444;
-  --form-success: #22c55e;
-  --form-tag-bg: var(--card-bg);
-  --form-tag-text: var(--contrast-700);
-  --form-tag-hover: var(--shade-200);
-  --form-button-bg: var(--primary-600);
-  --form-button-text: var(--contrast-50);
-  --form-button-hover: var(--primary-700);
-}
 
-// Form variables for dark theme
-.dark-mode {
-  --feed-bg: var(--background);
-  --feed-text: var(--foreground);
-  --feed-border: var(--border);
-  --feed-tab-active: var(--primary-500);
-  --feed-tab-inactive: var(--primary-400);
-  --feed-hover: var(--shade-100);
-
-
-  --form-bg: var(--background);
-  --form-text: var(--contrast-900);
-  --form-border: var(--border);
-  --form-focus: var(--primary-400);
-  --form-error: #f87171;
-  --form-success: #4ade80;
-  --form-tag-bg: var(--card-bg);
-  --form-tag-text: var(--contrast-600);
-  --form-tag-hover: var(--shade-300);
-  --form-button-bg: var(--primary-500);
-  --form-button-text: var(--contrast-50);
-  --form-button-hover: var(--primary-600);
-}
-
-
-// AFK Global Styles
-body {
-  font-family: var(--afk-font-primary, $font-primary);
-  color: var(--afk-text-dark);
-  background: var(--afk-bg-dark);
-  line-height: 1.5;
-}
-
-body.blue-mode {
-  font-family: var(--afk-font-primary, $font-primary);
-  color: var(--afk-text-dark);
-  background: var(--afk-bg-dark);
-}
-
-body.light-mode {
-  color: var(--afk-text-light);
-  background: var(--afk-bg-light);
-}
-
-.code, .mono, pre, code {
-  font-family: var(--afk-font-mono, $font-mono);
-}
-
-.border-primary {
-  border: 1px solid var(--afk-accent-green);
-}
 
 // Button Styles
 .btn-primary {

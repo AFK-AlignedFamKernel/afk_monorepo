@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Icon } from '../small/icon-component';
-// import { useCashu } from '@/hooks/useCashu';
+import styles from '@/styles/components/_cashu-wallet.module.scss';
 
 interface CashuNoMintProps {
   onAddMint: (mintUrl: string, alias: string) => void;
@@ -28,25 +28,25 @@ export const CashuNoMint: React.FC<CashuNoMintProps> = ({
   };
 
   return (
-    <div className="cashu-wallet__no-mint">
-      <div className="cashu-wallet__no-mint-icon">
+    <div className={styles['cashu-wallet__no-mint']}>
+      <div className={styles['cashu-wallet__no-mint-icon']}>
         <Icon name="WalletIcon" size={48} />
       </div>
-      <h3 className="cashu-wallet__no-mint-title">No Mint Configured</h3>
-      <p className="cashu-wallet__no-mint-description">
+      <h3 className={styles['cashu-wallet__no-mint-title']}>No Mint Configured</h3>
+      <p className={styles['cashu-wallet__no-mint-description']}>
         Add a mint to start using your Cashu wallet
       </p>
       
       {!showForm ? (
         <>
           <button 
-            className="cashu-wallet__button cashu-wallet__button--primary"
+            className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
             onClick={handleAddDefaultMint}
           >
             Add Default Mint
           </button>
           <button 
-            className="cashu-wallet__button cashu-wallet__button--secondary"
+            className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--secondary']}
             onClick={() => setShowForm(true)}
             style={{ marginLeft: '8px' }}
           >
@@ -55,22 +55,22 @@ export const CashuNoMint: React.FC<CashuNoMintProps> = ({
         </>
       ) : (
         <form onSubmit={handleAddCustomMint}>
-          <div className="cashu-wallet__form-group">
-            <label className="cashu-wallet__form-group-label">Mint URL</label>
+          <div className={styles['cashu-wallet__form-group']}>
+            <label className={styles['cashu-wallet__form-group-label']}>Mint URL</label>
             <input
               type="text"
-              className="cashu-wallet__form-group-input"
+              className={styles['cashu-wallet__form-group-input']}
               value={mintUrl}
               onChange={(e) => setMintUrl(e.target.value)}
               placeholder="https://mint.example.com"
               required
             />
           </div>
-          <div className="cashu-wallet__form-group">
-            <label className="cashu-wallet__form-group-label">Mint Alias</label>
+          <div className={styles['cashu-wallet__form-group']}>
+            <label className={styles['cashu-wallet__form-group-label']}>Mint Alias</label>
             <input
               type="text"
-              className="cashu-wallet__form-group-input"
+              className={styles['cashu-wallet__form-group-input']}
               value={mintAlias}
               onChange={(e) => setMintAlias(e.target.value)}
               placeholder="My Mint"
@@ -80,13 +80,13 @@ export const CashuNoMint: React.FC<CashuNoMintProps> = ({
           <div style={{ display: 'flex', gap: '8px' }}>
             <button 
               type="submit" 
-              className="cashu-wallet__button cashu-wallet__button--primary"
+              className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
             >
               Add Mint
             </button>
             <button 
               type="button"
-              className="cashu-wallet__button cashu-wallet__button--secondary"
+              className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--secondary']}
               onClick={() => setShowForm(false)}
             >
               Cancel

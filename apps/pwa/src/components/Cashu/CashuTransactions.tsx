@@ -6,6 +6,7 @@ import QRCode from 'react-qr-code';
 import { useCashuStorage } from '@/hooks/useCashuStorage';
 import { getWalletData, saveWalletData } from '@/utils/storage';
 import { v4 as uuidv4 } from 'uuid';
+import styles from '@/styles/components/_cashu-wallet.module.scss'; 
 
 interface CashuTransactionsProps {
   transactions: Transaction[];
@@ -35,11 +36,11 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
     
     switch (status) {
       case 'pending':
-        return <span className="cashu-wallet__status-badge cashu-wallet__status-badge--pending">Pending</span>;
+        return <span className={styles['cashu-wallet__status-badge'] + ' ' + styles['cashu-wallet__status-badge--pending']}>Pending</span>;
       case 'paid':
-        return <span className="cashu-wallet__status-badge cashu-wallet__status-badge--success">Paid</span>;
+        return <span className={styles['cashu-wallet__status-badge'] + ' ' + styles['cashu-wallet__status-badge--success']}>Paid</span>;
       case 'failed':
-        return <span className="cashu-wallet__status-badge cashu-wallet__status-badge--error">Failed</span>;
+        return <span className={styles['cashu-wallet__status-badge'] + ' ' + styles['cashu-wallet__status-badge--error']}>Failed</span>;
       default:
         return null;
     }
@@ -287,54 +288,54 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
   };
 
   return (
-    <div className="cashu-wallet__transactions">
-      <div className="cashu-wallet__transactions-header">
-        <h3 className="cashu-wallet__transactions-header-title">Recent Transactions</h3>
-        <a href="#" className="cashu-wallet__transactions-header-view-all">View All</a>
+    <div className={styles['cashu-wallet__transactions']}>
+      <div className={styles['cashu-wallet__transactions-header']}>
+        <h3 className={styles['cashu-wallet__transactions-header-title']}>Recent Transactions</h3>
+        <a href="#" className={styles['cashu-wallet__transactions-header-view-all']}>View All</a>
       </div>
       
-      <div className="cashu-wallet__tabs">
+      <div className={styles['cashu-wallet__tabs']}>
         <button 
-          className={`cashu-wallet__tabs-item ${activeTab === 'all' ? 'cashu-wallet__tab--active' : ''}`}
+          className={styles['cashu-wallet__tabs-item'] + ' ' + (activeTab === 'all' ? styles['cashu-wallet__tab--active'] : '')}
           onClick={() => setActiveTab('all')}
         >
           All
         </button>
         <button 
-          className={`cashu-wallet__tabs-item ${activeTab === 'in' ? 'cashu-wallet__tab--active' : ''}`}
+          className={styles['cashu-wallet__tabs-item'] + ' ' + (activeTab === 'in' ? styles['cashu-wallet__tab--active'] : '')}
           onClick={() => setActiveTab('in')}
         >
           Received
         </button>
         <button 
-          className={`cashu-wallet__tabs-item ${activeTab === 'out' ? 'cashu-wallet__tab--active' : ''}`}
+          className={styles['cashu-wallet__tabs-item'] + ' ' + (activeTab === 'out' ? styles['cashu-wallet__tab--active'] : '')}
           onClick={() => setActiveTab('out')}
         >
           Sent
         </button>
         <button 
-          className={`cashu-wallet__tabs-item ${activeTab === 'mintQuote' ? 'cashu-wallet__tab--active' : ''}`}
+          className={styles['cashu-wallet__tabs-item'] + ' ' + (activeTab === 'mintQuote' ? styles['cashu-wallet__tab--active'] : '')}
           onClick={() => setActiveTab('mintQuote')}
         >
           Lightning
         </button>
         <button 
-          className={`cashu-wallet__tabs-item ${activeTab === 'ecash' ? 'cashu-wallet__tab--active' : ''}`}
+          className={styles['cashu-wallet__tabs-item'] + ' ' + (activeTab === 'ecash' ? styles['cashu-wallet__tab--active'] : '')}
           onClick={() => setActiveTab('ecash')}
         >
           Ecash
         </button>
       </div>
       
-      <div className="cashu-wallet__transactions-list">
+      <div className={styles['cashu-wallet__transactions-list']}>
         {filteredTransactions.length > 0 ? (
           filteredTransactions.map((transaction) => (
             <React.Fragment key={transaction.id}>
               <div 
-                className="cashu-wallet__transactions-list-item"
+                className={styles['cashu-wallet__transactions-list-item']}
                 onClick={() => onTransactionClick && onTransactionClick(transaction)}
               >
-                <div className="cashu-wallet__transactions-list-item-icon">
+                <div className={styles['cashu-wallet__transactions-list-item-icon']}>
                   <Icon 
                     name={
                       transaction.invoiceType === 'lightning' 
@@ -346,30 +347,30 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                     size={16} 
                   />
                 </div>
-                <div className="cashu-wallet__transactions-list-item-details">
-                  <div className="cashu-wallet__transactions-list-item-details-title">
+                <div className={styles['cashu-wallet__transactions-list-item-details']}>
+                  <div className={styles['cashu-wallet__transactions-list-item-details-title']}>
                     {getTransactionTypeLabel(transaction)}
                   </div>
-                  <div className="cashu-wallet__transactions-list-item-details-date">
+                  <div className={styles['cashu-wallet__transactions-list-item-details-date']}>
                     {transaction.date}
                   </div>
                   {transaction.memo && (
-                    <div className="cashu-wallet__transactions-list-item-details-memo">
+                    <div className={styles['cashu-wallet__transactions-list-item-details-memo']}>
                       {transaction.memo}
                     </div>
                   )}
                   {getStatusLabel(transaction.status)}
                 </div>
-                <div className="cashu-wallet__transactions-list-item-actions">
-                  <div className={`cashu-wallet__transactions-list-item-amount cashu-wallet__transactions-list-item-amount--${transaction.type}`}>
+                <div className={styles['cashu-wallet__transactions-list-item-actions']}>
+                  <div className={styles['cashu-wallet__transactions-list-item-amount'] + ' ' + styles[`cashu-wallet__transactions-list-item-amount--${transaction.type}`]}>
                     {transaction.type === 'sent' ? '-' : '+'}{transaction.amount}
                   </div>
                   
                   {/* Quick action buttons */}
-                  <div className="cashu-wallet__transactions-list-item-quick-actions">
+                  <div className={styles['cashu-wallet__transactions-list-item-quick-actions']}>
                     {hasCopyableContent(transaction) && (
                       <button 
-                        className="cashu-wallet__transactions-list-item-icon-btn"
+                        className={styles['cashu-wallet__transactions-list-item-icon-btn']}
                         onClick={(e) => handleCopy(transaction, e)}
                         title="Copy Invoice/Token"
                       >
@@ -379,7 +380,7 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                     
                     {hasCopyableContent(transaction) && (
                       <button 
-                        className="cashu-wallet__transactions-list-item-icon-btn"
+                        className={styles['cashu-wallet__transactions-list-item-icon-btn']}
                         onClick={(e) => toggleQRCode(transaction, e)}
                         title="Show QR Code"
                       >
@@ -391,7 +392,7 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                   {/* Receive button for receivable transactions */}
                   {isReceivableTransaction(transaction) && (
                     <button 
-                      className="cashu-wallet__transactions-list-item-receive-btn"
+                      className={styles['cashu-wallet__transactions-list-item-receive-btn']}
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleQRCode(transaction, e);
@@ -405,7 +406,7 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                   {/* Check payment button */}
                   {shouldShowCheckButton(transaction) && onCheckPayment && (
                     <button 
-                      className="cashu-wallet__transactions-list-item-check-btn"
+                      className={styles['cashu-wallet__transactions-list-item-check-btn']}
                       onClick={(e) => {
                         e.stopPropagation(); // Prevent triggering the onTransactionClick
                         setCheckingTransactionId(transaction.id);
@@ -426,11 +427,11 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
               
               {/* QR Code Display */}
               {qrCodeTransaction && qrCodeTransaction.id === transaction.id && (
-                <div className="cashu-wallet__transactions-list-item-qr-container">
-                  <div className="cashu-wallet__transactions-list-item-qr-content">
-                    <div className="cashu-wallet__transactions-list-item-qr-header">
-                      <div className="cashu-wallet__transactions-list-item-qr-title">
-                        <span className="cashu-wallet__transactions-list-item-qr-icon">
+                <div className={styles['cashu-wallet__transactions-list-item-qr-container']}>
+                  <div className={styles['cashu-wallet__transactions-list-item-qr-content']}>
+                    <div className={styles['cashu-wallet__transactions-list-item-qr-header']}>
+                      <div className={styles['cashu-wallet__transactions-list-item-qr-title']}>
+                        <span className={styles['cashu-wallet__transactions-list-item-qr-icon']}>
                           {transaction.invoiceType === 'lightning' ? '⚡' : '💸'}
                         </span>
                         <span>
@@ -438,7 +439,7 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                         </span>
                       </div>
                       <button 
-                        className="cashu-wallet__transactions-list-item-qr-close"
+                        className={styles['cashu-wallet__transactions-list-item-qr-close']}
                         onClick={(e) => toggleQRCode(transaction, e)}
                       >
                         <Icon name="CloseIcon" size={16} />
@@ -446,8 +447,8 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                     </div>
                     
                     {/* Simplified QR Code approach */}
-                    <div className="cashu-wallet__transactions-list-item-qr-simple">
-                      <div className="cashu-wallet__transactions-list-item-qr-code-wrapper" id={`qr-code-${transaction.id}`}>
+                    <div className={styles['cashu-wallet__transactions-list-item-qr-simple']}>
+                      <div className={styles['cashu-wallet__transactions-list-item-qr-code-wrapper']} id={`qr-code-${transaction.id}`}>
                         <QRCode
                           value={getContentToCopy(transaction) || 'No data available'}
                           size={250}
@@ -457,15 +458,15 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                         />
                       </div>
                       
-                      <div className="cashu-wallet__transactions-list-item-qr-amount">
+                      <div className={styles['cashu-wallet__transactions-list-item-qr-amount']}>
                         {transaction.amount} {transaction.unit || 'sats'}
                       </div>
                     </div>
                     
-                    <div className="cashu-wallet__transactions-list-item-qr-actions">
-                      <div className="cashu-wallet__transactions-list-item-qr-buttons">
+                    <div className={styles['cashu-wallet__transactions-list-item-qr-actions']}>
+                      <div className={styles['cashu-wallet__transactions-list-item-qr-buttons']}>
                         <button 
-                          className="cashu-wallet__button cashu-wallet__button--primary"
+                          className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
                           onClick={(e) => handleCopy(transaction, e)}
                         >
                           <Icon name="CopyIcon" size={16} style={{marginRight: '4px'}} />
@@ -473,7 +474,7 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                         </button>
                         
                         <button 
-                          className="cashu-wallet__button cashu-wallet__button--secondary"
+                          className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--secondary']}
                           onClick={(e) => handleDownloadQR(transaction, e)}
                         >
                           <Icon name="SettingsIcon" size={16} style={{marginRight: '4px'}} />
@@ -482,7 +483,7 @@ export const CashuTransactions: React.FC<CashuTransactionsProps> = ({
                       </div>
                       
                       {isReceivableTransaction(transaction) && (
-                        <div className="cashu-wallet__transactions-list-item-qr-instruction">
+                        <div className={styles['cashu-wallet__transactions-list-item-qr-instruction']}>
                           Scan this QR code or share the copied code to receive payment
                         </div>
                       )}

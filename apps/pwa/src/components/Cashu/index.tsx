@@ -18,6 +18,7 @@ import { getWalletData, proofsApi, saveWalletData, Transaction } from '@/utils/s
 import { Icon } from '../small/icon-component';
 import { getDecodedToken, MeltQuoteState } from '@cashu/cashu-ts';
 import { proofsByMintApi, proofsSpentsByMintApi } from '@/utils/storage';
+import styles from '@/styles/components/_cashu-wallet.module.scss';
 
 export default function Cashu() {
   const {
@@ -78,7 +79,7 @@ export default function Cashu() {
       if (!localStorage.getItem("hasOnboardCashu") || localStorage.getItem("hasOnboardCashu") === "false") {
         localStorage.setItem("hasOnboardCashu", "true");
         showModal(<>
-          <div className='flex flex-col gap-2 text-left'>
+          <div className='flex flex-col gap-2 text-left p-4'>
             <h1 className='text-lg font-bold'> Cashu wallet</h1>
             <p className='text-sm'>This is a beta version of Cashu wallet.</p>
             <p className='text-sm italic'>Use at your own risk. Only use a small amount of funds for testing. </p>
@@ -952,11 +953,11 @@ export default function Cashu() {
               </div>
             )} */}
 
-            <div className="cashu-wallet__tabs gap-2">
-              <button className={`cashu-wallet__tab ${activeTab === 'transactions' ? 'cashu-wallet__tab--active' : ''}`} onClick={() => setActiveTab('transactions')}>
+            <div className= {styles['cashu-wallet__tabs'] + ' gap-2'}>
+              <button className={styles['cashu-wallet__tab'] + ' ' + (activeTab === 'transactions' ? styles['cashu-wallet__tab--active'] : '')} onClick={() => setActiveTab('transactions')}>
                 Transactions
               </button>
-              <button className={`cashu-wallet__tab ${activeTab === 'mints' ? 'cashu-wallet__tab--active' : ''}`} onClick={() => setActiveTab('mints')}>
+              <button className={styles['cashu-wallet__tab'] + ' ' + (activeTab === 'mints' ? styles['cashu-wallet__tab--active'] : '')} onClick={() => setActiveTab('mints')}>
                 Mints
               </button>
             </div>
@@ -980,16 +981,16 @@ export default function Cashu() {
             }
           </>
         ) : loading ? (
-          <div className="cashu-wallet__loading">Loading wallet...</div>
+          <div className={styles['cashu-wallet__loading']}>Loading wallet...</div>
         ) : !activeMint || mints.length === 0 ? (
           <CashuNoMint onAddMint={handleOpenMintModal} />
         ) : !walletReady && activeMint ? (
-          <div className="cashu-wallet__error">
+          <div className={styles['cashu-wallet__error']}>
             <h3>Wallet Connection Issue</h3>
             <p>Cannot connect to mint: {activeMint}</p>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button
-                className="cashu-wallet__button cashu-wallet__button--primary"
+                className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
                 onClick={async () => {
                   setIsBalanceLoading(true);
                   try {
@@ -1017,7 +1018,7 @@ export default function Cashu() {
                 {isBalanceLoading ? 'Connecting...' : 'Reconnect'}
               </button>
               <button
-                className="cashu-wallet__button cashu-wallet__button--secondary"
+                className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--secondary']}
                 onClick={handleOpenSettingsModal}
               >
                 Settings
@@ -1025,11 +1026,11 @@ export default function Cashu() {
             </div>
           </div>
         ) : (
-          <div className="cashu-wallet__error">
+          <div className={styles['cashu-wallet__error']}>
             <h3>Error loading wallet</h3>
             <p>{error}</p>
             <button
-              className="cashu-wallet__button cashu-wallet__button--primary"
+              className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
               onClick={handleOpenSettingsModal}
             >
               Check Settings

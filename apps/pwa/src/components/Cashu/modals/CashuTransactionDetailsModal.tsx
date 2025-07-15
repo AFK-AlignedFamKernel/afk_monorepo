@@ -3,33 +3,8 @@ import QRCode from 'react-qr-code';
 import { Icon } from '../../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
 import { Transaction } from '@/utils/storage';
+import styles from '@/styles/components/_cashu-wallet.module.scss';
 
-// CSS styles for the component
-const styles = {
-  statusBadge: {
-    display: 'inline-flex',
-    padding: '4px 8px',
-    borderRadius: '999px',
-    fontSize: '12px',
-    fontWeight: 500,
-    textTransform: 'capitalize' as const,
-  },
-  statusPending: {
-    backgroundColor: 'rgba(255, 171, 0, 0.1)',
-    color: '#FFAB00',
-    border: '1px solid rgba(255, 171, 0, 0.3)',
-  },
-  statusPaid: {
-    backgroundColor: 'rgba(80, 200, 120, 0.1)',
-    color: '#50C878',
-    border: '1px solid rgba(80, 200, 120, 0.3)',
-  },
-  statusFailed: {
-    backgroundColor: 'rgba(255, 76, 76, 0.1)',
-    color: '#FF4C4C', 
-    border: '1px solid rgba(255, 76, 76, 0.3)',
-  },
-};
 
 interface CashuTransactionDetailsModalProps {
   transaction: Transaction;
@@ -114,19 +89,7 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
     setShowQR(!showQR);
   };
 
-  // Function to get the appropriate status badge style
-  const getStatusStyle = () => {
-    switch (transaction.status) {
-      case 'pending':
-        return { ...styles.statusBadge, ...styles.statusPending };
-      case 'paid':
-        return { ...styles.statusBadge, ...styles.statusPaid };
-      case 'failed':
-        return { ...styles.statusBadge, ...styles.statusFailed };
-      default:
-        return styles.statusBadge;
-    }
-  };
+  
 
   // Check if this transaction should show the quote check button
   const shouldShowQuoteCheck = () => {
@@ -143,12 +106,12 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
   };
 
   return (
-    <div className="cashu-wallet__modal">
-      <div className="cashu-wallet__modal-content">
-        <div className="cashu-wallet__modal-content-header">
-          <h3 className="cashu-wallet__modal-content-header-title">{title}</h3>
+    <div className={styles['cashu-wallet__modal']}>
+      <div className={styles['cashu-wallet__modal-content']}>
+        <div className={styles['cashu-wallet__modal-content-header']}>
+          <h3 className={styles['cashu-wallet__modal-content-header-title']}>{title}</h3>
           <button
-            className="cashu-wallet__modal-content-header-close"
+            className={styles['cashu-wallet__modal-content-header-close']}
             onClick={onClose}
             aria-label="Close"
           >
@@ -156,54 +119,54 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
           </button>
         </div>
         
-        <div className="cashu-wallet__modal-content-body">
-          <div className="cashu-wallet__transaction-details">
-            <div className="cashu-wallet__transaction-details-header">
-              <div className="cashu-wallet__transaction-details-amount">
+        <div className={styles['cashu-wallet__modal-content-body']}>
+          <div className={styles['cashu-wallet__transaction-details']}>
+            <div className={styles['cashu-wallet__transaction-details-header']}>
+              <div className={styles['cashu-wallet__transaction-details-amount']}>
                 {transaction.type === 'sent' ? '-' : '+'}{transaction.amount} {transaction.unit || 'sats'}
               </div>
-              <div className="cashu-wallet__transaction-details-status">
+              <div className={styles['cashu-wallet__transaction-details-status']}>
                 {transaction.status && (
-                  <div style={getStatusStyle()}>
+                  <div className={styles['statusBadge'] + ' ' + styles[`status${transaction.status}`]}>
                     {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
                   </div>
                 )}
               </div>
             </div>
             
-            <div className="cashu-wallet__transaction-details-info">
-              <div className="cashu-wallet__transaction-details-row">
-                <div className="cashu-wallet__transaction-details-label">Date:</div>
-                <div className="cashu-wallet__transaction-details-value">{formattedDate}</div>
+            <div className={styles['cashu-wallet__transaction-details-info']}>
+              <div className={styles['cashu-wallet__transaction-details-row']}>
+                <div className={styles['cashu-wallet__transaction-details-label']}>Date:</div>
+                <div className={styles['cashu-wallet__transaction-details-value']}>{formattedDate}</div>
               </div>
               
               {transaction.mintUrl && (
-                <div className="cashu-wallet__transaction-details-row">
-                  <div className="cashu-wallet__transaction-details-label">Mint:</div>
-                  <div className="cashu-wallet__transaction-details-value">{transaction.mintUrl}</div>
+                <div className={styles['cashu-wallet__transaction-details-row']}>
+                  <div className={styles['cashu-wallet__transaction-details-label']}>Mint:</div>
+                  <div className={styles['cashu-wallet__transaction-details-value']}>{transaction.mintUrl}</div>
                 </div>
               )}
               
               {transaction.memo && (
-                <div className="cashu-wallet__transaction-details-row">
-                  <div className="cashu-wallet__transaction-details-label">Memo:</div>
-                  <div className="cashu-wallet__transaction-details-value">{transaction.memo}</div>
+                <div className={styles['cashu-wallet__transaction-details-row']}>
+                  <div className={styles['cashu-wallet__transaction-details-label']}>Memo:</div>
+                  <div className={styles['cashu-wallet__transaction-details-value']}>{transaction.memo}</div>
                 </div>
               )}
               
               {transaction.description && (
-                <div className="cashu-wallet__transaction-details-row">
-                  <div className="cashu-wallet__transaction-details-label">Description:</div>
-                  <div className="cashu-wallet__transaction-details-value">{transaction.description}</div>
+                <div className={styles['cashu-wallet__transaction-details-row']}>
+                  <div className={styles['cashu-wallet__transaction-details-label']}>Description:</div>
+                  <div className={styles['cashu-wallet__transaction-details-value']}>{transaction.description}</div>
                   <button onClick={handleCopy}><Icon name='CopyIcon' size={16} /></button>
 
                 </div>
               )}
               
               {transaction.invoiceType === 'lightning' && transaction.paymentHash && (
-                <div className="cashu-wallet__transaction-details-row">
-                  <div className="cashu-wallet__transaction-details-label">Payment Hash:</div>
-                  <div className="cashu-wallet__transaction-details-value text-xs">
+                <div className={styles['cashu-wallet__transaction-details-row']}>
+                  <div className={styles['cashu-wallet__transaction-details-label']}>Payment Hash:</div>
+                  <div className={styles['cashu-wallet__transaction-details-value text-xs']}>
                     {transaction.paymentHash.startsWith('fallback-') 
                       ? `Temporary ID (cannot verify payment)` 
                       : transaction.paymentHash.length > 15 
@@ -227,14 +190,14 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
               
               {/* Invoice or Token Data */}
               {(transaction.invoice || transaction.token) && (
-                <div className="cashu-wallet__transaction-details-data">
-                  <div className="cashu-wallet__transaction-details-label">
+                <div className={styles['cashu-wallet__transaction-details-data']}>
+                  <div className={styles['cashu-wallet__transaction-details-label']}>
                     {transaction.invoiceType === 'lightning' ? 'Invoice:' : 'Token:'}
                   </div>
-                  <div className="cashu-wallet__form-group">
+                  <div className={styles['cashu-wallet__form-group']}>
                     <div style={{ position: 'relative', marginBottom: '8px' }}>
                       <textarea
-                        className="cashu-wallet__form-group-textarea"
+                        className={styles['cashu-wallet__form-group-textarea']}
                         value={getContentToCopy()}
                         readOnly
                         style={{ 
@@ -266,7 +229,7 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
                   
                   {/* QR Code Toggle Button */}
                   <button
-                    className="cashu-wallet__button cashu-wallet__button--secondary"
+                    className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--secondary']}
                     onClick={toggleQRCode}
                     style={{ marginBottom: '16px' }}
                   >
@@ -324,7 +287,7 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
           </div>
           
           {/* Action Buttons */}
-          <div className="cashu-wallet__transaction-details-actions">
+          <div className={styles['cashu-wallet__transaction-details-actions']}>
             {/* Lightning Invoice Payment Check Button */}
             {transaction.type === 'received' && 
              transaction.invoiceType === 'lightning' && 
@@ -333,7 +296,7 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
              !transaction.paymentHash.startsWith('fallback-') && 
              onCheckPayment && (
               <button 
-                className="cashu-wallet__button cashu-wallet__button--primary"
+                className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
                 onClick={handleCheckPayment}
                 disabled={isCheckingPayment}
               >
@@ -346,7 +309,7 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
               transaction.invoiceType === 'lightning' && transaction.paymentHash && !transaction.paymentHash.startsWith('fallback-')
             ) && (
               <button 
-                className="cashu-wallet__button cashu-wallet__button--primary"
+                className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--primary']}
                 onClick={handleCheckPayment}
                 disabled={isCheckingPayment}
               >
@@ -355,7 +318,7 @@ export const CashuTransactionDetailsModal: React.FC<CashuTransactionDetailsModal
             )}
             
             <button 
-              className="cashu-wallet__button cashu-wallet__button--secondary"
+              className={styles['cashu-wallet__button'] + ' ' + styles['cashu-wallet__button--secondary']}
               onClick={onClose}
             >
               Close

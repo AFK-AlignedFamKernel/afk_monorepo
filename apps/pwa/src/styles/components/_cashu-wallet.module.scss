@@ -1,0 +1,406 @@
+.cashu-wallet {
+  // background-color: var(--card-bg);
+  // border-radius: 8px;
+  padding: 0.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  // border: 1px solid var(--border);
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    
+    &-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--foreground);
+    }
+    
+    &-settings {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--primary-600);
+    }
+  }
+  
+  &__balance {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    &--mint {
+      margin-bottom: 0.5rem;
+    }
+    &-amount {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--foreground);
+      margin-bottom: 0.5rem;
+    }
+    
+    &-unit {
+      font-size: 1rem;
+      color: var(--foreground-muted);
+    }
+    
+    &-mint {
+      font-size: 0.875rem;
+      color: var(--foreground-muted);
+      margin-top: 0.5rem;
+    }
+  }
+  
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    
+    &-button {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      border-radius: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease-in-out;
+      
+      &:hover {
+        background-color: var(--hover-bg);
+      }
+      
+      &-icon {
+        color: var(--primary-600);
+        margin-bottom: 0.5rem;
+      }
+      
+      &-text {
+        color: var(--foreground);
+        font-weight: 500;
+      }
+    }
+    
+    &-scan {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: var(--primary-100);
+      color: var(--primary-600);
+      margin: 0 1rem;
+    }
+  }
+  
+  &__transactions {
+    &-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      
+      &-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--foreground);
+      }
+      
+      &-view-all {
+        font-size: 0.875rem;
+        color: var(--primary-600);
+        text-decoration: none;
+        
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+    
+    &-list {
+      &-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border);
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        &-icon {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          // background-color: var(--primary-100);
+          color: var(--primary-600);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: 1rem;
+        }
+        
+        &-details {
+          flex: 1;
+          
+          &-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--foreground);
+            margin-bottom: 0.25rem;
+          }
+          
+          &-date {
+            font-size: 0.75rem;
+            color: var(--foreground-muted);
+          }
+        }
+        
+        &-amount {
+          font-size: 0.875rem;
+          font-weight: 600;
+          
+          &--received {
+            color: #10B981; // Green color for received
+          }
+          
+          &--sent {
+            color: #EF4444; // Red color for sent
+          }
+        }
+      }
+    }
+  }
+  
+  &__modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    
+    &-content {
+      background-color: var(--card-bg);
+      border-radius: 8px;
+      padding: 1.5rem;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      
+      &-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        
+        &-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: var(--foreground);
+        }
+        
+        &-close {
+          background: none;
+          border: none;
+          cursor: pointer;
+          color: var(--foreground-muted);
+        }
+      }
+      
+      &-body {
+        margin-bottom: 1.5rem;
+      }
+      
+      &-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+      }
+    }
+  }
+  &__tab {
+
+    margin-right:0.5rem
+  }
+
+  &__tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    
+    &-item {
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--foreground-muted);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      
+      &--active {
+        color: var(--primary-600);
+        border-bottom-color: var(--primary-600);
+      }
+    }
+  }
+  
+  &__form {
+    &-group {
+      margin-bottom: 1rem;
+      
+      &-label {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--foreground);
+        margin-bottom: 0.5rem;
+      }
+      
+      &-input {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background-color: var(--input-bg);
+        color: var(--foreground);
+        
+        &:focus {
+          outline: none;
+          border-color: var(--primary-600);
+        }
+      }
+      
+      &-textarea {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background-color: var(--input-bg);
+        color: var(--foreground);
+        min-height: 100px;
+        resize: vertical;
+        
+        &:focus {
+          outline: none;
+          border-color: var(--primary-600);
+        }
+      }
+    }
+  }
+  
+  &__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    
+    &--primary {
+      background-color: var(--primary-600);
+      color: white;
+      border: none;
+      
+      &:hover {
+        background-color: var(--primary-700);
+      }
+      
+      &:disabled {
+        background-color: var(--primary-400);
+        cursor: not-allowed;
+      }
+    }
+    
+    &--secondary {
+      background-color: transparent;
+      color: var(--primary-600);
+      border: 1px solid var(--primary-600);
+      
+      &:hover {
+        background-color: var(--primary-50);
+      }
+      
+      &:disabled {
+        color: var(--primary-400);
+        border-color: var(--primary-400);
+        cursor: not-allowed;
+      }
+    }
+    
+    &--link {
+      background-color: transparent;
+      color: var(--primary-600);
+      border: none;
+      padding: 0;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  
+  &__no-mint {
+    text-align: center;
+    padding: 2rem;
+    
+    &-icon {
+      color: var(--foreground-muted);
+      margin-bottom: 1rem;
+    }
+    
+    &-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: 0.5rem;
+    }
+    
+    &-description {
+      font-size: 0.875rem;
+      color: var(--foreground-muted);
+      margin-bottom: 1.5rem;
+    }
+  }
+} 
+
+.statusBadge {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+.statusPending {
+  background-color: rgba(255, 171, 0, 0.1);
+  color: #FFAB00;
+  border: 1px solid rgba(255, 171, 0, 0.3);
+}
+.statusPaid {
+  background-color: rgba(80, 200, 120, 0.1);
+  color: #50C878;
+  border: 1px solid rgba(80, 200, 120, 0.3);
+}
+.statusFailed {
+  background-color: rgba(255, 76, 76, 0.1);
+  color: #FF4C4C; 
+  border: 1px solid rgba(255, 76, 76, 0.3);
+}
