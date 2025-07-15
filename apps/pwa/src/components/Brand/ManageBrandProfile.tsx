@@ -13,7 +13,8 @@ import { useAccount } from '@starknet-react/core';
 import { LaunchpadCard } from '../launchpad/LaunchpadCard';
 import Link from 'next/link';
 import { Oauth } from '../profile/Oauth';
-
+import { logClickedEvent } from '@/lib/analytics';
+  
 
 export const ManageBrandProfile: React.FC = () => {
   const { user, session } = useAppStore();
@@ -137,6 +138,7 @@ export const ManageBrandProfile: React.FC = () => {
         bannerUrl = res.data?.url;
         setBrandBannerUrl(bannerUrl);
       }
+      logClickedEvent('update_brand_profile', 'brand', 'update_brand_profile', 1)
       const payload = {
         name: handle,
         slug_name: slugName,

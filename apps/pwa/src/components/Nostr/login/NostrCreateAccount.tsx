@@ -10,14 +10,16 @@ import { Icon } from '@/components/small/icon-component';
 import { logClickedEvent } from '@/lib/analytics';
 import NDK, { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 import { AFK_RELAYS } from 'afk_nostr_sdk';
+import { ImportPrivateKey } from '../profile/import-privatekey';
 
-export default function NostrCreateAccountComponent({onClose}: {onClose?: () => void}) {
+export default function NostrCreateAccountComponent({ onClose, isImportAvailable=true }: { onClose?: () => void, isImportAvailable?: boolean }) {
     const [passkey, setPasskey] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
     const { ndk } = useNostrContext();
     const [username, setUsername] = useState('');
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [isImportOpen, setIsImportOpen] = useState(false);
 
     const editProfile = useEditProfile();
 
@@ -71,7 +73,7 @@ export default function NostrCreateAccountComponent({onClose}: {onClose?: () => 
             //   router.push('/');
 
 
-        
+
             try {
                 editProfile.mutate({
                     username: username,
@@ -90,8 +92,8 @@ export default function NostrCreateAccountComponent({onClose}: {onClose?: () => 
                                 type: 'error',
                             })
                         }
-                    
-                    }   
+
+                    }
                 })
             } catch (error) {
                 console.log('error', error)
@@ -140,7 +142,7 @@ export default function NostrCreateAccountComponent({onClose}: {onClose?: () => 
 
     return (
         <div className="flex items-center justify-center">
-            <div className="max-w-md w-full space-y-8 p-8 rounded-lg shadow">
+            <div className="max-w-md w-full space-y-8 rounded-lg shadow">
                 <div>
                     <h2 className="mt-6 text-center text-2xl font-extrabold">
                         Create a Nostr account
@@ -257,6 +259,25 @@ export default function NostrCreateAccountComponent({onClose}: {onClose?: () => 
                             </div>
                         </div>
                     )}
+                </div>
+
+                {isImportAvailable &&
+
+                    <button onClick={() => { setIsImportOpen(!isImportOpen); }}
+                        className='flex flex-row gap-2 border border-gray-300 px-4 py-2 rounded-md'
+                    >{!isImportOpen ? 'Import' : 'Close'}
+                        {isImportOpen && <Icon name="CloseIcon"
+                            className='w-4 h-4'
+                        />}
+                        <Icon name="ImportIcon"
+                            className='w-4 h-4'
+                        />
+                    </button>
+                }
+                <div className='flex flex-col gap-4'>
+                    {isImportOpen && <div className='flex flex-col gap-4'>
+                        <ImportPrivateKey />
+                    </div>}
                 </div>
             </div>
         </div>

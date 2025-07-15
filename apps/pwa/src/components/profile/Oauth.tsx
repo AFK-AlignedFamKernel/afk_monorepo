@@ -77,7 +77,7 @@ export const Oauth = () => {
         </div>
     }
     return (
-        <div className="w-full max-w-2xl mx-auto p-6 space-y-8">
+        <div className="w-full max-w-2xl mx-auto px-6 space-y-8">
             <div className="flex flex-col items-center space-y-4">
                 {user?.app_metadata.provider && (
                     <div className="flex flex-col items-center space-y-2">

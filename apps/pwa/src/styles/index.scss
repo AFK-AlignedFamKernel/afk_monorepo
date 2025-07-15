@@ -42,6 +42,10 @@ body.light-mode {
   font-family: var(--afk-font-mono, $font-mono);
 }
 
+.border-primary {
+  border: 1px solid var(--afk-accent-green);
+}
+
 // Button Styles
 .btn-primary {
   background: var(--afk-accent-green);
