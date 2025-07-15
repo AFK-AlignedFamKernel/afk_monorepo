@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { IContentCreator } from "@/types/brand";
-
+import Image from "next/image";
 interface CreatorCardProps {
   creator: IContentCreator;
 }
@@ -10,7 +10,7 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ creator }) => {
   return (
     <div className="border rounded-lg p-4 shadow flex flex-col items-center dark:bg-contrast-100">
       {creator.avatar_url ? (
-        <img
+        <Image  
           src={creator.avatar_url}
           alt={creator.name}
           className="w-20 h-20 rounded-full object-cover mb-2"

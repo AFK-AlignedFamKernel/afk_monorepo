@@ -16,6 +16,7 @@ import { QuoteRepostComponent } from './quote-repost-component';
 import { ContentWithClickableHashtags } from './ClickableHashtags';
 import { logClickedEvent } from '@/lib/analytics';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
+import Image from 'next/image';
 interface ArticleEventCardProps extends NostrArticleEventProps {
   profile?: NDKUserProfile;
   event: NDKEvent;
@@ -110,7 +111,7 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
         </div>
         {image && (
           <div className="media-container mb-3 w-full flex justify-center">
-            <img
+            <Image
               src={image}
               alt={title}
               className="image-content max-w-full h-auto rounded-md object-contain"

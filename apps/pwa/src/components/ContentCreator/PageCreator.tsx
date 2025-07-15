@@ -33,7 +33,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
       {activeTab == "analytics" && (
         <>
           {creator.avatar_url ? (
-            <img
+            <Image
               src={creator.avatar_url}
               alt={creator.name}
               className="w-20 h-20 rounded-full object-cover mb-2"
@@ -80,7 +80,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
 
                     {platform?.identity_data?.provider === "discord" && (
                       <>
-                        <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                        <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
 
                       </>
                     )}
@@ -90,9 +90,9 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                         <Link href={`https://github.com/${platform.identity_data.user_name}`} target="_blank"
                           className="text-blue-500 hover:underline text-sm flex">
                           {/* {`https://github.com/${platform.identity_data.user_name}`} */}
-                          <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+                          <Image src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
 
-                          <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                          <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                           <p className="font-medium">{platform.identity_data.name}</p>
 
                         </Link>
@@ -108,7 +108,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
 
                     {platform?.identity_data?.provider === "twitter" && (
                       <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank" className="flex flex-row items-center gap-2 rounded-full p-2">
-                        <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className={`w-8 h-8 rounded-full object-cover bg-gray-500`} />
+                        <Image src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className={`w-8 h-8 rounded-full object-cover bg-gray-500`} />
                         {/* <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" /> */}
                       </Link>
                     )}
@@ -131,7 +131,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                       <>
                         {/* <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" /> */}
 
-                        <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                        <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                       </>
                     )}
 
@@ -139,9 +139,9 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                       <div className="items-center gap-3">
                         <Link href={`https://github.com/${platform.identity_data.user_name}`} target="_blank"
                           className="text-blue-500 hover:underline text-sm flex">
-                          <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+                          <Image src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
 
-                          <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                          <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                           <p className="font-medium">{platform.identity_data.name}</p>
 
                         </Link>
@@ -156,7 +156,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
 
                     {platform?.identity_data?.provider === "twitter" && (
                       <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank">
-                        <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover bg-gray-500" />
+                        <Image src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover bg-gray-500" />
 
                         {/* <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" /> */}
                       </Link>

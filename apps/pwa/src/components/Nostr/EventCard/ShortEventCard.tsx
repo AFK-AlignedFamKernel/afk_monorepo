@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { NostrShortEventProps } from '@/types/nostr';
 import NostrEventCardBase from './NostrEventCardBase';
 import { NostrEvent, NDKUserProfile, NDKEvent } from '@nostr-dev-kit/ndk';
-
+import Image from 'next/image';
+  
 interface ShortEventCardProps extends NostrShortEventProps {
   event: NDKEvent;
   profile?: NDKUserProfile;
@@ -100,7 +101,7 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
                   // }}
                 />
               ) : (
-                <img
+                <Image
                   src={mediaUrlState}
                   alt="Media content"
                   className="image-content"

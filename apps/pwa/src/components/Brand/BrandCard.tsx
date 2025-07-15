@@ -45,7 +45,7 @@ export default function BrandCard({ brandProps, leaderboardProps, setLeaderboard
 
             <div key={brand.id} className="border border-gray-300 rounded-md py-4 px-2 shadow-md flex flex-col items-center gap-1">
 
-                <img src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-10 h-10 object-cover rounded-full" />
+                <Image src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-10 h-10 object-cover rounded-full" />
 
                 <div className="flex flex-row gap-2">
                     <p className="text-lg font-bold">{brand.name}</p>

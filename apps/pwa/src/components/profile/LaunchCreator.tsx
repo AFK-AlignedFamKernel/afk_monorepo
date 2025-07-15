@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { ContentCreator } from "@/types";
 import Link from "next/link";
+import Image from "next/image";
 
 
 interface LaunchCreatorProps {
@@ -25,7 +26,7 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
   return (
     <div className="p-4 shadow flex flex-col items-center dark:bg-contrast-100">
       {creator.avatar_url ? (
-        <img
+        <Image    
           src={creator.avatar_url}
           alt={creator.name}
           className="w-20 h-20 rounded-full object-cover mb-2"
@@ -61,7 +62,7 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
       )}
 
       {creator?.avatar_url && (
-        <img
+        <Image
           src={creator.avatar_url}
           alt={creator.name}
           className="w-20 h-20 rounded-full object-cover mb-2"
@@ -87,15 +88,15 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
               <div key={platformIndex + platform + platform.url + platform.identity_data.provider}
                 className="flex items-center gap-3 p-3 rounded-md">
                 <p className="font-medium capitalize">{platform.identity_data.provider}</p>
-                <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                <Image src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
 
                 {platform?.identity_data?.provider === "discord" && (
-                  <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                 )}
 
                 {platform?.identity_data?.provider === "github" && (
                   <div className="flex items-center gap-3">
-                    <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                    <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                     <Link href={`https://github.com/${platform.identity_data.user_name}`} target="_blank"
                       className="text-blue-500 hover:underline text-sm">
                       {/* {`https://github.com/${platform.identity_data.user_name}`} */}
@@ -106,11 +107,11 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
                 )}
 
                 {platform?.identity_data?.provider === "google" && (
-                  <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                 )}
 
                 {platform?.identity_data?.provider === "twitter" && (
-                  <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                 )}
 
 
@@ -131,10 +132,10 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
 
 
                 <div className="flex flex-col items-center gap-3">
-                  <img src={`/assets/icons/${platform.identity_data.provider?.toLowerCase()}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
+                  <Image src={`/assets/icons/${platform.identity_data.provider?.toLowerCase()}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" />
                   <p>{platform.identity_data.provider}</p>
                   {platform.identity_data.provider === "discord" && (
-                    <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} />
+                    <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} />
                   )}
                 </div>
 
@@ -142,7 +143,7 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
 
                 {platform.identity_data.provider === "github" && (
                   <>
-                    <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-4 h-4 rounded-full object-cover" />
+                    <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-4 h-4 rounded-full object-cover" />
 
                     <Link href={`https://github.com/${platform.identity_data.user_name}`} target="_blank">
                       <p>{platform.identity_data.name}</p>
@@ -153,11 +154,11 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
                 )}
 
                 {platform.identity_data.provider === "google" && (
-                  <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-4 h-4 rounded-full object-cover" />
+                  <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-4 h-4 rounded-full object-cover" />
                 )}
 
                 {platform.identity_data.provider === "twitter" && (
-                  <img src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-4 h-4 rounded-full object-cover" />
+                    <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-4 h-4 rounded-full object-cover" />
                 )}
                 <p
                   key={platform + platform.url}

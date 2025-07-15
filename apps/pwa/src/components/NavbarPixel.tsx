@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import React, {useState} from 'react';
 import {createPortal} from 'react-dom';
@@ -11,7 +12,7 @@ export function NavbarPixel() {
   return (
     <div className="desktop:py-[26px] py-3 px-6 desktop:px-[120px] bg-black flex justify-between items-center">
       <div className="flex items-center gap-x-[10px] text">
-        <img
+        <Image
           src="/assets/pepe-logo.png"
           className="desktop:h-[52px] w-9 h-9 desktop:w-[52px]"
           alt=""

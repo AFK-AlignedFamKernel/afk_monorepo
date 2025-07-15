@@ -6,15 +6,13 @@ import { Provider } from '@supabase/supabase-js';
 import { api, fetchWithAuth } from '@/lib/api';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { Icon } from '../small/icon-component';
-import Accordion from '../small/accordion';
 import { ContentCreator } from '@/types';
 import { TagsForm } from '../Form/TagsForm';
 import { useAccount } from '@starknet-react/core';
-import { LaunchpadCard } from '../launchpad/LaunchpadCard';
 import Link from 'next/link';
 import { Oauth } from '../profile/Oauth';
 import { logClickedEvent } from '@/lib/analytics';
-  
+import Image from 'next/image';
 
 export const ManageBrandProfile: React.FC = () => {
   const { user, session } = useAppStore();
@@ -252,12 +250,12 @@ export const ManageBrandProfile: React.FC = () => {
           <div className="mt-4">
             <label className='text-sm font-medium'>Avatar</label>
             <input type="file" accept="image/*" onChange={e => setBrandAvatar(e.target.files?.[0] || null)} className="w-full" />
-            {brandAvatarUrl && <img src={brandAvatarUrl} alt="Avatar" className="max-w-xs mt-2 rounded" />}
+            {brandAvatarUrl && <Image  src={brandAvatarUrl} alt="Avatar" className="max-w-xs mt-2 rounded" />}
           </div>
           <div className="mt-4">
             <label className='text-sm font-medium'>Banner</label>
             <input type="file" accept="image/*" onChange={e => setBrandBanner(e.target.files?.[0] || null)} className="w-full" />
-            {brandBannerUrl && <img src={brandBannerUrl} alt="Banner" className="max-w-xs mt-2 rounded" />}
+            {brandBannerUrl && <Image src={brandBannerUrl} alt="Banner" className="max-w-xs mt-2 rounded" />}
           </div>
           <div className="mt-4">
             <label className='text-sm font-medium'>Website</label>

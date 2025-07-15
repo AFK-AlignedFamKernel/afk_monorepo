@@ -5,6 +5,7 @@ import { NostrEventBase, formatTimestamp, truncate } from '@/types/nostr';
 import { useRouter } from 'next/navigation';
 import { useUIStore } from '@/store/uiStore';
 import ProfileCardOverview from './ProfileCardOverview';
+import Image from 'next/image';
 interface NostrEventCardBaseProps extends NostrEventBase {
   children?: ReactNode;
 }
@@ -55,7 +56,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
       >
         {profile?.picture ? (
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0">
-            <img
+            <Image
               src={profile.picture}
               alt={displayName}
               width={40}

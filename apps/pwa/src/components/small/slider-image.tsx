@@ -1,4 +1,5 @@
 
+import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import React from 'react';
 
@@ -48,7 +49,7 @@ export const SliderImages: React.FC<PostProps> = ({
           transition: 'transform 0.3s ease-in-out'
         }}
       >
-        <img
+        <Image
           src={imgUrls[currentIndex]}
           style={{
             width: '100%',

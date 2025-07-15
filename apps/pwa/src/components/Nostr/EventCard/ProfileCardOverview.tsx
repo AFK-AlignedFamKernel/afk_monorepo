@@ -8,6 +8,7 @@ import { Icon } from '@/components/small/icon-component';
 import { useUIStore } from '@/store/uiStore';
 import { TipNostrUser } from '../tips/tip-user';
 import { logClickedEvent } from '@/lib/analytics';
+import Image from 'next/image';
 interface IProfileCardOverviewProps extends NostrEventBase {
   children?: ReactNode;
   profileParent?: string;
@@ -64,7 +65,7 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
       >
         {profile?.picture ? (
           <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0">
-            <img
+            <Image
               src={profile.picture}
               alt={displayName}
               width={56}

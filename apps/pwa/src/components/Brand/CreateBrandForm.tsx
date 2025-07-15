@@ -13,6 +13,7 @@ import { useAccount } from '@starknet-react/core';
 import { LaunchpadCard } from '../launchpad/LaunchpadCard';
 import Link from 'next/link';
 import { Oauth } from '../profile/Oauth';
+import Image from 'next/image';
 
 
 export const CreateBrandForm: React.FC = () => {
@@ -204,12 +205,12 @@ export const CreateBrandForm: React.FC = () => {
           <div>
             <label className="block text-sm font-medium">Avatar</label>
             <input type="file" accept="image/*" onChange={e => setBrandAvatar(e.target.files?.[0] || null)} className="w-full" />
-            {brandAvatarUrl && <img src={brandAvatarUrl} alt="Avatar" className="max-w-xs mt-2 rounded" />}
+            {brandAvatarUrl && <Image  src={brandAvatarUrl} alt="Avatar" className="max-w-xs mt-2 rounded" />}
           </div>
           <div>
             <label className="block text-sm font-medium">Banner</label>
             <input type="file" accept="image/*" onChange={e => setBrandBanner(e.target.files?.[0] || null)} className="w-full" />
-            {brandBannerUrl && <img src={brandBannerUrl} alt="Banner" className="max-w-xs mt-2 rounded" />}
+            {brandBannerUrl && <Image src={brandBannerUrl} alt="Banner" className="max-w-xs mt-2 rounded" />}
           </div>
           <div>
             <label className="block text-sm font-medium">Token Address</label>
