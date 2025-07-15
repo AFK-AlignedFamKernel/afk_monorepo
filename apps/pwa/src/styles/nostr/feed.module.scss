@@ -48,6 +48,11 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   &__tags-container {
     width: 100%;
     margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    overflow-x: scroll;
+    padding: 0.5rem;
+    margin:0.25rem;
     scrollbar-width: none; // Firefox
     -ms-overflow-style: none; // IE/Edge
 

@@ -130,6 +130,8 @@ export const ProfileHeader = (props?: any) => {
         <Image
           src={profile.banner}
           alt="Profile Banner"
+          width={150}
+          height={150}
           className="w-full h-32 md:h-48 object-cover"
         />
       )}
@@ -137,6 +139,8 @@ export const ProfileHeader = (props?: any) => {
         <Image
           src={profile.picture}
           alt="Profile"
+          width={96}
+          height={96}
           className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-900 shadow-lg"
         />
         <h2 className="mt-2 text-2xl font-bold">{profile.displayName || 'Anonymous'}</h2>
