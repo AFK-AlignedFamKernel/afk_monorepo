@@ -36,8 +36,8 @@ export default function DiscoverComponent() {
               key={tab.key}
               className={`px-4 py-2 rounded-full transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-green-400 whitespace-nowrap
                 ${activeTab === tab.key
-                  ? "bg-green-500 text-white shadow font-semibold"
-                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"}
+                  ? "bg-green-500  shadow font-semibold"
+                  :  "hover:bg-gray-200 dark:hover:bg-gray-700"}
               `}
               onClick={() => {
                 setActiveTab(tab.key as typeof activeTab);
