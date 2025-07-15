@@ -8,7 +8,7 @@ import { FeedTabs } from "@/components/Nostr/feed";
 import { logClickedEvent } from "@/lib/analytics";
 import PumpComponent from "../launchpad/PumpComponent";
 import CommunitiesList from "../Communities";
-import { ChatScreen } from "@/components/Bitchat/ChatScreen";
+// import { ChatScreen } from "@/components/Bitchat/ChatScreen";
 
 export default function DiscoverComponent() {
 
@@ -26,7 +26,7 @@ export default function DiscoverComponent() {
           {[
             { key: "feed", label: "Feed" },
             { key: "brand", label: "Brands" },
-            { key: "chat", label: "Chat" },
+            // { key: "chat", label: "Chat" },
             { key: "creator", label: "Creators" },
             { key: "launchpad", label: "Tokens" },
             { key: "communities", label: "Communities" },
@@ -91,11 +91,11 @@ export default function DiscoverComponent() {
           </div>
         )}
 
-        {activeTab === "chat" && (
+        {/* {activeTab === "chat" && (
           <div className="px-4">
             <ChatScreen />
           </div>
-        )}
+        )} */}
 
         {activeTab === "communities" && (
           <div className="px-4">
