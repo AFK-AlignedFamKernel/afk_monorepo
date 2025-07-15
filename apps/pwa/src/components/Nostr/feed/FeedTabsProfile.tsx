@@ -9,6 +9,7 @@ import { useAuth, useContacts } from 'afk_nostr_sdk';
 import NostrTagsFeed from './NostrTagsFeed';
 import { TAGS_DEFAULT } from 'common';
 import NostrFeedProfile from './NostrFeedProfile';
+import styles from '@/styles/nostr/feed.module.scss';
 
 interface Tab {
   id: string;
@@ -135,24 +136,26 @@ export const FeedTabsProfile: React.FC<FeedTabsProps> = ({
   // const contacts = useContacts({authors: [publicKey || '']})
 
   return (
-    <div className={`nostr-feed__container ${className}`}>
-      <div className="nostr-feed__tabs">
+    <div className={styles['nostr-feed__container'] + ' ' + className}>
+      <div className={styles['nostr-feed__tabs']}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            className={`nostr-feed__tabs-button ${activeTab === tab.id ? 'nostr-feed__tabs-button--active' : ''
-              } text-xl`}
+            className={
+              styles['nostr-feed__tabs-button'] +
+              (activeTab === tab.id ? ' ' + styles['nostr-feed__tabs-button--active'] : '') +
+              ' text-xl'
+            }
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.icon}
             <span className="text-lg">
               {tab.label}
-
             </span>
           </button>
         ))}
       </div>
-      <div className="nostr-feed__content">
+      <div className={styles['nostr-feed__content']}>
 
         {activeTab != 'shorts' && activeTab != 'tags' && (
           <NostrFeedProfile

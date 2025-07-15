@@ -5,6 +5,7 @@ import { NDKKind as NDK } from '@nostr-dev-kit/ndk';
 import { useSearch, useNostrContext, useFetchEvents } from 'afk_nostr_sdk';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { VideoPlayer } from '../EventCard/NostrVideoPlayer';
+import styles from '@/styles/nostr/feed.module.scss';
 
 interface NostrFeedProps {
   kinds?: number[];
@@ -216,8 +217,8 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   // Show loading state
   if (isLoading && events.length === 0) {
     return (
-      <div className={`nostr-feed__content ${className}`}>
-        <div className="nostr-feed__loading-container">
+      <div className={`${styles['nostr-feed__content']} ${className}`}>
+        <div className={styles['nostr-feed__loading-container']}>
           <CryptoLoading />
         </div>
       </div>
@@ -227,8 +228,8 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   // Show error state
   if (isError && events.length === 0) {
     return (
-      <div className={`nostr-feed__content ${className}`}>
-        <div className="nostr-feed__error">
+      <div className={`${styles['nostr-feed__content']} ${className}`}>
+        <div className={styles['nostr-feed__error']}>
           <p>Error loading events: {error?.message || 'Unknown error'}</p>
           <button
             className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -247,11 +248,11 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`nostr-short-feed__container ${className}`}
+      className={`${styles['nostr-short-feed__container']} ${className}`}
       style={{ height: `${containerHeight}px`, overflow: 'hidden' }}
     >
       {events.length === 0 && !isLoading && !isFetching ? (
-        <div className="nostr-feed__empty-state">
+        <div className={styles['nostr-feed__empty-state']}>
           <p>No videos found. Try following more users or changing filters.</p>
           <div className="mt-4 text-sm text-gray-500">
             <p>Debug info:</p>
@@ -281,7 +282,7 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
                     loaderRef.current = el;
                   }
                 }}
-                className="nostr-short-feed__video-container"
+                className={styles['nostr-short-feed__video-container']}
                 style={{
                   height: `${containerHeight}px`,
                   width: '100%',
@@ -295,13 +296,13 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
           })}
 
           {isLoading && (
-            <div className="nostr-feed__loading-more">
+            <div className={styles['nostr-feed__loading-more']}>
               <CryptoLoading />
             </div>
           )}
 
           {!hasMoreContent && events.length > 0 && (
-            <div className="nostr-feed__end py-4 text-center text-gray-500">
+            <div className={styles['nostr-feed__end'] + ' py-4 text-center text-gray-500'}>
               No more content to load
             </div>
           )}

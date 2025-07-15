@@ -9,6 +9,7 @@ import { useUIStore } from '@/store/uiStore';
 import { TipNostrUser } from '../tips/tip-user';
 import { logClickedEvent } from '@/lib/analytics';
 import Image from 'next/image';
+import styles from '@/styles/nostr/feed.module.scss';
 interface IProfileCardOverviewProps extends NostrEventBase {
   children?: ReactNode;
   profileParent?: string;
@@ -34,7 +35,7 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
 
   if (isLoading) {
     return (
-      <div className="nostr-feed__card--skeleton">
+      <div className={styles['nostr-feed__card--skeleton']}>
         <div className="flex items-center mb-4">
           <div className="w-10 h-10  rounded-full"></div>
           <div className="ml-2">
@@ -55,7 +56,7 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
   const [isExpandedAbout, setIsExpandedAbout] = useState(false);
 
   return (
-    <div className="event-card text-left items-left rounded-xl shadow-lg p-4 max-w-[95vw] w-full" aria-label="Profile overview modal">
+    <div className={styles['event-card'] + ' text-left items-left rounded-xl shadow-lg p-4 max-w-[95vw] w-full'} aria-label="Profile overview modal">
       <div className="flex items-center gap-3 mb-4 cursor-pointer rounded-lg p-1 transition"
         onClick={() => {
           router.push(`/nostr/profile/${event?.pubkey}`)

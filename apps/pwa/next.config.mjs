@@ -22,6 +22,7 @@ const nextConfig = {
     optimizePackageImports: ['@chakra-ui/react'],
   },
   images: {
+    domains: ['*'],
     remotePatterns: [
       {
         protocol: 'https',

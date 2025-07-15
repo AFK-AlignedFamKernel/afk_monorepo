@@ -6,6 +6,7 @@ import { useSearch, useProfile, useNostrContext } from 'afk_nostr_sdk';
 import { NostrEventCard } from '../EventCard';
 import { NostrEventKind } from '@/types/nostr';
 import CryptoLoading from '@/components/small/crypto-loading';
+import styles from '@/styles/nostr/feed.module.scss';
 
 interface NostrFeedProps {
   kinds?: number[];
@@ -187,7 +188,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   // Show loading state
   if (isInitialLoading && notesData.length === 0) {
     return (
-      <div className={`nostr-feed__content ${className}`}>
+      <div className={styles['nostr-feed__content']}>
         <div className="flex justify-center items-center py-8">
           <CryptoLoading />
         </div>
@@ -198,8 +199,8 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   // Show error state
   if (isError && notesData.length === 0) {
     return (
-      <div className={`nostr-feed__content ${className}`}>
-        <div className="nostr-feed__error">
+      <div className={styles['nostr-feed__content']}>
+        <div className={styles['nostr-feed__error']}>
           <p>Error loading eventstag: {error?.message || 'Unknown error'}</p>
           <button
             className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -213,17 +214,14 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
   }
 
   return (
-    <div
-      className={`nostr-feed__content ${className}`}
-    // className={`${className}`}
-    >
+    <div className={styles['nostr-feed__content']}>
 
 
 
       {/* Filter Controls */}
 
       {openFilters && (
-        <div className="nostr-feed__filters mb-4 p-3 rounded-lg">
+        <div className={styles['nostr-feed__filters'] + ' mb-4 p-3 rounded-lg'}>
           <div className="flex flex-wrap gap-2 justify-between items-center">
             <h3 className="text-sm font-medium">Feed Filters</h3>
             <button
@@ -317,7 +315,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
         </div>
       )}
       {notesData.length === 0 && !isLoadingMore ? (
-        <div className="nostr-feed__empty-state">
+        <div className={styles['nostr-feed__empty-state']}>
           <p>No events found. Try following more users or changing filters.</p>
           <div className="mt-4 text-sm text-gray-500">
             <p>Debug info:</p>
@@ -332,7 +330,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
           </div>
         </div>
       ) : (
-        <div className="nostr-feed__content">
+        <div className={styles['nostr-feed__content']}>
           {notesData.map((event, index) => {
             if (!event?.id) return null;
             const isLastItem = index === notesData.length - 1;
@@ -360,7 +358,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
           )}
 
           {!hasMoreContent && notesData.length > 0 && (
-            <div className="nostr-feed__end py-4 text-center text-gray-500">
+            <div className="py-4 text-center text-gray-500">
               No more content to load
             </div>
           )}

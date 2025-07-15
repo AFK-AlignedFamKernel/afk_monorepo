@@ -4,7 +4,7 @@
 @import './components/_button.scss';
 @import './components/_input.scss';
 @import './components/_editor.scss';
-@import './nostr/feed.scss';
+// @import './nostr/feed.scss';
 @import './components/_cashu-wallet.scss';
 @import './cashu.css';
 @import './components/modal.scss';
@@ -18,6 +18,15 @@
 @import './chat.scss';
 // @import 'variables.scss';
 
+// Use theme colors from the root variables
+:root {
+  --feed-bg: var(--background);
+  --feed-text: var(--foreground);
+  --feed-border: var(--border);
+  --feed-tab-active: var(--primary-500);
+  --feed-tab-inactive: var(--primary-400);
+  --feed-hover: var(--shade-100);
+}
 
 // AFK Global Styles
 body {

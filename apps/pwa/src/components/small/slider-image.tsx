@@ -51,6 +51,8 @@ export const SliderImages: React.FC<PostProps> = ({
       >
         <Image
           src={imgUrls[currentIndex]}
+          width={200}
+          height={200}
           style={{
             width: '100%',
             height: '100%',
