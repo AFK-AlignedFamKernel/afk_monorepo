@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useApiMutation } from './useApiMutation';
 import { dataURLToBlob } from '@/utils/helpers';
 import { ApiInstance, ApiBackendInstance } from '@/utils/file-upload';
+import { useUIStore } from '@/store/uiStore';
 //ENVS
 const PINATA_GATEWAY = process.env.NEXT_PUBLIC_IPFS_GATEWAY || 'https://ipfs.io/';
 
@@ -30,9 +31,10 @@ interface ImagePickerAsset {
 }
 
 export const useFileUpload = () => {
-    return useApiMutation<FileUploadResult, FileUploadResult, File | string | Blob>({
+    const { showToast } = useUIStore();
+    return useApiMutation<FileUploadResult | undefined, unknown, File | string | Blob>({
         mutationKey: ['fileUpload'],
-        mutationFn: async (file: File | string | Blob) => {
+        mutationFn: async (file: File | string | Blob): Promise<FileUploadResult | undefined> => {
             try {
                 const formData = new FormData();
 
@@ -63,7 +65,12 @@ export const useFileUpload = () => {
                 });
             } catch (error) {
                 console.log("error", error)
-                
+                // showToast({
+                //     message: 'Failed to upload file',
+                //     type: 'error',
+                //     duration: 3000,
+                // });
+                return undefined;
             }
         
         },

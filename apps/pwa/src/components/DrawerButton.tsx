@@ -36,7 +36,10 @@ export function DrawerButton({setToggle, toggle}: Props) {
     <div className="absolute inset-0 z-[900] bg-redPrimary backdrop-blur-[30px]">
       <div className={`list-none pt-[60px] text-center text-white`}>
         <div className="absolute right-[51px] top-[39px] h-fit w-fit" onClick={toggleNav}>
-          <Image src="/assets/cancel-icon.svg" alt="" />
+          <Image src="/assets/cancel-icon.svg" alt=""
+          width={24}
+          height={24}
+          />
         </div>
 
         <motion.div

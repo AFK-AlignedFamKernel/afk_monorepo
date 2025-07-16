@@ -88,15 +88,24 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
               <div key={platformIndex + platform + platform.url + platform.identity_data.provider}
                 className="flex items-center gap-3 p-3 rounded-md">
                 <p className="font-medium capitalize">{platform.identity_data.provider}</p>
-                <Image src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                <Image src={`/assets/icons/${platform.identity_data.provider}.svg`} 
+                width={32}
+                height={32}
+                alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
 
                 {platform?.identity_data?.provider === "discord" && (
-                  <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  <Image src={platform.identity_data.avatar_url}
+                  width={32}
+                  height={32}
+                  alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                 )}
 
                 {platform?.identity_data?.provider === "github" && (
                   <div className="flex items-center gap-3">
-                    <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                    <Image 
+                    width={32}
+                    height={32}
+                    src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                     <Link href={`https://github.com/${platform.identity_data.user_name}`} target="_blank"
                       className="text-blue-500 hover:underline text-sm">
                       {/* {`https://github.com/${platform.identity_data.user_name}`} */}

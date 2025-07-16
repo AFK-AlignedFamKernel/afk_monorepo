@@ -238,7 +238,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
             <Image
               src={postSource.uri}
               alt="Post Source"
-              width={postSource.width || 400}
+              width={postSource.width || 300}
               height={postSource.height || 300}
               className={styles.nostrFeedImage}
             />

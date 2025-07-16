@@ -21,7 +21,10 @@ export function FaqBar({question, answer}: Props) {
       >
         <div className=" flex justify-between items-center">
           <h2 className="desktop:text-[20px] text-xs leading-[28px]">{question}</h2>
-          <Image src="/assets/down-cheveron.svg" alt="" />
+          <Image src="/assets/down-cheveron.svg" alt="" 
+          width={24}
+          height={24}
+          />
         </div>
 
         <div>{isOpen ? <p className=" w-full text-start mt-6">{answer}</p> : ''}</div>

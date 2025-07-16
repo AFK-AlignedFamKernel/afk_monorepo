@@ -1,14 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
 import { useCallback, useMemo, useState } from 'react';
 
 import { authStore, generateRandomKeypair, NostrKeyManager, useAuth, useEditProfile, useNostrContext } from 'afk_nostr_sdk';
-import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
-import { Avatar } from '@chakra-ui/react';
 import { useUIStore } from '@/store/uiStore';
-import { Icon } from '@/components/small/icon-component';
 import { logClickedEvent } from '@/lib/analytics';
 import * as bip39 from 'bip39';
 import NDK, { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';

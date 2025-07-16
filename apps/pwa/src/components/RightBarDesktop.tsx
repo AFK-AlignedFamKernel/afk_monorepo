@@ -8,8 +8,6 @@ import { WalletConnectButton } from './account/WalletConnectButton';
 import { NostrKeyManager, useAuth } from 'afk_nostr_sdk';
 import { Icon } from './small/icon-component';
 import { useRouter } from 'next/navigation';
-import CryptoLoading from './small/crypto-loading';
-import Image from 'next/image';
 // import { ProfileManagement } from './Nostr/profile/nostr-profile-management';
 import { ProfileManagement } from '@/components/profile/profile-management';
 import { useUIStore } from '@/store/uiStore';
@@ -17,8 +15,6 @@ import Accordion from './small/accordion';
 import { useLaunchpadStore } from '@/store/launchpad';
 import { useBrandStore } from '@/store/brand';
 import { useCreatorsStore } from '@/store/creators';
-import ListBrand from './Brand/ListBrand';
-import DiscoverComponent from './Discovery/Discover';
 
 interface RightBarDesktopProps {
   children?: ReactNode;

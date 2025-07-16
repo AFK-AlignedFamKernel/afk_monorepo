@@ -29,6 +29,8 @@ export function Navbar() {
           src="/assets/pepe-logo.png"
           className="desktop:h-[52px] w-9 h-9 desktop:w-[52px]"
           alt="AFK logo"
+          width={52}
+          height={52}
         />
         <Link href="/">
           <h5 className="desktop:text-2xl text-lg leading-7 font-bold">AFK</h5>

@@ -152,7 +152,9 @@ export const NostrForm: React.FC<NostrFormProps> = ({
           {file ? file.name : 'Choose File'}
           <input
 
-            type="file" id="file" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+            type="file" id="file" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)}
+            
+            />
         </label>
       </div>
 
