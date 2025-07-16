@@ -1,5 +1,4 @@
 "use client"
-import Link from "next/link";
 import { useState } from "react";
 import MyNostrProfileComponent from "../Nostr/my-profile";
 import { Icon } from "../small/icon-component";
@@ -33,7 +32,7 @@ export default function ProfileAfk() {
 
           <div className="bg-contrast-100 p-6 rounded-lg shadow-lg text-left">
             <h2 className="text-sm font-semibold mb-4 italic">Decentralized Identities</h2>
-            <div>
+            <div className="flex flex-row gap-2 py-4">
 
               <button className="btn btn-basic flex items-center gap-2" onClick={() => {
                 logClickedEvent("login-button-modal-profile-afk")
@@ -49,7 +48,7 @@ export default function ProfileAfk() {
               <button onClick={() => {
                 logClickedEvent("nostr--edit-my-profile")
                 handleTabChange("nostr")
-              }} className="btn w-full flex items-center justify-between border-2 border-contrast-200 rounded-lg">
+              }} className="btn w-full flex items-center justify-between border-1 border-contrast-200 rounded-lg">
                 <div className={`${activeTab === "nostr" ? "text-contrast-500" : ""}`}>
                   <p className="font-semibold text-left">Nostr Profile</p>
                   <p className="text-sm opacity-80">Manage your decentralized social identity</p>
@@ -160,10 +159,12 @@ export default function ProfileAfk() {
 
       {activeTab && (
         <div className="mt-8">
-          <button onClick={() => {
+          <button 
+          className="btn w-full flex items-center justify-between p-2"
+          onClick={() => {
             logClickedEvent("back-button-modal-profile-afk")
             setActiveTab(undefined)
-          }} className="btn w-full flex items-center justify-between">
+          }}>
             <Icon name="BackIcon" size={24} />
           </button>
           {activeTab === "nostr" && <MyNostrProfileComponent />}

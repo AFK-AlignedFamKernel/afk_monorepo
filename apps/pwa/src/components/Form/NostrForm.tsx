@@ -4,6 +4,7 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { logClickedEvent } from '@/lib/analytics';
 import { Icon } from '../small/icon-component';
 import styles from '@/styles/components/_nostr-form.module.scss';
+import { ButtonPrimary } from '../button/Buttons';
 export type NostrEventType = 'note' | 'article';
 
 interface NostrFormProps {
@@ -202,9 +203,9 @@ export const NostrForm: React.FC<NostrFormProps> = ({
       </div>
 
       <div className="nostr-form__actions mt-4">
-        <button type="submit" className="w-full bg-blue-700 text-white font-semibold py-2 rounded shadow hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
+        <ButtonPrimary type="submit" className="w-full bg-blue-700 text-white font-semibold py-2 rounded shadow hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition">
           {formData.type === 'article' ? 'Publish Article' : 'Post Note'}
-        </button>
+        </ButtonPrimary>
       </div>
     </form>
   );

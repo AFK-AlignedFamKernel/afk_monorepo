@@ -7,6 +7,8 @@ import { useUIStore } from '@/store/uiStore';
 import { useQueryClient } from '@tanstack/react-query';
 import Quill, { Delta } from 'quill';
 import { Editor } from './Editor';
+import { ButtonPrimary } from '../button/Buttons';
+import { logClickedEvent } from '@/lib/analytics';
 // import { useRouter } from 'next/router';
 
 export type NostrEventType = 'note' | 'article';
@@ -106,6 +108,7 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
   const handlesendArticle = async () => {
 
 
+    logClickedEvent('try_send_article', 'nostr', 'try_send_article', 1)
     if (!publicKey) {
       return showToast({ type: "error", message: "Please connect you" })
     }
@@ -133,9 +136,24 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
     if (image) {
       try {
         const result = await fileUpload.mutateAsync(image);
-        if (result.data.url) imageUrl = result.data.url;
-      } catch (error) {
+        logClickedEvent('upload_image_to_ipfs', 'nostr', 'upload_image_to_ipfs', 1);
+        // Fix: result may be {} and not have a 'data' property, so check for url in result or result.data
+        let url: string | undefined = undefined;
+        if (result && typeof result === 'object') {
+          if ('data' in result && result.data && typeof result.data === 'object' && 'url' in result.data) {
+            url = (result.data as { url?: string }).url;
+          } else if ('url' in result) {
+            url = (result as { url?: string }).url;
+          }
+        }
+        if (url) {
+          imageUrl = url;
+          logClickedEvent('upload_image_to_ipfs_success', 'nostr', 'upload_image_to_ipfs_success', 1);
+        }
+      }
+      catch (error) {
         console.log('image upload error', error);
+        logClickedEvent('upload_image_to_ipfs_error', 'nostr', 'upload_image_to_ipfs_error', 1);
       }
     }
     try {
@@ -164,6 +182,7 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
           onSuccess() {
             showToast({ type: 'success', message: 'Note sent successfully' });
             queryClient.invalidateQueries({ queryKey: ['rootNotes'] });
+            logClickedEvent('send_article_success', 'nostr', 'send_article_success', 1)
           },
           onError(e) {
             console.log('error', e);
@@ -171,11 +190,13 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
               type: 'error',
               message: 'Error! Note could not be sent. Please try again later.',
             });
+            logClickedEvent('send_article_error_hook', 'nostr', 'send_article_error', 1)
           },
         },
       );
     } catch (error) {
       console.log('sendArticle error', error);
+      logClickedEvent('send_article_error', 'nostr', 'send_article_error', 1)
     }
 
   };
@@ -301,9 +322,9 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
       </div>
 
       <div className={styles['nostr-form__actions']}>
-        <button type="submit" className={styles['nostr-form__submit']}>
+        <ButtonPrimary type="submit" className={styles['nostr-form__submit']}>
           {formData.type === 'article' ? 'Publish Article' : 'Post Note'}
-        </button>
+        </ButtonPrimary>
       </div>
     </form>
   );
