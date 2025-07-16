@@ -29,7 +29,7 @@ export interface NostrFormData {
 
 export const NostrArticleForm: React.FC<NostrFormProps> = ({
   onSubmit,
-  type = 'note',
+  type = 'article',
   className,
   initialData,
 }) => {
@@ -38,7 +38,7 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
 
   // Use a ref to access the quill instance directly
   const quillRef = useRef<Quill>(null);
-  
+
   const [formData, setFormData] = useState<NostrFormData>({
     content: initialData?.content || '',
     title: initialData?.title || '',
@@ -322,7 +322,9 @@ export const NostrArticleForm: React.FC<NostrFormProps> = ({
       </div>
 
       <div className={styles['nostr-form__actions']}>
-        <ButtonPrimary type="submit" className={styles['nostr-form__submit']}>
+        <ButtonPrimary type="submit"
+          // className={styles['nostr-form__submit']}
+        >
           {formData.type === 'article' ? 'Publish Article' : 'Post Note'}
         </ButtonPrimary>
       </div>

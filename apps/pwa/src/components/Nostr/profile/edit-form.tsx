@@ -5,6 +5,7 @@ import { useFileUpload } from '@/hooks/useFileUpload';
 import { useUIStore } from '@/store/uiStore';
 import Image from 'next/image';
 import { logClickedEvent } from '@/lib/analytics';
+import { ButtonPrimary } from '@/components/button/Buttons';
 export const NostrProfileEditForm = () => {
 
     const editProfile = useEditProfile()
@@ -49,6 +50,7 @@ export const NostrProfileEditForm = () => {
             const values = formData;
             const { picture, banner } = values;
 
+            console.log('publicKey', publicKey);
             let bannerUrl = banner;
             let pictureUrl = picture;
 
@@ -322,12 +324,12 @@ export const NostrProfileEditForm = () => {
                 />
             </div>
 
-            <button
+            <ButtonPrimary
                 type="submit"
                 className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
                 Update Profile
-            </button>
+            </ButtonPrimary>
         </form>
     )
 }

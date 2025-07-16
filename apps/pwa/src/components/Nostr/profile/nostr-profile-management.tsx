@@ -26,6 +26,10 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
     // const isDesktop = React.useMemo(() => {
     //     return dimensions.width >= 1024;
     // }, [dimensions]);
+
+    const isExtension = useAuth((state) => state.isExtension);
+    console.log("isExtension", isExtension);
+    const setIsExtensionConnect = useAuth((state) => state.setIsExtensionConnect);
     const { getPublicKey } = useNip07Extension();
 
     const { publicKey, setAuth } = useAuth();
@@ -43,13 +47,15 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
         try {
             logClickedEvent('try_login_with_nip7', 'nostr', 'try_login_with_nip7', 1)
             const publicKey = await getPublicKey();
-            console.log("publicKey", publicKey);
+            console.log("publicKey nip7", publicKey);
             if(publicKey){
                 logClickedEvent('login_with_nip7_success', 'nostr', 'login_with_nip7_success', 1)
                 showToast({
                     message: 'Account connected successfully',
                     type: 'success',
                 })
+                setIsExtensionConnect(true);
+                setAuth(publicKey, '');
             }
         } catch (error) {
             console.log("error", error)
@@ -72,6 +78,8 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
     }, [nostrAccounts]);
 
     const handleConnectWallet = (item: any) => {
+        logClickedEvent('connect_nostr_wallet', 'nostr', 'connect_nostr_wallet', 1)
+
         setIsWalletSelectOpen(!isWalletSelectOpen);
         setAuth(item?.publicKey, item?.secretKey);
         NostrKeyManager.setAccountConnected(item);
@@ -81,8 +89,8 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
             description: "You are now connected to the wallet",
             type: "success"
         })
-        logClickedEvent('connect_nostr_wallet', 'nostr', 'connect_nostr_wallet', 1)
         // handleIsOpenProfile();
+        setIsExtensionConnect(false);
 
     }
 
