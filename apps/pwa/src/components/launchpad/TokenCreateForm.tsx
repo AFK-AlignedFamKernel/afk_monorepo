@@ -13,6 +13,7 @@ import { useUIStore } from '@/store/uiStore';
 import dynamic from 'next/dynamic';
 import { uploadJsonIpfs } from '@/hooks/useFileJsonUpload';
 import Image from "next/image";
+import { ButtonPrimary } from '../button/Buttons';
 
 const WalletConnectButton = dynamic(() => import('@/components/account/starknet/WalletConnectButton').then(mod => mod.WalletConnectButtonController), {
   ssr: false,
@@ -89,9 +90,14 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
         try {
           const result = await fileUpload.mutateAsync(file);
           console.log("result file upload", result);
-          if (result.data.url) {
-            imageUrl = result.data.url
-            urlHash = result.data?.hash
+          if (result && typeof result === 'object') {
+            if ('data' in result && result.data && typeof result.data === 'object' && 'url' in result.data) {
+              imageUrl = (result.data as { url?: string }).url ?? '';
+              urlHash = (result.data as { hash?: string }).hash ?? '';
+            } else if ('url' in result) {
+              imageUrl = (result as { url?: string }).url ?? '';
+              urlHash = (result as { hash?: string }).hash ?? '';
+            }
           }
         } catch (error) {
           console.log("error", error)
@@ -364,7 +370,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
               </div>
             )}
 
-            <button
+            <ButtonPrimary
               type="submit"
               // onClick={() => {
               //   console.log('test');
@@ -374,7 +380,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Creating Token...' : 'Create Token'}
-            </button>
+            </ButtonPrimary>
 
             {/* 
  <button

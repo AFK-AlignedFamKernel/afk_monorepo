@@ -3,10 +3,7 @@ import { useAppStore } from "@/store/app";
 import { useCommunitiesStore } from "@/store/communities";
 import { useUIStore } from "@/store/uiStore";
 import { useEffect, useState } from "react";
-import { Oauth } from "../profile/Oauth";
-import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
-import MessageCard from "./MessageCard";
 import CommentCard from "./CommentCard";
 import { Icon } from "../small/icon-component";
 

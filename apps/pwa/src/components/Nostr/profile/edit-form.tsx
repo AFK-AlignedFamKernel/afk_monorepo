@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useUIStore } from '@/store/uiStore';
 import Image from 'next/image';
+import { logClickedEvent } from '@/lib/analytics';
 export const NostrProfileEditForm = () => {
 
     const editProfile = useEditProfile()
@@ -50,13 +51,54 @@ export const NostrProfileEditForm = () => {
 
             let bannerUrl = banner;
             let pictureUrl = picture;
+
+            console.log("pictureFile", pictureFile);
+            console.log("bannerFile", bannerFile);
+
+            logClickedEvent('try_update_nostr_profile')
             if (pictureFile) {
-                const result = await fileUpload.mutateAsync(pictureFile);
-                if (result.data.url) pictureUrl = result.data.url;
+                try {
+                    const pictureResult = await fileUpload.mutateAsync(pictureFile);
+                    if (
+                        pictureResult &&
+                        typeof pictureResult === 'object' &&
+                        'data' in pictureResult &&
+                        pictureResult.data &&
+                        typeof pictureResult.data === 'object' &&
+                        'url' in pictureResult.data
+                    ) {
+                        pictureUrl = pictureResult.data.url as string;
+                    }
+                } catch (err) {
+                    console.error('Profile picture upload failed:', err);
+                    showToast({
+                        message: 'Failed to upload profile picture',
+                        type: 'error'
+                    })
+                    // Optionally show a toast here, or just continue
+                }
             }
             if (bannerFile) {
-                const result = await fileUpload.mutateAsync(bannerFile);
-                if (result.data.url) bannerUrl = result.data.url;
+                try {
+                    const bannerResult = await fileUpload.mutateAsync(bannerFile);
+                    if (
+                        bannerResult &&
+                        typeof bannerResult === 'object' &&
+                        'data' in bannerResult &&
+                        bannerResult.data &&
+                        typeof bannerResult.data === 'object' &&
+                        'url' in bannerResult.data && typeof bannerResult.data.url === 'string'
+                    ) {
+                        bannerUrl = bannerResult.data.url as string;
+                    }
+                } catch (err) {
+                    console.error('Banner upload failed:', err);
+                    showToast({
+                        message: 'Failed to upload banner',
+                        type: 'error'
+                    })
+                    // Optionally show a toast here, or just continue
+                }
             }
 
             console.log("pictureUrl", pictureUrl);
@@ -81,6 +123,7 @@ export const NostrProfileEditForm = () => {
             });
             queryClient.invalidateQueries({ queryKey: ['profile', publicKey] });
 
+            logClickedEvent('update_nostr_profile_success')
             showToast({
                 message: 'Profile updated',
                 type: 'success'
@@ -88,6 +131,7 @@ export const NostrProfileEditForm = () => {
 
         } catch (error) {
             console.error('Failed to update profile:', error)
+            logClickedEvent('error_update_nostr_profile')
             showToast({
                 message: 'Failed to update profile',
                 type: 'error'
@@ -96,7 +140,7 @@ export const NostrProfileEditForm = () => {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 px-4">
             <div>
                 <label htmlFor="name" className="block text-sm font-medium">
                     Username
@@ -174,6 +218,8 @@ export const NostrProfileEditForm = () => {
                     {formData.picture && (
                         <Image
                             src={formData.picture}
+                            width={48}
+                            height={48}
                             alt="Profile preview"
                             className="h-12 w-12 rounded-full object-cover"
                         />
@@ -195,24 +241,37 @@ export const NostrProfileEditForm = () => {
                             if (file) {
                                 const reader = new FileReader();
                                 reader.onloadend = () => {
-                                    // handleChange({
-                                    //     target: {
-                                    //         name: 'banner',
-                                    //         value: reader.result as string
-                                    //     }
-                                    // });
-                                };
-                                reader.onloadend = () => {
                                     const event = new Event('change', { bubbles: true });
                                     const target = Object.assign(event.target ?? {}, {
-                                        name: 'banner',
+                                        name: 'picture',
                                         value: reader.result as string
                                     }) as HTMLInputElement;
                                     handleChange({ target } as React.ChangeEvent<HTMLInputElement>);
-                                    setBannerFile(file);
                                 };
+                                setBannerFile(file);
                                 reader.readAsDataURL(file);
                             }
+                            // if (file) {
+                            //     const reader = new FileReader();
+                            //     reader.onloadend = () => {
+                            //         // handleChange({
+                            //         //     target: {
+                            //         //         name: 'banner',
+                            //         //         value: reader.result as string
+                            //         //     }
+                            //         // });
+                            //     };
+                            //     reader.onloadend = () => {
+                            //         const event = new Event('change', { bubbles: true });
+                            //         const target = Object.assign(event.target ?? {}, {
+                            //             name: 'banner',
+                            //             value: reader.result as string
+                            //         }) as HTMLInputElement;
+                            //         handleChange({ target } as React.ChangeEvent<HTMLInputElement>);
+                            //         setBannerFile(file);
+                            //     };
+                            //     reader.readAsDataURL(file);
+                            // }
                         }}
                         className="block w-full text-sm text-gray-500
               file:mr-4 file:py-2 file:px-4
@@ -224,6 +283,8 @@ export const NostrProfileEditForm = () => {
                     {formData.banner && (
                             <Image
                             src={formData.banner}
+                            width={50}
+                            height={50}
                             alt="Banner preview"
                             className="h-20 w-32 object-cover rounded"
                         />

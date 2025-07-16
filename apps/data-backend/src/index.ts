@@ -35,6 +35,7 @@ async function buildServer() {
   // CORS configuration
   await fastify.register(fastifyCors, {
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    // origin: '*',
     credentials: true
   });
 

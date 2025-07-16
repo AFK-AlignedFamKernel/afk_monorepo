@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useNostrContext, settingsStore, authStore, NostrKeyManager, useEditProfile } from 'afk_nostr_sdk';
+import { useNostrContext, settingsStore, authStore, NostrKeyManager, useEditProfile, useNip07Extension } from 'afk_nostr_sdk';
 import { generateRandomKeypair } from '../../../../../../packages/afk_nostr_sdk/src/utils/keypair';
 import * as bip39 from 'bip39';
 import { useUIStore } from '@/store/uiStore';
@@ -12,7 +12,7 @@ import NDK, { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 import { AFK_RELAYS } from 'afk_nostr_sdk';
 import { ImportPrivateKey } from '../profile/import-privatekey';
 
-export default function NostrCreateAccountComponent({ onClose, isImportAvailable = true }: { onClose?: () => void, isImportAvailable?: boolean }) {
+export default function NostrCreateAccountComponent({ onClose, isImportAvailable = true, isLoginNip7Available = true }: { onClose?: () => void, isImportAvailable?: boolean, isLoginNip7Available?: boolean }) {
     const [passkey, setPasskey] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
@@ -20,6 +20,33 @@ export default function NostrCreateAccountComponent({ onClose, isImportAvailable
     const [username, setUsername] = useState('');
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [isImportOpen, setIsImportOpen] = useState(false);
+
+    const { getPublicKey } = useNip07Extension();
+
+    const handleLoginWithNip7 = async () => {
+      
+        try {
+            logClickedEvent('try_login_with_nip7', 'nostr','try_login_with_nip7', 1)   
+
+            const publicKey = await getPublicKey();
+            console.log("publicKey", publicKey);
+    
+            if (publicKey) {
+                showToast({
+                    message: 'Account connected successfully',
+                    type: 'success',
+                })
+                logClickedEvent('login_with_nip7_success', 'nostr', 'login_with_nip7_success', 1)
+            }
+        } catch (error) {
+            console.log("error", error)
+            logClickedEvent('error_login_with_nip7', 'nostr', 'error_login_with_nip7', 1)
+            showToast({
+                message: 'Failed to login with Nip7',
+                type: 'error',
+            })
+        }
+    }
 
     const editProfile = useEditProfile();
 
@@ -201,6 +228,14 @@ export default function NostrCreateAccountComponent({ onClose, isImportAvailable
                                 />
                             </button>
                         }
+
+                        {isLoginNip7Available && (
+                            <div className='flex flex-col gap-4'>
+                                <button onClick={() => {
+                                    handleLoginWithNip7();
+                                }}>Login with Nip7</button>
+                            </div>
+                        )}
                     </div>
                 </form>
 
@@ -283,6 +318,8 @@ export default function NostrCreateAccountComponent({ onClose, isImportAvailable
                         <ImportPrivateKey />
                     </div>}
                 </div>
+
+
             </div>
         </div>
     );

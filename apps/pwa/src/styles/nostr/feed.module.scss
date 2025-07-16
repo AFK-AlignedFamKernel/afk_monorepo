@@ -365,7 +365,9 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
       font-size: 1rem;
     }
   }
-  overflow-x: hidden;
+  & {
+    overflow-x: hidden;
+  }
 }
 
 // Ensure high contrast in dark mode

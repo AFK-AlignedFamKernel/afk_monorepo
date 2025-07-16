@@ -20,6 +20,8 @@ export function Footer() {
           <Image
             src="/assets/afkMascot.png"
             // src="/assets/pepe-logo.png"
+            width={50}
+            height={50}
             className="w-[50px] h-[50px] tab:h-auto tab:w-auto"
             alt="AFK Logo LFG"
           />
@@ -28,10 +30,16 @@ export function Footer() {
           </p>
           <Box className="flex items-center gap-x-5">
             <button>
-              <Image src="/assets/appStoreBtn.svg" className="w-[100px] tab:w-auto" alt="" />
+              <Image src="/assets/appStoreBtn.svg" className="w-[100px] tab:w-auto" alt=""
+              width={24}
+              height={24}
+               />
             </button>
             <button>
-              <Image src="/assets/googlePlaybtn.svg" className="w-[100px] tab:w-auto" alt="" />
+              <Image src="/assets/googlePlaybtn.svg" className="w-[100px] tab:w-auto" alt=""
+              width={24}
+              height={24}
+              />
             </button>
           </Box>
         </Box>
@@ -49,12 +57,18 @@ export function Footer() {
         </Box>
         <Box className="flex items-center gap-x-[14px] mt-5 tab:mt-0 self-center tab:self-end">
           <a href="https://x.com/AFK_AlignedFamK" target="_blank">
-            <Image src="/assets/twitterIcon.svg" alt="AFK Aligned Fam Community Twitter / X" />
+            <Image src="/assets/twitterIcon.svg" alt="AFK Aligned Fam Community Twitter / X"
+            width={24}
+            height={24}
+            />
           </a>
 
     
           <a href="https://t.me/afk_aligned_fam_kernel" target="_blank">
-            <Image src="/assets/telegramIcon.svg" alt="AFK Community Telegram " />
+            <Image src="/assets/telegramIcon.svg" alt="AFK Community Telegram "
+            width={24}
+            height={24}
+            />
           </a>
         </Box>
       </Box>

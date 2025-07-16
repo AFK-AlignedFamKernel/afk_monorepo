@@ -5,6 +5,7 @@ import { useQuote, useRepost } from "afk_nostr_sdk";
 import { useState } from "react";
 import React from "react";
 import { useNostrAuth } from "@/hooks/useNostrAuth";
+import { ButtonPrimary } from "@/components/button/Buttons";
 
 
 enum QuoteNostrTypeMode {
@@ -136,24 +137,24 @@ export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
                         rows={3}
                     />
                     <div className="flex gap-2 justify-end">
-                        <button
+                        <ButtonPrimary
                             className="btn btn-primary"
                             onClick={handleSendQuote}
                         >
                             Quote
-                        </button>
+                        </ButtonPrimary>
                     </div>
                 </>
             )}
             {type === QuoteNostrTypeMode.REPOST && (
                 <div className="flex flex-col items-center justify-center py-4">
                     <div className="mb-4 font-semibold text-base">Repost this event?</div>
-                    <button
+                    <ButtonPrimary
                         className="btn btn-primary"
                         onClick={handleRepost}
                     >
                         Repost
-                    </button>
+                    </ButtonPrimary>
                 </div>
             )}
         </div>

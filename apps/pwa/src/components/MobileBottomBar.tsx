@@ -3,14 +3,9 @@
 import { useState, useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import { useAccount } from '@starknet-react/core';
-import { WalletConnectButton } from './account/WalletConnectButton';
 import { Icon } from './small/icon-component';
 import { useRouter } from 'next/navigation';
-import CryptoLoading from './small/crypto-loading';
-import Image from 'next/image';
 import { useUIStore } from '@/store/uiStore';
-import { AvatarIcon } from './small/icons';
-import AccordionMenu from './small/AccordionMenu';
 import { useColorModeValue } from '@chakra-ui/react';
 import CreateAll from './Form/CreateAll';
 import { logClickedEvent } from '@/lib/analytics';

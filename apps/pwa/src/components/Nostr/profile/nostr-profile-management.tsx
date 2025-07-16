@@ -4,7 +4,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import { useCallback, useMemo } from 'react';
 
-import { NostrKeyManager, useAuth } from 'afk_nostr_sdk';
+import { NostrKeyManager, useAuth, useNip07Extension } from 'afk_nostr_sdk';
 import { useAccount, useConnect, useDisconnect } from '@starknet-react/core';
 import { Avatar } from '@chakra-ui/react';
 import { useUIStore } from '@/store/uiStore';
@@ -13,6 +13,8 @@ import { nip19 } from 'nostr-tools';
 
 import { ImportPrivateKey } from './import-privatekey';
 import NostrCreateAccountComponent from '../login/NostrCreateAccount';
+import { BasicButton, ButtonPrimary } from '@/components/button/Buttons';
+import { logClickedEvent } from '@/lib/analytics';
 interface CustomHeaderInterface {
     title?: string;
     showLogo?: boolean;
@@ -24,6 +26,7 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
     // const isDesktop = React.useMemo(() => {
     //     return dimensions.width >= 1024;
     // }, [dimensions]);
+    const { getPublicKey } = useNip07Extension();
 
     const { publicKey, setAuth } = useAuth();
     const [isOpenProfile, setIsOpenProfile] = React.useState(false);
@@ -34,7 +37,30 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
         setIsOpenProfile(!isOpenProfile);
     };
 
-    const [activeTab, setActiveTab] = React.useState<"create" | "manage" | 'import'>('manage');
+
+    const handleLoginWithNip7 = async () => {
+     
+        try {
+            logClickedEvent('try_login_with_nip7', 'nostr', 'try_login_with_nip7', 1)
+            const publicKey = await getPublicKey();
+            console.log("publicKey", publicKey);
+            if(publicKey){
+                logClickedEvent('login_with_nip7_success', 'nostr', 'login_with_nip7_success', 1)
+                showToast({
+                    message: 'Account connected successfully',
+                    type: 'success',
+                })
+            }
+        } catch (error) {
+            console.log("error", error)
+            logClickedEvent('error_login_with_nip7', 'nostr', 'error_login_with_nip7', 1)
+            showToast({
+                message: 'Failed to login with Nip7',
+                type: 'error',
+            })
+        }
+    }
+    const [activeTab, setActiveTab] = React.useState<"create" | "manage" | 'import' | 'nip7'>('manage');
 
     const nostrProfiles = useMemo(() => {
         if (!nostrAccounts) return [];
@@ -49,11 +75,13 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
         setIsWalletSelectOpen(!isWalletSelectOpen);
         setAuth(item?.publicKey, item?.secretKey);
         NostrKeyManager.setAccountConnected(item);
+        NostrKeyManager?.setNostrWalletConnected({ secretKey: item?.secretKey, publicKey: item?.publicKey, mnemonic: '', seed: '' });
         showToast({
             message: `Wallet connected: ${item?.publicKey}`,
             description: "You are now connected to the wallet",
             type: "success"
         })
+        logClickedEvent('connect_nostr_wallet', 'nostr', 'connect_nostr_wallet', 1)
         // handleIsOpenProfile();
 
     }
@@ -198,13 +226,22 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
 
                 <div className='flex flex-row gap-2 justify-start'>
 
-                    <button className={`btn btn-basic ${activeTab === 'import' ? 'border-afk-accent-cyan' : ''}`} onClick={() => {
+                    <ButtonPrimary className={`btn btn-basic ${activeTab === 'import' ? 'border-afk-accent-cyan' : ''}`} onClick={() => {
                         setActiveTab('import');
-                    }}>Import</button>
+                    }}>Import</ButtonPrimary>
 
-                    <button className={`btn btn-basic ${activeTab === 'create' ? 'border-afk-accent-cyan' : ''}`} onClick={() => {
+                    <BasicButton className={`btn btn-basic ${activeTab === 'create' ? 'border-afk-accent-cyan' : ''}`} onClick={() => {
                         setActiveTab('create');
-                    }}>Create</button>
+                    }}>Create</BasicButton>
+
+
+                    <BasicButton
+                        className={`btn btn-basic ${activeTab === 'nip7' ? 'border-afk-accent-cyan' : ''}`}
+                        onClick={() => {
+                            setActiveTab('nip7');
+                            handleLoginWithNip7();
+                        }}
+                    >Login</BasicButton>
 
                 </div>
 
@@ -218,6 +255,14 @@ export const NostrProfileManagement = ({ title, showLogo, isModalMode }: CustomH
                         <NostrCreateAccountComponent />
                     </div>
                 )}
+                {/* 
+                {activeTab === 'nip7' && (
+                    <div>
+                        <button onClick={() => {
+                            handleLoginWithNip7();
+                        }}>Login</button>
+                    </div>
+                )} */}
 
             </div>
 

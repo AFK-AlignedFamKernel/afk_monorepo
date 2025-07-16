@@ -37,7 +37,10 @@ export function MobileNavBar({setToggle, toggle}: Props) {
     <Box className="absolute inset-0 z-[900]   backdrop-blur-[30px] lg:hidden">
       <Box className={`list-none pt-[60px] text-center`}>
         <div className="absolute right-[51px] top-[39px] h-fit w-fit" onClick={toggleNav}>
-          <Image src="/assets/cancel-icon.svg" alt="" />
+          <Image src="/assets/cancel-icon.svg" alt="" 
+          width={24}
+          height={24}
+          />
         </div>
 
         <motion.div
