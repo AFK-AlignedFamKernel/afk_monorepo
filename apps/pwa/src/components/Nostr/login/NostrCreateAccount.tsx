@@ -36,6 +36,8 @@ export default function NostrCreateAccountComponent({ onClose, isImportAvailable
                     message: 'Account connected successfully',
                     type: 'success',
                 })
+                authStore.getState().setAuth(publicKey, '');
+                authStore.getState().setIsExtensionConnect(true);
                 logClickedEvent('login_with_nip7_success', 'nostr', 'login_with_nip7_success', 1)
             }
         } catch (error) {
@@ -91,6 +93,7 @@ export default function NostrCreateAccountComponent({ onClose, isImportAvailable
             NostrKeyManager?.setNostrWalletConnectedStorage({ secretKey: privateKey, publicKey, mnemonic: '', seed: seedCashu });
 
 
+            await authStore.getState().setIsExtensionConnect(false);
 
             showToast({
                 message: 'Account created successfully',

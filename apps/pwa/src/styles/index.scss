@@ -336,6 +336,14 @@ input {
   background-color: var(--background);
 }
 
+textarea {
+  color: var(--foreground);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  text-wrap: nowrap;
+}
+
+
 select {
   color: var(--contrast-900);
   background-color: var(--contrast-500);
@@ -351,12 +359,7 @@ select {
 //   text-wrap: nowrap;
 // }
 
-textarea {
-  color: var(--contrast-900);
-  background-color: var(--background);
-  border: 1px solid var(--border);
-  text-wrap: nowrap;
-}
+
 
 .icon {
   color: var(--contrast-500);

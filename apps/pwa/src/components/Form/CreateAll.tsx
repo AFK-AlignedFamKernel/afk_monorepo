@@ -115,7 +115,7 @@ export default function CreateAll() {
       {createType === CreateType.ARTICLE && (
         <div>
           {/* <h1>Article</h1> */}
-          <NostrArticleForm onSubmit={handleSubmit}></NostrArticleForm>
+          <NostrArticleForm onSubmit={handleSubmit} type={CreateType.ARTICLE}></NostrArticleForm>
         </div>
       )}
 

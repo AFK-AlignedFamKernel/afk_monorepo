@@ -1,11 +1,11 @@
 import React from 'react';
-import NDK, {NDKNip07Signer, NDKPrivateKeySigner} from '@nostr-dev-kit/ndk';
-import {NDKCashuWallet, NDKWallet, NDKNWCWallet} from '@nostr-dev-kit/ndk-wallet';
-import {createContext, useContext, useEffect, useState} from 'react';
+import NDK, { NDKNip07Signer, NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
+import { NDKCashuWallet, NDKWallet, NDKNWCWallet } from '@nostr-dev-kit/ndk-wallet';
+import { createContext, useContext, useEffect, useState } from 'react';
 
-import {useSettingsStore} from '../store';
-import {useAuth} from '../store/auth';
-import {AFK_RELAYS} from '../utils/relay';
+import { useSettingsStore } from '../store';
+import { useAuth } from '../store/auth';
+import { AFK_RELAYS } from '../utils/relay';
 import { checkIsConnected } from '../hooks/connect';
 
 // Create a separate type for the NDK instance to avoid direct type conflicts
@@ -24,7 +24,7 @@ export type NostrContextType = {
 
 export const NostrContext = createContext<NostrContextType | null>(null);
 
-export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => {
+export const NostrProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const privateKey = useAuth((state) => state.privateKey);
   const publicKey = useAuth((state) => state.publicKey);
   const isExtension = useAuth((state) => state.isExtension);
@@ -36,11 +36,13 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
   const [ndk, setNdk] = useState<NDKInstance>(
     new NDK({
       explicitRelayUrls: relays ?? AFK_RELAYS,
-         signer: privateKey
-        ? new NDKPrivateKeySigner(privateKey)
-        : isExtension
-        ? nip07Signer
-        : undefined,
+      signer: isExtension ?
+        nip07Signer :
+        privateKey
+          ? new NDKPrivateKeySigner(privateKey)
+          : isExtension
+            ? nip07Signer
+            : undefined,
     }),
   );
 
@@ -65,8 +67,8 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
       signer: privateKey
         ? new NDKPrivateKeySigner(privateKey)
         : isExtension
-        ? nip07Signer
-        : undefined,
+          ? nip07Signer
+          : undefined,
     });
 
     newNdk.connect().then(() => {
@@ -101,7 +103,7 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
       setIsConnected(connected);
     };
 
-    const interval = setInterval(checkConnection, 1000*60); // Check every minute
+    const interval = setInterval(checkConnection, 1000 * 60); // Check every minute
 
     // Initial check
     checkConnection();
@@ -119,7 +121,7 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({children}) => 
 
   return (
     <NostrContext.Provider
-      value={{ndk, nip07Signer, nwcNdk, ndkWallet, ndkCashuWallet, setNdk, isNdkConnected, setIsNdkConnected}}>
+      value={{ ndk, nip07Signer, nwcNdk, ndkWallet, ndkCashuWallet, setNdk, isNdkConnected, setIsNdkConnected }}>
       {children}
     </NostrContext.Provider>
   );
