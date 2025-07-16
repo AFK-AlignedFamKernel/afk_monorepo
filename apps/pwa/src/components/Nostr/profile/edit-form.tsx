@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useUIStore } from '@/store/uiStore';
 import Image from 'next/image';
+import { logClickedEvent } from '@/lib/analytics';
 export const NostrProfileEditForm = () => {
 
     const editProfile = useEditProfile()
@@ -53,6 +54,8 @@ export const NostrProfileEditForm = () => {
 
             console.log("pictureFile", pictureFile);
             console.log("bannerFile", bannerFile);
+
+            logClickedEvent('try_update_nostr_profile')
             if (pictureFile) {
                 try {
                     const pictureResult = await fileUpload.mutateAsync(pictureFile);
@@ -120,6 +123,7 @@ export const NostrProfileEditForm = () => {
             });
             queryClient.invalidateQueries({ queryKey: ['profile', publicKey] });
 
+            logClickedEvent('update_nostr_profile_success')
             showToast({
                 message: 'Profile updated',
                 type: 'success'
@@ -127,6 +131,7 @@ export const NostrProfileEditForm = () => {
 
         } catch (error) {
             console.error('Failed to update profile:', error)
+            logClickedEvent('error_update_nostr_profile')
             showToast({
                 message: 'Failed to update profile',
                 type: 'error'
