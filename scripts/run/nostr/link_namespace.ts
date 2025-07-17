@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { Account, byteArray, CallData, json, uint256, cairo, constants, shortString } from "starknet";
+import { Account, byteArray, CallData, json, uint256, cairo, constants, shortString, Contract, Call } from "starknet";
 import fs from "fs";
 import { provider } from "../../utils/starknet";
 import { finalizeEvent, generateSecretKey, getPublicKey, serializeEvent, verifyEvent } from "nostr-tools";
@@ -8,6 +8,8 @@ import { NAMESPACE_ADDRESS, NOSTR_FI_SCORING_ADDRESS } from "common/src/contract
 import { bytesToHex } from "@noble/hashes/utils";
 import NDK, { NDKEvent, NDKKind, NDKPrivateKeySigner } from "@nostr-dev-kit/ndk";
 import { AFK_RELAYS } from "common";
+import {ABI} from "../../../apps/indexer-v2/indexers/abi/namespace.abi"
+
 dotenv.config();
 
 // let sk = "ebbc14b03f042a4a0c9583b9e6c6c2aa177884bb6a739dbf1d7c2fdeb04c73cf";
@@ -187,26 +189,19 @@ export const linkedNostrProfile = async () => {
     const signatureS = "0x" + signature.slice(signature.length / 2);
 
     // Format calldata exactly as the test expects
-    const linkedArrayCalldata = CallData.compile([
-        // recipient_public_key from test
-        // cairo.uint256(`0x${event?.pubkey}`),
-        // event?.pubkey,
-        uint256.bnToUint256(BigInt(`0x${event?.pubkey}`)),
-        // cairo.uint256("0x5b2b830f2778075ab3befb5a48c9d8138aef017fab2b26b5c31a2742a901afcc"),
-        timestamp,
-        1, // kind
-        byteArray.byteArrayFromString("[]"),
-        {
-            // starknet_address: starknetAddress,
+    const requestArgs = {
+        public_key: `0x${event?.pubkey}`,
+        created_at: timestamp,
+        kind: 1,
+        tags: "[]",
+        content: {
             starknet_address: starknetAddressFelt,
         },
-        {
-            r: uint256.bnToUint256(BigInt(signatureR)),
-            s: uint256.bnToUint256(BigInt(signatureS)),
-            // r: cairo.uint256(signatureR),
-            // s: cairo.uint256(signatureS),
+        sig: {
+            r: signatureR,
+            s: signatureS,
         }
-    ]);
+    }
 
     // Debug logs
     console.log("Debug Info:");
@@ -217,17 +212,19 @@ export const linkedNostrProfile = async () => {
     console.log("Signature R:", signatureR);
     console.log("Signature S:", signatureS);
 
-    const tx = await account.execute({
-        contractAddress: namespace_address,
-        entrypoint: 'linked_nostr_default_account',
-        calldata: linkedArrayCalldata
-    });
+    const contract: Contract = new Contract(ABI, namespace_address, provider)
+    const call: Call = contract.populate('linked_nostr_default_account', {
+        request: requestArgs
+    })
 
+    const tx = await account.execute(call);
+    
     await account.waitForTransaction(tx.transaction_hash);
+    console.log("Transaction Hash:", tx.transaction_hash)
     return tx;
 };
 
 
-linkedNostrProfile()
+linkedNostrProfile().catch(err => console.log(err))
 
 // linkedToSecond(process.env.DEV_PUBLIC_KEY as string)
