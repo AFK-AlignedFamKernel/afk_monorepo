@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import classNames from 'classnames';
 import styles from '../../styles/components/modal.module.scss';
 
@@ -35,23 +35,23 @@ export const Modal: React.FC<ModalProps> = ({
   showCloseButton = true,
   theme = 'light',
 }) => {
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
+  // Add a ref to store the scroll position
+  const scrollPosition = useRef<number>(0);
+  const savedScrollY = useRef(0);
 
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+  useEffect(() => {
+    const scrollContainer = document.querySelector('.main-content') as HTMLElement | null;
+
+    if (isOpen && scrollContainer) {
+      scrollContainer.classList.add('modal-open');
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      if (scrollContainer) {
+        scrollContainer.classList.remove('modal-open');
+      }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

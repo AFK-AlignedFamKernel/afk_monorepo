@@ -959,3 +959,7 @@ button.sidebar-nav-footer-item {
 //   margin-right: 6px;
 //   vertical-align: middle;
 // }
+
+.main-content.modal-open {
+  overflow: hidden !important;
+}
