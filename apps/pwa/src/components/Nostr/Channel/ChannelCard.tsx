@@ -3,13 +3,19 @@ import { useProfile, useReactions, useReact } from 'afk_nostr_sdk';
 import styles from '@/styles/components/channel.module.scss';
 import Image from 'next/image';
 import { formatTimestamp } from '@/types/nostr';
+import { NDKUserProfile } from '@nostr-dev-kit/ndk';
+import { ButtonSecondary } from '@/components/button/Buttons';
+import { logClickedEvent } from '@/lib/analytics';
 
 interface ChannelCardProps {
   event: any; // NDKEvent type
+  profileProps?: NDKUserProfile | null;
   onClick?: (channel: any) => void;
+  isViewButton?: boolean;
+  isNavigateClickCard?: boolean;
 }
 
-  const ChannelCard: React.FC<ChannelCardProps> = ({ event, onClick }) => {
+const ChannelCard: React.FC<ChannelCardProps> = ({ event, profileProps, onClick, isViewButton = false, isNavigateClickCard = true }) => {
   const [channelInfo, setChannelInfo] = useState<any>(undefined);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(0);
@@ -45,6 +51,7 @@ interface ChannelCardProps {
   };
 
   const handleNavigate = () => {
+    logClickedEvent('channel_view')
     onClick?.(event);
     // window.location.href = `/nostr/channel/${event?.id}`;
   };
@@ -57,17 +64,17 @@ interface ChannelCardProps {
         // borderColor: 'var(--afk-accent-green, #00FF9C)',
         // boxShadow: '0 2px 8px rgba(0,255,156,0.05)',
       }}
-      onClick={handleNavigate}
+      onClick={isNavigateClickCard ? handleNavigate : undefined}
     >
       <div className="flex items-center gap-4 p-4">
         {channelInfo?.picture && channelInfo?.picture.startsWith('https') ? (
-        <Image
-          src={channelInfo?.picture}
-          alt={channelInfo?.name || 'Channel'}
-          className="w-16 h-16 rounded-full object-cover border" 
-          width={64}
+          <Image
+            src={channelInfo?.picture}
+            alt={channelInfo?.name || 'Channel'}
+            className="w-16 h-16 rounded-full object-cover border"
+            width={64}
             height={64}
-            // style={{ borderColor: 'var(--afk-accent-green, #00FF9C)' }}
+          // style={{ borderColor: 'var(--afk-accent-green, #00FF9C)' }}
           />
         ) : (
           <Image
@@ -96,9 +103,9 @@ interface ChannelCardProps {
             style={{ border: 0, background: 'none' }}
           >
             {isLiked ? (
-              <svg width="22" height="22" fill="var(--afk-accent-green,#00FF9C)" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <svg width="22" height="22" fill="var(--afk-accent-green,#00FF9C)" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
             ) : (
-              <svg width="22" height="22" fill="none" stroke="var(--afk-accent-green,#00FF9C)" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              <svg width="22" height="22" fill="none" stroke="var(--afk-accent-green,#00FF9C)" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
             )}
           </button>
           <span className="text-[var(--afk-accent-green,#00FF9C)] font-semibold min-w-[2em] text-center">
@@ -124,9 +131,19 @@ interface ChannelCardProps {
         </span>
         <span className="text-xs text-gray-400 ml-2">
           {/* TODO: Format creation time nicely */}
-          Created {formatTimestamp(event?.created_at)} 
+          Created {formatTimestamp(event?.created_at)}
         </span>
       </div>
+
+
+      {isViewButton && (
+        <div>
+
+          <ButtonSecondary onClick={handleNavigate}>
+            View Channel
+          </ButtonSecondary>
+        </div>
+      )}
     </div>
   );
 };

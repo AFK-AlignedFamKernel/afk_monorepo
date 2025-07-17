@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNote, useMessagesChannels, useSendMessageChannel } from 'afk_nostr_sdk';
+import { useNote, useMessagesChannels, useSendMessageChannel, useProfile } from 'afk_nostr_sdk';
 import ChannelCard from './ChannelCard';
 import styles from '@/styles/components/channel.module.scss';
 import { useUIStore } from '@/store/uiStore';
@@ -15,6 +15,9 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const { showModal, showToast } = useUIStore();
+  const {data: channelProfile} = useProfile({publicKey: channel?.pubkey})
+
+  console.log('channelProfile', channelProfile)
   // console.log('channelId', channelId);
   // console.log('channel', channel);
 
@@ -50,31 +53,29 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
   //   return <div className="flex justify-center items-center h-40 text-red-500">Channel not found.</div>;
   // }
 
+  console.log('messages', messages?.data?.pages.flat());
   return (
     <div className={`w-full max-w-2xl mx-auto py-4 px-2 ${styles.channelDetail}`}> {/* Custom class for extra styling */}
 
       {channel && (
         <>
-          <ChannelCard event={channel} />
+          <ChannelCard event={channel} 
+            profileProps={channelProfile}
+            isViewButton={false}
+          />
         </>
       )}
 
       <h3 className="text-xl font-semibold mb-2 mt-6">Messages</h3>
 
-      <div className="flex flex-col gap-2 mb-4 max-h-96 overflow-y-auto">
+      <div className="flex flex-col  max-h-96 overflow-y-auto overflow-x-hidden rounded-lg p-2">
         {messages?.data?.pages.flat().length === 0 && (
           <div className="text-gray-400">No messages yet.</div>
         )}
-        {messages?.data?.pages.flat().map((msg: any) => (
-          <div key={msg.id} className="rounded bg-gray-100 dark:bg-gray-800 p-3 text-sm">
-            <div className="flex items-center gap-2">
-              <Image src={msg.author.picture} alt={msg.author.name} width={20} height={20} />
-              <span className="text-sm">{msg.author.name} {formatTimestamp(msg.created_at)}</span>
-            </div>
-            {msg.content}
-
-            <ChannelMessage event={msg} />
-          </div>
+        {messages?.data?.pages.flat().map((msg: any, index: number) => (
+            <ChannelMessage key={index} event={msg} 
+            profileProps={channelProfile}
+            />
         ))}
       </div>
       <form onSubmit={handleSend} className="flex gap-2 mt-2">

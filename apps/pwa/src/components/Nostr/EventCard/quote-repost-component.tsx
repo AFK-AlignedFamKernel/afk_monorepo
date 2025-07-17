@@ -14,22 +14,22 @@ enum QuoteNostrTypeMode {
 }
 
 interface QuoteRepostComponentProps {
-    event: NDKEvent;
+    event?: NDKEvent;
 }
 
 export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
 
     const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
-    const repostMutation = useRepost({ event });
+    const repostMutation = useRepost({ event: event ?? undefined });
     const [quoteContent, setQuoteContent] = useState<string>('');
     const queryClient = useQueryClient();
 
     const [type, setType] = useState<QuoteNostrTypeMode>(QuoteNostrTypeMode.REPOST);
-    const quoteMutation = useQuote({ event, content: quoteContent, tags: [['e', event?.id ?? '', '', 'root', event?.pubkey ?? '']] });
+    const quoteMutation = useQuote({ event: event ?? undefined, content: quoteContent, tags: [['e', event?.id ?? '', '', 'root', event?.pubkey ?? '']] });
 
     const { showToast } = useUIStore()
     const handleRepost = async () => {
-        if (!event) return;
+        if (!event || !event?.id) return;
         try {
             // @TODO fix
             // await handleCheckNostrAndSendConnectDialog();
@@ -44,6 +44,7 @@ export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
     };
 
     const handleSendQuote = async () => {
+        if (!event || !event?.id) return;
         if (!quoteContent || quoteContent?.trim().length == 0) {
             showToast({ type: 'error', message: 'Please write your comment' });
             return;

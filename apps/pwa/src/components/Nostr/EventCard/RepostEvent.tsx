@@ -27,11 +27,11 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const { publicKey } = useAuth();
-  const content = event.content || '';
+  const content = event?.content || '';
   const shouldTruncate = content.length > 280 && !isExpanded;
   const displayContent = shouldTruncate ? `${content.substring(0, 280)}...` : content;
   const [comment, setComment] = useState('');
-  const { data: note = event } = useNote({ noteId: event?.id });
+  const { data: note = event } = useNote({ noteId: event?.id ?? '' });
   const comments = useReplyNotes({ noteId: note?.id });
   const sendNote = useSendNote();
   // const {profile} = useProfile({publicKey:event?.pubkey})
@@ -48,7 +48,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   const pubkeyReposted = useMemo(() => {
     try {
 
-      const content = JSON.parse(event.content);
+      const content = JSON.parse(event?.content ?? '');
       return content.pubkey;
     } catch (error) {
       console.log("error : ", error);
@@ -60,8 +60,8 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   const { data: profile } = useProfile({ publicKey: event?.pubkey });
 
   const { showToast, showModal } = useUIStore();
-  const repostMutation = useRepost({ event });
-  const quoteMutation = useQuote({ event });
+  // const repostMutation = useRepost({ event: event ?? undefined });
+  // const quoteMutation = useQuote({ event: event ?? undefined });
   const react = useReact();
   const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
   const [dimensionsMedia, setMediaDimensions] = useState([250, 300]);
@@ -247,6 +247,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
         </div> */}
       {/* Render correct card by kind, but FLAT */}
       {(() => {
+        // const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
         const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
         if (original?.kind === 1) {
           return <PostEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} />;

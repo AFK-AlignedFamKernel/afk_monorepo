@@ -1,23 +1,34 @@
 import React, { useEffect, useState } from 'react';
-import { useProfile, useReactions, useReact } from 'afk_nostr_sdk';
+import { useProfile, useReactions, useReact, useNote } from 'afk_nostr_sdk';
 import styles from '@/styles/components/channel.module.scss';
 import Image from 'next/image';
 import { formatTimestamp } from '@/types/nostr';
 import classNames from 'classnames';
+import { useUIStore } from '@/store/uiStore';
+import ProfileCardOverview from '../EventCard/ProfileCardOverview';
+import { NDKEvent, NDKKind, NDKUserProfile } from '@nostr-dev-kit/ndk';
+import { logClickedEvent } from '@/lib/analytics';
 interface ChannelMessageProps {
-  event: any; // NDKEvent type
+  event?: NDKEvent; // NDKEvent type
   onClick?: (channel: any) => void;
   className?: string;
+  profileProps?: NDKUserProfile | null;
 }
 
-const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, className }) => {
+const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, className, profileProps }) => {
   const [message, setMessage] = useState<any>(undefined);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(0);
-  const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const { data: profile } = useProfile({ publicKey: event?.pubkey })
+  console.log('profile channel message', profile)
+
+  const { data: eventMetadata } = useNote({ noteId: event?.id ?? '', kinds: [NDKKind.Metadata] });
+  console.log('eventMetadata', eventMetadata)
   const reactions = useReactions({ noteId: event?.id });
   const react = useReact();
 
+
+  const { showModal } = useUIStore();
   useEffect(() => {
     if (event?.content) {
       try {
@@ -50,9 +61,24 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
     // window.location.href = `/nostr/channel/${event?.id}`;
   };
 
+  const handleProfileView = () => {
+    logClickedEvent('profile_view')
+
+    if (profile) {
+      showModal(
+        <ProfileCardOverview profile={profile ?? undefined}
+          event={eventMetadata ?? undefined}
+        // onClose={() => hideModal()}
+        />
+      );
+    }
+  };
+  
+  console.log('message', message)
+
   return (
     <div
-      className={classNames('w-full mb-4 rounded-xl border shadow-sm flex flex-col gap-2 cursor-pointer transition-all', styles.channelCard, className)}
+      className={classNames('w-full rounded-xl border shadow-sm flex flex-col gap-2 cursor-pointer transition-all rounded bg-gray-100 dark:bg-gray-800 p-3 text-sm', styles.channelCard, className)}
       style={{
         // background: 'var(--afk-bg-panel, #1A1A1A)',
         // borderColor: 'var(--afk-accent-green, #00FF9C)',
@@ -61,19 +87,13 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
     // onClick={handleNavigate}
     >
 
-      <div key={message.id} className="rounded bg-gray-100 dark:bg-gray-800 p-3 text-sm">
-        <div className="flex items-center gap-2">
-          <Image src={message.author.picture} alt={message.author.name} width={20} height={20} />
-          <span className="text-sm">{message.author.name} {formatTimestamp(message.created_at)}</span>
-        </div>
-        {message.content}
-      </div>
-
-      <div className="flex items-center gap-2 px-4 pb-4">
-        {profile?.image && (
-          <img
-            src={profile.image}
-            alt={profile.name || profile.nip05}
+      <div className="flex items-center gap-2 px-4 pb-4 cursor-pointer" onClick={handleProfileView}>
+        {profile?.image && profile?.image.startsWith('https') && (
+          <Image    
+            width={28}
+            height={28}
+            src={profile?.image}
+            alt={profile?.name || profile?.nip05 || ''}
             className="w-7 h-7 rounded-full object-cover border border-[var(--afk-accent-cyan,#00F0FF)]"
           />
         )}
@@ -82,9 +102,17 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
         </span>
         <span className="text-xs text-gray-400 ml-2">
           {/* TODO: Format creation time nicely */}
-          Created {formatTimestamp(event?.created_at)}
+          Created {event?.created_at ? formatTimestamp(event?.created_at) : ''}
         </span>
       </div>
+
+ 
+
+      <div className="text-sm">
+        {event?.content}
+      </div>
+
+
     </div >
   );
 };

@@ -28,7 +28,9 @@ export enum NostrEventKind {
 }
 
 export interface NostrEventBase {
-  event: NDKEvent;
+  event: NDKEvent | undefined;
+  pubkey?: string;
+  eventId?: string;
   profile?: {
     name?: string;
     displayName?: string;
