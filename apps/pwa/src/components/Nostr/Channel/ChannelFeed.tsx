@@ -35,7 +35,7 @@ const ChannelFeed: React.FC = () => {
 
 
       {selectedChannel &&
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex flex-col">
+        <div className="top-0 left-0 w-full h-full z-50 flex flex-col">
           <div className="flex justify-end p-4">
             <button onClick={() => setSelectedChannel(null)} className="text-white">
               <Icon name="CloseIcon" className="w-6 h-6" />

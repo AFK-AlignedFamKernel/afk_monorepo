@@ -12,6 +12,7 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const {showModal, showToast} = useUIStore();
+  console.log('channelId', channelId);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
