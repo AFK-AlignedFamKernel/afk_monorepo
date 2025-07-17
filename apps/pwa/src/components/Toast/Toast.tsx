@@ -44,8 +44,8 @@ export const Toast: React.FC<ToastProps> = ({
         className
       )}
     >
-      <div className={styles['toast__content']}>
-        <p>{message}</p>
+      <div className={`${styles['toast__content']} flex items-center gap-2 justify-between align-center`}>
+        <p>{message}</p> 
         <button
           className={styles['toast__close']}
           aria-label="Close toast"
