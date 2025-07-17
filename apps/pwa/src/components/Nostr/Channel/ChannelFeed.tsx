@@ -26,12 +26,14 @@ const ChannelFeed: React.FC = () => {
   return (
     <div className={`w-full max-w-2xl mx-auto py-4 px-2 ${styles.channelFeed}`}> {/* Custom class for extra styling */}
       <h2 className="text-2xl font-bold mb-4">Channels</h2>
-      <div className="flex flex-col gap-4">
-        {channels.data?.pages.flat().map((event: any) => (
-          <ChannelCard key={event.id} event={event} onClick={setSelectedChannel} />
-        ))}
-      </div>
 
+      {!selectedChannel && (
+        <div className="flex flex-col gap-4">
+          {channels.data?.pages.flat().map((event: any) => (
+            <ChannelCard key={event.id} event={event} onClick={setSelectedChannel} />
+          ))}
+        </div>
+      )}
 
 
       {selectedChannel &&

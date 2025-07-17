@@ -11,13 +11,14 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
   const sendMessage = useSendMessageChannel();
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const {showModal, showToast} = useUIStore();
+  const { showModal, showToast } = useUIStore();
   console.log('channelId', channelId);
+  console.log('channel', channel);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) return;
-    if(!channelId) return;
+    if (!channelId) return;
     setSending(true);
     await sendMessage.mutateAsync({ content: message, tags: [['e', channelId]] });
     setMessage('');
@@ -33,19 +34,26 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
   if (isLoading) {
     return <div className="flex justify-center items-center h-40 text-lg">Loading channel...</div>;
   }
-  if (isError || !channel) {
-    return <div className="flex justify-center items-center h-40 text-red-500">Channel not found.</div>;
-  }
+  // if (isError || !channel) {
+  //   return <div className="flex justify-center items-center h-40 text-red-500">Channel not found.</div>;
+  // }
 
   return (
     <div className={`w-full max-w-2xl mx-auto py-4 px-2 ${styles.channelDetail}`}> {/* Custom class for extra styling */}
-      <ChannelCard event={channel} />
+
+      {channel && (
+        <>
+          <ChannelCard event={channel} />
+        </>
+      )}
+
       <h3 className="text-xl font-semibold mb-2 mt-6">Messages</h3>
+
       <div className="flex flex-col gap-2 mb-4 max-h-96 overflow-y-auto">
-        {messages.data?.pages.flat().length === 0 && (
+        {messages?.data?.pages.flat().length === 0 && (
           <div className="text-gray-400">No messages yet.</div>
         )}
-        {messages.data?.pages.flat().map((msg: any) => (
+        {messages?.data?.pages.flat().map((msg: any) => (
           <div key={msg.id} className="rounded bg-gray-100 dark:bg-gray-800 p-3 text-sm">
             {msg.content}
           </div>

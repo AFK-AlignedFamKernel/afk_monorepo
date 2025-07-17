@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useProfile, useReactions, useReact } from 'afk_nostr_sdk';
 import styles from '@/styles/components/channel.module.scss';
+import Image from 'next/image';
+import { formatTimestamp } from '@/types/nostr';
 
 interface ChannelCardProps {
   event: any; // NDKEvent type
@@ -58,12 +60,24 @@ interface ChannelCardProps {
       onClick={handleNavigate}
     >
       <div className="flex items-center gap-4 p-4">
-        <img
-          src={channelInfo?.picture || '/afk-logo.png'}
+        {channelInfo?.picture && channelInfo?.picture.startsWith('https') ? (
+        <Image
+          src={channelInfo?.picture}
           alt={channelInfo?.name || 'Channel'}
-          className="w-16 h-16 rounded-full object-cover border"
-          // style={{ borderColor: 'var(--afk-accent-green, #00FF9C)' }}
-        />
+          className="w-16 h-16 rounded-full object-cover border" 
+          width={64}
+            height={64}
+            // style={{ borderColor: 'var(--afk-accent-green, #00FF9C)' }}
+          />
+        ) : (
+          <Image
+            src="/afk-logo.png"
+            alt="Channel"
+            className="w-16 h-16 rounded-full object-cover border"
+            width={64}
+            height={64}
+          />
+        )}
         <div className="flex flex-col min-w-0">
           <span className="font-bold text-lg text-white truncate">
             {channelInfo?.name || 'Unnamed Channel'}
@@ -110,7 +124,7 @@ interface ChannelCardProps {
         </span>
         <span className="text-xs text-gray-400 ml-2">
           {/* TODO: Format creation time nicely */}
-          Created {/* {formatTime(event?.created_at)} */}
+          Created {formatTimestamp(event?.created_at)} 
         </span>
       </div>
     </div>
