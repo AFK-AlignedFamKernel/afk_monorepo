@@ -1,0 +1,38 @@
+.channelFeed {
+  // Example: add a subtle background and border for the feed area
+  background: var(--background, #1A1A1A);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,255,156,0.05);
+}
+
+.channelDetail {
+  background: var(--background, #0E0E0E);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,240,255,0.05);
+}
+
+
+.channelCard {
+  background: var(--background, #1A1A1A);
+  border-radius: 16px;
+  border: 1px solid var(--contrast);
+  box-shadow: 0 2px 8px rgba(0,255,156,0.05);
+}
+
+.dark {
+  .channelFeed {
+    background: var(--background, #0E0E0E);
+    border: 1px solid var(--contrast);
+    box-shadow: 0 2px 8px rgba(0,240,255,0.05);
+  }
+  .channelCard {
+    background: var(--background, #0E0E0E);
+    border: 1px solid var(--contrast);
+    box-shadow: 0 2px 8px rgba(0,240,255,0.05);
+  }
+  .channelDetail {
+    background: var(--background, #0E0E0E);
+    border: 1px solid var(--contrast);
+    box-shadow: 0 2px 8px rgba(0,240,255,0.05);
+  }
+}
