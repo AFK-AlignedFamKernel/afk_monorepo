@@ -9,6 +9,7 @@ import { NostrArticleForm } from './NostrArticleForm';
 import { CreateBrandForm } from '../Brand/CreateBrandForm';
 import DebateCreateForm from '../Debate/DebateCreateForm';
 import { logClickedEvent } from '@/lib/analytics';
+import FormChannelCreate from '../Nostr/Channel/FormChannelCreate';
 enum CreateType {
   POST = 'post',
   ARTICLE = 'article',
@@ -16,6 +17,7 @@ enum CreateType {
   BRAND = 'brand',
   DEBATE = 'debate',
   COMMUNITY = 'community',
+  CHANNEL = 'channel',
 }
 export default function CreateAll() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -137,6 +139,13 @@ export default function CreateAll() {
         <div>
           {/* <h1>Debate</h1> */}
           <DebateCreateForm></DebateCreateForm>
+        </div>
+      )}
+
+      {createType === CreateType.CHANNEL && (
+        <div>
+          {/* <h1>Channel</h1> */}
+          <FormChannelCreate></FormChannelCreate>
         </div>
       )}
   

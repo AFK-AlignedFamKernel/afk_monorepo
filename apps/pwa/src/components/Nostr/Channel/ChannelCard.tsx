@@ -71,7 +71,7 @@ interface ChannelCardProps {
           />
         ) : (
           <Image
-            src="/afk-logo.png"
+            src="/assets/afkMascot.png"
             alt="Channel"
             className="w-16 h-16 rounded-full object-cover border"
             width={64}

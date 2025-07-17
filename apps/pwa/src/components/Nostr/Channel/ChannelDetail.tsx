@@ -1,34 +1,46 @@
 import React, { useState } from 'react';
-import { useParams } from 'next/navigation';
 import { useNote, useMessagesChannels, useSendMessageChannel } from 'afk_nostr_sdk';
 import ChannelCard from './ChannelCard';
 import styles from '@/styles/components/channel.module.scss';
 import { useUIStore } from '@/store/uiStore';
+import Image from 'next/image';
+import { formatTimestamp } from '@/types/nostr';
+import { NDKKind } from '@nostr-dev-kit/ndk';
+import ChannelMessage from './ChannelMessage';
 
 const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
-  const { data: channel, isLoading, isError } = useNote({ noteId: channelId ?? '' });
+  const { data: channel, isLoading, isError } = useNote({ noteId: channelId ?? '', kinds: [NDKKind.ChannelMetadata, NDKKind.ChannelCreation] });
   const messages = useMessagesChannels({ noteId: channelId ?? '' });
   const sendMessage = useSendMessageChannel();
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const { showModal, showToast } = useUIStore();
-  console.log('channelId', channelId);
-  console.log('channel', channel);
+  // console.log('channelId', channelId);
+  // console.log('channel', channel);
 
   const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
-    if (!channelId) return;
-    setSending(true);
-    await sendMessage.mutateAsync({ content: message, tags: [['e', channelId]] });
-    setMessage('');
-    setSending(false);
-    messages.refetch();
-    showToast({
-      message: 'Message sent',
-      description: 'Your message has been sent',
-      type: 'success',
-    });
+    try {
+      e.preventDefault();
+      if (!message.trim()) return;
+      if (!channelId) return;
+      setSending(true);
+      await sendMessage.mutateAsync({ content: message, tags: [['e', channelId]] });
+      setMessage('');
+      setSending(false);
+      messages.refetch();
+      showToast({
+        message: 'Message sent',
+        description: 'Your message has been sent',
+        type: 'success',
+      });
+    } catch (error) {
+      showToast({
+        message: 'Error sending message',
+        description: 'Please try again',
+        type: 'error',
+      });
+    }
+
   };
 
   if (isLoading) {
@@ -55,7 +67,13 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
         )}
         {messages?.data?.pages.flat().map((msg: any) => (
           <div key={msg.id} className="rounded bg-gray-100 dark:bg-gray-800 p-3 text-sm">
+            <div className="flex items-center gap-2">
+              <Image src={msg.author.picture} alt={msg.author.name} width={20} height={20} />
+              <span className="text-sm">{msg.author.name} {formatTimestamp(msg.created_at)}</span>
+            </div>
             {msg.content}
+
+            <ChannelMessage event={msg} />
           </div>
         ))}
       </div>

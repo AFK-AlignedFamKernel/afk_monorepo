@@ -30,8 +30,8 @@ export default function DiscoverComponent() {
             // { key: "chat", label: "Chat" },
             { key: "creator", label: "Creators" },
             { key: "launchpad", label: "Tokens" },
-            { key: "communities", label: "Communities" },
             { key: "channels", label: "Channels" },
+            { key: "communities", label: "Communities" },
             // { key: "topic", label: "Topics" },
           ].map(tab => (
             <button
