@@ -9,6 +9,8 @@ import CryptoLoading from '@/components/small/crypto-loading';
 import { TAGS_DEFAULT } from 'common';
 import { logClickedEvent } from '@/lib/analytics';
 import styles from '@/styles/nostr/feed.module.scss';
+import { Icon } from '@/components/small/icon-component';
+import { ButtonSecondary } from '@/components/button/Buttons';
 
 interface NostrTagsFeedProps {
   kinds?: number[];
@@ -62,7 +64,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
 
   const [selectedTag, setSelectedTag] = useState<string | null>(selectedTagProps ?? tags[0]);
   const [openFilters, setOpenFilters] = useState(false);
-
+  const [tagSearchInput, setTagSearchInput] = useState<string>('');
   const fetchEvents = async (tag?: string, _until?: number) => {
     // if (isLoadingMore || !hasMoreContent) return;
 
@@ -243,26 +245,73 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
 
   return (
     <div className={`${styles["nostr-feed"]} ${className}`}>
-      <div className={styles["nostr-feed__tags-container"] + " " + styles["nostr-feed__tags-container-tags"] + "flex flex-row overflow-x scrollbar-hide"}>
-        {tags.map((tag, index) => (
-          <div
-            className={`px-2 py-0.5 rounded-full cursor-pointer whitespace-nowrap transition-colors duration-150 border border-gray-400 text-xs font-medium mr-1
-              ${selectedTag === tag ? 'bg-green-500' : 'hover:bg-green-100 dark:hover:bg-green-900'}
-            `}
-            key={index}
-            onClick={() => {
-              logClickedEvent(`select_tag_${tag}`, "click", tag)
+
+      <div className="flex flex-col w-full">
+        <form
+          className={styles["nostr-searchbar"]}
+          onSubmit={e => {
+            e.preventDefault();
+            if (tagSearchInput.trim()) {
+              if (!tags.includes(tagSearchInput.trim())) {
+                setTags([tagSearchInput.trim(), ...tags]);
+              }
+              setSelectedTag(tagSearchInput.trim());
               setIsUsedUntil(false);
-              setSelectedTag(tag);
               setLastCreatedAt(new Date().getTime() / 1000);
               setNotesData([]);
-              fetchEvents(tag, Math.round(Date.now()));
-            }}
+              fetchEvents(tagSearchInput.trim(), Math.round(Date.now()));
+              setTagSearchInput('');
+            }
+          }}
+        >
+          <input
+            type="text"
+            className={styles["nostr-searchbar__input"]}
+            value={tagSearchInput || ''}
+            onChange={e => setTagSearchInput(e.target.value)}
+            placeholder="Search or add tag..."
+          />
+          <button
+            type="submit"
+            className={styles["nostr-searchbar__button"]}
+            disabled={!tagSearchInput || tagSearchInput.trim().length === 0}
           >
-            <span>{tag}</span>
-          </div>
-        ))}
+            <Icon name="SearchIcon" size={18} />
+          </button>
+        </form>
+        <div className={styles["nostr-tags-row"]}>
+          {tags.map((tag, index) => (
+            <div
+              className={
+                styles["nostr-tag"] + (selectedTag === tag ? ' ' + styles["selected"] : '')
+              }
+              key={index}
+              tabIndex={0}
+              onClick={() => {
+                logClickedEvent(`select_tag_${tag}`, "click", tag)
+                setIsUsedUntil(false);
+                setSelectedTag(tag);
+                setLastCreatedAt(new Date().getTime() / 1000);
+                setNotesData([]);
+                fetchEvents(tag, Math.round(Date.now()));
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  logClickedEvent(`select_tag_${tag}`, "click", tag)
+                  setIsUsedUntil(false);
+                  setSelectedTag(tag);
+                  setLastCreatedAt(new Date().getTime() / 1000);
+                  setNotesData([]);
+                  fetchEvents(tag, Math.round(Date.now()));
+                }
+              }}
+            >
+              <span>{tag}</span>
+            </div>
+          ))}
+        </div>
       </div>
+
       {notesData.length === 0 && !isLoadingMore ? (
         <div className={styles["nostr-feed__empty-state"]}>
           <p>No events found. Try following more users or changing filters.</p>
@@ -278,9 +327,9 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
           </div>
         </div>
       ) : (
-        <div 
-        // className="nostr-feed__content overflow-y-auto max-h-[80vh] "
-        className={styles["nostr-feed__content"]}
+        <div
+          // className="nostr-feed__content overflow-y-auto max-h-[80vh] "
+          className={styles["nostr-feed__content"]}
         >
 
           {notesData.map((event, index) => {

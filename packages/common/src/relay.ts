@@ -24,7 +24,7 @@ export const RELAYS_PROD = [
         'wss://nostr-relay-nestjs-production.up.railway.app',
       ]
       : [
-        ...RELAYS_TEST,
+        // ...RELAYS_TEST,
         'wss://nostr-relay-nestjs-production.up.railway.app',
       ];
   

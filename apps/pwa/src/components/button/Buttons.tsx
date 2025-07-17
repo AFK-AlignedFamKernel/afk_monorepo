@@ -12,7 +12,6 @@ interface ButtonProps {
 }
 
 export const ButtonPrimary: React.FC<ButtonProps> = ({ children, onClick, className, disabled, type='button', isActive=false, activeClassName }) => {
-  console.log('ButtonPrimary', className, disabled);
   return (
       <button 
        className={classNames(styles['btn'], styles['btn-primary'], className, isActive && activeClassName)}

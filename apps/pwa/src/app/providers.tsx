@@ -8,7 +8,7 @@ import NDK from '@nostr-dev-kit/ndk';
 import { settingsStore, NostrProvider, TanstackProvider, useNostrContext } from 'afk_nostr_sdk';
 import dynamic from 'next/dynamic';
 
-import { AFK_RELAYS } from 'common';
+import { AFK_RELAYS } from 'afk_nostr_sdk';
 import { UIProvider } from '@/providers/UIProvider';
 import { CashuProvider } from '@/providers/CashuProvider';
 import AuthNostrProviderComponent from '@/components/Nostr/relay/AuthNostrProvider';
