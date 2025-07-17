@@ -13,33 +13,33 @@ interface ButtonProps {
 
 export const ButtonPrimary: React.FC<ButtonProps> = ({ children, onClick, className, disabled, type='button', isActive=false, activeClassName }) => {
   return (
-    <div className={classNames(styles['btn'], styles['btn-primary'], className, isActive && activeClassName)}>
-      <button onClick={onClick} disabled={disabled} type={type}>{children}</button>
-    </div>
-  );
+      <button 
+       className={classNames(styles['btn'], styles['btn-primary'], className, isActive && activeClassName)}
+      onClick={onClick} disabled={disabled} type={type}>{children}</button>
+    );
 };
 
 export const ButtonSecondary: React.FC<ButtonProps> = ({ children, onClick, className, disabled, type='button', isActive=false, activeClassName }) => {
-  return (
-    <div className={classNames(styles['btn'], styles['btn-secondary'], className, isActive && activeClassName)}>
-      <button onClick={onClick} disabled={disabled} type={type}>{children}</button>
-    </div>
+    return (
+      <button 
+        className={classNames(styles['btn'], styles['btn-secondary'], className, isActive && activeClassName)}
+        onClick={onClick} disabled={disabled} type={type}>{children}</button>
   );
 };
 
 export const ButtonTertiary: React.FC<ButtonProps> = ({ children, onClick, className, disabled, type='button', isActive=false, activeClassName }) => {
   return (
-    <div className={classNames(styles['btn'], styles['btn-tertiary'], className, isActive && activeClassName)}>
-      <button onClick={onClick} disabled={disabled} type={type}>{children}</button>
-    </div>
+    <button 
+      className={classNames(styles['btn'], styles['btn-tertiary'], className, isActive && activeClassName)}
+      onClick={onClick} disabled={disabled} type={type}>{children}</button>
   );
 };
 
 export const BasicButton: React.FC<ButtonProps> = ({ children, onClick, className, disabled, type='button', isActive=false, activeClassName }) => {
   return (
-    <div className={classNames(styles['btn'], styles['btn-basic'], className, isActive && activeClassName)}>
-      <button onClick={onClick} disabled={disabled} type={type}>{children}</button>
-    </div>
+    <button 
+      className={classNames(styles['btn'], styles['btn-basic'], className, isActive && activeClassName)}
+      onClick={onClick} disabled={disabled} type={type}>{children}</button>
   );
 };
     
