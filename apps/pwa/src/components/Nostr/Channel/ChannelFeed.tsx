@@ -10,11 +10,11 @@ const ChannelFeed: React.FC = () => {
 
   const [selectedChannel, setSelectedChannel] = useState<any>(null);
 
-  useEffect(() => {
-    if (selectedChannel) {
-      window.location.href = `/nostr/channel/${selectedChannel?.id}`;
-    }
-  }, [selectedChannel]);
+  // useEffect(() => {
+  //   if (selectedChannel) {
+  //     window.location.href = `/nostr/channel/${selectedChannel?.id}`;
+  //   }
+  // }, [selectedChannel]);
 
   if (channels.isLoading) {
     return <div className="flex justify-center items-center h-40 text-lg">Loading channels...</div>;
