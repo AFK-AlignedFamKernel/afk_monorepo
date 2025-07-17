@@ -1,13 +1,10 @@
 'use client'
 
-import useCallback, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useContacts, useEditContacts, useProfile, useAuth } from 'afk_nostr_sdk'
-import { NDKEvent, NDKKind, NDKRelay } from '@nostr-dev-kit/ndk'
-
 import { FeedTabsProfile } from '@/components/Nostr/feed/FeedTabsProfile'
 import { useUIStore } from '@/store/uiStore'
 import { useNostrContext } from 'afk_nostr_sdk'
-import { TipNostrUser } from '../tips/tip-user'
 import { logClickedEvent } from '@/lib/analytics'
 import { Icon } from '@/components/small/icon-component'
 import Image from 'next/image'
@@ -231,6 +228,8 @@ const ProfileHeader = (props?: any) => {
           <Image
             src={profile?.picture}
             alt="Profile"
+            width={128}
+            height={128}
             className="w-32 h-32 rounded-full mb-4"
           />
         )}

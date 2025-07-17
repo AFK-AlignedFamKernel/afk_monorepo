@@ -10,11 +10,13 @@ import { TipNostrUser } from '../tips/tip-user';
 import { logClickedEvent } from '@/lib/analytics';
 import Image from 'next/image';
 import styles from '@/styles/nostr/feed.module.scss';
+import { ButtonPrimary } from '@/components/button/Buttons';
 interface IProfileCardOverviewProps extends NostrEventBase {
   children?: ReactNode;
   profileParent?: string;
   profilePubkey?: string;
   isLinkToProfile?: boolean;
+  isVideo?: boolean;
 }
 
 export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
@@ -134,33 +136,38 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
           </div>
         )}
       </div>
-      {profile?.lud16 && (
-        <div className="text-xs items-center mb-2">
-          <button
-            className='btn btn-sm btn-primary mt-1'
-            onClick={() => {
-              if (profilePubkey && profile && profile?.lud16) {
-                showModal(<TipNostrUser profile={profile} pubkey={event?.pubkey || ''} />);
-                logClickedEvent('tip_note_modal_open', 'Interaction', 'Button Click', 1);
-              }
-            }}
-            aria-label="Send tip"
-          >
-            💸 Tip
-          </button>
-        </div>
-      )}
-      {isLinkToProfile && profilePubkey && (
-        <div className="flex flex-row gap-2 items-center mb-2 mt-2">
-          <Link href={`/nostr/profile/${profilePubkey}`}
-            className="flex flex-row gap-2 items-center px-3 py-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg font-semibold shadow hover:bg-green-200 dark:hover:bg-green-800 transition"
-            aria-label="View full profile"
-          >
-            <Icon name="UserIcon" size={18} />
-            View Full Profile
-          </Link>
-        </div>
-      )}
+
+      <div className="flex flex-row gap-2 items-center align-end">
+
+        {profile?.lud16 && (
+          <div className="text-xs items-center">
+            <ButtonPrimary
+              className='btn btn-sm btn-primary mt-1'
+              onClick={() => {
+                if ( profile && profile?.lud16) {
+                  showModal(<TipNostrUser profile={profile} pubkey={event?.pubkey || ''} />);
+                  logClickedEvent('tip_note_modal_open', 'Interaction', 'Button Click', 1);
+                }
+              }}
+              aria-label="Send tip"
+            >
+              💸 Tip
+            </ButtonPrimary>
+          </div>
+        )}
+        {(profilePubkey || event?.pubkey) && (
+          <div className="flex flex-row gap-2 items-center">
+            <Link href={`/nostr/profile/${profilePubkey ?? event?.pubkey}`}
+              className="flex flex-row gap-2 items-center px-3 py-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg font-semibold shadow hover:bg-green-200 dark:hover:bg-green-800 transition"
+              aria-label="View full profile"
+            >
+              <Icon name="UserIcon" size={18} />
+              View Full Profile
+            </Link>
+          </div>
+        )}
+      </div>
+
       {children}
     </div>
   );

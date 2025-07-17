@@ -205,12 +205,18 @@ export const CreateBrandForm: React.FC = () => {
           <div>
             <label className="block text-sm font-medium">Avatar</label>
             <input type="file" accept="image/*" onChange={e => setBrandAvatar(e.target.files?.[0] || null)} className="w-full" />
-            {brandAvatarUrl && <Image  src={brandAvatarUrl} alt="Avatar" className="max-w-xs mt-2 rounded" />}
+            {brandAvatarUrl && <Image 
+              width={100}
+              height={100}
+              src={brandAvatarUrl} alt="Avatar" className="max-w-xs mt-2 rounded" />}
           </div>
           <div>
             <label className="block text-sm font-medium">Banner</label>
             <input type="file" accept="image/*" onChange={e => setBrandBanner(e.target.files?.[0] || null)} className="w-full" />
-            {brandBannerUrl && <Image src={brandBannerUrl} alt="Banner" className="max-w-xs mt-2 rounded" />}
+            {brandBannerUrl && <Image 
+              width={100}
+              height={100}
+            src={brandBannerUrl} alt="Banner" className="max-w-xs mt-2 rounded" />}
           </div>
           <div>
             <label className="block text-sm font-medium">Token Address</label>

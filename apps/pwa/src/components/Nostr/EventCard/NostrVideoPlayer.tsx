@@ -10,6 +10,8 @@ import { useUIStore } from '@/store/uiStore';
 import CommentContainer from './CommentContainer';
 import { useQueryClient } from '@tanstack/react-query';
 import { ProfileCardOverview } from './ProfileCardOverview';
+import styles from '@/styles/nostr/feed.module.scss';
+import Image from 'next/image';
 
 export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = ({ event, isAutoPlay = false }) => {
   const { publicKey } = useAuth();
@@ -220,7 +222,7 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
   };
 
   if (!mediaUrl) {
-    return <div className="nostr-short-feed__error">{error || 'No video URL found'}</div>;
+    return <div className={styles['nostr-short-feed__error']}>{error || 'No video URL found'}</div>;
   }
 
   const displayName = profile?.displayName || profile?.name || event.pubkey.substring(0, 8);
@@ -246,22 +248,22 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
   };
 
   return (
-    <div className="nostr-short-feed__video-wrapper" ref={containerRef}>
+    <div className={styles['nostr-short-feed__video-wrapper']} ref={containerRef}>
       {isLoading && (
-        <div className="nostr-short-feed__loading">
+        <div className={styles['nostr-short-feed__loading']}>
           <CryptoLoading />
         </div>
       )}
       {error && (
-        <div className="nostr-short-feed__error">
+        <div className={styles['nostr-short-feed__error']}>
           {error}
         </div>
       )}
-      <div className="nostr-short-feed__video-container" onClick={handleVideoClick}>
+      <div className={styles['nostr-short-feed__video-container']} onClick={handleVideoClick}>
         <video
           ref={videoRef}
           src={mediaUrl}
-          className="nostr-short-feed__video"
+          className={styles['nostr-short-feed__video']}
           controls
           playsInline
           loop
@@ -282,14 +284,14 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
         
         />
         {/* {!isPlaying && (
-          <div className="nostr-short-feed__play-indicator">
+          <div className={styles['nostr-short-feed__play-indicator']}>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
         )} */}
-        <div className="nostr-short-feed__audio-indicator" onClick={handleAudioClick}>
+        <div className={styles['nostr-short-feed__audio-indicator']} onClick={handleAudioClick}>
           {/* {!isMuted && ( */}
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15.536a5 5 0 001.414 1.414m2.828-9.9a9 9 0 012.728-2.728" />
@@ -299,37 +301,44 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
       </div>
 
       {/* Right side interaction panel */}
-      <div className="nostr-short-feed__interaction-panel">
+      <div className={styles['nostr-short-feed__interaction-panel']}>
         {/* Profile section */}
-        <div className="nostr-short-feed__profile">
-          <div className="nostr-short-feed__profile-avatar"
+        <div className={styles['nostr-short-feed__profile']}>
+          <div className={styles['nostr-short-feed__profile-avatar']}
             onClick={() => {
-              showModal(<>
-                <ProfileCardOverview event={event} profile={profile} />
-              </>)
+              showModal(
+                <>
+                  <ProfileCardOverview event={event} profile={profile ?? undefined}
+                    profilePubkey={event.pubkey ?? profile?.pubkey}
+                    isLinkToProfile={true}
+                  />
+                </>
+              );
             }}
           >
             {profile?.picture ? (
-              <img
+              <Image
                 src={profile.picture}
                 alt={displayName}
-                className="nostr-short-feed__avatar-image"
+                className={`${styles['nostr-short-feed__avatar-image']} rounded-full w-10 h-10ss`}
+                width={40}
+                height={40}
               />
             ) : (
-              <div className="nostr-short-feed__avatar-placeholder">
+              <div className={styles['nostr-short-feed__avatar-placeholder']}>
                 {displayName.substring(0, 2).toUpperCase()}
               </div>
             )}
           </div>
-          <div className="nostr-short-feed__profile-info">
-            <div className="nostr-short-feed__username">@{displayName}</div>
-            <div className="nostr-short-feed__timestamp">{timestamp}</div>
+          <div className={styles['nostr-short-feed__profile-info']}>
+            <div className={styles['nostr-short-feed__username']}>@{displayName}</div>
+            <div className={styles['nostr-short-feed__timestamp']}>{timestamp}</div>
           </div>
         </div>
 
         {/* Interaction buttons */}
-        <div className={`nostr-short-feed__actions ${isLiked ? 'nostr-short-feed__actions--liked' : ''}`}>
-          <button className="nostr-short-feed__action-button"
+        <div className={`${styles['nostr-short-feed__actions']} ${isLiked ? styles['nostr-short-feed__actions--liked'] : ''}`}>
+          <button className={styles['nostr-short-feed__action-button']}
             onClick={toggleLike}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -338,7 +347,7 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
             <span>Like</span>
           </button>
 
-          <button className="nostr-short-feed__action-button"
+          <button className={styles['nostr-short-feed__action-button']}
             onClick={() => showModal(
               <>
                 <CommentContainer event={event} />
@@ -351,7 +360,7 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
             </svg>
             <span>Comment</span>
           </button>
-          <button className="flex items-center hover:text-green-500 gap-1"
+          <button className={styles['nostr-short-feed__action-button']}
             onClick={() => showModal(
               <>
                 <QuoteRepostComponent event={event} >
@@ -364,7 +373,7 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
             Repost
           </button>
 
-          <button className="nostr-short-feed__action-button"
+          <button className={styles['nostr-short-feed__action-button']}
             onClick={() => {
               navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
               showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });

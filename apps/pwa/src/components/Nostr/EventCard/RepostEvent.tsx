@@ -212,115 +212,113 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   }
 
   return (
-    <div className={styles.eventCard + "rounded-md"}>
+    <div
+      // className={styles['event-card'] + ''}
+      className={styles.eventCard + ' ' + styles.postEventCard + ' p-2 sm:p-3'}
 
-      {/* Original post - FLAT, no extra card */}
-      <div
-        className={styles.eventCard + ' pl-2 border-l-2 border-gray-500 dark:border-gray-700'}
+    >
+      {/* Reposted by (header) */}
+      <div className={`${styles['reposted-by-header']} flex items-center gap-2 my-2`}
+        onClick={() => {
+          logClickedEvent('click_profile_who_reposted', 'Interaction', 'Button Click', 1);
+          showModal(<ProfileCardOverview profile={profile ?? undefined} event={event} />);
+        }}
       >
-        {/* Reposted by (header) */}
-        <div className={styles.repostedByHeader}
-          onClick={() => {
-            logClickedEvent('click_profile_who_reposted', 'Interaction', 'Button Click', 1);
-            showModal(<ProfileCardOverview profile={profile ?? undefined} event={event} />);
-          }}
-        >
-          {profile && (
-            <>
-              {profile?.picture && <Image className="rounded-full w-7 h-7" src={profile?.picture} alt={profile?.name || ''} width={28} height={28} />}
-              <Icon name="RepostIcon" size={16} className="text-blue-600 dark:text-blue-400" />
-              <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">Reposted by {profile?.name || profile?.display_name || event?.pubkey?.slice(0, 8)} </span>
-            </>
-          )}
-        </div>
-
-        {/* Quoted comment (if any) */}
-        {repostedContent && repostedContent.content && repostedContent.event && (
-          <div className="bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500 dark:border-blue-400 mb-3 p-3 rounded">
-            <span className="block text-xs font-semibold text-blue-700 dark:text-blue-200 mb-1">Comment by {profile?.name || profile?.display_name || event?.pubkey?.slice(0, 8)}</span>
-            <div className="text-sm text-contrast-500 whitespace-pre-wrap break-words">{repostedContent.content}</div>
-          </div>
+        {profile && (
+          <>
+            {profile?.picture && <Image className="rounded-full w-7 h-7" src={profile?.picture} alt={profile?.name || ''} width={28} height={28} />}
+            <Icon name="RepostIcon" size={16} className="text-blue-600 dark:text-blue-400" />
+            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">Reposted by {profile?.name || profile?.display_name || event?.pubkey?.slice(0, 8)} </span>
+          </>
         )}
+      </div>
 
-        {/* <div className="flex items-center gap-2 mb-1 mt-1">
+      {/* Quoted comment (if any) */}
+      {repostedContent && repostedContent.content && repostedContent.event && (
+        <div className="bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500 dark:border-blue-400 mb-3 p-3 rounded">
+          <span className="block text-xs font-semibold text-blue-700 dark:text-blue-200 mb-1">Comment by {profile?.name || profile?.display_name || event?.pubkey?.slice(0, 8)}</span>
+          <div className="text-sm text-contrast-500 whitespace-pre-wrap break-words">{repostedContent.content}</div>
+        </div>
+      )}
+
+      {/* <div className="flex items-center gap-2 mb-1 mt-1">
           {profileRepost?.picture && <Image className="rounded-full w-6 h-6" src={profileRepost?.picture} alt={profileRepost?.name || ''} width={24} height={24} />}
           <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Original post by {profileRepost?.name || profileRepost?.display_name || pubkeyReposted?.slice(0, 8)}</span>
         </div> */}
-        {/* Render correct card by kind, but FLAT */}
-        {(() => {
-          const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
-          if (original?.kind === 1) {
-            return <PostEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} />;
-          } else if (original?.kind === 30023) {
-            return <ArticleEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} isReadMore={false} />;
-          } else if (original) {
-            return (
-              <div className={styles.eventCard + ' ' + styles.postEventCard}>
-                <div className="text-sm text-contrast-500 whitespace-pre-wrap break-words">
-                  {isExpanded ? original?.content : `${original?.content?.substring(0, 200)}${original?.content?.length > 200 ? '...' : ''}`}
-                </div>
-                {original?.content?.length > 200 && (
-                  <button className="text-xs text-blue-500 mt-1" onClick={() => setIsExpanded(!isExpanded)}>
-                    {isExpanded ? 'View less' : 'View more'}
-                  </button>
-                )}
-              </div>
-            );
-          } else {
-            return <div className="text-gray-400 italic">Original post unavailable</div>;
-          }
-        })()}
-        {/* Action buttons for the reposted event */}
-        {(() => {
-          const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
-          if (!original) return null;
+      {/* Render correct card by kind, but FLAT */}
+      {(() => {
+        const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
+        if (original?.kind === 1) {
+          return <PostEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} />;
+        } else if (original?.kind === 30023) {
+          return <ArticleEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} isReadMore={false} />;
+        } else if (original) {
           return (
-            <div className={styles.actionButtons + " flex flex-wrap gap-8 my-4"} role="group" aria-label="Repost actions">
-              <button className={styles.actionButton} aria-label="Reply" onClick={() => {
-                setIsOpenComment(!isOpenComment);
-                logClickedEvent('reply_to_note', 'Interaction', 'Button Click', 1);
-              }}>
-                <Icon name="CommentIcon" size={20} />
-              </button>
-              <button className={`${styles.actionButton} ${isLiked ? '' : ''}`} aria-label="Like" onClick={toggleLike}>
-                <Icon name="LikeIcon" size={20}
-                  className={`${isLiked ? 'text-red-500' : ''}`}
-                  onClick={() => {
-                    logClickedEvent('like_note', 'Interaction', 'Button Click', 1);
-                  }}
-                />
-              </button>
-              <button className={styles.actionButton} aria-label="Repost" onClick={() => {
-                const isNostrConnected = handleCheckNostrAndSendConnectDialog();
-                if (isNostrConnected) {
-                  showModal(<QuoteRepostComponent event={original} />);
-                }
-                logClickedEvent('repost_note', 'Interaction', 'Button Click', 1);
-              }}>
-                <Icon name="RepostIcon" size={20}></Icon>
-              </button>
-              <button className={styles.actionButton} aria-label="Share" onClick={() => {
-                navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
-                showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
-                logClickedEvent('share_note_link', 'Interaction', 'Button Click', 1);
-              }}>
-                <Icon name="ShareIcon" size={20} />
-              </button>
-              <button className={styles.actionButton} aria-label="Tip" onClick={() => {
-                handleTipsModal();
-                logClickedEvent('tip_note', 'Interaction', 'Button Click', 1);
-              }}>
-                <Icon name="GiftIcon" size={20} ></Icon>
-              </button>
+            <div className={styles['event-card'] + ' ' + styles['post-event-card']}>
+              <div className="text-sm text-contrast-500 whitespace-pre-wrap break-words">
+                {isExpanded ? original?.content : `${original?.content?.substring(0, 200)}${original?.content?.length > 200 ? '...' : ''}`}
+              </div>
+              {original?.content?.length > 200 && (
+                <button className="text-xs text-blue-500 mt-1" onClick={() => setIsExpanded(!isExpanded)}>
+                  {isExpanded ? 'View less' : 'View more'}
+                </button>
+              )}
             </div>
           );
-        })()}
-        {isOpenComment && (
-          <div className="mt-3">
-            <CommentContainer event={repostedContent && repostedContent.event ? repostedContent.event : repostedContent} />
+        } else {
+          return <div className="text-gray-400 italic">Original post unavailable</div>;
+        }
+      })()}
+      {/* Action buttons for the reposted event */}
+      {(() => {
+        const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
+        if (!original) return null;
+        return (
+          <div className={styles['action-buttons'] + " flex flex-wrap gap-8 my-4"} role="group" aria-label="Repost actions">
+            <button className={styles['action-button']} aria-label="Reply" onClick={() => {
+              setIsOpenComment(!isOpenComment);
+              logClickedEvent('reply_to_note', 'Interaction', 'Button Click', 1);
+            }}>
+              <Icon name="CommentIcon" size={20} />
+            </button>
+            <button className={`${styles['action-button']} ${isLiked ? '' : ''}`} aria-label="Like" onClick={toggleLike}>
+              <Icon name="LikeIcon" size={20}
+                className={`${isLiked ? 'text-red-500' : ''}`}
+                onClick={() => {
+                  logClickedEvent('like_note', 'Interaction', 'Button Click', 1);
+                }}
+              />
+            </button>
+            <button className={styles['action-button']} aria-label="Repost" onClick={() => {
+              const isNostrConnected = handleCheckNostrAndSendConnectDialog();
+              if (isNostrConnected) {
+                showModal(<QuoteRepostComponent event={original} />);
+              }
+              logClickedEvent('repost_note', 'Interaction', 'Button Click', 1);
+            }}>
+              <Icon name="RepostIcon" size={20}></Icon>
+            </button>
+            <button className={styles['action-button']} aria-label="Share" onClick={() => {
+              navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
+              showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
+              logClickedEvent('share_note_link', 'Interaction', 'Button Click', 1);
+            }}>
+              <Icon name="ShareIcon" size={20} />
+            </button>
+            <button className={styles['action-button']} aria-label="Tip" onClick={() => {
+              handleTipsModal();
+              logClickedEvent('tip_note', 'Interaction', 'Button Click', 1);
+            }}>
+              <Icon name="GiftIcon" size={20} ></Icon>
+            </button>
           </div>
-        )}
-      </div>
+        );
+      })()}
+      {isOpenComment && (
+        <div className="mt-3">
+          <CommentContainer event={repostedContent && repostedContent.event ? repostedContent.event : repostedContent} />
+        </div>
+      )}
     </div>
   );
 };
