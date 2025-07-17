@@ -7,6 +7,7 @@ import { useUIStore } from '@/store/uiStore';
 import ProfileCardOverview from './ProfileCardOverview';
 import Image from 'next/image';
 import styles from '@/styles/nostr/feed.module.scss';
+import { logClickedEvent } from '@/lib/analytics';
 interface NostrEventCardBaseProps extends NostrEventBase {
   children?: ReactNode;
 }
@@ -52,7 +53,9 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
         onClick={() => {
           showModal(<>
             <ProfileCardOverview event={event} profile={profile} profilePubkey={event.pubkey} isLinkToProfile={true} />
-          </>)
+          </>
+        );
+        logClickedEvent('view_profile_modal_event', 'Interaction', 'Button Click', 1);
         }}
       >
         {profile?.picture ? (

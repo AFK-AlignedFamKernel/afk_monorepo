@@ -271,7 +271,8 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
       })()}
       {/* Action buttons for the reposted event */}
       {(() => {
-        const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
+        const original = event;
+        // const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
         if (!original) return null;
         return (
           <div className={styles['action-buttons'] + " flex flex-wrap gap-8 my-4"} role="group" aria-label="Repost actions">
@@ -316,7 +317,8 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
       })()}
       {isOpenComment && (
         <div className="mt-3">
-          <CommentContainer event={repostedContent && repostedContent.event ? repostedContent.event : repostedContent} />
+          {/* <CommentContainer event={repostedContent && repostedContent.event ? repostedContent.event : repostedContent} /> */}
+          <CommentContainer event={event} />
         </div>
       )}
     </div>

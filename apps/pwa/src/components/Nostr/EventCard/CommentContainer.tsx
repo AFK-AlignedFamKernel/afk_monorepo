@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import { formatTimestamp, NostrPostEventProps, truncate } from '@/types/nostr';
-import NostrEventCardBase from './NostrEventCardBase';
 import { useNote, useReplyNotes, useSendNote } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
 import { NDKEvent } from '@nostr-dev-kit/ndk';
-
+import { ButtonPrimary } from '@/components/button/Buttons';
+import { logClickedEvent } from '@/lib/analytics';
+import { Icon } from '@/components/small/icon-component';
 interface CommentContainerProps {
   event: NDKEvent;
   isExpanded?: boolean;
@@ -54,6 +55,7 @@ export const CommentContainer: React.FC<CommentContainerProps> = (props) => {
       return;
     }
     // await handleCheckNostrAndSendConnectDialog();
+    logClickedEvent('send_comment', 'Interaction', 'Button Click', 1);
 
     sendNote.mutate(
       { content: comment, tags: [['e', note?.id ?? '', '', 'root', note?.pubkey ?? '']] },
@@ -120,7 +122,7 @@ export const CommentContainer: React.FC<CommentContainerProps> = (props) => {
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="Add a comment"
-          className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+          className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md"
         />
         {/* <input
           type="text"
@@ -129,7 +131,13 @@ export const CommentContainer: React.FC<CommentContainerProps> = (props) => {
           placeholder="Add a comment"
           className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
         /> */}
-        <button onClick={handleSendComment}>Send</button>
+        <ButtonPrimary onClick={handleSendComment}
+          className='flex flex-row gap-2 items-center'
+          disabled={!comment || comment?.trim().length == 0}
+        >
+          <Icon name="SendIcon" size={18} />
+          <span>Send</span>
+        </ButtonPrimary>
       </div>
     </div>
   );

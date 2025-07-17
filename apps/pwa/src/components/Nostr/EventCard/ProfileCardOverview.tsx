@@ -160,6 +160,9 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
             <Link href={`/nostr/profile/${profilePubkey ?? event?.pubkey}`}
               className="flex flex-row gap-2 items-center px-3 py-2 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-lg font-semibold shadow hover:bg-green-200 dark:hover:bg-green-800 transition"
               aria-label="View full profile"
+              onClick={() => {
+                logClickedEvent('view_full_profilet', 'Interaction', 'Button Click', 1);
+              }}
             >
               <Icon name="UserIcon" size={18} />
               View Full Profile
