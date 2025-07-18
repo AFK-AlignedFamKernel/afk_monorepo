@@ -6,7 +6,7 @@ import NostrEventCardBase from './NostrEventCardBase';
 import { useAuth, useNote, useProfile, useQuote, useReact, useReactions, useReplyNotes, useRepost, useSendNote } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
-import CommentContainer from './CommentContainer';
+import CommentContainer from './Comment/CommentContainer';
 import { QuoteRepostComponent } from './quote-repost-component';
 import { Icon } from '@/components/small/icon-component';
 import { RepostIcon } from '@/components/small/icons';

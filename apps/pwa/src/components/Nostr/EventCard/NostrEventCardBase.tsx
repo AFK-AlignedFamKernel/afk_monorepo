@@ -39,8 +39,8 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
     );
   }
 
-  const displayName = profile?.displayName || profile?.name || truncate(event.pubkey, 8);
-  const timestamp = formatTimestamp(event.created_at || 0);
+  const displayName = profile?.displayName || profile?.name || truncate(event?.pubkey ?? '', 8);
+  const timestamp = formatTimestamp(event?.created_at ?? 0);
 
   return (
     <div 
@@ -52,7 +52,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
       <header className={"flex items-center mb-2 cursor-pointer rounded-lg p-1 transition"}
         onClick={() => {
           showModal(<>
-            <ProfileCardOverview event={event} profile={profile} profilePubkey={event.pubkey} isLinkToProfile={true} />
+            <ProfileCardOverview event={event} profile={profile} profilePubkey={event?.pubkey} isLinkToProfile={true} />
           </>
         );
         logClickedEvent('view_profile_modal_event', 'Interaction', 'Button Click', 1);
@@ -61,6 +61,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
         {profile?.picture ? (
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0">
             <Image
+              // src={encodeURIComponent(profile.picture)}
               src={profile.picture}
               alt={displayName}
               width={40}
@@ -76,7 +77,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
         <div className="ml-2 min-w-0">
           <div className={styles.username + ' truncate-ellipsis font-semibold'} title={displayName}>{displayName}</div>
           <div className="text-xs flex items-center">
-            <time className={styles.timestamp} dateTime={String(event.created_at)} aria-label="Post timestamp">{timestamp}</time>
+            <time className={styles.timestamp} dateTime={String(event?.created_at)} aria-label="Post timestamp">{timestamp}</time>
             {profile?.nip05 && (
               <span className="ml-1 text-blue-500" aria-label="Verified">✓</span>
             )}

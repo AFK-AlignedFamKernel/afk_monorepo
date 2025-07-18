@@ -49,7 +49,7 @@ export const useFetchEvents = (options?: UseSearch) => {
         // '#t': [selectedTag || ''],
       });
 
-      console.log("notes", notes);
+      // console.log("notes", notes);
       if (notes.size === 0) {
         setHasMoreContent(false);
         return;
@@ -60,6 +60,7 @@ export const useFetchEvents = (options?: UseSearch) => {
         new Set([...notes].map(note => note.id))
       ).map(id => [...notes].find(note => note.id === id)!);
 
+      // console.log("uniqueNotes", uniqueNotes);
 
       // Use Set to ensure unique notes by ID
       const uniqueNoteSet = new Set(uniqueNotes.map(note => note.id));
@@ -71,8 +72,21 @@ export const useFetchEvents = (options?: UseSearch) => {
       });
 
       if (uniqueNotes.length > 0) {
+
         setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
-        setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
+        setNotesData(prevNotes => {
+          // Combine previous notes and new uniqueNotes
+          const allNotes = [...prevNotes, ...uniqueNotes];
+          // Use a Map to ensure uniqueness by .id
+          const uniqueMap = new Map();
+          for (const note of allNotes) {
+            if (note?.id) {
+              uniqueMap.set(note.id, note);
+            }
+          }
+          // Return array of unique notes (preserving most recent by order)
+          return Array.from(uniqueMap.values());
+        });
         // setNotesData(uniqueNotes);
       } else {
         setHasMoreContent(false);

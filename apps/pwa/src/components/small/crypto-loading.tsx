@@ -5,10 +5,10 @@ import React from 'react';
 
 const CryptoLoading: React.FC = () => {
   return (
-    <div className={styles.loadingOverlay}>
-      <div className={styles.cryptoLoader}>
-        <div className={styles.blockchain}></div>
-        <div className={styles.privacy}></div>
+    <div className={styles['loading-overlay']}>
+      <div className={styles['crypto-loader']}>
+        <div className={styles['blockchain']}></div>
+        <div className={styles['privacy']}></div>
       </div>
     </div>
   );

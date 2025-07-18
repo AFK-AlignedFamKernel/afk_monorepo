@@ -24,17 +24,27 @@ export const useReplyNotes = (options?: UseReplyNotesOptions):UseInfiniteQueryRe
       return pageParam;
     },
     queryFn: async ({pageParam}) => {
+
+      if(!options?.noteId) {
+        console.log("no note id");
+        return [];
+      }
+
       const notes = await ndk.fetchEvents({
-        kinds: [NDKKind.Text],
+        kinds: [NDKKind.Text, NDKKind.ChannelMessage],
         authors: options?.authors,
         search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
         limit: 20,
-
         '#e': options?.noteId ? [options.noteId] : undefined,
       });
 
-      return [...notes].filter((note) => note.tags.every((tag) => tag[0] === 'e'));
+      // console.log("notes", notes);
+
+      return [...notes]
+      .filter((note) => note.tags.some((tag) => tag[0] === 'e' && tag[1] === options?.noteId))
+      // .sort((a, b) => b.created_at - a.created_at)
+      // .filter((note) => note.tags.every((tag) => tag[0] === 'e'));
     },
     placeholderData: {pages: [], pageParams: []},
   });

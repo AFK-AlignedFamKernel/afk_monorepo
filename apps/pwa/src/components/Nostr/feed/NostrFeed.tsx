@@ -73,13 +73,15 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       setIsLoadingMore(true);
       console.log("fetching events");
 
+      // checkIsConnected();
+
       if (ndk.pool?.relays?.size === 0) {
         console.log("no relays");
         return;
       }
 
       if (ndk.pool?.connectedRelays().length === 0) {
-        console.log("not connected");
+        // console.log("not connected");
         await ndk.connect();
         // return;
       } else {
@@ -117,7 +119,19 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       if (uniqueNotes.length > 0) {
         setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
         // setNotesData(uniqueNotes);
-        setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
+        setNotesData(prevNotes => {
+          // Combine previous notes and new uniqueNotes
+          const allNotes = [...prevNotes, ...uniqueNotes];
+          // Use a Map to ensure uniqueness by .id
+          const uniqueMap = new Map();
+          for (const note of allNotes) {
+            if (note?.id) {
+              uniqueMap.set(note.id, note);
+            }
+          }
+          // Return array of unique notes (preserving most recent by order)
+          return Array.from(uniqueMap.values());
+        });
       } else {
         setHasMoreContent(false);
       }
@@ -314,6 +328,8 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
           </div>
         </div>
       )}
+
+
       {notesData.length === 0 && !isLoadingMore ? (
         <div className={styles['nostr-feed__empty-state']}>
           <p>No events found. Try following more users or changing filters.</p>
@@ -362,6 +378,13 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
               No more content to load
             </div>
           )}
+        </div>
+      )}
+
+
+      {isInitialLoading || isLoadingMore && (
+        <div className="flex justify-center items-center py-8">
+          <CryptoLoading />
         </div>
       )}
     </div>

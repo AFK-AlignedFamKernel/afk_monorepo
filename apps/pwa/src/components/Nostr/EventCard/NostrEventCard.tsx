@@ -7,11 +7,10 @@ import { NostrEventBase, NostrEventKind, getEventKind } from '@/types/nostr';
 import PostEventCard from './PostEventCard';
 import ArticleEventCard from './ArticleEventCard';
 import ShortEventCard from './ShortEventCard';
-import { NumberToBytesErrorType } from 'viem';
 import RepostEvent from './RepostEvent';
 
 export interface NostrEventCardProps {
-  event: NDKEvent;
+  event?: NDKEvent;
   isLoading?: boolean;
   isClickableHashtags?: boolean;
 }
@@ -19,7 +18,7 @@ export interface NostrEventCardProps {
 export const NostrEventCard: React.FC<NostrEventCardProps> = ({ event, isLoading = false, isClickableHashtags = true }) => {
   // Fetch profile data using the useProfile hook
   const { data: profileData } = useProfile({
-    publicKey: event?.pubkey,
+    publicKey: event?.pubkey ?? '',
   });
 
   // Create a formatted profile object from the fetched data

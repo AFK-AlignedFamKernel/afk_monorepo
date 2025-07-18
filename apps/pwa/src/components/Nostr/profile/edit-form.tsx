@@ -20,7 +20,7 @@ export const NostrProfileEditForm = () => {
     const [bannerFile, setBannerFile] = useState<File | null>(null);
 
     const [formData, setFormData] = useState({
-        username: profile?.username ? String(profile?.display_name) : '',
+        username: profile?.username ? String(profile?.username) : '',
         name: profile?.name ? String(profile?.name) : '',
         displayName: profile?.display_name ? String(profile?.display_name) : '',
         about: profile?.about ? String(profile?.about) : '',
@@ -113,8 +113,10 @@ export const NostrProfileEditForm = () => {
             await editProfile.mutateAsync({
                 image: pictureUrl,
                 banner: bannerUrl,
-                nip05: values.name || undefined,
-                displayName: values.username || undefined,
+                name: values.name || undefined,
+                nip05: values.nip05 || undefined,
+                username: values.username || undefined,
+                displayName: values.displayName || undefined,
                 about: values.about || undefined,
                 telegram: values.telegram || undefined,
                 github: values.github || undefined,

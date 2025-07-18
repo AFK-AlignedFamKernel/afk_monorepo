@@ -7,13 +7,13 @@ import CryptoLoading from '@/components/small/crypto-loading';
 import { QuoteRepostComponent } from './quote-repost-component';
 import { Icon } from '@/components/small/icon-component';
 import { useUIStore } from '@/store/uiStore';
-import CommentContainer from './CommentContainer';
+import CommentContainer from './Comment/CommentContainer';
 import { useQueryClient } from '@tanstack/react-query';
 import { ProfileCardOverview } from './ProfileCardOverview';
 import styles from '@/styles/nostr/feed.module.scss';
 import Image from 'next/image';
 
-export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = ({ event, isAutoPlay = false }) => {
+export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean, className?: string }> = ({ event, isAutoPlay = false, className }) => {
   const { publicKey } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -248,12 +248,12 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
   };
 
   return (
-    <div className={styles['nostr-short-feed__video-wrapper']} ref={containerRef}>
-      {isLoading && (
+    <div className={`${styles['nostr-short-feed__video-wrapper']} ${className}`} ref={containerRef}>
+      {/* {isLoading && (
         <div className={styles['nostr-short-feed__loading']}>
           <CryptoLoading />
         </div>
-      )}
+      )} */}
       {error && (
         <div className={styles['nostr-short-feed__error']}>
           {error}
@@ -281,7 +281,7 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
             e.stopPropagation();
             handleVideoPlay();
           }}
-        
+
         />
         {/* {!isPlaying && (
           <div className={styles['nostr-short-feed__play-indicator']}>
@@ -303,18 +303,19 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
       {/* Right side interaction panel */}
       <div className={styles['nostr-short-feed__interaction-panel']}>
         {/* Profile section */}
-        <div className={styles['nostr-short-feed__profile']}>
+        <div className={styles['nostr-short-feed__profile']}
+          onClick={() => {
+            showModal(
+              <>
+                <ProfileCardOverview event={event} profile={profile ?? undefined}
+                  profilePubkey={event.pubkey ?? profile?.pubkey}
+                  isLinkToProfile={true}
+                />
+              </>
+            );
+          }}>
           <div className={styles['nostr-short-feed__profile-avatar']}
-            onClick={() => {
-              showModal(
-                <>
-                  <ProfileCardOverview event={event} profile={profile ?? undefined}
-                    profilePubkey={event.pubkey ?? profile?.pubkey}
-                    isLinkToProfile={true}
-                  />
-                </>
-              );
-            }}
+
           >
             {profile?.picture ? (
               <Image
@@ -331,7 +332,7 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
             )}
           </div>
           <div className={styles['nostr-short-feed__profile-info']}>
-            <div className={styles['nostr-short-feed__username']}>@{displayName}</div>
+            <div className={styles['nostr-short-feed__username']}>@{displayName.slice(0, 8) + '...'}</div>
             <div className={styles['nostr-short-feed__timestamp']}>{timestamp}</div>
           </div>
         </div>
@@ -351,7 +352,7 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
             onClick={() => showModal(
               <>
                 <CommentContainer event={event} />
-                <button onClick={() => showModal(null)}>Close</button>
+                {/* <button onClick={() => showModal(null)}>Close</button> */}
               </>
             )}
           >
@@ -365,7 +366,6 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
               <>
                 <QuoteRepostComponent event={event} >
                 </QuoteRepostComponent>
-                <button onClick={() => showModal(null)}>Close</button>
               </>
             )}
           >

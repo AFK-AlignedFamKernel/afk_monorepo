@@ -82,14 +82,13 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   })
 
   // console.log("notesData", notesData);
-
   // Extract events from the paginated data
   // const events = notesDatad?.pages?.flat() || [];
   const events = notesData?.flat() || [];
 
   useEffect(() => {
     if (!isInitialFetching) {
-      console.log("loading initial data");
+      // console.log("loading initial data");
       loadInitialData()
     }
   }, [isInitialFetching])

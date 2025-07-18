@@ -19,6 +19,7 @@ import { Icon } from '../small/icon-component';
 import { getDecodedToken, MeltQuoteState } from '@cashu/cashu-ts';
 import { proofsByMintApi, proofsSpentsByMintApi } from '@/utils/storage';
 import styles from '@/styles/components/_cashu-wallet.module.scss';
+import { logClickedEvent } from '@/lib/analytics';
 
 export default function Cashu() {
   const {
@@ -178,6 +179,8 @@ export default function Cashu() {
 
         setWalletReady(readinessCheck.ready);
 
+        logClickedEvent("cashu_wallet_init_wallet_connection")
+
         if (readinessCheck.ready) {
           console.log('Wallet is ready for operations');
           // Update balance
@@ -313,6 +316,7 @@ export default function Cashu() {
       return null;
     }
 
+    logClickedEvent(`cashu_create_invoice_${amount}`)
     try {
       // Verify wallet is ready before proceeding
       if (!walletReady) {
@@ -424,6 +428,7 @@ export default function Cashu() {
         description: alias || mintUrl
       });
 
+      logClickedEvent(`cashu_add_mint_${mintUrl}`)
       await setActiveMint(mintUrl);
     } catch (err) {
       console.error('Error adding mint:', err);
@@ -443,6 +448,7 @@ export default function Cashu() {
       setIsBalanceLoading(true);
       await setActiveMint(mintUrl);
 
+      logClickedEvent(`cashu_change_mint_${mintUrl}`)
       // Also verify that we can connect to it
       const readinessCheck = await checkWalletReadiness(mintUrl);
       setWalletReady(readinessCheck.ready);
@@ -488,6 +494,8 @@ export default function Cashu() {
       setWalletReady(true);
     }
 
+    logClickedEvent(`cashu_send_token_${amount}`)
+
     try {
       // Check if there are any tokens to spend
       if (balance <= 0) {
@@ -511,6 +519,8 @@ export default function Cashu() {
 
       // Check for specific errors about missing proofs/tokens
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+
+      logClickedEvent(`cashu_send_token_error_${errorMessage}`)
       if (errorMessage.includes('No tokens available') ||
         errorMessage.includes('reduce') ||
         errorMessage.includes('undefined')) {
@@ -538,6 +548,8 @@ export default function Cashu() {
         throw new Error('Invalid token format: token must start with "cashu"');
       }
 
+      logClickedEvent(`cashu_try_receive_token_${token}`)
+      
       // Try to decode the token to get mint information
       const decodedToken = getDecodedToken(token);
       console.log("decodedToken", decodedToken)
@@ -632,6 +644,8 @@ export default function Cashu() {
         message: 'Token received',
         type: 'success'
       });
+      logClickedEvent(`cashu_receive_token_success_${token}`)
+
       return true;
     } catch (error) {
       console.error('Error receiving token:', error);
@@ -664,6 +678,7 @@ export default function Cashu() {
           description: errorMessage
         });
       }
+      logClickedEvent(`cashu_receive_token_error_${errorMessage}`)
       return false;
     }
   };
@@ -684,6 +699,8 @@ export default function Cashu() {
       setWalletReady(true);
     }
 
+    logClickedEvent(`cashu_try_pay_invoice_${invoice}`)
+
     try {
       const res = await payLightningInvoice(invoice);
 
@@ -699,6 +716,7 @@ export default function Cashu() {
           message: 'Invoice paid',
           type: 'success'
         });
+        logClickedEvent(`cashu_pay_invoice_success_${invoice}`)
         return true;
       }
 
@@ -711,6 +729,8 @@ export default function Cashu() {
     } catch (err) {
       console.error('Error paying invoice:', err);
 
+
+      logClickedEvent(`cashu_pay_invoice_error_${invoice}`)
       // Check if this is a "Token already spent" error
       if (err instanceof Error && err.message.includes('Token was already spent')) {
         // Recalculate balance even if there was an error
@@ -740,6 +760,8 @@ export default function Cashu() {
       console.error('Cannot check payment: no transaction provided');
       return;
     }
+
+    logClickedEvent(`cashu_try_check_payment_${transaction.id}`)
 
     setIsLoadingProofs(true);
     if (!transaction?.mintUrl) {
@@ -814,6 +836,8 @@ export default function Cashu() {
         });
       }
     } catch (err) {
+
+      logClickedEvent(`cashu_check_payment_error_${transaction.id}`)
       console.error('Error checking payment/quote:', err);
       showToast({
         message: 'Error checking status',
@@ -833,10 +857,12 @@ export default function Cashu() {
       return;
     }
 
+    logClickedEvent(`cashu_try_check_payment_${transaction.id}`)
     console.log("transaction", transaction)
 
     setIsCheckingPayment(true);
     setSelectedTransaction(transaction);
+
     setIsLoadingProofs(true);
 
     try {
@@ -850,6 +876,7 @@ export default function Cashu() {
       }
 
       console.log('Checking payment for transaction:', transaction);
+      logClickedEvent(`cashu_check_payment_${transaction.id}`)
 
       // Check if this is a Lightning invoice with a payment hash or quote
       if (transaction.paymentHash || transaction?.invoice && transaction?.invoiceType === 'lightning' || transaction.quote) {
@@ -900,6 +927,7 @@ export default function Cashu() {
         });
       }
     } catch (err) {
+      logClickedEvent(`cashu_check_payment_error_${transaction.id}`)
       console.error('Error checking payment/quote:', err);
       showToast({
         message: 'Error checking status',
@@ -915,6 +943,8 @@ export default function Cashu() {
 
   // Show transaction details
   const handleShowTransactionDetails = (transaction: Transaction) => {
+   
+    logClickedEvent(`cashu_show_transaction_details_${transaction.id}`)
     setSelectedTransaction(transaction);
   };
 
