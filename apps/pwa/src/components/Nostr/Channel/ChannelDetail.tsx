@@ -108,8 +108,12 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
           <div className="text-gray-400">No messages yet.</div>
         )}
         {messages?.data?.pages.flat().map((msg: any, index: number) => (
-          <ChannelMessage key={index} event={msg}
+          <ChannelMessage
+            key={index}
+            event={msg}
             profileProps={channelProfile}
+            pubkey={msg?.pubkey}
+
           />
         ))}
       </div>

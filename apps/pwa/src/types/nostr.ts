@@ -45,7 +45,10 @@ export interface NostrEventBase {
   isClickableHashtags?: boolean;
 }
 
-export interface NostrPostEventProps extends NostrEventBase {}
+export interface NostrPostEventProps extends NostrEventBase {
+  className?: string;
+  classNameQuote?: string;
+}
 export interface NostrArticleEventProps extends NostrEventBase {}
 export interface NostrShortEventProps extends NostrEventBase {}
 

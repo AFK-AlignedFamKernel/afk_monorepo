@@ -66,6 +66,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({ event, profileProps, onClick,
         <ProfileCardOverview 
         profile={profile ?? undefined}
           event={eventMetadata ?? undefined}
+          isLinkToProfile={true}
         // onClose={() => hideModal()}
         />
       );

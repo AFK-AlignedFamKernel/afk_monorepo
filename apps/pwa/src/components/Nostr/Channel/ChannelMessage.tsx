@@ -14,13 +14,14 @@ interface ChannelMessageProps {
   onClick?: (channel: any) => void;
   className?: string;
   profileProps?: NDKUserProfile | null;
+  pubkey?: string;
 }
 
-const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, className, profileProps }) => {
+const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, className, profileProps, pubkey }) => {
   const [message, setMessage] = useState<any>(undefined);
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(0);
-  const { data: profile } = useProfile({ publicKey: event?.pubkey })
+  const { data: profile } = useProfile({ publicKey: pubkey ?? event?.pubkey })
   // console.log('profile channel message', profile)
   const [dimensionsMedia, setMediaDimensions] = useState([250, 300]);
 
@@ -85,8 +86,10 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
 
     if (profile) {
       showModal(
-        <ProfileCardOverview profile={profile ?? undefined}
+        <ProfileCardOverview 
+        profile={profile ?? undefined}
           event={eventMetadata ?? undefined}
+          profilePubkey={pubkey ?? event?.pubkey}
         // onClose={() => hideModal()}
         />
       );

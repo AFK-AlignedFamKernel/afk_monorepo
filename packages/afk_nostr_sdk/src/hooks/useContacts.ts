@@ -25,7 +25,7 @@ export const useContacts = (options?: UseContactsOptions) => {
         search: options?.search,
       });
 
-      console.log("contacts", contacts)
+      // console.log("contacts", contacts)
       return contacts?.tags.filter((tag) => tag[0] === 'p').map((tag) => tag[1]) ?? [];
     },
     placeholderData: [],

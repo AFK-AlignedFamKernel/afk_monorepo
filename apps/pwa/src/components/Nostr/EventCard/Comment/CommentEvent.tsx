@@ -28,10 +28,8 @@ export const CommentEvent: React.FC<CommentContainerProps> = (props) => {
   const sendNote = useSendNote();
   const [isOpenComment, setIsOpenComment] = useState(false);
   const { showToast } = useUIStore();
-
   const [isCommentOpen, setIsCommentOpen] = useState(false);
-
-  console.log("comments", comments?.data?.pages?.flat());
+  // console.log("comments", comments?.data?.pages?.flat());
   const queryClient = useQueryClient();
   // Extract hashtags from content
   const hashtags = content.match(/#[a-zA-Z0-9_]+/g) || [];

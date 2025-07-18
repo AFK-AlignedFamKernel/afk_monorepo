@@ -6,22 +6,32 @@ import NostrEventCardBase from './NostrEventCardBase';
 import { NostrEvent, NDKUserProfile, NDKEvent } from '@nostr-dev-kit/ndk';
 import Image from 'next/image';
 import styles from '@/styles/nostr/feed.module.scss';
-  
+import { Icon } from '@/components/small/icon-component';
+import { logClickedEvent } from '@/lib/analytics';
+import CommentContainer from './Comment/CommentContainer';
+import { useProfile } from 'afk_nostr_sdk';
+
 interface ShortEventCardProps extends NostrShortEventProps {
   event?: NDKEvent;
   profile?: NDKUserProfile;
   isReadMore?: boolean;
+  className?: string;
+  classNameNostrBase?: string;
 }
 
 export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
-  const { event, profile, isReadMore } = props;
+  const { event, profile:profileProps, isReadMore } = props;
 
   console.log('event', event);
 
+  const {data: profile} = useProfile({publicKey: event?.pubkey})
+  console.log('profile', profile);
+  const [isOpenComment, setIsOpenComment] = useState(false);
+
   const [mediaUrlState, setMediaUrlState] = useState<string | undefined>();
   // Parse media URL from content or tags
-  let mediaUrl:string|undefined = undefined;
-  let caption:string|undefined = undefined;
+  let mediaUrl: string | undefined = undefined;
+  let caption: string | undefined = undefined;
 
 
   const extractAllVideoUrls = () => {
@@ -49,7 +59,7 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
 
   const extractVideoURL = (event?: NostrEvent) => {
 
-    if(!event) return undefined;
+    if (!event) return undefined;
 
     const tags = event?.tags?.find((tag) => tag?.[0] === 'url' || tag?.[0] == "imeta")?.[1] || '';
 
@@ -78,17 +88,21 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
   // console.log('mediaUrl', mediaUrl);
   // console.log('mediaUrlState', mediaUrlState);
   return (
-    <div className={styles['short-event-card'] + ' rounded-md'}>
-      <NostrEventCardBase {...props}>
+    <div className={styles['short-event-card'] + ' rounded-md ' + props.className}>
+      <NostrEventCardBase
+        {...props}
+        className={props.classNameNostrBase}
+        profile={profile ?? profileProps}
+      >
         <div className={styles.mt2}>
           {mediaUrlState && (
             <div className={`${styles.mediaContainer} ${isVideo ? styles.mediaContainerVideo : ''}`}
-              // style={{
-              //   height: 'calc(100vh - 180px)', // Subtracting header + card padding
-              //   width: '100%',
-              //   objectFit: 'contain',
-              //   // backgroundColor: '#000'
-              // }}
+            // style={{
+            //   height: 'calc(100vh - 180px)', // Subtracting header + card padding
+            //   width: '100%',
+            //   objectFit: 'contain',
+            //   // backgroundColor: '#000'
+            // }}
             >
               {isVideo ? (
                 <video
@@ -96,12 +110,12 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
                   controls
                   loop
                   className={styles.videoPlayer}
-                  // style={{
-                  //   height: 'calc(100vh - 180px)', // Subtracting header + card padding
-                  //   width: '100%',
-                  //   objectFit: 'contain',
-                  //   // backgroundColor: '#000'
-                  // }}
+                // style={{
+                //   height: 'calc(100vh - 180px)', // Subtracting header + card padding
+                //   width: '100%',
+                //   objectFit: 'contain',
+                //   // backgroundColor: '#000'
+                // }}
                 />
               ) : (
                 <Image
@@ -118,29 +132,47 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
             </div>
           )}
 
-          <div className={styles.flexItemsCenter + ' ' + styles.justifyBetween + ' ' + styles.textGray500DarkTextGray400 + ' ' + styles.textSm}>
-            <div className={styles.flexSpaceX4}>
-              <button className={styles.flexItemsCenter + ' ' + styles.hoverTextRed500}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-                Like
-              </button>
-              <button className={styles.flexItemsCenter + ' ' + styles.hoverTextBlue500}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                Comment
-              </button>
-            </div>
-            <button className={styles.flexItemsCenter + ' ' + styles.hoverTextGreen500}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-              Share
+          <div className={styles["action-buttons"] + " flex flex-row sm:flex-row gap-4 items-center justify-center my-4"}>
+     
+            <button
+              onClick={() => {
+                setIsOpenComment(!isOpenComment);
+                logClickedEvent('reply_to_note', 'Interaction', 'Button Click', 1);
+              }}>
+              <Icon
+                name="CommentIcon"
+                size={20}
+              />
+            </button>
+            <button
+              onClick={() => {
+                logClickedEvent('like_note', 'Interaction', 'Button Click', 1);
+              }}>
+              <Icon
+                name="LikeIcon"
+                size={20}
+              />
+            </button>
+            <button
+              className={styles["action-button"] + " " + styles["action-button-share"]}
+              role="group"
+              aria-label="Repost actions"
+              onClick={() => {
+                logClickedEvent('share_note', 'Interaction', 'Button Click', 1);
+              }}>
+              <Icon
+                name="ShareIcon"
+                size={20}
+              />
             </button>
           </div>
         </div>
+
+        {isOpenComment && (
+          <div className={styles.commentContainer}>
+            <CommentContainer event={event} />
+          </div>
+        )}
       </NostrEventCardBase>
     </div>
   );

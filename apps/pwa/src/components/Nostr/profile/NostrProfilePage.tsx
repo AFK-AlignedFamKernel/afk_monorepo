@@ -52,14 +52,14 @@ export default function NostrProfilePage({ address }: { address: string }) {
   const contacts = useContacts({
     authors: [address as string]
   })
-  console.log("contacts of profile", contacts?.data)
+  // console.log("contacts of profile", contacts?.data)
 
   const {data: myContacts} = useContacts({
     authors: [publicKey]
   })
 
-  console.log("myContacts", myContacts)
-
+  // console.log("myContacts", myContacts)
+// 
   // console.log("myContacts", myContacts?.data)
   // console.log('profile', profile)
   if (profileLoading) {
@@ -90,7 +90,7 @@ export default function NostrProfilePage({ address }: { address: string }) {
 const ProfileHeader = (props?: any) => {
   const { profile, contacts, address, myContacts } = props
 
-  console.log("myContacts", myContacts)
+  // console.log("myContacts", myContacts)
   const [showMore, setShowMore] = useState(false)
   // if (!profile) {
   //   return null

@@ -185,7 +185,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   }
 
   return (
-    <NostrEventCardBase event={event} profile={props.profile} isLoading={props.isLoading}>
+    <NostrEventCardBase event={event} profile={props.profile} isLoading={props.isLoading} className={props.className}>
       {isReplyView && reply && reply.length > 0 && (
         <div className={styles.replyContainer} aria-label="Reply to note">
           <button onClick={() => {

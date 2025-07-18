@@ -10,6 +10,7 @@ import styles from '@/styles/nostr/feed.module.scss';
 import { logClickedEvent } from '@/lib/analytics';
 interface NostrEventCardBaseProps extends NostrEventBase {
   children?: ReactNode;
+  className?: string;
 }
 
 export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
@@ -17,6 +18,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
   profile,
   isLoading = false,
   children,
+  className,
 }) => {
   const router = useRouter();
   const {showModal} = useUIStore()
@@ -44,7 +46,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
 
   return (
     <div 
-    className={styles.eventCard + ' ' + styles.postEventCard + ' p-2 sm:p-3'}
+    className={styles.eventCard + ' ' + styles.postEventCard + ' p-2 sm:p-3' + ' ' + className}
     // className="event-card p-2 sm:p-3 rounded-xl border border-gray-200 dark:border-gray-800"
     // className="event-card p-2 sm:p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
     
