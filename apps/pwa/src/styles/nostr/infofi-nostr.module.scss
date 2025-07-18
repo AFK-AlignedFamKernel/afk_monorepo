@@ -1,0 +1,234 @@
+// InfoFi Component Styles
+.container {
+  @apply w-full max-w-7xl mx-auto px-4 py-6;
+}
+
+.mainCard {
+  @apply bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6;
+}
+
+.subscribeButton {
+  @apply w-full bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 
+         text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 
+         transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50;
+}
+
+.afkSubCard {
+  @apply bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 
+         rounded-xl p-6 mb-6 cursor-pointer transition-all duration-200 
+         hover:shadow-lg hover:scale-[1.02] border border-gray-200 dark:border-gray-700;
+}
+
+.subCardTitle {
+  @apply text-2xl font-bold text-gray-900 dark:text-white mb-2;
+}
+
+.subCardTag {
+  @apply text-sm text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 
+         px-3 py-1 rounded-full inline-block;
+}
+
+.overviewGrid {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-4 mt-6;
+}
+
+.overviewItem {
+  @apply bg-white dark:bg-gray-800 rounded-lg p-4 text-center border border-gray-200 dark:border-gray-700;
+}
+
+.overviewLabel {
+  @apply text-sm text-gray-600 dark:text-gray-400 mb-2 block;
+}
+
+.overviewValue {
+  @apply text-lg font-semibold text-gray-900 dark:text-white;
+}
+
+// User Card Styles
+.userCard {
+  @apply bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 
+         p-6 mb-4 transition-all duration-200 hover:shadow-lg;
+}
+
+.card {
+  @apply w-full;
+}
+
+.profileContainer {
+  @apply flex items-start space-x-4 mb-4;
+}
+
+.avatarSection {
+  @apply flex-shrink-0;
+}
+
+.infoSection {
+  @apply flex-1 min-w-0;
+}
+
+.userName {
+  @apply text-lg font-semibold text-gray-900 dark:text-white mb-1;
+}
+
+.userId {
+  @apply text-sm text-gray-500 dark:text-gray-400 font-mono mb-2;
+}
+
+.userBio {
+  @apply text-sm text-gray-600 dark:text-gray-300 mb-3;
+}
+
+.statsContainer {
+  @apply flex justify-around py-4 border-t border-gray-200 dark:border-gray-700;
+}
+
+.statItem {
+  @apply text-center flex-1;
+}
+
+.statLabel {
+  @apply text-sm text-gray-600 dark:text-gray-400 mb-1;
+}
+
+.statValue {
+  @apply text-lg font-semibold text-green-600 dark:text-green-400;
+}
+
+.tipForm {
+  @apply mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg;
+}
+
+.tipFormTitle {
+  @apply text-sm font-medium text-gray-700 dark:text-gray-300 mb-3;
+}
+
+.tipInput {
+  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+         rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white 
+         focus:ring-2 focus:ring-green-500 focus:border-transparent;
+}
+
+.tipButton {
+  @apply mt-3 w-full bg-green-500 hover:bg-green-600 text-white font-medium 
+         py-2 px-4 rounded-lg transition-colors duration-200;
+}
+
+// Epoch States Styles
+.epochSection {
+  @apply mt-6;
+}
+
+.epochTitle {
+  @apply text-xl font-semibold text-gray-900 dark:text-white mb-4;
+}
+
+.epochScroll {
+  @apply flex space-x-4 overflow-x-auto pb-4;
+}
+
+.epochCard {
+  @apply bg-white dark:bg-gray-800 rounded-lg p-4 min-w-[280px] border border-gray-200 dark:border-gray-700;
+}
+
+.epochCardTitle {
+  @apply text-lg font-semibold text-gray-900 dark:text-white mb-3;
+}
+
+.epochStats {
+  @apply grid grid-cols-2 gap-3;
+}
+
+.epochStat {
+  @apply text-center;
+}
+
+.epochStatLabel {
+  @apply text-xs text-gray-600 dark:text-gray-400 mb-1;
+}
+
+.epochStatValue {
+  @apply text-sm font-semibold text-gray-900 dark:text-white;
+}
+
+// Deposit Section Styles
+.depositSection {
+  @apply mt-6;
+}
+
+.depositContainer {
+  @apply bg-gray-50 dark:bg-gray-700 rounded-lg p-4;
+}
+
+.depositInput {
+  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
+         rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white 
+         focus:ring-2 focus:ring-green-500 focus:border-transparent mb-3;
+}
+
+.depositButton {
+  @apply w-full bg-blue-500 hover:bg-blue-600 text-white font-medium 
+         py-2 px-4 rounded-lg transition-colors duration-200;
+}
+
+// Loading and Error States
+.loadingContainer {
+  @apply flex items-center justify-center py-12;
+}
+
+.errorContainer {
+  @apply text-center py-8;
+}
+
+.errorText {
+  @apply text-red-500 dark:text-red-400;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .container {
+    @apply px-2 py-4;
+  }
+  
+  .overviewGrid {
+    @apply grid-cols-2 gap-3;
+  }
+  
+  .epochCard {
+    @apply min-w-[240px];
+  }
+  
+  .profileContainer {
+    @apply flex-col items-center text-center;
+  }
+  
+  .statsContainer {
+    @apply flex-col space-y-3;
+  }
+  
+  .statItem {
+    @apply border-b border-gray-200 dark:border-gray-700 pb-3 last:border-b-0;
+  }
+}
+
+// Dark mode specific adjustments
+.dark {
+  .mainCard {
+    @apply bg-gray-900 border-gray-700;
+  }
+  
+  .afkSubCard {
+    @apply bg-gray-800 border-gray-700;
+  }
+  
+  .userCard {
+    @apply bg-gray-800 border-gray-700;
+  }
+  
+  .tipForm {
+    @apply bg-gray-700;
+  }
+  
+  .depositContainer {
+    @apply bg-gray-700;
+  }
+}
