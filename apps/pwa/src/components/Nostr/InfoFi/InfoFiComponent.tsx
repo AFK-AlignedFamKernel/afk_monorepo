@@ -9,6 +9,7 @@ import { AfkSubCard } from './AfkSubCard';
 import { AfkSubMain } from './AfkSubMain';
 import { AllSubsComponent } from './AllSubsComponent';
 import { UserCard } from './UserCard';
+import { useDataInfoMain, useGetAllTipUser, useNamespace } from '@/hooks/infofi';
 
 interface InfoFiComponentProps {
   isButtonInstantiateEnable?: boolean;
@@ -49,73 +50,27 @@ interface InfoFiData {
   contract_states: ContractState[];
 }
 
-// Mock data - replace with actual API calls
-const mockData: InfoFiData = {
-  aggregations: {
-    total_ai_score: "1000000000000000000000", // 1000 tokens
-    total_vote_score: "500000000000000000000", // 500 tokens
-    total_tips: "200000000000000000000", // 200 tokens
-    total_amount_deposit: "300000000000000000000", // 300 tokens
-    name: "AFK",
-    main_tag: "cypherpunk",
-    contract_address: "0x1234567890abcdef"
-  },
-  contract_states: [{
-    epochs: [
-      {
-        epoch_index: 1,
-        total_ai_score: "100000000000000000000",
-        total_vote_score: "50000000000000000000",
-        total_amount_deposit: "30000000000000000000",
-        total_tip: "20000000000000000000"
-      },
-      {
-        epoch_index: 2,
-        total_ai_score: "200000000000000000000",
-        total_vote_score: "100000000000000000000",
-        total_amount_deposit: "60000000000000000000",
-        total_tip: "40000000000000000000"
-      }
-    ]
-  }]
-};
 
-const mockUsers: UserData[] = [
-  {
-    nostr_id: "npub1example1",
-    total_ai_score: "100000000000000000000",
-    total_vote_score: "50000000000000000000"
-  },
-  {
-    nostr_id: "npub1example2",
-    total_ai_score: "200000000000000000000",
-    total_vote_score: "100000000000000000000"
-  }
-];
 
 export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
   isButtonInstantiateEnable = true,
 }) => {
   const { account } = useAccount();
   const [isOpenAfkMain, setIsOpenAfkMain] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  
+  // Use real hooks instead of mock data
+  const { allData, isLoading: isLoadingData, isError: isErrorData } = useDataInfoMain();
+  const { data: allUsers, isLoading: isLoadingUsers, isError: isErrorUsers } = useGetAllTipUser();
+  const { handleLinkNamespace, isLinkingNamespace } = useNamespace();
 
-  // Mock loading state - replace with actual API calls
-  const allData = mockData;
-  const allUsers = { data: mockUsers };
+  const isLoading = isLoadingData || isLoadingUsers;
+  const isError = isErrorData || isErrorUsers;
 
   const handleSubscription = async () => {
     try {
-      setIsLoading(true);
-      // TODO: Implement actual subscription logic
-      console.log('Subscribing to InfoFi...');
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Subscription successful');
+      await handleLinkNamespace();
     } catch (error) {
       console.error('Subscription failed:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -128,7 +83,21 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
     return (
       <div className={styles.loadingContainer}>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-        <span className="ml-2 text-gray-600 dark:text-gray-400">Loading...</span>
+        <span className="ml-2 text-gray-600 dark:text-gray-400">Loading InfoFi data...</span>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className={styles.errorContainer}>
+        <p className={styles.errorText}>Error loading InfoFi data</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+        >
+          Retry
+        </button>
       </div>
     );
   }
@@ -140,9 +109,9 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
           <button
             onClick={handleSubscription}
             className={styles.subscribeButton}
-            disabled={isLoading}
+            disabled={isLinkingNamespace}
           >
-            {isLoading ? 'Subscribing...' : 'Subscribe to InfoFi'}
+            {isLinkingNamespace ? 'Subscribing...' : 'Subscribe to InfoFi'}
           </button>
         )}
 

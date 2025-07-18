@@ -5,6 +5,7 @@ import { useAccount } from '@starknet-react/core';
 import { NDKUserProfile } from '@nostr-dev-kit/ndk';
 import { formatUnits } from 'viem';
 import styles from '@/styles/nostr/infofi-nostr.module.scss';
+import { useVoteTip } from '@/hooks/infofi';
 
 interface UserInfo {
   nostr_id: string;

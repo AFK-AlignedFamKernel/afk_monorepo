@@ -4,7 +4,7 @@
 }
 
 .mainCard {
-  @apply bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6;
+  @apply bg-white rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6;
 }
 
 .subscribeButton {
@@ -69,10 +69,7 @@
 .userName {
   @apply text-lg font-semibold text-gray-900 dark:text-white mb-1;
 }
-
-.userId {
-  @apply text-sm text-gray-500 dark:text-gray-400 font-mono mb-2;
-}
+  
 
 .userBio {
   @apply text-sm text-gray-600 dark:text-gray-300 mb-3;
@@ -212,23 +209,23 @@
 
 // Dark mode specific adjustments
 .dark {
-  .mainCard {
-    @apply bg-gray-900 border-gray-700;
-  }
+  // .mainCard {
+  //   @apply bg-gray-900 border-gray-700;
+  // }
   
-  .afkSubCard {
-    @apply bg-gray-800 border-gray-700;
-  }
+  // .afkSubCard {
+  //   @apply bg-gray-800 border-gray-700;
+  // }
   
-  .userCard {
-    @apply bg-gray-800 border-gray-700;
-  }
+  // .userCard {
+  //   @apply bg-gray-800 border-gray-700;
+  // }
   
-  .tipForm {
-    @apply bg-gray-700;
-  }
+  // .tipForm {
+  //   @apply bg-gray-700;
+  // }
   
-  .depositContainer {
-    @apply bg-gray-700;
-  }
+  // .depositContainer {
+  //   @apply bg-gray-700;
+  // }
 }

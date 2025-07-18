@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { formatUnits } from 'viem';
 import styles from '@/styles/nostr/infofi-nostr.module.scss';
 import { SubCard } from './SubCard';
+import { useGetAllSubs } from '@/hooks/infofi';
 
 interface SubData {
   contract_address: string;
@@ -15,43 +16,17 @@ interface SubData {
 
 interface AllSubsComponentProps {}
 
-// Mock data - replace with actual API calls
-const mockSubs: SubData[] = [
-  {
-    contract_address: "0x1234567890abcdef",
-    name: "AFK Community",
-    about: "The main AFK community subscription",
-    main_tag: "cypherpunk",
-    total_amount_deposit: "1000000000000000000000"
-  },
-  {
-    contract_address: "0xabcdef1234567890",
-    name: "Tech Enthusiasts",
-    about: "For technology enthusiasts and developers",
-    main_tag: "technology",
-    total_amount_deposit: "500000000000000000000"
-  },
-  {
-    contract_address: "0x7890abcdef123456",
-    name: "Crypto Traders",
-    about: "Cryptocurrency trading community",
-    main_tag: "crypto",
-    total_amount_deposit: "750000000000000000000"
-  }
-];
+
 
 export const AllSubsComponent: React.FC<AllSubsComponentProps> = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Mock data - replace with actual API calls
-  const allSubs = mockSubs;
+  // Use real hook instead of mock data
+  const { data: allSubs, isLoading, isError, refetch } = useGetAllSubs();
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // TODO: Implement actual refresh logic
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await refetch();
     setRefreshing(false);
   };
 
@@ -92,7 +67,7 @@ export const AllSubsComponent: React.FC<AllSubsComponentProps> = () => {
     <div className="mt-6">
       <h3 className={styles.epochTitle}>All Subscriptions</h3>
       <div className="space-y-4">
-        {allSubs.map((sub) => (
+        {allSubs?.data?.map((sub: any) => (
           <SubCard
             key={sub.contract_address}
             subInfo={{
