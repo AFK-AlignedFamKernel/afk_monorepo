@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { useProfile, useReactions, useReact } from 'afk_nostr_sdk';
+import { useNote, useProfile, useReactions, useReact } from 'afk_nostr_sdk';
 import styles from '@/styles/components/channel.module.scss';
 import Image from 'next/image';
 import { formatTimestamp } from '@/types/nostr';
-import { NDKUserProfile } from '@nostr-dev-kit/ndk';
+import { NDKKind, NDKUserProfile } from '@nostr-dev-kit/ndk';
 import { ButtonSecondary } from '@/components/button/Buttons';
 import { logClickedEvent } from '@/lib/analytics';
+import ProfileCardOverview from '../EventCard/ProfileCardOverview';
+import { useUIStore } from '@/store/uiStore';
 
 interface ChannelCardProps {
   event: any; // NDKEvent type
@@ -20,9 +22,10 @@ const ChannelCard: React.FC<ChannelCardProps> = ({ event, profileProps, onClick,
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(0);
   const { data: profile } = useProfile({ publicKey: event?.pubkey });
+  const { data: eventMetadata } = useNote({ noteId: event?.id ?? '', kinds: [NDKKind.ChannelMetadata, NDKKind.ChannelCreation] });
   const reactions = useReactions({ noteId: event?.id });
   const react = useReact();
-
+  const { showModal } = useUIStore();
   useEffect(() => {
     if (event?.content) {
       try {
@@ -54,6 +57,19 @@ const ChannelCard: React.FC<ChannelCardProps> = ({ event, profileProps, onClick,
     logClickedEvent('channel_view')
     onClick?.(event);
     // window.location.href = `/nostr/channel/${event?.id}`;
+  };
+
+  const handleProfileView = () => {
+    logClickedEvent('profile_view_channel_card')
+    if (profile) {
+      showModal(
+        <ProfileCardOverview 
+        profile={profile ?? undefined}
+          event={eventMetadata ?? undefined}
+        // onClose={() => hideModal()}
+        />
+      );
+    }
   };
 
   return (
@@ -95,7 +111,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({ event, profileProps, onClick,
             </span>
           )}
         </div>
-        <div className="ml-auto flex items-center gap-2">
+        {/* <div className="ml-auto flex items-center gap-2">
           <button
             aria-label={isLiked ? 'Unlike' : 'Like'}
             className="p-2 rounded-full hover:bg-[var(--afk-accent-green,#00FF9C)]/10 transition"
@@ -111,14 +127,16 @@ const ChannelCard: React.FC<ChannelCardProps> = ({ event, profileProps, onClick,
           <span className="text-[var(--afk-accent-green,#00FF9C)] font-semibold min-w-[2em] text-center">
             {likes > 0 ? likes : ''}
           </span>
-        </div>
+        </div> */}
       </div>
       <div className="px-4 pb-2">
         <span className="text-base  block truncate">
           {channelInfo?.about || 'No description.'}
         </span>
       </div>
-      <div className="flex items-center gap-2 px-4 pb-4">
+      <div className="flex items-center gap-2 px-4 pb-4"
+        onClick={handleProfileView}
+      >
         {profile?.image && (
           <img
             src={profile.image}

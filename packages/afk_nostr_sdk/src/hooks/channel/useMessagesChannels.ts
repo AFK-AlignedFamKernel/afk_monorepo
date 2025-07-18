@@ -1,7 +1,7 @@
-import {NDKKind} from '@nostr-dev-kit/ndk';
-import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/react-query';
+import { NDKKind } from '@nostr-dev-kit/ndk';
+import { InfiniteData, useInfiniteQuery, UseInfiniteQueryResult } from '@tanstack/react-query';
 
-import {useNostrContext} from '../../context/NostrContext';
+import { useNostrContext } from '../../context/NostrContext';
 
 export type UseReplyNotesOptions = {
   noteId?: string;
@@ -10,8 +10,8 @@ export type UseReplyNotesOptions = {
   search?: string;
 };
 
-export const useMessagesChannels = (options?: UseReplyNotesOptions):UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
-  const {ndk} = useNostrContext();
+export const useMessagesChannels = (options?: UseReplyNotesOptions): UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
+  const { ndk } = useNostrContext();
 
   return useInfiniteQuery({
     initialPageParam: 0,
@@ -24,7 +24,7 @@ export const useMessagesChannels = (options?: UseReplyNotesOptions):UseInfiniteQ
       if (!pageParam || pageParam === lastPageParam) return undefined;
       return pageParam;
     },
-    queryFn: async ({pageParam}) => {
+    queryFn: async ({ pageParam }) => {
       const notes = await ndk.fetchEvents({
         kinds: [NDKKind.ChannelMessage],
         authors: options?.authors,
@@ -34,8 +34,10 @@ export const useMessagesChannels = (options?: UseReplyNotesOptions):UseInfiniteQ
         '#e': options?.noteId ? [options.noteId] : undefined,
       });
 
-      return [...notes].filter((note) => note.tags.every((tag) => tag[0] === 'e'));
+      return [...notes]
+        .sort((a, b) => a.created_at - b.created_at).
+        filter((note) => note.tags.every((tag) => tag[0] === 'e'));
     },
-    placeholderData: {pages: [], pageParams: []},
+    placeholderData: { pages: [], pageParams: [] },
   });
 };

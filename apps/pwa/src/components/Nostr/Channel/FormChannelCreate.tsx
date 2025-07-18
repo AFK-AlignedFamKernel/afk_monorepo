@@ -75,7 +75,7 @@ export default function FormChannelCreate() {
   const handleImageUpload = async (file: File): Promise<string | undefined> => {
     try {
       const s = await fileUpload.mutateAsync(file);
-      console.log('s', s);
+      console.log('result image upload', s);
       if (s && typeof s === 'object' && 'data' in s && s.data && typeof s.data === 'object' && 'url' in s.data) {
         return (s.data as { url?: string }).url ?? undefined;
       }
@@ -102,6 +102,19 @@ export default function FormChannelCreate() {
       
       if (selectedImage) {
         imageUrl = await handleImageUpload(selectedImage);
+      }
+
+
+      if(!formData.channelName) {
+        showToast({
+          message: 'Channel name is required',
+          type: 'error',
+        });
+        return;
+      }
+
+      if(!formData.displayName) {
+        formData.displayName = formData.channelName;
       }
       
       const content = {

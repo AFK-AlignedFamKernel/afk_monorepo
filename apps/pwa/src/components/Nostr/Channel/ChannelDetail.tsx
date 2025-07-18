@@ -3,8 +3,6 @@ import { useNote, useMessagesChannels, useSendMessageChannel, useProfile } from 
 import ChannelCard from './ChannelCard';
 import styles from '@/styles/components/channel.module.scss';
 import { useUIStore } from '@/store/uiStore';
-import Image from 'next/image';
-import { formatTimestamp } from '@/types/nostr';
 import { NDKKind } from '@nostr-dev-kit/ndk';
 import ChannelMessage from './ChannelMessage';
 
@@ -17,7 +15,7 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
   const { showModal, showToast } = useUIStore();
   const {data: channelProfile} = useProfile({publicKey: channel?.pubkey})
 
-  console.log('channelProfile', channelProfile)
+  // console.log('channelProfile', channelProfile)
   // console.log('channelId', channelId);
   // console.log('channel', channel);
 
@@ -53,7 +51,7 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
   //   return <div className="flex justify-center items-center h-40 text-red-500">Channel not found.</div>;
   // }
 
-  console.log('messages', messages?.data?.pages.flat());
+  // console.log('messages', messages?.data?.pages.flat());
   return (
     <div className={`w-full max-w-2xl mx-auto py-4 px-2 ${styles.channelDetail}`}> {/* Custom class for extra styling */}
 

@@ -20,10 +20,10 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
   const [isLiked, setIsLiked] = useState(false);
   const [likes, setLikes] = useState(0);
   const { data: profile } = useProfile({ publicKey: event?.pubkey })
-  console.log('profile channel message', profile)
+  // console.log('profile channel message', profile)
 
   const { data: eventMetadata } = useNote({ noteId: event?.id ?? '', kinds: [NDKKind.Metadata] });
-  console.log('eventMetadata', eventMetadata)
+  // console.log('eventMetadata', eventMetadata)
   const reactions = useReactions({ noteId: event?.id });
   const react = useReact();
 
@@ -62,7 +62,7 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
   };
 
   const handleProfileView = () => {
-    logClickedEvent('profile_view')
+    logClickedEvent('profile_view_channel_message')
 
     if (profile) {
       showModal(
@@ -73,8 +73,6 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
       );
     }
   };
-  
-  console.log('message', message)
 
   return (
     <div
