@@ -102,12 +102,12 @@ const ChannelCard: React.FC<ChannelCardProps> = ({ event, profileProps, onClick,
           />
         )}
         <div className="flex flex-col min-w-0">
-          <span className="font-bold text-lg text-white truncate">
+          <span className="font-bold text-lg truncate">
             {channelInfo?.name || 'Unnamed Channel'}
           </span>
           {channelInfo?.displayName && (
             <span className="text-sm text-[var(--afk-accent-cyan,#00F0FF)] truncate">
-              #{channelInfo.displayName}
+              {channelInfo.displayName}
             </span>
           )}
         </div>

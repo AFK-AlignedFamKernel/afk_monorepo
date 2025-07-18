@@ -6,19 +6,22 @@ import { useUIStore } from '@/store/uiStore';
 import { NDKKind } from '@nostr-dev-kit/ndk';
 import ChannelMessage from './ChannelMessage';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useQueryClient } from '@tanstack/react-query';
 
 const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
   const { data: channel, isLoading, isError } = useNote({ noteId: channelId ?? '', kinds: [NDKKind.ChannelMetadata, NDKKind.ChannelCreation] });
-  const messages = useMessagesChannels({ noteId: channelId ?? '' });
+  const messages = useMessagesChannels({ noteId: channelId ?? '', limit: 100 });
   const sendMessage = useSendMessageChannel();
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const { showModal, showToast } = useUIStore();
-  const {data: channelProfile} = useProfile({publicKey: channel?.pubkey})
+  const { data: channelProfile } = useProfile({ publicKey: channel?.pubkey })
   const [file, setFile] = useState<File | null>(null);
+  // console.log('messages', messages);
   // console.log('channelProfile', channelProfile)
   // console.log('channelId', channelId);
   // console.log('channel', channel);
+  const queryClient = useQueryClient();
 
   const fileUpload = useFileUpload();
   const handleSend = async (e: React.FormEvent) => {
@@ -29,8 +32,8 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
 
       setSending(true);
 
-      let imageUrl:string | undefined;
-      if(file){
+      let imageUrl: string | undefined;
+      if (file) {
         const result = await fileUpload.mutateAsync(file);
         console.log('result image upload', result);
         if (result && typeof result === 'object' && 'data' in result && result.data && typeof result.data === 'object' && 'url' in result.data) {
@@ -38,21 +41,33 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
         }
       }
       console.log('imageUrl', imageUrl);
-      const event = await sendMessage.mutateAsync({ content: message,
-        tags: [['e', channelId], 
-        ['p', channel?.pubkey ?? ''],
-        imageUrl ? ['image', imageUrl] : []
-      ] 
-      });
+      const event = await sendMessage.mutateAsync({
+        content: message,
+        tags: [
+          ['e', channelId],
+          ['p', channel?.pubkey ?? ''],
+          imageUrl ? ['image', imageUrl] : []
+        ]
+      },
+        {
+          onSuccess: () => {
+            // queryClient.invalidateQueries({ queryKey: ['messagesChannels'] });
+            messages.refetch();
+
+          }
+        }
+      );
       console.log('event', event);
-      setMessage('');
-      setSending(false);
-      showToast({
-        message: 'Message sent',
-        description: 'Your message has been sent',
-        type: 'success',
-      });
-      messages.refetch();
+      if (event) {
+        setMessage('');
+        setSending(false);
+        showToast({
+          message: 'Message sent',
+          description: 'Your message has been sent',
+          type: 'success',
+        });
+        messages.refetch();
+      }
     } catch (error) {
       showToast({
         message: 'Error sending message',
@@ -60,7 +75,7 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
         type: 'error',
       });
     }
-    finally{
+    finally {
       setSending(false);
     }
 
@@ -79,7 +94,7 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
 
       {channel && (
         <>
-          <ChannelCard event={channel} 
+          <ChannelCard event={channel}
             profileProps={channelProfile}
             isViewButton={false}
           />
@@ -93,9 +108,9 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
           <div className="text-gray-400">No messages yet.</div>
         )}
         {messages?.data?.pages.flat().map((msg: any, index: number) => (
-            <ChannelMessage key={index} event={msg} 
+          <ChannelMessage key={index} event={msg}
             profileProps={channelProfile}
-            />
+          />
         ))}
       </div>
       <form onSubmit={handleSend} className="flex gap-2 mt-2">
@@ -125,8 +140,8 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
             className="hidden"
           />
         </label>
-       
-       
+
+
         <button
           type="submit"
           className="rounded bg-green-500 hover:bg-green-600 text-white px-4 py-2 font-semibold disabled:opacity-50"
@@ -137,20 +152,20 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
       </form>
 
 
-      <div className="flex flex-col gap-2 my-4"> 
+      <div className="flex flex-col gap-2 my-4">
 
 
-      {file && (
-        <div className="flex items-center gap-2">
-          <img src={URL.createObjectURL(file)} alt="Uploaded Image" width={150} height={150}
-          className="rounded-lg"
-          />
-        </div>
-      )}
+        {file && (
+          <div className="flex items-center gap-2">
+            <img src={URL.createObjectURL(file)} alt="Uploaded Image" width={150} height={150}
+              className="rounded-lg"
+            />
+          </div>
+        )}
 
-      {file && (
-        <button onClick={() => setFile(null)}>Remove Image</button>
-      )}
+        {file && (
+          <button onClick={() => setFile(null)}>Remove Image</button>
+        )}
       </div>
 
     </div>

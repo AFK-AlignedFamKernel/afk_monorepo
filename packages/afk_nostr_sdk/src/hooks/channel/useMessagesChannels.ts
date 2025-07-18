@@ -8,6 +8,7 @@ export type UseReplyNotesOptions = {
   channelId?: string;
   authors?: string[];
   search?: string;
+  limit?: number;
 };
 
 export const useMessagesChannels = (options?: UseReplyNotesOptions): UseInfiniteQueryResult<InfiniteData<any, any>, Error> => {
@@ -30,13 +31,13 @@ export const useMessagesChannels = (options?: UseReplyNotesOptions): UseInfinite
         authors: options?.authors,
         search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
-        limit: 20,
+        limit: options?.limit || 20,
         '#e': options?.noteId ? [options.noteId] : undefined,
       });
 
       return [...notes]
-        .sort((a, b) => a.created_at - b.created_at).
-        filter((note) => note.tags.every((tag) => tag[0] === 'e' || tag[1] === 'e'));
+        .sort((a, b) => a.created_at - b.created_at)
+        // .filter((note) => note.tags.every((tag) => tag[0] === 'e'));
     },
     placeholderData: { pages: [], pageParams: [] },
   });
