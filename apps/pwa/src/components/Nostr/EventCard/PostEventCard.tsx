@@ -6,7 +6,7 @@ import NostrEventCardBase from './NostrEventCardBase';
 import { useAuth, useNote, useProfile, useQuote, useReact, useReactions, useReplyNotes, useRepost, useSendNote } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
-import CommentContainer from './CommentContainer';
+import CommentContainer from './Comment/CommentContainer';
 import { QuoteRepostComponent } from './quote-repost-component';
 import { Icon } from '@/components/small/icon-component';
 import { RepostIcon } from '@/components/small/icons';
@@ -205,7 +205,8 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
       ))}
       <section className={styles.postContent} aria-label="Post content">
         <div
-          className="whitespace-pre-wrap break-words sm:max-w-[300px] lg:max-w-[500px]"
+          // className="whitespace-pre-wrap break-words sm:max-w-[300px] lg:max-w-[500px]"
+          className="whitespace-pre-wrap break-words"
           onClick={() => {
             setIsExpanded(!isExpanded)
             logClickedEvent('show_more_note', 'Interaction', 'Button Click', 1);

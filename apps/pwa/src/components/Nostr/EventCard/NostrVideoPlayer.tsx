@@ -7,7 +7,7 @@ import CryptoLoading from '@/components/small/crypto-loading';
 import { QuoteRepostComponent } from './quote-repost-component';
 import { Icon } from '@/components/small/icon-component';
 import { useUIStore } from '@/store/uiStore';
-import CommentContainer from './CommentContainer';
+import CommentContainer from './Comment/CommentContainer';
 import { useQueryClient } from '@tanstack/react-query';
 import { ProfileCardOverview } from './ProfileCardOverview';
 import styles from '@/styles/nostr/feed.module.scss';

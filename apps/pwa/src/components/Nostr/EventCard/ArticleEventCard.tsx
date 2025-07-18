@@ -11,7 +11,7 @@ import { NDKUserProfile, NDKEvent } from '@nostr-dev-kit/ndk';
 import MarkdownIt from 'markdown-it';
 import { TipNostr } from '../tips';
 import { Icon } from '@/components/small/icon-component';
-import CommentContainer from './CommentContainer';
+import CommentContainer from './Comment/CommentContainer';
 import { QuoteRepostComponent } from './quote-repost-component';
 import { ContentWithClickableHashtags } from './ClickableHashtags';
 import { logClickedEvent } from '@/lib/analytics';

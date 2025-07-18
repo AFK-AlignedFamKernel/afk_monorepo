@@ -41,7 +41,10 @@ export const useReplyNotes = (options?: UseReplyNotesOptions):UseInfiniteQueryRe
 
       // console.log("notes", notes);
 
-      return [...notes].filter((note) => note.tags.every((tag) => tag[0] === 'e' && tag[1] === options?.noteId));
+      return [...notes]
+      .filter((note) => note.tags.some((tag) => tag[0] === 'e' && tag[1] === options?.noteId))
+      // .sort((a, b) => b.created_at - a.created_at)
+      // .filter((note) => note.tags.every((tag) => tag[0] === 'e'));
     },
     placeholderData: {pages: [], pageParams: []},
   });
