@@ -1,6 +1,6 @@
 export const RELAYS_PROD = [
   'wss://relay.primal.net',
-  'wss://relay.damus.io',
+  // 'wss://relay.damus.io',
   'wss://nos.lol'
   // 'wss://relay.snort.social',
   // 'wss://nos.lol'
