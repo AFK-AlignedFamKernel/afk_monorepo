@@ -14,7 +14,7 @@ export const useNote = (options: UseNoteOptions) => {
     queryKey: ['note', options.noteId, ndk, options.kinds],
     queryFn: async () => {
       const note = await ndk.fetchEvent({
-        kinds: options.kinds ?? [NDKKind.Text, NDKKind.Article, NDKKind.ChannelMetadata, NDKKind.ChannelCreation, NDKKind.Metadata, NDKKind.ShortVideo],
+        kinds: options.kinds ?? [NDKKind.Text, NDKKind.Article, NDKKind.ChannelMetadata, NDKKind.ChannelCreation, NDKKind.Metadata, NDKKind.ShortVideo, NDKKind.Video, NDKKind.VerticalVideo],
         ids: [options.noteId],
       });
 

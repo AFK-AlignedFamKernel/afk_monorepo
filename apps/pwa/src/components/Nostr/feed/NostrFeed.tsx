@@ -119,7 +119,19 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       if (uniqueNotes.length > 0) {
         setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
         // setNotesData(uniqueNotes);
-        setNotesData(prevNotes => [...prevNotes, ...uniqueNotes]);
+        setNotesData(prevNotes => {
+          // Combine previous notes and new uniqueNotes
+          const allNotes = [...prevNotes, ...uniqueNotes];
+          // Use a Map to ensure uniqueness by .id
+          const uniqueMap = new Map();
+          for (const note of allNotes) {
+            if (note?.id) {
+              uniqueMap.set(note.id, note);
+            }
+          }
+          // Return array of unique notes (preserving most recent by order)
+          return Array.from(uniqueMap.values());
+        });
       } else {
         setHasMoreContent(false);
       }

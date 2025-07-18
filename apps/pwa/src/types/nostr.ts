@@ -28,7 +28,7 @@ export enum NostrEventKind {
 }
 
 export interface NostrEventBase {
-  event: NDKEvent | undefined;
+  event?: NDKEvent;
   pubkey?: string;
   eventId?: string;
   profile?: {
@@ -49,8 +49,8 @@ export interface NostrPostEventProps extends NostrEventBase {}
 export interface NostrArticleEventProps extends NostrEventBase {}
 export interface NostrShortEventProps extends NostrEventBase {}
 
-export function getEventKind(event: NDKEvent): NostrEventKind | undefined {
-  return event.kind as NostrEventKind;
+export function getEventKind(event?: NDKEvent): NostrEventKind | undefined {
+  return event?.kind as NostrEventKind;
 }
 
 export function formatTimestamp(timestamp: number): string {

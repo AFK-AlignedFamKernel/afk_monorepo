@@ -81,7 +81,7 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
     authors,
   })
 
-  // console.log("notesData", notesData);
+  console.log("notesData", notesData);
 
   // Extract events from the paginated data
   // const events = notesDatad?.pages?.flat() || [];

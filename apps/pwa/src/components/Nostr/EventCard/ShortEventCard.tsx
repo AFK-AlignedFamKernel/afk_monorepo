@@ -8,7 +8,7 @@ import Image from 'next/image';
 import styles from '@/styles/nostr/feed.module.scss';
   
 interface ShortEventCardProps extends NostrShortEventProps {
-  event: NDKEvent;
+  event?: NDKEvent;
   profile?: NDKUserProfile;
   isReadMore?: boolean;
 }
@@ -20,34 +20,36 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
 
   const [mediaUrlState, setMediaUrlState] = useState<string | undefined>();
   // Parse media URL from content or tags
-  let mediaUrl = '';
-  let caption = '';
+  let mediaUrl:string|undefined = undefined;
+  let caption:string|undefined = undefined;
 
 
   const extractAllVideoUrls = () => {
     try {
       // Try to parse JSON format first
-      const content = JSON.parse(event.content);
+      const content = JSON.parse(event?.content ?? '');
       mediaUrl = content.media || content.url || '';
       caption = content.caption || content.text || '';
     } catch (e) {
       // If not JSON, check tags for media URL
-      const mediaTags = event.tags.filter(tag => tag[0] === 'media' || tag[0] === 'video' || tag[0] === 'image');
-      if (mediaTags.length > 0) {
+      const mediaTags = event?.tags?.filter(tag => tag[0] === 'media' || tag[0] === 'video' || tag[0] === 'image');
+      if (mediaTags && mediaTags.length > 0) {
         mediaUrl = mediaTags[0][1] || '';
         setMediaUrlState(mediaUrl);
       }
-      caption = event.content;
+      caption = event?.content;
     }
   }
 
   // If we still don't have media, check if content is a URL
-  if (!mediaUrl && event.content.match(/^https?:\/\/.*\.(mp4|mov|avi|webm)/i)) {
-    mediaUrl = event.content;
+  if (!mediaUrl && event?.content?.match(/^https?:\/\/.*\.(mp4|mov|avi|webm)/i)) {
+    mediaUrl = event?.content;
     caption = '';
   }
 
-  const extractVideoURL = (event: NostrEvent) => {
+  const extractVideoURL = (event?: NostrEvent) => {
+
+    if(!event) return undefined;
 
     const tags = event?.tags?.find((tag) => tag?.[0] === 'url' || tag?.[0] == "imeta")?.[1] || '';
 

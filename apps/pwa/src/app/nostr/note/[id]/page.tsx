@@ -1,14 +1,16 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useNote } from 'afk_nostr_sdk'
+import {  useNote } from 'afk_nostr_sdk'
 import { ArticleEventCard } from '@/components/Nostr/EventCard/ArticleEventCard'
 import { PostEventCard, ShortEventCard } from '@/components/Nostr/EventCard'
 import CryptoLoading from '@/components/small/crypto-loading'
 export default function NotePage() {
   const { id } = useParams()
+  console.log("id", id)
   const { data: note, isLoading: noteLoading, isError, isFetching } = useNote({
     noteId: id as string,
+    // kinds: [1, 30023, 6, 7, NDKKind.Text],
   })
 
   console.log("note", note)

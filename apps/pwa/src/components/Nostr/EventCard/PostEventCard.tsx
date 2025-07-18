@@ -234,9 +234,10 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
           )}
         </div>
         <div>
-          {postSource && (
+          {postSource && postSource?.uri && (
             <Image
-              src={postSource.uri}
+              src={postSource?.uri}
+              // src={encodeURIComponent(postSource?.uri)}
               alt="Post Source"
               width={postSource.width || 300}
               height={postSource.height || 300}

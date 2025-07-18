@@ -20,14 +20,14 @@ import Image from 'next/image';
 import styles from '@/styles/nostr/feed.module.scss';
 interface ArticleEventCardProps extends NostrArticleEventProps {
   profile?: NDKUserProfile;
-  event: NDKEvent;
+  event?: NDKEvent;
   isReadMore?: boolean;
   isClickableHashtags?: boolean;
 }
 
 export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profile, isReadMore = true, isClickableHashtags = true }) => {
   const { publicKey } = authStore.getState();
-  const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
+  const userReaction = useReactions({ authors: [publicKey], noteId: event?.id ?? '' });
   const react = useReact();
   const router = useRouter();
   const [isOpenComment, setIsOpenComment] = useState(false);
@@ -46,15 +46,15 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
 
   try {
     // Check if the content is JSON
-    const content = JSON.parse(event.content);
+    const content = JSON.parse(event?.content ?? '');
     title = content.title || '';
     summary = content.summary || content.abstract || '';
     image = content.image || '';
   } catch (e) {
     // If not JSON, try to extract title from first line or content
-    const lines = event.content.split('\n');
-    title = lines[0] || event.content.substring(0, 50);
-    summary = event.content.substring(0, 120) + '...';
+    const lines = event?.content?.split('\n');
+    title = lines?.[0] || event?.content?.substring(0, 50) || '';
+    summary = event?.content?.substring(0, 120) + '...';
   }
 
   const isLiked = useMemo(
@@ -66,7 +66,7 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
   );
 
   const toggleLike = async () => {
-    if (!event?.id) return;
+    if (!event?.id || !event?.pubkey || !event) return;
 
     const isNostrConnected = handleCheckNostrAndSendConnectDialog();
     if (!isNostrConnected) return;
@@ -88,7 +88,7 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
     );
   };
 
-  const truncatedContent = !isExpanded && event.content.length > 200 ? `${event.content.slice(0, 200)}...` : event.content;
+  const truncatedContent = !isExpanded && event?.content && event?.content?.length > 200 ? `${event?.content?.slice(0, 200)}...` : event?.content;
 
 
 
@@ -113,7 +113,8 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
         {image && (
           <div className={styles.mediaContainer + ' mb-3 w-full flex justify-center'}>
             <Image
-              src={image}
+              // src={encodeURIComponent(image)  }
+              src={image }
               alt={title}
               width={400}
               height={300}
@@ -167,8 +168,8 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
             <Icon name="RepostIcon" size={20}></Icon>
           </button>
           <button className={styles.actionButton} aria-label="Share" onClick={() => {
-            navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
-            showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
+            navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event?.id);
+            showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event?.id}` });
             logClickedEvent('share_note_link', 'Interaction', 'Button Click', 1);
           }}>
             <Icon name="ShareIcon" size={20} />
@@ -188,7 +189,7 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
       </div>
       {isClickableHashtags && (
         <div className="mt-3">
-          <ContentWithClickableHashtags content={event.content} onHashtagPress={() => { }} />
+          <ContentWithClickableHashtags content={event?.content ?? ''} onHashtagPress={() => { }} />
         </div>
       )}
     </NostrEventCardBase>

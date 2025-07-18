@@ -249,11 +249,11 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
 
   return (
     <div className={styles['nostr-short-feed__video-wrapper']} ref={containerRef}>
-      {isLoading && (
+      {/* {isLoading && (
         <div className={styles['nostr-short-feed__loading']}>
           <CryptoLoading />
         </div>
-      )}
+      )} */}
       {error && (
         <div className={styles['nostr-short-feed__error']}>
           {error}
@@ -351,7 +351,7 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
             onClick={() => showModal(
               <>
                 <CommentContainer event={event} />
-                <button onClick={() => showModal(null)}>Close</button>
+                {/* <button onClick={() => showModal(null)}>Close</button> */}
               </>
             )}
           >
@@ -365,7 +365,6 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean }> = 
               <>
                 <QuoteRepostComponent event={event} >
                 </QuoteRepostComponent>
-                <button onClick={() => showModal(null)}>Close</button>
               </>
             )}
           >
