@@ -249,7 +249,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
         </div> */}
       {/* Render correct card by kind, but FLAT */}
       {(() => {
-        console.log("repostedContent : ", repostedContent);
+        // console.log("repostedContent : ", repostedContent);
         // const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
         const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
         if (original?.kind == 1 || original?.kind == NDKKind.Text) {
@@ -262,8 +262,11 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
             <div
             // className="w-full h-full max-h-[300px]"
             >
-              <ShortEventCard event={original}
-              // className="w-full h-full max-h-[300px]"
+              <ShortEventCard
+                event={original}
+                // className="w-full h-full max-h-[300px]"
+                // classNameVideoPlayer="w-full max-h-[200px]"
+              // classNameNostrBase="w-full h-full max-h-[300px]"
               />
             </div>
           );

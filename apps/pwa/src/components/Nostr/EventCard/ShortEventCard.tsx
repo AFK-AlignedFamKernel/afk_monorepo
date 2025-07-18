@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { NostrShortEventProps } from '@/types/nostr';
 import NostrEventCardBase from './NostrEventCardBase';
 import { NostrEvent, NDKUserProfile, NDKEvent } from '@nostr-dev-kit/ndk';
@@ -9,7 +9,10 @@ import styles from '@/styles/nostr/feed.module.scss';
 import { Icon } from '@/components/small/icon-component';
 import { logClickedEvent } from '@/lib/analytics';
 import CommentContainer from './Comment/CommentContainer';
-import { useProfile } from 'afk_nostr_sdk';
+import { useAuth, useProfile, useReact, useReactions } from 'afk_nostr_sdk';
+import { useNostrAuth } from '@/hooks/useNostrAuth';
+import { useQueryClient } from '@tanstack/react-query';
+import { useUIStore } from '@/store/uiStore';
 
 interface ShortEventCardProps extends NostrShortEventProps {
   event?: NDKEvent;
@@ -17,21 +20,56 @@ interface ShortEventCardProps extends NostrShortEventProps {
   isReadMore?: boolean;
   className?: string;
   classNameNostrBase?: string;
+  classNameVideoPlayer?: string;
 }
 
 export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
   const { event, profile:profileProps, isReadMore } = props;
-
-  console.log('event', event);
+  const queryClient = useQueryClient();
 
   const {data: profile} = useProfile({publicKey: event?.pubkey})
-  console.log('profile', profile);
   const [isOpenComment, setIsOpenComment] = useState(false);
+  const react = useReact();
 
+  const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
+  const {publicKey} = useAuth ();
   const [mediaUrlState, setMediaUrlState] = useState<string | undefined>();
   // Parse media URL from content or tags
   let mediaUrl: string | undefined = undefined;
   let caption: string | undefined = undefined;
+  const {showToast} = useUIStore();
+  const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
+
+  const isLiked = useMemo(
+    () =>
+      Array.isArray(userReaction.data) &&
+      userReaction.data[0] &&
+      userReaction.data[0]?.content !== '-',
+    [userReaction.data],
+  );
+
+  const toggleLike = async () => {
+    if (!event?.id) return;
+
+    const isNostrConnected = handleCheckNostrAndSendConnectDialog();
+    if (!isNostrConnected) return;
+
+    await react.mutateAsync(
+      { event, type: isLiked ? 'dislike' : 'like' },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['reactions', event?.id] });
+
+          showToast({ type: 'success', message: 'Reaction updated' });
+          // scale.value = withSequence(
+          //   withTiming(1.5, { duration: 100, easing: Easing.out(Easing.ease) }),
+          //   withSpring(1, { damping: 6, stiffness: 200 }),
+          // );
+        },
+      },
+    );
+  };
+
 
 
   const extractAllVideoUrls = () => {
@@ -96,7 +134,10 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
       >
         <div className={styles.mt2}>
           {mediaUrlState && (
-            <div className={`${styles.mediaContainer} ${isVideo ? styles.mediaContainerVideo : ''}`}
+            <div 
+            
+            // className={`${styles.mediaContainer} ${isVideo ? styles.mediaContainerVideo : ''}`}
+            className={`${styles["media-container"]} ${isVideo ? styles["media-container-video"] : ''}`}
             // style={{
             //   height: 'calc(100vh - 180px)', // Subtracting header + card padding
             //   width: '100%',
@@ -109,7 +150,7 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
                   src={mediaUrlState}
                   controls
                   loop
-                  className={styles.videoPlayer}
+                  className={styles['video-player'] + ' ' + styles['video-player-short'] + ' ' + styles.videoPlayer + props?.classNameVideoPlayer}
                 // style={{
                 //   height: 'calc(100vh - 180px)', // Subtracting header + card padding
                 //   width: '100%',
@@ -147,10 +188,12 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
             <button
               onClick={() => {
                 logClickedEvent('like_note', 'Interaction', 'Button Click', 1);
+                toggleLike();
               }}>
               <Icon
                 name="LikeIcon"
                 size={20}
+                className={`${isLiked ? 'text-red-500' : ''}`}
               />
             </button>
             <button
@@ -158,6 +201,8 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
               role="group"
               aria-label="Repost actions"
               onClick={() => {
+                navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event?.id);
+                showToast({ message: `Link copied to clipboard`, type: 'success' });
                 logClickedEvent('share_note', 'Interaction', 'Button Click', 1);
               }}>
               <Icon
