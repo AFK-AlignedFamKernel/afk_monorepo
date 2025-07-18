@@ -30,7 +30,7 @@ export default function CommentContainer({ message, parent_id, classname, isView
         queryFn: async () => {
             const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/messages/get-replies?parent_id=${parent_id}`);
             const data = await res.json();
-            console.log("data", data)
+            // console.log("data", data)
             setMessagesState(data?.messages);
         },
         enabled: !!parent_id,

@@ -31,7 +31,7 @@ export const useReplyNotes = (options?: UseReplyNotesOptions):UseInfiniteQueryRe
       }
 
       const notes = await ndk.fetchEvents({
-        kinds: [NDKKind.Text],
+        kinds: [NDKKind.Text, NDKKind.ChannelMessage],
         authors: options?.authors,
         search: options?.search,
         until: pageParam || Math.round(Date.now() / 1000),
@@ -39,7 +39,7 @@ export const useReplyNotes = (options?: UseReplyNotesOptions):UseInfiniteQueryRe
         '#e': options?.noteId ? [options.noteId] : undefined,
       });
 
-      console.log("notes", notes);
+      // console.log("notes", notes);
 
       return [...notes].filter((note) => note.tags.every((tag) => tag[0] === 'e' && tag[1] === options?.noteId));
     },

@@ -5,6 +5,7 @@ import {  useNote } from 'afk_nostr_sdk'
 import { ArticleEventCard } from '@/components/Nostr/EventCard/ArticleEventCard'
 import { PostEventCard, ShortEventCard } from '@/components/Nostr/EventCard'
 import CryptoLoading from '@/components/small/crypto-loading'
+import { VideoPlayer } from '@/components/Nostr/EventCard/NostrVideoPlayer'
 export default function NotePage() {
   const { id } = useParams()
   console.log("id", id)
@@ -12,8 +13,7 @@ export default function NotePage() {
     noteId: id as string,
     // kinds: [1, 30023, 6, 7, NDKKind.Text],
   })
-
-  console.log("note", note)
+  // console.log("note", note)
   if (noteLoading) {
     return <div>
       <div className="flex justify-center items-center h-screen">
@@ -49,13 +49,13 @@ export default function NotePage() {
             )}
 
             {note.kind === 30023 && (
-              <div className="border rounded-lg p-4">
+              <div className="rounded-lg p-4">
                 <ArticleEventCard event={note} isReadMore={false} />
               </div>
             )}
 
             {note.kind === 6 && (
-              <div className="border rounded-lg p-4">
+              <div className="rounded-lg p-4">
                 <h2 className="font-bold text-xl mb-2">Repost</h2>
                 {/* <p>{note.content}</p> */}
                 <PostEventCard event={note} />
@@ -64,7 +64,7 @@ export default function NotePage() {
             )}
 
             {note.kind === 7 && (
-              <div className="border rounded-lg p-4">
+              <div className="rounded-lg p-4">
                 <h2 className="font-bold text-xl mb-2">Reaction</h2>
                 {/* <p>{note.content}</p> */}
                 <PostEventCard event={note} />
@@ -72,8 +72,10 @@ export default function NotePage() {
             )}
 
             {![1, 30023, 6, 7].includes(note.kind) && (
-              <div className="border rounded-lg p-4">
-                <ShortEventCard event={note} />
+              <div className="rounded-lg p-4">
+                <VideoPlayer event={note} 
+                className='rounded-lg max-h-[500px]'
+                />
               </div>
             )}
           </>
