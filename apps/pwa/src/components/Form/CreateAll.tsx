@@ -77,7 +77,7 @@ export default function CreateAll() {
               key={value}
               onClick={() => {
                 setCreateType(value as CreateType)
-                logClickedEvent(`create_${value}`, 'Interaction', 'Button Click', 1);
+                logClickedEvent(`select_create_${value}`, 'Interaction', 'Button Click', 1);
               }}
               style={{
                 border: 'none',
