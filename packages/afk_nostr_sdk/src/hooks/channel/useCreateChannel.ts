@@ -3,6 +3,7 @@ import {useMutation} from '@tanstack/react-query';
 
 import {useNostrContext} from '../../context/NostrContext';
 import {useAuth} from '../../store/auth';
+import { checkIsConnected } from '../connect';
 
 export const useCreateChannel = () => {
   const {ndk} = useNostrContext();
@@ -13,6 +14,8 @@ export const useCreateChannel = () => {
     mutationFn: async (data: {content: string; channel_name: string; tags?: string[][]}) => {
       try {
         const user = ndk.getUser({pubkey: publicKey});
+
+        await checkIsConnected(ndk);
 
         // if (!user.profile) {
         //   throw new Error('Profile not found');

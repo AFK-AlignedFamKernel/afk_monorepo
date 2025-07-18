@@ -53,8 +53,8 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
     );
   }
 
-  const displayName = profile?.displayName || profile?.name || truncate(event.pubkey, 8);
-  const timestamp = formatTimestamp(event.created_at || 0);
+  const displayName = profile?.displayName || profile?.name || truncate(event?.pubkey || '', 8);
+  const timestamp = event?.created_at ? formatTimestamp(event?.created_at) : '';
   const [isExpandedAbout, setIsExpandedAbout] = useState(false);
 
   return (

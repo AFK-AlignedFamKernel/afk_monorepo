@@ -44,20 +44,13 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
     });
   };
 
-  console.log("token", token)
+  // console.log("token", token)
   // console.log("type", type)
 
   return (
     <div className={`${styles.launchpadCard} card hover:shadow-lg transition-shadow duration-200`}>
       <div className="flex justify-between items-start gap-2">
-        <div className="flex justify-between items-center text-sm">
 
-          {token?.image_url && (token?.image_url !== "" && token?.image_url !== null && token?.image_url !== undefined) && (
-            <Image src={token?.image_url} alt={token.name} width={50} height={50}
-              className="rounded-lg"
-            />
-          )}
-        </div>
         <div>
           <h3 className="text-lg font-semibold">{token.name}</h3>
           <p className="text-sm text-shade-500">{token.symbol}</p>
@@ -67,6 +60,14 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
             Graduated
           </span>
         )}
+        <div className="flex justify-between items-center text-sm">
+
+          {token?.image_url && (token?.image_url !== "" && token?.image_url !== null && token?.image_url !== undefined) && (
+            <Image src={token?.image_url} alt={token.name} width={50} height={50}
+              className="rounded-lg"
+            />
+          )}
+        </div>
 
 
 

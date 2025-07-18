@@ -8,6 +8,7 @@ import { FeedTabs } from "@/components/Nostr/feed";
 import { logClickedEvent } from "@/lib/analytics";
 import PumpComponent from "../launchpad/PumpComponent";
 import CommunitiesList from "../Communities";
+import ChannelFeed from "../Nostr/Channel/ChannelFeed";
 // import { ChatScreen } from "@/components/Bitchat/ChatScreen";
 
 export default function DiscoverComponent() {
@@ -15,7 +16,7 @@ export default function DiscoverComponent() {
   // const searchParams = useSearchParams()
   // const query = searchParams.get("query")
 
-  const [activeTab, setActiveTab] = useState<"brand" | "chat" | "creator" | "topic" | "feed" | "launchpad" | "communities">("feed");
+  const [activeTab, setActiveTab] = useState<"brand" | "chat" | "creator" | "topic" | "feed" | "launchpad" | "communities" | "channels">("feed");
 
   return (
     <div className="flex flex-col gap-1">
@@ -29,6 +30,7 @@ export default function DiscoverComponent() {
             // { key: "chat", label: "Chat" },
             { key: "creator", label: "Creators" },
             { key: "launchpad", label: "Tokens" },
+            { key: "channels", label: "Channels" },
             { key: "communities", label: "Communities" },
             // { key: "topic", label: "Topics" },
           ].map(tab => (
@@ -88,6 +90,12 @@ export default function DiscoverComponent() {
         {activeTab === "launchpad" && (
           <div className="px-4">
             <PumpComponent />
+          </div>
+        )}
+
+        {activeTab === "channels" && (
+          <div className="px-4">
+            <ChannelFeed />
           </div>
         )}
 

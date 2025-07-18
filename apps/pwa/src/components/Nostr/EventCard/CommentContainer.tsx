@@ -10,7 +10,7 @@ import { ButtonPrimary } from '@/components/button/Buttons';
 import { logClickedEvent } from '@/lib/analytics';
 import { Icon } from '@/components/small/icon-component';
 interface CommentContainerProps {
-  event: NDKEvent;
+  event?: NDKEvent;
   isExpanded?: boolean;
 }
 
@@ -21,7 +21,7 @@ export const CommentContainer: React.FC<CommentContainerProps> = (props) => {
   const shouldTruncate = content.length > 280 && !isExpanded;
   const displayContent = shouldTruncate ? `${content.substring(0, 280)}...` : content;
   const [comment, setComment] = useState('');
-  const { data: note = event } = useNote({ noteId: event?.id });
+  const { data: note = event } = useNote({ noteId: event?.id ?? ''  });
   const comments = useReplyNotes({ noteId: note?.id });
   const sendNote = useSendNote();
   const [isOpenComment, setIsOpenComment] = useState(false);
@@ -79,8 +79,8 @@ export const CommentContainer: React.FC<CommentContainerProps> = (props) => {
 
 
     <div className="mt-3">
-      {comments.data?.pages.flat().map((comment) => (
-        <div key={comment.id} className="mb-4 p-4 rounded-lg shadow border border-right-gray-200 dark:border-gray-700">
+      {comments.data?.pages.flat().map((comment: any) => (
+        <div key={comment?.id} className="mb-4 p-4 rounded-lg shadow border border-right-gray-200 dark:border-gray-700">
           <div className="flex items-start space-x-3">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 rounded-full "></div>
@@ -88,14 +88,14 @@ export const CommentContainer: React.FC<CommentContainerProps> = (props) => {
             <div className="flex-1">
               <div className="flex items-center space-x-2">
                 <span className="font-medium ">
-                  {truncate(comment.pubkey, 8)}
+                  {truncate(comment.pubkey ?? ''    , 8)}
                 </span>
                 <span className="text-sm">
-                  {formatTimestamp(comment.created_at)}
+                  {comment?.created_at ? formatTimestamp(comment?.created_at) : ''}
                 </span>
               </div>
               <div className="mt-1 whitespace-pre-wrap break-words">
-                {formatContent(comment.content)}
+                {formatContent(comment?.content ?? '')}
               </div>
               <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                 <button className="flex items-center hover:text-blue-500">

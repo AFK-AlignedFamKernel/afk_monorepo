@@ -25,11 +25,11 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
   const { publicKey } = useAuth();
-  const content = event.content || '';
+  const content = event?.content || '';
   const shouldTruncate = content.length > 280 && !isExpanded;
   const displayContent = shouldTruncate ? `${content.substring(0, 280)}...` : content;
   const [comment, setComment] = useState('');
-  const { data: note = event } = useNote({ noteId: event?.id });
+  const { data: note = event } = useNote({ noteId: event?.id ?? '' });
   const comments = useReplyNotes({ noteId: note?.id });
   const sendNote = useSendNote();
   // const {profile} = useProfile({publicKey:event?.pubkey})
@@ -289,8 +289,10 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
             <Icon name="GiftIcon" size={20} />
           </button>
           <button className={styles.actionButton + " flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"} aria-label="Share" onClick={() => {
-            navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event.id);
-            showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event.id}` });
+
+            if (!event?.id) return;
+            navigator.clipboard.writeText(window.location.origin + '/nostr/note/' + event?.id);
+            showToast({ message: `Link copied: ${window.location.origin}/nostr/note/${event?.id}` });
             logClickedEvent('share_note_link', 'Interaction', 'Button Click', 1);
           }}>
             <Icon name="ShareIcon" size={20} />
@@ -299,7 +301,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
       </section>
       {isOpenComment && (
         <div className="mt-3">
-          <CommentContainer event={event} />
+          <CommentContainer event={event ?? undefined} />
         </div>
       )}
     </NostrEventCardBase>

@@ -152,8 +152,8 @@ export const linkedNostrProfile = async () => {
     const account = new Account(provider, accountAddress0, privateKey0, "1");
 
     // Use exactly 123 as the starknet address like in the test
-    // const starknetAddress = accountAddress0; // This matches sender_address in the test
-    const starknetAddress = "123"; // This matches sender_address in the test
+    const starknetAddress = accountAddress0; // This matches sender_address in the test
+    // const starknetAddress = "123"; // This matches sender_address in the test
     const starknetAddressFelt = cairo.felt(starknetAddress);
 
     // Format content exactly as in the test

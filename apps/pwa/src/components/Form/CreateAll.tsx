@@ -9,13 +9,15 @@ import { NostrArticleForm } from './NostrArticleForm';
 import { CreateBrandForm } from '../Brand/CreateBrandForm';
 import DebateCreateForm from '../Debate/DebateCreateForm';
 import { logClickedEvent } from '@/lib/analytics';
+import FormChannelCreate from '../Nostr/Channel/FormChannelCreate';
 enum CreateType {
   POST = 'post',
   ARTICLE = 'article',
   TOKEN = 'token',
   BRAND = 'brand',
-  DEBATE = 'debate',
+  CHANNEL = 'channel',
   COMMUNITY = 'community',
+  DEBATE = 'debate',
 }
 export default function CreateAll() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,7 +25,7 @@ export default function CreateAll() {
   const sendNote = useSendNote();
   const { ndk } = useNostrContext()
   const [createType, setCreateType] = useState<CreateType>(CreateType.POST);
-  
+
   const { showToast } = useUIStore();
   const handleSubmit = async (data: NostrFormData) => {
     
@@ -75,7 +77,7 @@ export default function CreateAll() {
               key={value}
               onClick={() => {
                 setCreateType(value as CreateType)
-                logClickedEvent(`create_${value}`, 'Interaction', 'Button Click', 1);
+                logClickedEvent(`select_create_${value}`, 'Interaction', 'Button Click', 1);
               }}
               style={{
                 border: 'none',
@@ -137,6 +139,13 @@ export default function CreateAll() {
         <div>
           {/* <h1>Debate</h1> */}
           <DebateCreateForm></DebateCreateForm>
+        </div>
+      )}
+
+      {createType === CreateType.CHANNEL && (
+        <div>
+          {/* <h1>Channel</h1> */}
+          <FormChannelCreate></FormChannelCreate>
         </div>
       )}
   

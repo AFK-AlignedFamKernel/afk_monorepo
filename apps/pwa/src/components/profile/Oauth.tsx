@@ -34,7 +34,10 @@ export const Oauth = () => {
     const handleLogin = async (provider: Provider) => {
         logClickedEvent(`login_oauth_${  provider}`, 'Interaction', 'Button Click', 1);
         const res = await supabase.auth.signInWithOAuth({
-            provider: provider
+            provider: provider,
+            options: {
+                redirectTo: `${window?.location?.origin ?? process.env.NEXT_PUBLIC_APP_URL}/profile`
+            }
         })
 
         if (!res) {
@@ -116,14 +119,16 @@ export const Oauth = () => {
                 {!user ? (
                     <div className="flex flex-col gap-4">
                         <button
-                            className="border border-gray-300 flex flex-row items-center gap-2 px-6 py-2 rounded-lg  hover:bg-blue-700 text-white font-medium transition-colors"
+                            className="border border-gray-300 flex flex-row items-center gap-2 px-6 py-2 rounded-lg  hover:bg-blue-700 font-medium transition-colors"
                             onClick={() => handleLogin("twitter")}
                         >
-                            <Image src="/assets/icons/twitter.svg" alt="Twitter" width={50} height={50} />
+                            <Image
+                                className="w-6 h-6 bg-[var(--color-primary)]"
+                            src="/assets/icons/twitter.svg" alt="Twitter" width={50} height={50} />
                             Sign in with Twitter
                         </button>
                         <button
-                            className="border border-gray-300 flex flex-row items-center gap-2 px-6 py-2 rounded-lg  hover:bg-blue-700 text-white font-medium transition-colors"
+                            className="border border-gray-300 flex flex-row items-center gap-2 px-6 py-2 rounded-lg  hover:bg-blue-700 font-medium transition-colors"
                             onClick={() => handleLogin("google")}
                         >
                             <Image src="/assets/icons/google-icon.png" alt="Google" width={50} height={50} />

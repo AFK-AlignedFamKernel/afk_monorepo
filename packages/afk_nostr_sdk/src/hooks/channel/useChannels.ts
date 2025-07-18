@@ -32,8 +32,7 @@ export const useChannels = (options?: UseRootNotesOptions):UseInfiniteQueryResul
         limit: options?.limit ?? 20,
       });
 
-      console.log('notes', notes);
-
+      // console.log('notes', notes);
       return [...notes].filter((note) => note.tags.every((tag) => tag[0] !== 'e'));
     },
     placeholderData: {pages: [], pageParams: []},
