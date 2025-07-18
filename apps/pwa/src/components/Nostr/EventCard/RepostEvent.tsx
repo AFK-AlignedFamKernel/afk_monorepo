@@ -249,9 +249,9 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
       {(() => {
         // const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
         const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
-        if (original?.kind === 1) {
+        if (original?.kind == 1 || original?.kind == NDKKind.Text) {
           return <PostEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} />;
-        } else if (original?.kind === 30023) {
+        } else if (original?.kind == 30023 || original?.kind == 30024 || original?.kind == NDKKind.Article) {
           return <ArticleEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} isReadMore={false} />;
         } else if (original) {
           return (
