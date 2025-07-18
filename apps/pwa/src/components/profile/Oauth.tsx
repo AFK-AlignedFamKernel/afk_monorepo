@@ -1,12 +1,12 @@
 import { useUIStore } from "@/store/uiStore"
 import { supabase } from "@/lib/supabase"
 import { useEffect, useState } from "react";
-import { Provider, User } from "@supabase/supabase-js";
-import { Session } from "@supabase/supabase-js";
+import { Provider } from "@supabase/supabase-js";
 import Image from "next/image";
 import { useAppStore } from "@/store/app";
 import CryptoLoading from "../small/crypto-loading";
 import { logClickedEvent } from "@/lib/analytics";
+
 export const Oauth = () => {
     const { user, session, setUser, setSession, isInitialFetchUser, setIsInitialFetchUser } = useAppStore();
     const { showToast } = useUIStore();
@@ -32,7 +32,7 @@ export const Oauth = () => {
 
 
     const handleLogin = async (provider: Provider) => {
-        logClickedEvent(`login_oauth_${  provider}`, 'Interaction', 'Button Click', 1);
+        logClickedEvent(`login_oauth_${provider}`, 'Interaction', 'Button Click', 1);
         const res = await supabase.auth.signInWithOAuth({
             provider: provider,
             options: {
@@ -119,16 +119,17 @@ export const Oauth = () => {
                 {!user ? (
                     <div className="flex flex-col gap-4">
                         <button
-                            className="border border-gray-300 flex flex-row items-center gap-2 px-6 py-2 rounded-lg  hover:bg-blue-700 font-medium transition-colors"
+                            className="border border-gray-500 flex flex-row items-center gap-2 px-6 py-2 rounded-lg  hover:bg-blue-700 font-medium transition-colors"
                             onClick={() => handleLogin("twitter")}
                         >
                             <Image
-                                className="w-6 h-6 bg-[var(--color-primary)]"
-                            src="/assets/icons/twitter.svg" alt="Twitter" width={50} height={50} />
+                                // className="text-[var(--gray-500)]"
+                                // className="w-6 h-6 bg-[var(--color-primary)]"
+                                src="/assets/icons/twitter.svg" alt="Twitter" width={50} height={50} />
                             Sign in with Twitter
                         </button>
                         <button
-                            className="border border-gray-300 flex flex-row items-center gap-2 px-6 py-2 rounded-lg  hover:bg-blue-700 font-medium transition-colors"
+                            className="border border-gray-500 flex flex-row items-center gap-2 px-6 py-2 rounded-lg  hover:bg-blue-700 font-medium transition-colors"
                             onClick={() => handleLogin("google")}
                         >
                             <Image src="/assets/icons/google-icon.png" alt="Google" width={50} height={50} />

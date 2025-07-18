@@ -49,7 +49,7 @@ export const useFetchEvents = (options?: UseSearch) => {
         // '#t': [selectedTag || ''],
       });
 
-      console.log("notes", notes);
+      // console.log("notes", notes);
       if (notes.size === 0) {
         setHasMoreContent(false);
         return;
@@ -60,7 +60,7 @@ export const useFetchEvents = (options?: UseSearch) => {
         new Set([...notes].map(note => note.id))
       ).map(id => [...notes].find(note => note.id === id)!);
 
-      console.log("uniqueNotes", uniqueNotes);
+      // console.log("uniqueNotes", uniqueNotes);
 
       // Use Set to ensure unique notes by ID
       const uniqueNoteSet = new Set(uniqueNotes.map(note => note.id));

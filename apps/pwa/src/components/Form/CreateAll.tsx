@@ -13,9 +13,9 @@ import FormChannelCreate from '../Nostr/Channel/FormChannelCreate';
 enum CreateType {
   POST = 'post',
   ARTICLE = 'article',
+  CHANNEL = 'channel',
   TOKEN = 'token',
   BRAND = 'brand',
-  CHANNEL = 'channel',
   COMMUNITY = 'community',
   DEBATE = 'debate',
 }
