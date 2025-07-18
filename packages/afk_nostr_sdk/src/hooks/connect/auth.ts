@@ -115,9 +115,8 @@ export const useRelayAuth = () => {
         }
       });
       ndk.pool.on("relay:authed", (relay) => {
-        console.log("relay:authed");
+        console.log("relay:authed; auth with relay: ", relay.url);
         setRelayAuthState(prev => ({ ...prev, [relay.url]: 'authenticated' }));
-        console.log(`Authenticated with relay: ${relay.url}`);
         setIsNostrAuthed(true);
         // console.log("relayAuthState", relayAuthState);
         // Update your state here

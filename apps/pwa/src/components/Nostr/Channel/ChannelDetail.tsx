@@ -5,6 +5,7 @@ import styles from '@/styles/components/channel.module.scss';
 import { useUIStore } from '@/store/uiStore';
 import { NDKKind } from '@nostr-dev-kit/ndk';
 import ChannelMessage from './ChannelMessage';
+import { useFileUpload } from '@/hooks/useFileUpload';
 
 const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
   const { data: channel, isLoading, isError } = useNote({ noteId: channelId ?? '', kinds: [NDKKind.ChannelMetadata, NDKKind.ChannelCreation] });
@@ -14,32 +15,53 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
   const [sending, setSending] = useState(false);
   const { showModal, showToast } = useUIStore();
   const {data: channelProfile} = useProfile({publicKey: channel?.pubkey})
-
+  const [file, setFile] = useState<File | null>(null);
   // console.log('channelProfile', channelProfile)
   // console.log('channelId', channelId);
   // console.log('channel', channel);
 
+  const fileUpload = useFileUpload();
   const handleSend = async (e: React.FormEvent) => {
     try {
       e.preventDefault();
       if (!message.trim()) return;
       if (!channelId) return;
+
       setSending(true);
-      await sendMessage.mutateAsync({ content: message, tags: [['e', channelId]] });
+
+      let imageUrl:string | undefined;
+      if(file){
+        const result = await fileUpload.mutateAsync(file);
+        console.log('result image upload', result);
+        if (result && typeof result === 'object' && 'data' in result && result.data && typeof result.data === 'object' && 'url' in result.data) {
+          imageUrl = (result.data as { url?: string }).url ?? undefined;
+        }
+      }
+      console.log('imageUrl', imageUrl);
+      const event = await sendMessage.mutateAsync({ content: message,
+        tags: [['e', channelId], 
+        ['p', channel?.pubkey ?? ''],
+        imageUrl ? ['image', imageUrl] : []
+      ] 
+      });
+      console.log('event', event);
       setMessage('');
       setSending(false);
-      messages.refetch();
       showToast({
         message: 'Message sent',
         description: 'Your message has been sent',
         type: 'success',
       });
+      messages.refetch();
     } catch (error) {
       showToast({
         message: 'Error sending message',
         description: 'Please try again',
         type: 'error',
       });
+    }
+    finally{
+      setSending(false);
     }
 
   };
@@ -85,6 +107,26 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
           onChange={e => setMessage(e.target.value)}
           disabled={sending}
         />
+
+        <label className="flex items-center cursor-pointer">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-gray-500 hover:text-green-500 transition-colors"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 002.828 2.828L18 9.828M7 7h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            className="hidden"
+          />
+        </label>
+       
+       
         <button
           type="submit"
           className="rounded bg-green-500 hover:bg-green-600 text-white px-4 py-2 font-semibold disabled:opacity-50"
@@ -93,6 +135,24 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
           Send
         </button>
       </form>
+
+
+      <div className="flex flex-col gap-2 my-4"> 
+
+
+      {file && (
+        <div className="flex items-center gap-2">
+          <img src={URL.createObjectURL(file)} alt="Uploaded Image" width={150} height={150}
+          className="rounded-lg"
+          />
+        </div>
+      )}
+
+      {file && (
+        <button onClick={() => setFile(null)}>Remove Image</button>
+      )}
+      </div>
+
     </div>
   );
 };

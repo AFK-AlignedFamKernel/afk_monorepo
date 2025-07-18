@@ -14,6 +14,7 @@ export const useSendMessageChannel = () => {
       event.content = data.content;
       event.tags = data.tags ?? [];
 
+      event.sign();
       return event.publish();
     },
   });

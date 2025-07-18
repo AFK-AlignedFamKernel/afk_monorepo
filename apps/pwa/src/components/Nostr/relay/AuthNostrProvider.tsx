@@ -29,7 +29,7 @@ const AuthNostrProviderComponent = () => {
   }, [isNdkConnected]);
 
   const handleMultiAuth = async (relayUrls: string[]) => {
-    console.log('handleMultiAuth', relayUrls);
+    // console.log('handleMultiAuth', relayUrls);
     try {
       await checkIsConnected(ndk);
       const origin = window && window.location?.origin ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL;

@@ -36,7 +36,7 @@ export const useMessagesChannels = (options?: UseReplyNotesOptions): UseInfinite
 
       return [...notes]
         .sort((a, b) => a.created_at - b.created_at).
-        filter((note) => note.tags.every((tag) => tag[0] === 'e'));
+        filter((note) => note.tags.every((tag) => tag[0] === 'e' || tag[1] === 'e'));
     },
     placeholderData: { pages: [], pageParams: [] },
   });

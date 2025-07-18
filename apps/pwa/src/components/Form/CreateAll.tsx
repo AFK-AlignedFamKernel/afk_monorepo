@@ -15,9 +15,9 @@ enum CreateType {
   ARTICLE = 'article',
   TOKEN = 'token',
   BRAND = 'brand',
-  DEBATE = 'debate',
-  COMMUNITY = 'community',
   CHANNEL = 'channel',
+  COMMUNITY = 'community',
+  DEBATE = 'debate',
 }
 export default function CreateAll() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,7 +25,7 @@ export default function CreateAll() {
   const sendNote = useSendNote();
   const { ndk } = useNostrContext()
   const [createType, setCreateType] = useState<CreateType>(CreateType.POST);
-  
+
   const { showToast } = useUIStore();
   const handleSubmit = async (data: NostrFormData) => {
     

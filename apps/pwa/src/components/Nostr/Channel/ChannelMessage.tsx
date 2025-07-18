@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useProfile, useReactions, useReact, useNote } from 'afk_nostr_sdk';
 import styles from '@/styles/components/channel.module.scss';
 import Image from 'next/image';
@@ -8,6 +8,7 @@ import { useUIStore } from '@/store/uiStore';
 import ProfileCardOverview from '../EventCard/ProfileCardOverview';
 import { NDKEvent, NDKKind, NDKUserProfile } from '@nostr-dev-kit/ndk';
 import { logClickedEvent } from '@/lib/analytics';
+import { useFileUpload } from '@/hooks/useFileUpload';
 interface ChannelMessageProps {
   event?: NDKEvent; // NDKEvent type
   onClick?: (channel: any) => void;
@@ -21,11 +22,15 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
   const [likes, setLikes] = useState(0);
   const { data: profile } = useProfile({ publicKey: event?.pubkey })
   // console.log('profile channel message', profile)
+  const [dimensionsMedia, setMediaDimensions] = useState([250, 300]);
 
   const { data: eventMetadata } = useNote({ noteId: event?.id ?? '', kinds: [NDKKind.Metadata] });
   // console.log('eventMetadata', eventMetadata)
   const reactions = useReactions({ noteId: event?.id });
   const react = useReact();
+
+  const fileUpload = useFileUpload();
+  const [file, setFile] = useState<File | null>(null);
 
 
   const { showModal } = useUIStore();
@@ -61,6 +66,20 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
     // window.location.href = `/nostr/channel/${event?.id}`;
   };
 
+
+  const postSource = useMemo(() => {
+    if (!event?.tags) return;
+
+    const imageTag = event.tags.find((tag) => tag[0] === 'image');
+    if (!imageTag) return;
+    let dimensions = [250, 300];
+    if (imageTag[2]) {
+      dimensions = imageTag[2].split('x').map(Number);
+      setMediaDimensions(dimensions);
+    }
+    return { uri: imageTag[1], width: dimensions[0], height: dimensions[1] };
+  }, [event?.tags]);
+
   const handleProfileView = () => {
     logClickedEvent('profile_view_channel_message')
 
@@ -87,7 +106,7 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
 
       <div className="flex items-center gap-2 px-4 pb-4 cursor-pointer" onClick={handleProfileView}>
         {profile?.image && profile?.image.startsWith('https') && (
-          <Image    
+          <Image
             width={28}
             height={28}
             src={profile?.image}
@@ -104,10 +123,21 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
         </span>
       </div>
 
- 
-
       <div className="text-sm">
-        {event?.content}
+
+        <p>
+          {event?.content}
+
+        </p>
+        {postSource && (
+          <Image
+            src={postSource.uri}
+            alt="Post Source"
+            width={postSource.width || 300}
+            height={postSource.height || 300}
+            className={styles.nostrFeedImage}
+          />
+        )}
       </div>
 
 

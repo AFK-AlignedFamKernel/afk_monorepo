@@ -26,7 +26,7 @@ const ChannelFeed: React.FC = () => {
 
   return (
     <div className={`w-full max-w-2xl mx-auto py-4 px-2 ${styles.channelFeed}`}> {/* Custom class for extra styling */}
-      <h2 className="text-2xl font-bold mb-4">Channels</h2>
+      {/* <h2 className="text-2xl font-bold mb-4">Channels</h2> */}
 
       {channels?.isLoading && (
         <div className="flex justify-center items-center h-40">
