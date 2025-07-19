@@ -97,7 +97,8 @@ export const useCreateToken = () => {
     }
 
     if (!account) {
-      return;
+      throw new Error('Wallet not connected');
+      // return;
     }
 
     setIsLoading(true);

@@ -10,6 +10,7 @@ import {
 } from "starknetkit/braavosMobile"
 import { InjectedConnector } from "starknetkit/injected"
 import { WebWalletConnector } from "starknetkit/webwallet"
+// import { CartridgeConnector } from "starknetkit/cartridge"
 import { getStarknet } from "@starknet-io/get-starknet-core"
 // import { ControllerConnector } from "@cartridge/connector"
 // import { sepolia, mainnet } from "@starknet-react/chains";
@@ -24,7 +25,7 @@ import { getStarknet } from "@starknet-io/get-starknet-core"
 //   jsonRpcProvider,
 //   cartridgeProvider,
 // } from "@starknet-react/core";
-// import cartridgeConnector from "./CartbridgeConnector"
+import cartridgeConnector from "./CartbridgeConnector"
 
 const isMobileDevice = () => {
   if (typeof window === "undefined") {

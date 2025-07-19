@@ -45,13 +45,13 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
       const sub = await db
         .select()
         .from(contractState)
-        .where(eq(contractState.contract_address, sub_address))
+        // .where(eq(contractState.contract_address, sub_address))
         .limit(1);
 
       console.log('sub', sub);
 
       const result = await db.query.contractState.findMany({
-        where: eq(contractState.contract_address, sub_address),
+        // where: eq(contractState.contract_address, sub_address),
         with: {
           epochs: true,
           // userProfiles: true,

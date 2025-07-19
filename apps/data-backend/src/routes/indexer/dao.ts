@@ -39,7 +39,7 @@ async function daoServiceRoute(fastify: FastifyInstance, options: RouteOptions) 
       const dao = await db
         .select()
         .from(daoCreation)
-        .where(eq(daoCreation.contractAddress, dao_address))
+        // .where(eq(daoCreation.contractAddress, dao_address))
         .limit(1);
 
       if (dao.length > 0) {

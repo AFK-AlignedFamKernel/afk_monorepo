@@ -21,11 +21,11 @@ const CONTRACT_ADDRESS_GAME = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEP
 // const theme = "aqua-stark";
 
 const options: ControllerOptions = {
-  chains: [
-    {
-      rpcUrl: "https://api.cartridge.gg/x/starknet/sepolia",
-    },
-  ],
+  // chains: [
+  //   {
+  //     rpcUrl: "https://api.cartridge.gg/x/starknet/sepolia",
+  //   },
+  // ],
   defaultChainId: constants.StarknetChainId.SN_SEPOLIA,
 //   policies,
 //   theme,

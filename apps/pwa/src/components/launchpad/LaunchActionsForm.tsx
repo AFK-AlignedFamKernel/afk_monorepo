@@ -135,8 +135,8 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
 
         <button
           onClick={handleAction}
-          disabled={loading || !amount || !account}
-          className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${loading || !amount || !account
+          disabled={loading || !amount}
+          className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${loading || !amount
             ? 'bg-gray-400 cursor-not-allowed'
             : typeAction === 'BUY'
               ? 'bg-green-500 hover:bg-green-600'

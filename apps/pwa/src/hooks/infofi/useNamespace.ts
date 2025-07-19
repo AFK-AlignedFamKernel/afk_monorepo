@@ -59,7 +59,8 @@ export const useNamespace = () => {
       }
 
       try {
-        const addressContract = NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+        // const addressContract = NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+        const addressContract = NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
         // const contract = await prepareAndConnectContract(rpcProvider, addressContract, account);
 
         // if (!contract) {
@@ -111,21 +112,131 @@ export const useNamespace = () => {
         //   request: requestArgs
         // })
 
+        const call: Call = contract.populate('linked_nostr_default_account', {
+          request: requestArgs
+        })
+        const tx = await account.execute(call);
+
+        // const calldata = CallData.compile([
+        //   requestArgs
+        // ]
+        // )
+        // const linkedNostrProfile = {
+        //   contractAddress: addressContract,
+        //   entrypoint: 'linked_nostr_profile',
+        //   calldata: calldata,
+        // };
+        // const tx = await account.execute([linkedNostrProfile]);
+
+        await account.waitForTransaction(tx.transaction_hash);
+        console.log("Transaction Hash:", tx.transaction_hash)
+        return tx;
+
+        // Call contract method to link namespace
+        // const result = await contract.link_namespace(event);
+
+        // For now, return a mock result
+        // return { success: true, transactionHash: 'mock_hash' };
+      } catch (error) {
+        console.error('Error linking namespace:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      showToast({
+        message: 'Success',
+        description: 'Namespace linked successfully',
+        type: 'success',
+      });
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['infofi'] });
+    },
+    onError: (error) => {
+      showToast({
+        message: 'Error',
+        description: error.message || 'Failed to link namespace',
+        type: 'error',
+      });
+    },
+  });
+
+
+  // Mutation for linking namespace
+  const linkNamespaceMutationScoring = useMutation({
+    mutationFn: async () => {
+      if (!account?.address) {
+        throw new Error('No account connected');
+      }
+
+      try {
+        const addressContract = NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+        // const addressContract = NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+        // const contract = await prepareAndConnectContract(rpcProvider, addressContract, account);
+
+        // if (!contract) {
+        //   throw new Error('Failed to prepare contract');
+        // }
+
+        let timestamp = 1716285235;
+        // let starknetAddressFelt = account.address;
+        const starknetAddressFelt = cairo.felt(account.address);
+
+        // Create Nostr event for linking
+        // const event = {
+        //   content: `link ${account.address}`,
+        //   tags: [],
+        //   // Add other event properties as needed
+        // };
+
+        const event = new NDKEvent(ndk);
+        event.content = `link ${starknetAddressFelt}`;
+        event.tags = [];
+        event.created_at = timestamp;
+        event.kind = 1;
+        await event.sign();
+        const signature = event.sig ?? '';
+
+        console.log("event", event);
+
+        let signatureR = "0x" + signature.slice(0, signature.length / 2);
+        let signatureS = "0x" + signature.slice(signature.length / 2);
+
+
+        const requestArgs = {
+          public_key: `0x${event?.pubkey}`,
+          created_at: timestamp,
+          kind: 1,
+          tags: "[]",
+          content: {
+            starknet_address: starknetAddressFelt,
+            // starknet_address: account.address,
+          },
+          sig: {
+            r: signatureR,
+            s: signatureS,
+          }
+        }
+
+        const contract: Contract = new Contract(ABI_NAMESPACE, addressContract, provider)
+        const call: Call = contract.populate('linked_nostr_profile', {
+          request: requestArgs
+        })
+
         // const call: Call = contract.populate('linked_nostr_default_account', {
         //   request: requestArgs
         // })
-        // const tx = await account.execute(call);
+        const tx = await account.execute(call);
 
-        const calldata = CallData.compile([
-          requestArgs
-        ]
-        )
-        const linkedNostrProfile = {
-          contractAddress: addressContract,
-          entrypoint: 'linked_nostr_profile',
-          calldata: calldata,
-        };
-        const tx = await account.execute([linkedNostrProfile]);
+        // const calldata = CallData.compile([
+        //   requestArgs
+        // ]
+        // )
+        // const linkedNostrProfile = {
+        //   contractAddress: addressContract,
+        //   entrypoint: 'linked_nostr_profile',
+        //   calldata: calldata,
+        // };
+        // const tx = await account.execute([linkedNostrProfile]);
 
         await account.waitForTransaction(tx.transaction_hash);
         console.log("Transaction Hash:", tx.transaction_hash)
@@ -202,6 +313,10 @@ export const useNamespace = () => {
     },
   });
 
+  const handleLinkNamespaceScoring = async () => {
+    return linkNamespaceMutationScoring.mutateAsync();
+  };
+
   const handleLinkNamespace = async () => {
     return linkNamespaceMutation.mutateAsync();
   };
@@ -213,7 +328,9 @@ export const useNamespace = () => {
   return {
     handleLinkNamespace,
     handleLinkNamespaceFromNostrScore,
+    handleLinkNamespaceScoring,
     isLinkingNamespace: linkNamespaceMutation.isPending,
     isLinkingFromNostrScore: linkNamespaceFromNostrScoreMutation.isPending,
+    isLinkingNamespaceScoring: linkNamespaceMutationScoring.isPending,
   };
 }; 

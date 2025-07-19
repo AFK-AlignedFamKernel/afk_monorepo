@@ -4,8 +4,10 @@ import { formatFloatToUint256 } from '@/utils/format';
 import { CallData, constants, uint256 } from 'starknet';
 import { LAUNCHPAD_ADDRESS, TOKENS_ADDRESS } from 'common';
 export const useBuyCoin = () => {
-  const { account } = useAccount();
+  const { account, address } = useAccount();
+  console.log('account', account);
 
+  console.log("address", address);
   const handleBuyCoins = useCallback(
     async (
       accountAddress: string | undefined,
@@ -13,9 +15,9 @@ export const useBuyCoin = () => {
       amount: number,
       quoteToken: string | undefined,
     ) => {
-      if (!account) {
-        throw new Error('No account connected');
-      }
+      // if (!account) {
+      //   throw new Error('No account connected');
+      // }
       const addressContract = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
       const quoteTokenAddress = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK;
 
@@ -23,9 +25,9 @@ export const useBuyCoin = () => {
         throw new Error('Missing required parameters');
       }
 
-      if(!account?.address) {
-        throw new Error('No account connected');
-      }
+      // if(!account?.address) {
+      //   throw new Error('No account connected');
+      // }
       // if (!accountAddress || !memecoinAddress || !quoteToken) {
       //   throw new Error('Missing required parameters');
       // }
@@ -82,9 +84,9 @@ export const useBuyCoin = () => {
 
         const tx = await account?.execute([approveCall,
            buyCoinCall
-          ], undefined, {});
-        console.log('tx hash', tx.transaction_hash);
-        const wait_tx = await account?.waitForTransaction(tx?.transaction_hash);
+          ]);
+        console.log('tx hash', tx);
+        const wait_tx = await account?.waitForTransaction(tx?.transaction_hash || '');
 
         return {
           tx:wait_tx,

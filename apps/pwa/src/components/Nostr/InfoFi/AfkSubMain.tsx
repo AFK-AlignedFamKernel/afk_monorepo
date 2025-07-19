@@ -55,12 +55,12 @@ export const AfkSubMain: React.FC<AfkSubMainProps> = ({
   const { account } = useAccount();
   const [amount, setAmount] = useState<string>('');
   const [nostrAddress, setNostrAddress] = useState<string>('');
-  const { handleLinkNamespace, isLinkingNamespace } = useNamespace();
+  const { handleLinkNamespaceScoring, isLinkingNamespace } = useNamespace();
   const { handleDepositRewards, isDepositing } = useDepositRewards();
 
   const handleSubscription = async () => {
     try {
-      await handleLinkNamespace();
+      await handleLinkNamespaceScoring();
     } catch (error) {
       console.error('Subscription failed:', error);
     }
