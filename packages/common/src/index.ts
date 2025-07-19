@@ -5,3 +5,4 @@ export * from './config';
 export * from './consts';
 export * from './tags';
 export * from './relay';
+export * from './abi';

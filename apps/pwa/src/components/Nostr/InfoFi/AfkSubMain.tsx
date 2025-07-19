@@ -191,7 +191,7 @@ export const AfkSubMain: React.FC<AfkSubMainProps> = ({
                       <button
               onClick={handleDeposit}
               className={styles.depositButton}
-              disabled={isDepositing || !amount || !nostrAddress}
+              disabled={isDepositing || !amount}
             >
               {isDepositing ? 'Depositing...' : 'Deposit Rewards'}
             </button>
