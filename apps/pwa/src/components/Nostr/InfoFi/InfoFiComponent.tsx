@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import { useAccount } from '@starknet-react/core';
-import { useProfile } from 'afk_nostr_sdk';
 import { formatUnits } from 'viem';
 import styles from '@/styles/nostr/infofi-nostr.module.scss';
-import { AfkSubCard } from './AfkSubCard';
-import { AfkSubMain } from './AfkSubMain';
 import { AllSubsComponent } from './AllSubsComponent';
-import { UserCard } from './UserCard';
 import { useDataInfoMain, useGetAllTipUser, useNamespace } from '@/hooks/infofi';
+import CryptoLoading from '@/components/small/crypto-loading';
+// import { AfkSubCard } from './AfkSubCard';
+// import { AfkSubMain } from './AfkSubMain';
+// import { UserCard } from './UserCard';
+// import { useProfile } from 'afk_nostr_sdk';
 
 interface InfoFiComponentProps {
   isButtonInstantiateEnable?: boolean;
@@ -82,8 +83,7 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-        <span className="ml-2 text-gray-600 dark:text-gray-400">Loading InfoFi data...</span>
+        <CryptoLoading />
       </div>
     );
   }

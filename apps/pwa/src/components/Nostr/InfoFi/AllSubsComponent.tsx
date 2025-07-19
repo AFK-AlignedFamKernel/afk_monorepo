@@ -60,7 +60,7 @@ export const AllSubsComponent: React.FC<AllSubsComponentProps> = () => {
       <div className={styles.errorContainer}>
         <p className={styles.errorText}>Error loading subscriptions</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => refetch()}
           className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
         >
           Retry

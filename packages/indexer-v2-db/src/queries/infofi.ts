@@ -60,7 +60,7 @@ export const getUserEpochStates = async (sub_address: string) => {
       })
       .from(userEpochState)
       .where(eq(userEpochState.contract_address, sub_address))
-      .groupBy(userEpochState.epoch_index, userEpochState.nostr_id);
+      .orderBy(userEpochState.epoch_index, userEpochState.nostr_id);
 
     return userEpochStates;
   } catch (error) {

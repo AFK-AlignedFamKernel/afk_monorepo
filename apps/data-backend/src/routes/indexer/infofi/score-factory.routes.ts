@@ -40,9 +40,7 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
         });
         return;
       }
-
       // // Get sub and epoch states with aggregation query
-
 
       console.log('sub_address', sub_address);
       const result = await queries.getSubInfo(sub_address);
