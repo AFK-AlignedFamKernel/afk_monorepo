@@ -7,6 +7,7 @@ import { useAtomiqLab } from '@/hooks/atomiqlab';
 import { useUIStore } from '@/store/uiStore';
 import { TokenSymbol } from 'common';
 import Image from 'next/image';
+import { logClickedEvent } from '@/lib/analytics';
 
 interface TipSuccessModalProps {
 
@@ -68,6 +69,7 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
 
       showToast({ message: "Paying invoice in process", type: 'info' });
 
+      logClickedEvent('try_atomiq_tip', 'Interaction', 'Button Click', 1);
       const res = await handlePayLnurl(profile?.lud16, Number(amount));
 
       if (res.success && res?.lightningSecret) {
@@ -75,12 +77,14 @@ export const FormTipAtomiq: React.FC<FormAtomiqProps> = ({
         setSuccessAction(res.successAction);
         setSuccessUrl(res.successUrl);
 
+        logClickedEvent('atomiq_tip_sent', 'Interaction', 'Button Click', 1);
         showToast({
           message: "Tip sent",
           type: "success"
         });
       }
     } catch (error) {
+      logClickedEvent('atomiq_tip_error', 'Interaction', 'Button Click', 1);
       showToast({
         message: "Error",
         type: "error"

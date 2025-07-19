@@ -257,7 +257,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
         } else if (original?.kind == 30023 || original?.kind == 30024 || original?.kind == NDKKind.Article) {
           return <ArticleEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} isReadMore={false} />;
         }
-        else if (original?.kind == 30025 || original?.kind == 30026 || original?.kind == 34236 || original?.kind == 34237 || original?.kind == NDKKind.ShortVideo || original.kind == NDKKind.Video) {
+        else if (original?.kind == 30025 || original?.kind == 30026 || original?.kind == 34236 || original?.kind == 34237 || original?.kind == NDKKind.ShortVideo || original?.kind == NDKKind.Video) {
           return (
             <div
             // className="w-full h-full max-h-[300px]"

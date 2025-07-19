@@ -194,7 +194,8 @@ export default function NostrCreateAccountComponent({ onClose, isImportAvailable
                     </div>
                 </div> */}
 
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                <form className="mt-8 space-y-6" 
+                >
 
                     {error && (
                         <div className="text-red-500 text-sm text-center">
@@ -212,35 +213,38 @@ export default function NostrCreateAccountComponent({ onClose, isImportAvailable
 
 
                         <button
-                            type="submit"
+                            onClick={handleSubmit}
+                            type="button"
                             className="group relative w-full flex justify-center py-2 px-4 btn btn-primary text-sm font-medium rounded-md"
                         >
                             Create Account
                         </button>
 
-                        {isImportAvailable &&
-
-                            <button onClick={() => { setIsImportOpen(!isImportOpen); }}
-                                className='flex flex-row gap-2 border border-primary px-4 py-2 rounded-md'
-                            >{!isImportOpen ? 'Import' : 'Close'}
-                                {isImportOpen && <Icon name="CloseIcon"
-                                    className='w-4 h-4'
-                                />}
-                                <Icon name="ImportIcon"
-                                    className='w-4 h-4'
-                                />
-                            </button>
-                        }
-
-                        {isLoginNip7Available && (
-                            <div className='flex flex-col gap-4'>
-                                <button onClick={() => {
-                                    handleLoginWithNip7();
-                                }}>Login with Nip7</button>
-                            </div>
-                        )}
+                     
                     </div>
                 </form>
+
+                {isImportAvailable &&
+
+<button onClick={() => { setIsImportOpen(!isImportOpen); }}
+    className='flex flex-row gap-2 border border-primary px-4 py-2 rounded-md'
+>{!isImportOpen ? 'Import' : 'Close'}
+    {isImportOpen && <Icon name="CloseIcon"
+        className='w-4 h-4'
+    />}
+    <Icon name="ImportIcon"
+        className='w-4 h-4'
+    />
+</button>
+}
+
+{isLoginNip7Available && (
+<div className='flex flex-col gap-4'>
+    <button onClick={() => {
+        handleLoginWithNip7();
+    }}>Login with Nip7</button>
+</div>
+)}
 
 
                 <div className="mt-8 space-y-8">

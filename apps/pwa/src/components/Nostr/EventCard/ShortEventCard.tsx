@@ -13,6 +13,7 @@ import { useAuth, useProfile, useReact, useReactions } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
+import { QuoteRepostComponent } from './quote-repost-component';
 
 interface ShortEventCardProps extends NostrShortEventProps {
   event?: NDKEvent;
@@ -37,7 +38,7 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
   // Parse media URL from content or tags
   let mediaUrl: string | undefined = undefined;
   let caption: string | undefined = undefined;
-  const {showToast} = useUIStore();
+  const {showToast, showModal} = useUIStore();
   const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
 
   const isLiked = useMemo(
@@ -70,6 +71,15 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
     );
   };
 
+  const handleShare = () => {
+    
+  }
+
+
+  const handleQuoteModal = () => {
+    logClickedEvent('open_modal_quote_note', 'Interaction', 'Button Click', 1);
+    showModal(<QuoteRepostComponent event={event} />);
+  }
 
 
   const extractAllVideoUrls = () => {
@@ -95,7 +105,7 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
     caption = '';
   }
 
-  const extractVideoURL = (event?: NostrEvent) => {
+  const extractVideoURL = (event?: NDKEvent) => {
 
     if (!event) return undefined;
 
@@ -173,8 +183,18 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
             </div>
           )}
 
-          <div className={styles["action-buttons"] + " flex flex-row sm:flex-row gap-4 items-center justify-center my-4"}>
-     
+          <div className={styles["action-buttons"] + " flex flex-row sm:flex-row gap-4 items-left justify-left my-4"}>
+            <button
+              onClick={handleQuoteModal}
+              className={styles["action-button"] + " " + styles["action-button-quote"]}
+              role="group"
+              aria-label="Quote actions"
+            >
+              <Icon
+                name="RepostIcon"
+                size={20}
+              />
+            </button>
             <button
               onClick={() => {
                 setIsOpenComment(!isOpenComment);

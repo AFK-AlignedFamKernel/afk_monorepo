@@ -70,7 +70,7 @@ export {useProfile} from './useProfile';
 export {useReact} from './useReact';
 export {useReactions} from './useReactions';
 export {useReplyNotes} from './useReplyNotes';
-export {useRepost} from './useRepost';
+export {useRepost, useRepostRaw} from './useRepost';
 export {useReposts} from './useReposts';
 export {useRootNotes} from './useRootNotes';
 export {useSearchNotes} from './useSearchNotes';

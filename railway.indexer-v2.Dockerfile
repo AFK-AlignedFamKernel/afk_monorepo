@@ -6,6 +6,13 @@ WORKDIR /build
 
 ARG DNA_TOKEN INDEXER_DATABASE_URL INDEXER_v2_DATABASE_URL STARTING_BLOCK STARTING_CURSOR_ORDER_KEY INDEXER_NAME
 
+ENV INDEXER_NAME=${INDEXER_NAME:-dao-factory}
+ENV INDEXER_DATABASE_URL=${INDEXER_DATABASE_URL:-}
+ENV INDEXER_v2_DATABASE_URL=${INDEXER_v2_DATABASE_URL:-}
+ENV STARTING_BLOCK=${STARTING_BLOCK:-}
+ENV STARTING_CURSOR_ORDER_KEY=${STARTING_CURSOR_ORDER_KEY:-}
+ENV DNA_TOKEN=${DNA_TOKEN:-}
+
 # Copy repository into the Docker container
 COPY . .
 # when building image on local machine, remove .env files
@@ -65,4 +72,4 @@ EXPOSE 3000
 
 # Command to start the application
 WORKDIR /app/apps/indexer-v2
-CMD node build/start.mjs start --indexer ${INDEXER_NAME:-dao-factory}
+CMD node build/start.mjs start --indexer ${INDEXER_NAME:-dao-factory} --allow-env .env

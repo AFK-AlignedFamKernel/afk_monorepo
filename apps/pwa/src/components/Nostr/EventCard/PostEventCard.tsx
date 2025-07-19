@@ -43,6 +43,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const [imgUrls, setImageUrls] = useState<string[]>([]);
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const handleTipsModal = () => {
+    logClickedEvent('open_modal_tip_note', 'Interaction', 'Button Click', 1);
     showModal(<TipNostr event={event} profile={props?.profile}></TipNostr>)
   }
 

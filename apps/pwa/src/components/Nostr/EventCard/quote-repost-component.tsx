@@ -1,7 +1,7 @@
 import { useUIStore } from "@/store/uiStore";
 import { NDKEvent, NDKKind } from "@nostr-dev-kit/ndk";
 import { useQueryClient } from "@tanstack/react-query";
-import { useQuote, useRepost } from "afk_nostr_sdk";
+import { useQuote, useRepost, useRepostRaw } from "afk_nostr_sdk";
 import { useState } from "react";
 import React from "react";
 import { useNostrAuth } from "@/hooks/useNostrAuth";
@@ -29,6 +29,7 @@ export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
     const [type, setType] = useState<QuoteNostrTypeMode>(QuoteNostrTypeMode.REPOST);
     const quoteMutation = useQuote({ event: event ?? undefined, content: quoteContent, tags: [['e', event?.id ?? '', '', 'root', event?.pubkey ?? '']] });
 
+    console.log("event", event);
     const { showToast } = useUIStore()
     const handleRepost = async () => {
         if (!event || !event?.id) return;
