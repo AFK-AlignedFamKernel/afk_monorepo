@@ -7,6 +7,7 @@ import { IndexerService } from '../indexer.service';
 import { ContractAddress } from 'src/common/types';
 import { NostrInfofiService } from 'src/services/nostr-infofi/nostr-infofi.service';
 import { uint256ToHex } from '../utils';
+import { convertByteArray } from 'src/utils';
 
 @Injectable()
 export class InfoFiIndexer {
@@ -29,7 +30,6 @@ export class InfoFiIndexer {
       validateAndParseAddress(hash.getSelectorFromName('AddTopicsMetadataEvent')),
       validateAndParseAddress(hash.getSelectorFromName('DepositRewardsByUserEvent')),
       validateAndParseAddress(hash.getSelectorFromName('NewEpochEvent')),
-      validateAndParseAddress(hash.getSelectorFromName('AddTopicsMetadataEvent')),
       validateAndParseAddress(hash.getSelectorFromName('NostrMetadataEvent')),
 
 
@@ -261,9 +261,35 @@ export class InfoFiIndexer {
     const [_, oldEpochIndexFelt, currentEpochIndexFelt,] = event.keys;
 
     const [
-      eventIdNip72Felt, eventIdNip29Felt, nameFelt, aboutFelt,
+      nostrAddressLow, nostrAddressHigh,
+      nameFelt, aboutFelt,
+      eventIdNip72Felt, eventIdNip29Felt,
+      mainTagFelt,
     ] = event.data;
 
+
+    let nostrAddress = uint256ToHex(nostrAddressLow, nostrAddressHigh);
+
+
+    let name = convertByteArray(event.data, 2);
+    let about = convertByteArray(event.data, 2);
+    let mainTag = convertByteArray(event.data, 6);
+    console.log("name", name);
+    console.log("about", about);
+    console.log("mainTag", mainTag);
+    console.log("nostrAddress", nostrAddress);
+    //  name = validateAndParseAddress(
+    //   `0x${FieldElement.toBigInt(nameFelt).toString(16)}`,
+    // ) as string;
+
+    //  about = validateAndParseAddress(
+    //   `0x${FieldElement.toBigInt(aboutFelt).toString(16)}`,
+    // ) as string;
+
+    if (nostrAddress.startsWith('0x')) {
+      nostrAddress = nostrAddress.slice(2, nostrAddress.length);
+    }
+    console.log("nostrAddress sanitized", nostrAddress);
 
     let eventIdNip72 = validateAndParseAddress(
       `0x${FieldElement.toBigInt(eventIdNip72Felt).toString(16)}`,
@@ -281,13 +307,7 @@ export class InfoFiIndexer {
     eventIdNip29 = FieldElement.toBigInt(eventIdNip29Felt).toString(16);
     console.log("eventIdNip29", eventIdNip29);
 
-    let name = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(nameFelt).toString(16)}`,
-    ) as string;
 
-    let about = validateAndParseAddress(
-      `0x${FieldElement.toBigInt(aboutFelt).toString(16)}`,
-    ) as string;
 
     console.log("name", name);
     console.log("about", about);  

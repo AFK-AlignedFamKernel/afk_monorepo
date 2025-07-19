@@ -1,4 +1,4 @@
-export const ABI = [
+export const scoreFactoryABI = [
   {
     "type": "impl",
     "name": "FactoryNostrFiScoringImpl",

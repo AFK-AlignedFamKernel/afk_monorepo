@@ -11,7 +11,7 @@ import {
   handleEvent,
   KNOWN_EVENT_KEYS
 } from "@/services/score.service";
-import { Abi, StarknetStream, decodeEvent } from "@apibara/starknet";
+import { Abi, DecodedEvent, StarknetStream, decodeEvent } from "@apibara/starknet";
 import { defineIndexer } from "apibara/indexer";
 import { useLogger } from "apibara/plugins";
 
@@ -21,7 +21,7 @@ import { drizzleStorage } from '@apibara/plugin-drizzle';
 import { db } from 'indexer-v2-db';
 import { ABI as nostrFiScoringABI } from './abi/infofi/score.abi';
 // import { ABI as scoreFactoryABI } from './abi/infofi/score-factory.abi';
-import { ABI as scoreFactorySecondABI } from './abi/infofi/scoreFactory.abi';
+import { scoreFactoryABI as scoreFactorySecondABI } from './abi/infofi/scoreFactory.abi';
 import { ABI as scoreFactoryABI } from './abi/infofi/score-factory.abi';
 import { insertSubState } from "./db/nostr-fi.db";
 
@@ -61,25 +61,34 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
             // ADD_TOPICS,
             // NOSTR_METADATA,
           ],
-        },
-      ],
-    },
-    async factory({ block: { events } }) {
-      const logger = useLogger();
-      console.log("factory started")
-      console.log("events", events?.length)
 
-      const subCreationDataArray:any= [];
+        },
+        // keys: [
+        //   SUB_CREATED,
+        // ]
+      ] as const,
+    },
+    async factory({ block, context }) {
+      const logger = useLogger();
+      const events = (block?.events ?? []) as readonly {
+        address?: `0x${string}`;
+        keys?: readonly (`0x${string}` | null)[];
+        [key: string]: any;
+      }[];
+      logger.log("factory started");
+      logger.log("events", events.length);
+
+      const subCreationDataArray: any = [];
 
       // console.log("subCreationDataArray", subCreationDataArray)
       const subEvents = (events ?? []).flatMap((event) => {
         const decodedEvent = decodeEvent({
-          // abi: scoreFactoryABI as Abi,
-          abi: scoreFactorySecondABI as Abi,
-          event,
+          abi: scoreFactoryABI as Abi,
+          event: event as any,
           eventName: 'afk::infofi::score_factory::TopicEvent',
-        });
-        console.log("args", decodedEvent.args);
+        }) as DecodedEvent;
+        console.log("decodedEvent", decodedEvent);
+        console.log("decodedEvent args", decodedEvent?.args);
 
         const topicAddress = decodedEvent?.args?.topic_address;
         console.log("topicAddress", topicAddress);
@@ -108,10 +117,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         };
         subCreationDataArray.push(subCreationData);
 
-        let eventData = {
-          address: topicAddress,
-          keys: [NEW_EPOCH, DEPOSIT_REWARDS, DISTRIBUTION_REWARDS, TIP_USER, LINKED_ADDRESS, PUSH_ALGO_SCORE, ADD_TOPICS, NOSTR_METADATA],
-        }
+        // let eventData = {
+        //   address: topicAddress,
+        //   keys: [NEW_EPOCH, DEPOSIT_REWARDS, DISTRIBUTION_REWARDS, TIP_USER, LINKED_ADDRESS, PUSH_ALGO_SCORE, ADD_TOPICS, NOSTR_METADATA],
+        // }
 
         let arrayEvents = KNOWN_EVENT_KEYS.map((event) => {
           return {
@@ -121,18 +130,15 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         })
         return arrayEvents;
       });
-      let filteredSubCreationDataArray = subCreationDataArray.filter((item:any) => item !== undefined);
+      let filteredSubCreationDataArray = subCreationDataArray.filter((item: any) => item !== undefined);
       // console.log("filteredSubCreationDataArray", filteredSubCreationDataArray)
-    
-      if(filteredSubCreationDataArray.length > 0) {
+
+      if (filteredSubCreationDataArray.length > 0) {
         await insertSubState(filteredSubCreationDataArray as any[]);
       }
 
       console.log("subEvents", subEvents)
 
-      // if (subEvents.length === 0) {
-      //   return {};
-      // }
 
       return {
         filter: {
@@ -148,7 +154,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
       logger.log("Transforming...         : ", endCursor?.orderKey);
       logger.log("Event length...         : ", events.length);
       logger.log("Block number...         : ", header?.blockNumber);
-   
+
       for (const event of events) {
 
         // console.log("event", event)
