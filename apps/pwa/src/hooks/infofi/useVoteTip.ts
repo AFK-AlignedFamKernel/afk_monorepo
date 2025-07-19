@@ -9,7 +9,7 @@ import { TOKENS_ADDRESS, NOSTR_FI_SCORING_ADDRESS } from 'common';
 export interface VoteParams {
   nostr_address?: string;
   vote: string;
-  is_upvote: boolean;
+  is_upvote?: boolean;
   upvote_amount: string;
   downvote_amount: string;
   amount: string;
@@ -151,12 +151,13 @@ export const useVoteTip = () => {
       voteParams: VoteParams;
       contractAddress?: string;
     }) => {
-      if (!account?.address) {
-        throw new Error('No account connected');
-      }
 
-      console.log("contractAddress", contractAddress);
       try {
+        if (!account?.address) {
+          throw new Error('No account connected');
+        }
+
+        console.log("contractAddress", contractAddress);
         const addressContract = contractAddress ??
           NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
 
@@ -173,7 +174,7 @@ export const useVoteTip = () => {
         console.log("voteParams", voteParams);
         // Format amounts
         const amountToken = formatFloatToUint256(Number(voteParams.amount_token));
-        const amount = formatFloatToUint256(Number(voteParams.amount));
+        const amount = formatFloatToUint256(Number(voteParams.amount_token));
         const upvoteAmount = formatFloatToUint256(Number(voteParams.upvote_amount));
         const downvoteAmount = formatFloatToUint256(Number(voteParams.downvote_amount));
 
@@ -203,17 +204,25 @@ export const useVoteTip = () => {
           amount_token: amountToken,
         });
 
+        const calldataVote = CallData.compile([
+          uint256.bnToUint256(Number(`0x${voteParams.nostr_address}` || '0')),
+          voteEnum,
+          upvoteAmount,
+          downvoteAmount,
+          amountToken,
+          amountToken]);
+
         const vote = {
           contractAddress: addressContract,
           entrypoint: 'vote_nostr_profile_starknet_only',
-          calldata: voteCallData,
+          calldata: calldataVote,
         };
 
         // Execute transaction
         // This is a placeholder - implement actual transaction execution
         const tx = await account.execute([
           approveCallData,
-           vote
+          vote
 
 
         ]);

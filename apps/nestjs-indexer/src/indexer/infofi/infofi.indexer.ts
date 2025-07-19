@@ -494,6 +494,8 @@ export class InfoFiIndexer {
       high: FieldElement.toBigInt(nostrPubkeyHigh),
     });
 
+    console.log("nostrPubkeyRaw", nostrPubkeyRaw);
+
     const starknetAddress = validateAndParseAddress(
       `0x${FieldElement.toBigInt(starknetAddressFelt).toString(16)}`,
     ) as ContractAddress;

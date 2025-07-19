@@ -113,6 +113,7 @@ export class NamespaceIndexer {
       nostr_id: nostrRecipient,
       starknet_address: "0",
       contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,
+      is_add_by_admin: true,  
     };
 
     await this.nostrInfofiService.createOrUpdateLinkedDefaultStarknetAddress(data);
@@ -159,7 +160,8 @@ export class NamespaceIndexer {
     let nostrAddress = formatUnits(nostrPubkeyRaw, constants.DECIMALS);
     console.log("nostrAddress", nostrAddress);
 
-    nostrAddress = String(Math.abs(Number(nostrAddress)));
+    nostrAddress = uint256ToHex(nostrPubkeyLow, nostrPubkeyHigh);
+    console.log("nostrAddress", nostrAddress);
     const data = {
       transferId,
       network: 'starknet-sepolia',
@@ -167,7 +169,7 @@ export class NamespaceIndexer {
       blockNumber: Number(blockNumber),
       blockHash,
       blockTimestamp: new Date(Number(blockTimestamp.seconds) * 1000),
-      nostr_address: nostrPubkeyRaw.toString(),
+      nostr_address: nostrAddress,
       // nostr_address: nostrAddress,
       starknet_address: starknetAddress,
       contract_address: constants.contracts.sepolia.NOSTRFI_SCORING_ADDRESS,

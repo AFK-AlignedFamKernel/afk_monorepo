@@ -20,7 +20,7 @@ interface UserInfo {
 interface VoteParams {
   nostr_address?: string;
   vote: string;
-  is_upvote: boolean;
+  is_upvote?: boolean;
   upvote_amount: string;
   downvote_amount: string;
   amount: string;
@@ -46,9 +46,10 @@ export const UserNostrCard: React.FC<UserNostrCardProps> = ({
   const { account } = useAccount();
   const { handleVoteStarknetOnly, isVotingStarknetOnly } = useVoteTip();
   const [voteParams, setVoteParams] = useState<VoteParams>({
-    nostr_address: cairo.isTypeFelt(profileIndexer?.nostr_id ?? '') ? profileIndexer?.nostr_id?.toString(): `0x${profileIndexer?.nostr_id}`,
+    nostr_address: profileIndexer?.nostr_id,
+    // nostr_address: cairo.isTypeFelt(profileIndexer?.nostr_id ?? '') ? profileIndexer?.nostr_id?.toString(): `0x${profileIndexer?.nostr_id}`,
     vote: 'good',
-    is_upvote: true,
+    // is_upvote: true,
     upvote_amount: "0",
     downvote_amount: "0",
     amount: "0",

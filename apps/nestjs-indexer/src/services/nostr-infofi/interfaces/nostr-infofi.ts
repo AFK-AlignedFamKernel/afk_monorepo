@@ -7,6 +7,7 @@ export interface LinkedDefaultStarknetAddressEventInterface extends BaseEventInt
   blockHash: string;
   blockNumber: number;
   contract_address: string;
+  is_add_by_admin?: boolean;
 }
 
 
