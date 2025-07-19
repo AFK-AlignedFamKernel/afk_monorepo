@@ -1,8 +1,8 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
 import { HTTPStatus } from '../../../utils/http';
 import { isValidStarknetAddress } from '../../../utils/starknet';
-import { eq, and, or } from 'drizzle-orm';
-import { db, queries } from 'indexer-v2-db';
+// import { eq, and, or } from 'drizzle-orm';
+import { db, queries } from 'indexer-v2-db/dist';
 import { contractState, epochState, userEpochState } from 'indexer-v2-db/dist/schema';
 interface ScoreFactoryParams {
   sub_address: string;
@@ -32,6 +32,7 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
   }>('/score-factory/sub/:sub_address', async (request, reply) => {
     try {
       const { sub_address } = request.params;
+      console.log('sub_address', sub_address);
       if (!isValidStarknetAddress(sub_address)) {
         reply.status(HTTPStatus.BadRequest).send({
           code: HTTPStatus.BadRequest,
@@ -42,17 +43,19 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
 
       // // Get sub and epoch states with aggregation query
 
+
+      console.log('sub_address', sub_address);
       const result = await queries.getSubInfo(sub_address);
  
       console.log('result', result);
+      const userProfiles = await queries.getUserEpochStates(sub_address);
+      console.log('userProfiles', userProfiles   );
       // // Get epoch states for this sub
+      // const epochStates = await queries.getEpochStates(sub_address);
+      // console.log('epochStates', epochStates);
 
-
-      const epochStates = await queries.getEpochStates(sub_address);
-      console.log('epochStates', epochStates);
-
-      const userEpochStates = await queries.getUserEpochStates(sub_address);
-      console.log('userEpochStates', userEpochStates);
+      // const userEpochStates = await queries.getUserEpochStates(sub_address);
+      // console.log('userEpochStates', userEpochStates);
 
 
       // const epochStates = await db
@@ -75,7 +78,6 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
       //   .orderBy(epochState.epoch_index);
 
       // console.log('epochStates', epochStates);
-
       // const userEpochStates = await db
       //   .select({
       //     nostr_id: userEpochState.nostr_id,
@@ -91,13 +93,11 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
       //   .from(userEpochState)
       //   .where(eq(userEpochState.contract_address, sub_address))
       //   .groupBy(userEpochState.epoch_index);
-
-  
-      if (sub.length > 0) {
+      if (result) {
         reply.status(HTTPStatus.OK).send({
-          sub:sub[0],
-          epochs: epochStates,
-          profiles: userEpochStates,
+          sub: result,
+          epochs: result?.epochs,
+          profiles: userProfiles,
           // epochs: result?.[0]?.epochs
         });
       } else {

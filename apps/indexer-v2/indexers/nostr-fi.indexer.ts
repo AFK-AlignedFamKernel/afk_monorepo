@@ -31,13 +31,14 @@ const shortAddress = (addr?: string) =>
   addr ? `${addr.slice(0, 6)}...${addr.slice(-4)}` : "";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
+  console.log("runtimeConfig", runtimeConfig)
   return defineIndexer(StarknetStream)({
     streamUrl: runtimeConfig?.streamUrl ?? "https://starknet.preview.apibara.org",
-    // finality: "accepted",
-    // startingBlock: 705_000n,
-    startingCursor: {
-      orderKey: BigInt(runtimeConfig?.startingCursor?.orderKey),
-    },
+    finality: "accepted",
+    startingBlock: BigInt(runtimeConfig?.startingBlock ?? 1095000),
+    // startingCursor: {
+    //   orderKey: BigInt(runtimeConfig?.startingCursor?.orderKey),
+    // },
     plugins: [drizzleStorage({
       db: db as any,
     })],
@@ -169,7 +170,9 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           shortAddress(event.keys[0]),
 
         );
-        console.log("event handled", event)
+
+        console.log("event?.blockNumber", block?.header?.blockNumber)
+        // console.log("event handled", event)
 
         await handleEvent(event, event.address)
 
