@@ -1,7 +1,7 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
 import { HTTPStatus } from '../../../utils/http';
 import { isValidStarknetAddress } from '../../../utils/starknet';
-import { eq, and, or } from 'indexer-v2-db/node_modules/drizzle-orm';
+import { eq, and, or } from 'drizzle-orm';
 import { db } from 'indexer-v2-db/dist';
 import { contractState, epochState, userEpochState } from 'indexer-v2-db/dist/schema';
 interface ScoreFactoryParams {

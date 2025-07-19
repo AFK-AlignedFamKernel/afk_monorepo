@@ -3,7 +3,7 @@ import { HTTPStatus } from '../../utils/http';
 import { isValidStarknetAddress } from '../../utils/starknet';
 import { db } from 'indexer-v2-db/dist';
 import { daoCreation, daoProposal } from 'indexer-v2-db/dist/schema';
-import { eq } from 'indexer-v2-db/node_modules/drizzle-orm';
+import { eq } from 'drizzle-orm';
 // import {eq} from "drizzle-orm"
 interface DaoParams {
   dao_address: string;

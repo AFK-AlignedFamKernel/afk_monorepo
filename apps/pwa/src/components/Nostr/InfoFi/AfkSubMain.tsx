@@ -5,6 +5,7 @@ import { useAccount } from '@starknet-react/core';
 import { formatUnits } from 'viem';
 import styles from '@/styles/nostr/infofi-nostr.module.scss';
 import { UserCard } from './UserCard';
+import { useNamespace, useDepositRewards } from '@/hooks/infofi';
 
 interface AggregationsData {
   total_ai_score?: string;
@@ -54,35 +55,32 @@ export const AfkSubMain: React.FC<AfkSubMainProps> = ({
   const { account } = useAccount();
   const [amount, setAmount] = useState<string>('');
   const [nostrAddress, setNostrAddress] = useState<string>('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { handleLinkNamespace, isLinkingNamespace } = useNamespace();
+  const { handleDepositRewards, isDepositing } = useDepositRewards();
 
   const handleSubscription = async () => {
     try {
-      setIsLoading(true);
-      // TODO: Implement actual subscription logic
-      console.log('Subscribing to InfoFi...');
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Subscription successful');
+      await handleLinkNamespace();
     } catch (error) {
       console.error('Subscription failed:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleDeposit = async () => {
     try {
-      setIsLoading(true);
-      // TODO: Implement actual deposit logic
-      console.log('Depositing rewards...', { amount, nostrAddress });
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Deposit successful');
+      await handleDepositRewards({
+        nostr_address: nostrAddress,
+        vote: 'good',
+        is_upvote: true,
+        upvote_amount: amount,
+        downvote_amount: '0',
+        amount: amount,
+        amount_token: amount,
+      });
       setAmount('');
       setNostrAddress('');
     } catch (error) {
       console.error('Deposit failed:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -93,15 +91,15 @@ export const AfkSubMain: React.FC<AfkSubMainProps> = ({
 
   return (
     <div className="mt-6 space-y-6">
-      {isButtonInstantiateEnable && (
-        <button
-          onClick={handleSubscription}
-          className={styles.subscribeButton}
-          disabled={isLoading}
-        >
-          {isLoading ? 'Subscribing...' : 'Subscribe to InfoFi'}
-        </button>
-      )}
+              {isButtonInstantiateEnable && (
+          <button
+            onClick={handleSubscription}
+            className={styles.subscribeButton}
+            disabled={isLinkingNamespace}
+          >
+            {isLinkingNamespace ? 'Subscribing...' : 'Subscribe to InfoFi'}
+          </button>
+        )}
 
       {/* Overview Section */}
       <div className={styles.epochSection}>
@@ -190,13 +188,13 @@ export const AfkSubMain: React.FC<AfkSubMainProps> = ({
             onChange={(e) => setNostrAddress(e.target.value)}
             className={styles.depositInput}
           />
-          <button
-            onClick={handleDeposit}
-            className={styles.depositButton}
-            disabled={isLoading || !amount || !nostrAddress}
-          >
-            {isLoading ? 'Depositing...' : 'Deposit Rewards'}
-          </button>
+                      <button
+              onClick={handleDeposit}
+              className={styles.depositButton}
+              disabled={isDepositing || !amount || !nostrAddress}
+            >
+              {isDepositing ? 'Depositing...' : 'Deposit Rewards'}
+            </button>
         </div>
       </div>
 

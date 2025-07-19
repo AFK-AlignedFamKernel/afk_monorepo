@@ -43,6 +43,7 @@ export const UserNostrCard: React.FC<UserNostrCardProps> = ({
   contractAddressSubScore 
 }) => {
   const { account } = useAccount();
+  const { handleVoteStarknetOnly, isVotingStarknetOnly } = useVoteTip();
   const [voteParams, setVoteParams] = useState<VoteParams>({
     nostr_address: profileIndexer?.nostr_id,
     vote: 'good',
@@ -67,9 +68,7 @@ export const UserNostrCard: React.FC<UserNostrCardProps> = ({
 
   const handleTipUser = async () => {
     try {
-      // TODO: Implement actual tip logic
-      console.log('Tipping user:', voteParams);
-      console.log('Contract address:', contractAddressSubScore);
+      await handleVoteStarknetOnly(voteParams, contractAddressSubScore);
     } catch (error) {
       console.error('Tip failed:', error);
     }
@@ -161,9 +160,9 @@ export const UserNostrCard: React.FC<UserNostrCardProps> = ({
           <button
             onClick={handleTipUser}
             className={styles.tipButton}
-            disabled={!voteParams.amount || voteParams.amount === "0"}
+            disabled={!voteParams.amount || voteParams.amount === "0" || isVotingStarknetOnly}
           >
-            Tip
+            {isVotingStarknetOnly ? 'Tipping...' : 'Tip'}
           </button>
         </div>
       </div>

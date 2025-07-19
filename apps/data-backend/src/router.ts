@@ -29,6 +29,7 @@ import analyticsRoutes from './routes/analytics';
 import brandRoutes from './routes/brand';
 import communityRoutes from './routes/communities';
 import messageRoutes from './routes/messages';
+import subScoreFactoryRoute from './routes/indexer/infofi/score-factory.routes';
 // import daoServiceRoute from './routes/indexer/dao';
 // import subScoreFactoryRoute from './routes/indexer/infofi/score-factory.routes';
 // import getOtp from "./routes/otp/getOtp";
@@ -71,6 +72,7 @@ function declareRoutes(
   fastify.register(brandRoutes);
   fastify.register(communityRoutes);
   fastify.register(messageRoutes);  
+  fastify.register(subScoreFactoryRoute);
   // fastify.register(profileRoutes, { prefix: '/api' });
 
   // fastify.register(daoServiceRoute);
