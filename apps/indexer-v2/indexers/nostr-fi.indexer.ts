@@ -37,6 +37,9 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
     finality: "accepted",
     startingBlock: BigInt(runtimeConfig?.startingBlock ?? 1095000),
     // startingCursor: {
+    //   orderKey: runtimeConfig?.startingCursor?.orderKey ?? BigInt(1095000),
+    // },
+    // startingCursor: {
     //   orderKey: BigInt(runtimeConfig?.startingCursor?.orderKey),
     // },
     plugins: [drizzleStorage({
