@@ -1,4 +1,4 @@
-export const ABI = [
+export const NOSTR_FI_SCORING_ABI = [
   {
     "type": "impl",
     "name": "NostrFiScoringImpl",
@@ -361,10 +361,6 @@ export const ABI = [
       {
         "name": "vote",
         "type": "afk::interfaces::nostrfi_scoring_interfaces::Vote"
-      },
-      {
-        "name": "is_upvote",
-        "type": "core::bool"
       },
       {
         "name": "upvote_amount",

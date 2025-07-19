@@ -35,6 +35,9 @@ export const UserCard: React.FC<UserCardProps> = ({
     return formatUnits(BigInt(Math.floor(Number(value) * 1e18)), 18);
   };
 
+  console.log("contractAddress", contractAddress);
+  console.log("userInfo", userInfo);
+
   const handleSubscribe = async () => {
     try {
       // TODO: Implement actual subscription logic
@@ -54,7 +57,7 @@ export const UserCard: React.FC<UserCardProps> = ({
         <UserNostrCard 
           profile={profile} 
           profileIndexer={userInfo} 
-          contractAddressSubScore={contractAddress} 
+          contractAddress={contractAddress} 
         />
         
         {isButtonInstantiateEnable && (

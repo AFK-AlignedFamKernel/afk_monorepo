@@ -6,6 +6,8 @@ import { formatUnits } from 'viem';
 import styles from '@/styles/nostr/infofi-nostr.module.scss';
 import { UserCard } from './UserCard';
 import { useNamespace, useDepositRewards } from '@/hooks/infofi';
+import { NOSTR_FI_SCORING_ADDRESS } from 'common';
+import { constants } from 'starknet';
 
 interface AggregationsData {
   total_ai_score?: string;
@@ -207,6 +209,7 @@ export const AfkSubMain: React.FC<AfkSubMainProps> = ({
               key={user.nostr_id}
               userInfo={user}
               isButtonInstantiateEnable={isButtonInstantiateEnable}
+              contractAddress={NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA]}
             />
           ))}
         </div>

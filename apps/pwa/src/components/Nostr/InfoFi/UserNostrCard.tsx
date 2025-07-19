@@ -6,6 +6,7 @@ import { NDKUserProfile } from '@nostr-dev-kit/ndk';
 import { formatUnits } from 'viem';
 import styles from '@/styles/nostr/infofi-nostr.module.scss';
 import { useVoteTip } from '@/hooks/infofi';
+import { cairo } from 'starknet';
 
 interface UserInfo {
   nostr_id: string;
@@ -27,9 +28,9 @@ interface VoteParams {
 }
 
 interface UserNostrCardProps {
-  profile?: NDKUserProfile;
+  profile?: NDKUserProfile | null | undefined;
   profileIndexer?: UserInfo;
-  contractAddressSubScore?: string;
+  contractAddress?: string;
   event?: any;
   isRepostProps?: boolean;
   isBookmarked?: boolean;
@@ -40,12 +41,12 @@ interface UserNostrCardProps {
 export const UserNostrCard: React.FC<UserNostrCardProps> = ({ 
   profile, 
   profileIndexer, 
-  contractAddressSubScore 
+  contractAddress 
 }) => {
   const { account } = useAccount();
   const { handleVoteStarknetOnly, isVotingStarknetOnly } = useVoteTip();
   const [voteParams, setVoteParams] = useState<VoteParams>({
-    nostr_address: profileIndexer?.nostr_id,
+    nostr_address: cairo.isTypeFelt(profileIndexer?.nostr_id ?? '') ? profileIndexer?.nostr_id?.toString(): `0x${profileIndexer?.nostr_id}`,
     vote: 'good',
     is_upvote: true,
     upvote_amount: "0",
@@ -68,7 +69,7 @@ export const UserNostrCard: React.FC<UserNostrCardProps> = ({
 
   const handleTipUser = async () => {
     try {
-      await handleVoteStarknetOnly(voteParams, contractAddressSubScore);
+      await handleVoteStarknetOnly(voteParams, contractAddress);
     } catch (error) {
       console.error('Tip failed:', error);
     }

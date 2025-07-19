@@ -18,6 +18,7 @@ export const formatFloatToUint256 = (
   const total_amount_nb = total_amount_float * 10 ** Number(decimals);
 
   if (Number.isInteger(total_amount_float)) {
+    // console.log("total_amount_nb", total_amount_nb);
     total_amount = cairo.uint256(total_amount_nb);
   } else {
     total_amount = uint256.bnToUint256(BigInt(total_amount_nb));

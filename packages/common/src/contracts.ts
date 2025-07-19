@@ -264,8 +264,13 @@ export const NOSTR_FI_SCORING_ADDRESS = {
   //   "0xb44d9e32a43d3b25616cc93795d4c53f751ab0e9fe3860d8852e67346477df",
   // [constants.StarknetChainId.SN_SEPOLIA]:
   //   "0x2e6e0decf99cf883e9c72d22fa439ca0abbf4989c5f472901c4072a78d74c39",
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x58c016ef8fe64adb660b4b785fc35a4dd428781d63d8660a02ee2edcf457437",
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   "0x22406b77c60ef86217236e56d0ce07bc761cf77f5b411e50dc0bd9fc8108756",
+
   [constants.StarknetChainId.SN_SEPOLIA]:
-    "0x58c016ef8fe64adb660b4b785fc35a4dd428781d63d8660a02ee2edcf457437",
+  "0x1ac5004a5deb46fb23ca5a8821a9c156cad1b173ffd3c48e7a3151288d7c615",
 
 };
 

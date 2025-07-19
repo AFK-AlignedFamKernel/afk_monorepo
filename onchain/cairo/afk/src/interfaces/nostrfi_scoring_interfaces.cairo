@@ -515,7 +515,7 @@ pub struct NostrFiAdminStorage {
 pub struct VoteParams {
     pub nostr_address: NostrPublicKey,
     pub vote: Vote,
-    pub is_upvote: bool,
+    // pub is_upvote: bool,
     pub upvote_amount: u256,
     pub downvote_amount: u256,
     pub amount: u256,
