@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { NostrProfileInfoFiInterface } from './useDataInfoMain';
 
 // API base URL - replace with your actual backend URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_INDEXER_BACKEND_URL || 'http://localhost:3001';
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 // API helper function
 const apiGet = async (endpoint: string) => {
@@ -93,6 +93,19 @@ export const useGetSubInfo = (subAddress: string) => {
   });
 };
 
+// Hook to get sub info by address
+export const useGetOverallSubInfo = (subAddress: string) => {
+  return useQuery({
+    queryKey: ['infofi', 'sub_info', subAddress],
+    queryFn: async () => {
+      return apiGet(`/score-factory/sub/${subAddress}`);
+    },
+    enabled: !!subAddress,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+
 // Hook to get sub profiles by address
 export const useGetSubProfiles = (subAddress: string) => {
   return useQuery({
@@ -140,6 +153,99 @@ export const useGetSubAggregations = (subAddress: string) => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
+
+
+
+// Combined hook for getting all score factory data
+export const useScoreContractFactoryData = (subAddress: string, epochIndex?: string) => {
+  const {
+    data: subDetails,
+    isLoading: isLoadingDetails,
+    isError: isErrorDetails,
+    refetch: refetchDetails,
+  } = useGetSubInfo(subAddress || '');
+
+  const {
+    data: subProfiles,
+    isLoading: isLoadingProfiles,
+    isError: isErrorProfiles,
+    refetch: refetchProfiles,
+  } = useGetSubProfiles(subAddress || '');
+
+  const {
+    data: epochProfiles,
+    isLoading: isLoadingEpochProfiles,
+    isError: isErrorEpochProfiles,
+    refetch: refetchEpochProfiles,
+  } = useGetSubProfilesByEpoch(subAddress || '', epochIndex || '');
+
+  const {
+    data: subEpochs,
+    isLoading: isLoadingEpochs,
+    isError: isErrorEpochs,
+    refetch: refetchEpochs,
+  } = useGetSubEpochs(subAddress || '');
+
+  const {
+    data: subAggregations,
+    isLoading: isLoadingAggregations,
+    isError: isErrorAggregations,
+    refetch: refetchAggregations,
+  } = useGetSubAggregations(subAddress || '');
+
+  const refetch = async () => {
+    await Promise.all([
+      refetchDetails(),
+      refetchProfiles(),
+      refetchEpochProfiles(),
+      refetchEpochs(),
+      refetchAggregations(),
+    ]);
+  };
+
+  return {
+  
+
+    // Single sub details
+    subDetailsData: subDetails,
+    isLoadingDetails,
+    isErrorDetails,
+
+    // Sub profiles
+    subProfiles,
+    isLoadingProfiles,
+    isErrorProfiles,
+
+    // Epoch-specific profiles
+    epochProfiles,
+    isLoadingEpochProfiles,
+    isErrorEpochProfiles,
+
+    // Sub epochs
+    subEpochs,
+    isLoadingEpochs,
+    isErrorEpochs,
+
+    // Sub aggregations
+    subAggregations,
+    isLoadingAggregations,
+    isErrorAggregations,
+
+    // Combined loading and error states
+    isLoading:  isLoadingDetails || isLoadingProfiles || 
+               isLoadingEpochProfiles || isLoadingEpochs || isLoadingAggregations,
+    isError: isErrorDetails || isErrorProfiles || 
+             isErrorEpochProfiles || isErrorEpochs || isErrorAggregations,
+
+    // Refetch functions
+    refetch,
+    refetchDetails,
+    refetchProfiles,
+    refetchEpochProfiles,
+    refetchEpochs,
+    refetchAggregations,
+  };
+}; 
 
 // Combined hook for getting all score factory data
 export const useScoreFactoryData = (subAddress?: string, epochIndex?: string) => {

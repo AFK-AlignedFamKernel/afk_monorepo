@@ -90,7 +90,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         console.log("decodedEvent", decodedEvent);
         console.log("decodedEvent args", decodedEvent?.args);
 
-        const topicAddress = decodedEvent?.args?.topic_address;
+        const topicAddress = decodedEvent?.args?.topic_address?.toString() as `0x${string}`;
         console.log("topicAddress", topicAddress);
 
         const creator = decodedEvent?.args?.admin;
@@ -122,10 +122,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         //   keys: [NEW_EPOCH, DEPOSIT_REWARDS, DISTRIBUTION_REWARDS, TIP_USER, LINKED_ADDRESS, PUSH_ALGO_SCORE, ADD_TOPICS, NOSTR_METADATA],
         // }
 
-        let arrayEvents = KNOWN_EVENT_KEYS.map((event) => {
+        let arrayEvents = KNOWN_EVENT_KEYS.map((eventKey) => {
           return {
-            address: topicAddress,
-            keys: [event],
+            address: topicAddress as `0x${string}`,
+            keys: [eventKey] as readonly (`0x${string}` | null)[],
           }
         })
         return arrayEvents;
@@ -142,7 +142,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
       return {
         filter: {
-          events: subEvents,
+          events: subEvents as readonly {
+            address?: `0x${string}`;
+            keys?: readonly (`0x${string}` | null)[];
+          }[],
         },
       };
     },
@@ -166,7 +169,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           shortAddress(event.keys[0]),
 
         );
-        // console.log("event handled", event)
+        console.log("event handled", event)
 
         await handleEvent(event, event.address)
 

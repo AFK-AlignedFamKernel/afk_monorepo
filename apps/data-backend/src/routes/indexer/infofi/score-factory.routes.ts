@@ -2,7 +2,7 @@ import type { FastifyInstance, RouteOptions } from 'fastify';
 import { HTTPStatus } from '../../../utils/http';
 import { isValidStarknetAddress } from '../../../utils/starknet';
 import { eq, and, or } from 'drizzle-orm';
-import { db } from 'indexer-v2-db/dist';
+import { db, queries } from 'indexer-v2-db';
 import { contractState, epochState, userEpochState } from 'indexer-v2-db/dist/schema';
 interface ScoreFactoryParams {
   sub_address: string;
@@ -42,24 +42,18 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
 
       // // Get sub and epoch states with aggregation query
 
-      const sub = await db
-        .select()
-        .from(contractState)
-        // .where(eq(contractState.contract_address, sub_address))
-        .limit(1);
-
-      console.log('sub', sub);
-
-      const result = await db.query.contractState.findMany({
-        // where: eq(contractState.contract_address, sub_address),
-        with: {
-          epochs: true,
-          // userProfiles: true,
-        },
-      });
-
+      const result = await queries.getSubInfo(sub_address);
+ 
       console.log('result', result);
       // // Get epoch states for this sub
+
+
+      const epochStates = await queries.getEpochStates(sub_address);
+      console.log('epochStates', epochStates);
+
+      const userEpochStates = await queries.getUserEpochStates(sub_address);
+      console.log('userEpochStates', userEpochStates);
+
 
       // const epochStates = await db
       //   .select({
@@ -102,8 +96,9 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
       if (sub.length > 0) {
         reply.status(HTTPStatus.OK).send({
           sub:sub[0],
-          // epochs: epochStates
-          epochs: result?.[0]?.epochs
+          epochs: epochStates,
+          profiles: userEpochStates,
+          // epochs: result?.[0]?.epochs
         });
       } else {
         reply.status(HTTPStatus.NotFound).send();

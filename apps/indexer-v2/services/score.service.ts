@@ -37,7 +37,9 @@ export const KNOWN_EVENT_KEYS = [
 ]
 
 export const handleEvent = async (event: any, contractAddress: string) => {
+  console.log("event.keys[0]", event.keys[0]);
   const eventName = getEventName(event.keys[0]);
+  console.log("eventName", eventName);
   if (!KNOWN_EVENT_KEYS.includes(event.keys[0])) {
     console.log("event not found", event.keys[0]);
     // return;
@@ -159,18 +161,18 @@ export const handleEvent = async (event: any, contractAddress: string) => {
     console.log("decodedEvent", decodedEvent);
     return await handleTipUserEvent(decodedEvent, event.address);
   }
-  else {
-    console.log("TIP_USER");
-    console.log("event else issue sanitize",);
+  // else {
+  //   console.log("TIP_USER");
+  //   console.log("event else issue sanitize",);
 
-    const decodedEvent = decodeEvent({
-      abi: nostrFiScoringABI as Abi,
-      event,
-      eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::TipUserWithVote",
-    });
-    console.log("decodedEvent", decodedEvent);
-    await handleTipUserEvent(decodedEvent, event.address);
-  }
+  //   const decodedEvent = decodeEvent({
+  //     abi: nostrFiScoringABI as Abi,
+  //     event,
+  //     eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::TipUserWithVote",
+  //   });
+  //   console.log("decodedEvent", decodedEvent);
+  //   await handleTipUserEvent(decodedEvent, event.address);
+  // }
   if (!eventName) {
     console.log("event keys", event.keys[0]);
     console.log("TIP_USER is this why", TIP_USER);

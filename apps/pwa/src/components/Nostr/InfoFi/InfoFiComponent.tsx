@@ -115,7 +115,7 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
           </button>
         )}
 
-        <AfkSubCard
+        {/* <AfkSubCard
           subInfo={allData?.aggregations}
           onPress={() => setIsOpenAfkMain(!isOpenAfkMain)}
         />
@@ -126,7 +126,7 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
             allUsers={allUsers}
             isButtonInstantiateEnable={isButtonInstantiateEnable}
           />
-        )}
+        )} */}
 
         <AllSubsComponent />
       </div>

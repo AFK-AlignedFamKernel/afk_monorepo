@@ -51,7 +51,7 @@ export const SubCard: React.FC<SubCardProps> = ({
         <span className={styles.subCardTag}>
           {subInfo.main_tag}
         </span>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-sm">
           {subInfo.about}
         </p>
       </div>
@@ -65,7 +65,7 @@ export const SubCard: React.FC<SubCardProps> = ({
         </div>
       </div>
       
-      <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 font-mono">
+      <div className="mt-4 text-xs font-mono">
         {subInfo.contract_address}
       </div>
     </div>

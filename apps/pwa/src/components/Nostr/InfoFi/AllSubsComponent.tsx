@@ -5,6 +5,8 @@ import { formatUnits } from 'viem';
 import styles from '@/styles/nostr/infofi-nostr.module.scss';
 import { SubCard } from './SubCard';
 import { useGetAllSubs } from '@/hooks/infofi';
+import { SubPage } from './SubPage';
+import { Icon } from '@/components/small/icon-component';
 
 interface SubData {
   contract_address: string;
@@ -14,7 +16,7 @@ interface SubData {
   total_amount_deposit: string;
 }
 
-interface AllSubsComponentProps {}
+interface AllSubsComponentProps { }
 
 
 
@@ -24,6 +26,9 @@ export const AllSubsComponent: React.FC<AllSubsComponentProps> = () => {
   // Use real hook instead of mock data
   const { data: allSubs, isLoading, isError, refetch } = useGetAllSubs();
 
+
+  const [selectedSub, setSelectedSub] = useState<any>(null);
+  console.log("allSubs", allSubs);
   const onRefresh = async () => {
     setRefreshing(true);
     await refetch();
@@ -33,6 +38,7 @@ export const AllSubsComponent: React.FC<AllSubsComponentProps> = () => {
   const handleSubPress = (subAddress: string) => {
     // TODO: Navigate to sub page
     console.log('Navigate to sub:', subAddress);
+    setSelectedSub(subAddress);
   };
 
   const formatDecimal = (value: any) => {
@@ -67,21 +73,38 @@ export const AllSubsComponent: React.FC<AllSubsComponentProps> = () => {
     <div className="mt-6">
       <h3 className={styles.epochTitle}>All Subscriptions</h3>
       <div className="space-y-4">
-        {allSubs?.data?.map((sub: any) => (
-          <SubCard
-            key={sub.contract_address}
-            subInfo={{
-              contract_address: sub.contract_address,
-              name: sub.name,
-              about: sub.about,
-              main_tag: sub.main_tag,
-              total_amount_deposit: sub.total_amount_deposit,
-            }}
-            onPress={() => handleSubPress(sub.contract_address)}
-          />
-        ))}
+
+        {!selectedSub && (
+          allSubs?.map((sub: any) => (
+            <SubCard
+              key={sub.contract_address}
+              subInfo={{
+                contract_address: sub.contract_address,
+                name: sub.name,
+                about: sub.about,
+                main_tag: sub.main_tag,
+                total_amount_deposit: sub.total_amount_deposit,
+              }}
+              onPress={() => handleSubPress(sub)}
+            />
+          ))
+        )}
+
+
+
+
+        {selectedSub && (
+          <>
+            <button onClick={() => setSelectedSub(null)} className="mb-4">
+              <Icon name="BackIcon" size={24} />
+            </button>
+            <SubPage
+              subInfo={selectedSub}
+            />
+          </>
+        )}
       </div>
-      
+
       {refreshing && (
         <div className="text-center py-4">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-500 mx-auto"></div>

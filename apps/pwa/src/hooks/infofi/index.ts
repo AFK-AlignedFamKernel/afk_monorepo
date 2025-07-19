@@ -26,6 +26,7 @@ export {
   useFactoryGetAllTipByUser,
   useFactoryOverallState,
   useFactoryGetAllData,
+  useScoreContractFactoryData,
 } from './useSubFactoryData';
 
 // Contract interaction hooks
