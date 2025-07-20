@@ -4,28 +4,38 @@
 }
 
 .mainCard {
-  @apply bg-white rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mb-6;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  @apply rounded-xl shadow-lg p-6 mb-6;
 }
 
 .subscribeButton {
-  @apply w-full bg-gradient-to-r from-green-500 to-cyan-500 hover:from-green-600 hover:to-cyan-600 
-         text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 
-         transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50;
+  background: linear-gradient(to right, var(--afk-accent-green), var(--afk-accent-cyan));
+  color: var(--afk-bg-dark);
+  @apply w-full font-semibold py-3 px-6 rounded-lg transition-all duration-200 
+         transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-opacity-50;
+  &:hover {
+    background: linear-gradient(to right, #00e68a, #00d4e6);
+    box-shadow: 0 0 16px 2px var(--afk-accent-green);
+  }
 }
 
 .afkSubCard {
-  @apply bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 
-         rounded-xl p-6 mb-6 cursor-pointer transition-all duration-200 
-         hover:shadow-lg hover:scale-[1.02] border border-gray-200 dark:border-gray-700;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  @apply rounded-xl p-6 mb-6 cursor-pointer transition-all duration-200 
+         hover:shadow-lg hover:scale-[1.02];
 }
 
 .subCardTitle {
-  @apply text-2xl font-bold text-gray-900 dark:text-white mb-2;
+  color: var(--foreground);
+  @apply text-2xl font-bold mb-2;
 }
 
 .subCardTag {
-  @apply text-sm text-gray-600 dark:text-gray-400 bg-gray-200 dark:bg-gray-700 
-         px-3 py-1 rounded-full inline-block;
+  color: var(--shade-600);
+  background: var(--shade-200);
+  @apply text-sm px-3 py-1 rounded-full inline-block;
 }
 
 .overviewGrid {
@@ -33,21 +43,26 @@
 }
 
 .overviewItem {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-4 text-center border border-gray-200 dark:border-gray-700;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  @apply rounded-lg p-4 text-center;
 }
 
 .overviewLabel {
-  @apply text-sm text-gray-600 dark:text-gray-400 mb-2 block;
+  color: var(--shade-600);
+  @apply text-sm mb-2 block;
 }
 
 .overviewValue {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  color: var(--foreground);
+  @apply text-lg font-semibold;
 }
 
 // User Card Styles
 .userCard {
-  @apply bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 
-         p-6 mb-4 transition-all duration-200 hover:shadow-lg;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  @apply rounded-xl shadow-md p-6 mb-4 transition-all duration-200 hover:shadow-lg;
 }
 
 .card {
@@ -67,16 +82,19 @@
 }
 
 .userName {
-  @apply text-lg font-semibold text-gray-900 dark:text-white mb-1;
+  color: var(--foreground);
+  @apply text-lg font-semibold mb-1;
 }
   
 
 .userBio {
-  @apply text-sm text-gray-600 dark:text-gray-300 mb-3;
+  color: var(--shade-600);
+  @apply text-sm mb-3;
 }
 
 .statsContainer {
-  @apply flex justify-around py-4 border-t border-gray-200 dark:border-gray-700;
+  border-top: 1px solid var(--border);
+  @apply flex justify-around py-4;
 }
 
 .statItem {
@@ -84,30 +102,45 @@
 }
 
 .statLabel {
-  @apply text-sm text-gray-600 dark:text-gray-400 mb-1;
+  color: var(--shade-600);
+  @apply text-sm mb-1;
 }
 
 .statValue {
-  @apply text-lg font-semibold text-green-600 dark:text-green-400;
+  color: var(--afk-accent-green);
+  @apply text-lg font-semibold;
 }
 
 .tipForm {
-  @apply mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg;
+  background: var(--shade-100);
+  @apply mt-4 p-4 rounded-lg;
 }
 
 .tipFormTitle {
-  @apply text-sm font-medium text-gray-700 dark:text-gray-300 mb-3;
+  color: var(--foreground);
+  @apply text-sm font-medium mb-3;
 }
 
 .tipInput {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
-         rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white 
-         focus:ring-2 focus:ring-green-500 focus:border-transparent;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  @apply w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-opacity-50;
+  &:focus {
+    border-color: var(--afk-accent-green);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 255, 156, 0.2);
+  }
 }
 
 .tipButton {
-  @apply mt-3 w-full bg-green-500 hover:bg-green-600 text-white font-medium 
-         py-2 px-4 rounded-lg transition-colors duration-200;
+  background: linear-gradient(to right, var(--afk-accent-green), var(--afk-accent-cyan));
+  color: var(--afk-bg-dark);
+  @apply mt-3 w-full font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  &:hover {
+    background: linear-gradient(to right, #00e68a, #00d4e6);
+    box-shadow: 0 0 8px 0 var(--afk-accent-green);
+  }
 }
 
 // Epoch States Styles
@@ -116,7 +149,8 @@
 }
 
 .epochTitle {
-  @apply text-xl font-semibold text-gray-900 dark:text-white mb-4;
+  color: var(--foreground);
+  @apply text-xl font-semibold mb-4;
 }
 
 .epochScroll {
@@ -124,11 +158,14 @@
 }
 
 .epochCard {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-4 min-w-[280px] border border-gray-200 dark:border-gray-700;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  @apply rounded-lg p-4 min-w-[280px];
 }
 
 .epochCardTitle {
-  @apply text-lg font-semibold text-gray-900 dark:text-white mb-3;
+  color: var(--foreground);
+  @apply text-lg font-semibold mb-3;
 }
 
 .epochStats {
@@ -140,11 +177,13 @@
 }
 
 .epochStatLabel {
-  @apply text-xs text-gray-600 dark:text-gray-400 mb-1;
+  color: var(--shade-600);
+  @apply text-xs mb-1;
 }
 
 .epochStatValue {
-  @apply text-sm font-semibold text-gray-900 dark:text-white;
+  color: var(--foreground);
+  @apply text-sm font-semibold;
 }
 
 // Deposit Section Styles
@@ -153,18 +192,30 @@
 }
 
 .depositContainer {
-  @apply bg-gray-50 dark:bg-gray-700 rounded-lg p-4;
+  background: var(--shade-100);
+  @apply rounded-lg p-4;
 }
 
 .depositInput {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 
-         rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white 
-         focus:ring-2 focus:ring-green-500 focus:border-transparent mb-3;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  @apply w-full px-3 py-2 rounded-lg focus:ring-2 focus:ring-opacity-50 mb-3;
+  &:focus {
+    border-color: var(--afk-accent-green);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 255, 156, 0.2);
+  }
 }
 
 .depositButton {
-  @apply w-full bg-blue-500 hover:bg-blue-600 text-white font-medium 
-         py-2 px-4 rounded-lg transition-colors duration-200;
+  background: var(--afk-accent-cyan);
+  color: var(--afk-bg-dark);
+  @apply w-full font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  &:hover {
+    background: #00d4e6;
+    box-shadow: 0 0 8px 0 var(--afk-accent-cyan);
+  }
 }
 
 // Loading and Error States
@@ -177,7 +228,7 @@
 }
 
 .errorText {
-  @apply text-red-500 dark:text-red-400;
+  color: var(--danger-color);
 }
 
 // Responsive Design
@@ -207,29 +258,7 @@
   }
   
   .statItem {
-    @apply border-b border-gray-200 dark:border-gray-700 pb-3 last:border-b-0;
+    border-bottom: 1px solid var(--border);
+    @apply pb-3 last:border-b-0;
   }
-}
-
-// Dark mode specific adjustments
-.dark {
-  // .mainCard {
-  //   @apply bg-gray-900 border-gray-700;
-  // }
-  
-  // .afkSubCard {
-  //   @apply bg-gray-800 border-gray-700;
-  // }
-  
-  // .userCard {
-  //   @apply bg-gray-800 border-gray-700;
-  // }
-  
-  // .tipForm {
-  //   @apply bg-gray-700;
-  // }
-  
-  // .depositContainer {
-  //   @apply bg-gray-700;
-  // }
 }

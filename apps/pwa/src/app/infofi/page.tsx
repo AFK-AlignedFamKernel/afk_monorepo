@@ -7,7 +7,7 @@ export default function InfoFiPage() {
     <div className="min-h-screen">
       <div className="container mx-auto py-8">
         <div className="mb-8 p-4">
-          <h1 className="text-3xl font-bold dark:text-white mb-2">
+          <h1 className="text-3xl font-bold mb-2">
             InfoFi Dashboard
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
