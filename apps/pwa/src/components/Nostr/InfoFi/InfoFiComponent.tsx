@@ -104,9 +104,11 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.mainCard}>
-        {/* {isButtonInstantiateEnable && (
+    <div
+      className={styles.container}
+    >
+      {/* <div <className={styles.mainCard}> */}
+      {/* {isButtonInstantiateEnable && (
           <button
             onClick={handleSubscription}
             className={styles.subscribeButton}
@@ -116,7 +118,7 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
           </button>
         )} */}
 
-        {/* {isViewAfkCardMain && (
+      {/* {isViewAfkCardMain && (
           <AfkSubCard
             subInfo={allData?.aggregations}
             onPress={() => {
@@ -125,21 +127,23 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
             }}
           />
         )}
-
         {isOpenAfkMain && isViewAfkCardMain && (
           <AfkSubMain
             allData={allData}
             allUsers={allUsers}
             isButtonInstantiateEnable={isButtonInstantiateEnable}
           />
-        )} */}
+        )} 
+         */}
 
-        <h3 className={styles.epochTitle}>All contests</h3>
+      <h3
+      // className={styles.epochTitle}
+      >All contests</h3>
 
-        <AllSubsComponent
-          onHandleSubPress={() => setIsViewAfkCardMain(!isViewAfkCardMain)}
-        />
-      </div>
+      <AllSubsComponent
+        onHandleSubPress={() => setIsViewAfkCardMain(!isViewAfkCardMain)}
+      />
+      {/* </div> */}
     </div>
   );
 }; 

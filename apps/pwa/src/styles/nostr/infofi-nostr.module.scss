@@ -1,6 +1,9 @@
 // InfoFi Component Styles
 .container {
-  @apply w-full max-w-7xl mx-auto px-4 py-6;
+  max-width: 100%;
+  
+  // @apply w-full max-w-7xl mx-auto px-4 py-2;
+  // @apply w-full max-w-7xl mx-auto px-4 py-2;
 }
 
 .mainCard {

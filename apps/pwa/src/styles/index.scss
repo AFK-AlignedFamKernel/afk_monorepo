@@ -125,8 +125,8 @@ body.light-mode {
 // Basic custom scrollbar styles using CSS custom properties for theme support
 
 :root {
-  --scrollbar-thumb: var(--afk-border, #bdbdbd);
-  --scrollbar-track: var(--afk-bg-panel, #f3f4f6);
+  --scrollbar-thumb: var(--border);
+  --scrollbar-track: var(--background);
 }
 
 body.dark-mode, [data-theme="dark"] {
@@ -153,6 +153,11 @@ body.dark-mode, [data-theme="dark"] {
 *::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
   border-radius: 8px;
+}
+
+.dark-mode {
+  --scrollbar-thumb: var(--afk-border, #444);
+  --scrollbar-track: var(--afk-bg-dark, #18181b);
 }
 
 

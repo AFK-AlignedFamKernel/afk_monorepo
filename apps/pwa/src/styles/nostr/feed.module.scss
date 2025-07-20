@@ -343,8 +343,8 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   overflow-x: auto;
   padding: 0.25rem 0 0.5rem 0;
   margin-bottom: 0.5rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--afk-border, #888) var(--afk-bg, #222);
+  // scrollbar-width: thin;
+  // scrollbar-color: var(--afk-border, #888) var(--afk-bg, #222);
 }
 .nostr-tag {
   display: flex;

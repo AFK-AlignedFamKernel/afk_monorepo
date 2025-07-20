@@ -75,8 +75,8 @@ export const AllSubsComponent: React.FC<AllSubsComponentProps> = ({
   }
 
   return (
-    <div className="mt-6">
-      <div className="space-y-4">
+    <div className="mt-2">
+      <div className="space-y-1">
         {!selectedSub && (
           allSubs?.map((sub: any) => (
             <SubCard
@@ -92,9 +92,6 @@ export const AllSubsComponent: React.FC<AllSubsComponentProps> = ({
             />
           ))
         )}
-
-
-
 
         {selectedSub && (
           <>

@@ -185,7 +185,7 @@ export default function LaunchpadDetailPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-1">
           <div className="lg:col-span-2">
             <div className="space-y-6">
-              <div className="flex space-x-2 rounded-xl p-1.5 dark:bg-gray-800 shadow-sm">
+              <div className="flex space-x-2 rounded-xl p-1.5 dark:bg-gray-800 shadow-sm overflow-x-auto">
                 {tabs.map((tab, index) => (
                   <button
                     key={tab.name}
