@@ -53,7 +53,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         //   keys: [PAIR_CREATED],
         // },
         {
-          address: "0x20f02a8bebe4728add0704b8ffd772595b4ebf03103560e4e23b93bdbf75dec",
+          address: "0x14a4fd9449345aa472b4b4ab69e2547c73bb11b35679f2f3cf38c7a89a6b272",
           keys: [
             SUB_CREATED,
             // 

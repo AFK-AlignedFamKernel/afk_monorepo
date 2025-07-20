@@ -91,8 +91,12 @@ export const useVoteTip = () => {
         // Prepare vote call data
         const voteEnum = voteParams.vote === 'good' ? { Good: {} } : { Bad: {} };
 
+
+        const nostrAddressConverted = `0x${voteParams.nostr_address}`;
+        console.log("nostrAddressConverted", nostrAddressConverted);
         const voteCallData = CallData.compile({
-          nostr_address: voteParams.nostr_address || '',
+          // nostr_address: voteParams.nostr_address || '',
+          nostr_address:   nostrAddressConverted,
           vote: voteEnum,
           upvote_amount: upvoteAmount,
           downvote_amount: downvoteAmount,
@@ -197,22 +201,32 @@ export const useVoteTip = () => {
         const voteEnum = voteParams.vote === 'good' ? new CairoCustomEnum({ Good: {} }) : new CairoCustomEnum({ Bad: {} });
 
         console.log("voteEnum", voteEnum);
-        // Convert nostr_address to felt format properly
-        const nostrAddressFelt = voteParams.nostr_address ? 
-          cairo.felt(voteParams.nostr_address) : 
-          cairo.felt('0');
 
+        console.log("voteParams.nostr_address", voteParams.nostr_address);
+        // Convert nostr_address to felt format properly
+        const nostrAddressConverted = voteParams.nostr_address ? 
+          uint256.bnToUint256(BigInt(`0x${voteParams.nostr_address}`)) : 
+          uint256.bnToUint256(Number(0));
+
+        console.log("nostrAddressConverted", nostrAddressConverted);
         const voteCallData = CallData.compile({
-          nostr_address: nostrAddressFelt,
+          nostr_address: nostrAddressConverted,
+          // nostr_address: uint256.bnToUint256(BigInt(1)),
+          // nostr_address: uint256.bnToUint256(BigInt(1)),
           vote: voteEnum,
-          upvote_amount: upvoteAmount,
-          downvote_amount: downvoteAmount,
+          upvote_amount: amountToken,
+          downvote_amount: amountToken,
           amount: amountToken,
           amount_token: amountToken,
+          // upvote_amount: upvoteAmount,
+          // downvote_amount: downvoteAmount,
+          // amount: amountToken,
+          // amount_token: amountToken,
         });
 
+        console.log("voteCallData", voteCallData);
         const calldataVote = CallData.compile([
-          nostrAddressFelt,
+          nostrAddressConverted,
           voteEnum,
           upvoteAmount,
           downvoteAmount,
@@ -229,7 +243,7 @@ export const useVoteTip = () => {
         // This is a placeholder - implement actual transaction execution
         const tx = await account.execute([
           approveCallData,
-          // vote
+          vote
 
 
         ]);

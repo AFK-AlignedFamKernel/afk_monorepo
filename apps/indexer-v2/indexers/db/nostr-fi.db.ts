@@ -155,6 +155,10 @@ export async function upsertContractState(data: ContractStateData) {
         target: contractState.contract_address,
         set: {
           ...data,
+          // If total_amount_deposit exists, increment it, otherwise set as new value
+          total_amount_deposit: (typeof data.total_amount_deposit !== 'undefined')
+            ? sql`${contractState.total_amount_deposit} + ${data.total_amount_deposit}`
+            : contractState.total_amount_deposit,
           updated_at: new Date(),
         },
       });
@@ -205,23 +209,43 @@ export async function upsertEpochState(data: EpochStateData) {
         created_at: new Date(),
         updated_at: new Date(),
       })
-      // .onConflictDoUpdate({
-      //   target: [data.epoch_index, data.contract_address],
-      //   set: {
-      //     total_ai_score: data.total_ai_score,
-      //     total_vote_score: data.total_vote_score,
-      //     total_amount_deposit: data.total_amount_deposit,
-      //     total_tip: data.total_tip,
-      //     amount_claimed: data.amount_claimed,
-      //     amount_vote: data.amount_vote,
-      //     amount_algo: data.amount_algo,
-      //     epoch_duration: data.epoch_duration,
-      //     start_time: data.start_time,
-      //     end_time: data.end_time,
-      //     updated_at: new Date(),
-      //   },
-      // })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({
+        target: [epochState.epoch_index, epochState.contract_address],
+        set: {
+          total_ai_score: (typeof data.total_ai_score !== 'undefined')
+            ? sql`${epochState.total_ai_score} + ${data.total_ai_score}`
+            : epochState.total_ai_score,
+          total_vote_score: (typeof data.total_vote_score !== 'undefined')
+            ? sql`${epochState.total_vote_score} + ${data.total_vote_score}`
+            : epochState.total_vote_score,
+          // total_amount_deposit: data.total_amount_deposit,
+          total_amount_deposit: (typeof data.total_amount_deposit !== 'undefined')
+            ? sql`${epochState.total_amount_deposit} + ${data.total_amount_deposit}`
+            : epochState.total_amount_deposit,
+
+          total_tip: (typeof data.total_tip !== 'undefined')
+            ? sql`${epochState.total_tip} + ${data.total_tip}`
+            : epochState.total_tip,
+
+          amount_claimed: (typeof data.amount_claimed !== 'undefined')
+            ? sql`${epochState.amount_claimed} + ${data.amount_claimed}`
+            : epochState.amount_claimed,
+
+          amount_vote: (typeof data.amount_vote !== 'undefined')
+            ? sql`${epochState.amount_vote} + ${data.amount_vote}`
+            : epochState.amount_vote,
+
+          amount_algo: (typeof data.amount_algo !== 'undefined')
+            ? sql`${epochState.amount_algo} + ${data.amount_algo}`
+            : epochState.amount_algo,
+          epoch_duration: data.epoch_duration ?? epochState.epoch_duration,
+          start_time: data.start_time ?? epochState.start_time,
+          end_time: data.end_time ?? epochState.end_time,
+          updated_at: new Date(),
+        },
+        
+      })
+      // .onConflictDoNothing();
   } catch (error) {
     console.error("Error in upsertEpochState:", error);
     return null;
