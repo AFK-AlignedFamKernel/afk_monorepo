@@ -4,15 +4,6 @@ FROM node:20-alpine AS base
 # Set the working directory inside the container
 WORKDIR /build
 
-ARG DNA_TOKEN INDEXER_DATABASE_URL INDEXER_v2_DATABASE_URL STARTING_BLOCK STARTING_CURSOR_ORDER_KEY INDEXER_NAME
-
-ENV INDEXER_NAME=${INDEXER_NAME:-dao-factory}
-ENV INDEXER_DATABASE_URL=${INDEXER_DATABASE_URL:-}
-ENV INDEXER_v2_DATABASE_URL=${INDEXER_v2_DATABASE_URL:-}
-ENV STARTING_BLOCK=${STARTING_BLOCK:-}
-ENV STARTING_CURSOR_ORDER_KEY=${STARTING_CURSOR_ORDER_KEY:-}
-ENV DNA_TOKEN=${DNA_TOKEN:-}
-
 # Copy repository into the Docker container
 COPY . .
 # when building image on local machine, remove .env files
@@ -33,8 +24,6 @@ RUN apk add --no-cache \
     echo "Build completed successfully"
 
 WORKDIR /app
-
-
 
 ## Copy the node_modules and built files from the base stage
 RUN echo "Copying files to production stage..." && \
