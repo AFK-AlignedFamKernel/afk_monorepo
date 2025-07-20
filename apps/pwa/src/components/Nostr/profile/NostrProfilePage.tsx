@@ -222,7 +222,7 @@ const ProfileHeader = (props?: any) => {
   }
 
 
-  console.log("profile", profile)
+  // console.log("profile", profile)
   return (
     <div>
       <div className="flex items-center gap-4">
