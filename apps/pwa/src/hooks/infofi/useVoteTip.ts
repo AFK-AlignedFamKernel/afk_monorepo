@@ -197,12 +197,14 @@ export const useVoteTip = () => {
         const voteEnum = voteParams.vote === 'good' ? new CairoCustomEnum({ Good: {} }) : new CairoCustomEnum({ Bad: {} });
 
         console.log("voteEnum", voteEnum);
+        // Convert nostr_address to felt format properly
+        const nostrAddressFelt = voteParams.nostr_address ? 
+          cairo.felt(voteParams.nostr_address) : 
+          cairo.felt('0');
+
         const voteCallData = CallData.compile({
-          // nostr_address: `0x${voteParams.nostr_address}`,
-          nostr_address: `0x${voteParams.nostr_address}`,
-          // is_upvote: voteParams.is_upvote,
+          nostr_address: nostrAddressFelt,
           vote: voteEnum,
-          // is_upvote: cairo.felt(String(voteParams.is_upvote ?? true)),
           upvote_amount: upvoteAmount,
           downvote_amount: downvoteAmount,
           amount: amountToken,
@@ -210,7 +212,7 @@ export const useVoteTip = () => {
         });
 
         const calldataVote = CallData.compile([
-          uint256.bnToUint256(Number(`0x${voteParams.nostr_address}` || '0')),
+          nostrAddressFelt,
           voteEnum,
           upvoteAmount,
           downvoteAmount,

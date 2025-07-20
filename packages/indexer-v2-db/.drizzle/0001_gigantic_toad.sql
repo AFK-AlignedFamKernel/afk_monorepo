@@ -1,1 +1,0 @@
-ALTER TABLE "user_profile" ADD COLUMN "contract_address" text;

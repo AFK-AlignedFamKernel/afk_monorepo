@@ -41,7 +41,7 @@ export const handleEvent = async (event: any, contractAddress: string) => {
   let eventName = getEventName(event.keys[0]);
   console.log("eventName", eventName);
 
-  if(eventName) {
+  if (eventName) {
     eventName = getEventName(encode.sanitizeHex(event.keys[0]));
   }
 
@@ -55,11 +55,11 @@ export const handleEvent = async (event: any, contractAddress: string) => {
 
   console.log("KNOWN_EVENT_KEYS", KNOWN_EVENT_KEYS);
 
-  if(!KNOWN_EVENT_KEYS.includes(encode.sanitizeHex(event.keys[0]))) {
+  if (!KNOWN_EVENT_KEYS.includes(encode.sanitizeHex(event.keys[0]))) {
     console.log("event not found", event.keys[0]);
     // return;
   }
- if (event?.keys[0] == encode.sanitizeHex(NEW_EPOCH)) {
+  if (event?.keys[0] == encode.sanitizeHex(NEW_EPOCH)) {
 
     console.log("NEW_EPOCH");
     const decodedEvent = decodeEvent({
@@ -117,7 +117,7 @@ export const handleEvent = async (event: any, contractAddress: string) => {
     console.log("decodedEvent", decodedEvent);
 
     return await handleTipUserEvent(decodedEvent, event.address);
-  }   else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS) || event?.keys[0] == LINKED_ADDRESS || encode.sanitizeHex(event?.keys[0]) == LINKED_ADDRESS || LINKED_ADDRESS.includes(event.keys[0].slice(4, 64))) {
+  } else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS) || event?.keys[0] == LINKED_ADDRESS || encode.sanitizeHex(event?.keys[0]) == LINKED_ADDRESS || LINKED_ADDRESS.includes(event.keys[0].slice(4, 64))) {
     console.log("LINKED_ADDRESS");
     console.log("event find",);
 
@@ -142,7 +142,7 @@ export const handleEvent = async (event: any, contractAddress: string) => {
       eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::PushAlgoScoreEvent",
     });
     console.log("decodedEvent", decodedEvent);
-      return await handlePushAlgoScoreEvent(decodedEvent, event.address);
+    return await handlePushAlgoScoreEvent(decodedEvent, event.address);
   } else if (event?.keys[0] == encode.sanitizeHex(ADD_TOPICS)) {
     console.log("event find",);
     console.log("ADD_TOPICS");
@@ -154,7 +154,7 @@ export const handleEvent = async (event: any, contractAddress: string) => {
     });
     console.log("decodedEvent", decodedEvent);
     return await handleAddTopicsEvent(decodedEvent, event.address);
-  } 
+  }
   else if (event?.keys[0] == encode.sanitizeHex(TIP_USER)) {
     console.log("TIP_USER");
     console.log("event find",);
@@ -260,12 +260,12 @@ async function handleNewEpochEvent(event: any, contractAddress: string) {
     let startDurationBn = event?.args?.start_duration;
     let endDurationBn = event?.args?.end_duration;
     let epochDurationBn = event?.args?.epoch_duration;
-    
+
     // Convert BigInt timestamps to numbers (Unix timestamps are in seconds)
     let startDuration = Number(startDurationBn);
     let endDuration = Number(endDurationBn);
     let epochDuration = Number(epochDurationBn);
-    
+
     console.log("startDuration", startDuration);
     console.log("endDuration", endDuration);
     console.log("epochDuration", epochDuration);
@@ -276,7 +276,7 @@ async function handleNewEpochEvent(event: any, contractAddress: string) {
 
     console.log("startDurationDate", startDurationDate);
     console.log("endDurationDate", endDurationDate);
-    
+
     const contractResult = await upsertContractState({
       contract_address: contractAddress,
       current_epoch_index: event.args?.current_index_epoch,
@@ -349,8 +349,8 @@ async function handleDistributionRewardsEvent(event: any, contractAddress: strin
 
     let amountTokenBn = event.args?.amount_token;
     let amountToken = formatUnits(amountTokenBn, 18);
-    const nostrAddressUint256= event.args?.nostr_address;
-    const nostrAddress =  uint256.bnToUint256(nostrAddressUint256);
+    const nostrAddressUint256 = event.args?.nostr_address;
+    const nostrAddress = uint256.bnToUint256(nostrAddressUint256);
     console.log("nostrAddress", nostrAddress);
     await upsertEpochState({
       contract_address: contractAddress,
@@ -417,28 +417,31 @@ async function handleLinkedAddressEvent(event: any, contractAddress: string) {
   try {
     console.log("handleLinkedAddressEvent", event);
     console.log("event.args", event?.args);
-    
+
     if (event?.args?.nostr_address) {
       // Convert BigInt to string if needed
-      const nostrAddress = typeof event.args.nostr_address === 'bigint' 
-        ? event.args.nostr_address.toString() 
+      const nostrAddress = typeof event.args.nostr_address === 'bigint'
+        // Convert BigInt to readable nostr schnorr public key (hex string, 64 chars, no 0x)
+        ? event.args.nostr_address.toString(16).padStart(64, '0')
         : event.args.nostr_address;
-      
-      const starknetAddress = typeof event.args.starknet_address === 'bigint' 
-        ? event.args.starknet_address.toString() 
+
+      console.log("nostrAddress", nostrAddress);
+
+      const starknetAddress = typeof event.args.starknet_address === 'bigint'
+        ? event.args.starknet_address.toString()
         : event.args.starknet_address;
-      
+
       console.log("Processing nostr_address:", nostrAddress);
       console.log("Processing starknet_address:", starknetAddress);
       console.log("nostr_address type:", typeof nostrAddress);
       console.log("starknet_address type:", typeof starknetAddress);
-      
+
       const result = await upsertUserProfile({
         nostr_id: nostrAddress,
         starknet_address: starknetAddress,
         contract_address: contractAddress,
       });
-      
+
       console.log("upsertUserProfile result:", result);
     } else {
       console.log("No nostr_address found in event.args");
@@ -483,29 +486,74 @@ async function handlePushAlgoScoreEvent(event: any, contractAddress: string) {
 
 async function handleAddTopicsEvent(event: any, contractAddress: string) {
   try {
+    console.log("handleAddTopicsEvent event", event);
+    
+    // Convert byte arrays to strings, with fallbacks
+    const topicMetadata = event?.args?.topic_metadata 
+      ? byteArray.stringFromByteArray(event.args.topic_metadata)
+      : "";
+    const mainTag = event?.args?.main_tag 
+      ? byteArray.stringFromByteArray(event.args.main_tag)
+      : "";
+    const keyword = event?.args?.keyword 
+      ? byteArray.stringFromByteArray(event.args.keyword)
+      : "";
+    
+    console.log("Converted values:", {
+      topicMetadata,
+      mainTag,
+      keyword
+    });
+    
     await upsertContractState({
       contract_address: contractAddress,
-      topic_metadata: byteArray.stringFromByteArray(event?.args?.topic_metadata),
-      main_tag: byteArray.stringFromByteArray(event?.args?.main_tag),
-      keyword: byteArray.stringFromByteArray(event?.args?.keyword),
+      topic_metadata: topicMetadata,
+      main_tag: mainTag,
+      keyword: keyword,
     });
   } catch (error) {
     console.log("error handleAddTopicsEvent", error);
+    console.error("Full error details:", error);
   }
 }
 
 async function handleNostrMetadataEvent(event: any, contractAddress: string) {
   try {
     console.log("handleNostrMetadataEvent event", event);
+    
+    // Convert BigInt values to strings
+    const eventIdNip29 = event?.args?.event_id_nip_29 
+      ? event.args.event_id_nip_29.toString() 
+      : "0";
+    const eventIdNip72 = event?.args?.event_id_nip_72 
+      ? event.args.event_id_nip_72.toString() 
+      : "0";
+    
+    // Convert byte arrays to strings, with fallbacks
+    const mainTag = event?.args?.main_tag 
+      ? byteArray.stringFromByteArray(event.args.main_tag)
+      : "";
+    const about = event?.args?.about 
+      ? byteArray.stringFromByteArray(event.args.about)
+      : "";
+    
+    console.log("Converted values:", {
+      mainTag,
+      about,
+      eventIdNip29,
+      eventIdNip72
+    });
+    
     await upsertContractState({
       contract_address: contractAddress,
-      name: byteArray.stringFromByteArray(event?.args?.main_tag ?? ""),
-      about: byteArray.stringFromByteArray(event?.args?.about),
-      event_id_nip_29: event?.args?.event_id_nip_29,
-      event_id_nip_72: event?.args?.event_id_nip_72,
-      main_tag: byteArray.stringFromByteArray(event?.args?.main_tag ?? ""),
+      name: mainTag,
+      about: about,
+      event_id_nip_29: eventIdNip29,
+      event_id_nip_72: eventIdNip72,
+      main_tag: mainTag,
     });
   } catch (error) {
     console.log("error handleNostrMetadataEvent", error);
+    console.error("Full error details:", error);
   }
 }

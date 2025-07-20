@@ -1,5 +1,5 @@
 {
-  "id": "f95c2049-78b7-49b8-9c46-3736f439c874",
+  "id": "ddd44743-6879-4644-88a8-da68383a010f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1408,6 +1408,12 @@
           "primaryKey": false,
           "notNull": false,
           "default": false
+        },
+        "contract_address": {
+          "name": "contract_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",

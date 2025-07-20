@@ -211,6 +211,7 @@ CREATE TABLE IF NOT EXISTS "user_profile" (
 	"total_vote_score" numeric(30, 18) DEFAULT '0',
 	"amount_claimed" numeric(30, 18) DEFAULT '0',
 	"is_add_by_admin" boolean DEFAULT false,
+	"contract_address" text,
 	"created_at" timestamp DEFAULT now(),
 	"updated_at" timestamp DEFAULT now(),
 	CONSTRAINT "user_profile_nostr_id_unique" UNIQUE("nostr_id")

@@ -12,6 +12,7 @@ import { useUIStore } from '@/store/uiStore';
 import ProfileCardOverview from '../EventCard/ProfileCardOverview';
 import { NDKUserProfile } from '@nostr-dev-kit/ndk';
 import Image from 'next/image';
+import { feltToAddress } from '@/utils/format';
 
 export const SubUserCard = ({ profile, contractAddress }: { profile: UserProfile, contractAddress: string }) => {
 
@@ -51,6 +52,16 @@ export const SubUserCard = ({ profile, contractAddress }: { profile: UserProfile
                 }}
             >
 
+
+                <div>
+                    <p className={styles.userId}>
+                        {feltToAddress(BigInt(profile?.nostr_id))}
+                    </p>
+
+                    <p className={styles.userId}>
+                        {profile?.starknet_address}
+                    </p>
+                </div>
 
                 <div className="flex flex-row">
 
