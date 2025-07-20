@@ -115,6 +115,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
 
       let metadata = {
         url: values.metadata?.url,
+        image_url: values.metadata?.url,
         twitter: values.metadata?.twitter,
         github: values.metadata?.github,
         telegram: values.metadata?.telegram,

@@ -371,6 +371,7 @@ export class MetadataLaunchIndexer {
       memecoinAddress: tokenAddress,
       nostrEventId:0,
       url: url,
+      image_url: bodyMetadata?.image_url ?? '',
       timestamp: new Date(Number(blockTimestamp.seconds) * 1000),
       transactionType: 'buy',
       twitter: bodyMetadata?.twitter ?? twitter ?? '',

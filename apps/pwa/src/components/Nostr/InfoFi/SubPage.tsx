@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { formatUnits } from 'viem';
 import styles from '@/styles/nostr/infofi-nostr.module.scss';
 import { useNamespace, useDepositRewards, useVoteTip, useScoreContractFactoryData, useGetSubInfo } from '@/hooks/infofi';
+import { useAccount } from '@starknet-react/core';
+import { WalletConnectButton } from '@/components/account/WalletConnectButton';
 
 interface SubInfo {
   contract_address: string;
@@ -26,7 +28,7 @@ export const SubPage: React.FC<SubPageProps> = ({
   const [nostrAddress, setNostrAddress] = useState<string>('');
   const { handleLinkNamespaceScoring, isLinkingNamespace } = useNamespace();
   const { handleDepositRewards, isDepositing } = useDepositRewards();
-
+  const { account } = useAccount();
 
   const { data: subDetailsData, isLoading: isLoadingDetails, isError: isErrorDetails, refetch: refetchDetails } = useGetSubInfo(subInfo?.contract_address);
 
@@ -129,13 +131,18 @@ export const SubPage: React.FC<SubPageProps> = ({
             onChange={(e) => setNostrAddress(e.target.value)}
             className={styles.depositInput}
           />
-                      <button
+
+          {account?.address ?
+            <button
               onClick={handleDeposit}
               className={styles.depositButton}
               disabled={isDepositing || !amount}
             >
               {isDepositing ? 'Depositing...' : 'Deposit Rewards'}
             </button>
+
+            : <WalletConnectButton />
+          }
         </div>
       </div>
     </div>
