@@ -59,7 +59,7 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
   const { account } = useAccount();
   const [isOpenAfkMain, setIsOpenAfkMain] = useState(false);
 
-  const [isViewAfkCardMain, setIsViewAfkCardMain] = useState(false);
+  const [isViewAfkCardMain, setIsViewAfkCardMain] = useState(true);
   // Use real hooks instead of mock data
   const { allData, isLoading: isLoadingData, isError: isErrorData } = useDataInfoMain();
   const { data: allUsers, isLoading: isLoadingUsers, isError: isErrorUsers } = useGetAllTipUser();
@@ -116,15 +116,17 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
           </button>
         )} */}
 
-        <AfkSubCard
-          subInfo={allData?.aggregations}
-          onPress={() => {
-            setIsViewAfkCardMain(!isViewAfkCardMain);
-            setIsOpenAfkMain(!isOpenAfkMain);
-          }}
-        />
+        {isViewAfkCardMain && (
+          <AfkSubCard
+            subInfo={allData?.aggregations}
+            onPress={() => {
+              setIsViewAfkCardMain(!isViewAfkCardMain);
+              setIsOpenAfkMain(!isOpenAfkMain);
+            }}
+          />
+        )}
 
-        {isOpenAfkMain && (
+        {isOpenAfkMain && isViewAfkCardMain && (
           <AfkSubMain
             allData={allData}
             allUsers={allUsers}
@@ -135,7 +137,7 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
         <h3 className={styles.epochTitle}>All contests</h3>
 
         <AllSubsComponent
-          onHandleSubPress={() => setIsOpenAfkMain(!isOpenAfkMain)}
+          onHandleSubPress={() => setIsViewAfkCardMain(!isViewAfkCardMain)}
         />
       </div>
     </div>

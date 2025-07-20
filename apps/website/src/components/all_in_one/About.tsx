@@ -8,7 +8,7 @@ const MotionBox = motion(Box);
 export function About() {
   // const theme = useTheme();
   return (
-    <Box className="py-[10px] tab:py-[140px] text-center text-base tab:text-[32px] leading-[32px] desktop:leading-[50px] font-normal z-[50] relative px-6 desktop:px-[171px] desktop:flex desktop:max-w-[500px]">
+    <Box className="py-[10px] tab:py-[140px] text-center text-base tab:text-[32px] leading-[32px] desktop:leading-[50px] font-normal z-[50] relative px-6">
       <MotionBox
         animate={{ x: [-100, 0] }}
         transition={{ ease: 'easeOut', duration: 1 }}

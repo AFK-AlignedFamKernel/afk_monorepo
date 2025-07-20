@@ -38,13 +38,28 @@ export const KNOWN_EVENT_KEYS = [
 
 export const handleEvent = async (event: any, contractAddress: string) => {
   console.log("event.keys[0]", event.keys[0]);
-  const eventName = getEventName(event.keys[0]);
+  let eventName = getEventName(event.keys[0]);
   console.log("eventName", eventName);
+
+  if(eventName) {
+    eventName = getEventName(encode.sanitizeHex(event.keys[0]));
+  }
+
+  console.log("eventName", eventName);
+
+  console.log("encode.sanitizeHex(event.keys[0])", encode.sanitizeHex(event.keys[0]));
   if (!KNOWN_EVENT_KEYS.includes(event.keys[0])) {
     console.log("event not found", event.keys[0]);
     // return;
   }
-  if (event?.keys[0] == encode.sanitizeHex(NEW_EPOCH)) {
+
+  console.log("KNOWN_EVENT_KEYS", KNOWN_EVENT_KEYS);
+
+  if(!KNOWN_EVENT_KEYS.includes(encode.sanitizeHex(event.keys[0]))) {
+    console.log("event not found", event.keys[0]);
+    // return;
+  }
+ if (event?.keys[0] == encode.sanitizeHex(NEW_EPOCH)) {
 
     console.log("NEW_EPOCH");
     const decodedEvent = decodeEvent({
@@ -102,14 +117,14 @@ export const handleEvent = async (event: any, contractAddress: string) => {
     console.log("decodedEvent", decodedEvent);
 
     return await handleTipUserEvent(decodedEvent, event.address);
-  } else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS)) {
+  } else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS) || event?.keys[0] == LINKED_ADDRESS || encode.sanitizeHex(event?.keys[0]) == LINKED_ADDRESS || LINKED_ADDRESS.includes(event.keys[0].slice(4, 64))) {
     console.log("LINKED_ADDRESS");
     console.log("event find",);
 
     const decodedEvent = decodeEvent({
       abi: nostrFiScoringABI as Abi,
       event,
-      eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::LinkedDefaultStarknetAddressEvent",
+      eventName: eventName ?? "afk::infofi::nostrfi_scoring::NostrFiScoring::LinkedDefaultStarknetAddressEvent",
     });
     console.log("decodedEvent", decodedEvent);
     console.log("LINKED_ADDRESS", decodedEvent);

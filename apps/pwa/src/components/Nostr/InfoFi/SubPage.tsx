@@ -47,7 +47,7 @@ export const SubPage: React.FC<SubPageProps> = ({
 
   const handleSubscription = async () => {
     try {
-      await handleLinkNamespaceScoring();
+      await handleLinkNamespaceScoring(subInfo?.contract_address);
     } catch (error) {
       console.error('Subscription failed:', error);
     }
@@ -63,7 +63,9 @@ export const SubPage: React.FC<SubPageProps> = ({
         downvote_amount: '0',
         amount: amount,
         amount_token: amount,
-      });
+      },
+      subInfo?.contract_address
+    );
       setAmount('');
       setNostrAddress('');
     } catch (error) {

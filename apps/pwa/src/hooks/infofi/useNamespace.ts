@@ -163,13 +163,14 @@ export const useNamespace = () => {
 
   // Mutation for linking namespace
   const linkNamespaceMutationScoring = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (contractAddress?: string) => {
       if (!account?.address) {
         throw new Error('No account connected');
       }
 
       try {
-        const addressContract = NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+        // const addressContract = NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
+        const addressContract = contractAddress ?? NOSTR_FI_SCORING_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
         // const addressContract = NAMESPACE_ADDRESS[constants.StarknetChainId.SN_SEPOLIA];
         // const contract = await prepareAndConnectContract(rpcProvider, addressContract, account);
 
@@ -313,8 +314,8 @@ export const useNamespace = () => {
     },
   });
 
-  const handleLinkNamespaceScoring = async () => {
-    return linkNamespaceMutationScoring.mutateAsync();
+  const handleLinkNamespaceScoring = async (contractAddress?: string) => {
+    return linkNamespaceMutationScoring.mutateAsync(contractAddress);
   };
 
   const handleLinkNamespace = async () => {

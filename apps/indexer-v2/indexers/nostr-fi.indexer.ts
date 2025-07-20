@@ -109,7 +109,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
         let subCreationData = {
           address: topicAddress,
-          keys: [NEW_EPOCH, DEPOSIT_REWARDS, DISTRIBUTION_REWARDS, TIP_USER, LINKED_ADDRESS, PUSH_ALGO_SCORE, ADD_TOPICS, NOSTR_METADATA],
+          keys: [NEW_EPOCH, DEPOSIT_REWARDS, DISTRIBUTION_REWARDS, TIP_USER, LINKED_ADDRESS, PUSH_ALGO_SCORE, ADD_TOPICS, NOSTR_METADATA,],
           number: event.eventIndex,
           hash: event.transactionHash,
           contractAddress: topicAddress,

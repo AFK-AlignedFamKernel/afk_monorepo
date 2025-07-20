@@ -17,7 +17,7 @@ interface SubData {
 }
 
 interface AllSubsComponentProps { 
-  onHandleSubPress?: (subAddress: string) => void;
+  onHandleSubPress?: (subAddress: string | null) => void;
 }
 
 
@@ -98,7 +98,10 @@ export const AllSubsComponent: React.FC<AllSubsComponentProps> = ({
 
         {selectedSub && (
           <>
-            <button onClick={() => setSelectedSub(null)} className="mb-4">
+            <button onClick={() => {
+              setSelectedSub(null); 
+              onHandleSubPress?.(null);
+            }} className="mb-4">
               <Icon name="BackIcon" size={24} />
             </button>
             <SubPage
