@@ -1,6 +1,7 @@
 'use client';
 
 import {motion} from 'framer-motion';
+import { logClickedEvent } from '@/services/analytics';
 
 export function ContributeSection() {
   return (
@@ -29,6 +30,9 @@ export function ContributeSection() {
           href="https://github.com/AFK-AlignedFamKernel/afk_monorepo"
           target="_blank"
           className="py-[15px] desktop:px-[42px] px-[24px] bg-white rounded-[5px] flex gap-x-[10px] items-center text-black"
+          onClick={() => {
+            logClickedEvent('contribute_to_afk_github_click');
+          }}
         >
           <img src="/assets/githubLogoDark.svg" alt="" />
           See all issues on Github
@@ -40,6 +44,9 @@ export function ContributeSection() {
           href="https://afk-community.xyz"
           target="_blank"
           className="my-[8px] py-[15px] desktop:px-[42px] px-[24px] bg-white rounded-[5px] flex gap-x-[10px] items-center text-black"
+          onClick={() => {
+            logClickedEvent('go_afk_click_contribute_section');
+          }}
         >
            Go AFK
         </a>

@@ -8,10 +8,12 @@ import {MobileNavBar} from './MobileNavBar';
 import {NavigationLinks} from './NavigationLinks';
 import {Box, Button, Text, Image as ImageChakra, Link as LinkChakra} from '@chakra-ui/react';
 import Image from 'next/image';
+import { logClickedEvent } from '@/services/analytics';
 
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);
   const [toggleParamsNav, setToggleParamsNav] = useState(false);
+  
   return (
     <Box className="desktop:py-[26px] py-3 px-6 desktop:px-[120px] flex justify-between items-center">
       <Box className="flex items-center gap-x-[10px] text">
@@ -23,7 +25,12 @@ export function Navbar() {
           width={30}
           height={30}
         />
-        <LinkChakra href="/" className="desktop:text-xl text-base leading-7 font-bold">
+        <LinkChakra href="/" className="desktop:text-xl text-base leading-7 font-bold"
+        
+        onClick={() => {
+          logClickedEvent('afk_logo_click');
+        }}
+        >
           AFK
           {/* <Text >AFK</Text> */}
         </LinkChakra>
@@ -48,8 +55,10 @@ export function Navbar() {
         className="flex"
         onClick={() => {
           if (toggleNav) {
+            logClickedEvent('toggle_nav_close');
             setToggleNav(false);
           } else {
+            logClickedEvent('toggle_nav_open');
             setToggleNav(true);
             window.scrollTo({top: 0, left: 0, behavior: 'smooth'});
           }

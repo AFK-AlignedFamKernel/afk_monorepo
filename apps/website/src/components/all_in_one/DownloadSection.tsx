@@ -1,6 +1,8 @@
 'use client';
 
 import {motion} from 'framer-motion';
+import { logClickedEvent } from '@/services/analytics';
+import { Button } from '@chakra-ui/react';
 
 export function DownloadSection() {
   return (
@@ -26,6 +28,13 @@ export function DownloadSection() {
           AFK is available on Web now.
         </p>
         <p>Coming later on Android & iOS.</p>
+        <Button
+          onClick={() => {
+            logClickedEvent('go_afk_click_download_section');
+          }}
+        >
+          Join AFK
+        </Button>
         {/* <div className="flex items-center gap-x-5">
           <button>
             <img src="/assets/appStoreBtn.svg" className="w-[100px] desktop:w-auto" alt="" />

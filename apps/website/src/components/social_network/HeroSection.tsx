@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Box, Button, Text } from '@chakra-ui/react';
+import { logClickedEvent } from '@/services/analytics';
 export function HeroSection() {
   return (
     <>
@@ -39,7 +40,11 @@ export function HeroSection() {
             Decentralized social built with Nostr and powered by Starknet.
           </Text>
           <Box className="flex desktop:flex-row flex-col items-center gap-y-4 gap-x-6 text-[18px] leading-[21px]">
-            <Button className="bg:brand.primary desktop:py-5 text-sm desktop:text-base py-3 px-4 w-[200px] border-white border-[1px] border-solid desktop:border-none">
+            <Button 
+            onClick={() => {
+              logClickedEvent('sign_up_click_afk_hero_section');
+            }}
+            className="bg:brand.primary desktop:py-5 text-sm desktop:text-base py-3 px-4 w-[200px] border-white border-[1px] border-solid desktop:border-none">
               <a href="https://afk-community.xyz" target="_blank" className="bg:brand.primary">
                 Sign up
               </a>

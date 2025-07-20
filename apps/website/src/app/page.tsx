@@ -1,10 +1,10 @@
 import {Footer} from '../components/Footer';
-import {About} from '../components/landing/About';
-import {ContributeSection} from '../components/landing/ContributeSection';
-import {DescriptionSection} from '../components/landing/DescriptionSection';
-import {DownloadSection} from '../components/landing/DownloadSection';
-import {Faq} from '../components/landing/Faq';
-import {HeroSection} from '../components/landing/HeroSection';
+import {About} from '../components/all_in_one/About';
+import {ContributeSection} from '../components/all_in_one/ContributeSection';
+import {DescriptionSection} from '../components/all_in_one/DescriptionSection';
+import {DownloadSection} from '../components/all_in_one/DownloadSection';
+import {Faq} from '../components/all_in_one/Faq';
+import {HeroSection} from '../components/all_in_one/HeroSection';
 import {Navbar} from '../components/Navbar';
 import {Metadata} from 'next';
 const metadata: Metadata = {

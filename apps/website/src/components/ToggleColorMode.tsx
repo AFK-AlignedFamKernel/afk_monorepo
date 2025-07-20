@@ -2,6 +2,7 @@
 
 import {IconButton, useColorMode} from '@chakra-ui/react';
 import {SunIcon, MoonIcon, Icon} from '@chakra-ui/icons';
+import { logClickedEvent } from '@/services/analytics';
 
 export function ToggleColorMode() {
   const {colorMode, toggleColorMode} = useColorMode();
@@ -10,7 +11,10 @@ export function ToggleColorMode() {
     <IconButton
       aria-label="Toggle color mode"
       // icon={colorMode === 'light' ? <MoonIcon /> : <SunIcon />}
-      onClick={toggleColorMode}
+      onClick={() => {
+        logClickedEvent('toggle_color_mode');
+        toggleColorMode();
+      }}
       size="md"
       variant="ghost"
       color="currentColor"

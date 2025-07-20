@@ -19,7 +19,7 @@ import {
 import {FaUser, FaBullhorn, FaCoins, FaStar, FaVoteYea} from 'react-icons/fa';
 import {useEffect, useState} from 'react';
 import {IconType} from 'react-icons/lib';
-
+import { logClickedEvent } from '@/services/analytics';
 export default function ContentCreatorPageComponent() {
   const bg = useColorModeValue('gray.50', 'gray.800');
   const {isOpen, onToggle} = useDisclosure();
@@ -51,13 +51,29 @@ export default function ContentCreatorPageComponent() {
         </Fade>
 
         <Stack direction={{base: 'column', md: 'row'}} spacing={4} pt={4}>
-          <Button colorScheme="green" size="lg">
-            <Link href="https://afk-community.xyz/" target="_blank">
+          <Button colorScheme="green" size="lg"
+          onClick={() => {
+            logClickedEvent('creator_page_create_your_profile_click');
+          }}
+          >
+            <Link href="https://afk-community.xyz/" target="_blank"
+            onClick={() => {
+              logClickedEvent('creator_page_create_your_profile_link_click');
+            }}
+            >
               Create Your Profile
             </Link>
           </Button>
-          <Button variant="outline" colorScheme="green" size="lg">
-            <Link href="https://docs.afk-community.xyz/docs/market/infofi" target="_blank">
+          <Button variant="outline" colorScheme="green" size="lg"
+          onClick={() => {
+            logClickedEvent('creator_page_learn_more_click');
+          }}
+          >
+            <Link href="https://docs.afk-community.xyz/docs/market/infofi" target="_blank"
+            onClick={() => {
+              logClickedEvent('creator_page_learn_more_link_click');
+            }}
+            >
               Learn More
             </Link>
           </Button>
@@ -158,13 +174,29 @@ export default function ContentCreatorPageComponent() {
           and rewards participation.
         </Text>
         <Stack mt={6} direction="row" spacing={4} justify="center">
-          <Button colorScheme="green" size="lg">
-            <Link href="https://afk-community.xyz/" target="_blank">
+          <Button colorScheme="green" size="lg"
+          onClick={() => {
+            logClickedEvent('creator_page_start_now_click');
+          }}
+          >
+            <Link href="https://afk-community.xyz/" target="_blank"
+            onClick={() => {
+              logClickedEvent('creator_page_start_now_link_click');
+            }}
+            >
               Start Now
             </Link>
           </Button>
-          <Button variant="outline" colorScheme="green" size="lg">
-            <Link href="https://docs.afk-community.xyz" target="_blank">
+            <Button variant="outline" colorScheme="green" size="lg"
+          onClick={() => {
+            logClickedEvent('creator_page_read_the_docs_click');
+          }}
+          >
+            <Link href="https://docs.afk-community.xyz" target="_blank"
+            onClick={() => {
+              logClickedEvent('creator_page_read_the_docs_link_click');
+            }}
+            >
               Read the Docs
             </Link>
           </Button>
