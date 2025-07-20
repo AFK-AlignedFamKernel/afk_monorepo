@@ -22,8 +22,9 @@ export default function App() {
       <div className="flex flex-col desktop:gap-y-[80px] gap-y-[50px] mt-[10px]">
         <ContributeSection />
         <DownloadSection />
-        <Faq />
       </div>
+      <Faq />
+
       <Footer />
     </div>
   );

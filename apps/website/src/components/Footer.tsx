@@ -1,6 +1,6 @@
 'use client';
 
-import {Box, List, ListItem, Text, Button} from '@chakra-ui/react';
+import { Box, List, ListItem, Text, Button } from '@chakra-ui/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { logClickedEvent } from '@/services/analytics';
@@ -30,38 +30,63 @@ export function Footer() {
           </Box> */}
         </Box>
         <Box className="flex gap-x-[30px] tab:gap-x-[70px] text-[14px] leading-[21px] font-normal pt-[46px]">
-          <List className="flex flex-col gap-y-10">
+          <List className="flex flex-col gap-y-2">
             <ListItem className="font-bold text-base leading-6">Product</ListItem>
-            <ListItem>
+            <ListItem
+              borderRadius={"10px"}
+              border={"1px solid white"}
+              padding={"4px"}
+              // margin={"10px"}
+              textAlign={"center"}
+              backgroundColor={"green"}
+              color={"white"}
+              textDecoration={"none"}
+            >
               <Link href="https://afk-community.xyz"
-              className="border-b-2 border-transparent hover:border-white bg-green-500"
-              onClick={() => {
-                logClickedEvent('afk_client_click_footer');
-              }}
+                // className="border-b-2 border-transparent hover:border-white bg-green-500 border border-1 p-4"
+                onClick={() => {
+                  logClickedEvent('afk_client_click_footer');
+                }}
               >App</Link>
             </ListItem>
             {/* <ListItem>
               <Link href="https://afk-community.xyz">SocialFi features</Link>
             </ListItem> */}
           </List>
-          <List className="flex flex-col gap-y-10">
+          <List className="flex flex-col gap-y-2">
             <ListItem className="font-bold text-base leading-6">Explore</ListItem>
-            <ListItem>
+            <ListItem
+              borderRadius={"10px"}
+              border={"1px solid white"}
+              padding={"4px"}
+              textAlign={"center"}
+              backgroundColor={"gray"}
+              color={"white"}
+              textDecoration={"none"}
+            >
               <Link href="/solutions"
-              onClick={() => {
-                logClickedEvent('solutions_page_click_footer');
-              }}
+                onClick={() => {
+                  logClickedEvent('solutions_page_click_footer');
+                }}
               >Solutions</Link>
             </ListItem>
-            <ListItem>
+            <ListItem
+              borderRadius={"10px"}
+              border={"1px solid white"}
+              padding={"4px"}
+              textAlign={"center"}
+              backgroundColor={"gray"}
+              color={"white"}
+              textDecoration={"none"}
+            >
               <Link href="/infofi"
-              onClick={() => {
-                logClickedEvent('infofi_page_click_footer');
-              }}>Info Fi</Link>
+                onClick={() => {
+                  logClickedEvent('infofi_page_click_footer');
+                }}>Info Fi</Link>
             </ListItem>
           </List>
           <List className="flex flex-col gap-y-10">
-            <ListItem className="font-bold text-base leading-6">Company</ListItem>
+            <ListItem className="font-bold text-base leading-6">Company </ListItem>
             <ListItem>
               <Text fontFamily="monospace" fontStyle={'italic'} fontSize="14px" lineHeight="21px">
                 DAO and Community owned
@@ -69,23 +94,23 @@ export function Footer() {
             </ListItem>
             <ListItem>
               <Link href="/solutions"
-              onClick={() => {
-                logClickedEvent('solutions_page_click_footer');
-              }}
+                onClick={() => {
+                  logClickedEvent('solutions_page_click_footer');
+                }}
               >Solutions</Link>
             </ListItem>
           </List>
         </Box>
         <Box className="flex items-center gap-x-[14px] mt-5 tab:mt-0 self-center tab:self-end">
           <a href="https://x.com/AFK_AlignedFamK" target="_blank"
-          onClick={() => {
-            logClickedEvent('twitter_redirect');
-          }}
+            onClick={() => {
+              logClickedEvent('twitter_redirect');
+            }}
           >
-            <Image src="/assets/twitterIcon.svg" 
-            width={30}  
-            height={30}
-            alt="AFK Aligned Fam Community Twitter / X" className="w-[30px] h-[30px]" />
+            <Image src="/assets/twitterIcon.svg"
+              width={30}
+              height={30}
+              alt="AFK Aligned Fam Community Twitter / X" className="w-[30px] h-[30px]" />
           </a>
 
           {/* <a
@@ -94,14 +119,14 @@ export function Footer() {
             <img src="/assets/telegramIcon.svg" alt="" />
           </a> */}
           <a href="https://t.me/afk_aligned_fam_kernel" target="_blank"
-          onClick={() => {
-            logClickedEvent('telegram_redirect');
-          }}
+            onClick={() => {
+              logClickedEvent('telegram_redirect');
+            }}
           >
             <Image src="/assets/telegram.svg" alt="AFK Community Telegram "
-            width={30}
-            height={30}
-            className="w-[30px] h-[30px]" />
+              width={30}
+              height={30}
+              className="w-[30px] h-[30px]" />
           </a>
         </Box>
       </Box>

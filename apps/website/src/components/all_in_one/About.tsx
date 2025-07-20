@@ -8,7 +8,7 @@ const MotionBox = motion(Box);
 export function About() {
   // const theme = useTheme();
   return (
-    <Box className="py-[10px] tab:py-[140px] text-center text-base tab:text-[32px] leading-[32px] desktop:leading-[50px] font-normal z-[50] relative px-6 desktop:px-[171px] desktop:flex">
+    <Box className="py-[10px] tab:py-[140px] text-center text-base tab:text-[32px] leading-[32px] desktop:leading-[50px] font-normal z-[50] relative px-6 desktop:px-[171px] desktop:flex desktop:max-w-[500px]">
       <MotionBox
         animate={{ x: [-100, 0] }}
         transition={{ ease: 'easeOut', duration: 1 }}
@@ -22,7 +22,7 @@ export function About() {
         whileInView={{ opacity: 1 }}
         className="desktop:flex"
       >
-
+{/* 
         <motion.img
           src="/assets/afkMascot.png"
           // src="/assets/degen-logo.png"
@@ -35,13 +35,14 @@ export function About() {
           }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-        />
+        /> */}
 
         <Box>
           <Text
             // bgGradient={`linear(to-l, ${theme.colors?.brand?.primary}, ${theme.colors?.brand?.complement})`}
             // bgGradient='linear(to-l, #7928CA, #FF0080)'
             bgClip="text"
+            fontSize={"18"}
           // fontSize='6xl'
           // fontWeight='extrabold'
           // color={theme.colors.gradientLeft}

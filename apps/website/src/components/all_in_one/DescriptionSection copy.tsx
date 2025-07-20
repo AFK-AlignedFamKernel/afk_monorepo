@@ -59,7 +59,7 @@ export function DescriptionSection() {
           />
         </motion.div>
       </div>
-      <div className="w-full my-8">
+      <div className="w-full">
         <div className="flex desktop:flex-row items-center desktop:items-start flex-col-reverse justify-center gap-y-7 gap-x-[181px] mb-[100px] desktop:mb-[280px]">
           <motion.div
             animate={{x: [-1200, 0]}}
@@ -87,7 +87,7 @@ export function DescriptionSection() {
             </Text>
           </motion.div>
         </div>
-        {/* <div className="flex desktop:flex-row items-center desktop:items-start flex-col justify-center gap-y-7 gap-x-[181px]">
+        <div className="flex desktop:flex-row items-center desktop:items-start flex-col justify-center gap-y-7 gap-x-[181px]">
           <motion.img
             src="/assets/save-your-keys.png"
             alt=""
@@ -111,9 +111,19 @@ export function DescriptionSection() {
             whileInView={{opacity: 1}}
             className="desktop:w-[788px] desktop:text-left text-center"
           >
-       
+            <h2 className="desktop:text-[82px] text-xl desktop:leading-[90px] desktop:mb-4 mb-3">
+              Enhanced by StarkNet Account Abstraction
+            </h2>
+            <h5 className="desktop:text-[24px] text-base desktop:leading-10 text-[#9D9797] desktop:mb-6 mb-2">
+              Combining the power of Nostr with StarkNet&apos;s account abstraction
+            </h5>
+            <p className="text-sm leading-7 desktop:text-base desktop:leading-10">
+              AFK offers an unparalleled user experience. StarkNet&apos;s layer 2 scaling
+              solutions ensure smooth, cost-efficient transactions and interactions, while account
+              abstraction simplifies user authentication and management.
+            </p>
           </motion.div>
-        </div> */}
+        </div>
       </div>
     </div>
   );

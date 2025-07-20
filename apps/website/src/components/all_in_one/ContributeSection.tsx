@@ -38,7 +38,7 @@ export function ContributeSection() {
           See all issues on Github
           <img src="/assets/go-to.svg" alt="" />
         </a>
-
+{/* 
 
         <a
           href="https://afk-community.xyz"
@@ -49,7 +49,7 @@ export function ContributeSection() {
           }}
         >
            Go AFK
-        </a>
+        </a> */}
       </motion.div>
     </div>
   );
