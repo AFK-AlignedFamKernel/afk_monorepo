@@ -133,29 +133,39 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
           </div>
         )}
 
-        <button
-          onClick={handleAction}
-          disabled={loading || !amount}
-          className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${loading || !amount
-            ? 'bg-gray-400 cursor-not-allowed'
-            : typeAction === 'BUY'
-              ? 'bg-green-500 hover:bg-green-600'
-              : 'bg-red-500 hover:bg-red-600'
-            }`}
-        >
-          {loading ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            </div>
-          ) : (
-            `${typeAction} ${launch?.symbol || 'Token'}`
-          )}
-        </button>
+
+
+        {account &&
+          <>
+            <button
+              onClick={handleAction}
+              disabled={loading || !amount}
+              className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${loading || !amount
+                ? 'bg-gray-400 cursor-not-allowed'
+                : typeAction === 'BUY'
+                  ? 'bg-green-500 hover:bg-green-600'
+                  : 'bg-red-500 hover:bg-red-600'
+                }`}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                </div>
+              ) : (
+                `${typeAction} ${launch?.symbol || 'Token'}`
+              )}
+            </button>
+          </>
+        }
 
         {!account && (
           <WalletConnectButton></WalletConnectButton>
         )}
+        
       </div>
+
+
+
     </div>
   );
 }; 

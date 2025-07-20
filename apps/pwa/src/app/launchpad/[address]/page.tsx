@@ -138,7 +138,7 @@ export default function LaunchpadDetailPage() {
     { name: 'Overview', component: <Overview data={launchData} /> },
     { name: 'Holders', component: <Holders holders={holders} loading={loading} total_supply={launchData?.total_supply} /> },
     { name: 'Transactions', component: <Transactions transactions={transactions} loading={loading} /> },
-    { name: 'Chart', component: <ChartComponent candleData={chartData as any[]} loading={loading} /> },
+    { name: 'Chart', component: <ChartComponent candleData={chartData as any[]} loading={loading ?? false} tokenName={launchData?.symbol ?? 'Token'} theme={'dark'} /> },
     // { name: 'Chart', component: <Chart data={chartData} loading={loading} /> },
   ];
 

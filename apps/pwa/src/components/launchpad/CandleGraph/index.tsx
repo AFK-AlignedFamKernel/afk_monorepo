@@ -28,7 +28,7 @@ echarts.use([
   UniversalTransition,
 ]);
 
-const ChartComponent = ({ candleData = [], tokenName = 'Token', theme = 'dark' }: { candleData: any[], tokenName: string, theme: string }) => {
+const ChartComponent = ({ candleData = [], tokenName = 'Token', theme = 'dark', loading = false }: { candleData: any[], tokenName: string, theme: string, loading: boolean }) => {
 
   const chartRef = useRef<ReactEChartsCore>(null);
 
