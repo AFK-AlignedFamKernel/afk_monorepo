@@ -53,16 +53,6 @@ export const SubUserCard = ({ profile, contractAddress }: { profile: UserProfile
             >
 
 
-                <div>
-                    <p className={styles.userId}>
-                        {feltToAddress(BigInt(profile?.nostr_id))}
-                    </p>
-
-                    <p className={styles.userId}>
-                        {profile?.starknet_address}
-                    </p>
-                </div>
-
                 <div className="flex flex-row">
 
                     {profileNostr?.picture && (
@@ -74,10 +64,16 @@ export const SubUserCard = ({ profile, contractAddress }: { profile: UserProfile
                             {profileNostr?.displayName?.[0] || profileNostr?.name?.[0] || 'A'}
                         </div>
                     )}
-
-
+                    {/* <p className={styles.userId}>
+                        {profile?.nostr_id}
+                    </p> */}
 
                 </div>
+
+
+                <p className={styles.userId}>
+                    {profile?.starknet_address}
+                </p>
 
 
                 <h3 className={styles.userName}>

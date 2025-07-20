@@ -1,6 +1,6 @@
 
 import { Abi, decodeEvent, StarknetStream } from '@apibara/starknet';
-import { byteArray, encode, hash, uint256 } from 'starknet';
+import { byteArray, cairo, encode, hash, uint256 } from 'starknet';
 
 import {
   upsertContractState,
@@ -13,6 +13,7 @@ import {
 import { formatUnits } from 'viem';
 
 import { ABI as nostrFiScoringABI } from '../indexers/abi/infofi/score.abi';
+import { feltToAddress } from '@/utils/format';
 
 export const SUB_CREATED = hash.getSelectorFromName('TopicEvent') as `0x${string}`;
 export const NEW_EPOCH = hash.getSelectorFromName('NewEpochEvent') as `0x${string}`;
@@ -487,24 +488,24 @@ async function handlePushAlgoScoreEvent(event: any, contractAddress: string) {
 async function handleAddTopicsEvent(event: any, contractAddress: string) {
   try {
     console.log("handleAddTopicsEvent event", event);
-    
+
     // Convert byte arrays to strings, with fallbacks
-    const topicMetadata = event?.args?.topic_metadata 
+    const topicMetadata = event?.args?.topic_metadata
       ? byteArray.stringFromByteArray(event.args.topic_metadata)
       : "";
-    const mainTag = event?.args?.main_tag 
+    const mainTag = event?.args?.main_tag
       ? byteArray.stringFromByteArray(event.args.main_tag)
       : "";
-    const keyword = event?.args?.keyword 
+    const keyword = event?.args?.keyword
       ? byteArray.stringFromByteArray(event.args.keyword)
       : "";
-    
+
     console.log("Converted values:", {
       topicMetadata,
       mainTag,
       keyword
     });
-    
+
     await upsertContractState({
       contract_address: contractAddress,
       topic_metadata: topicMetadata,
@@ -520,30 +521,67 @@ async function handleAddTopicsEvent(event: any, contractAddress: string) {
 async function handleNostrMetadataEvent(event: any, contractAddress: string) {
   try {
     console.log("handleNostrMetadataEvent event", event);
-    
+
     // Convert BigInt values to strings
-    const eventIdNip29 = event?.args?.event_id_nip_29 
-      ? event.args.event_id_nip_29.toString() 
+    const eventIdNip29 = event?.args?.event_id_nip_29
+      ? event.args.event_id_nip_29.toString()
       : "0";
-    const eventIdNip72 = event?.args?.event_id_nip_72 
-      ? event.args.event_id_nip_72.toString() 
+
+    console.log("eventIdNip29 handleNostrMetadataEvent", eventIdNip29);
+    const eventIdNip72 = event?.args?.event_id_nip_72
+      ? event.args.event_id_nip_72.toString()
       : "0";
-    
-    // Convert byte arrays to strings, with fallbacks
-    const mainTag = event?.args?.main_tag 
-      ? byteArray.stringFromByteArray(event.args.main_tag)
-      : "";
-    const about = event?.args?.about 
-      ? byteArray.stringFromByteArray(event.args.about)
-      : "";
-    
+    console.log("eventIdNip72 handleNostrMetadataEvent", eventIdNip72);
+
+    let mainTag = "";
+    let about = "";
+    // Convert main_tag and about from hex (felt) to string if needed
+    try {
+      // Try to decode as byte array first
+      // mainTag = event?.args?.main_tag
+      //   ? byteArray.stringFromByteArray(event.args.main_tag)
+      //   : "";
+
+      // If mainTag is still empty and the input looks like a hex string, decode it
+      if (
+        !mainTag &&
+        typeof event?.args?.main_tag === "string" &&
+        event.args.main_tag.startsWith("0x")
+      ) {
+        // Remove 0x and decode hex to string
+        const hex = event.args.main_tag.slice(2);
+        // Convert hex to buffer, then to utf8 string
+        mainTag = Buffer.from(hex, "hex").toString("utf8").replace(/\0/g, "");
+      }
+
+      console.log("mainTag handleNostrMetadataEvent", mainTag);
+
+      // about = event?.args?.about
+      //   ? byteArray.stringFromByteArray(event.args.about)
+      //   : "";
+
+      if (
+        !about &&
+        typeof event?.args?.about === "string" &&
+        event.args.about.startsWith("0x")
+      ) {
+        const hex = event.args.about.slice(2);
+        about = Buffer.from(hex, "hex").toString("utf8").replace(/\0/g, "");
+      }
+
+      console.log("about handleNostrMetadataEvent", about);
+    } catch (error) {
+      console.log("error handleNostrMetadataEvent", error);
+    }
+
+
     console.log("Converted values:", {
       mainTag,
       about,
       eventIdNip29,
       eventIdNip72
     });
-    
+
     await upsertContractState({
       contract_address: contractAddress,
       name: mainTag,

@@ -275,3 +275,13 @@
   color: var(--foreground);
   @apply text-lg font-semibold mb-3;
 }
+
+.userId {
+  color: var(--shade-600);
+  @apply text-sm mb-3 overflow-hidden text-ellipsis whitespace-nowrap;
+}
+
+.starknetAddress {
+  color: var(--afk-accent-green);
+  @apply text-sm mb-3 overflow-hidden text-ellipsis whitespace-nowrap;
+}

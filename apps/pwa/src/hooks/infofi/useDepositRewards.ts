@@ -4,6 +4,7 @@ import { useAuth, useNostrContext } from 'afk_nostr_sdk';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
 import { TOKENS_ADDRESS, NOSTR_FI_SCORING_ADDRESS } from 'common';
+import { formatFloatToUint256 } from '@/utils/format';
 
 
 // const TOKENS_ADDRESS = {
@@ -40,11 +41,7 @@ const prepareAndConnectContract = async (
   return null;
 };
 
-// Helper function to format float to uint256
-const formatFloatToUint256 = (value: number) => {
-  // This is a placeholder - implement actual formatting
-  return { low: value.toString(), high: '0' };
-};
+
 
 export const useDepositRewards = () => {
   const { account } = useAccount();
@@ -86,8 +83,9 @@ export const useDepositRewards = () => {
         console.log('Quote token address:', quoteAddress);
 
         // Format amounts
-        const amountToken = formatFloatToUint256(Number(voteParams.amount_token));
+        const amountToken = formatFloatToUint256(Number(voteParams.amount), 18);
 
+        console.log("amountToken", amountToken);
         // Prepare approve call data
         const approveCallData = {
           contractAddress: quoteAddress,

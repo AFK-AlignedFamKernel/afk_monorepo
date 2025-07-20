@@ -25,7 +25,7 @@ export const SubPage: React.FC<SubPageProps> = ({
   const [nostrAddress, setNostrAddress] = useState<string>('');
   const { handleLinkNamespaceScoring, isLinkingNamespace } = useNamespace();
   const { handleDepositRewards, isDepositing } = useDepositRewards();
-  const { account } = useAccount();
+  const { account, address } = useAccount();
 
   const [isViewProfile, setIsViewProfile] = useState<boolean>(false);
 
@@ -111,20 +111,9 @@ export const SubPage: React.FC<SubPageProps> = ({
         </div>
       </div>
 
-      <div className="mt-4 text-xs font-mono">
+      <div className="mt-4 text-xs font-mono overflow-hidden text-ellipsis whitespace-nowrap">
         {subInfo.contract_address}
       </div>
-
-
-      {isButtonInstantiateEnable && (
-        <button
-          onClick={handleSubscription}
-          className={styles.subscribeButton}
-          disabled={isLinkingNamespace}
-        >
-          {isLinkingNamespace ? 'Subscribing...' : 'Subscribe to InfoFi'}
-        </button>
-      )}
 
 
       <div className={styles.epochSection}>
@@ -165,7 +154,15 @@ export const SubPage: React.FC<SubPageProps> = ({
           })}
         </div>
       </div>
-
+      {isButtonInstantiateEnable && (
+        <button
+          onClick={handleSubscription}
+          className={styles.subscribeButton}
+          disabled={isLinkingNamespace}
+        >
+          {isLinkingNamespace ? 'Subscribing...' : 'Subscribe to InfoFi'}
+        </button>
+      )}
 
       <div>
         <button onClick={() => setIsViewProfile(!isViewProfile)}>
@@ -177,7 +174,7 @@ export const SubPage: React.FC<SubPageProps> = ({
             <h3 className={styles.epochTitle}>Profile</h3>
             {subDetailsData?.profiles?.map((profile: UserProfile, index: number) => {
               return (
-               <SubUserCard profile={profile} key={index} contractAddress={subInfo?.contract_address} />
+                <SubUserCard profile={profile} key={index} contractAddress={subInfo?.contract_address} />
               )
             })}
           </div>
@@ -204,7 +201,7 @@ export const SubPage: React.FC<SubPageProps> = ({
             className={styles.depositInput}
           />
 
-          {account?.address ?
+          {address ?
             <button
               onClick={handleDeposit}
               className={styles.depositButton}

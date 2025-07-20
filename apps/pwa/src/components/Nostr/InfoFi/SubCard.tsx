@@ -45,13 +45,13 @@ export const SubCard: React.FC<SubCardProps> = ({
       }}
     >
       <div>
-        <h3 className={styles.subCardTitle}>
+        <h3 className={styles.subCardTitle + "overflow-hidden text-ellipsis whitespace-nowrap"}>
           {subInfo.name}
         </h3>
-        <span className={styles.subCardTag}>
+        <span className={styles.subCardTag + "overflow-hidden text-ellipsis whitespace-nowrap"}>
           {subInfo.main_tag}
         </span>
-        <p className="mt-2 text-sm">
+        <p className="mt-2 text-sm overflow-hidden text-ellipsis whitespace-nowrap">
           {subInfo.about}
         </p>
       </div>
@@ -65,7 +65,7 @@ export const SubCard: React.FC<SubCardProps> = ({
         </div>
       </div>
       
-      <div className="mt-4 text-xs font-mono">
+      <div className="mt-4 text-xs font-mono overflow-hidden text-ellipsis whitespace-nowrap">
         {subInfo.contract_address}
       </div>
     </div>
