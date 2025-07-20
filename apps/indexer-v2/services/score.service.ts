@@ -117,17 +117,20 @@ export const handleEvent = async (event: any, contractAddress: string) => {
     console.log("decodedEvent", decodedEvent);
 
     return await handleTipUserEvent(decodedEvent, event.address);
-  } else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS) || event?.keys[0] == LINKED_ADDRESS || encode.sanitizeHex(event?.keys[0]) == LINKED_ADDRESS || LINKED_ADDRESS.includes(event.keys[0].slice(4, 64))) {
+  }   else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS) || event?.keys[0] == LINKED_ADDRESS || encode.sanitizeHex(event?.keys[0]) == LINKED_ADDRESS || LINKED_ADDRESS.includes(event.keys[0].slice(4, 64))) {
     console.log("LINKED_ADDRESS");
     console.log("event find",);
 
     const decodedEvent = decodeEvent({
       abi: nostrFiScoringABI as Abi,
       event,
-      eventName: eventName ?? "afk::infofi::nostrfi_scoring::NostrFiScoring::LinkedDefaultStarknetAddressEvent",
+      eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::LinkedDefaultStarknetAddressEvent",
+      // eventName: eventName ?? "afk::infofi::nostrfi_scoring::NostrFiScoring::LinkedDefaultStarknetAddressEvent",
     });
     console.log("decodedEvent", decodedEvent);
-    console.log("LINKED_ADDRESS", decodedEvent);
+    console.log("decodedEvent.args", decodedEvent?.args);
+    console.log("decodedEvent.args.nostr_address", decodedEvent?.args?.nostr_address);
+    console.log("decodedEvent.args.starknet_address", decodedEvent?.args?.starknet_address);
     return await handleLinkedAddressEvent(decodedEvent, event.address);
   } else if (event?.keys[0] == encode.sanitizeHex(PUSH_ALGO_SCORE)) {
     console.log("PUSH_ALGO_SCORE");
@@ -254,26 +257,26 @@ function getEventName(eventKey: string): string | undefined {
 async function handleNewEpochEvent(event: any, contractAddress: string) {
   try {
     console.log("handleNewEpochEvent", event);
-    let startDurationBn= event?.args?.start_duration;
+    let startDurationBn = event?.args?.start_duration;
     let endDurationBn = event?.args?.end_duration;
     let epochDurationBn = event?.args?.epoch_duration;
-    let startDuration = formatUnits(startDurationBn, 18);
-    let endDuration = formatUnits(endDurationBn, 18);
-    let epochDuration = Number(formatUnits(epochDurationBn, 18));
+    
+    // Convert BigInt timestamps to numbers (Unix timestamps are in seconds)
+    let startDuration = Number(startDurationBn);
+    let endDuration = Number(endDurationBn);
+    let epochDuration = Number(epochDurationBn);
+    
     console.log("startDuration", startDuration);
     console.log("endDuration", endDuration);
     console.log("epochDuration", epochDuration);
-    // let epochDurationDate = new Date(epochDuration);
-    // let startDurationDate = new Date(startDuration);
-    // let endDurationDate = new Date(endDuration);
 
-    let epochDurationDate = new Date(epochDuration);
-    let startDurationDate = new Date(startDuration);
-    let endDurationDate = new Date(endDuration);
+    // Convert Unix timestamps to Date objects (multiply by 1000 for milliseconds)
+    let startDurationDate = new Date(startDuration * 1000);
+    let endDurationDate = new Date(endDuration * 1000);
 
-    console.log("epochDurationDate", epochDurationDate);
     console.log("startDurationDate", startDurationDate);
     console.log("endDurationDate", endDurationDate);
+    
     const contractResult = await upsertContractState({
       contract_address: contractAddress,
       current_epoch_index: event.args?.current_index_epoch,
@@ -288,7 +291,7 @@ async function handleNewEpochEvent(event: any, contractAddress: string) {
 
     const epochResult = await upsertEpochState({
       contract_address: contractAddress,
-      epoch_index: event.current_epoch_index,
+      epoch_index: event.args?.current_index_epoch,
       start_time: startDurationDate,
       end_time: endDurationDate,
       epoch_duration: epochDuration,
@@ -412,14 +415,38 @@ async function handleTipUserEvent(event: any, contractAddress: string) {
 
 async function handleLinkedAddressEvent(event: any, contractAddress: string) {
   try {
-    if (event.nostr_address) {
-      await upsertUserProfile({
-        nostr_id: event?.args?.nostr_address,
-        starknet_address: event?.args?.starknet_address,
+    console.log("handleLinkedAddressEvent", event);
+    console.log("event.args", event?.args);
+    
+    if (event?.args?.nostr_address) {
+      // Convert BigInt to string if needed
+      const nostrAddress = typeof event.args.nostr_address === 'bigint' 
+        ? event.args.nostr_address.toString() 
+        : event.args.nostr_address;
+      
+      const starknetAddress = typeof event.args.starknet_address === 'bigint' 
+        ? event.args.starknet_address.toString() 
+        : event.args.starknet_address;
+      
+      console.log("Processing nostr_address:", nostrAddress);
+      console.log("Processing starknet_address:", starknetAddress);
+      console.log("nostr_address type:", typeof nostrAddress);
+      console.log("starknet_address type:", typeof starknetAddress);
+      
+      const result = await upsertUserProfile({
+        nostr_id: nostrAddress,
+        starknet_address: starknetAddress,
+        contract_address: contractAddress,
       });
+      
+      console.log("upsertUserProfile result:", result);
+    } else {
+      console.log("No nostr_address found in event.args");
     }
+    console.log("handleLinkedAddressEvent end");
   } catch (error) {
     console.log("error handleLinkedAddressEvent", error);
+    console.error("Full error details:", error);
   }
 }
 

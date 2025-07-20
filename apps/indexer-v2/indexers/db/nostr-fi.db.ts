@@ -52,6 +52,7 @@ interface UserProfileData {
   total_vote_score?: string;
   amount_claimed?: string;
   is_add_by_admin?: boolean;
+  contract_address?: string;
 }
 
 interface UserEpochStateData {
@@ -230,28 +231,19 @@ export async function upsertEpochState(data: EpochStateData) {
 export async function upsertUserProfile(data: UserProfileData) {
   const { db } = useDrizzleStorage();
   try {
-    return db.insert(userProfile).values(data).onConflictDoNothing();
-    // const tx = await db.transaction(async (tx) => {
-    //   const result = await tx
-    //     .insert(userProfile)
-    //     .values({
-    //       ...data,
-    //       created_at: new Date(),
-    //       updated_at: new Date(),
-    //       id: randomUUID(),
-    //     })
-    //     .onConflictDoUpdate({
-    //       target: userProfile.nostr_id,
-    //       set: {
-    //         ...data,
-    //         updated_at: new Date(),
-    //       },
-    //     });
-    //   return result;
-    // });
-    // return tx;
+    console.log("upsertUserProfile called with data:", data);
+    const result = await db.insert(userProfile).values(data).onConflictDoUpdate({
+      target: userProfile.nostr_id,
+      set: {
+        ...data,
+        updated_at: new Date(),
+      },
+    });
+    console.log("upsertUserProfile result:", result);
+    return result;
   } catch (error) {
     console.error("Error in upsertUserProfile:", error);
+    console.error("Full error details:", error);
     return null; // Return null instead of crashing
   }
 }
