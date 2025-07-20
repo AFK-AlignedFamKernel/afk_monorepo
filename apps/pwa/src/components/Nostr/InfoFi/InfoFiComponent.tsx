@@ -7,8 +7,8 @@ import styles from '@/styles/nostr/infofi-nostr.module.scss';
 import { AllSubsComponent } from './AllSubsComponent';
 import { useDataInfoMain, useGetAllTipUser, useNamespace } from '@/hooks/infofi';
 import CryptoLoading from '@/components/small/crypto-loading';
-// import { AfkSubCard } from './AfkSubCard';
-// import { AfkSubMain } from './AfkSubMain';
+import { AfkSubCard } from './AfkSubCard';
+import { AfkSubMain } from './AfkSubMain';
 // import { UserCard } from './UserCard';
 // import { useProfile } from 'afk_nostr_sdk';
 
@@ -58,7 +58,8 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
 }) => {
   const { account } = useAccount();
   const [isOpenAfkMain, setIsOpenAfkMain] = useState(false);
-  
+
+  const [isViewAfkCardMain, setIsViewAfkCardMain] = useState(false);
   // Use real hooks instead of mock data
   const { allData, isLoading: isLoadingData, isError: isErrorData } = useDataInfoMain();
   const { data: allUsers, isLoading: isLoadingUsers, isError: isErrorUsers } = useGetAllTipUser();
@@ -105,7 +106,7 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
   return (
     <div className={styles.container}>
       <div className={styles.mainCard}>
-        {isButtonInstantiateEnable && (
+        {/* {isButtonInstantiateEnable && (
           <button
             onClick={handleSubscription}
             className={styles.subscribeButton}
@@ -113,11 +114,14 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
           >
             {isLinkingNamespace ? 'Subscribing...' : 'Subscribe to InfoFi'}
           </button>
-        )}
+        )} */}
 
-        {/* <AfkSubCard
+        <AfkSubCard
           subInfo={allData?.aggregations}
-          onPress={() => setIsOpenAfkMain(!isOpenAfkMain)}
+          onPress={() => {
+            setIsViewAfkCardMain(!isViewAfkCardMain);
+            setIsOpenAfkMain(!isOpenAfkMain);
+          }}
         />
 
         {isOpenAfkMain && (
@@ -126,9 +130,13 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
             allUsers={allUsers}
             isButtonInstantiateEnable={isButtonInstantiateEnable}
           />
-        )} */}
+        )}
 
-        <AllSubsComponent />
+        <h3 className={styles.epochTitle}>All contests</h3>
+
+        <AllSubsComponent
+          onHandleSubPress={() => setIsOpenAfkMain(!isOpenAfkMain)}
+        />
       </div>
     </div>
   );

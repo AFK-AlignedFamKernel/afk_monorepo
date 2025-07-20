@@ -16,11 +16,15 @@ interface SubData {
   total_amount_deposit: string;
 }
 
-interface AllSubsComponentProps { }
+interface AllSubsComponentProps { 
+  onHandleSubPress?: (subAddress: string) => void;
+}
 
 
 
-export const AllSubsComponent: React.FC<AllSubsComponentProps> = () => {
+export const AllSubsComponent: React.FC<AllSubsComponentProps> = ({
+  onHandleSubPress,
+}) => {
   const [refreshing, setRefreshing] = useState(false);
 
   // Use real hook instead of mock data
@@ -39,6 +43,7 @@ export const AllSubsComponent: React.FC<AllSubsComponentProps> = () => {
     // TODO: Navigate to sub page
     console.log('Navigate to sub:', subAddress);
     setSelectedSub(subAddress);
+    onHandleSubPress?.(subAddress);
   };
 
   const formatDecimal = (value: any) => {
@@ -71,9 +76,7 @@ export const AllSubsComponent: React.FC<AllSubsComponentProps> = () => {
 
   return (
     <div className="mt-6">
-      <h3 className={styles.epochTitle}>All Subscriptions</h3>
       <div className="space-y-4">
-
         {!selectedSub && (
           allSubs?.map((sub: any) => (
             <SubCard
@@ -100,6 +103,7 @@ export const AllSubsComponent: React.FC<AllSubsComponentProps> = () => {
             </button>
             <SubPage
               subInfo={selectedSub}
+              // isButtonInstantiateEnable={true}
             />
           </>
         )}

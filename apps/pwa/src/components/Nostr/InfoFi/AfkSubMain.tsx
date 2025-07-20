@@ -142,19 +142,7 @@ export const AfkSubMain: React.FC<AfkSubMainProps> = ({
             <div key={epoch.epoch_index} className={styles.epochCard}>
               <h4 className={styles.epochCardTitle}>Epoch {epoch.epoch_index}</h4>
               <div className={styles.epochStats}>
-                <div className={styles.epochStat}>
-                  <span className={styles.epochStatLabel}>AI Score</span>
-                  <div className={styles.epochStatValue}>
-                    {formatDecimal(epoch.total_ai_score)}
-                  </div>
-                </div>
-                <div className={styles.epochStat}>
-                  <span className={styles.epochStatLabel}>Vote Score</span>
-                  <div className={styles.epochStatValue}>
-                    {formatDecimal(epoch.total_vote_score)}
-                  </div>
-                </div>
-                <div className={styles.epochStat}>
+              <div className={styles.epochStat}>
                   <span className={styles.epochStatLabel}>Deposits</span>
                   <div className={styles.epochStatValue}>
                     {formatDecimal(epoch.total_amount_deposit)}
@@ -166,6 +154,20 @@ export const AfkSubMain: React.FC<AfkSubMainProps> = ({
                     {formatDecimal(epoch.total_tip)}
                   </div>
                 </div>
+                {/* <div className={styles.epochStat}>
+                  <span className={styles.epochStatLabel}>AI Score</span>
+                  <div className={styles.epochStatValue}>
+                    {formatDecimal(epoch.total_ai_score)}
+                  </div>
+                </div> */}
+                <div className={styles.epochStat}>
+                  <span className={styles.epochStatLabel}>Vote Score</span>
+                  <div className={styles.epochStatValue}>
+                    {formatDecimal(epoch.total_vote_score)}
+                  </div>
+                </div>
+             
+              
               </div>
             </div>
           ))}

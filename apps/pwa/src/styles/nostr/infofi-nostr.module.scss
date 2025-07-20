@@ -193,6 +193,10 @@
   .epochCard {
     @apply min-w-[240px];
   }
+
+  .epochStats {
+    @apply grid-cols-1 gap-3;
+  }
   
   .profileContainer {
     @apply flex-col items-center text-center;

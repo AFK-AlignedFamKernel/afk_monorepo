@@ -5,23 +5,19 @@ import styles from '@/styles/nostr/infofi-nostr.module.scss';
 import { useNamespace, useDepositRewards, useVoteTip, useScoreContractFactoryData, useGetSubInfo } from '@/hooks/infofi';
 import { useAccount } from '@starknet-react/core';
 import { WalletConnectButton } from '@/components/account/WalletConnectButton';
+import { SubInfo, Epoch, UserProfile } from '@/types/infofi';
 
-interface SubInfo {
-  contract_address: string;
-  name: string;
-  about: string;
-  main_tag: string;
-  total_amount_deposit: string;
-}
 
 interface SubPageProps {
   subInfo: SubInfo;
   onPress?: () => void;
+  isButtonInstantiateEnable?: boolean;
 }
 
 export const SubPage: React.FC<SubPageProps> = ({
   subInfo,
-  onPress
+  onPress,
+  isButtonInstantiateEnable = true,
 }) => {
 
   const [amount, setAmount] = useState<string>('');
@@ -77,7 +73,7 @@ export const SubPage: React.FC<SubPageProps> = ({
 
   // console.log("subInfo", subInfo);
   return (
-    <div 
+    <div
       className={styles.afkSubCard}
       onClick={handleClick}
       role="button"
@@ -100,7 +96,7 @@ export const SubPage: React.FC<SubPageProps> = ({
           {subInfo?.about}
         </p>
       </div>
-      
+
       <div className="mt-4">
         <div className={styles.overviewItem}>
           <span className={styles.overviewLabel}>Total Deposits</span>
@@ -109,10 +105,62 @@ export const SubPage: React.FC<SubPageProps> = ({
           </div>
         </div>
       </div>
-      
+
       <div className="mt-4 text-xs font-mono">
         {subInfo.contract_address}
       </div>
+
+
+      {isButtonInstantiateEnable && (
+        <button
+          onClick={handleSubscription}
+          className={styles.subscribeButton}
+          disabled={isLinkingNamespace}
+        >
+          {isLinkingNamespace ? 'Subscribing...' : 'Subscribe to InfoFi'}
+        </button>
+      )}
+
+
+      <div className={styles.epochSection}>
+        <div className={styles.epochScroll}>
+          {subDetailsData?.epochs?.map((epoch: Epoch) => {
+            return (
+              <div key={epoch.id} className={styles.epochCard}>
+                <h4 className={styles.epochCardTitle}>Epoch {epoch.epoch_index}</h4>
+                <div className={styles.epochStats}>
+                  <div className={styles.epochStat}>
+                    <div className={styles.epochStat}>
+                      <span className={styles.epochStatLabel}>Amount Deposited</span>
+                      <div className={styles.epochStatValue}>
+                        {formatDecimal(epoch.total_amount_deposit)}
+                      </div>
+                    </div>
+                    <span className={styles.epochStatLabel}>AI Score</span>
+                    <div className={styles.epochStatValue}>
+                      {formatDecimal(epoch.total_ai_score)}
+                    </div>
+                  </div>
+                  <div className={styles.epochStat}>
+                    <span className={styles.epochStatLabel}>Vote Score</span>
+                    <div className={styles.epochStatValue}>
+                      {formatDecimal(epoch.total_vote_score)}
+                    </div>
+                  </div>
+                  <div className={styles.epochStat}>
+                    <span className={styles.epochStatLabel}>Vote Score</span>
+                    <div className={styles.epochStatValue}>
+                      {formatDecimal(epoch.total_vote_score)}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
 
       <div className={styles.depositSection}>
         <h3 className={styles.epochTitle}>Deposit Rewards</h3>
