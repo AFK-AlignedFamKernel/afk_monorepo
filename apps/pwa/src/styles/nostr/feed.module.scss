@@ -280,8 +280,9 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   display: flex;
   align-items: center;
   width: 100%;
-  background: var(--afk-bg, #fff);
-  border: 1.5px solid var(--afk-border, #e5e7eb);
+  background: var(--background);
+  border: 1.5px solid var(--border);
+  color: var(--text-primary);
   border-radius: 999px;
   padding: 0.25rem 0.5rem 0.25rem 1rem;
   margin: 0.5rem 0 0.5rem 0;
@@ -296,7 +297,7 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   background: transparent;
   border: none;
   outline: none;
-  color: var(--afk-text, #222);
+  color: var(--text-primary);
   font-size: 1rem;
   padding: 0.5rem 0.5rem 0.5rem 0;
   flex: 1 1 0%;
@@ -352,8 +353,8 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   padding: 0 1rem;
   border-radius: 999px;
   border: 1.5px solid var(--afk-border, #444);
-  background: var(--afk-bg-secondary, #f3f4f6);
-  color: var(--afk-text, #222);
+  background: var(--background, #f3f4f6);
+  color: var(--text-primary, #222);
   font-size: 0.97rem;
   font-weight: 500;
   cursor: pointer;
@@ -361,10 +362,21 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   user-select: none;
   white-space: nowrap;
 }
+
+.dark-mode {
+  .feed {
+    .nostr-tag {
+      border-color: var(--afk-border, #444);
+      background: var(--afk-bg-secondary, #f3f4f6);
+      color: var(--afk-text, #222);
+    }
+  }
+  
+}
 .nostr-tag.selected {
-  background: var(--afk-primary, #22c55e);
+  background: var(--afk-bg-secondary, #22c55e);
   color: #fff;
-  border-color: var(--afk-primary, #22c55e);
+  border-color: var(--afk-bg-secondary, #22c55e);
   box-shadow: 0 2px 8px var(--afk-primary-alpha, rgba(34,197,94,0.12));
 }
 .nostr-tag:hover:not(.selected),
@@ -497,6 +509,7 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   }
 }
 
+
 // Ensure high contrast in dark mode
 .dark-mode .eventCard {
   // background-color: var(--card-bg, #181a20);
@@ -534,6 +547,22 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     --primary-color: #93c5fd;
     --hover-bg: #374151;
   }
+
+  .feed {
+    .nostr-tag {
+      border-color: var(--afk-border, #444);
+      background: var(--afk-bg-secondary, #f3f4f6);
+      color: var(--afk-text, #222);
+    }
+  }
+
+  .nostr-tag {
+    border-color: var(--afk-border, #444);
+    background: var(--afk-bg-secondary, #f3f4f6);
+    color: var(--afk-text, #222);
+  }
+  
+  
 }
 
 .nostr-short-feed {
