@@ -10,7 +10,7 @@ import { Icon } from '@/components/small/icon-component'
 import Image from 'next/image'
 
 export default function NostrProfilePage({ address }: { address: string }) {
-  console.log("address", address)
+  // console.log("address", address)
   const { ndk } = useNostrContext();
   const { publicKey } = useAuth();
   const {
@@ -221,6 +221,8 @@ const ProfileHeader = (props?: any) => {
     }
   }
 
+
+  console.log("profile", profile)
   return (
     <div>
       <div className="flex items-center gap-4">
@@ -235,7 +237,7 @@ const ProfileHeader = (props?: any) => {
         )}
         <div>
           <p className="text-2xl font-bold mb-4">
-            {profile?.display_name || profile?.name || 'Anonymous'}
+            {profile?.displayName || profile?.name || profile?.username || profile?.userName || 'Anonymous'}
           </p>
           {profile?.lud06 && (
             <p className="text-sm font-bold mb-4 text-gray-500">
