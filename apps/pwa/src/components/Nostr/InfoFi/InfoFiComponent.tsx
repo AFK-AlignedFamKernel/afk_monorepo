@@ -116,7 +116,7 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
           </button>
         )} */}
 
-        {isViewAfkCardMain && (
+        {/* {isViewAfkCardMain && (
           <AfkSubCard
             subInfo={allData?.aggregations}
             onPress={() => {
@@ -132,7 +132,7 @@ export const InfoFiComponent: React.FC<InfoFiComponentProps> = ({
             allUsers={allUsers}
             isButtonInstantiateEnable={isButtonInstantiateEnable}
           />
-        )}
+        )} */}
 
         <h3 className={styles.epochTitle}>All contests</h3>
 
