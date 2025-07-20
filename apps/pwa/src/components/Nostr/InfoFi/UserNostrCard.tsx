@@ -7,40 +7,13 @@ import { formatUnits } from 'viem';
 import styles from '@/styles/nostr/infofi-nostr.module.scss';
 import { useVoteTip } from '@/hooks/infofi';
 import { cairo } from 'starknet';
+import { UserNostrCardProps, VoteParams } from '@/types/infofi';
 
-interface UserInfo {
-  nostr_id: string;
-  total_ai_score: string;
-  total_vote_score: string;
-  starknet_address?: string;
-  is_add_by_admin?: boolean;
-  epoch_states?: any[];
-}
-
-interface VoteParams {
-  nostr_address?: string;
-  vote: string;
-  is_upvote?: boolean;
-  upvote_amount: string;
-  downvote_amount: string;
-  amount: string;
-  amount_token: string;
-}
-
-interface UserNostrCardProps {
-  profile?: NDKUserProfile | null | undefined;
-  profileIndexer?: UserInfo;
-  contractAddress?: string;
-  event?: any;
-  isRepostProps?: boolean;
-  isBookmarked?: boolean;
-  isReplyView?: boolean;
-  isArticle?: boolean;
-}
 
 export const UserNostrCard: React.FC<UserNostrCardProps> = ({ 
   profile, 
   profileIndexer, 
+  profileNostr,
   contractAddress 
 }) => {
   const { account } = useAccount();
@@ -87,14 +60,14 @@ export const UserNostrCard: React.FC<UserNostrCardProps> = ({
               className="focus:outline-none"
             >
               <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-400 to-cyan-500 flex items-center justify-center text-white font-semibold">
-                {profile?.displayName?.[0] || profile?.name?.[0] || 'A'}
+                {profileNostr?.displayName?.[0] || profileNostr?.name?.[0] || 'A'}
               </div>
             </button>
           </div>
 
           <div className={styles.infoSection}>
             <h3 className={styles.userName}>
-              {profile?.displayName || profile?.name || 'Anonymous'}
+              {profileNostr?.displayName || profileNostr?.name || 'Anonymous'}
             </h3>
             
             <p className={styles.userId}>
@@ -109,15 +82,15 @@ export const UserNostrCard: React.FC<UserNostrCardProps> = ({
               Vote Score: {profileIndexer?.total_vote_score}
             </p>
 
-            {profile?.nip05 && (
+            {profileNostr?.nip05 && (
               <p className={styles.userId}>
-                @{profile.nip05}
+                @{profileNostr.nip05}
               </p>
             )}
 
-            {profile?.about && (
+            {profileNostr?.about && (
               <p className={styles.userBio}>
-                {profile.about}
+                {profileNostr.about}
               </p>
             )}
           </div>

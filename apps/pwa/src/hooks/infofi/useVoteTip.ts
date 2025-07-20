@@ -52,9 +52,9 @@ export const useVoteTip = () => {
       voteParams: VoteParams;
       contractAddress?: string;
     }) => {
-      if (!account?.address) {
-        throw new Error('No account connected');
-      }
+      // if (!account?.address) {
+      //   throw new Error('No account connected');
+      // }
 
       try {
         const addressContract = contractAddress ??
@@ -100,6 +100,8 @@ export const useVoteTip = () => {
           amount_token: amountToken,
         });
 
+        console.log("voteCallData", voteCallData);
+
         const vote = {
           contractAddress: addressContract,
           entrypoint: 'vote_nostr_profile_starknet_only',
@@ -108,7 +110,7 @@ export const useVoteTip = () => {
 
         // Execute transaction
         // This is a placeholder - implement actual transaction execution
-        const tx = await account.execute([approveCallData,
+        const tx = await account?.execute([approveCallData,
           vote
 
         ]);
@@ -130,7 +132,7 @@ export const useVoteTip = () => {
     onSuccess: (data) => {
       showToast({
         message: 'Success',
-        description: `Vote and tip submitted successfully! Hash: ${data.transaction_hash}`,
+        description: `Vote and tip submitted successfully! Hash: ${data?.transaction_hash}`,
         type: 'success',
       });
       // Invalidate relevant queries
@@ -153,6 +155,8 @@ export const useVoteTip = () => {
     }) => {
 
       try {
+
+        console.log("account", account);
         if (!account?.address) {
           throw new Error('No account connected');
         }
@@ -163,6 +167,7 @@ export const useVoteTip = () => {
 
         console.log('StarkNet only contract address:', addressContract);
 
+        console.log("voteParams", voteParams);
         // Get quote token address (STRK or ETH)
         let quoteAddress = TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].STRK ??
           TOKENS_ADDRESS[constants.StarknetChainId.SN_SEPOLIA].ETH ?? '';
@@ -171,7 +176,6 @@ export const useVoteTip = () => {
           throw new Error('No quote token address found');
         }
 
-        console.log("voteParams", voteParams);
         // Format amounts
         const amountToken = formatFloatToUint256(Number(voteParams.amount_token));
         const amount = formatFloatToUint256(Number(voteParams.amount_token));
@@ -188,6 +192,7 @@ export const useVoteTip = () => {
           }),
         };
 
+        console.log("approveCallData", approveCallData);
         // Prepare StarkNet only vote call data
         const voteEnum = voteParams.vote === 'good' ? new CairoCustomEnum({ Good: {} }) : new CairoCustomEnum({ Bad: {} });
 
@@ -222,7 +227,7 @@ export const useVoteTip = () => {
         // This is a placeholder - implement actual transaction execution
         const tx = await account.execute([
           approveCallData,
-          vote
+          // vote
 
 
         ]);

@@ -262,3 +262,16 @@
     @apply pb-3 last:border-b-0;
   }
 }
+
+
+
+.subUserCard {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  @apply rounded-lg p-4 min-w-[280px];
+}
+
+.subUserCardTitle {
+  color: var(--foreground);
+  @apply text-lg font-semibold mb-3;
+}

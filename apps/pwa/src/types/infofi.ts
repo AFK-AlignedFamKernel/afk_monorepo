@@ -1,3 +1,5 @@
+import { NDKUserProfile } from "@nostr-dev-kit/ndk";
+
 export interface SubInfo {
   contract_address: string;
   name: string;
@@ -27,7 +29,44 @@ export interface Epoch {
 }
 
 export interface UserProfile {
-  id: string;
-  name: string;
-  description: string;
+  nostr_id: string;
+  starknet_address: string;
+  total_ai_score: string;
+  total_tip: string;
+  total_vote_score: string;
+  amount_claimed: string;
+  created_at: string;
+  updated_at: string;
+}
+
+
+export interface UserInfo {
+  nostr_id: string;
+  total_ai_score: string;
+  total_vote_score: string;
+  starknet_address?: string;
+  is_add_by_admin?: boolean;
+  epoch_states?: any[];
+}
+
+export interface VoteParams {
+  nostr_address?: string;
+  vote: string;
+  is_upvote?: boolean;
+  upvote_amount: string;
+  downvote_amount: string;
+  amount: string;
+  amount_token: string;
+}
+
+export interface UserNostrCardProps {
+  profile?: UserProfile | null | undefined;
+  profileIndexer?: UserInfo;
+  profileNostr?: NDKUserProfile;
+  contractAddress?: string;
+  event?: any;
+  isRepostProps?: boolean;
+  isBookmarked?: boolean;
+  isReplyView?: boolean;
+  isArticle?: boolean;
 }

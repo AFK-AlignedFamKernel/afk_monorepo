@@ -6,6 +6,7 @@ import { useProfile } from 'afk_nostr_sdk';
 import { formatUnits } from 'viem';
 import styles from '@/styles/nostr/infofi-nostr.module.scss';
 import { UserNostrCard } from './UserNostrCard';
+import { NDKUserProfile } from '@nostr-dev-kit/ndk';
 
 interface UserInfo {
   nostr_id: string;
@@ -55,7 +56,7 @@ export const UserCard: React.FC<UserCardProps> = ({
     <div className={styles.userCard}>
       <div className={styles.card}>
         <UserNostrCard 
-          profile={profile} 
+          profileNostr={profile as NDKUserProfile} 
           profileIndexer={userInfo} 
           contractAddress={contractAddress} 
         />

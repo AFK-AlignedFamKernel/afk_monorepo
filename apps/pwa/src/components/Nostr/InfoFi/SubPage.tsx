@@ -6,6 +6,7 @@ import { useNamespace, useDepositRewards, useVoteTip, useScoreContractFactoryDat
 import { useAccount } from '@starknet-react/core';
 import { WalletConnectButton } from '@/components/account/WalletConnectButton';
 import { SubInfo, Epoch, UserProfile } from '@/types/infofi';
+import { SubUserCard } from './SubUserCard';
 
 
 interface SubPageProps {
@@ -26,9 +27,11 @@ export const SubPage: React.FC<SubPageProps> = ({
   const { handleDepositRewards, isDepositing } = useDepositRewards();
   const { account } = useAccount();
 
+  const [isViewProfile, setIsViewProfile] = useState<boolean>(false);
+
   const { data: subDetailsData, isLoading: isLoadingDetails, isError: isErrorDetails, refetch: refetchDetails } = useGetSubInfo(subInfo?.contract_address);
 
-  console.log("subDetailsData", subDetailsData);
+  // console.log("subDetailsData", subDetailsData);
   // console.log("subProfiles", subProfiles);
   // console.log("subEpochs", subEpochs);
   // console.log("subAggregations", subAggregations);
@@ -64,8 +67,8 @@ export const SubPage: React.FC<SubPageProps> = ({
         amount: amount,
         amount_token: amount,
       },
-      subInfo?.contract_address
-    );
+        subInfo?.contract_address
+      );
       setAmount('');
       setNostrAddress('');
     } catch (error) {
@@ -162,6 +165,25 @@ export const SubPage: React.FC<SubPageProps> = ({
           })}
         </div>
       </div>
+
+
+      <div>
+        <button onClick={() => setIsViewProfile(!isViewProfile)}>
+          {isViewProfile ? 'Hide Profile' : 'View Profile'}
+        </button>
+
+        {isViewProfile && (
+          <div>
+            <h3 className={styles.epochTitle}>Profile</h3>
+            {subDetailsData?.profiles?.map((profile: UserProfile, index: number) => {
+              return (
+               <SubUserCard profile={profile} key={index} contractAddress={subInfo?.contract_address} />
+              )
+            })}
+          </div>
+        )}
+      </div>
+
 
 
       <div className={styles.depositSection}>

@@ -44,6 +44,33 @@ export const getEpochStates = async (sub_address: string) => {
   }
 }
 
+
+export const getUserProfile = async (sub_address: string) => {
+  try {
+    const userProfileData = await db
+      .select({
+        nostr_id: userProfile.nostr_id,
+        starknet_address: userProfile.starknet_address,
+        total_ai_score: userProfile.total_ai_score,
+        total_tip: userProfile.total_tip,
+        total_vote_score: userProfile.total_vote_score,
+        amount_claimed: userProfile.amount_claimed,
+        created_at: userProfile.created_at,
+        updated_at: userProfile.updated_at,
+      })
+      .from(userProfile)
+      .where(eq(userProfile.contract_address, sub_address))
+      .orderBy(userProfile.nostr_id);
+
+    return userProfileData;
+  } catch (error) {
+    console.error(error);
+    // throw error;
+  }
+
+};
+
+
 export const getUserEpochStates = async (sub_address: string) => {
   try {
     const userEpochStates = await db

@@ -46,7 +46,8 @@ async function subScoreFactoryServiceRoute(fastify: FastifyInstance, options: Ro
       const result = await queries.getSubInfo(sub_address);
  
       console.log('result', result);
-      const userProfiles = await queries.getUserEpochStates(sub_address);
+      // const userProfiles = await queries.getUserEpochStates(sub_address);
+      const userProfiles = await queries.getUserProfile(sub_address);
       console.log('userProfiles', userProfiles   );
       // // Get epoch states for this sub
       // const epochStates = await queries.getEpochStates(sub_address);
