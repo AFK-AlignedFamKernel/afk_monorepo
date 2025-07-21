@@ -12,7 +12,6 @@ module.exports = function (api) {
             'pixel_component': '../../packages/pixel_component/src',
             'afk_nostr_sdk': '../../packages/afk_nostr_sdk/src',
             'common': '../../packages/common/src',
-            'pixel_ui': '../../packages/pixel_ui/src',
           },
           extensions: [
             '.ios.ts',
