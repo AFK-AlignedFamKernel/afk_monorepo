@@ -5,7 +5,7 @@ import {Navbar} from '../Navbar';
 
 export const AboutUs: React.FC = () => {
   return (
-    <div className="bg-black text-white">
+    <div>
       <Navbar />
       <div className="desktop:h-[900px] h-[833px] w-full overflow-hidden relative pt-[98px] desktop:pt-[159px] flex justify-center bg-black desktop:bg-herobg bg-mobileHeroBg bg-no-repeat bg-bottom">
         <motion.img

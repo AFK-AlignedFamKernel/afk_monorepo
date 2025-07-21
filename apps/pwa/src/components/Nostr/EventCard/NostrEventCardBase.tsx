@@ -21,7 +21,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
   className,
 }) => {
   const router = useRouter();
-  const {showModal} = useUIStore()
+  const { showModal } = useUIStore()
 
   if (isLoading) {
     return (
@@ -45,25 +45,25 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
   const timestamp = formatTimestamp(event?.created_at ?? 0);
 
   return (
-    <div 
-    className={styles.eventCard + ' ' + styles.postEventCard + ' p-2 sm:p-3' + ' ' + className}
+    <div
+      className={styles.eventCard + ' ' + styles.postEventCard + ' p-2 sm:p-3' + ' ' + className}
     // className="event-card p-2 sm:p-3 rounded-xl border border-gray-200 dark:border-gray-800"
     // className="event-card p-2 sm:p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
-    
+
     >
       <header className={"flex items-center mb-2 cursor-pointer rounded-lg p-1 transition"}
         onClick={() => {
           showModal(<>
             <ProfileCardOverview event={event} profile={profile} profilePubkey={event?.pubkey} isLinkToProfile={true} />
           </>
-        );
-        logClickedEvent('view_profile_modal_event', 'Interaction', 'Button Click', 1);
+          );
+          logClickedEvent('view_profile_modal_event', 'Interaction', 'Button Click', 1);
         }}
       >
         {profile?.picture ? (
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0">
-            <Image
-              unoptimized
+            <img
+              // unoptimized
               // src={encodeURIComponent(profile.picture)}
               src={profile.picture}
               alt={displayName}
@@ -71,6 +71,15 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
               height={40}
               className={styles.profileAvatarImage + ' object-cover w-10 h-10'}
             />
+            {/* <Image
+              unoptimized
+              // src={encodeURIComponent(profile.picture)}
+              src={profile.picture}
+              alt={displayName}
+              width={40}
+              height={40}
+              className={styles.profileAvatarImage + ' object-cover w-10 h-10'}
+            /> */}
           </div>
         ) : (
           <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 flex-shrink-0">

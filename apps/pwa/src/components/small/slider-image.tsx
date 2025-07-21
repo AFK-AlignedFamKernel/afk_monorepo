@@ -10,9 +10,9 @@ export type PostProps = {
 export const SliderImages: React.FC<PostProps> = ({
   imgUrls
 }) => {
-//   const isDesktop = useIsDesktop();
+  //   const isDesktop = useIsDesktop();
   const [currentIndex, setCurrentIndex] = useState(0);
-  
+
   const nextImage = () => {
     if (!imgUrls || currentIndex >= imgUrls.length - 1) return;
     setCurrentIndex(prev => prev + 1);
@@ -49,8 +49,21 @@ export const SliderImages: React.FC<PostProps> = ({
           transition: 'transform 0.3s ease-in-out'
         }}
       >
-        <Image
+        {/* <Image
           unoptimized
+          src={imgUrls[currentIndex]}
+          width={200}
+          height={200}
+          style={{
+            width: '100%',
+            height: '100%',
+            maxHeight: '350px',
+            objectFit: 'cover'
+          }}
+          alt={`Slide ${currentIndex + 1}`}
+        /> */}
+        <img
+          // unoptimized
           src={imgUrls[currentIndex]}
           width={200}
           height={200}

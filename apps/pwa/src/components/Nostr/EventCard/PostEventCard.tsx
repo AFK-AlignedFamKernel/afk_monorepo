@@ -133,7 +133,6 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
     return { uri: imageTag[1], width: dimensions[0], height: dimensions[1] };
   }, [event?.tags]);
 
-
   useEffect(() => {
     if (event?.content) {
 
@@ -185,6 +184,11 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const handleHashtagPress = (tag: string) => {
     router.push(`/nostr/tags/${tag}`);
   }
+
+
+
+  console.log("event", event)
+  console.log("postSource", postSource)
 
   return (
     <NostrEventCardBase event={event} profile={profile || props?.profile || undefined} isLoading={props.isLoading} className={props.className}>
@@ -238,15 +242,21 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
         </div>
         <div>
           {postSource && postSource?.uri && (
-            <Image
-              unoptimized
-              src={postSource?.uri}
-              // src={encodeURIComponent(postSource?.uri)}
+            <img src={postSource?.uri}
               alt="Post Source"
-              width={postSource.width || 300}
-              height={postSource.height || 300}
               className={styles.nostrFeedImage}
+              width={postSource.width || 250}
+              height={postSource.height || 250}
             />
+            // <Image
+            //   unoptimized
+            //   src={postSource?.uri}
+            //   // src={encodeURIComponent(postSource?.uri)}
+            //   alt="Post Source"
+            //   width={postSource.width || 300}
+            //   height={postSource.height || 300}
+            //   className={styles.nostrFeedImage}
+            // />
           )}
           {imgUrls.length > 0 && (
             <SliderImages imgUrls={imgUrls} />
