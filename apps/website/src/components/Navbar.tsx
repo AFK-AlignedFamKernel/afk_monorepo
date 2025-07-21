@@ -17,12 +17,11 @@ export function Navbar() {
   return (
     <Box className="desktop:py-[26px] py-3 px-6 desktop:px-[120px] flex justify-between items-center">
       <Box className="flex items-center gap-x-[10px] text">
-        <Image
-          
-          // src="/assets/pepe-logo.png"
+        <ImageChakra
+          // unoptimized
           src="/assets/afk_logo_circle.png"
           className="desktop:h-[30px] w-9 h-9 desktop:w-[30px]"
-          alt=""
+          alt="AFK Logo"
           width={30}
           height={30}
         />
@@ -65,7 +64,8 @@ export function Navbar() {
           }
         }}
       >
-        <Image
+        <ImageChakra
+          // unoptimized
           src="assets/hamburger-icon.svg"
           className="w-6 h-6"
           alt=""
