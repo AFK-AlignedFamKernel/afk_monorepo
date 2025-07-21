@@ -16,7 +16,7 @@ Decentralized social built with Nostr and powered by Starknet account abstractio
 
 The name "Aligned Fam Kernel" is inspired by our vision to align the web3 family together, in one Social graph.
 
-We build and fight together, not against. What if the treasure are the friends we made along the way? Then A decentralized social network should be a treasure trove of memories and connections!
+We build and fight together, not against. What if the treasures are the friends we made along the way? Then A decentralized social network should be a treasure trove of memories and connections!
 
 Yes! This is what social networks should be about. A place where you can be yourself, express your thoughts and feelings, and connect with others.
 
@@ -53,10 +53,35 @@ Packages:
 - Nostr sdk: packages/afk_nostr_sdk
 
 
+# PWA
+
+The current AFK beta test in build using NextJS, located in the apps/pwa.
+
+[Current version](https://afk-community.xyz)
+
+
+- Setup your .env based on the env.example
+
+```bash
+pnpm install
+cd apps/pwa
+pnpm run dev
+```
+
+To do a complete use of the web app, start the apps/data-backend and setup the url in the .env of the PWA app.
+
+```bash
+pnpm install
+cd apps/data-backend
+pnpm run start:dev
+
+```
+
+
 ## Mobile
 
 The AFK Mobile app is built with React-native & Expo.
-[Current version](https://afk-community.xyz/app)
+[Current version](https://afk-community.xyz)
 
 Pick an issue with the labels "mobile" to start work on React-native and contribute!
 
@@ -81,7 +106,7 @@ Maybe you need to run others services to contribute as expected.
 
 ### Tips
 
-There are two alternatives: WalletConnect, one which expects Nostr users to set up oridinary Starknet wallet like Argent or Braavos, and so called SocialPay which uses custom Account Abstraction contract based on bip340 signature scheme (Nostr native).
+There are two alternatives: WalletConnect, one which expects Nostr users to set up ordinary Starknet wallet like Argent or Braavos, and so called SocialPay which uses custom Account Abstraction contract based on bip340 signature scheme (Nostr native).
 
 #### Wallet Connect
 
