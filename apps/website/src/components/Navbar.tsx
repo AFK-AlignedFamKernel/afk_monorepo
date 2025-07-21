@@ -1,21 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import React, {useState} from 'react';
-import {createPortal} from 'react-dom';
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 
-import {MobileNavBar} from './MobileNavBar';
-import {NavigationLinks} from './NavigationLinks';
-import {Box, Button, Text, Image as ImageChakra, Link as LinkChakra} from '@chakra-ui/react';
+import { MobileNavBar } from './MobileNavBar';
+import { NavigationLinks } from './NavigationLinks';
+import { Box, Button, Text, Image as ImageChakra, Link as LinkChakra } from '@chakra-ui/react';
 import Image from 'next/image';
 import { logClickedEvent } from '@/services/analytics';
 
 export function Navbar() {
   const [toggleNav, setToggleNav] = useState(false);
   const [toggleParamsNav, setToggleParamsNav] = useState(false);
-  
+
   return (
-    <Box className="desktop:py-[26px] py-3 px-6 desktop:px-[120px] flex justify-between items-center">
+    <Box className="desktop:py-[26px] py-3 px-6 desktop:px-[120px] flex justify-between space-x-4 w-full">
       <Box className="flex items-center gap-x-[10px] text">
         <ImageChakra
           // unoptimized
@@ -26,10 +26,10 @@ export function Navbar() {
           height={30}
         />
         <LinkChakra href="/" className="desktop:text-xl text-base leading-7 font-bold"
-        
-        onClick={() => {
-          logClickedEvent('afk_logo_click');
-        }}
+
+          onClick={() => {
+            logClickedEvent('afk_logo_click');
+          }}
         >
           AFK
           {/* <Text >AFK</Text> */}
@@ -53,6 +53,7 @@ export function Navbar() {
 
       <Button
         className="flex"
+        maxWidth={50}
         onClick={() => {
           if (toggleNav) {
             logClickedEvent('toggle_nav_close');
@@ -60,10 +61,11 @@ export function Navbar() {
           } else {
             logClickedEvent('toggle_nav_open');
             setToggleNav(true);
-            window.scrollTo({top: 0, left: 0, behavior: 'smooth'});
+            window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
           }
         }}
       >
+
         <ImageChakra
           // unoptimized
           src="assets/hamburger-icon.svg"
@@ -71,7 +73,7 @@ export function Navbar() {
           alt=""
           width={24}
           height={24}
-          // color="currentColor"
+        // color="currentColor"
         />
       </Button>
 
