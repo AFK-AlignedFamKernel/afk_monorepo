@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     ) {
       // ETH | STRK transaction
 
-      const {transaction_hash} = await account.execute(
+      const {transaction_hash} = await account?.execute?.(
         [
           {
             contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
@@ -63,13 +63,17 @@ export async function POST(request: NextRequest) {
     } else {
       // ERC20 transaction
 
-      const result = await account.estimateInvokeFee([
+      const result = await account?.estimateInvokeFee?.(
+        [
         {
           contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
           entrypoint: Entrypoint.CLAIM,
           calldata: claimCallData,
         },
       ]);
+      if (!result) {
+        return NextResponse.json({code: ErrorCode.TRANSACTION_ERROR}, {status: HTTPStatus.BadRequest});
+      }
 
       const gasFeeQuotes = await fetchQuotes(
         {
@@ -100,7 +104,7 @@ export async function POST(request: NextRequest) {
         {baseUrl: AVNU_URL},
       );
 
-      const {transaction_hash} = await account.execute(
+      const {transaction_hash} = await account?.execute?.(
         [
           {
             contractAddress: ESCROW_ADDRESSES[CHAIN_ID],
