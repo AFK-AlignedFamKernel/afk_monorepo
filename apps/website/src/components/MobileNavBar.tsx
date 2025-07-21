@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { ToggleColorMode } from './ToggleColorMode';
 import { logClickedEvent } from '@/services/analytics';
+import Image from 'next/image';
 // import Image from 'next/image';
 type Props = { setToggle: any; toggle: boolean };
 
@@ -52,9 +53,12 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
           onClick={toggleNav}
           cursor="pointer"
         >
-          <ImageChakra 
+          <Image 
           unoptimized
-          src="/assets/cancel-icon.svg" alt="" />
+          src="/assets/cancel-icon.svg" alt="Cancel" 
+          width={24}
+          height={24}
+          />
         </Box>
 
         <motion.div
@@ -124,7 +128,7 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
                   logClickedEvent('twitter_redirect');
                 }}
                 >
-                  <ImageChakra unoptimized src="/assets/twitterIcon.svg" alt="" 
+                  <Image unoptimized src="/assets/twitterIcon.svg" alt="" 
                   width={30}
                   height={30}
                   />
@@ -134,7 +138,7 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
                   logClickedEvent('telegram_redirect');
                 }}
                 >
-                  <ImageChakra unoptimized  src="/assets/telegram.svg" alt=""
+                  <Image unoptimized  src="/assets/telegram.svg" alt=""
                   width={30}
                   height={30}
                   />
