@@ -32,9 +32,6 @@
       "common": [
         "../../packages/common/src"
       ],
-      "afk_sdk": [
-        "../../packages/afk_sdk/src"
-      ],
       "afk_react_sdk": [
         "../../packages/afk_react_sdk/src"
       ],
