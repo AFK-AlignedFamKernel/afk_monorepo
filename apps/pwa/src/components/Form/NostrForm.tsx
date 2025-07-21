@@ -5,6 +5,10 @@ import { logClickedEvent } from '@/lib/analytics';
 import { Icon } from '../small/icon-component';
 import styles from '@/styles/components/_nostr-form.module.scss';
 import { ButtonPrimary } from '../button/Buttons';
+import { useAuth, useNostrContext, useSendNote } from 'afk_nostr_sdk';
+import { useUIStore } from '@/store/uiStore';
+import { useQueryClient } from '@tanstack/react-query';
+
 export type NostrEventType = 'note' | 'article';
 
 interface NostrFormProps {
@@ -40,9 +44,15 @@ export const NostrForm: React.FC<NostrFormProps> = ({
     type: type,
   });
 
+  const {publicKey} = useAuth()
+
+  const { ndk } = useNostrContext()
+  const { showToast } = useUIStore();
+  const sendNote = useSendNote();
   const [file, setFile] = useState<File | null>(null);
   const fileUpload = useFileUpload();
 
+  const queryClient = useQueryClient();
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState<Partial<Record<keyof NostrFormData, string>>>({});
 
@@ -64,10 +74,89 @@ export const NostrForm: React.FC<NostrFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e?.preventDefault();
     if (validateForm()) {
-      logClickedEvent('try_publish_note', "nostr_note", formData?.type)
-      onSubmit(formData);
+      handleSubmitNostrEvent();
     }
   };
+
+  const handleSubmitNostrEvent = async () => {
+
+
+    logClickedEvent('try_publish_note', 'nostr', 'try_publish_note', 1)
+    if (!publicKey) {
+      return showToast({ type: "error", message: "Please connect you" })
+    }
+
+    if (!formData.content || formData.content?.length == 0) {
+      showToast({ type: 'error', message: 'Please add a note, image, or video' });
+      return;
+
+    }
+
+
+    let imageUrl: string | undefined;
+
+    if (file) {
+      try {
+        const result = await fileUpload.mutateAsync(file);
+        logClickedEvent('upload_image_to_ipfs', 'nostr', 'upload_image_to_ipfs', 1);
+        // Fix: result may be {} and not have a 'data' property, so check for url in result or result.data
+        let url: string | undefined = undefined;
+        if (result && typeof result === 'object') {
+          if ('data' in result && result.data && typeof result.data === 'object' && 'url' in result.data) {
+            url = (result.data as { url?: string }).url;
+          } else if ('url' in result) {
+            url = (result as { url?: string }).url;
+          }
+        }
+        if (url) {
+          imageUrl = url;
+          logClickedEvent('upload_image_to_ipfs_success', 'nostr', 'upload_image_to_ipfs_success', 1);
+        }
+      }
+      catch (error) {
+        console.log('image upload error', error);
+        logClickedEvent('upload_image_to_ipfs_error', 'nostr', 'upload_image_to_ipfs_error', 1);
+      }
+    }
+    try {
+
+  
+      // Convert Quill delta to markdown string
+      // const converter = new Markdow(noteDelta?.ops || [], {});
+      // const html = converter.convert();
+      // const turndownService = new TurndownService();
+
+      sendNote.mutate(
+        {
+          content: formData.content || '',
+          tags: [
+            ...(file && imageUrl ? [['image', imageUrl]] : []),
+            ...(formData.tags?.map((tag) => ['tag', tag]) || []),
+          ],
+        },
+        {
+          onSuccess() {
+            showToast({ type: 'success', message: 'Note sent successfully' });
+            queryClient.invalidateQueries({ queryKey: ['rootNotes'] });
+            logClickedEvent('publish_note_success', 'nostr', 'publish_note_success', 1)
+          },
+          onError(e) {
+            console.log('error', e);
+            showToast({
+              type: 'error',
+              message: 'Error! Note could not be sent. Please try again later.',
+            });
+            logClickedEvent('publish_note_error_hook', 'nostr', 'publish_note_error', 1)
+          },
+        },
+      );
+    } catch (error) {
+      console.log('sendArticle error', error);
+      logClickedEvent('publish_note_error', 'nostr', 'publish_note_error', 1)
+    }
+
+  };
+
 
   const handleTagAdd = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim()) {

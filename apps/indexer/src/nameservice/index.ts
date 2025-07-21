@@ -1,1 +1,0 @@
-import DecodeUsernameClaimed from "./claimed";

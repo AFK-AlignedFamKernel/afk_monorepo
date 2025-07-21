@@ -27,8 +27,6 @@ export const AFK_RELAYS =
       'wss://nostr-relay-nestjs-production.up.railway.app',
     ]
     : [
-      'wss://relay.primal.net',
-
       // ...RELAYS_TEST,
       // ...RELAYS_PROD,
       'wss://nostr-relay-nestjs-production.up.railway.app',

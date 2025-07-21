@@ -35,7 +35,7 @@ export function NavigationLinks() {
       <ListItem>
         <Box className="flex items-center gap-x-4 font-bold text-sm leading-[16px]">
           <Button 
-            bgGradient={GRADIENT_STYLES.basicLeft}
+            // bgGradient={GRADIENT_STYLES.basicLeft}
             // color="white"
             textDecoration="none"
             borderRadius="10px"
