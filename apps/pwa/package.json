@@ -46,7 +46,6 @@
     "@supabase/supabase-js": "^2.49.8",
     "@tanstack/react-query": "^5.40.0",
     "afk_nostr_sdk": "workspace:*",
-    "afk_react_sdk": "workspace:*",
     "axios": "^1.7.2",
     "chart.js": "^4.4.9",
     "classnames": "2.5.1",
