@@ -319,6 +319,7 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean, clas
           >
             {profile?.picture ? (
               <Image
+                unoptimized
                 src={profile.picture}
                 alt={displayName}
                 className={`${styles['nostr-short-feed__avatar-image']} rounded-full w-10 h-10ss`}

@@ -104,6 +104,7 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap flex items-center gap-3">
                                         <Image
+                                        unoptimized
                                             src={brand?.avatar_url ?? `/assets/icons/${brand.slug_name}.png`}
                                             alt={brand.name}
                                             width={36} height={36}
@@ -129,7 +130,7 @@ export default function TableBrand({ brandsProps, setBrandsProps, isRefreshButto
                                         {brand?.twitter_handle && (
                                             <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank" aria-label={`Twitter for ${brand?.name}`}
                                                 className="inline-block touch-target">
-                                                <Image src="/assets/icons/twitter.svg" alt="Twitter" width={24} height={24} className="hover:opacity-80" />
+                                                <Image unoptimized src="/assets/icons/twitter.svg" alt="Twitter" width={24} height={24} className="hover:opacity-80" />
                                             </Link>
                                         )}
                                     </td>

@@ -63,6 +63,7 @@ export const NostrEventCardBase: React.FC<NostrEventCardBaseProps> = ({
         {profile?.picture ? (
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0">
             <Image
+              unoptimized
               // src={encodeURIComponent(profile.picture)}
               src={profile.picture}
               alt={displayName}

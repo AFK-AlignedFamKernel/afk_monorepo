@@ -228,7 +228,9 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
       >
         {profile && (
           <>
-            {profile?.picture && <Image className="rounded-full w-7 h-7" src={profile?.picture} alt={profile?.name || ''} width={28} height={28} />}
+            {profile?.picture && <Image 
+            unoptimized
+            className="rounded-full w-7 h-7" src={profile?.picture} alt={profile?.name || ''} width={28} height={28} />}
             <Icon name="RepostIcon" size={16} className="text-blue-600 dark:text-blue-400" />
             <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">Reposted by {profile?.name || profile?.display_name || event?.pubkey?.slice(0, 8)} </span>
           </>
@@ -244,7 +246,7 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
       )}
 
       {/* <div className="flex items-center gap-2 mb-1 mt-1">
-          {profileRepost?.picture && <Image className="rounded-full w-6 h-6" src={profileRepost?.picture} alt={profileRepost?.name || ''} width={24} height={24} />}
+          {profileRepost?.picture && <Image unoptimized className="rounded-full w-6 h-6" src={profileRepost?.picture} alt={profileRepost?.name || ''} width={24} height={24} />}
           <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Original post by {profileRepost?.name || profileRepost?.display_name || pubkeyReposted?.slice(0, 8)}</span>
         </div> */}
       {/* Render correct card by kind, but FLAT */}

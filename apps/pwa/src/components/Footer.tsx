@@ -33,12 +33,14 @@ export function Footer() {
               <Image src="/assets/appStoreBtn.svg" className="w-[100px] tab:w-auto" alt=""
               width={24}
               height={24}
+              unoptimized
                />
             </button>
             <button>
               <Image src="/assets/googlePlaybtn.svg" className="w-[100px] tab:w-auto" alt=""
               width={24}
               height={24}
+              unoptimized
               />
             </button>
           </Box>
@@ -60,6 +62,7 @@ export function Footer() {
             <Image src="/assets/twitterIcon.svg" alt="AFK Aligned Fam Community Twitter / X"
             width={24}
             height={24}
+            unoptimized
             />
           </a>
 
@@ -68,6 +71,7 @@ export function Footer() {
             <Image src="/assets/telegramIcon.svg" alt="AFK Community Telegram "
             width={24}
             height={24}
+            unoptimized
             />
           </a>
         </Box>

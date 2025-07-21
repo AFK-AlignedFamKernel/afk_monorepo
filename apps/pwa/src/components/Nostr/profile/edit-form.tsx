@@ -221,6 +221,7 @@ export const NostrProfileEditForm = () => {
                     />
                     {formData.picture && (
                         <Image
+                            unoptimized
                             src={formData.picture}
                             width={48}
                             height={48}
@@ -286,6 +287,7 @@ export const NostrProfileEditForm = () => {
                     />
                     {formData.banner && (
                             <Image
+                            unoptimized
                             src={formData.banner}
                             width={50}
                             height={50}

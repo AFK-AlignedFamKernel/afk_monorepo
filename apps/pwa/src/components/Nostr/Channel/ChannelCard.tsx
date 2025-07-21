@@ -86,6 +86,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({ event, profileProps, onClick,
       <div className="flex items-center gap-4 p-4">
         {channelInfo?.picture && channelInfo?.picture.startsWith('https') ? (
           <Image
+            unoptimized
             src={channelInfo?.picture}
             alt={channelInfo?.name || 'Channel'}
             className="w-16 h-16 rounded-full object-cover border"
@@ -95,6 +96,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({ event, profileProps, onClick,
           />
         ) : (
           <Image
+            unoptimized
             src="/assets/afkMascot.png"
             alt="Channel"
             className="w-16 h-16 rounded-full object-cover border"

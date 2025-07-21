@@ -168,6 +168,7 @@ export default function FormChannelCreate() {
             <div className="relative">
               {imagePreview ? (
                 <Image
+                  unoptimized
                   src={imagePreview}
                   alt="Channel preview"
                   width={80}

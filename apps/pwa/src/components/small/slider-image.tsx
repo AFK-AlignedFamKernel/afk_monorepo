@@ -50,6 +50,7 @@ export const SliderImages: React.FC<PostProps> = ({
         }}
       >
         <Image
+          unoptimized
           src={imgUrls[currentIndex]}
           width={200}
           height={200}

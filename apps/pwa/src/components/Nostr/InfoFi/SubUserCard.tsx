@@ -56,7 +56,9 @@ export const SubUserCard = ({ profile, contractAddress }: { profile: UserProfile
                 <div className="flex flex-row">
 
                     {profileNostr?.picture && (
-                        <Image src={profileNostr?.picture || ''} alt={profileNostr?.displayName || profileNostr?.name || 'Anonymous'} width={40} height={40} className="rounded-full" />
+                        <Image 
+                        unoptimized
+                        src={profileNostr?.picture || ''} alt={profileNostr?.displayName || profileNostr?.name || 'Anonymous'} width={40} height={40} className="rounded-full" />
                     )}
 
                     {!profileNostr?.picture && (

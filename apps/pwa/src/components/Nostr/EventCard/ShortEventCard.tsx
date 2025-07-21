@@ -172,6 +172,9 @@ export const ShortEventCard: React.FC<ShortEventCardProps> = (props) => {
                 <Image
                   src={mediaUrlState}
                   alt="Media content"
+                  unoptimized
+                  width={100}
+                  height={100}
                   className={styles.imageContent}
                 />
               )}

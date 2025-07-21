@@ -39,6 +39,7 @@ export function DrawerButton({setToggle, toggle}: Props) {
           <Image src="/assets/cancel-icon.svg" alt=""
           width={24}
           height={24}
+          unoptimized
           />
         </div>
 

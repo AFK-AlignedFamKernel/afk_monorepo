@@ -296,8 +296,11 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
 
                   <div>
                     <div className='flex'>
-                      <Image src="/assets/icons/twitter.svg"
+                      <Image 
+                      unoptimized
+                      src="/assets/icons/twitter.svg"
                         width={50}
+                        unoptimized
                         height={50}
                         alt="Twitter"
                       ></Image>
@@ -316,7 +319,9 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
 
                   <div>
                     <div>
-                      <Image src="/assets/icons/github.svg"
+                      <Image 
+                      unoptimized
+                      src="/assets/icons/github.svg"
                         alt="Github"
                         width={50}
                         height={50}

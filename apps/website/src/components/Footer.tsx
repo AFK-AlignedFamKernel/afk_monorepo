@@ -10,6 +10,7 @@ export function Footer() {
       <Box className="flex tab:flex-row flex-col items-center tab:items-start justify-between border-b-[1px] border-b-[#484040] border-b-solid pb-[30px]">
         <Box className="flex flex-col items-center tab:items-start text-center tab:text-left">
           <Image
+            unoptimized
             src="/assets/afk_logo_circle.png"
             // src="/assets/pepe-logo.png"
             className="w-[30px] h-[30px] tab:h-auto tab:w-auto"
@@ -107,7 +108,7 @@ export function Footer() {
               logClickedEvent('twitter_redirect');
             }}
           >
-            <Image src="/assets/twitterIcon.svg"
+            <Image unoptimized src="/assets/twitterIcon.svg"
               width={30}
               height={30}
               alt="AFK Aligned Fam Community Twitter / X" className="w-[30px] h-[30px]" />
@@ -123,7 +124,7 @@ export function Footer() {
               logClickedEvent('telegram_redirect');
             }}
           >
-            <Image src="/assets/telegram.svg" alt="AFK Community Telegram "
+            <Image unoptimized  src="/assets/telegram.svg" alt="AFK Community Telegram "
               width={30}
               height={30}
               className="w-[30px] h-[30px]" />

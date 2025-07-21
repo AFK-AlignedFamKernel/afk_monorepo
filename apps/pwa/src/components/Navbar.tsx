@@ -31,6 +31,7 @@ export function Navbar() {
           alt="AFK logo"
           width={52}
           height={52}
+          unoptimized
         />
         <Link href="/">
           <h5 className="desktop:text-2xl text-lg leading-7 font-bold">AFK</h5>

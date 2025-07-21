@@ -38,7 +38,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const repostMutation = useRepost({ event });
   const quoteMutation = useQuote({ event });
   const react = useReact();
-  const {data:profile} = useProfile({publicKey:event?.pubkey})
+  const { data: profile } = useProfile({ publicKey: event?.pubkey })
   const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
   const [dimensionsMedia, setMediaDimensions] = useState([250, 300]);
   const [imgUrls, setImageUrls] = useState<string[]>([]);
@@ -239,6 +239,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
         <div>
           {postSource && postSource?.uri && (
             <Image
+              unoptimized
               src={postSource?.uri}
               // src={encodeURIComponent(postSource?.uri)}
               alt="Post Source"

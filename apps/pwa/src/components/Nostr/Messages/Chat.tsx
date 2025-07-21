@@ -37,10 +37,16 @@ export const Chat: React.FC<ChatProps> = ({
     return (
         <div className="flex flex-col h-full">
             <div className="flex items-center p-4 border-b">
-                <button   onClick={handleGoBack}>
+                <button onClick={handleGoBack}>
                 </button>
                 <div className="ml-2">
-                    <Image src={profile?.image} width={24} height={24} alt={profile?.name || item.senderPublicKey.slice(0, 8)} />
+
+                    {profile?.image && (
+                        <Image
+                            unoptimized
+                            src={profile?.image || ''} width={24} height={24} alt={profile?.name || item.senderPublicKey.slice(0, 8)} />
+                    )}
+                 
                     <p>
                         {profile?.name?.charAt(0) || item.senderPublicKey.slice(0, 2)}
                     </p>
@@ -62,8 +68,8 @@ export const Chat: React.FC<ChatProps> = ({
                         >
                             <div
                                 className={`max-w-[70%] rounded-lg p-3 ${msg.senderPublicKey === item.senderPublicKey
-                                        ? 'bg-gray-100'
-                                        : 'bg-primary text-primary-foreground'
+                                    ? 'bg-gray-100'
+                                    : 'bg-primary text-primary-foreground'
                                     }`}
                             >
                                 <p className="text-sm">{msg.content}</p>

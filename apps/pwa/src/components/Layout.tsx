@@ -179,6 +179,7 @@ const Layout = ({ children }: LayoutProps) => {
               alt="AFK Logo"
               width={50}
               height={50}
+              unoptimized
             />
           </Link>
         </div>
@@ -251,6 +252,8 @@ const Layout = ({ children }: LayoutProps) => {
               alt="AFK Logo"
               width={50}
               height={50}
+              unoptimized
+
             />
           </Link>
         </div>

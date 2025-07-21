@@ -110,6 +110,7 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
       <div className="flex items-center gap-2 px-4 pb-4 cursor-pointer" onClick={handleProfileView}>
         {profile?.image && profile?.image.startsWith('https') && (
           <Image
+          unoptimized
             width={28}
             height={28}
             src={profile?.image}
@@ -134,6 +135,7 @@ const ChannelMessage: React.FC<ChannelMessageProps> = ({ event, onClick, classNa
         </p>
         {postSource && (
           <Image
+          unoptimized
             src={postSource.uri}
             alt="Post Source"
             width={postSource.width || 300}

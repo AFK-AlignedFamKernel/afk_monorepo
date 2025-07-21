@@ -42,7 +42,9 @@ export default function MessageCard({ message }: MessageCardProps) {
         <div className="card card-bordered shadow-md rounded-xl p-4 bg-base-200 hover:bg-base-300 transition flex flex-col gap-4">
             <div className="flex flex-row gap-3 items-center">
                 {message?.user?.profile_image_url ? (
-                    <Image src={message?.user?.profile_image_url} alt={message?.user?.name} width={40} height={40} className="rounded-full bg-gray-200" />
+                    <Image 
+                    unoptimized
+                    src={message?.user?.profile_image_url} alt={message?.user?.name} width={40} height={40} className="rounded-full bg-gray-200" />
                 ) : (
                     <span className="text-xs text-gray-500">{message?.user?.name}</span>
                 )}
@@ -53,7 +55,9 @@ export default function MessageCard({ message }: MessageCardProps) {
             </div>
             <div className="flex flex-row gap-4 items-center">
                 {message?.image_url && (
-                    <Image src={message?.image_url} alt="Image" width={100} height={100} className="rounded-md bg-gray-200" />
+                    <Image 
+                    unoptimized
+                    src={message?.image_url} alt="Image" width={100} height={100} className="rounded-md bg-gray-200" />
                 )}
             </div>  
             <div className="flex flex-row gap-4 items-center">

@@ -61,6 +61,7 @@ const Connect = () => {
                                                     src={icon}
                                                     height={17}
                                                     width={17}
+                                                    unoptimized
                                                 />
                                             )}
                                         </>

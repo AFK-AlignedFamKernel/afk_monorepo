@@ -52,7 +52,9 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
           onClick={toggleNav}
           cursor="pointer"
         >
-          <ImageChakra src="/assets/cancel-icon.svg" alt="" />
+          <ImageChakra 
+          unoptimized
+          src="/assets/cancel-icon.svg" alt="" />
         </Box>
 
         <motion.div
@@ -122,7 +124,7 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
                   logClickedEvent('twitter_redirect');
                 }}
                 >
-                  <ImageChakra src="/assets/twitterIcon.svg" alt="" 
+                  <ImageChakra unoptimized src="/assets/twitterIcon.svg" alt="" 
                   width={30}
                   height={30}
                   />
@@ -132,7 +134,7 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
                   logClickedEvent('telegram_redirect');
                 }}
                 >
-                  <ImageChakra src="/assets/telegram.svg" alt=""
+                  <ImageChakra unoptimized  src="/assets/telegram.svg" alt=""
                   width={30}
                   height={30}
                   />

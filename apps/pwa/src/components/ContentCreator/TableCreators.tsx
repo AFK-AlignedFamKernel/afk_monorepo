@@ -166,6 +166,7 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
                   <td className="px-4 py-3 flex items-center gap-3 min-w-[180px]">
                     <div className="flex items-center gap-2">
                       <Image
+                        unoptimized
                         src={creator?.avatar_url || `/assets/icons/${creator.slug_name}.png`}
                         alt={creator.name}
                         width={32}
@@ -196,7 +197,7 @@ export const TableCreators: React.FC<ITableCreatorsProps> = ({ isRedirect = fals
                                     logClickedEvent(`view_x_${platform?.identity_data?.user_name ?? platform?.identity_data?.name}`, "click", `view_x_${platform?.identity_data?.user_name ?? platform?.identity_data?.name}`);
                                   }}
                                 >
-                                  <Image src="/assets/icons/twitter.svg" alt="Twitter" width={20} height={20} className="hover:opacity-80 bg-gray-500 rounded-full p-1" />
+                                  <Image unoptimized  src="/assets/icons/twitter.svg" alt="Twitter" width={20} height={20} className="hover:opacity-80 bg-gray-500 rounded-full p-1" />
                                 </Link>
                               </div>
                             )

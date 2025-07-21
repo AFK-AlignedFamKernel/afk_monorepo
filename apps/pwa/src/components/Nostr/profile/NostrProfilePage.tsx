@@ -228,7 +228,8 @@ const ProfileHeader = (props?: any) => {
       <div className="flex items-center gap-4">
         {profile?.picture && (
           <Image
-            src={profile?.picture}
+            unoptimized 
+            src={profile?.picture || ''}
             alt="Profile"
             width={128}
             height={128}
