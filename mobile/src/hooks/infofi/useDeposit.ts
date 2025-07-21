@@ -58,6 +58,7 @@ export const useDepositRewards = () => {
     }
 
     const connectedAccount = await waitConnection();
+    console.log('connectedAccount', connectedAccount);
     if (!connectedAccount || !connectedAccount.address) return;
 
 

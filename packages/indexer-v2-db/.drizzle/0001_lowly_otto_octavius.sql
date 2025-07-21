@@ -1,1 +1,0 @@
-ALTER TABLE "token_transactions" DROP COLUMN IF EXISTS "id";

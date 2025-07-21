@@ -40,6 +40,8 @@ export function MobileNavBar({setToggle, toggle}: Props) {
           <Image src="/assets/cancel-icon.svg" alt="" 
           width={24}
           height={24}
+          unoptimized
+
           />
         </div>
 

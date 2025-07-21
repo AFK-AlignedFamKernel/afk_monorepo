@@ -104,7 +104,7 @@ export class NamespaceService {
         await this.prismaService.userProfile.create({
           data: {
             nostr_id: nostrAddressString,
-            is_add_by_admin: true,
+            is_add_by_admin: data?.is_add_by_admin,
 
             // starknet_address: data.starknet_address,
           },
@@ -114,6 +114,7 @@ export class NamespaceService {
             nostr_id: nostrAddressString,
             starknet_address: data.starknet_address,
             nostr_event_id: nostrAddressString,
+            is_add_by_admin: data?.is_add_by_admin,
           },
         });
         return;
@@ -133,7 +134,7 @@ export class NamespaceService {
       await this.prismaService.userProfile.create({
         data: {
           nostr_id: nostrAddressString,
-          is_add_by_admin: true,
+          is_add_by_admin: data?.is_add_by_admin,
 
           // starknet_address: data.starknet_address,
         },

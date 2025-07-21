@@ -34,6 +34,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
         <>
           {creator.avatar_url ? (
             <Image
+              unoptimized
               src={creator.avatar_url}
               alt={creator.name}
               className="w-20 h-20 rounded-full object-cover mb-2"
@@ -97,6 +98,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                           className="text-blue-500 hover:underline text-sm flex">
                           {/* {`https://github.com/${platform.identity_data.user_name}`} */}
                           <Image
+                            unoptimized
                             src={`/assets/icons/${platform.identity_data.provider}.svg`} 
                             alt={platform.identity_data.provider} 
                             className="w-8 h-8 rounded-full object-cover"
@@ -123,6 +125,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                     {platform?.identity_data?.provider === "twitter" && (
                       <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank" className="flex flex-row items-center gap-2 rounded-full p-2">
                         <Image 
+                        unoptimized
                         src={`/assets/icons/${platform.identity_data.provider}.svg`} 
                         alt={platform.identity_data.provider} 
                         width={32}
@@ -151,6 +154,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                         {/* <img src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover" /> */}
 
                         <Image 
+                        unoptimized
                         src={platform.identity_data.avatar_url}
                          alt={platform.identity_data.name} 
                          width={32}
@@ -163,7 +167,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
                       <div className="items-center gap-3">
                         <Link href={`https://github.com/${platform.identity_data.user_name}`} target="_blank"
                           className="text-blue-500 hover:underline text-sm flex">
-                          <Image src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover"
+                          <Image unoptimized src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover"
                             width={32}
                             height={32}
                           />
@@ -186,7 +190,7 @@ const PageCreator: React.FC<{ slug: string }> = ({ slug }) => {
 
                     {platform?.identity_data?.provider === "twitter" && (
                       <Link href={`https://x.com/${platform.identity_data.user_name}`} target="_blank">
-                        <Image src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover bg-gray-500"
+                        <Image unoptimized src={`/assets/icons/${platform.identity_data.provider}.svg`} alt={platform.identity_data.provider} className="w-8 h-8 rounded-full object-cover bg-gray-500"
                           width={32}
                           height={32}
                         />

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { ToggleColorMode } from './ToggleColorMode';
+import { logClickedEvent } from '@/services/analytics';
 // import Image from 'next/image';
 type Props = { setToggle: any; toggle: boolean };
 
@@ -51,7 +52,9 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
           onClick={toggleNav}
           cursor="pointer"
         >
-          <ImageChakra src="/assets/cancel-icon.svg" alt="" />
+          <ImageChakra 
+          unoptimized
+          src="/assets/cancel-icon.svg" alt="" />
         </Box>
 
         <motion.div
@@ -69,12 +72,18 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
             <ListItem className="">
               <Link href="/solutions"
               className="text-[18px] leading-[21px]"
+              onClick={() => {
+                logClickedEvent('solutions_click');
+              }}
               >Solutions </Link>
             </ListItem>
 
             <ListItem>
               <Link href="/infofi"
                 className="text-[18px] leading-[21px]"
+                onClick={() => {
+                  logClickedEvent('infofi_click');
+                }}
                 >
                 <Text>InfoFi</Text>
               </Link>
@@ -96,6 +105,9 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
               <Button className="py-[12px] w-[145px] bg-[#8DAEF1]">
                 {' '}
                 <a href="https://docs.afk-community.xyz" target="_blank"
+                onClick={() => {
+                  logClickedEvent('docs_click');
+                }}
                 // className="text-[18px] leading-[21px]"
                 >
                   {' '}
@@ -106,12 +118,26 @@ export function MobileNavBar({ setToggle, toggle }: Props) {
 
             <ListItem>
               <div className="flex items-center gap-x-[10px]">
-              
-                <a href="https://x.com/AFK_AlignedFamK" target="_blank">
-                  <ImageChakra src="/assets/twitterIcon.svg" alt="" />
+                
+                <a href="https://x.com/AFK_AlignedFamK" target="_blank"
+                onClick={() => {
+                  logClickedEvent('twitter_redirect');
+                }}
+                >
+                  <ImageChakra unoptimized src="/assets/twitterIcon.svg" alt="" 
+                  width={30}
+                  height={30}
+                  />
                 </a>
-                <a href="https://t.me/afk_aligned_fam_kernel" target="_blank">
-                  <ImageChakra src="/assets/telegram.svg" alt="" />
+                <a href="https://t.me/afk_aligned_fam_kernel" target="_blank"
+                onClick={() => {
+                  logClickedEvent('telegram_redirect');
+                }}
+                >
+                  <ImageChakra unoptimized  src="/assets/telegram.svg" alt=""
+                  width={30}
+                  height={30}
+                  />
                 </a>
 
               </div>

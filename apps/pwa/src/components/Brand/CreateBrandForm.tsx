@@ -124,13 +124,17 @@ export const CreateBrandForm: React.FC = () => {
     try {
       if (brandAvatar) {
         const res = await fileUpload.mutateAsync(brandAvatar);
-        avatarUrl = res.data?.url;
-        setBrandAvatarUrl(avatarUrl);
+        if (res && typeof res === 'object' && 'data' in res && res.data && typeof res.data === 'object' && 'url' in res.data) {
+          avatarUrl = (res.data as { url?: string })?.url ?? '';
+          setBrandAvatarUrl(avatarUrl);
+        }
       }
       if (brandBanner) {
         const res = await fileUpload.mutateAsync(brandBanner);
-        bannerUrl = res.data?.url;
-        setBrandBannerUrl(bannerUrl);
+        if (res && typeof res === 'object' && 'data' in res && res.data && typeof res.data === 'object' && 'url' in res.data) {
+          bannerUrl = (res.data as { url?: string })?.url ?? '';
+          setBrandBannerUrl(bannerUrl);
+        }
       }
       const payload = {
         name: brandName,
@@ -208,6 +212,7 @@ export const CreateBrandForm: React.FC = () => {
             {brandAvatarUrl && <Image 
               width={100}
               height={100}
+              unoptimized
               src={brandAvatarUrl} alt="Avatar" className="max-w-xs mt-2 rounded" />}
           </div>
           <div>
@@ -216,7 +221,8 @@ export const CreateBrandForm: React.FC = () => {
             {brandBannerUrl && <Image 
               width={100}
               height={100}
-            src={brandBannerUrl} alt="Banner" className="max-w-xs mt-2 rounded" />}
+              unoptimized
+              src={brandBannerUrl} alt="Banner" className="max-w-xs mt-2 rounded" />}
           </div>
           <div>
             <label className="block text-sm font-medium">Token Address</label>

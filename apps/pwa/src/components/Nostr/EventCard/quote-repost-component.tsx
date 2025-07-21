@@ -1,11 +1,13 @@
 import { useUIStore } from "@/store/uiStore";
-import { NDKEvent } from "@nostr-dev-kit/ndk";
+import { NDKEvent, NDKKind } from "@nostr-dev-kit/ndk";
 import { useQueryClient } from "@tanstack/react-query";
-import { useQuote, useRepost } from "afk_nostr_sdk";
+import { useQuote, useRepost, useRepostRaw } from "afk_nostr_sdk";
 import { useState } from "react";
 import React from "react";
 import { useNostrAuth } from "@/hooks/useNostrAuth";
 import { ButtonPrimary } from "@/components/button/Buttons";
+import { PostEventCard } from "./PostEventCard";
+import { ArticleEventCard } from "./ArticleEventCard";
 
 
 enum QuoteNostrTypeMode {
@@ -27,6 +29,7 @@ export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
     const [type, setType] = useState<QuoteNostrTypeMode>(QuoteNostrTypeMode.REPOST);
     const quoteMutation = useQuote({ event: event ?? undefined, content: quoteContent, tags: [['e', event?.id ?? '', '', 'root', event?.pubkey ?? '']] });
 
+    console.log("event", event);
     const { showToast } = useUIStore()
     const handleRepost = async () => {
         if (!event || !event?.id) return;
@@ -44,7 +47,10 @@ export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
     };
 
     const handleSendQuote = async () => {
-        if (!event || !event?.id) return;
+        if (!event || !event?.id) {
+            showToast({ type: 'error', message: 'Event not found' });
+            return;
+        }
         if (!quoteContent || quoteContent?.trim().length == 0) {
             showToast({ type: 'error', message: 'Please write your comment' });
             return;
@@ -127,37 +133,62 @@ export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
                 </button>
             </div>
 
-            {type === QuoteNostrTypeMode.QUOTE && (
-                <>
-                    <div className="mb-2 font-semibold text-base">Write a comment</div>
-                    <textarea
-                        className="input-text w-full mb-4"
-                        placeholder="Write your comment"
-                        value={quoteContent}
-                        onChange={(e) => setQuoteContent(e.target.value)}
-                        rows={3}
-                    />
-                    <div className="flex gap-2 justify-end">
+            <div
+                className="flex flex-row sm:flex-row gap-2 items-center justify-center my-4"
+            >
+                {type === QuoteNostrTypeMode.QUOTE && (
+                    <>
+                        {/* <div className="mb-2 font-semibold text-base">Write a comment</div> */}
+                        <textarea
+                            // className="input-text w-full mb-4"
+                            className="w-full mb-4 p-2"
+                            placeholder="Write your comment"
+                            value={quoteContent}
+                            onChange={(e) => setQuoteContent(e.target.value)}
+                            rows={3}
+                        />
+                        <div className="flex gap-2 justify-center"
+                        >
+                            <ButtonPrimary
+                                // className="btn btn-primary"
+                                onClick={handleSendQuote}
+                            >
+                                Quote
+                            </ButtonPrimary>
+                        </div>
+                    </>
+
+                )}
+                {type === QuoteNostrTypeMode.REPOST && (
+                    <div className="flex flex-col items-center justify-center py-4">
+                        {/* <div className="mb-4 font-semibold text-base">Repost this event?</div> */}
                         <ButtonPrimary
                             className="btn btn-primary"
-                            onClick={handleSendQuote}
+                            onClick={handleRepost}
                         >
-                            Quote
+                            Repost
                         </ButtonPrimary>
                     </div>
-                </>
-            )}
-            {type === QuoteNostrTypeMode.REPOST && (
-                <div className="flex flex-col items-center justify-center py-4">
-                    <div className="mb-4 font-semibold text-base">Repost this event?</div>
-                    <ButtonPrimary
-                        className="btn btn-primary"
-                        onClick={handleRepost}
-                    >
-                        Repost
-                    </ButtonPrimary>
-                </div>
-            )}
+                )}
+            </div>
+
+
+
+            <div
+                className="sm:max-h-[200px] lg:max-h-[300px] overflow-y-auto"
+                style={{
+                    overflowY: 'auto',
+                    // maxHeight: '200px',
+                }}
+            >
+                {event?.kind == NDKKind.Text &&
+                    <PostEventCard event={event} profile={undefined} isClickableHashtags={false}
+                    />
+                }
+                {event?.kind == NDKKind.Article &&
+                    <ArticleEventCard event={event} profile={undefined} isClickableHashtags={false} isReadMore={false} />
+                }
+            </div>
         </div>
     );
 }

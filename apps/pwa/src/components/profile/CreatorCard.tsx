@@ -11,6 +11,9 @@ const CreatorCard: React.FC<CreatorCardProps> = ({ creator }) => {
     <div className="border rounded-lg p-4 shadow flex flex-col items-center dark:bg-contrast-100">
       {creator.avatar_url ? (
         <Image  
+          unoptimized
+          width={80}
+          height={80}
           src={creator.avatar_url}
           alt={creator.name}
           className="w-20 h-20 rounded-full object-cover mb-2"

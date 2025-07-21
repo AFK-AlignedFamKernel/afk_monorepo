@@ -48,6 +48,7 @@ export default function CreateAll() {
         onSuccess() {
           setContent('');
           setIsModalOpen(false);
+          logClickedEvent("publish_note_success")
           showToast({
             message: 'Event created successfully',
             type: 'success'

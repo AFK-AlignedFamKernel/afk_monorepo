@@ -24,7 +24,11 @@ export const ConversationPreview: React.FC<ConversationPreviewProps> = ({
     >
       <div className="flex items-center space-x-4">
         <div>
-          <Image src={profile?.image} width={24} height={24} alt={profile?.name || conversation.senderPublicKey.slice(0, 8)} />
+          {profile?.image && (
+            <Image
+              unoptimized
+              src={profile?.image || ''} width={24} height={24} alt={profile?.name || conversation.senderPublicKey.slice(0, 8)} />
+          )}
           <p>
             {profile?.name?.charAt(0) || conversation.senderPublicKey.slice(0, 2)}
           </p>

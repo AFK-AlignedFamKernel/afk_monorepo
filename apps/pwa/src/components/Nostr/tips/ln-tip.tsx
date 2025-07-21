@@ -1,4 +1,5 @@
 import { NDKEvent } from "@nostr-dev-kit/ndk";
+import { useUIStore } from "@/store/uiStore";
 interface TipSuccessModalProps {
     
 }
@@ -11,6 +12,7 @@ export type FormLnTips = {
   };
 
 export const FormTipLN = ({}:FormLnTips) => {
+    const {showToast} = useUIStore();
     return(
         <>
         <p>Under developement</p>

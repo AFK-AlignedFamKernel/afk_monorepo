@@ -63,7 +63,9 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
         <div className="flex justify-between items-center text-sm">
 
           {token?.image_url && (token?.image_url !== "" && token?.image_url !== null && token?.image_url !== undefined) && (
-            <Image src={token?.image_url} alt={token.name} width={50} height={50}
+            <Image 
+            unoptimized 
+            src={token?.image_url} alt={token.name} width={50} height={50}
               className="rounded-lg"
             />
           )}
@@ -151,7 +153,9 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
       </div>
       {/* <div className="flex justify-between items-center text-sm">
         {token?.url && (token?.url !== "" && token?.url !== null && token?.url !== undefined) && (
-          <Image src={token?.url} alt={token.name} width={100} height={100} />
+          <Image 
+          unoptimized 
+          src={token?.url} alt={token.name} width={100} height={100} />
         )}
       </div> */}
 

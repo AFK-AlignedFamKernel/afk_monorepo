@@ -1,0 +1,13 @@
+DROP TRIGGER IF EXISTS contract_state_reorg_indexer_nostr_fi_default ON contract_state;
+DROP TRIGGER IF EXISTS epoch_state_reorg_indexer_nostr_fi_default ON epoch_state;
+DROP TRIGGER IF EXISTS user_profile_reorg_indexer_nostr_fi_default ON user_profile;
+DROP TRIGGER IF EXISTS user_epoch_state_reorg_indexer_nostr_fi_default ON user_epoch_state;
+DROP TRIGGER IF EXISTS dao_creation_reorg_indexer_nostr_fi_default ON dao_creation;
+DROP TRIGGER IF EXISTS dao_proposal_reorg_indexer_nostr_fi_default ON dao_proposal;
+DROP TRIGGER IF EXISTS dao_proposal_vote_reorg_indexer_nostr_fi_default ON dao_proposal_vote;
+DROP TRIGGER IF EXISTS indexer_cursor_reorg_indexer_nostr_fi_default ON indexer_cursor;
+DROP TRIGGER IF EXISTS token_deploy_reorg_indexer_nostr_fi_default ON token_deploy;
+DROP TRIGGER IF EXISTS token_launch_reorg_indexer_nostr_fi_default ON token_launch;
+DROP TRIGGER IF EXISTS token_metadata_reorg_indexer_nostr_fi_default ON token_metadata;
+DROP TRIGGER IF EXISTS token_transactions_reorg_indexer_nostr_fi_default ON token_transactions;
+DROP TRIGGER IF EXISTS shares_token_user_reorg_indexer_nostr_fi_default ON shares_token_user;

@@ -71,6 +71,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                     <div className="w-full max-w-lg mx-auto flex flex-col items-left gap-2 mb-1" aria-label="Brand summary card">
                         <div className="flex flex-row items-center gap-2">
                             <Image
+                                unoptimized
                                 src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name}
                                 className="w-20 h-20 object-cover rounded-full"
                                 width={80}
@@ -120,7 +121,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                                         width={28}
                                         height={28}
                                         className="hover:opacity-80"
-                                        // loading="lazy"
+                                    // loading="lazy"
                                     />
                                 </Link>
                             )}
@@ -146,12 +147,13 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                                         className={`rounded-md p-1  flex flex-row items-center gap-1 cursor-pointer transition ${activePlatformLeaderboard === leaderboard.platform ? "ring-2 ring-blue-500" : ""}`}
                                         onClick={() => setActivePlatformLeaderboard(leaderboard.platform)}>
                                         <p className="font-medium mb-1 italic text-xs">{leaderboard.platform}</p>
-                                        <Image 
-                                        src={`/assets/icons/${leaderboard.platform}.svg`} 
-                                        alt={leaderboard.platform} 
-                                        className="w-8 h-8 object-cover rounded-full"
-                                        width={32}
-                                        height={32}
+                                        <Image
+                                            src={`/assets/icons/${leaderboard.platform}.svg`}
+                                            alt={leaderboard.platform}
+                                            className="w-8 h-8 object-cover rounded-full"
+                                            width={32}
+                                            height={32}
+                                            unoptimized
                                         />
                                     </div>
                                 ))}
@@ -179,6 +181,7 @@ export default function BrandPage({ slug_name }: { slug_name: string }) {
                                                             <td className="px-2 sm:px-3 py-2 flex items-center gap-2 max-w-[120px]">
                                                                 {user?.avatar_url && (
                                                                     <Image
+                                                                        unoptimized
                                                                         src={user.avatar_url}
                                                                         alt={user.name}
                                                                         className="w-7 h-7 object-cover rounded-full"

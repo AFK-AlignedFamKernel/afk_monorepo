@@ -76,7 +76,9 @@ export default function CommentCard({ message, parent_id }: CommentCardProps) {
             <div className="flex flex-row gap-3 items-center">
                 <div className="flex flex-row gap-3 items-center">
                     {message?.user?.profile_image_url
-                        ? <Image src={message?.user?.profile_image_url} alt={message?.user?.name} width={40} height={40}
+                        ? <Image
+                        unoptimized 
+                        src={message?.user?.profile_image_url} alt={message?.user?.name} width={40} height={40}
                             className="rounded-full bg-gray-200"
                         /> : message?.user?.name ?? <span className="text-xs text-gray-500">r/{message?.user?.name}</span>
                     }

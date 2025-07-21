@@ -649,7 +649,7 @@ pub mod NostrFiScoring {
             let vote_params = VoteParams {
                 nostr_address: vote_token_profile.nostr_address,
                 vote: vote_token_profile.vote,
-                is_upvote: vote_token_profile.is_upvote,
+                // is_upvote: vote_token_profile.is_upvote,
                 upvote_amount: vote_token_profile.upvote_amount,
                 downvote_amount: vote_token_profile.downvote_amount,
                 amount: vote_token_profile.amount,

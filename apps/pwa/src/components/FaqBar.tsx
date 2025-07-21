@@ -24,6 +24,7 @@ export function FaqBar({question, answer}: Props) {
           <Image src="/assets/down-cheveron.svg" alt="" 
           width={24}
           height={24}
+          unoptimized
           />
         </div>
 

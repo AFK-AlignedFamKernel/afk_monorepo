@@ -122,6 +122,7 @@ export const userProfile = pgTable('user_profile', {
   total_vote_score: decimal('total_vote_score', { precision: 30, scale: 18 }).default('0'),
   amount_claimed: decimal('amount_claimed', { precision: 30, scale: 18 }).default('0'),
   is_add_by_admin: boolean('is_add_by_admin').default(false),
+  contract_address: text('contract_address'),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 });

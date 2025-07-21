@@ -174,9 +174,9 @@ export class NostrInfofiService {
           contract_address: data.contract_address,
           network: data.network,
           current_epoch_index: epochIndex,
-          current_epoch_start: data.start_duration,
-          current_epoch_end: data.end_duration,
-          current_epoch_duration: data.epoch_duration,
+          current_epoch_start: data.start_duration ?? new Date(),
+          current_epoch_end: data.end_duration ?? new Date(),
+          current_epoch_duration: data.epoch_duration ?? 0,
         },
       });
 

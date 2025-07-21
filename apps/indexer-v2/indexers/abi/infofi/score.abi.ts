@@ -777,7 +777,7 @@ export const ABI = [
   },
   {
     "type": "event",
-    "name": "afk::infofi::nostrfi_scoring::NostrFiScoring::LinkedDefaultStarknetAddressEvent",
+    "name": "afk::interfaces::nostrfi_scoring_interfaces::LinkedDefaultStarknetAddressEvent",
     "kind": "struct",
     "members": [
       {

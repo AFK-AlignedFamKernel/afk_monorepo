@@ -26,7 +26,10 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
   return (
     <div className="p-4 shadow flex flex-col items-center dark:bg-contrast-100">
       {creator.avatar_url ? (
-        <Image    
+        <Image  
+        unoptimized
+        width={80}
+        height={80}
           src={creator.avatar_url}
           alt={creator.name}
           className="w-20 h-20 rounded-full object-cover mb-2"
@@ -63,6 +66,9 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
 
       {creator?.avatar_url && (
         <Image
+        unoptimized
+        width={80}
+        height={80}
           src={creator.avatar_url}
           alt={creator.name}
           className="w-20 h-20 rounded-full object-cover mb-2"
@@ -88,13 +94,13 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
               <div key={platformIndex + platform + platform.url + platform.identity_data.provider}
                 className="flex items-center gap-3 p-3 rounded-md">
                 <p className="font-medium capitalize">{platform.identity_data.provider}</p>
-                <Image src={`/assets/icons/${platform.identity_data.provider}.svg`} 
+                <Image unoptimized src={`/assets/icons/${platform.identity_data.provider}.svg`} 
                 width={32}
                 height={32}
                 alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
 
                 {platform?.identity_data?.provider === "discord" && (
-                  <Image src={platform.identity_data.avatar_url}
+                  <Image unoptimized src={platform.identity_data.avatar_url}
                   width={32}
                   height={32}
                   alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
@@ -102,7 +108,7 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
 
                 {platform?.identity_data?.provider === "github" && (
                   <div className="flex items-center gap-3">
-                    <Image 
+                    <Image unoptimized
                     width={32}
                     height={32}
                     src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
@@ -116,11 +122,11 @@ const LaunchCreator: React.FC<LaunchCreatorProps> = ({ slug, creator, onLaunch }
                 )}
 
                 {platform?.identity_data?.provider === "google" && (
-                  <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  <Image unoptimized src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                 )}
 
                 {platform?.identity_data?.provider === "twitter" && (
-                  <Image src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
+                  <Image unoptimized src={platform.identity_data.avatar_url} alt={platform.identity_data.name} className="w-8 h-8 rounded-full object-cover" />
                 )}
 
 

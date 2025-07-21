@@ -8,6 +8,7 @@ import {Footer} from '../../components/Footer';
 import {FaLock, FaUserSecret, FaComments, FaGlobe} from 'react-icons/fa';
 import {Metadata} from 'next';
 import { IconType } from 'react-icons/lib';
+import { logClickedEvent } from '@/services/analytics';
 const metadata: Metadata = {
   title: 'AFK Solutions',
   description:
@@ -191,6 +192,9 @@ export default function FeaturesPage() {
                 px={10}
                 py={6}
                 fontSize="lg"
+                onClick={() => {
+                  logClickedEvent('join_afk_click_solutions_page');
+                }}
               >
                 Join AFK
               </Button>

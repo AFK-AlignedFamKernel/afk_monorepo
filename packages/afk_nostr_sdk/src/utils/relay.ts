@@ -9,7 +9,7 @@ export const RELAYS_PROD = [
 
 export const RELAYS_TEST = [
   'wss://nos.lol',
-  'wss://relay.damus.io',
+  // 'wss://relay.damus.io',
 
 ];
 
@@ -27,7 +27,9 @@ export const AFK_RELAYS =
       'wss://nostr-relay-nestjs-production.up.railway.app',
     ]
     : [
-      ...RELAYS_TEST,
+      'wss://relay.primal.net',
+
+      // ...RELAYS_TEST,
       // ...RELAYS_PROD,
       'wss://nostr-relay-nestjs-production.up.railway.app',
     ];

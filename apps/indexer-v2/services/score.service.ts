@@ -1,6 +1,6 @@
 
 import { Abi, decodeEvent, StarknetStream } from '@apibara/starknet';
-import { byteArray, encode, hash, uint256 } from 'starknet';
+import { byteArray, cairo, encode, hash, uint256 } from 'starknet';
 
 import {
   upsertContractState,
@@ -13,6 +13,7 @@ import {
 import { formatUnits } from 'viem';
 
 import { ABI as nostrFiScoringABI } from '../indexers/abi/infofi/score.abi';
+import { feltToAddress } from '@/utils/format';
 
 export const SUB_CREATED = hash.getSelectorFromName('TopicEvent') as `0x${string}`;
 export const NEW_EPOCH = hash.getSelectorFromName('NewEpochEvent') as `0x${string}`;
@@ -37,8 +38,25 @@ export const KNOWN_EVENT_KEYS = [
 ]
 
 export const handleEvent = async (event: any, contractAddress: string) => {
-  const eventName = getEventName(event.keys[0]);
+  console.log("event.keys[0]", event.keys[0]);
+  let eventName = getEventName(event.keys[0]);
+  console.log("eventName", eventName);
+
+  if (eventName) {
+    eventName = getEventName(encode.sanitizeHex(event.keys[0]));
+  }
+
+  console.log("eventName", eventName);
+
+  console.log("encode.sanitizeHex(event.keys[0])", encode.sanitizeHex(event.keys[0]));
   if (!KNOWN_EVENT_KEYS.includes(event.keys[0])) {
+    console.log("event not found", event.keys[0]);
+    // return;
+  }
+
+  console.log("KNOWN_EVENT_KEYS", KNOWN_EVENT_KEYS);
+
+  if (!KNOWN_EVENT_KEYS.includes(encode.sanitizeHex(event.keys[0]))) {
     console.log("event not found", event.keys[0]);
     // return;
   }
@@ -100,7 +118,7 @@ export const handleEvent = async (event: any, contractAddress: string) => {
     console.log("decodedEvent", decodedEvent);
 
     return await handleTipUserEvent(decodedEvent, event.address);
-  } else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS)) {
+  } else if (event?.keys[0] == encode.sanitizeHex(LINKED_ADDRESS) || event?.keys[0] == LINKED_ADDRESS || encode.sanitizeHex(event?.keys[0]) == LINKED_ADDRESS || LINKED_ADDRESS.includes(event.keys[0].slice(4, 64))) {
     console.log("LINKED_ADDRESS");
     console.log("event find",);
 
@@ -108,9 +126,12 @@ export const handleEvent = async (event: any, contractAddress: string) => {
       abi: nostrFiScoringABI as Abi,
       event,
       eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::LinkedDefaultStarknetAddressEvent",
+      // eventName: eventName ?? "afk::infofi::nostrfi_scoring::NostrFiScoring::LinkedDefaultStarknetAddressEvent",
     });
     console.log("decodedEvent", decodedEvent);
-    console.log("LINKED_ADDRESS", decodedEvent);
+    console.log("decodedEvent.args", decodedEvent?.args);
+    console.log("decodedEvent.args.nostr_address", decodedEvent?.args?.nostr_address);
+    console.log("decodedEvent.args.starknet_address", decodedEvent?.args?.starknet_address);
     return await handleLinkedAddressEvent(decodedEvent, event.address);
   } else if (event?.keys[0] == encode.sanitizeHex(PUSH_ALGO_SCORE)) {
     console.log("PUSH_ALGO_SCORE");
@@ -122,7 +143,7 @@ export const handleEvent = async (event: any, contractAddress: string) => {
       eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::PushAlgoScoreEvent",
     });
     console.log("decodedEvent", decodedEvent);
-      return await handlePushAlgoScoreEvent(decodedEvent, event.address);
+    return await handlePushAlgoScoreEvent(decodedEvent, event.address);
   } else if (event?.keys[0] == encode.sanitizeHex(ADD_TOPICS)) {
     console.log("event find",);
     console.log("ADD_TOPICS");
@@ -134,7 +155,7 @@ export const handleEvent = async (event: any, contractAddress: string) => {
     });
     console.log("decodedEvent", decodedEvent);
     return await handleAddTopicsEvent(decodedEvent, event.address);
-  } 
+  }
   else if (event?.keys[0] == encode.sanitizeHex(TIP_USER)) {
     console.log("TIP_USER");
     console.log("event find",);
@@ -159,18 +180,18 @@ export const handleEvent = async (event: any, contractAddress: string) => {
     console.log("decodedEvent", decodedEvent);
     return await handleTipUserEvent(decodedEvent, event.address);
   }
-  else {
-    console.log("TIP_USER");
-    console.log("event else issue sanitize",);
+  // else {
+  //   console.log("TIP_USER");
+  //   console.log("event else issue sanitize",);
 
-    const decodedEvent = decodeEvent({
-      abi: nostrFiScoringABI as Abi,
-      event,
-      eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::TipUserWithVote",
-    });
-    console.log("decodedEvent", decodedEvent);
-    await handleTipUserEvent(decodedEvent, event.address);
-  }
+  //   const decodedEvent = decodeEvent({
+  //     abi: nostrFiScoringABI as Abi,
+  //     event,
+  //     eventName: eventName ?? "afk::interfaces::nostrfi_scoring_interfaces::TipUserWithVote",
+  //   });
+  //   console.log("decodedEvent", decodedEvent);
+  //   await handleTipUserEvent(decodedEvent, event.address);
+  // }
   if (!eventName) {
     console.log("event keys", event.keys[0]);
     console.log("TIP_USER is this why", TIP_USER);
@@ -237,26 +258,26 @@ function getEventName(eventKey: string): string | undefined {
 async function handleNewEpochEvent(event: any, contractAddress: string) {
   try {
     console.log("handleNewEpochEvent", event);
-    let startDurationBn= event?.args?.start_duration;
+    let startDurationBn = event?.args?.start_duration;
     let endDurationBn = event?.args?.end_duration;
     let epochDurationBn = event?.args?.epoch_duration;
-    let startDuration = formatUnits(startDurationBn, 18);
-    let endDuration = formatUnits(endDurationBn, 18);
-    let epochDuration = Number(formatUnits(epochDurationBn, 18));
+
+    // Convert BigInt timestamps to numbers (Unix timestamps are in seconds)
+    let startDuration = Number(startDurationBn);
+    let endDuration = Number(endDurationBn);
+    let epochDuration = Number(epochDurationBn);
+
     console.log("startDuration", startDuration);
     console.log("endDuration", endDuration);
     console.log("epochDuration", epochDuration);
-    // let epochDurationDate = new Date(epochDuration);
-    // let startDurationDate = new Date(startDuration);
-    // let endDurationDate = new Date(endDuration);
 
-    let epochDurationDate = new Date(epochDuration);
-    let startDurationDate = new Date(startDuration);
-    let endDurationDate = new Date(endDuration);
+    // Convert Unix timestamps to Date objects (multiply by 1000 for milliseconds)
+    let startDurationDate = new Date(startDuration * 1000);
+    let endDurationDate = new Date(endDuration * 1000);
 
-    console.log("epochDurationDate", epochDurationDate);
     console.log("startDurationDate", startDurationDate);
     console.log("endDurationDate", endDurationDate);
+
     const contractResult = await upsertContractState({
       contract_address: contractAddress,
       current_epoch_index: event.args?.current_index_epoch,
@@ -271,7 +292,7 @@ async function handleNewEpochEvent(event: any, contractAddress: string) {
 
     const epochResult = await upsertEpochState({
       contract_address: contractAddress,
-      epoch_index: event.current_epoch_index,
+      epoch_index: event.args?.current_index_epoch,
       start_time: startDurationDate,
       end_time: endDurationDate,
       epoch_duration: epochDuration,
@@ -329,8 +350,8 @@ async function handleDistributionRewardsEvent(event: any, contractAddress: strin
 
     let amountTokenBn = event.args?.amount_token;
     let amountToken = formatUnits(amountTokenBn, 18);
-    const nostrAddressUint256= event.args?.nostr_address;
-    const nostrAddress =  uint256.bnToUint256(nostrAddressUint256);
+    const nostrAddressUint256 = event.args?.nostr_address;
+    const nostrAddress = uint256.bnToUint256(nostrAddressUint256);
     console.log("nostrAddress", nostrAddress);
     await upsertEpochState({
       contract_address: contractAddress,
@@ -395,14 +416,41 @@ async function handleTipUserEvent(event: any, contractAddress: string) {
 
 async function handleLinkedAddressEvent(event: any, contractAddress: string) {
   try {
-    if (event.nostr_address) {
-      await upsertUserProfile({
-        nostr_id: event?.args?.nostr_address,
-        starknet_address: event?.args?.starknet_address,
+    console.log("handleLinkedAddressEvent", event);
+    console.log("event.args", event?.args);
+
+    if (event?.args?.nostr_address) {
+      // Convert BigInt to string if needed
+      const nostrAddress = typeof event.args.nostr_address === 'bigint'
+        // Convert BigInt to readable nostr schnorr public key (hex string, 64 chars, no 0x)
+        ? event.args.nostr_address.toString(16).padStart(64, '0')
+        : event.args.nostr_address;
+
+      console.log("nostrAddress", nostrAddress);
+
+      const starknetAddress = typeof event.args.starknet_address === 'bigint'
+        ? event.args.starknet_address.toString()
+        : event.args.starknet_address;
+
+      console.log("Processing nostr_address:", nostrAddress);
+      console.log("Processing starknet_address:", starknetAddress);
+      console.log("nostr_address type:", typeof nostrAddress);
+      console.log("starknet_address type:", typeof starknetAddress);
+
+      const result = await upsertUserProfile({
+        nostr_id: nostrAddress,
+        starknet_address: starknetAddress,
+        contract_address: contractAddress,
       });
+
+      console.log("upsertUserProfile result:", result);
+    } else {
+      console.log("No nostr_address found in event.args");
     }
+    console.log("handleLinkedAddressEvent end");
   } catch (error) {
     console.log("error handleLinkedAddressEvent", error);
+    console.error("Full error details:", error);
   }
 }
 
@@ -439,29 +487,111 @@ async function handlePushAlgoScoreEvent(event: any, contractAddress: string) {
 
 async function handleAddTopicsEvent(event: any, contractAddress: string) {
   try {
+    console.log("handleAddTopicsEvent event", event);
+
+    // Convert byte arrays to strings, with fallbacks
+    const topicMetadata = event?.args?.topic_metadata
+      ? byteArray.stringFromByteArray(event.args.topic_metadata)
+      : "";
+    const mainTag = event?.args?.main_tag
+      ? byteArray.stringFromByteArray(event.args.main_tag)
+      : "";
+    const keyword = event?.args?.keyword
+      ? byteArray.stringFromByteArray(event.args.keyword)
+      : "";
+
+    console.log("Converted values:", {
+      topicMetadata,
+      mainTag,
+      keyword
+    });
+
     await upsertContractState({
       contract_address: contractAddress,
-      topic_metadata: byteArray.stringFromByteArray(event?.args?.topic_metadata),
-      main_tag: byteArray.stringFromByteArray(event?.args?.main_tag),
-      keyword: byteArray.stringFromByteArray(event?.args?.keyword),
+      topic_metadata: topicMetadata,
+      main_tag: mainTag,
+      keyword: keyword,
     });
   } catch (error) {
     console.log("error handleAddTopicsEvent", error);
+    console.error("Full error details:", error);
   }
 }
 
 async function handleNostrMetadataEvent(event: any, contractAddress: string) {
   try {
     console.log("handleNostrMetadataEvent event", event);
+
+    // Convert BigInt values to strings
+    const eventIdNip29 = event?.args?.event_id_nip_29
+      ? event.args.event_id_nip_29.toString()
+      : "0";
+
+    console.log("eventIdNip29 handleNostrMetadataEvent", eventIdNip29);
+    const eventIdNip72 = event?.args?.event_id_nip_72
+      ? event.args.event_id_nip_72.toString()
+      : "0";
+    console.log("eventIdNip72 handleNostrMetadataEvent", eventIdNip72);
+
+    let mainTag = "";
+    let about = "";
+    // Convert main_tag and about from hex (felt) to string if needed
+    try {
+      // Try to decode as byte array first
+      // mainTag = event?.args?.main_tag
+      //   ? byteArray.stringFromByteArray(event.args.main_tag)
+      //   : "";
+
+      // If mainTag is still empty and the input looks like a hex string, decode it
+      if (
+        !mainTag &&
+        typeof event?.args?.main_tag === "string" &&
+        event.args.main_tag.startsWith("0x")
+      ) {
+        // Remove 0x and decode hex to string
+        const hex = event.args.main_tag.slice(2);
+        // Convert hex to buffer, then to utf8 string
+        mainTag = Buffer.from(hex, "hex").toString("utf8").replace(/\0/g, "");
+      }
+
+      console.log("mainTag handleNostrMetadataEvent", mainTag);
+
+      // about = event?.args?.about
+      //   ? byteArray.stringFromByteArray(event.args.about)
+      //   : "";
+
+      if (
+        !about &&
+        typeof event?.args?.about === "string" &&
+        event.args.about.startsWith("0x")
+      ) {
+        const hex = event.args.about.slice(2);
+        about = Buffer.from(hex, "hex").toString("utf8").replace(/\0/g, "");
+      }
+
+      console.log("about handleNostrMetadataEvent", about);
+    } catch (error) {
+      console.log("error handleNostrMetadataEvent", error);
+    }
+
+
+    console.log("Converted values:", {
+      mainTag,
+      about,
+      eventIdNip29,
+      eventIdNip72
+    });
+
     await upsertContractState({
       contract_address: contractAddress,
-      name: byteArray.stringFromByteArray(event?.args?.main_tag ?? ""),
-      about: byteArray.stringFromByteArray(event?.args?.about),
-      event_id_nip_29: event?.args?.event_id_nip_29,
-      event_id_nip_72: event?.args?.event_id_nip_72,
-      main_tag: byteArray.stringFromByteArray(event?.args?.main_tag ?? ""),
+      name: mainTag,
+      about: about,
+      event_id_nip_29: eventIdNip29,
+      event_id_nip_72: eventIdNip72,
+      main_tag: mainTag,
     });
   } catch (error) {
     console.log("error handleNostrMetadataEvent", error);
+    console.error("Full error details:", error);
   }
 }

@@ -138,7 +138,7 @@ export default function LaunchpadDetailPage() {
     { name: 'Overview', component: <Overview data={launchData} /> },
     { name: 'Holders', component: <Holders holders={holders} loading={loading} total_supply={launchData?.total_supply} /> },
     { name: 'Transactions', component: <Transactions transactions={transactions} loading={loading} /> },
-    { name: 'Chart', component: <ChartComponent candleData={chartData as any[]} loading={loading} /> },
+    { name: 'Chart', component: <ChartComponent candleData={chartData as any[]} loading={loading ?? false} tokenName={launchData?.symbol ?? 'Token'} theme={'dark'} /> },
     // { name: 'Chart', component: <Chart data={chartData} loading={loading} /> },
   ];
 
@@ -185,7 +185,7 @@ export default function LaunchpadDetailPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-1">
           <div className="lg:col-span-2">
             <div className="space-y-6">
-              <div className="flex space-x-2 rounded-xl p-1.5 dark:bg-gray-800 shadow-sm">
+              <div className="flex space-x-2 rounded-xl p-1.5 dark:bg-gray-800 shadow-sm overflow-x-auto">
                 {tabs.map((tab, index) => (
                   <button
                     key={tab.name}

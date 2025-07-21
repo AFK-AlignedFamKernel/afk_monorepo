@@ -81,7 +81,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       }
 
       if (ndk.pool?.connectedRelays().length === 0) {
-        // console.log("not connected");
+        console.log("not connected");
         await ndk.connect();
         // return;
       } else {
@@ -113,11 +113,11 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       uniqueNotes = Array.from(new Set([...uniqueNotes].map(note => note)))
       // Sort notes by created_at timestamp in descending order (newest first)
       uniqueNotes.sort((a, b) => {
-        return b.created_at - a.created_at;
+        return (b?.created_at ?? 0) - (a?.created_at ?? 0);
       });
 
       if (uniqueNotes.length > 0) {
-        setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1].created_at);
+        setLastCreatedAt(uniqueNotes[uniqueNotes.length - 1]?.created_at ?? 0);
         // setNotesData(uniqueNotes);
         setNotesData(prevNotes => {
           // Combine previous notes and new uniqueNotes

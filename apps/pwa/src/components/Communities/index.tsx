@@ -85,6 +85,7 @@ export default function CommunitiesList() {
           <div className="flex flex-row gap-3 items-center">
             <div className="flex flex-row gap-3 items-center">
               <Image
+                unoptimized
                 src={selectedCommunity.logo_url}
                 alt={selectedCommunity.name}
                 width={40}

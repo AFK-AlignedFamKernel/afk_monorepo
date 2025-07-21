@@ -3,7 +3,7 @@ import { HTTPStatus } from '../../utils/http';
 import { isValidStarknetAddress } from '../../utils/starknet';
 import { db } from 'indexer-v2-db/dist';
 import { daoCreation, daoProposal } from 'indexer-v2-db/dist/schema';
-import { eq } from 'indexer-v2-db/node_modules/drizzle-orm';
+import { eq } from 'drizzle-orm';
 // import {eq} from "drizzle-orm"
 interface DaoParams {
   dao_address: string;
@@ -39,7 +39,7 @@ async function daoServiceRoute(fastify: FastifyInstance, options: RouteOptions) 
       const dao = await db
         .select()
         .from(daoCreation)
-        .where(eq(daoCreation.contractAddress, dao_address))
+        // .where(eq(daoCreation.contractAddress, dao_address))
         .limit(1);
 
       if (dao.length > 0) {

@@ -11,7 +11,7 @@ export const CashuActions: React.FC<CashuActionsProps> = ({
   onReceive,
 }) => {
   return (
-    <div className={styles['cashu-wallet__actions']}>
+    <div className={styles['cashu-wallet__actions'] + ""}>
       <button className={styles['cashu-wallet__actions-button']} onClick={onSend}>
         <Icon name="SendIcon" size={24} className={styles['cashu-wallet__actions-button-icon']} />
         <span className={styles['cashu-wallet__actions-button-text']}>Send</span>

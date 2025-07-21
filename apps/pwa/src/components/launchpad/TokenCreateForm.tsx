@@ -115,6 +115,7 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
 
       let metadata = {
         url: values.metadata?.url,
+        image_url: values.metadata?.url,
         twitter: values.metadata?.twitter,
         github: values.metadata?.github,
         telegram: values.metadata?.telegram,
@@ -295,8 +296,11 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
 
                   <div>
                     <div className='flex'>
-                      <Image src="/assets/icons/twitter.svg"
+                      <Image 
+                      unoptimized
+                      src="/assets/icons/twitter.svg"
                         width={50}
+                        unoptimized
                         height={50}
                         alt="Twitter"
                       ></Image>
@@ -315,7 +319,9 @@ export const TokenCreateForm: React.FC<TokenCreateFormProps> = ({
 
                   <div>
                     <div>
-                      <Image src="/assets/icons/github.svg"
+                      <Image 
+                      unoptimized
+                      src="/assets/icons/github.svg"
                         alt="Github"
                         width={50}
                         height={50}

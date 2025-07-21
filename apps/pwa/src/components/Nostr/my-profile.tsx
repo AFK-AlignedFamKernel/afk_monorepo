@@ -128,6 +128,7 @@ export const ProfileHeader = (props?: any) => {
     <div className="relative rounded-xl shadow-md overflow-hidden mb-4">
       {profile.banner && (
         <Image
+          unoptimized
           src={profile.banner}
           alt="Profile Banner"
           width={150}
@@ -137,6 +138,7 @@ export const ProfileHeader = (props?: any) => {
       )}
       <div className="flex flex-col items-center -mt-12 pb-4">
         <Image
+          unoptimized
           src={profile.picture}
           alt="Profile"
           width={96}

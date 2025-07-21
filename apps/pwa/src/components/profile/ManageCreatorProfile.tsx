@@ -107,10 +107,11 @@ export const ManageCreatorProfile: React.FC = () => {
   const handleUpdateFromIdentity = async () => {
     let fileUrl = '';
     if (file) {
-
       const res = await fileUpload.mutateAsync(file);
-      setFileUrl(res.data?.url)
-      fileUrl = res.data?.url
+      // Check if res is an object and has a data property with a url
+      const url = (typeof res === "object" && res && "data" in res && (res as any).data?.url) ? (res as any).data.url : "";
+      setFileUrl(url);
+      fileUrl = url;
     }
 
     console.log("tokenAddress", tokenAddress)
@@ -248,7 +249,11 @@ export const ManageCreatorProfile: React.FC = () => {
         </button> */}
         {fileUrl && (
           <div className="mt-2 flex justify-center">
-            <Image src={fileUrl} alt="File" className="max-w-[160px] h-auto rounded-lg border shadow object-cover" />
+            <Image 
+            unoptimized
+            width={160}
+            height={160}
+            src={fileUrl} alt="File" className="max-w-[160px] h-auto rounded-lg border shadow object-cover" />
           </div>
         )}
       </div>

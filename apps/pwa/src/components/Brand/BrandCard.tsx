@@ -48,6 +48,7 @@ export default function BrandCard({ brandProps, leaderboardProps, setLeaderboard
                 <Image src={brand.avatar_url ?? `/assets/icons/${brand.slug_name}.png`} alt={brand.name} className="w-10 h-10 object-cover rounded-full"
                     width={40}
                     height={40}
+                    unoptimized
                 />
 
                 <div className="flex flex-row gap-2">
@@ -62,7 +63,9 @@ export default function BrandCard({ brandProps, leaderboardProps, setLeaderboard
                 <div className="flex flex-row gap-2">
                     <Link href={`https://x.com/${brand.twitter_handle}`} target="_blank">
                         <button className="flex flex-row items-center gap-2">
-                            <Image src={`/assets/icons/twitter.svg`} alt="Twitter" width={20} height={20} className="bg-black dark:bg-white text-white dark:text-black rounded-full" />
+                            <Image
+                                unoptimized
+                            src={`/assets/icons/twitter.svg`} alt="Twitter" width={20} height={20} className="bg-black dark:bg-white text-white dark:text-black rounded-full" />
                         </button>
                     </Link>
                 </div>

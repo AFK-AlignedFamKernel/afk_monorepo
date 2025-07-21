@@ -128,13 +128,17 @@ export const ManageBrandProfile: React.FC = () => {
     try {
       if (brandAvatar) {
         const res = await fileUpload.mutateAsync(brandAvatar);
-        avatarUrl = res.data?.url;
-        setBrandAvatarUrl(avatarUrl);
+        if (res && typeof res === 'object' && 'data' in res && res.data && typeof res.data === 'object' && 'url' in res.data) {
+          avatarUrl = (res.data as { url?: string })?.url ?? '';
+          setBrandAvatarUrl(avatarUrl);
+        }
       }
       if (brandBanner) {
         const res = await fileUpload.mutateAsync(brandBanner);
-        bannerUrl = res.data?.url;
-        setBrandBannerUrl(bannerUrl);
+        if (res && typeof res === 'object' && 'data' in res && res.data && typeof res.data === 'object' && 'url' in res.data) {
+          bannerUrl = (res.data as { url?: string })?.url ?? '';
+          setBrandBannerUrl(bannerUrl);
+        }
       }
       logClickedEvent('update_brand_profile', 'brand', 'update_brand_profile', 1)
       const payload = {
@@ -250,12 +254,16 @@ export const ManageBrandProfile: React.FC = () => {
           <div className="mt-4">
             <label className='text-sm font-medium'>Avatar</label>
             <input type="file" accept="image/*" onChange={e => setBrandAvatar(e.target.files?.[0] || null)} className="w-full" />
-            {brandAvatarUrl && <Image  src={brandAvatarUrl} alt="Avatar" className="max-w-xs mt-2 rounded" />}
+            {brandAvatarUrl && <Image 
+            unoptimized
+            src={brandAvatarUrl} alt="Avatar" className="max-w-xs mt-2 rounded" />}
           </div>
           <div className="mt-4">
             <label className='text-sm font-medium'>Banner</label>
             <input type="file" accept="image/*" onChange={e => setBrandBanner(e.target.files?.[0] || null)} className="w-full" />
-            {brandBannerUrl && <Image src={brandBannerUrl} alt="Banner" className="max-w-xs mt-2 rounded" />}
+            {brandBannerUrl && <Image 
+            unoptimized
+            src={brandBannerUrl} alt="Banner" className="max-w-xs mt-2 rounded" />}
           </div>
           <div className="mt-4">
             <label className='text-sm font-medium'>Website</label>

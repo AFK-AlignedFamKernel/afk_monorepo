@@ -113,6 +113,7 @@ export const ArticleEventCard: React.FC<ArticleEventCardProps> = ({ event, profi
         {image && (
           <div className={styles.mediaContainer + ' mb-3 w-full flex justify-center'}>
             <Image
+            unoptimized
               // src={encodeURIComponent(image)  }
               src={image }
               alt={title}

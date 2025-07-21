@@ -44,7 +44,9 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
 
             {data?.url && data?.url?.includes('https://') && data?.url?.length > 0 && (
               <div className="flex justify-between">
-                <Image src={data?.url} alt="URL" width={100} height={100} />
+                <Image
+                unoptimized
+                src={data?.url} alt="URL" width={100} height={100} />
               </div>
             )}
 
@@ -75,7 +77,7 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
                   <span>Twitter</span>
                   <Link href={data?.twitter} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
                     {/* {data?.twitter} */}
-                    <Image src="/assets/icons/twitter.svg" alt="twitter" width={16} height={16} className="ml-1" />
+                    <Image unoptimized src="/assets/icons/twitter.svg" alt="twitter" width={16} height={16} className="ml-1" />
                     </Link>
                 </div>
               )}
@@ -84,7 +86,7 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
                   <span>Telegram</span>
                   <Link href={data?.telegram} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
                     {/* {data?.telegram} */}
-                    <Image src="/assets/icons/telegram.svg" alt="telegram" width={16} height={16} className="ml-1" />
+                    <Image unoptimized src="/assets/icons/telegram.svg" alt="telegram" width={16} height={16} className="ml-1" />
                   </Link>
                 </div>
               )}
@@ -93,7 +95,7 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
                   <span>Github</span>
                   <Link href={data?.github} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
                     {/* {data?.github} */}
-                    <Image src="/assets/icons/github.svg" alt="github" width={16} height={16} className="ml-1" />
+                    <Image unoptimized src="/assets/icons/github.svg" alt="github" width={16} height={16} className="ml-1" />
                   </Link>
                 </div>
               )}
@@ -103,7 +105,7 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
                   <Link href={data?.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
                     {/* {data?.website} */}
                     {/* <Icon name="ExternalLinkIcon" size={16} className="ml-1" /> */}
-                    <Image src="/assets/icons/website.svg" alt="website" width={16} height={16} className="ml-1" />
+                    <Image unoptimized src="/assets/icons/website.svg" alt="website" width={16} height={16} className="ml-1" />
                   </Link>
                 </div>
               )}

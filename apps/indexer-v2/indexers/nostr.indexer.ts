@@ -21,7 +21,6 @@ import { drizzleStorage } from '@apibara/plugin-drizzle';
 import { db } from 'indexer-v2-db';
 import { ABI as nostrFiScoringABI } from './abi/infofi/score.abi';
 // import { ABI as scoreFactoryABI } from './abi/infofi/score-factory.abi';
-import { ABI as scoreFactorySecondABI } from './abi/infofi/scoreFactory.abi';
 import { ABI as scoreFactoryABI } from './abi/infofi/score-factory.abi';
 import { insertSubState } from "./db/nostr-fi.db";
 

@@ -85,6 +85,7 @@ export const Oauth = () => {
                 {user?.app_metadata.provider && (
                     <div className="flex flex-col items-center space-y-2">
                         <Image
+                            unoptimized
                             src={user?.user_metadata.avatar_url}
                             alt={user?.app_metadata.provider}
                             width={80}
@@ -125,6 +126,7 @@ export const Oauth = () => {
                             <Image
                                 // className="text-[var(--gray-500)]"
                                 // className="w-6 h-6 bg-[var(--color-primary)]"
+                                unoptimized
                                 src="/assets/icons/twitter.svg" alt="Twitter" width={50} height={50} />
                             Sign in with Twitter
                         </button>
@@ -132,7 +134,7 @@ export const Oauth = () => {
                             className="border border-gray-500 flex flex-row items-center gap-2 px-6 py-2 rounded-lg  hover:bg-blue-700 font-medium transition-colors"
                             onClick={() => handleLogin("google")}
                         >
-                            <Image src="/assets/icons/google-icon.png" alt="Google" width={50} height={50} />
+                            <Image unoptimized src="/assets/icons/google-icon.png" alt="Google" width={50} height={50} />
                             Sign in with Google
                         </button>
 
@@ -140,14 +142,14 @@ export const Oauth = () => {
                             className="px-6 py-2 rounded-lg  hover:bg-blue-700 text-white font-medium transition-colors"
                             onClick={() => handleLogin("github")}
                         >
-                            <Image src="/assets/icons/github.svg" alt="Twitter" width={50} height={50} />
+                            <Image unoptimized src="/assets/icons/github.svg" alt="Twitter" width={50} height={50} />
                             Sign in with Github
                         </button>
                         <button
                             className="px-6 py-2 rounded-lg  hover:bg-blue-700 text-white font-medium transition-colors"
                             onClick={() => handleLogin("discord")}
                         >
-                            <Image src="/assets/icons/discord.svg" alt="Discord" width={50} height={50} />
+                            <Image unoptimized src="/assets/icons/discord.svg" alt="Discord" width={50} height={50} />
                             Sign in with Discord
                         </button> */}
 

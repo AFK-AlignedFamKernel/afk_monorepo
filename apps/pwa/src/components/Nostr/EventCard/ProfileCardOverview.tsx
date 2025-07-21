@@ -69,6 +69,7 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
         {profile?.picture ? (
           <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-green-400 flex-shrink-0">
             <Image
+              unoptimized
               src={profile.picture}
               alt={displayName}
               width={56}

@@ -5,9 +5,10 @@ import { FACTORY_SCORE_ADDRESS, TOKENS_ADDRESS } from "common";
 dotenv.config();
 
 export const TOPICS_NAME = [
+  "starknet"
   // "cypherpunk",
   // "content creator economy",
-  "bitcoin",
+  // "bitcoin",
   // "ethereum",
   // "art",
   // "zk",

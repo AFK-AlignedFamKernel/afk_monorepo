@@ -6,7 +6,6 @@ import NostrEventCardBase from './NostrEventCardBase';
 import { useAuth, useNote, useProfile, useQuote, useReact, useReactions, useReplyNotes, useRepost, useSendNote } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
-import CommentContainer from './Comment/CommentContainer';
 import { QuoteRepostComponent } from './quote-repost-component';
 import { Icon } from '@/components/small/icon-component';
 import { RepostIcon } from '@/components/small/icons';
@@ -21,6 +20,9 @@ import ArticleEventCard from './ArticleEventCard';
 import { logClickedEvent } from '@/lib/analytics';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import styles from '@/styles/nostr/feed.module.scss';
+import CommentContainer from './Comment/CommentContainer';
+import { VideoPlayer } from './NostrVideoPlayer';
+import ShortEventCard from './ShortEventCard';
 
 export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
   const { event } = props;
@@ -226,7 +228,9 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
       >
         {profile && (
           <>
-            {profile?.picture && <Image className="rounded-full w-7 h-7" src={profile?.picture} alt={profile?.name || ''} width={28} height={28} />}
+            {profile?.picture && <Image 
+            unoptimized
+            className="rounded-full w-7 h-7" src={profile?.picture} alt={profile?.name || ''} width={28} height={28} />}
             <Icon name="RepostIcon" size={16} className="text-blue-600 dark:text-blue-400" />
             <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">Reposted by {profile?.name || profile?.display_name || event?.pubkey?.slice(0, 8)} </span>
           </>
@@ -242,18 +246,34 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
       )}
 
       {/* <div className="flex items-center gap-2 mb-1 mt-1">
-          {profileRepost?.picture && <Image className="rounded-full w-6 h-6" src={profileRepost?.picture} alt={profileRepost?.name || ''} width={24} height={24} />}
+          {profileRepost?.picture && <Image unoptimized className="rounded-full w-6 h-6" src={profileRepost?.picture} alt={profileRepost?.name || ''} width={24} height={24} />}
           <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Original post by {profileRepost?.name || profileRepost?.display_name || pubkeyReposted?.slice(0, 8)}</span>
         </div> */}
       {/* Render correct card by kind, but FLAT */}
       {(() => {
+        // console.log("repostedContent : ", repostedContent);
         // const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
         const original = repostedContent && repostedContent.event ? repostedContent.event : repostedContent;
         if (original?.kind == 1 || original?.kind == NDKKind.Text) {
           return <PostEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} />;
         } else if (original?.kind == 30023 || original?.kind == 30024 || original?.kind == NDKKind.Article) {
           return <ArticleEventCard event={original} profile={profileRepost ?? undefined} isClickableHashtags={false} isReadMore={false} />;
-        } else if (original) {
+        }
+        else if (original?.kind == 30025 || original?.kind == 30026 || original?.kind == 34236 || original?.kind == 34237 || original?.kind == NDKKind.ShortVideo || original?.kind == NDKKind.Video) {
+          return (
+            <div
+            // className="w-full h-full max-h-[300px]"
+            >
+              <ShortEventCard
+                event={original}
+                // className="w-full h-full max-h-[300px]"
+                // classNameVideoPlayer="w-full max-h-[200px]"
+              // classNameNostrBase="w-full h-full max-h-[300px]"
+              />
+            </div>
+          );
+        }
+        else if (original) {
           return (
             <div className={styles['event-card'] + ' ' + styles['post-event-card']}>
               <div className="text-sm text-contrast-500 whitespace-pre-wrap break-words">
@@ -318,8 +338,8 @@ export const RepostEvent: React.FC<NostrPostEventProps> = (props) => {
       })()}
       {isOpenComment && (
         <div className="mt-3">
-          {/* <CommentContainer event={repostedContent && repostedContent.event ? repostedContent.event : repostedContent} /> */}
-          <CommentContainer event={event} />
+          <CommentContainer event={repostedContent && repostedContent.event ? repostedContent.event : repostedContent} />
+          {/* <CommentContainer event={event} /> */}
         </div>
       )}
     </div>

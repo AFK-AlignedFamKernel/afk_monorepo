@@ -122,6 +122,45 @@ body.light-mode {
 //   }
 // }
 
+// Basic custom scrollbar styles using CSS custom properties for theme support
+
+:root {
+  --scrollbar-thumb: var(--border);
+  --scrollbar-track: var(--background);
+}
+
+body.dark-mode, [data-theme="dark"] {
+  --scrollbar-thumb: var(--afk-border, #444);
+  --scrollbar-track: var(--afk-bg-dark, #18181b);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 8px;
+}
+
+.dark-mode {
+  --scrollbar-thumb: var(--afk-border, #444);
+  --scrollbar-track: var(--afk-bg-dark, #18181b);
+}
+
+
 // .btn-secondary-full {
 //   border: 1px solid var(--afk-accent-cyan);
 //   color: var(--afk-accent-cyan);

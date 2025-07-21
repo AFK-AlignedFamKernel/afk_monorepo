@@ -2,6 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { Box, Button, Text } from '@chakra-ui/react';
+import { logClickedEvent } from '@/services/analytics';
+import { GRADIENT_STYLES } from '@/theme/variable';
 export function HeroSection() {
   return (
     <>
@@ -13,8 +15,8 @@ export function HeroSection() {
           }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          src="/assets/moon.svg"
-          className="absolute top-5 desktop:top-[36px] right-[31px] desktop:right-[150px] w-[50px] desktop:w-auto"
+          src="/assets/afkMascot.png"
+          className="absolute top-5 desktop:top-[36px] right-[31px] desktop:right-[150px] w-[100px] h-[100px] desktop:w-auto"
           alt=""
         />
         <motion.div
@@ -27,22 +29,41 @@ export function HeroSection() {
           className="desktop:w-[773px] w-[85%] flex flex-col items-center h-fit text-center relative z-[270]"
         >
           <h1 className="desktop:text-[52px] text-[36px] leading-[50px] desktop:leading-[50px] mb-3">
-            The Social Network you own.
+            Sovereignty for your digital life.
           </h1>
           {/* <h1 className="desktop:text-[52px] text-[36px] leading-[50px] desktop:leading-[50px] mb-3">
             Step into a New Era of Social Networking
           </h1> */}
-          <Text className="desktop:text-[18px] base:text-[14px] text-base leading-8 mb-2">
-            Own your digital life and get rewarded as your deserved.
-          </Text>
+         
           <Text className="desktop:text-[12px] text-base leading-8 mb-8">
-            Decentralized social built with Nostr and powered by Starknet.
+            Own your data, identity, content and money.
           </Text>
           <Box className="flex desktop:flex-row flex-col items-center gap-y-4 gap-x-6 text-[18px] leading-[21px]">
-            <Button className="bg:brand.primary desktop:py-5 text-sm desktop:text-base py-3 px-4 w-[200px] border-white border-[1px] border-solid desktop:border-none">
-              <a href="https://afk-community.xyz" target="_blank" className="bg:brand.primary">
-                Sign up
-              </a>
+          <Button
+              onClick={() => {
+                logClickedEvent('sign_up_click_afk_hero_section_social_network_page');
+              }}
+              borderRadius="10px"
+              border="1px solid var(--chakra-colors-white)"
+              padding="10px 20px"
+              textAlign="center"
+              color="white"
+              fontWeight="bold"
+              fontSize="18px"
+              bg="brand.primary"
+              _hover={{
+                bgGradient: GRADIENT_STYLES.basicLeft,
+                boxShadow: '0 4px 20px 0 rgba(79,168,155,0.25)',
+                color: 'white',
+              }}
+              bgGradient={GRADIENT_STYLES.basicLeft}
+              transition="all 0.2s"
+              as="a"
+              href="https://afk-community.xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Join us
             </Button>
 
             {/* <button className="desktop:py-5 text-sm text-black desktop:text-base py-3 px-4 bg-white w-[200px]">

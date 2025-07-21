@@ -64,7 +64,7 @@ export const NostrForm: React.FC<NostrFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e?.preventDefault();
     if (validateForm()) {
-      logClickedEvent('publish_note', "nostr_note", formData?.type)
+      logClickedEvent('try_publish_note', "nostr_note", formData?.type)
       onSubmit(formData);
     }
   };

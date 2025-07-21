@@ -59,6 +59,7 @@ export const OauthMenu = () => {
                 {user?.app_metadata.provider && (
                     <div className="flex flex-col items-center space-y-2">
                         <Image 
+                            unoptimized
                             src={user?.user_metadata.avatar_url} 
                             alt={user?.app_metadata.provider} 
                             width={80} 

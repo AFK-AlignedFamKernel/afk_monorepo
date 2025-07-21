@@ -65,7 +65,7 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
   const fetchEvents = async () => {
     // if (isLoadingMore || !hasMoreContent) return;
-    console.log("isLoadingMore")
+    // console.log("isLoadingMore")
     if (isLoadingMore) return;
 
     try {
@@ -73,17 +73,16 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       console.log("fetching events");
 
       if (ndk.pool?.relays?.size === 0) {
-        console.log("no relays");
         return;
       }
 
       if (ndk.pool?.connectedRelays().length === 0) {
-        console.log("not connected");
+        // console.log("not connected");
         await ndk.connect();
         // return;
       } else {
-        console.log("connected");
-        console.log("connectedRelays", ndk.pool?.connectedRelays);
+        // console.log("connected");
+        // console.log("connectedRelays", ndk.pool?.connectedRelays);
       }
 
       const notes = await ndk.fetchEvents({
@@ -155,9 +154,9 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
 
 
   useEffect(() => {
-    console.log("activeTabProps", activeTabProps);
-    console.log("kinds", kinds);
-    console.log("fetching events");
+    // console.log("activeTabProps", activeTabProps);
+    // console.log("kinds", kinds);
+    // console.log("fetching events");
     setNotesData([]);
     setLastCreatedAt(Math.round(Date.now() / 1000));
     setHasMoreContent(true);

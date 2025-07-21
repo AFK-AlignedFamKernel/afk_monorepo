@@ -38,11 +38,13 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   const repostMutation = useRepost({ event });
   const quoteMutation = useQuote({ event });
   const react = useReact();
+  const { data: profile } = useProfile({ publicKey: event?.pubkey })
   const userReaction = useReactions({ authors: [publicKey], noteId: event?.id });
   const [dimensionsMedia, setMediaDimensions] = useState([250, 300]);
   const [imgUrls, setImageUrls] = useState<string[]>([]);
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const handleTipsModal = () => {
+    logClickedEvent('open_modal_tip_note', 'Interaction', 'Button Click', 1);
     showModal(<TipNostr event={event} profile={props?.profile}></TipNostr>)
   }
 
@@ -185,7 +187,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
   }
 
   return (
-    <NostrEventCardBase event={event} profile={props.profile} isLoading={props.isLoading}>
+    <NostrEventCardBase event={event} profile={profile || props?.profile || undefined} isLoading={props.isLoading} className={props.className}>
       {isReplyView && reply && reply.length > 0 && (
         <div className={styles.replyContainer} aria-label="Reply to note">
           <button onClick={() => {
@@ -237,6 +239,7 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
         <div>
           {postSource && postSource?.uri && (
             <Image
+              unoptimized
               src={postSource?.uri}
               // src={encodeURIComponent(postSource?.uri)}
               alt="Post Source"

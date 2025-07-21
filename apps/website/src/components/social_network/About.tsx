@@ -23,7 +23,7 @@ export function About() {
         className="desktop:flex"
       >
 
-        <motion.img
+        {/* <motion.img
           src="/assets/afkMascot.png"
           // src="/assets/degen-logo.png"
           // className="absolute left-[-31px] desktop:left-2 bottom-[39px] desktop:bottom-[49px] z-[250] desktop:w-[380px] w-[210px]"
@@ -35,7 +35,7 @@ export function About() {
           }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-        />
+        /> */}
 
         <Box>
           <Text
