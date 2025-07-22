@@ -1,8 +1,8 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
 import { HTTPStatus } from '../../utils/http';
 import { isValidStarknetAddress } from '../../utils/starknet';
-import { db } from 'indexer-v2-db/dist';
-import { daoCreation, daoProposal } from 'indexer-v2-db/dist/schema';
+import { db } from 'indexer-v2-db';
+const { daoCreation, daoProposal } = require('indexer-v2-db/schema');
 import { eq } from 'drizzle-orm';
 // import {eq} from "drizzle-orm"
 interface DaoParams {

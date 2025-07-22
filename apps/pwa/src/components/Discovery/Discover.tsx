@@ -9,6 +9,7 @@ import { logClickedEvent } from "@/lib/analytics";
 import PumpComponent from "../launchpad/PumpComponent";
 import CommunitiesList from "../Communities";
 import ChannelFeed from "../Nostr/Channel/ChannelFeed";
+import ChatScreen from "../Bitchat/ChatScreen";
 // import { ChatScreen } from "@/components/Bitchat/ChatScreen";
 
 export default function DiscoverComponent() {
@@ -27,11 +28,11 @@ export default function DiscoverComponent() {
           {[
             { key: "feed", label: "Feed" },
             { key: "brand", label: "Brands" },
-            // { key: "chat", label: "Chat" },
             { key: "creator", label: "Creators" },
             { key: "launchpad", label: "Tokens" },
             { key: "channels", label: "Channels" },
             { key: "communities", label: "Communities" },
+            { key: "chat", label: "Chat" },
             // { key: "topic", label: "Topics" },
           ].map(tab => (
             <button
@@ -99,11 +100,11 @@ export default function DiscoverComponent() {
           </div>
         )}
 
-        {/* {activeTab === "chat" && (
+        {activeTab === "chat" && (
           <div className="px-4">
             <ChatScreen />
           </div>
-        )} */}
+        )}
 
         {activeTab === "communities" && (
           <div className="px-4">

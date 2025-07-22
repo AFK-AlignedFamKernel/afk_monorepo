@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { contractState, epochState, userEpochState, userProfile } from "../schema";
-import { db } from "..";
+import { contractState, epochState, userEpochState, userProfile } from "../schema.js";
+import { db } from "../index.js";
 
 
 export const getSubInfo = async (sub_address: string) => {

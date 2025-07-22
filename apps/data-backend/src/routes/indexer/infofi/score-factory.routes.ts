@@ -2,8 +2,8 @@ import type { FastifyInstance, RouteOptions } from 'fastify';
 import { HTTPStatus } from '../../../utils/http';
 import { isValidStarknetAddress } from '../../../utils/starknet';
 // import { eq, and, or } from 'drizzle-orm';
-import { db, queries } from 'indexer-v2-db/dist';
-import { contractState, epochState, userEpochState } from 'indexer-v2-db/dist/schema';
+import { db, queries } from 'indexer-v2-db';
+const { contractState, epochState, userEpochState } = require('indexer-v2-db/schema');
 interface ScoreFactoryParams {
   sub_address: string;
 }
