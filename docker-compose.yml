@@ -1,18 +1,18 @@
 version: '3.8'
 
 services:
-  mobile:
+  pwa:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        APP_PATH: apps/mobile
-    working_dir: /app/apps/mobile
-    command: pnpm run start
+        APP_PATH: apps/pwa
+    working_dir: /app/apps/pwa
+    command: pnpm run dev
     volumes:
       - .:/app
     ports:
-      - "${MOBILE_PORT}:${MOBILE_PORT}" # Use environment variable
+      - "${PWA_PORT}:${PWA_PORT}" # Use environment variable
     depends_on:
       - packages
     env_file:
