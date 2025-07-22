@@ -57,6 +57,7 @@ WORKDIR /app
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/packages/common ./packages/common
 COPY --from=base /app/packages/indexer-prisma ./packages/indexer-prisma
+COPY --from=base /app/packages/indexer-v2-db ./packages/indexer-v2-db
 COPY --from=base /app/apps/data-backend/dist ./apps/data-backend/dist
 
 # Copy only necessary files for the application to run
