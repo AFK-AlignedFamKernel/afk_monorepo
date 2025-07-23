@@ -1,8 +1,8 @@
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 
-import * as schema from './schema';
-import * as queries from './queries/index';
+import * as schema from './schema.js';
+import * as queries from './queries/index.js';
 
 const connectionString =
   process.env.INDEXER_V2_DATABASE_URL ?? 'postgres://postgres:postgres@localhost:5435/postgres';

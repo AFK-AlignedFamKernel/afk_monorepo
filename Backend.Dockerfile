@@ -42,10 +42,11 @@ COPY . .
 
 # Build the indexer-prisma package
 RUN pnpm --filter indexer-prisma build
+RUN pnpm --filter indexer-v2-db build
 
 # Build the data-backend package
 # RUN pnpm --filter data-backend build:all
-RUN pnpm --filter data-backend build:all_repo
+RUN pnpm --filter data-backend build:all
 
 # Use a smaller production base image
 FROM node:18-alpine AS production
@@ -57,6 +58,7 @@ WORKDIR /app
 COPY --from=base /app/node_modules ./node_modules
 COPY --from=base /app/packages/common ./packages/common
 COPY --from=base /app/packages/indexer-prisma ./packages/indexer-prisma
+COPY --from=base /app/packages/indexer-v2-db ./packages/indexer-v2-db
 COPY --from=base /app/apps/data-backend/dist ./apps/data-backend/dist
 
 # Copy only necessary files for the application to run

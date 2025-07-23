@@ -1,1 +1,1 @@
-export * from './infofi';
+export * from './infofi.js';
