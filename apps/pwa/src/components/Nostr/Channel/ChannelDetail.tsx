@@ -119,7 +119,7 @@ const ChannelDetail: React.FC<{ channelId: string }> = ({ channelId }) => {
       </div>
       <form onSubmit={handleSend} className="flex gap-2 mt-2">
         <input
-          className="flex-1 rounded border border-gray-300 dark:border-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+          className="flex-1 rounded border border-gray-300 dark:border-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
           type="text"
           placeholder="Type your message..."
           value={message}
