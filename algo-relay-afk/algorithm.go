@@ -255,9 +255,9 @@ func (r *NostrRepository) GetUserFeedByAuthors(ctx context.Context, userID strin
 	return FeedNotes, nil
 }
 
-func getInteractionCountForAuthor(authorID string, interactions []AuthorInteraction) int {
+func getInteractionCountForAuthor(authorID string, interactions []TopAuthor) int {
 	for _, interaction := range interactions {
-		if interaction.AuthorID == authorID {
+		if interaction.Pubkey == authorID {
 			return interaction.InteractionCount
 		}
 	}

@@ -552,3 +552,49 @@ func handleSyncNotesAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func handleTrendingTopAuthorsAPI(w http.ResponseWriter, r *http.Request) {
+	log.Printf("📊 Trending top authors API called")
+
+	// Get limit parameter
+	limit := r.URL.Query().Get("limit")
+	if limit == "" {
+		limit = "20"
+	}
+
+	limitInt, err := strconv.Atoi(limit)
+	if err != nil {
+		http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
+		return
+	}
+
+	// Get time range parameter (default: 7 days)
+	timeRange := r.URL.Query().Get("time_range")
+	if timeRange == "" {
+		timeRange = "7d"
+	}
+
+	log.Printf("🔍 Fetching trending top authors with limit: %d, time range: %s", limitInt, timeRange)
+
+	// Fetch trending top authors
+	authors, err := repository.fetchTrendingTopAuthors(limitInt, timeRange)
+	if err != nil {
+		log.Printf("❌ Error fetching trending top authors: %v", err)
+		http.Error(w, "Error fetching trending top authors: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("✅ Successfully fetched %d trending top authors", len(authors))
+
+	// Set content type header
+	w.Header().Set("Content-Type", "application/json")
+
+	// Return the authors as JSON
+	if err := json.NewEncoder(w).Encode(authors); err != nil {
+		log.Printf("❌ Error encoding trending top authors response: %v", err)
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("📤 Sent trending top authors response with %d authors", len(authors))
+}

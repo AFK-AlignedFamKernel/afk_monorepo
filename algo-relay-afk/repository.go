@@ -37,6 +37,27 @@ type AuthorInteraction struct {
 	InteractionCount int
 }
 
+type TopAuthor struct {
+	Pubkey           string `json:"pubkey"`
+	Name             string `json:"name,omitempty"`
+	Picture          string `json:"picture,omitempty"`
+	InteractionCount int    `json:"interaction_count"`
+	LastInteraction  int64  `json:"last_interaction"`
+}
+
+type TrendingTopAuthor struct {
+	Pubkey            string  `json:"pubkey"`
+	Name              string  `json:"name,omitempty"`
+	Picture           string  `json:"picture,omitempty"`
+	TotalInteractions int     `json:"total_interactions"`
+	ReactionsReceived int     `json:"reactions_received"`
+	ZapsReceived      int     `json:"zaps_received"`
+	RepliesReceived   int     `json:"replies_received"`
+	NotesCount        int     `json:"notes_count"`
+	EngagementScore   float64 `json:"engagement_score"`
+	LastActivity      int64   `json:"last_activity"`
+}
+
 var viralNoteCache struct {
 	notes     []FeedNote
 	Timestamp time.Time
@@ -212,40 +233,47 @@ func decodeBolt11Invoice(bolt11 string) (int64, error) {
 	return satsInt64, nil
 }
 
-func (r *NostrRepository) fetchTopInteractedAuthors(userID string) ([]AuthorInteraction, error) {
+func (r *NostrRepository) fetchTopInteractedAuthors(userID string) ([]TopAuthor, error) {
 	start := time.Now()
 	query := `
 		WITH zap_counts AS (
-			SELECT p.author_id, COUNT(z.id) AS interaction_count
+			SELECT p.author_id, COUNT(z.id) AS interaction_count, MAX(z.created_at) AS last_interaction
 			FROM notes p
 			JOIN zaps z ON p.id = z.note_id
 			WHERE z.zapper_id = $1
 			GROUP BY p.author_id
 		),
 		reaction_counts AS (
-			SELECT p.author_id, COUNT(r.id) AS interaction_count
+			SELECT p.author_id, COUNT(r.id) AS interaction_count, MAX(r.created_at) AS last_interaction
 			FROM notes p
 			JOIN reactions r ON p.id = r.note_id
 			WHERE r.reactor_id = $1
 			GROUP BY p.author_id
 		),
 		comment_counts AS (
-			SELECT p.author_id, COUNT(c.id) AS interaction_count
+			SELECT p.author_id, COUNT(c.id) AS interaction_count, MAX(c.created_at) AS last_interaction
 			FROM notes p
 			JOIN comments c ON p.id = c.note_id
 			WHERE c.commenter_id = $1
 			GROUP BY p.author_id
+		),
+		combined_interactions AS (
+			SELECT author_id, SUM(interaction_count) AS total_interactions, MAX(last_interaction) AS last_interaction
+			FROM (
+				SELECT author_id, interaction_count, last_interaction FROM zap_counts
+				UNION ALL
+				SELECT author_id, interaction_count, last_interaction FROM reaction_counts
+				UNION ALL
+				SELECT author_id, interaction_count, last_interaction FROM comment_counts
+			) AS interactions
+			GROUP BY author_id
 		)
-		SELECT author_id, SUM(interaction_count) AS interaction_count
-		FROM (
-			SELECT author_id, interaction_count FROM zap_counts
-			UNION ALL
-			SELECT author_id, interaction_count FROM reaction_counts
-			UNION ALL
-			SELECT author_id, interaction_count FROM comment_counts
-		) AS interactions
-		GROUP BY author_id
-		ORDER BY interaction_count DESC;
+		SELECT ci.author_id, ci.total_interactions, ci.last_interaction,
+		       COALESCE(p.settings->>'name', '') as name,
+		       COALESCE(p.settings->>'picture', '') as picture
+		FROM combined_interactions ci
+		LEFT JOIN pubkey_settings p ON ci.author_id = p.pubkey
+		ORDER BY ci.total_interactions DESC, ci.last_interaction DESC;
 	`
 	rows, err := r.db.QueryContext(context.Background(), query, userID)
 	if err != nil {
@@ -253,16 +281,26 @@ func (r *NostrRepository) fetchTopInteractedAuthors(userID string) ([]AuthorInte
 	}
 	defer rows.Close()
 
-	authors := make([]AuthorInteraction, 0, 128)
+	authors := make([]TopAuthor, 0, 128)
 	for rows.Next() {
-		var authorID string
+		var authorID, name, picture string
 		var interactionCount int
-		if err := rows.Scan(&authorID, &interactionCount); err != nil {
+		var lastInteraction sql.NullTime
+		if err := rows.Scan(&authorID, &interactionCount, &lastInteraction, &name, &picture); err != nil {
 			return nil, err
 		}
-		authors = append(authors, AuthorInteraction{
-			AuthorID:         authorID,
+
+		lastInteractionTime := int64(0)
+		if lastInteraction.Valid {
+			lastInteractionTime = lastInteraction.Time.Unix()
+		}
+
+		authors = append(authors, TopAuthor{
+			Pubkey:           authorID,
+			Name:             name,
+			Picture:          picture,
 			InteractionCount: interactionCount,
+			LastInteraction:  lastInteractionTime,
 		})
 	}
 	log.Printf("Fetched top interacted authors in %v", time.Since(start))
@@ -398,7 +436,7 @@ func (r *NostrRepository) GetNotes(ctx context.Context, limit int) ([]FeedNote, 
 	return viralnotes, nil
 }
 
-func (r *NostrRepository) fetchNotesFromAuthors(authorInteractions []AuthorInteraction, kind int) ([]EventWithMeta, error) {
+func (r *NostrRepository) fetchNotesFromAuthors(authorInteractions []TopAuthor, kind int) ([]EventWithMeta, error) {
 	// Extract author IDs and interaction counts
 	start := time.Now()
 	authorIDs := make([]string, 0, len(authorInteractions))
@@ -407,7 +445,7 @@ func (r *NostrRepository) fetchNotesFromAuthors(authorInteractions []AuthorInter
 	for _, authorInteraction := range authorInteractions {
 		// Only include authors with an interaction count >= 5
 		if authorInteraction.InteractionCount >= 5 {
-			authorIDs = append(authorIDs, authorInteraction.AuthorID)
+			authorIDs = append(authorIDs, authorInteraction.Pubkey)
 			interactionCounts = append(interactionCounts, authorInteraction.InteractionCount)
 		}
 	}
@@ -815,4 +853,129 @@ func (r *NostrRepository) GetUserMetrics(pubkey string) (UserMetrics, error) {
 		Conversations: conversations,
 		Zaps:          zaps,
 	}, nil
+}
+
+func (r *NostrRepository) fetchTrendingTopAuthors(limit int, timeRange string) ([]TrendingTopAuthor, error) {
+	start := time.Now()
+
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour) // Default to 7 days
+	}
+
+	query := `
+		WITH author_stats AS (
+			SELECT 
+				p.author_id,
+				COUNT(DISTINCT p.id) as notes_count,
+				COALESCE(SUM(r_count.reaction_count), 0) as reactions_received,
+				COALESCE(SUM(z_count.zap_count), 0) as zaps_received,
+				COALESCE(SUM(c_count.reply_count), 0) as replies_received,
+				MAX(p.created_at) as last_activity
+			FROM notes p
+			LEFT JOIN (
+				SELECT note_id, COUNT(*) as reaction_count
+				FROM reactions
+				WHERE created_at >= $1
+				GROUP BY note_id
+			) r_count ON p.id = r_count.note_id
+			LEFT JOIN (
+				SELECT note_id, COUNT(*) as zap_count
+				FROM zaps
+				WHERE created_at >= $1
+				GROUP BY note_id
+			) z_count ON p.id = z_count.note_id
+			LEFT JOIN (
+				SELECT note_id, COUNT(*) as reply_count
+				FROM comments
+								WHERE created_at >= $1
+				GROUP BY note_id
+			) c_count ON p.id = c_count.note_id
+			WHERE p.created_at >= $1
+			GROUP BY p.author_id
+		),
+		author_engagement AS (
+			SELECT 
+				author_id,
+				notes_count,
+				reactions_received,
+				zaps_received,
+				replies_received,
+				(reactions_received + zaps_received + replies_received) as total_interactions,
+				-- Calculate engagement score: (reactions + zaps*2 + replies*1.5) / notes_count
+				CASE 
+					WHEN notes_count > 0 THEN 
+						(reactions_received + (zaps_received * 2.0) + (replies_received * 1.5)) / notes_count::float
+					ELSE 0 
+				END as engagement_score,
+				last_activity
+			FROM author_stats
+			WHERE notes_count >= 1  -- Only authors with at least 1 note
+		)
+		SELECT 
+			ae.author_id,
+			ae.total_interactions,
+			ae.reactions_received,
+			ae.zaps_received,
+			ae.replies_received,
+			ae.notes_count,
+			ae.engagement_score,
+			EXTRACT(EPOCH FROM ae.last_activity)::bigint as last_activity_timestamp,
+			COALESCE(ps.settings->>'name', '') as name,
+			COALESCE(ps.settings->>'picture', '') as picture
+		FROM author_engagement ae
+		LEFT JOIN pubkey_settings ps ON ae.author_id = ps.pubkey
+		WHERE ae.total_interactions > 0  -- Only authors with some interactions
+		ORDER BY ae.engagement_score DESC, ae.total_interactions DESC, ae.last_activity DESC
+		LIMIT $2;
+	`
+
+	rows, err := r.db.QueryContext(context.Background(), query, timeCutoff, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	authors := make([]TrendingTopAuthor, 0, limit)
+	for rows.Next() {
+		var authorID, name, picture string
+		var totalInteractions, reactionsReceived, zapsReceived, repliesReceived, notesCount int
+		var engagementScore float64
+		var lastActivityTimestamp int64
+
+		if err := rows.Scan(
+			&authorID, &totalInteractions, &reactionsReceived, &zapsReceived, &repliesReceived,
+			&notesCount, &engagementScore, &lastActivityTimestamp, &name, &picture,
+		); err != nil {
+			return nil, err
+		}
+
+		authors = append(authors, TrendingTopAuthor{
+			Pubkey:            authorID,
+			Name:              name,
+			Picture:           picture,
+			TotalInteractions: totalInteractions,
+			ReactionsReceived: reactionsReceived,
+			ZapsReceived:      zapsReceived,
+			RepliesReceived:   repliesReceived,
+			NotesCount:        notesCount,
+			EngagementScore:   engagementScore,
+			LastActivity:      lastActivityTimestamp,
+		})
+	}
+
+	log.Printf("Fetched trending top authors in %v (time range: %s, limit: %d)", time.Since(start), timeRange, limit)
+	return authors, nil
 }

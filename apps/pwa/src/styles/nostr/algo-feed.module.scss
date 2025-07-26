@@ -1601,3 +1601,57 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     word-break: break-word;
   }
 }
+
+// Trending Top Authors styles
+.algo-feed__trending-authors {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.algo-feed__trending-author-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.algo-feed__trending-author-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.algo-feed__trending-author-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.algo-feed__engagement-score {
+  font-weight: 600;
+  color: var(--accent-color);
+}
+
+.algo-feed__interaction-breakdown {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.algo-feed__notes-count {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}

@@ -101,6 +101,19 @@ export interface UserMetrics {
   }>;
 }
 
+export interface TrendingTopAuthor {
+  pubkey: string;
+  name?: string;
+  picture?: string;
+  total_interactions: number;
+  reactions_received: number;
+  zaps_received: number;
+  replies_received: number;
+  notes_count: number;
+  engagement_score: number;
+  last_activity: number;
+}
+
 // Backend data structures (from Go backend)
 export interface BackendScrapedNote {
   id: string;
@@ -336,6 +349,26 @@ class AlgoRelayService {
   async getTopAuthors(pubkey: string): Promise<TopAuthor[]> {
     log.info(`Fetching top authors`, { pubkey: pubkey.slice(0, 8) + '...' });
     return this.makeRequest<TopAuthor[]>(`/api/top-authors?pubkey=${pubkey}`);
+  }
+
+  // Fetch trending top authors
+  async getTrendingTopAuthors(params: {
+    limit?: number;
+    timeRange?: '1h' | '6h' | '24h' | '1d' | '7d' | '30d';
+  } = {}): Promise<TrendingTopAuthor[]> {
+    const { limit = 20, timeRange = '7d' } = params;
+    
+    try {
+      const response = await this.makeRequest<TrendingTopAuthor[]>(
+        `/api/trending-top-authors?limit=${limit}&time_range=${timeRange}`
+      );
+      
+      log.success(`Fetched ${response?.length || 0} trending top authors`, { limit, timeRange });
+      return response || [];
+    } catch (error) {
+      log.error('Failed to fetch trending top authors', error);
+      throw error;
+    }
   }
 
   // Fetch scraped notes with filters

@@ -36,13 +36,14 @@ export default function AlgoFeedDemoPage() {
 
         {/* Advanced AlgoFeed */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Advanced AlgoFeed (with Refresh)</h2>
+          <h2 className="text-xl font-semibold mb-4">Advanced AlgoFeed (with Refresh & New Trending Authors)</h2>
           <AdvancedAlgoFeed 
             limit={10}
             showTrending={true}
             showViral={true}
             showScraped={true}
             showTopAuthors={true}
+            showTrendingTopAuthors={true}
             enableRealTime={false}
             className="mb-4"
           />
@@ -60,6 +61,21 @@ export default function AlgoFeedDemoPage() {
           <li>✅ Multiple data sources (trending, viral, scraped notes)</li>
           <li>✅ Advanced filtering and sorting options</li>
           <li>✅ Responsive design with dark mode support</li>
+          <li>✅ <strong>NEW:</strong> Trending Top Authors endpoint with engagement scoring</li>
+          <li>✅ <strong>NEW:</strong> Global author ranking based on interactions, zaps, replies</li>
+          <li>✅ <strong>NEW:</strong> Time-based filtering (1h, 6h, 24h, 7d, 30d)</li>
+          <li>✅ <strong>NEW:</strong> Engagement score calculation with weighted metrics</li>
+        </ul>
+      </div>
+
+      <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+        <h3 className="text-lg font-semibold mb-2 text-green-800 dark:text-green-200">✅ New Trending Top Authors Endpoint:</h3>
+        <ul className="list-disc list-inside space-y-1 text-sm text-green-700 dark:text-green-300">
+          <li><strong>Endpoint:</strong> <code>/api/trending-top-authors</code></li>
+          <li><strong>Parameters:</strong> <code>limit</code> (default: 20), <code>time_range</code> (1h, 6h, 24h, 7d, 30d)</li>
+          <li><strong>Engagement Score:</strong> (reactions + zaps×2 + replies×1.5) ÷ notes_count</li>
+          <li><strong>Metrics:</strong> Total interactions, reactions received, zaps received, replies received, notes count</li>
+          <li><strong>Profile Data:</strong> Name and picture from pubkey_settings table</li>
         </ul>
       </div>
     </div>

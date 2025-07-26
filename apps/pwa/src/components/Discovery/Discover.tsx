@@ -11,7 +11,7 @@ import CommunitiesList from "../Communities";
 import ChannelFeed from "../Nostr/Channel/ChannelFeed";
 import ChatScreen from "../Bitchat/ChatScreen";
 import AlgoFeed from "../Nostr/feed/AlgoFeed";
-// import { ChatScreen } from "@/components/Bitchat/ChatScreen";
+import AdvancedAlgoFeed from "../Nostr/feed/AdvancedAlgoFeed";
 
 export default function DiscoverComponent() {
 
@@ -85,7 +85,8 @@ export default function DiscoverComponent() {
           <div
           // className="flex flex-row gap-4"
           >
-            <AlgoFeed />
+            {/* <AlgoFeed /> */}
+            <AdvancedAlgoFeed />
             {/* <FeedTabs className="w-full" /> */}
           </div>
         )}

@@ -9,6 +9,7 @@ import {
   ViralNote, 
   ScrapedNote, 
   TopAuthor,
+  TrendingTopAuthor,
   transformTrendingNoteToNDKEvent,
   transformViralNoteToNDKEvent,
   transformScrapedNoteToNDKEvent
@@ -23,10 +24,11 @@ interface AdvancedAlgoFeedProps {
   showViral?: boolean;
   showScraped?: boolean;
   showTopAuthors?: boolean;
+  showTrendingTopAuthors?: boolean;
   enableRealTime?: boolean;
 }
 
-type TabType = 'trending' | 'viral' | 'scraped' | 'top-authors';
+type TabType = 'trending' | 'viral' | 'scraped' | 'top-authors' | 'trending-top-authors';
 
 const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
   className = '',
@@ -35,6 +37,7 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
   showViral = true,
   showScraped = true,
   showTopAuthors = true,
+  showTrendingTopAuthors = true,
   enableRealTime = false
 }) => {
   const { publicKey } = useAuth();
@@ -43,6 +46,7 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
   const [viralNotes, setViralNotes] = useState<ViralNote[]>([]);
   const [scrapedNotes, setScrapedNotes] = useState<ScrapedNote[]>([]);
   const [topAuthors, setTopAuthors] = useState<TopAuthor[]>([]);
+  const [trendingTopAuthors, setTrendingTopAuthors] = useState<TrendingTopAuthor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
@@ -89,6 +93,16 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
     }
   }, [publicKey]);
 
+  const fetchTrendingTopAuthors = useCallback(async () => {
+    try {
+      const data = await algoRelayService.getTrendingTopAuthors({ limit });
+      setTrendingTopAuthors(data || []);
+    } catch (err) {
+      console.error('Error fetching trending top authors:', err);
+      setTrendingTopAuthors([]);
+    }
+  }, [limit]);
+
   const fetchCurrentTabData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -107,6 +121,9 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
         case 'top-authors':
           await fetchTopAuthors();
           break;
+        case 'trending-top-authors':
+          await fetchTrendingTopAuthors();
+          break;
       }
       setLastUpdate(new Date());
     } catch (err) {
@@ -114,7 +131,7 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [activeTab, fetchTrendingNotes, fetchViralNotes, fetchScrapedNotes, fetchTopAuthors]);
+  }, [activeTab, fetchTrendingNotes, fetchViralNotes, fetchScrapedNotes, fetchTopAuthors, fetchTrendingTopAuthors]);
 
   useEffect(() => {
     fetchCurrentTabData();
@@ -141,7 +158,7 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
     logClickedEvent('advanced_algo_feed_tab', 'click_tab', tab);
   };
 
-  const renderNotes = (notes: TrendingNote[] | ViralNote[] | ScrapedNote[] | TopAuthor[]) => {
+  const renderNotes = (notes: TrendingNote[] | ViralNote[] | ScrapedNote[] | TopAuthor[] | TrendingTopAuthor[]) => {
     if (loading) {
       return (
         <div className={styles['algo-feed__loading']}>
@@ -239,6 +256,45 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
     </div>
   );
 
+  const renderTrendingTopAuthors = () => (
+    <div className={styles['algo-feed__trending-authors']}>
+      {(!trendingTopAuthors || trendingTopAuthors.length === 0) ? (
+        <div className={styles['algo-feed__empty']}>
+          <p>No trending top authors found</p>
+        </div>
+      ) : (
+        trendingTopAuthors.map((author) => (
+          <div 
+            key={author.pubkey} 
+            className={styles['algo-feed__trending-author-card']}
+          >
+            <img 
+              src={author.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${author.pubkey}`} 
+              alt={author.name || 'Author'}
+              className={styles['algo-feed__author-avatar']}
+            />
+            <div className={styles['algo-feed__trending-author-details']}>
+              <span className={styles['algo-feed__author-name']}>
+                {author.name || author.pubkey.slice(0, 8) + '...'}
+              </span>
+              <div className={styles['algo-feed__trending-author-stats']}>
+                <span className={styles['algo-feed__engagement-score']}>
+                  🔥 {author.engagement_score.toFixed(1)} engagement
+                </span>
+                <span className={styles['algo-feed__interaction-breakdown']}>
+                  ❤️ {author.reactions_received} • ⚡ {author.zaps_received} • 💬 {author.replies_received}
+                </span>
+                <span className={styles['algo-feed__notes-count']}>
+                  📝 {author.notes_count} notes
+                </span>
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+
   const getCurrentData = () => {
     switch (activeTab) {
       case 'trending':
@@ -249,6 +305,8 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
         return scrapedNotes;
       case 'top-authors':
         return topAuthors;
+      case 'trending-top-authors':
+        return trendingTopAuthors;
       default:
         return [];
     }
@@ -321,14 +379,25 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
               onClick={() => handleTabChange('top-authors')}
             >
               <span className={styles['algo-feed__tab-icon']}>👥</span>
-              Top Authors ({topAuthors.length})
+              My Authors ({topAuthors.length})
+            </button>
+          )}
+          {showTrendingTopAuthors && (
+            <button
+              className={`${styles['algo-feed__tab']} ${activeTab === 'trending-top-authors' ? styles['algo-feed__tab--active'] : ''}`}
+              onClick={() => handleTabChange('trending-top-authors')}
+            >
+              <span className={styles['algo-feed__tab-icon']}>⭐</span>
+              Trending Authors ({trendingTopAuthors.length})
             </button>
           )}
         </div>
       </div>
 
       <div className={styles['algo-feed__content']}>
-        {activeTab === 'top-authors' ? renderTopAuthors() : renderNotes(getCurrentData())}
+        {activeTab === 'top-authors' ? renderTopAuthors() : 
+         activeTab === 'trending-top-authors' ? renderTrendingTopAuthors() : 
+         renderNotes(getCurrentData())}
       </div>
     </div>
   );
