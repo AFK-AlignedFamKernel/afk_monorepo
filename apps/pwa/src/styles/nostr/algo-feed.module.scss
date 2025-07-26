@@ -860,25 +860,52 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     }
   }
 
-  &__content-type-tabs {
-    display: flex;
-    gap: 0.5rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  &__filter-panel {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+    background: var(--card-bg);
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
     margin-bottom: 1rem;
-    padding: 0.5rem 0;
+    opacity: 0;
+    padding: 0;
 
-    &::-webkit-scrollbar {
-      display: none;
+    &--visible {
+      max-height: 500px;
+      padding: 1rem;
+      border-color: var(--primary-color);
+      opacity: 1;
     }
   }
 
-  &__content-type-tab {
+  &__filter-section {
+    margin-bottom: 1.5rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__filter-section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.75rem 0;
+  }
+
+  &__content-type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+  }
+
+  &__content-type-option {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
+    padding: 0.75rem;
     border: 1.5px solid var(--border);
     border-radius: 0.5rem;
     background: var(--card-bg);
@@ -887,7 +914,7 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     font-size: 0.8rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    white-space: nowrap;
+    text-align: center;
 
     &:hover {
       border-color: var(--primary-color);
@@ -1391,6 +1418,83 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   }
 }
 
+// Basic header controls (always visible)
+.algo-feed__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.algo-feed__refresh-button {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+
+  &:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-color-alpha);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.algo-feed__filter-toggle {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  &:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-color-alpha);
+    transform: scale(1.05);
+  }
+
+  &--active {
+    border-color: var(--primary-color);
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 2px 8px var(--primary-color-alpha);
+  }
+}
+
+.algo-feed__filter-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.algo-feed__filter-badge {
+  position: absolute;
+  top: -0.25rem;
+  right: -0.25rem;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 2px solid var(--card-bg);
+}
+
 // Advanced AlgoFeed Styles
 .algo-feed--advanced {
   .algo-feed__header {
@@ -1432,31 +1536,7 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     font-weight: 600;
   }
 
-  .algo-feed__header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
 
-  .algo-feed__refresh-button {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 1rem;
-
-    &:hover {
-      border-color: var(--primary-color);
-      background: var(--primary-color-alpha);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
 
   .algo-feed__realtime-indicator {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-hover) 100%);
@@ -1589,18 +1669,35 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     }
   }
 
-  // Mobile responsiveness for content type tabs
+  // Mobile responsiveness for filter panel
   @media (max-width: 768px) {
     .algo-feed {
-      &__content-type-tabs {
-        gap: 0.25rem;
-        padding: 0.25rem 0;
+      &__filter-panel {
+        margin-bottom: 0.75rem;
+
+        &--visible {
+          padding: 0.75rem;
+        }
       }
 
-      &__content-type-tab {
-        padding: 0.4rem 0.6rem;
+      &__filter-section {
+        margin-bottom: 1rem;
+      }
+
+      &__filter-section-title {
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+      }
+
+      &__content-type-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.4rem;
+      }
+
+      &__content-type-option {
+        padding: 0.6rem;
         font-size: 0.75rem;
-        gap: 0.25rem;
+        gap: 0.4rem;
       }
 
       &__content-type-icon {
@@ -1612,8 +1709,14 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
         font-size: 0.75rem;
       }
 
-      &__tag-filter {
-        margin-bottom: 0.75rem;
+      &__filter-toggle {
+        padding: 0.4rem;
+        margin-left: 0.25rem;
+      }
+
+      &__filter-icon {
+        width: 0.875rem;
+        height: 0.875rem;
       }
     }
   }

@@ -68,6 +68,9 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   const [selectedTag, setSelectedTag] = useState<string | null>(TAGS_DEFAULT[0]);
   const [tagSearchInput, setTagSearchInput] = useState<string>('');
 
+  // Filter panel state
+  const [showFilters, setShowFilters] = useState(false);
+
   // Content type tabs configuration
   const contentTypeTabs: ContentTypeTab[] = [
     {
@@ -75,7 +78,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       label: 'Posts',
       kinds: [NDKKind.Text, NDKKind.Repost],
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clipRule="evenodd" />
         </svg>
       ),
@@ -85,7 +88,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       label: 'Articles',
       kinds: [30023],
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clipRule="evenodd" />
           <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z" />
         </svg>
@@ -96,7 +99,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       label: 'Shorts',
       kinds: [31000, 31001, 34236, NDKKind.ShortVideo, NDKKind.VerticalVideo, NDKKind.HorizontalVideo, NDKKind.Video],
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
         </svg>
       ),
@@ -106,7 +109,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       label: 'Tags',
       kinds: [NDKKind.Text, NDKKind.Article],
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
           <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
         </svg>
       ),
@@ -244,6 +247,11 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       setSelectedTag(tagSearchInput.trim());
       setTagSearchInput('');
     }
+  };
+
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
+    logClickedEvent('algo_feed_toggle_filters', 'click_toggle', showFilters ? 'hide' : 'show');
   };
 
   // Filter notes by content type
@@ -433,80 +441,92 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     }
   };
 
-  const renderContentTypeTabs = () => (
-    <div className={styles['algo-feed__content-type-tabs']}>
-      {contentTypeTabs.map((tab) => {
-        // Count items for this content type
-        const currentData = getCurrentData() as TrendingNote[] | ViralNote[] | ScrapedNote[];
-        const filteredCount = activeContentType === tab.id 
-          ? filterNotesByContentType(currentData).length 
-          : filterNotesByContentType(currentData).length;
-        
-        return (
-          <button
-            key={tab.id}
-            className={`${styles['algo-feed__content-type-tab']} ${
-              activeContentType === tab.id ? styles['algo-feed__content-type-tab--active'] : ''
-            }`}
-            onClick={() => handleContentTypeChange(tab.id)}
-            title={`Show ${tab.label.toLowerCase()}`}
-          >
-            <span className={styles['algo-feed__content-type-icon']}>
-              {tab.icon}
-            </span>
-            <span className={styles['algo-feed__content-type-label']}>
-              {tab.label}
-            </span>
-            {filteredCount > 0 && (
-              <span className={styles['algo-feed__content-type-count']}>
-                ({filteredCount})
-              </span>
-            )}
-          </button>
-        );
-      })}
-    </div>
-  );
-
-  const renderTagFilter = () => (
-    activeContentType === 'tags' && (
-      <div className={styles['algo-feed__tag-filter']}>
-        <form
-          className={styles['nostr-searchbar']}
-          onSubmit={handleTagSearch}
-        >
-          <input
-            type="text"
-            className={styles['nostr-searchbar__input']}
-            value={tagSearchInput}
-            onChange={(e) => setTagSearchInput(e.target.value)}
-            placeholder="Search or add tag..."
-          />
-          <button
-            type="submit"
-            className={styles['nostr-searchbar__button']}
-            disabled={!tagSearchInput || tagSearchInput.trim().length === 0}
-          >
-            <Icon name="SearchIcon" size={18} />
-          </button>
-        </form>
-        <div className={styles['nostr-tags-row']}>
-          {tags.map((tag, index) => (
-            <div
-              key={index}
-              className={`${styles['nostr-tag']} ${selectedTag === tag ? styles['selected'] : ''}`}
-              onClick={() => handleTagSelect(tag)}
-            >
-              <span>{tag}</span>
-            </div>
-          ))}
+  const renderFilterPanel = () => (
+    <>
+      <div className={styles['algo-feed__filter-section']}>
+        <h4 className={styles['algo-feed__filter-section-title']}>Content Type</h4>
+        <div className={styles['algo-feed__content-type-grid']}>
+          {contentTypeTabs.map((tab) => {
+            const currentData = getCurrentData() as TrendingNote[] | ViralNote[] | ScrapedNote[];
+            const filteredCount = filterNotesByContentType(currentData).length;
+            
+            return (
+              <button
+                key={tab.id}
+                className={`${styles['algo-feed__content-type-option']} ${
+                  activeContentType === tab.id ? styles['algo-feed__content-type-option--active'] : ''
+                }`}
+                onClick={() => handleContentTypeChange(tab.id)}
+                title={`Show ${tab.label.toLowerCase()}`}
+              >
+                <span className={styles['algo-feed__content-type-icon']}>
+                  {tab.icon}
+                </span>
+                <span className={styles['algo-feed__content-type-label']}>
+                  {tab.label}
+                </span>
+                {filteredCount > 0 && (
+                  <span className={styles['algo-feed__content-type-count']}>
+                    {filteredCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
-    )
+
+      {activeContentType === 'tags' && (
+        <div className={styles['algo-feed__filter-section']}>
+          <h4 className={styles['algo-feed__filter-section-title']}>Tags</h4>
+          <form
+            className={styles['nostr-searchbar']}
+            onSubmit={handleTagSearch}
+          >
+            <input
+              type="text"
+              className={styles['nostr-searchbar__input']}
+              value={tagSearchInput}
+              onChange={(e) => setTagSearchInput(e.target.value)}
+              placeholder="Search or add tag..."
+            />
+            <button
+              type="submit"
+              className={styles['nostr-searchbar__button']}
+              disabled={!tagSearchInput || tagSearchInput.trim().length === 0}
+            >
+              <Icon name="SearchIcon" size={16} />
+            </button>
+          </form>
+          <div className={styles['nostr-tags-row']}>
+            {tags.slice(0, 12).map((tag, index) => (
+              <div
+                key={index}
+                className={`${styles['nostr-tag']} ${selectedTag === tag ? styles['selected'] : ''}`}
+                onClick={() => handleTagSelect(tag)}
+              >
+                <span>{tag}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
   );
 
+  const getCurrentFilterLabel = () => {
+    const currentTab = contentTypeTabs.find(tab => tab.id === activeContentType);
+    if (!currentTab) return 'All';
+    
+    let label = currentTab.label;
+    if (activeContentType === 'tags' && selectedTag) {
+      label += `: #${selectedTag}`;
+    }
+    return label;
+  };
+
   return (
-    <div className={`${styles['algo-feed']} ${className}`}>
+    <div className={`${styles['algo-feed']} ${styles['algo-feed--advanced']} ${className}`}>
       <div className={styles['algo-feed__header']}>
         <div className={styles['algo-feed__header-top']}>
           <div className={styles['algo-feed__header-title-section']}>
@@ -514,20 +534,15 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
             {activeTab !== 'top-authors' && activeTab !== 'trending-top-authors' && (
               <div className={styles['algo-feed__filter-status']}>
                 <span className={styles['algo-feed__filter-indicator']}>
-                  {contentTypeTabs.find(tab => tab.id === activeContentType)?.label}
-                  {activeContentType === 'tags' && selectedTag && (
-                    <span className={styles['algo-feed__tag-indicator']}>
-                      : #{selectedTag}
-                    </span>
-                  )}
+                  {getCurrentFilterLabel()}
                 </span>
               </div>
             )}
           </div>
-          <div className={styles['algo-feed__header-controls']}>
-            <span className={styles['algo-feed__last-update']}>
+          <div className={styles['algo-feed__header-actions']}>
+            {/* <span className={styles['algo-feed__last-update']}>
               Last update: {lastUpdate.toLocaleTimeString()}
-            </span>
+            </span> */}
             <button
               onClick={handleRefresh}
               disabled={loading}
@@ -548,6 +563,29 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
                 <path d="M1 20v-6h6"/>
                 <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
               </svg>
+            </button>
+            <button
+              onClick={toggleFilters}
+              className={`${styles['algo-feed__filter-toggle']} ${showFilters ? styles['algo-feed__filter-toggle--active'] : ''}`}
+              title={showFilters ? "Hide filters" : "Show filters"}
+            >
+              <svg 
+                className={styles['algo-feed__filter-icon']}
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"/>
+              </svg>
+              {showFilters && (
+                <span className={styles['algo-feed__filter-badge']}>
+                  {activeContentType !== 'posts' ? '1' : '0'}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -600,12 +638,11 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
           )}
         </div>
 
-        {/* Content Type Filter Tabs */}
+        {/* Collapsible Filter Panel */}
         {activeTab !== 'top-authors' && activeTab !== 'trending-top-authors' && (
-          <>
-            {renderContentTypeTabs()}
-            {renderTagFilter()}
-          </>
+          <div className={`${styles['algo-feed__filter-panel']} ${showFilters ? styles['algo-feed__filter-panel--visible'] : ''}`}>
+            {showFilters && renderFilterPanel()}
+          </div>
         )}
       </div>
 
