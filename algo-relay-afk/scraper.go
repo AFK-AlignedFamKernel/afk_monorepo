@@ -364,13 +364,12 @@ func (s *NoteScraper) cleanupExpiredNotes() {
 // GetViralNotes retrieves current viral notes
 func (s *NoteScraper) GetViralNotes(limit int) ([]ScrapedNote, error) {
 	query := `
-		SELECT sn.id, sn.author_id, sn.kind, sn.content, sn.raw_json, 
-		       sn.created_at, sn.scraped_at, sn.interaction_score, 
-		       sn.viral_score, sn.trending_score, sn.is_viral, sn.is_trending
-		FROM scraped_notes sn
-		INNER JOIN viral_notes vn ON sn.id = vn.note_id
-		WHERE vn.expires_at > NOW()
-		ORDER BY vn.viral_score DESC
+		SELECT id, author_id, kind, content, raw_json, 
+		       created_at, scraped_at, interaction_score, 
+		       viral_score, trending_score, is_viral, is_trending
+		FROM scraped_notes
+		WHERE is_viral = true OR viral_score > 0
+		ORDER BY viral_score DESC, created_at DESC
 		LIMIT $1
 	`
 
@@ -400,13 +399,12 @@ func (s *NoteScraper) GetViralNotes(limit int) ([]ScrapedNote, error) {
 // GetTrendingNotes retrieves current trending notes
 func (s *NoteScraper) GetTrendingNotes(limit int) ([]ScrapedNote, error) {
 	query := `
-		SELECT sn.id, sn.author_id, sn.kind, sn.content, sn.raw_json, 
-		       sn.created_at, sn.scraped_at, sn.interaction_score, 
-		       sn.viral_score, sn.trending_score, sn.is_viral, sn.is_trending
-		FROM scraped_notes sn
-		INNER JOIN trending_notes tn ON sn.id = tn.note_id
-		WHERE tn.expires_at > NOW()
-		ORDER BY tn.trending_score DESC
+		SELECT id, author_id, kind, content, raw_json, 
+		       created_at, scraped_at, interaction_score, 
+		       viral_score, trending_score, is_viral, is_trending
+		FROM scraped_notes
+		WHERE is_trending = true OR trending_score > 0
+		ORDER BY trending_score DESC, created_at DESC
 		LIMIT $1
 	`
 

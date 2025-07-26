@@ -87,6 +87,24 @@ const AlgoFeed: React.FC<AlgoFeedProps> = ({
     // Add your author click handler here
   };
 
+  const handleRefresh = async () => {
+    logClickedEvent('algo_feed_refresh', 'click_refresh', activeTab);
+    setLoading(true);
+    setError(null);
+    
+    try {
+      if (activeTab === 'trending') {
+        await fetchTrendingNotes();
+      } else if (activeTab === 'top-authors') {
+        await fetchTopAuthors();
+      }
+    } catch (err) {
+      console.error('Error refreshing feed:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderTrendingNotes = () => (
     <div className={styles['algo-feed__notes']}>
       {loading ? (
@@ -215,7 +233,30 @@ const AlgoFeed: React.FC<AlgoFeedProps> = ({
   return (
     <div className={`${styles['algo-feed']} ${className}`}>
       <div className={styles['algo-feed__header']}>
-        <h2 className={styles['algo-feed__title']}>Algorithmic Feed</h2>
+        <div className={styles['algo-feed__header-top']}>
+          <h2 className={styles['algo-feed__title']}>Algorithmic Feed</h2>
+          <button
+            onClick={handleRefresh}
+            disabled={loading}
+            className={styles['algo-feed__refresh-button']}
+            title="Refresh feed"
+          >
+            <svg 
+              className={`${styles['algo-feed__refresh-icon']} ${loading ? styles['algo-feed__refresh-icon--spinning'] : ''}`}
+              xmlns="http://www.w3.org/2000/svg" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M23 4v6h-6"/>
+              <path d="M1 20v-6h6"/>
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+            </svg>
+          </button>
+        </div>
         <div className={styles['algo-feed__tabs']}>
           {showTrending && (
             <button

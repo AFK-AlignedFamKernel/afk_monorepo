@@ -79,6 +79,11 @@ export interface ScrapedNote {
   zap_count?: number;
   reply_count?: number;
   scraped_at: number;
+  interaction_score: number;
+  viral_score: number;
+  trending_score: number;
+  is_viral: boolean;
+  is_trending: boolean;
 }
 
 export interface UserMetrics {
@@ -94,6 +99,35 @@ export interface UserMetrics {
     reactions: number;
     zaps: number;
   }>;
+}
+
+// Backend data structures (from Go backend)
+export interface BackendScrapedNote {
+  id: string;
+  author_id: string;
+  kind: number;
+  content: string;
+  raw_json: string;
+  created_at: string;
+  scraped_at: string;
+  interaction_score: number;
+  viral_score: number;
+  trending_score: number;
+  is_viral: boolean;
+  is_trending: boolean;
+}
+
+export interface BackendViralNote {
+  Event: {
+    kind: number;
+    id: string;
+    pubkey: string;
+    created_at: number;
+    tags: string[][];
+    content: string;
+    sig: string;
+  };
+  Score: number;
 }
 
 class AlgoRelayService {
@@ -157,22 +191,145 @@ class AlgoRelayService {
     }
   }
 
-  // Fetch trending notes
+  // Data transformation utilities
+  private transformBackendScrapedNote(backendNote: BackendScrapedNote): ScrapedNote {
+    const rawJson = JSON.parse(backendNote.raw_json);
+    const createdAt = new Date(backendNote.created_at).getTime() / 1000;
+    const scrapedAt = new Date(backendNote.scraped_at).getTime() / 1000;
+    
+    return {
+      id: backendNote.id,
+      pubkey: backendNote.author_id,
+      content: backendNote.content,
+      created_at: createdAt,
+      kind: backendNote.kind,
+      tags: rawJson.tags || [],
+      sig: rawJson.sig || '',
+      author_name: undefined, // Will be populated by getAuthorDisplayName
+      author_picture: undefined, // Will be populated by getAuthorAvatar
+      reaction_count: 0, // Will be calculated from tags
+      zap_count: 0, // Will be calculated from tags
+      reply_count: 0, // Will be calculated from tags
+      scraped_at: scrapedAt,
+      interaction_score: backendNote.interaction_score,
+      viral_score: backendNote.viral_score,
+      trending_score: backendNote.trending_score,
+      is_viral: backendNote.is_viral,
+      is_trending: backendNote.is_trending
+    };
+  }
+
+  private transformBackendViralNote(backendNote: BackendViralNote): ViralNote {
+    const event = backendNote.Event;
+    
+    return {
+      id: event.id,
+      pubkey: event.pubkey,
+      content: event.content,
+      created_at: event.created_at,
+      kind: event.kind,
+      tags: event.tags,
+      sig: event.sig,
+      author_name: undefined, // Will be populated by getAuthorDisplayName
+      author_picture: undefined, // Will be populated by getAuthorAvatar
+      reaction_count: 0, // Will be calculated from tags
+      zap_count: 0, // Will be calculated from tags
+      reply_count: 0, // Will be calculated from tags
+      viral_score: backendNote.Score
+    };
+  }
+
+  private transformToTrendingNote(note: ScrapedNote | ViralNote): TrendingNote {
+    return {
+      id: note.id,
+      pubkey: note.pubkey,
+      content: note.content,
+      created_at: note.created_at,
+      kind: note.kind,
+      tags: note.tags,
+      sig: note.sig,
+      author_name: note.author_name,
+      author_picture: note.author_picture,
+      reaction_count: note.reaction_count,
+      zap_count: note.zap_count,
+      reply_count: note.reply_count,
+      score: 'trending_score' in note ? note.trending_score : note.viral_score
+    };
+  }
+
+  // Fetch trending notes (using scraped notes as fallback)
   async getTrendingNotes(limit: number = 20): Promise<TrendingNote[]> {
     log.info(`Fetching trending notes`, { limit });
-    return this.makeRequest<TrendingNote[]>(`/api/trending-notes?limit=${limit}`);
+    
+    try {
+      // First try the trending notes endpoint
+      const trendingData = await this.makeRequest<BackendScrapedNote[]>(`/api/trending-notes?limit=${limit}`);
+      
+      if (trendingData && trendingData.length > 0) {
+        log.success(`Found ${trendingData.length} trending notes`);
+        return trendingData.map(note => this.transformToTrendingNote(this.transformBackendScrapedNote(note)));
+      }
+      
+      // Fallback to scraped notes with trending filter
+      log.info(`No trending notes found, falling back to scraped notes`);
+      const scrapedData = await this.makeRequest<BackendScrapedNote[]>(`/api/scraped-notes?limit=${limit}`);
+      
+      if (scrapedData && scrapedData.length > 0) {
+        const trendingNotes = scrapedData
+          .filter(note => note.is_trending || note.trending_score > 0)
+          .sort((a, b) => b.trending_score - a.trending_score)
+          .slice(0, limit);
+        
+        log.success(`Found ${trendingNotes.length} trending notes from scraped data`);
+        return trendingNotes.map(note => this.transformToTrendingNote(this.transformBackendScrapedNote(note)));
+      }
+      
+      log.warning(`No trending notes available`);
+      return [];
+    } catch (error) {
+      log.error(`Error fetching trending notes`, { error });
+      return [];
+    }
   }
 
   // Fetch viral notes
   async getViralNotes(limit: number = 20): Promise<ViralNote[]> {
     log.info(`Fetching viral notes`, { limit });
-    return this.makeRequest<ViralNote[]>(`/api/viral-notes?limit=${limit}`);
+    
+    try {
+      const viralData = await this.makeRequest<BackendViralNote[]>(`/api/viral-notes?limit=${limit}`);
+      
+      if (viralData && viralData.length > 0) {
+        log.success(`Found ${viralData.length} viral notes`);
+        return viralData.map(note => this.transformBackendViralNote(note));
+      }
+      
+      log.warning(`No viral notes available`);
+      return [];
+    } catch (error) {
+      log.error(`Error fetching viral notes`, { error });
+      return [];
+    }
   }
 
   // Fetch viral notes from scraper
   async getViralNotesScraper(limit: number = 20): Promise<ViralNote[]> {
     log.info(`Fetching viral notes from scraper`, { limit });
-    return this.makeRequest<ViralNote[]>(`/api/viral-notes-scraper?limit=${limit}`);
+    
+    try {
+      const viralData = await this.makeRequest<BackendViralNote[]>(`/api/viral-notes-scraper?limit=${limit}`);
+      
+      if (viralData && viralData.length > 0) {
+        log.success(`Found ${viralData.length} viral notes from scraper`);
+        return viralData.map(note => this.transformBackendViralNote(note));
+      }
+      
+      log.warning(`No viral notes from scraper available`);
+      return [];
+    } catch (error) {
+      log.error(`Error fetching viral notes from scraper`, { error });
+      return [];
+    }
   }
 
   // Fetch top authors for a user
@@ -189,20 +346,242 @@ class AlgoRelayService {
   } = {}): Promise<ScrapedNote[]> {
     log.info(`Fetching scraped notes`, { params });
     
-    const searchParams = new URLSearchParams();
-    
-    if (params.limit) searchParams.append('limit', params.limit.toString());
-    if (params.kind) searchParams.append('kind', params.kind.toString());
-    if (params.since) searchParams.append('since', params.since);
+    try {
+      const searchParams = new URLSearchParams();
+      
+      if (params.limit) searchParams.append('limit', params.limit.toString());
+      if (params.kind) searchParams.append('kind', params.kind.toString());
+      if (params.since) searchParams.append('since', params.since);
 
-    const queryString = searchParams.toString();
-    return this.makeRequest<ScrapedNote[]>(`/api/scraped-notes${queryString ? `?${queryString}` : ''}`);
+      const queryString = searchParams.toString();
+      const scrapedData = await this.makeRequest<BackendScrapedNote[]>(`/api/scraped-notes${queryString ? `?${queryString}` : ''}`);
+      
+      if (scrapedData && scrapedData.length > 0) {
+        log.success(`Found ${scrapedData.length} scraped notes`);
+        return scrapedData.map(note => this.transformBackendScrapedNote(note));
+      }
+      
+      log.warning(`No scraped notes available`);
+      return [];
+    } catch (error) {
+      log.error(`Error fetching scraped notes`, { error });
+      return [];
+    }
   }
 
   // Fetch user metrics
   async getUserMetrics(pubkey: string): Promise<UserMetrics> {
     log.info(`Fetching user metrics`, { pubkey: pubkey.slice(0, 8) + '...' });
     return this.makeRequest<UserMetrics>(`/api/user-metrics?pubkey=${pubkey}`);
+  }
+
+  // Additional utility functions for all available endpoints
+
+  // Get notes with advanced filtering
+  async getNotes(params: {
+    limit?: number;
+    kinds?: number[];
+    authors?: string[];
+    since?: number;
+    until?: number;
+    tags?: string[][];
+  } = {}): Promise<TrendingNote[]> {
+    log.info(`Fetching notes with filters`, { params });
+    
+    try {
+      const searchParams = new URLSearchParams();
+      
+      if (params.limit) searchParams.append('limit', params.limit.toString());
+      if (params.kinds) searchParams.append('kinds', params.kinds.join(','));
+      if (params.authors) searchParams.append('authors', params.authors.join(','));
+      if (params.since) searchParams.append('since', params.since.toString());
+      if (params.until) searchParams.append('until', params.until.toString());
+
+      const queryString = searchParams.toString();
+      const notesData = await this.makeRequest<BackendScrapedNote[]>(`/api/get-notes${queryString ? `?${queryString}` : ''}`);
+      
+      if (notesData && notesData.length > 0) {
+        log.success(`Found ${notesData.length} notes`);
+        return notesData.map(note => this.transformToTrendingNote(this.transformBackendScrapedNote(note)));
+      }
+      
+      log.warning(`No notes found with given filters`);
+      return [];
+    } catch (error) {
+      log.error(`Error fetching notes`, { error });
+      return [];
+    }
+  }
+
+  // Get viral notes with different algorithms
+  async getViralNotesByAlgorithm(algorithm: 'default' | 'scraper' = 'default', limit: number = 20): Promise<ViralNote[]> {
+    log.info(`Fetching viral notes with algorithm`, { algorithm, limit });
+    
+    if (algorithm === 'scraper') {
+      return this.getViralNotesScraper(limit);
+    } else {
+      return this.getViralNotes(limit);
+    }
+  }
+
+  // Get trending notes with different time ranges
+  async getTrendingNotesByTimeRange(timeRange: '1h' | '6h' | '24h' | '7d' = '24h', limit: number = 20): Promise<TrendingNote[]> {
+    log.info(`Fetching trending notes by time range`, { timeRange, limit });
+    
+    const now = new Date();
+    let since: Date;
+    
+    switch (timeRange) {
+      case '1h':
+        since = new Date(now.getTime() - 60 * 60 * 1000);
+        break;
+      case '6h':
+        since = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        since = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      default: // 24h
+        since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    }
+    
+    try {
+      const scrapedData = await this.getScrapedNotes({
+        limit,
+        since: since.toISOString()
+      });
+      
+      const trendingNotes = scrapedData
+        .filter(note => note.is_trending || note.trending_score > 0)
+        .sort((a, b) => b.trending_score - a.trending_score)
+        .slice(0, limit);
+      
+      log.success(`Found ${trendingNotes.length} trending notes for ${timeRange} time range`);
+      return trendingNotes.map(note => this.transformToTrendingNote(note));
+    } catch (error) {
+      log.error(`Error fetching trending notes by time range`, { error });
+      return [];
+    }
+  }
+
+  // Get notes by content type
+  async getNotesByContentType(contentType: 'text' | 'image' | 'article' | 'video' = 'text', limit: number = 20): Promise<ScrapedNote[]> {
+    log.info(`Fetching notes by content type`, { contentType, limit });
+    
+    const kindMap = {
+      text: 1,
+      image: 6,
+      article: 30023,
+      video: 34236
+    };
+    
+    try {
+      const scrapedData = await this.getScrapedNotes({
+        limit,
+        kind: kindMap[contentType]
+      });
+      
+      log.success(`Found ${scrapedData.length} ${contentType} notes`);
+      return scrapedData;
+    } catch (error) {
+      log.error(`Error fetching notes by content type`, { error });
+      return [];
+    }
+  }
+
+  // Get notes by author
+  async getNotesByAuthor(pubkey: string, limit: number = 20): Promise<ScrapedNote[]> {
+    log.info(`Fetching notes by author`, { pubkey: pubkey.slice(0, 8) + '...', limit });
+    
+    try {
+      const notesData = await this.getNotes({
+        limit,
+        authors: [pubkey]
+      });
+      
+      // Convert TrendingNote back to ScrapedNote for consistency
+      const scrapedNotes: ScrapedNote[] = notesData.map(note => ({
+        id: note.id,
+        pubkey: note.pubkey,
+        content: note.content,
+        created_at: note.created_at,
+        kind: note.kind,
+        tags: note.tags,
+        sig: note.sig,
+        author_name: note.author_name,
+        author_picture: note.author_picture,
+        reaction_count: note.reaction_count || 0,
+        zap_count: note.zap_count || 0,
+        reply_count: note.reply_count || 0,
+        scraped_at: note.created_at, // Use created_at as fallback
+        interaction_score: 0,
+        viral_score: note.score || 0,
+        trending_score: note.score || 0,
+        is_viral: false,
+        is_trending: false
+      }));
+      
+      log.success(`Found ${scrapedNotes.length} notes by author`);
+      return scrapedNotes;
+    } catch (error) {
+      log.error(`Error fetching notes by author`, { error });
+      return [];
+    }
+  }
+
+  // Get notes by tags
+  async getNotesByTags(tags: string[], limit: number = 20): Promise<ScrapedNote[]> {
+    log.info(`Fetching notes by tags`, { tags, limit });
+    
+    try {
+      const scrapedData = await this.getScrapedNotes({ limit });
+      
+      const filteredNotes = scrapedData.filter(note => {
+        const noteTags = note.tags.map(tag => tag[1]?.toLowerCase()).filter(Boolean);
+        return tags.some(tag => noteTags.includes(tag.toLowerCase()));
+      });
+      
+      log.success(`Found ${filteredNotes.length} notes with tags ${tags.join(', ')}`);
+      return filteredNotes;
+    } catch (error) {
+      log.error(`Error fetching notes by tags`, { error });
+      return [];
+    }
+  }
+
+  // Get notes by engagement level
+  async getNotesByEngagement(engagementLevel: 'low' | 'medium' | 'high' = 'medium', limit: number = 20): Promise<ScrapedNote[]> {
+    log.info(`Fetching notes by engagement level`, { engagementLevel, limit });
+    
+    try {
+      const scrapedData = await this.getScrapedNotes({ limit: limit * 2 }); // Get more to filter
+      
+      let filteredNotes: ScrapedNote[];
+      
+      switch (engagementLevel) {
+        case 'high':
+          filteredNotes = scrapedData
+            .filter(note => note.interaction_score > 100)
+            .sort((a, b) => b.interaction_score - a.interaction_score);
+          break;
+        case 'medium':
+          filteredNotes = scrapedData
+            .filter(note => note.interaction_score > 10 && note.interaction_score <= 100)
+            .sort((a, b) => b.interaction_score - a.interaction_score);
+          break;
+        default: // low
+          filteredNotes = scrapedData
+            .filter(note => note.interaction_score <= 10)
+            .sort((a, b) => b.interaction_score - a.interaction_score);
+      }
+      
+      const result = filteredNotes.slice(0, limit);
+      log.success(`Found ${result.length} notes with ${engagementLevel} engagement`);
+      return result;
+    } catch (error) {
+      log.error(`Error fetching notes by engagement level`, { error });
+      return [];
+    }
   }
 
   // Trigger data setup (admin function)
@@ -219,31 +598,7 @@ class AlgoRelayService {
     });
   }
 
-  // Get notes with filters
-  async getNotes(params: {
-    limit?: number;
-    kinds?: number[];
-    authors?: string[];
-    since?: number;
-    until?: number;
-    tags?: string[][];
-  } = {}): Promise<TrendingNote[]> {
-    const searchParams = new URLSearchParams();
-    
-    if (params.limit) searchParams.append('limit', params.limit.toString());
-    if (params.kinds) searchParams.append('kinds', params.kinds.join(','));
-    if (params.authors) searchParams.append('authors', params.authors.join(','));
-    if (params.since) searchParams.append('since', params.since.toString());
-    if (params.until) searchParams.append('until', params.until.toString());
-    if (params.tags) {
-      params.tags.forEach(tag => {
-        searchParams.append('tags', tag.join(':'));
-      });
-    }
 
-    const queryString = searchParams.toString();
-    return this.makeRequest<TrendingNote[]>(`/api/get-notes${queryString ? `?${queryString}` : ''}`);
-  }
 
   // WebSocket connection for real-time updates
   connectWebSocket(onMessage: (data: any) => void, onError?: (error: Event) => void): WebSocket {

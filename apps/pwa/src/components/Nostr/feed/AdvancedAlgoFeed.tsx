@@ -224,6 +224,34 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
     logClickedEvent('advanced_algo_feed_tab', 'click_tab', tab);
   };
 
+  const handleRefresh = async () => {
+    logClickedEvent('advanced_algo_feed_refresh', 'click_refresh', activeTab);
+    setRefreshing(true);
+    setError(null);
+    
+    try {
+      switch (activeTab) {
+        case 'trending':
+          await fetchTrendingNotes();
+          break;
+        case 'viral':
+          await fetchViralNotes();
+          break;
+        case 'scraped':
+          await fetchScrapedNotes();
+          break;
+        case 'top-authors':
+          await fetchTopAuthors();
+          break;
+      }
+      setLastUpdate(new Date());
+    } catch (err) {
+      console.error('Error refreshing advanced feed:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const handleNoteClick = (note: TrendingNote | ViralNote | ScrapedNote) => {
     logClickedEvent('advanced_algo_feed_note', 'click_note', note.id);
     // Add your note click handler here
@@ -449,11 +477,25 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
           <h2 className={styles['algo-feed__title']}>Advanced Algorithmic Feed</h2>
           <div className={styles['algo-feed__header-actions']}>
             <button
-              onClick={refreshCurrentTab}
+              onClick={handleRefresh}
               disabled={refreshing}
               className={styles['algo-feed__refresh-button']}
+              title="Refresh feed"
             >
-              {refreshing ? '🔄' : '🔄'}
+              <svg 
+                className={`${styles['algo-feed__refresh-icon']} ${refreshing ? styles['algo-feed__refresh-icon--spinning'] : ''}`}
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M23 4v6h-6"/>
+                <path d="M1 20v-6h6"/>
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+              </svg>
             </button>
             {enableRealTime && (
               <span className={styles['algo-feed__realtime-indicator']}>

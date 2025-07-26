@@ -1306,6 +1306,9 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     cursor: pointer;
     transition: all 0.2s ease;
     font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     &:hover {
       border-color: var(--primary-color);
@@ -1315,6 +1318,16 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
+    }
+  }
+
+  .algo-feed__refresh-icon {
+    width: 1rem;
+    height: 1rem;
+    transition: transform 0.3s ease;
+
+    &--spinning {
+      animation: spin 1s linear infinite;
     }
   }
 
