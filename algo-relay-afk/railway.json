@@ -2,7 +2,7 @@
     "$schema": "https://backboard.railway.app/railway.schema.json",
     "build": {
       "builder": "DOCKERFILE",
-      "dockerfilePath": "./algo-relay-afk/Dockerfile"
+      "dockerfilePath": "algo-relay-afk/Dockerfile"
     },
     "deploy": {
       "startCommand": "",

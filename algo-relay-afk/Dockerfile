@@ -4,16 +4,14 @@ FROM golang:1.23.1 as builder
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy go.mod and go.sum files
-COPY go.mod go.sum ./
+# Copy go.mod and go.sum files from the algo-relay-afk directory
+COPY algo-relay-afk/go.mod algo-relay-afk/go.sum ./
 
 # Download dependencies
 RUN go mod download
 
-
-
-# Copy the rest of the application source code
-COPY . .
+# Copy the rest of the application source code from algo-relay-afk directory
+COPY algo-relay-afk/ .
 
 # Build the Go application with static linking to avoid GLIBC version issues
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .

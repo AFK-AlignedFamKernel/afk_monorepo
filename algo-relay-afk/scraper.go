@@ -117,12 +117,12 @@ func (s *NoteScraper) ScrapeNotes() {
 			nostr.KindReply,
 			nostr.KindArticle,
 			nostr.KindGenericRepost,
-			// 20,    // KindImage
-			// 22,    // Short video
-			// 31000, // VerticalVideo
-			// 31001, // HorizontalVideo
-			// 34236, // VerticalVideo
-			// 34235, // HorizontalVideo
+			20,    // KindImage
+			22,    // Short video
+			31000, // VerticalVideo
+			31001, // HorizontalVideo
+			34236, // VerticalVideo
+			34235, // HorizontalVideo
 		},
 		Since: &sinceTimestamp,
 	}}
