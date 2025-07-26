@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from 'afk_nostr_sdk';
 import { logClickedEvent } from '@/lib/analytics';
 import { algoRelayService, TrendingNote, TopAuthor } from '@/services/algoRelayService';
-import styles from '@/styles/nostr/feed.module.scss';
+import styles from '@/styles/nostr/algo-feed.module.scss';
 
 
 

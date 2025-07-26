@@ -418,30 +418,41 @@ func handleViralNotesScraperAPI(w http.ResponseWriter, r *http.Request) {
 
 // handleTrendingNotesAPI handles requests for trending notes
 func handleTrendingNotesAPI(w http.ResponseWriter, r *http.Request) {
+	log.Printf("📡 [API] Trending notes request received from %s", r.RemoteAddr)
+
 	// Get limit from query parameter, default to 20
 	limit := 20
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
 		if parsed, err := fmt.Sscanf(limitStr, "%d", &limit); parsed != 1 || err != nil {
+			log.Printf("❌ [API] Invalid limit parameter: %s", limitStr)
 			http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
 			return
 		}
 	}
 
+	log.Printf("🔍 [API] Fetching trending notes with limit: %d", limit)
+
 	// Fetch trending notes
 	notes, err := scraper.GetTrendingNotes(limit)
 	if err != nil {
+		log.Printf("❌ [API] Error fetching trending notes: %v", err)
 		http.Error(w, "Error fetching trending notes: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("✅ [API] Successfully fetched %d trending notes", len(notes))
 
 	// Set content type header
 	w.Header().Set("Content-Type", "application/json")
 
 	// Return the notes as JSON
 	if err := json.NewEncoder(w).Encode(notes); err != nil {
+		log.Printf("❌ [API] Error encoding response: %v", err)
 		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("📤 [API] Trending notes response sent successfully")
 }
 
 // handleScrapedNotesAPI handles requests for scraped notes

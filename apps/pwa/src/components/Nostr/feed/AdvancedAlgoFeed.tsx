@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from 'afk_nostr_sdk';
 import { logClickedEvent } from '@/lib/analytics';
 import { algoRelayService, TrendingNote, ViralNote, ScrapedNote, TopAuthor } from '@/services/algoRelayService';
-import styles from '@/styles/nostr/feed.module.scss';
+import styles from '@/styles/nostr/algo-feed.module.scss';
 
 interface AdvancedAlgoFeedProps {
   className?: string;
@@ -433,7 +433,8 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
                   </span>
                 </div>
               </div>
-            ))}
+            ))
+            )}
           </div>
         );
       default:

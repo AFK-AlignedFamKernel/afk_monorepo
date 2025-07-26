@@ -2,6 +2,28 @@
 // Handles all communication with the algo-relay backend
 
 const API_BASE = process.env.NEXT_PUBLIC_ALGO_RELAY_URL || 'http://localhost:3334';
+const WS_BASE = API_BASE.replace('http', 'ws').replace('https', 'wss');
+
+// Logging utility
+const log = {
+  info: (message: string, data?: any) => {
+    console.log(`[AlgoRelay] ℹ️ ${message}`, data || '');
+  },
+  success: (message: string, data?: any) => {
+    console.log(`[AlgoRelay] ✅ ${message}`, data || '');
+  },
+  warning: (message: string, data?: any) => {
+    console.warn(`[AlgoRelay] ⚠️ ${message}`, data || '');
+  },
+  error: (message: string, data?: any) => {
+    console.error(`[AlgoRelay] ❌ ${message}`, data || '');
+  },
+  debug: (message: string, data?: any) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[AlgoRelay] 🔍 ${message}`, data || '');
+    }
+  }
+};
 
 export interface TrendingNote {
   id: string;
@@ -77,6 +99,9 @@ export interface UserMetrics {
 class AlgoRelayService {
   private async makeRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${API_BASE}${endpoint}`;
+    const startTime = Date.now();
+    
+    log.info(`Making API request to: ${endpoint}`, { url, method: options?.method || 'GET' });
     
     try {
       const response = await fetch(url, {
@@ -88,7 +113,20 @@ class AlgoRelayService {
         ...options,
       });
 
+      const responseTime = Date.now() - startTime;
+      log.debug(`Response received`, { 
+        endpoint, 
+        status: response.status, 
+        statusText: response.statusText,
+        responseTime: `${responseTime}ms`
+      });
+
       if (!response.ok) {
+        log.error(`API request failed`, { 
+          endpoint, 
+          status: response.status, 
+          statusText: response.statusText 
+        });
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -96,33 +134,50 @@ class AlgoRelayService {
       
       // Handle null responses by returning empty arrays
       if (data === null || data === undefined) {
+        log.warning(`API returned null/undefined data`, { endpoint });
         return [] as T;
       }
       
+      log.success(`API request successful`, { 
+        endpoint, 
+        dataType: Array.isArray(data) ? 'array' : typeof data,
+        dataLength: Array.isArray(data) ? data.length : 'N/A',
+        responseTime: `${responseTime}ms`
+      });
+      
       return data;
     } catch (error) {
-      console.error(`AlgoRelay API error for ${endpoint}:`, error);
+      const responseTime = Date.now() - startTime;
+      log.error(`API request failed`, { 
+        endpoint, 
+        error: error instanceof Error ? error.message : error,
+        responseTime: `${responseTime}ms`
+      });
       throw error;
     }
   }
 
   // Fetch trending notes
   async getTrendingNotes(limit: number = 20): Promise<TrendingNote[]> {
+    log.info(`Fetching trending notes`, { limit });
     return this.makeRequest<TrendingNote[]>(`/api/trending-notes?limit=${limit}`);
   }
 
   // Fetch viral notes
   async getViralNotes(limit: number = 20): Promise<ViralNote[]> {
+    log.info(`Fetching viral notes`, { limit });
     return this.makeRequest<ViralNote[]>(`/api/viral-notes?limit=${limit}`);
   }
 
   // Fetch viral notes from scraper
   async getViralNotesScraper(limit: number = 20): Promise<ViralNote[]> {
+    log.info(`Fetching viral notes from scraper`, { limit });
     return this.makeRequest<ViralNote[]>(`/api/viral-notes-scraper?limit=${limit}`);
   }
 
   // Fetch top authors for a user
   async getTopAuthors(pubkey: string): Promise<TopAuthor[]> {
+    log.info(`Fetching top authors`, { pubkey: pubkey.slice(0, 8) + '...' });
     return this.makeRequest<TopAuthor[]>(`/api/top-authors?pubkey=${pubkey}`);
   }
 
@@ -132,6 +187,8 @@ class AlgoRelayService {
     kind?: number;
     since?: string;
   } = {}): Promise<ScrapedNote[]> {
+    log.info(`Fetching scraped notes`, { params });
+    
     const searchParams = new URLSearchParams();
     
     if (params.limit) searchParams.append('limit', params.limit.toString());
@@ -144,6 +201,7 @@ class AlgoRelayService {
 
   // Fetch user metrics
   async getUserMetrics(pubkey: string): Promise<UserMetrics> {
+    log.info(`Fetching user metrics`, { pubkey: pubkey.slice(0, 8) + '...' });
     return this.makeRequest<UserMetrics>(`/api/user-metrics?pubkey=${pubkey}`);
   }
 
@@ -189,22 +247,79 @@ class AlgoRelayService {
 
   // WebSocket connection for real-time updates
   connectWebSocket(onMessage: (data: any) => void, onError?: (error: Event) => void): WebSocket {
-    const ws = new WebSocket(`${API_BASE.replace('http', 'ws')}/ws`);
+    const wsUrl = `${WS_BASE}/ws`;
+    log.info(`Connecting to WebSocket`, { url: wsUrl });
+    
+    const ws = new WebSocket(wsUrl);
+    
+    ws.onopen = () => {
+      log.success(`WebSocket connected successfully`, { url: wsUrl });
+    };
     
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        log.debug(`WebSocket message received`, { 
+          messageType: data.type,
+          dataLength: JSON.stringify(data).length
+        });
         onMessage(data);
       } catch (error) {
-        console.error('WebSocket message parsing error:', error);
+        log.error(`WebSocket message parsing error`, { 
+          error: error instanceof Error ? error.message : error,
+          rawData: event.data
+        });
       }
     };
 
-    if (onError) {
-      ws.onerror = onError;
-    }
+    ws.onerror = (error) => {
+      log.error(`WebSocket error occurred`, { error });
+      if (onError) {
+        onError(error);
+      }
+    };
+
+    ws.onclose = (event) => {
+      log.warning(`WebSocket connection closed`, { 
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean
+      });
+    };
 
     return ws;
+  }
+
+  // Verify WebSocket connection
+  async verifyWebSocketConnection(): Promise<{ connected: boolean; latency?: number; error?: string }> {
+    return new Promise((resolve) => {
+      const startTime = Date.now();
+      const wsUrl = `${WS_BASE}/ws`;
+      
+      log.info(`Verifying WebSocket connection`, { url: wsUrl });
+      
+      const ws = new WebSocket(wsUrl);
+      
+      const timeout = setTimeout(() => {
+        log.error(`WebSocket connection timeout`, { url: wsUrl });
+        ws.close();
+        resolve({ connected: false, error: 'Connection timeout' });
+      }, 5000); // 5 second timeout
+      
+      ws.onopen = () => {
+        const latency = Date.now() - startTime;
+        clearTimeout(timeout);
+        log.success(`WebSocket verification successful`, { url: wsUrl, latency: `${latency}ms` });
+        ws.close();
+        resolve({ connected: true, latency });
+      };
+      
+      ws.onerror = (error) => {
+        clearTimeout(timeout);
+        log.error(`WebSocket verification failed`, { url: wsUrl, error });
+        resolve({ connected: false, error: 'Connection failed' });
+      };
+    });
   }
 
   // Utility function to format timestamps

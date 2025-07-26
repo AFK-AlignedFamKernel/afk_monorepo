@@ -4,6 +4,7 @@ import React from 'react';
 import AlgoFeed from '@/components/Nostr/feed/AlgoFeed';
 import AdvancedAlgoFeed from '@/components/Nostr/feed/AdvancedAlgoFeed';
 import AlgoFeedHealthCheck from '@/components/Nostr/feed/AlgoFeedHealthCheck';
+import WebSocketTest from '@/components/Nostr/feed/WebSocketTest';
 import styles from './page.module.scss';
 
 export default function AlgoFeedDemoPage() {
@@ -13,6 +14,7 @@ export default function AlgoFeedDemoPage() {
         <h1>Algorithmic Feed Demo</h1>
         <p>Showcasing the new algorithmic feed components powered by the algo-relay backend</p>
         <AlgoFeedHealthCheck />
+        <WebSocketTest />
       </div>
 
       <div className={styles.content}>

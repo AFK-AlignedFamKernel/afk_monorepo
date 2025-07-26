@@ -180,17 +180,23 @@ func (client *WebSocketClient) writePump() {
 }
 
 func (client *WebSocketClient) handleMessage(message []byte) {
+	log.Printf("📨 [WS] Received message from client %s: %s", client.userID, string(message))
+	
 	var request map[string]interface{}
 	if err := json.Unmarshal(message, &request); err != nil {
+		log.Printf("❌ [WS] Invalid JSON format from client %s: %v", client.userID, err)
 		client.sendError("Invalid JSON format")
 		return
 	}
 
 	requestType, ok := request["type"].(string)
 	if !ok {
+		log.Printf("❌ [WS] Missing or invalid 'type' field from client %s", client.userID)
 		client.sendError("Missing or invalid 'type' field")
 		return
 	}
+
+	log.Printf("🔍 [WS] Processing message type '%s' from client %s", requestType, client.userID)
 
 	switch requestType {
 	case "auth":
@@ -210,6 +216,7 @@ func (client *WebSocketClient) handleMessage(message []byte) {
 	case "unsubscribe":
 		client.handleUnsubscribe(request)
 	default:
+		log.Printf("❌ [WS] Unknown request type '%s' from client %s", requestType, client.userID)
 		client.sendError(fmt.Sprintf("Unknown request type: %s", requestType))
 	}
 }
@@ -405,11 +412,15 @@ func (client *WebSocketClient) sendError(errorMsg string) {
 
 // WebSocket handler for HTTP requests
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	log.Printf("📡 [WS] WebSocket connection attempt from %s", r.RemoteAddr)
+	
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Printf("WebSocket upgrade failed: %v", err)
+		log.Printf("❌ [WS] WebSocket upgrade failed: %v", err)
 		return
 	}
+
+	log.Printf("✅ [WS] WebSocket connection established from %s", r.RemoteAddr)
 
 	client := &WebSocketClient{
 		manager:    wsManager,
