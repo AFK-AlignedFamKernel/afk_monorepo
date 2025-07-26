@@ -1134,108 +1134,6 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   }
 }
 
-// Advanced AlgoFeed Styles
-.algo-feed--advanced {
-  .algo-feed__header {
-    padding: 1.5rem 1.5rem 1rem;
-  }
-
-  .algo-feed__header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-
-  .algo-feed__header-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .algo-feed__refresh-button {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 1rem;
-
-    &:hover {
-      border-color: var(--primary-color);
-      background: var(--primary-color-alpha);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-  }
-
-  .algo-feed__realtime-indicator {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-hover) 100%);
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    animation: pulse 2s infinite;
-  }
-
-  .algo-feed__filters {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-    padding: 1rem;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 0.75rem;
-    flex-wrap: wrap;
-  }
-
-  .algo-feed__filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    min-width: 120px;
-  }
-
-  .algo-feed__filter-label {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-  }
-
-  .algo-feed__filter-select {
-    padding: 0.5rem;
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    background: var(--background);
-    color: var(--text-primary);
-    font-size: 0.875rem;
-    cursor: pointer;
-    transition: border-color 0.2s ease;
-
-    &:focus {
-      outline: none;
-      border-color: var(--primary-color);
-    }
-  }
-
-  .algo-feed__footer {
-    padding: 1rem;
-    border-top: 1px solid var(--border);
-    background: var(--card-bg);
-    text-align: center;
-  }
-
-  .algo-feed__last-update {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-  }
-}
-
 // Mobile responsiveness
 @media (max-width: 768px) {
   .algo-feed {
@@ -1271,23 +1169,6 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
 
     &__stat {
       font-size: 0.7rem;
-    }
-  }
-
-  .algo-feed--advanced {
-    .algo-feed__header-top {
-      flex-direction: column;
-      gap: 0.75rem;
-      align-items: flex-start;
-    }
-
-    .algo-feed__filters {
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .algo-feed__filter-group {
-      min-width: auto;
     }
   }
 }

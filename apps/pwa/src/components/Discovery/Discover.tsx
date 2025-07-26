@@ -10,6 +10,7 @@ import PumpComponent from "../launchpad/PumpComponent";
 import CommunitiesList from "../Communities";
 import ChannelFeed from "../Nostr/Channel/ChannelFeed";
 import ChatScreen from "../Bitchat/ChatScreen";
+import AlgoFeed from "../Nostr/feed/AlgoFeed";
 // import { ChatScreen } from "@/components/Bitchat/ChatScreen";
 
 export default function DiscoverComponent() {
@@ -84,6 +85,7 @@ export default function DiscoverComponent() {
           <div
           // className="flex flex-row gap-4"
           >
+            {/* <AlgoFeed /> */}
             <FeedTabs className="w-full" />
           </div>
         )}

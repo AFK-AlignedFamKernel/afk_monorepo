@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const SIGNAL_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:5050';
+const SIGNAL_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050';
 
 export function useChannelChat(nickname: string) {
   const [channels, setChannels] = useState<string[]>([]);

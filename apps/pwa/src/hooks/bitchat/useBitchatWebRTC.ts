@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const SIGNAL_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:5050'; // Change to your backend URL
+const SIGNAL_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050'; // Change to your backend URL
 
 export function useBitchatWebRTC(myId: string) {
   const [peers, setPeers] = useState<string[]>([]);
