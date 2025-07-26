@@ -14,7 +14,8 @@ interface FeedContentProps {
   hasMore: boolean;
   loadingMore: boolean;
   onLoadMore: () => void;
-
+  isInfiniteScrollLoading?: boolean;
+  loaderRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const FeedContent: React.FC<FeedContentProps> = ({
@@ -29,6 +30,8 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   hasMore,
   loadingMore,
   onLoadMore,
+  isInfiniteScrollLoading,
+  loaderRef
 }) => (
   <div className={styles['algo-feed__content-scrollable']}>
     {activeTab === 'top-authors' ? renderTopAuthors() : 
@@ -36,7 +39,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
      renderNotes(getCurrentData())}
     
     {/* Loading more indicator */}
-    {loadingMore && (
+    {(loadingMore || isInfiniteScrollLoading) && (
       <div className={styles['algo-feed__loading-more']}>
         <div className={styles['algo-feed__loading-spinner']}>
           <svg 
@@ -74,9 +77,9 @@ export const FeedContent: React.FC<FeedContentProps> = ({
         <button
           onClick={onLoadMore}
           className={styles['algo-feed__load-more-button']}
-          disabled={loadingMore}
+          disabled={loadingMore || isInfiniteScrollLoading}
         >
-          {loadingMore ? 'Loading...' : 'Load More Content'}
+          {loadingMore || isInfiniteScrollLoading ? 'Loading...' : 'Load More Content'}
         </button>
       </div>
     )}

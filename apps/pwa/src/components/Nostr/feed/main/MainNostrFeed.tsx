@@ -143,6 +143,16 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     fetchScrapedNotes,
     fetchTopAuthors,
     fetchTrendingTopAuthors,
+    pushTrendingNotes,
+    pushViralNotes,
+    pushScrapedNotes,
+    pushTopAuthors,
+    pushTrendingTopAuthors,
+    hasTrendingNote,
+    hasViralNote,
+    hasScrapedNote,
+    hasTopAuthor,
+    hasTrendingTopAuthor,
     resetTrendingNotes,
     resetViralNotes,
     resetScrapedNotes,
@@ -176,11 +186,19 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     if (!enableRealTime) return;
 
     const interval = setInterval(() => {
-      fetchCurrentTabData(false);
+      // Only fetch if we have existing data to append to
+      const currentData = getCurrentData();
+      if (currentData.length > 0) {
+        console.log(`Real-time update: fetching more data for ${activeTab}`);
+        fetchCurrentTabData(true); // Append to existing data
+      } else {
+        console.log(`Real-time update: initial load for ${activeTab}`);
+        fetchCurrentTabData(false); // Initial load
+      }
     }, 30000); // Update every 30 seconds
 
     return () => clearInterval(interval);
-  }, [enableRealTime, fetchCurrentTabData]);
+  }, [enableRealTime, fetchCurrentTabData, activeTab, getCurrentData]);
 
   // Auto-reload handler
   const handleAutoReload = useCallback(async () => {
@@ -240,6 +258,29 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     console.log('Manual load more triggered');
     fetchCurrentTabData(true);
   };
+
+  // Handle real-time data updates
+  const handleRealTimeUpdate = useCallback((newData: any[], dataType: TabType) => {
+    console.log(`Real-time update received for ${dataType}:`, newData.length, 'items');
+    
+    switch (dataType) {
+      case 'trending':
+        pushTrendingNotes(newData);
+        break;
+      case 'viral':
+        pushViralNotes(newData);
+        break;
+      case 'scraped':
+        pushScrapedNotes(newData);
+        break;
+      case 'top-authors':
+        pushTopAuthors(newData);
+        break;
+      case 'trending-top-authors':
+        pushTrendingTopAuthors(newData);
+        break;
+    }
+  }, [pushTrendingNotes, pushViralNotes, pushScrapedNotes, pushTopAuthors, pushTrendingTopAuthors]);
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
@@ -356,34 +397,34 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     return (
       <>
         {filteredNotes.map((note, index) => {
-          let ndkEvent;
-          
-          switch (activeTab) {
-            case 'trending':
-              ndkEvent = transformTrendingNoteToNDKEvent(note as TrendingNote);
-              break;
-            case 'viral':
-              ndkEvent = transformViralNoteToNDKEvent(note as ViralNote);
-              break;
-            case 'scraped':
-              ndkEvent = transformScrapedNoteToNDKEvent(note as ScrapedNote);
-              break;
-            default:
-              return null;
-          }
+      let ndkEvent;
+      
+      switch (activeTab) {
+        case 'trending':
+          ndkEvent = transformTrendingNoteToNDKEvent(note as TrendingNote);
+          break;
+        case 'viral':
+          ndkEvent = transformViralNoteToNDKEvent(note as ViralNote);
+          break;
+        case 'scraped':
+          ndkEvent = transformScrapedNoteToNDKEvent(note as ScrapedNote);
+          break;
+        default:
+          return null;
+      }
 
-          return (
-            <div 
+      return (
+        <div 
               key={`${note.id}-${index}`} // Add index to prevent key conflicts
-              className={styles['algo-feed__note-wrapper']}
-            >
-              <PostEventCard 
-                event={ndkEvent}
-                profile={ndkEvent.profile}
-                className={styles['algo-feed__post-card']}
-              />
-            </div>
-          );
+          className={styles['algo-feed__note-wrapper']}
+        >
+          <PostEventCard 
+            event={ndkEvent}
+            profile={ndkEvent.profile}
+            className={styles['algo-feed__post-card']}
+          />
+        </div>
+      );
         })}
         
         {/* Load more button for manual loading */}
