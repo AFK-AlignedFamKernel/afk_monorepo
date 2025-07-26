@@ -50,21 +50,23 @@ export const useAlgoFeedData = (activeTab: TabType, limit: number, publicKey?: s
     try {
       let currentOffset = 0;
       if (append) {
+        // Get current state to calculate offset
+        const state = useAlgoRelayStore.getState();
         switch (activeTab) {
           case 'trending':
-            currentOffset = trendingNotes.length;
+            currentOffset = state.trendingNotes.length;
             break;
           case 'viral':
-            currentOffset = viralNotes.length;
+            currentOffset = state.viralNotes.length;
             break;
           case 'scraped':
-            currentOffset = scrapedNotes.length;
+            currentOffset = state.scrapedNotes.length;
             break;
           case 'top-authors':
-            currentOffset = topAuthors.length;
+            currentOffset = state.topAuthors.length;
             break;
           case 'trending-top-authors':
-            currentOffset = trendingTopAuthors.length;
+            currentOffset = state.trendingTopAuthors.length;
             break;
         }
       }
@@ -93,7 +95,7 @@ export const useAlgoFeedData = (activeTab: TabType, limit: number, publicKey?: s
     } catch (err) {
       console.error('Error fetching data:', err);
     }
-  }, [activeTab, limit, publicKey, fetchTrendingNotes, fetchViralNotes, fetchScrapedNotes, fetchTopAuthors, fetchTrendingTopAuthors, trendingNotes.length, viralNotes.length, scrapedNotes.length, topAuthors.length, trendingTopAuthors.length]);
+  }, [activeTab, limit, publicKey, fetchTrendingNotes, fetchViralNotes, fetchScrapedNotes, fetchTopAuthors, fetchTrendingTopAuthors]);
 
   return {
     getCurrentData,

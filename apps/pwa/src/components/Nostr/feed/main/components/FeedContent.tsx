@@ -71,19 +71,6 @@ export const FeedContent: React.FC<FeedContentProps> = ({
       </div>
     )}
     
-    {/* Manual Load More button (fallback) */}
-    {getCurrentData().length > 0 && (
-      <div className={styles['algo-feed__load-more-container']}>
-        <button
-          onClick={onLoadMore}
-          className={styles['algo-feed__load-more-button']}
-          disabled={loadingMore || isInfiniteScrollLoading}
-        >
-          {loadingMore || isInfiniteScrollLoading ? 'Loading...' : 'Load More Content'}
-        </button>
-      </div>
-    )}
-    
     {/* End of content indicator */}
     {!hasMore && getCurrentData().length > 0 && (
       <div className={styles['algo-feed__end-of-content']}>

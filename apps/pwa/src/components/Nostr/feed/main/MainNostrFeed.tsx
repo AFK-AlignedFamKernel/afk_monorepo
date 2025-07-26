@@ -254,10 +254,53 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     await fetchCurrentTabData(false);
   };
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     console.log('Manual load more triggered');
-    fetchCurrentTabData(true);
-  };
+    
+    // Store current scroll position and find a reference element
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+    
+    // Find the last visible note to use as a reference point
+    const noteElements = scrollContainer.querySelectorAll(`.${styles['algo-feed__note-wrapper']}`);
+    const lastVisibleNote = Array.from(noteElements).findLast(el => {
+      const rect = el.getBoundingClientRect();
+      return rect.bottom <= scrollContainer.getBoundingClientRect().bottom;
+    });
+    
+    // Store the reference element's position
+    const referenceElement = lastVisibleNote || noteElements[noteElements.length - 1];
+    const referenceRect = referenceElement?.getBoundingClientRect();
+    const referenceTop = referenceRect?.top || 0;
+    
+    console.log('Before load more:', {
+      totalNotes: noteElements.length,
+      referenceElement: referenceElement?.textContent?.slice(0, 50),
+      referenceTop
+    });
+    
+    fetchCurrentTabData(true).then(() => {
+      // After new data is loaded, restore position relative to the reference element
+      // Use a small delay to ensure DOM has fully updated
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          if (referenceElement) {
+            const newRect = referenceElement.getBoundingClientRect();
+            const offset = newRect.top - referenceTop;
+            
+            console.log('After load more:', {
+              newRectTop: newRect.top,
+              offset,
+              scrollTop: scrollContainer.scrollTop
+            });
+            
+            // Adjust scroll to maintain the reference element's position
+            scrollContainer.scrollTop += offset;
+          }
+        });
+      }, 50); // Small delay to ensure DOM updates are complete
+    });
+  }, [fetchCurrentTabData]);
 
   // Handle real-time data updates
   const handleRealTimeUpdate = useCallback((newData: any[], dataType: TabType) => {
@@ -415,7 +458,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
 
       return (
         <div 
-              key={`${note.id}-${index}`} // Add index to prevent key conflicts
+              key={note.id} // Use note.id instead of combination with index for more stable keys
           className={styles['algo-feed__note-wrapper']}
         >
           <PostEventCard 

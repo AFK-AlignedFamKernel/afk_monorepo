@@ -172,11 +172,36 @@ func handleViralNotesAPI(w http.ResponseWriter, r *http.Request) {
 	log.Printf("🔍 [API] Fetching viral notes with limit: %d, offset: %d, kinds: %v, search: %s, timeRange: %s, minViralScore: %f, tags: %v, authors: %v",
 		limit, offset, kinds, searchQuery, timeRange, minViralScore, tags, authors)
 
-	notes, err := scraper.GetViralNotesWithFilters(limit, offset, kinds, searchQuery, timeRange, minViralScore, tags, authors)
+	// Use hybrid approach: get notes from main table with viral scores
+	feedNotes, err := repository.GetNotesWithViralTrendingScores(context.Background(), limit, offset, kinds, searchQuery, timeRange, tags, authors, minViralScore, 0.0)
 	if err != nil {
 		log.Printf("❌ [API] Error fetching viral notes: %v", err)
 		http.Error(w, "Error fetching viral notes: "+err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Convert FeedNote to ScrapedNote format for API compatibility
+	var notes []ScrapedNote
+	for _, feedNote := range feedNotes {
+		// Calculate viral score from interaction counts
+		interactionScore := int(feedNote.Score)
+		viralScore := float64(interactionScore) * 1.5 // Simple viral score calculation
+
+		note := ScrapedNote{
+			ID:               feedNote.Event.ID,
+			AuthorID:         feedNote.Event.PubKey,
+			Kind:             feedNote.Event.Kind,
+			Content:          feedNote.Event.Content,
+			RawJSON:          feedNote.Event.String(),
+			CreatedAt:        feedNote.Event.CreatedAt.Time(),
+			ScrapedAt:        time.Now(),
+			InteractionScore: interactionScore,
+			ViralScore:       viralScore,
+			TrendingScore:    0.0, // Not calculated in this approach
+			IsViral:          viralScore >= viralThreshold,
+			IsTrending:       false,
+		}
+		notes = append(notes, note)
 	}
 
 	log.Printf("✅ [API] Successfully fetched %d viral notes", len(notes))
@@ -615,12 +640,36 @@ func handleTrendingNotesAPI(w http.ResponseWriter, r *http.Request) {
 	log.Printf("🔍 [API] Fetching trending notes with limit: %d, offset: %d, kinds: %v, search: %s, timeRange: %s, minTrendingScore: %f, tags: %v, authors: %v",
 		limit, offset, kinds, searchQuery, timeRange, minTrendingScore, tags, authors)
 
-	// Fetch trending notes with filters
-	notes, err := scraper.GetTrendingNotesWithFilters(limit, offset, kinds, searchQuery, timeRange, minTrendingScore, tags, authors)
+	// Use hybrid approach: get notes from main table with trending scores
+	feedNotes, err := repository.GetNotesWithViralTrendingScores(context.Background(), limit, offset, kinds, searchQuery, timeRange, tags, authors, 0.0, minTrendingScore)
 	if err != nil {
 		log.Printf("❌ [API] Error fetching trending notes: %v", err)
 		http.Error(w, "Error fetching trending notes: "+err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Convert FeedNote to ScrapedNote format for API compatibility
+	var notes []ScrapedNote
+	for _, feedNote := range feedNotes {
+		// Calculate trending score from interaction counts
+		interactionScore := int(feedNote.Score)
+		trendingScore := float64(interactionScore) * 1.2 // Simple trending score calculation
+
+		note := ScrapedNote{
+			ID:               feedNote.Event.ID,
+			AuthorID:         feedNote.Event.PubKey,
+			Kind:             feedNote.Event.Kind,
+			Content:          feedNote.Event.Content,
+			RawJSON:          feedNote.Event.String(),
+			CreatedAt:        feedNote.Event.CreatedAt.Time(),
+			ScrapedAt:        time.Now(),
+			InteractionScore: interactionScore,
+			ViralScore:       0.0, // Not calculated in this approach
+			TrendingScore:    trendingScore,
+			IsViral:          false,
+			IsTrending:       trendingScore >= 50.0,
+		}
+		notes = append(notes, note)
 	}
 
 	log.Printf("✅ [API] Successfully fetched %d trending notes", len(notes))
@@ -1253,4 +1302,150 @@ func handleDiagnosticAPI(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("📤 [DIAGNOSTIC] Diagnostic response sent successfully")
+}
+
+// handleMainNotesAPI handles requests for notes from the main notes table
+func handleMainNotesAPI(w http.ResponseWriter, r *http.Request) {
+	log.Printf("📡 [API] Main notes request received from %s", r.RemoteAddr)
+
+	// Get limit parameter
+	limit := 10
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	// Get offset parameter for pagination
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	// Get kinds filter (comma-separated)
+	kinds := []int{}
+	if kindsStr := r.URL.Query().Get("kinds"); kindsStr != "" {
+		kindsList := strings.Split(kindsStr, ",")
+		for _, kindStr := range kindsList {
+			if parsed, err := strconv.Atoi(strings.TrimSpace(kindStr)); err == nil && parsed >= 0 {
+				kinds = append(kinds, parsed)
+			}
+		}
+	}
+
+	// Get search query
+	searchQuery := r.URL.Query().Get("search")
+
+	// Get time range filter
+	timeRange := r.URL.Query().Get("time_range")
+	if timeRange == "" {
+		timeRange = "7d" // Default to 7 days
+	}
+
+	// Get tags filter (comma-separated)
+	tags := []string{}
+	if tagsStr := r.URL.Query().Get("tags"); tagsStr != "" {
+		tagsList := strings.Split(tagsStr, ",")
+		for _, tag := range tagsList {
+			if trimmed := strings.TrimSpace(tag); trimmed != "" {
+				tags = append(tags, trimmed)
+			}
+		}
+	}
+
+	// Get authors filter (comma-separated)
+	authors := []string{}
+	if authorsStr := r.URL.Query().Get("authors"); authorsStr != "" {
+		authorsList := strings.Split(authorsStr, ",")
+		for _, author := range authorsList {
+			if trimmed := strings.TrimSpace(author); trimmed != "" {
+				authors = append(authors, trimmed)
+			}
+		}
+	}
+
+	// Get minimum viral score filter
+	minViralScore := 0.0
+	if scoreStr := r.URL.Query().Get("min_viral_score"); scoreStr != "" {
+		if parsed, err := strconv.ParseFloat(scoreStr, 64); err == nil && parsed >= 0 {
+			minViralScore = parsed
+		}
+	}
+
+	// Get minimum trending score filter
+	minTrendingScore := 0.0
+	if scoreStr := r.URL.Query().Get("min_trending_score"); scoreStr != "" {
+		if parsed, err := strconv.ParseFloat(scoreStr, 64); err == nil && parsed >= 0 {
+			minTrendingScore = parsed
+		}
+	}
+
+	log.Printf("🔍 [API] Fetching main notes with limit: %d, offset: %d, kinds: %v, search: %s, timeRange: %s, minViralScore: %f, minTrendingScore: %f, tags: %v, authors: %v",
+		limit, offset, kinds, searchQuery, timeRange, minViralScore, minTrendingScore, tags, authors)
+
+	// Use hybrid approach: get notes from main table with viral/trending scores
+	feedNotes, err := repository.GetNotesWithViralTrendingScores(context.Background(), limit, offset, kinds, searchQuery, timeRange, tags, authors, minViralScore, minTrendingScore)
+	if err != nil {
+		log.Printf("❌ [API] Error fetching main notes: %v", err)
+		http.Error(w, "Error fetching main notes: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Convert FeedNote to a more detailed response format
+	type MainNoteResponse struct {
+		ID               string    `json:"id"`
+		AuthorID         string    `json:"author_id"`
+		Kind             int       `json:"kind"`
+		Content          string    `json:"content"`
+		CreatedAt        time.Time `json:"created_at"`
+		ReactionCount    int       `json:"reaction_count"`
+		CommentCount     int       `json:"comment_count"`
+		ZapCount         int       `json:"zap_count"`
+		InteractionScore int       `json:"interaction_score"`
+		ViralScore       float64   `json:"viral_score"`
+		TrendingScore    float64   `json:"trending_score"`
+		IsViral          bool      `json:"is_viral"`
+		IsTrending       bool      `json:"is_trending"`
+		TotalScore       float64   `json:"total_score"`
+	}
+
+	var notes []MainNoteResponse
+	for _, feedNote := range feedNotes {
+		// Calculate scores
+		interactionScore := int(feedNote.Score)
+		viralScore := float64(interactionScore) * 1.5
+		trendingScore := float64(interactionScore) * 1.2
+		totalScore := feedNote.Score
+
+		note := MainNoteResponse{
+			ID:               feedNote.Event.ID,
+			AuthorID:         feedNote.Event.PubKey,
+			Kind:             feedNote.Event.Kind,
+			Content:          feedNote.Event.Content,
+			CreatedAt:        feedNote.Event.CreatedAt.Time(),
+			ReactionCount:    interactionScore / 3, // Rough estimate
+			CommentCount:     interactionScore / 3, // Rough estimate
+			ZapCount:         interactionScore / 3, // Rough estimate
+			InteractionScore: interactionScore,
+			ViralScore:       viralScore,
+			TrendingScore:    trendingScore,
+			IsViral:          viralScore >= viralThreshold,
+			IsTrending:       trendingScore >= 50.0,
+			TotalScore:       totalScore,
+		}
+		notes = append(notes, note)
+	}
+
+	log.Printf("✅ [API] Successfully fetched %d main notes", len(notes))
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(notes); err != nil {
+		log.Printf("❌ [API] Error encoding main notes response: %v", err)
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("📤 [API] Main notes response sent successfully")
 }

@@ -1606,3 +1606,164 @@ func (r *NostrRepository) SearchTags(searchQuery string, limit int, offset int, 
 		time.Since(start), searchQuery, limit, offset, timeRange, kinds, minUsageCount)
 	return tags, nil
 }
+
+// GetNotesWithViralTrendingScores retrieves notes from main table and enhances with viral/trending scores
+func (r *NostrRepository) GetNotesWithViralTrendingScores(ctx context.Context, limit int, offset int, kinds []int, searchQuery string, timeRange string, tags []string, authors []string, minViralScore float64, minTrendingScore float64) ([]FeedNote, error) {
+	start := time.Now()
+
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour) // Default to 7 days
+	}
+
+	// Build the base query with viral/trending scores
+	baseQuery := `
+		SELECT 
+			n.id, n.author_id, n.kind, n.content, n.created_at,
+			COALESCE(r_count.reaction_count, 0) as reaction_count,
+			COALESCE(c_count.comment_count, 0) as comment_count,
+			COALESCE(z_count.zap_count, 0) as zap_count,
+			COALESCE(sn.viral_score, 0) as viral_score,
+			COALESCE(sn.trending_score, 0) as trending_score,
+			COALESCE(sn.interaction_score, 0) as interaction_score,
+			COALESCE(sn.is_viral, false) as is_viral,
+			COALESCE(sn.is_trending, false) as is_trending
+		FROM notes n
+		LEFT JOIN (
+			SELECT note_id, COUNT(*) as reaction_count
+			FROM reactions
+			WHERE created_at >= $1
+			GROUP BY note_id
+		) r_count ON n.id = r_count.note_id
+		LEFT JOIN (
+			SELECT note_id, COUNT(*) as comment_count
+			FROM comments
+			WHERE created_at >= $1
+			GROUP BY note_id
+		) c_count ON n.id = c_count.note_id
+		LEFT JOIN (
+			SELECT note_id, COUNT(*) as zap_count
+			FROM zaps
+			WHERE created_at >= $1
+			GROUP BY note_id
+		) z_count ON n.id = z_count.note_id
+		LEFT JOIN scraped_notes sn ON n.id = sn.id
+		WHERE n.created_at >= $1
+	`
+
+	// Build parameters slice
+	params := []interface{}{timeCutoff}
+	paramIndex := 2
+
+	// Add kind filter if specified
+	if len(kinds) > 0 {
+		baseQuery += fmt.Sprintf(" AND n.kind = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(kinds))
+		paramIndex++
+	}
+
+	// Add search filter if specified
+	if searchQuery != "" {
+		baseQuery += fmt.Sprintf(" AND (n.content ILIKE $%d OR n.author_id ILIKE $%d)", paramIndex, paramIndex)
+		params = append(params, "%"+searchQuery+"%")
+		paramIndex++
+	}
+
+	// Add authors filter if specified
+	if len(authors) > 0 {
+		baseQuery += fmt.Sprintf(" AND n.author_id = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(authors))
+		paramIndex++
+	}
+
+	// Add viral score filter if specified
+	if minViralScore > 0 {
+		baseQuery += fmt.Sprintf(" AND (sn.is_viral = true OR sn.viral_score >= $%d)", paramIndex)
+		params = append(params, minViralScore)
+		paramIndex++
+	}
+
+	// Add trending score filter if specified
+	if minTrendingScore > 0 {
+		baseQuery += fmt.Sprintf(" AND (sn.is_trending = true OR sn.trending_score >= $%d)", paramIndex)
+		params = append(params, minTrendingScore)
+		paramIndex++
+	}
+
+	// Add ordering and pagination - prioritize viral/trending notes, then by creation date
+	baseQuery += `
+		ORDER BY 
+			CASE WHEN sn.is_viral = true THEN 1 ELSE 0 END DESC,
+			CASE WHEN sn.is_trending = true THEN 1 ELSE 0 END DESC,
+			COALESCE(sn.viral_score, 0) DESC,
+			COALESCE(sn.trending_score, 0) DESC,
+			n.created_at DESC
+		LIMIT $` + fmt.Sprintf("%d", paramIndex) + ` OFFSET $` + fmt.Sprintf("%d", paramIndex+1)
+	params = append(params, limit, offset)
+
+	// Debug: Log the query and parameters
+	log.Printf("🔍 [HYBRID] Query: %s", baseQuery)
+	log.Printf("🔍 [HYBRID] Params: %v", params)
+	log.Printf("🔍 [HYBRID] Limit: %d, Offset: %d", limit, offset)
+
+	// Execute the query
+	rows, err := r.db.QueryContext(ctx, baseQuery, params...)
+	if err != nil {
+		log.Printf("❌ [HYBRID] Query error: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notes []FeedNote
+	for rows.Next() {
+		var id, authorID, content string
+		var kind int
+		var createdAt time.Time
+		var reactionCount, commentCount, zapCount, interactionScore int
+		var viralScore, trendingScore float64
+		var isViral, isTrending bool
+
+		if err := rows.Scan(&id, &authorID, &kind, &content, &createdAt, &reactionCount, &commentCount, &zapCount, &viralScore, &trendingScore, &interactionScore, &isViral, &isTrending); err != nil {
+			log.Printf("❌ [HYBRID] Row scan error: %v", err)
+			return nil, err
+		}
+
+		// Create nostr event
+		event := nostr.Event{
+			ID:        id,
+			PubKey:    authorID,
+			Kind:      kind,
+			Content:   content,
+			CreatedAt: nostr.Timestamp(createdAt.Unix()),
+		}
+
+		// Calculate score based on viral/trending status and interaction counts
+		score := float64(reactionCount + commentCount + zapCount)
+		if isViral {
+			score += viralScore * 10 // Boost viral notes
+		}
+		if isTrending {
+			score += trendingScore * 5 // Boost trending notes
+		}
+
+		notes = append(notes, FeedNote{
+			Event: event,
+			Score: score,
+		})
+	}
+
+	log.Printf("✅ [HYBRID] Found %d notes with viral/trending scores in %v", len(notes), time.Since(start))
+	return notes, nil
+}
