@@ -224,6 +224,7 @@ func main() {
 	mux.HandleFunc("/api/settings", handleUserSettings)
 	mux.HandleFunc("/api/user-metrics", handleUserMetricsAPI)
 	mux.HandleFunc("/api/viral-notes", handleViralNotesAPI)
+	mux.HandleFunc("/api/viral-notes-scraper", handleViralNotesScraperAPI)
 	mux.HandleFunc("/api/get-notes", handleGetNotesAPI)
 	mux.HandleFunc("/api/trending-notes", handleTrendingNotesAPI)
 	mux.HandleFunc("/api/scraped-notes", handleScrapedNotesAPI)

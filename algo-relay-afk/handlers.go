@@ -389,7 +389,7 @@ func handleUserMetricsAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleViralNotesAPI handles requests for viral notes
-func handleViralNotesAPI(w http.ResponseWriter, r *http.Request) {
+func handleViralNotesScraperAPI(w http.ResponseWriter, r *http.Request) {
 	// Get limit from query parameter, default to 20
 	limit := 20
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
