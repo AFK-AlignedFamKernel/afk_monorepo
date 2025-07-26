@@ -3,10 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from 'afk_nostr_sdk';
 import { logClickedEvent } from '@/lib/analytics';
-import { algoRelayService, TrendingNote, TopAuthor } from '@/services/algoRelayService';
+import { algoRelayService, TrendingNote, TopAuthor, transformTrendingNoteToNDKEvent } from '@/services/algoRelayService';
+import { PostEventCard } from '@/components/Nostr/EventCard/PostEventCard';
 import styles from '@/styles/nostr/algo-feed.module.scss';
-
-
 
 interface AlgoFeedProps {
   className?: string;
@@ -64,18 +63,6 @@ const AlgoFeed: React.FC<AlgoFeedProps> = ({
       fetchTopAuthors();
     }
   }, [fetchTrendingNotes, fetchTopAuthors, showTopAuthors]);
-
-  const formatTimestamp = (timestamp: number) => {
-    return algoRelayService.formatTimestamp(timestamp);
-  };
-
-  const getAuthorName = (note: TrendingNote) => {
-    return algoRelayService.getAuthorDisplayName(note);
-  };
-
-  const getAuthorPicture = (note: TrendingNote) => {
-    return algoRelayService.getAuthorAvatar(note);
-  };
 
   const handleNoteClick = (note: TrendingNote) => {
     logClickedEvent('algo_feed_note', 'click_note', note.id);
@@ -144,56 +131,18 @@ const AlgoFeed: React.FC<AlgoFeedProps> = ({
           <p>No trending notes found</p>
         </div>
       ) : (
-        trendingNotes.map((note) => (
-          <div 
-            key={note.id} 
-            className={styles['algo-feed__note-card']}
-            onClick={() => handleNoteClick(note)}
-          >
-            <div className={styles['algo-feed__note-header']}>
-              <img 
-                src={getAuthorPicture(note)} 
-                alt={getAuthorName(note)}
-                className={styles['algo-feed__author-avatar']}
+        trendingNotes.map((note) => {
+          const ndkEvent = transformTrendingNoteToNDKEvent(note);
+          return (
+            <div key={note.id} className={styles['algo-feed__note-wrapper']}>
+              <PostEventCard 
+                event={ndkEvent}
+                profile={ndkEvent.profile}
+                className={styles['algo-feed__post-card']}
               />
-              <div className={styles['algo-feed__author-info']}>
-                <span className={styles['algo-feed__author-name']}>
-                  {getAuthorName(note)}
-                </span>
-                <span className={styles['algo-feed__timestamp']}>
-                  {formatTimestamp(note.created_at)}
-                </span>
-              </div>
-              {note.score && (
-                <div className={styles['algo-feed__score']}>
-                  <span className={styles['algo-feed__score-value']}>
-                    {note.score.toFixed(1)}
-                  </span>
-                </div>
-              )}
             </div>
-            <div className={styles['algo-feed__note-content']}>
-              {note.content}
-            </div>
-            <div className={styles['algo-feed__note-stats']}>
-              {note.reaction_count && (
-                <span className={styles['algo-feed__stat']}>
-                  ❤️ {note.reaction_count}
-                </span>
-              )}
-              {note.zap_count && (
-                <span className={styles['algo-feed__stat']}>
-                  ⚡ {note.zap_count}
-                </span>
-              )}
-              {note.reply_count && (
-                <span className={styles['algo-feed__stat']}>
-                  💬 {note.reply_count}
-                </span>
-              )}
-            </div>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );

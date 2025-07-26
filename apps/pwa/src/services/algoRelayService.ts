@@ -706,5 +706,90 @@ class AlgoRelayService {
   }
 }
 
+// Transform backend data to NDKEvent format for PostEventCard
+export const transformScrapedNoteToNDKEvent = (note: ScrapedNote): any => {
+  // Create NDKEvent-like structure
+  const ndkEvent = {
+    id: note.id,
+    pubkey: note.pubkey || '',
+    kind: note.kind || 1,
+    content: note.content || '',
+    created_at: note.created_at || Math.floor(Date.now() / 1000),
+    tags: note.tags || [],
+    sig: note.sig || '',
+    
+    // Add our custom properties
+    interaction_score: note.interaction_score,
+    viral_score: note.viral_score,
+    trending_score: note.trending_score,
+    is_viral: note.is_viral,
+    is_trending: note.is_trending,
+    
+    // Add profile information if available
+    profile: {
+      name: note.author_name || '',
+      displayName: note.author_name || '',
+      picture: note.author_picture || '',
+      about: '',
+    }
+  };
+
+  return ndkEvent;
+};
+
+export const transformTrendingNoteToNDKEvent = (note: TrendingNote): any => {
+  return {
+    id: note.id,
+    pubkey: note.pubkey || '',
+    kind: 1,
+    content: note.content || '',
+    created_at: note.created_at || Math.floor(Date.now() / 1000),
+    tags: [],
+    sig: '',
+    
+    // Add our custom properties
+    interaction_score: note.reaction_count || 0,
+    viral_score: 0,
+    trending_score: note.score || 0,
+    is_viral: false,
+    is_trending: true,
+    
+    // Add profile information if available
+    profile: {
+      name: note.author_name || '',
+      displayName: note.author_name || '',
+      picture: note.author_picture || '',
+      about: '',
+    }
+  };
+};
+
+export const transformViralNoteToNDKEvent = (note: ViralNote): any => {
+  return {
+    id: note.id,
+    pubkey: note.pubkey || '',
+    kind: 1,
+    content: note.content || '',
+    created_at: note.created_at || Math.floor(Date.now() / 1000),
+    tags: [],
+    sig: '',
+    
+    // Add our custom properties
+    interaction_score: note.reaction_count || 0,
+    viral_score: note.viral_score || 0,
+    trending_score: 0,
+    is_viral: true,
+    is_trending: false,
+    
+    // Add profile information if available
+    profile: {
+      name: note.author_name || '',
+      displayName: note.author_name || '',
+      picture: note.author_picture || '',
+      about: '',
+    }
+  };
+};
+
 // Export singleton instance
 export const algoRelayService = new AlgoRelayService(); 

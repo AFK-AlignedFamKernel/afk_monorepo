@@ -1250,6 +1250,46 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   }
 }
 
+// PostEventCard integration styles
+.algo-feed__note-wrapper {
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.algo-feed__post-card {
+  // Override PostEventCard styles to fit algo feed design
+  :global(.nostr-event-card) {
+    border: none;
+    box-shadow: none;
+    margin: 0;
+    padding: 1rem;
+  }
+
+  :global(.nostr-event-card__header) {
+    margin-bottom: 0.75rem;
+  }
+
+  :global(.nostr-event-card__content) {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  :global(.nostr-event-card__footer) {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+  }
+}
+
 @keyframes shimmer {
   0% {
     background-position: -200% 0;

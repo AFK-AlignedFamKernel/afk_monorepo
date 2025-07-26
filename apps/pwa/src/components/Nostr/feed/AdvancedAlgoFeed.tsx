@@ -1,9 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from 'afk_nostr_sdk';
 import { logClickedEvent } from '@/lib/analytics';
-import { algoRelayService, TrendingNote, ViralNote, ScrapedNote, TopAuthor } from '@/services/algoRelayService';
+import { 
+  algoRelayService, 
+  TrendingNote, 
+  ViralNote, 
+  ScrapedNote, 
+  TopAuthor,
+  transformTrendingNoteToNDKEvent,
+  transformViralNoteToNDKEvent,
+  transformScrapedNoteToNDKEvent
+} from '@/services/algoRelayService';
+import { PostEventCard } from '@/components/Nostr/EventCard/PostEventCard';
 import styles from '@/styles/nostr/algo-feed.module.scss';
 
 interface AdvancedAlgoFeedProps {
@@ -16,7 +26,7 @@ interface AdvancedAlgoFeedProps {
   enableRealTime?: boolean;
 }
 
-type FeedTab = 'trending' | 'viral' | 'scraped' | 'top-authors';
+type TabType = 'trending' | 'viral' | 'scraped' | 'top-authors';
 
 const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
   className = '',
@@ -28,205 +38,59 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
   enableRealTime = false
 }) => {
   const { publicKey } = useAuth();
-  const [activeTab, setActiveTab] = useState<FeedTab>('trending');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
-  
-  // Data states
+  const [activeTab, setActiveTab] = useState<TabType>('trending');
   const [trendingNotes, setTrendingNotes] = useState<TrendingNote[]>([]);
   const [viralNotes, setViralNotes] = useState<ViralNote[]>([]);
   const [scrapedNotes, setScrapedNotes] = useState<ScrapedNote[]>([]);
   const [topAuthors, setTopAuthors] = useState<TopAuthor[]>([]);
-  
-  // Filter states
-  const [selectedKind, setSelectedKind] = useState<number | null>(null);
-  const [timeFilter, setTimeFilter] = useState<'1h' | '24h' | '7d' | '30d'>('24h');
-  const [sortBy, setSortBy] = useState<'score' | 'reactions' | 'zaps' | 'replies' | 'created'>('score');
-  
-  // Real-time updates
-  const wsRef = useRef<WebSocket | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
-  // Get available tabs based on props
-  const getAvailableTabs = (): FeedTab[] => {
-    const tabs: FeedTab[] = [];
-    if (showTrending) tabs.push('trending');
-    if (showViral) tabs.push('viral');
-    if (showScraped) tabs.push('scraped');
-    if (showTopAuthors) tabs.push('top-authors');
-    return tabs;
-  };
-
-  const availableTabs = getAvailableTabs();
-
-  // Fetch functions
   const fetchTrendingNotes = useCallback(async () => {
     try {
       const data = await algoRelayService.getTrendingNotes(limit);
-      console.log('Trending notes response:', data); // Debug log
       setTrendingNotes(data || []);
     } catch (err) {
       console.error('Error fetching trending notes:', err);
-      setError('Failed to fetch trending notes');
       setTrendingNotes([]);
     }
   }, [limit]);
 
   const fetchViralNotes = useCallback(async () => {
     try {
-      const data = await algoRelayService.getViralNotesScraper(limit);
-      console.log('Viral notes response:', data); // Debug log
+      const data = await algoRelayService.getViralNotes(limit);
       setViralNotes(data || []);
     } catch (err) {
       console.error('Error fetching viral notes:', err);
-      setError('Failed to fetch viral notes');
       setViralNotes([]);
     }
   }, [limit]);
 
   const fetchScrapedNotes = useCallback(async () => {
     try {
-      const since = getTimeFilterDate(timeFilter);
-      const data = await algoRelayService.getScrapedNotes({
-        limit,
-        kind: selectedKind || undefined,
-        since: since.toISOString()
-      });
-      console.log('Scraped notes response:', data); // Debug log
+      const data = await algoRelayService.getScrapedNotes({ limit });
       setScrapedNotes(data || []);
     } catch (err) {
       console.error('Error fetching scraped notes:', err);
-      setError('Failed to fetch scraped notes');
       setScrapedNotes([]);
     }
-  }, [limit, selectedKind, timeFilter]);
+  }, [limit]);
 
   const fetchTopAuthors = useCallback(async () => {
     if (!publicKey) return;
     
     try {
       const data = await algoRelayService.getTopAuthors(publicKey);
-      console.log('Top authors response:', data); // Debug log
       setTopAuthors(data || []);
     } catch (err) {
       console.error('Error fetching top authors:', err);
-      setError('Failed to fetch top authors');
       setTopAuthors([]);
     }
   }, [publicKey]);
 
-  // Utility functions
-  const getTimeFilterDate = (filter: string): Date => {
-    const now = new Date();
-    switch (filter) {
-      case '1h': return new Date(now.getTime() - 60 * 60 * 1000);
-      case '24h': return new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      case '7d': return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      case '30d': return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      default: return new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    }
-  };
-
-  const sortNotes = <T extends TrendingNote | ViralNote | ScrapedNote>(notes: T[]): T[] => {
-    return [...notes].sort((a, b) => {
-      switch (sortBy) {
-        case 'score':
-          return ((b as any).score || (b as any).viral_score || 0) - ((a as any).score || (a as any).viral_score || 0);
-        case 'reactions':
-          return (b.reaction_count || 0) - (a.reaction_count || 0);
-        case 'zaps':
-          return (b.zap_count || 0) - (a.zap_count || 0);
-        case 'replies':
-          return (b.reply_count || 0) - (a.reply_count || 0);
-        case 'created':
-          return b.created_at - a.created_at;
-        default:
-          return 0;
-      }
-    });
-  };
-
-  // Load data based on active tab
-  const loadTabData = useCallback(async () => {
+  const fetchCurrentTabData = useCallback(async () => {
     setLoading(true);
-    setError(null);
-    
-    try {
-      switch (activeTab) {
-        case 'trending':
-          await fetchTrendingNotes();
-          break;
-        case 'viral':
-          await fetchViralNotes();
-          break;
-        case 'scraped':
-          await fetchScrapedNotes();
-          break;
-        case 'top-authors':
-          await fetchTopAuthors();
-          break;
-      }
-    } catch (err) {
-      setError('Failed to load data');
-    } finally {
-      setLoading(false);
-    }
-  }, [activeTab, fetchTrendingNotes, fetchViralNotes, fetchScrapedNotes, fetchTopAuthors]);
-
-  // Refresh current tab
-  const refreshCurrentTab = useCallback(async () => {
-    setRefreshing(true);
-    await loadTabData();
-    setRefreshing(false);
-    setLastUpdate(new Date());
-  }, [loadTabData]);
-
-  // WebSocket for real-time updates
-  useEffect(() => {
-    if (!enableRealTime) return;
-
-    const connectWebSocket = () => {
-      try {
-        wsRef.current = algoRelayService.connectWebSocket(
-          (data) => {
-            // Handle real-time updates
-            if (data.type === 'new_note' && activeTab === 'trending') {
-              refreshCurrentTab();
-            }
-          },
-          (error) => {
-            console.error('WebSocket error:', error);
-          }
-        );
-      } catch (err) {
-        console.error('Failed to connect WebSocket:', err);
-      }
-    };
-
-    connectWebSocket();
-
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, [enableRealTime, activeTab, refreshCurrentTab]);
-
-  // Load data when tab changes or filters change
-  useEffect(() => {
-    loadTabData();
-  }, [loadTabData]);
-
-  // Event handlers
-  const handleTabChange = (tab: FeedTab) => {
-    setActiveTab(tab);
-    logClickedEvent('advanced_algo_feed_tab', 'click_tab', tab);
-  };
-
-  const handleRefresh = async () => {
-    logClickedEvent('advanced_algo_feed_refresh', 'click_refresh', activeTab);
-    setRefreshing(true);
     setError(null);
     
     try {
@@ -246,138 +110,49 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
       }
       setLastUpdate(new Date());
     } catch (err) {
-      console.error('Error refreshing advanced feed:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
-      setRefreshing(false);
+      setLoading(false);
     }
+  }, [activeTab, fetchTrendingNotes, fetchViralNotes, fetchScrapedNotes, fetchTopAuthors]);
+
+  useEffect(() => {
+    fetchCurrentTabData();
+  }, [fetchCurrentTabData]);
+
+  // Real-time updates
+  useEffect(() => {
+    if (!enableRealTime) return;
+
+    const interval = setInterval(() => {
+      fetchCurrentTabData();
+    }, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [enableRealTime, fetchCurrentTabData]);
+
+  const handleRefresh = async () => {
+    logClickedEvent('advanced_algo_feed_refresh', 'click_refresh', activeTab);
+    await fetchCurrentTabData();
   };
 
-  const handleNoteClick = (note: TrendingNote | ViralNote | ScrapedNote) => {
-    logClickedEvent('advanced_algo_feed_note', 'click_note', note.id);
-    // Add your note click handler here
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
+    logClickedEvent('advanced_algo_feed_tab', 'click_tab', tab);
   };
 
-  const handleAuthorClick = (author: TopAuthor) => {
-    logClickedEvent('advanced_algo_feed_author', 'click_author', author.pubkey);
-    // Add your author click handler here
-  };
-
-  // Render functions
-  const renderNoteCard = (note: TrendingNote | ViralNote | ScrapedNote) => (
-    <div 
-      key={note.id} 
-      className={styles['algo-feed__note-card']}
-      onClick={() => handleNoteClick(note)}
-    >
-      <div className={styles['algo-feed__note-header']}>
-        <img 
-          src={algoRelayService.getAuthorAvatar(note)} 
-          alt={algoRelayService.getAuthorDisplayName(note)}
-          className={styles['algo-feed__author-avatar']}
-        />
-        <div className={styles['algo-feed__author-info']}>
-          <span className={styles['algo-feed__author-name']}>
-            {algoRelayService.getAuthorDisplayName(note)}
-          </span>
-          <span className={styles['algo-feed__timestamp']}>
-            {algoRelayService.formatTimestamp(note.created_at)}
-          </span>
-        </div>
-        {(note as any).score && (
-          <div className={styles['algo-feed__score']}>
-            <span className={styles['algo-feed__score-value']}>
-              {(note as any).score?.toFixed(1) || (note as any).viral_score?.toFixed(1) || '0.0'}
-            </span>
-          </div>
-        )}
-      </div>
-      <div className={styles['algo-feed__note-content']}>
-        {note.content}
-      </div>
-      <div className={styles['algo-feed__note-stats']}>
-        {note.reaction_count && (
-          <span className={styles['algo-feed__stat']}>
-            ❤️ {note.reaction_count}
-          </span>
-        )}
-        {note.zap_count && (
-          <span className={styles['algo-feed__stat']}>
-            ⚡ {note.zap_count}
-          </span>
-        )}
-        {note.reply_count && (
-          <span className={styles['algo-feed__stat']}>
-            💬 {note.reply_count}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-
-  const renderFilters = () => (
-    <div className={styles['algo-feed__filters']}>
-      <div className={styles['algo-feed__filter-group']}>
-        <label className={styles['algo-feed__filter-label']}>Time:</label>
-        <select 
-          value={timeFilter} 
-          onChange={(e) => setTimeFilter(e.target.value as any)}
-          className={styles['algo-feed__filter-select']}
-        >
-          <option value="1h">Last Hour</option>
-          <option value="24h">Last 24 Hours</option>
-          <option value="7d">Last 7 Days</option>
-          <option value="30d">Last 30 Days</option>
-        </select>
-      </div>
-      
-      <div className={styles['algo-feed__filter-group']}>
-        <label className={styles['algo-feed__filter-label']}>Sort by:</label>
-        <select 
-          value={sortBy} 
-          onChange={(e) => setSortBy(e.target.value as any)}
-          className={styles['algo-feed__filter-select']}
-        >
-          <option value="score">Score</option>
-          <option value="reactions">Reactions</option>
-          <option value="zaps">Zaps</option>
-          <option value="replies">Replies</option>
-          <option value="created">Created</option>
-        </select>
-      </div>
-
-      {activeTab === 'scraped' && (
-        <div className={styles['algo-feed__filter-group']}>
-          <label className={styles['algo-feed__filter-label']}>Kind:</label>
-          <select 
-            value={selectedKind || ''} 
-            onChange={(e) => setSelectedKind(e.target.value ? parseInt(e.target.value) : null)}
-            className={styles['algo-feed__filter-select']}
-          >
-            <option value="">All</option>
-            <option value="1">Text Notes</option>
-            <option value="30023">Articles</option>
-            <option value="6">Reposts</option>
-            <option value="7">Reactions</option>
-          </select>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderContent = () => {
+  const renderNotes = (notes: TrendingNote[] | ViralNote[] | ScrapedNote[] | TopAuthor[]) => {
     if (loading) {
       return (
         <div className={styles['algo-feed__loading']}>
-          {[1, 2, 3].map((i) => (
-            <div key={i} className={styles['algo-feed__skeleton']}>
-              <div className={styles['algo-feed__skeleton-avatar']}></div>
-              <div className={styles['algo-feed__skeleton-content']}>
-                <div className={styles['algo-feed__skeleton-line']}></div>
-                <div className={styles['algo-feed__skeleton-line']}></div>
-                <div className={styles['algo-feed__skeleton-line-short']}></div>
-              </div>
+          <div className={styles['algo-feed__skeleton']}>
+            <div className={styles['algo-feed__skeleton-avatar']}></div>
+            <div className={styles['algo-feed__skeleton-content']}>
+              <div className={styles['algo-feed__skeleton-line']}></div>
+              <div className={styles['algo-feed__skeleton-line']}></div>
+              <div className={styles['algo-feed__skeleton-line-short']}></div>
             </div>
-          ))}
+          </div>
         </div>
       );
     }
@@ -387,7 +162,7 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
         <div className={styles['algo-feed__error']}>
           <p>{error}</p>
           <button 
-            onClick={refreshCurrentTab}
+            onClick={fetchCurrentTabData}
             className={styles['algo-feed__retry-button']}
           >
             Retry
@@ -396,94 +171,106 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
       );
     }
 
-          switch (activeTab) {
+    if (!notes || notes.length === 0) {
+      return (
+        <div className={styles['algo-feed__empty']}>
+          <p>No {activeTab} data found</p>
+        </div>
+      );
+    }
+
+    return notes.map((note) => {
+      let ndkEvent;
+      
+      switch (activeTab) {
         case 'trending':
-          return (
-            <div className={styles['algo-feed__notes']}>
-              {(!trendingNotes || trendingNotes.length === 0) ? (
-                <div className={styles['algo-feed__empty']}>
-                  <p>No trending notes found</p>
-                </div>
-              ) : (
-                sortNotes(trendingNotes).map(renderNoteCard)
-              )}
-            </div>
-          );
+          ndkEvent = transformTrendingNoteToNDKEvent(note as TrendingNote);
+          break;
         case 'viral':
-          return (
-            <div className={styles['algo-feed__notes']}>
-              {(!viralNotes || viralNotes.length === 0) ? (
-                <div className={styles['algo-feed__empty']}>
-                  <p>No viral notes found</p>
-                </div>
-              ) : (
-                sortNotes(viralNotes).map(renderNoteCard)
-              )}
-            </div>
-          );
+          ndkEvent = transformViralNoteToNDKEvent(note as ViralNote);
+          break;
         case 'scraped':
-          return (
-            <div className={styles['algo-feed__notes']}>
-              {(!scrapedNotes || scrapedNotes.length === 0) ? (
-                <div className={styles['algo-feed__empty']}>
-                  <p>No scraped notes found</p>
-                </div>
-              ) : (
-                sortNotes(scrapedNotes).map(renderNoteCard)
-              )}
+          ndkEvent = transformScrapedNoteToNDKEvent(note as ScrapedNote);
+          break;
+        default:
+          return null;
+      }
+
+      return (
+        <div key={note.id} className={styles['algo-feed__note-wrapper']}>
+          <PostEventCard 
+            event={ndkEvent}
+            profile={ndkEvent.profile}
+            className={styles['algo-feed__post-card']}
+          />
+        </div>
+      );
+    });
+  };
+
+  const renderTopAuthors = () => (
+    <div className={styles['algo-feed__authors']}>
+      {(!topAuthors || topAuthors.length === 0) ? (
+        <div className={styles['algo-feed__empty']}>
+          <p>No top authors found</p>
+        </div>
+      ) : (
+        topAuthors.map((author) => (
+          <div 
+            key={author.pubkey} 
+            className={styles['algo-feed__author-card']}
+          >
+            <img 
+              src={author.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${author.pubkey}`} 
+              alt={author.name || 'Author'}
+              className={styles['algo-feed__author-avatar']}
+            />
+            <div className={styles['algo-feed__author-details']}>
+              <span className={styles['algo-feed__author-name']}>
+                {author.name || author.pubkey.slice(0, 8) + '...'}
+              </span>
+              <span className={styles['algo-feed__interaction-count']}>
+                {author.interaction_count} interactions
+              </span>
             </div>
-          );
-        case 'top-authors':
-          return (
-            <div className={styles['algo-feed__authors']}>
-              {(!topAuthors || topAuthors.length === 0) ? (
-                <div className={styles['algo-feed__empty']}>
-                  <p>No top authors found</p>
-                </div>
-              ) : (
-                topAuthors.map((author) => (
-              <div 
-                key={author.pubkey} 
-                className={styles['algo-feed__author-card']}
-                onClick={() => handleAuthorClick(author)}
-              >
-                <img 
-                  src={algoRelayService.getAuthorAvatar(author)} 
-                  alt={author.name || 'Author'}
-                  className={styles['algo-feed__author-avatar']}
-                />
-                <div className={styles['algo-feed__author-details']}>
-                  <span className={styles['algo-feed__author-name']}>
-                    {author.name || author.pubkey.slice(0, 8) + '...'}
-                  </span>
-                  <span className={styles['algo-feed__interaction-count']}>
-                    {author.interaction_count} interactions
-                  </span>
-                </div>
-              </div>
-            ))
-            )}
           </div>
-        );
+        ))
+      )}
+    </div>
+  );
+
+  const getCurrentData = () => {
+    switch (activeTab) {
+      case 'trending':
+        return trendingNotes;
+      case 'viral':
+        return viralNotes;
+      case 'scraped':
+        return scrapedNotes;
+      case 'top-authors':
+        return topAuthors;
       default:
-        return null;
+        return [];
     }
   };
 
   return (
-    <div className={`${styles['algo-feed']} ${styles['algo-feed--advanced']} ${className}`}>
+    <div className={`${styles['algo-feed']} ${className}`}>
       <div className={styles['algo-feed__header']}>
         <div className={styles['algo-feed__header-top']}>
           <h2 className={styles['algo-feed__title']}>Advanced Algorithmic Feed</h2>
-          <div className={styles['algo-feed__header-actions']}>
+          <div className={styles['algo-feed__header-controls']}>
+            <span className={styles['algo-feed__last-update']}>
+              Last update: {lastUpdate.toLocaleTimeString()}
+            </span>
             <button
               onClick={handleRefresh}
-              disabled={refreshing}
+              disabled={loading}
               className={styles['algo-feed__refresh-button']}
               title="Refresh feed"
             >
               <svg 
-                className={`${styles['algo-feed__refresh-icon']} ${refreshing ? styles['algo-feed__refresh-icon--spinning'] : ''}`}
+                className={`${styles['algo-feed__refresh-icon']} ${loading ? styles['algo-feed__refresh-icon--spinning'] : ''}`}
                 xmlns="http://www.w3.org/2000/svg" 
                 viewBox="0 0 24 24" 
                 fill="none" 
@@ -497,46 +284,52 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
                 <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
               </svg>
             </button>
-            {enableRealTime && (
-              <span className={styles['algo-feed__realtime-indicator']}>
-                ⚡ Live
-              </span>
-            )}
           </div>
         </div>
         
         <div className={styles['algo-feed__tabs']}>
-          {availableTabs.map((tab) => (
+          {showTrending && (
             <button
-              key={tab}
-              className={`${styles['algo-feed__tab']} ${activeTab === tab ? styles['algo-feed__tab--active'] : ''}`}
-              onClick={() => handleTabChange(tab)}
+              className={`${styles['algo-feed__tab']} ${activeTab === 'trending' ? styles['algo-feed__tab--active'] : ''}`}
+              onClick={() => handleTabChange('trending')}
             >
-              <span className={styles['algo-feed__tab-icon']}>
-                {tab === 'trending' ? '🔥' : 
-                 tab === 'viral' ? '🚀' : 
-                 tab === 'scraped' ? '📊' : '👥'}
-              </span>
-              {tab === 'top-authors' ? 'Top Authors' : 
-               tab.charAt(0).toUpperCase() + tab.slice(1)}
+              <span className={styles['algo-feed__tab-icon']}>🔥</span>
+              Trending ({trendingNotes.length})
             </button>
-          ))}
+          )}
+          {showViral && (
+            <button
+              className={`${styles['algo-feed__tab']} ${activeTab === 'viral' ? styles['algo-feed__tab--active'] : ''}`}
+              onClick={() => handleTabChange('viral')}
+            >
+              <span className={styles['algo-feed__tab-icon']}>🚀</span>
+              Viral ({viralNotes.length})
+            </button>
+          )}
+          {showScraped && (
+            <button
+              className={`${styles['algo-feed__tab']} ${activeTab === 'scraped' ? styles['algo-feed__tab--active'] : ''}`}
+              onClick={() => handleTabChange('scraped')}
+            >
+              <span className={styles['algo-feed__tab-icon']}>📊</span>
+              Scraped ({scrapedNotes.length})
+            </button>
+          )}
+          {showTopAuthors && (
+            <button
+              className={`${styles['algo-feed__tab']} ${activeTab === 'top-authors' ? styles['algo-feed__tab--active'] : ''}`}
+              onClick={() => handleTabChange('top-authors')}
+            >
+              <span className={styles['algo-feed__tab-icon']}>👥</span>
+              Top Authors ({topAuthors.length})
+            </button>
+          )}
         </div>
-
-        {activeTab !== 'top-authors' && renderFilters()}
       </div>
 
       <div className={styles['algo-feed__content']}>
-        {renderContent()}
+        {activeTab === 'top-authors' ? renderTopAuthors() : renderNotes(getCurrentData())}
       </div>
-
-      {lastUpdate && (
-        <div className={styles['algo-feed__footer']}>
-          <span className={styles['algo-feed__last-update']}>
-            Last updated: {lastUpdate.toLocaleTimeString()}
-          </span>
-        </div>
-      )}
     </div>
   );
 };
