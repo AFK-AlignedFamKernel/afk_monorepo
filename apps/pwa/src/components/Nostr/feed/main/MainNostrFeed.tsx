@@ -154,7 +154,6 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
 
   // Custom hooks
   const { getCurrentData, fetchCurrentTabData, resetPagination: resetPaginationData } = useAlgoFeedData(activeTab, limit, publicKey);
-  const { loaderRef, isInfiniteScrollLoading, setIsInfiniteScrollLoading } = useInfiniteScroll(hasMore, loadingMore, fetchCurrentTabData);
 
 
   // Initial data load
@@ -239,10 +238,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
 
   const handleLoadMore = () => {
     console.log('Manual load more triggered');
-    setIsInfiniteScrollLoading(true);
-    fetchCurrentTabData(true).finally(() => {
-      setIsInfiniteScrollLoading(false);
-    });
+    fetchCurrentTabData(true);
   };
 
   const handleTabChange = (tab: TabType) => {
@@ -390,14 +386,17 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
           );
         })}
         
-        {/* Separate loader element for better infinite scroll - only show if we have data and more to load */}
+        {/* Load more button for manual loading */}
         {hasMore && filteredNotes.length > 0 && (
-          <div 
-            ref={loaderRef}
-            className={styles['algo-feed__loading-trigger']}
-            style={{ height: '50px', opacity: 0 }}
-            aria-hidden="true"
-          />
+          <div className={styles['algo-feed__load-more-container']}>
+            <button
+              onClick={handleLoadMore}
+              className={styles['algo-feed__load-more-button']}
+              disabled={loadingMore}
+            >
+              {loadingMore ? 'Loading...' : 'Load More Content'}
+            </button>
+          </div>
         )}
       </>
     );
@@ -616,7 +615,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
 
       <div 
         ref={scrollContainerRef}
-        className={styles['algo-feed__content-scrollable']}
+        className={styles['algo-feed__content-container']}
       >
         {/* Auto-reload indicator */}
         {showReloadIndicator && (
@@ -654,9 +653,9 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
           renderTrendingTopAuthors={renderTrendingTopAuthors}
           hasMore={hasMore}
           loadingMore={loadingMore}
-          isInfiniteScrollLoading={isInfiniteScrollLoading}
           onLoadMore={handleLoadMore}
-          loaderRef={loaderRef as React.RefObject<HTMLDivElement>}
+          // isInfiniteScrollLoading={false}
+          // loaderRef={null}
         />
       </div>
 

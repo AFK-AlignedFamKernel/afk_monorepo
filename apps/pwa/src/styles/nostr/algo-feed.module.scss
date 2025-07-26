@@ -2067,6 +2067,15 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   position: relative;
 }
 
+// Main content container (no scrollbar, just grows with content)
+.algo-feed__content-container {
+  flex: 1;
+  overflow: visible;
+  position: relative;
+  // No height constraints - let it grow naturally
+  // No scrollbar - content just flows
+}
+
 // Scrollable content container
 .algo-feed__content-scrollable {
   height: calc(100vh - 240px); // Adjusted for better mobile compatibility
