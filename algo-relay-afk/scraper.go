@@ -496,53 +496,39 @@ func (s *NoteScraper) GetViralNotesWithFilters(limit int, offset int, kinds []in
 		AND created_at >= $2
 	`
 
+	// Build parameters slice
+	params := []interface{}{minViralScore, timeCutoff}
+	paramIndex := 3
+
 	// Add kinds filter if specified
 	if len(kinds) > 0 {
-		baseQuery += " AND kind = ANY($3)"
+		baseQuery += fmt.Sprintf(" AND kind = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(kinds))
+		paramIndex++
 	}
 
 	// Add search filter if specified
 	if searchQuery != "" {
-		baseQuery += " AND (content ILIKE $4 OR author_id ILIKE $4)"
+		baseQuery += fmt.Sprintf(" AND (content ILIKE $%d OR author_id ILIKE $%d)", paramIndex, paramIndex)
+		params = append(params, "%"+searchQuery+"%")
+		paramIndex++
 	}
 
 	// Add authors filter if specified
 	if len(authors) > 0 {
-		baseQuery += " AND author_id = ANY($5)"
+		baseQuery += fmt.Sprintf(" AND author_id = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(authors))
+		paramIndex++
 	}
 
 	// Add ordering and pagination
 	baseQuery += `
 		ORDER BY viral_score DESC, created_at DESC
-		LIMIT $6 OFFSET $7
-	`
+		LIMIT $` + fmt.Sprintf("%d", paramIndex) + ` OFFSET $` + fmt.Sprintf("%d", paramIndex+1)
+	params = append(params, limit, offset)
 
-	// Execute the query with appropriate parameters
-	var rows *sql.Rows
-	var err error
-
-	if len(kinds) > 0 && searchQuery != "" && len(authors) > 0 {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, pq.Array(kinds), searchPattern, pq.Array(authors), limit, offset)
-	} else if len(kinds) > 0 && searchQuery != "" {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, pq.Array(kinds), searchPattern, limit, offset)
-	} else if len(kinds) > 0 && len(authors) > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, pq.Array(kinds), pq.Array(authors), limit, offset)
-	} else if searchQuery != "" && len(authors) > 0 {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, searchPattern, pq.Array(authors), limit, offset)
-	} else if len(kinds) > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, pq.Array(kinds), limit, offset)
-	} else if searchQuery != "" {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, searchPattern, limit, offset)
-	} else if len(authors) > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, pq.Array(authors), limit, offset)
-	} else {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, limit, offset)
-	}
-
+	// Execute the query
+	rows, err := s.db.QueryContext(context.Background(), baseQuery, params...)
 	if err != nil {
 		return nil, err
 	}
@@ -594,53 +580,39 @@ func (s *NoteScraper) GetTrendingNotesWithFilters(limit int, offset int, kinds [
 		AND created_at >= $2
 	`
 
+	// Build parameters slice
+	params := []interface{}{minTrendingScore, timeCutoff}
+	paramIndex := 3
+
 	// Add kinds filter if specified
 	if len(kinds) > 0 {
-		baseQuery += " AND kind = ANY($3)"
+		baseQuery += fmt.Sprintf(" AND kind = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(kinds))
+		paramIndex++
 	}
 
 	// Add search filter if specified
 	if searchQuery != "" {
-		baseQuery += " AND (content ILIKE $4 OR author_id ILIKE $4)"
+		baseQuery += fmt.Sprintf(" AND (content ILIKE $%d OR author_id ILIKE $%d)", paramIndex, paramIndex)
+		params = append(params, "%"+searchQuery+"%")
+		paramIndex++
 	}
 
 	// Add authors filter if specified
 	if len(authors) > 0 {
-		baseQuery += " AND author_id = ANY($5)"
+		baseQuery += fmt.Sprintf(" AND author_id = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(authors))
+		paramIndex++
 	}
 
 	// Add ordering and pagination
 	baseQuery += `
 		ORDER BY trending_score DESC, created_at DESC
-		LIMIT $6 OFFSET $7
-	`
+		LIMIT $` + fmt.Sprintf("%d", paramIndex) + ` OFFSET $` + fmt.Sprintf("%d", paramIndex+1)
+	params = append(params, limit, offset)
 
-	// Execute the query with appropriate parameters
-	var rows *sql.Rows
-	var err error
-
-	if len(kinds) > 0 && searchQuery != "" && len(authors) > 0 {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, pq.Array(kinds), searchPattern, pq.Array(authors), limit, offset)
-	} else if len(kinds) > 0 && searchQuery != "" {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, pq.Array(kinds), searchPattern, limit, offset)
-	} else if len(kinds) > 0 && len(authors) > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, pq.Array(kinds), pq.Array(authors), limit, offset)
-	} else if searchQuery != "" && len(authors) > 0 {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, searchPattern, pq.Array(authors), limit, offset)
-	} else if len(kinds) > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, pq.Array(kinds), limit, offset)
-	} else if searchQuery != "" {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, searchPattern, limit, offset)
-	} else if len(authors) > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, pq.Array(authors), limit, offset)
-	} else {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, limit, offset)
-	}
-
+	// Execute the query
+	rows, err := s.db.QueryContext(context.Background(), baseQuery, params...)
 	if err != nil {
 		return nil, err
 	}
@@ -674,19 +646,29 @@ func (s *NoteScraper) GetScrapedNotesWithFilters(limit int, offset int, kinds []
 		AND interaction_score >= $3
 	`
 
+	// Build parameters slice
+	params := []interface{}{since, until, minInteractionScore}
+	paramIndex := 4
+
 	// Add kinds filter if specified
 	if len(kinds) > 0 {
-		baseQuery += " AND kind = ANY($4)"
+		baseQuery += fmt.Sprintf(" AND kind = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(kinds))
+		paramIndex++
 	}
 
 	// Add search filter if specified
 	if searchQuery != "" {
-		baseQuery += " AND (content ILIKE $5 OR author_id ILIKE $5)"
+		baseQuery += fmt.Sprintf(" AND (content ILIKE $%d OR author_id ILIKE $%d)", paramIndex, paramIndex)
+		params = append(params, "%"+searchQuery+"%")
+		paramIndex++
 	}
 
 	// Add authors filter if specified
 	if len(authors) > 0 {
-		baseQuery += " AND author_id = ANY($6)"
+		baseQuery += fmt.Sprintf(" AND author_id = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(authors))
+		paramIndex++
 	}
 
 	// Add ordering based on sortOrder parameter
@@ -706,34 +688,11 @@ func (s *NoteScraper) GetScrapedNotesWithFilters(limit int, offset int, kinds []
 	}
 
 	// Add pagination
-	baseQuery += " LIMIT $7 OFFSET $8"
+	baseQuery += " LIMIT $" + fmt.Sprintf("%d", paramIndex) + " OFFSET $" + fmt.Sprintf("%d", paramIndex+1)
+	params = append(params, limit, offset)
 
-	// Execute the query with appropriate parameters
-	var rows *sql.Rows
-	var err error
-
-	if len(kinds) > 0 && searchQuery != "" && len(authors) > 0 {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, pq.Array(kinds), searchPattern, pq.Array(authors), limit, offset)
-	} else if len(kinds) > 0 && searchQuery != "" {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, pq.Array(kinds), searchPattern, limit, offset)
-	} else if len(kinds) > 0 && len(authors) > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, pq.Array(kinds), pq.Array(authors), limit, offset)
-	} else if searchQuery != "" && len(authors) > 0 {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, searchPattern, pq.Array(authors), limit, offset)
-	} else if len(kinds) > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, pq.Array(kinds), limit, offset)
-	} else if searchQuery != "" {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, searchPattern, limit, offset)
-	} else if len(authors) > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, pq.Array(authors), limit, offset)
-	} else {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, limit, offset)
-	}
-
+	// Execute the query
+	rows, err := s.db.QueryContext(context.Background(), baseQuery, params...)
 	if err != nil {
 		return nil, err
 	}

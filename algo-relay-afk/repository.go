@@ -1131,53 +1131,39 @@ func (r *NostrRepository) GetNotesWithFilters(ctx context.Context, limit int, of
 		WHERE n.created_at >= $1
 	`
 
+	// Build parameters slice
+	params := []interface{}{timeCutoff}
+	paramIndex := 2
+
 	// Add kind filter if specified
 	if len(kinds) > 0 {
-		baseQuery += " AND n.kind = ANY($2)"
+		baseQuery += fmt.Sprintf(" AND n.kind = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(kinds))
+		paramIndex++
 	}
 
 	// Add search filter if specified
 	if searchQuery != "" {
-		baseQuery += " AND (n.content ILIKE $3 OR n.author_id ILIKE $3)"
+		baseQuery += fmt.Sprintf(" AND (n.content ILIKE $%d OR n.author_id ILIKE $%d)", paramIndex, paramIndex)
+		params = append(params, "%"+searchQuery+"%")
+		paramIndex++
 	}
 
 	// Add authors filter if specified
 	if len(authors) > 0 {
-		baseQuery += " AND n.author_id = ANY($4)"
+		baseQuery += fmt.Sprintf(" AND n.author_id = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(authors))
+		paramIndex++
 	}
 
 	// Add ordering and pagination
 	baseQuery += `
 		ORDER BY n.created_at DESC
-		LIMIT $5 OFFSET $6
-	`
+		LIMIT $` + fmt.Sprintf("%d", paramIndex) + ` OFFSET $` + fmt.Sprintf("%d", paramIndex+1)
+	params = append(params, limit, offset)
 
-	// Execute the query with appropriate parameters
-	var rows *sql.Rows
-	var err error
-
-	if len(kinds) > 0 && searchQuery != "" && len(authors) > 0 {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, pq.Array(kinds), searchPattern, pq.Array(authors), limit, offset)
-	} else if len(kinds) > 0 && searchQuery != "" {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, pq.Array(kinds), searchPattern, limit, offset)
-	} else if len(kinds) > 0 && len(authors) > 0 {
-		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, pq.Array(kinds), pq.Array(authors), limit, offset)
-	} else if searchQuery != "" && len(authors) > 0 {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, searchPattern, pq.Array(authors), limit, offset)
-	} else if len(kinds) > 0 {
-		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, pq.Array(kinds), limit, offset)
-	} else if searchQuery != "" {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, searchPattern, limit, offset)
-	} else if len(authors) > 0 {
-		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, pq.Array(authors), limit, offset)
-	} else {
-		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, limit, offset)
-	}
-
+	// Execute the query
+	rows, err := r.db.QueryContext(ctx, baseQuery, params...)
 	if err != nil {
 		return nil, err
 	}
@@ -1269,9 +1255,15 @@ func (r *NostrRepository) fetchTrendingTopAuthorsWithFilters(limit int, offset i
 			WHERE p.created_at >= $1
 	`
 
+	// Build parameters slice
+	params := []interface{}{timeCutoff}
+	paramIndex := 2
+
 	// Add kinds filter if specified
 	if len(kinds) > 0 {
-		query += " AND p.kind = ANY($2)"
+		query += fmt.Sprintf(" AND p.kind = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(kinds))
+		paramIndex++
 	}
 
 	query += `
@@ -1293,7 +1285,7 @@ func (r *NostrRepository) fetchTrendingTopAuthorsWithFilters(limit int, offset i
 				END as engagement_score,
 				last_activity
 			FROM author_stats
-			WHERE notes_count >= $3  -- Minimum notes count filter
+			WHERE notes_count >= $` + fmt.Sprintf("%d", paramIndex) + `  -- Minimum notes count filter
 		)
 		SELECT 
 			ae.author_id,
@@ -1309,35 +1301,27 @@ func (r *NostrRepository) fetchTrendingTopAuthorsWithFilters(limit int, offset i
 		FROM author_engagement ae
 		LEFT JOIN pubkey_settings ps ON ae.author_id = ps.pubkey
 		WHERE ae.total_interactions > 0  -- Only authors with some interactions
-		AND ae.engagement_score >= $4  -- Minimum engagement score filter
+		AND ae.engagement_score >= $` + fmt.Sprintf("%d", paramIndex+1) + `  -- Minimum engagement score filter
 	`
+
+	params = append(params, minNotesCount, minEngagementScore)
+	paramIndex += 2
 
 	// Add search filter if specified
 	if searchQuery != "" {
-		query += " AND (ps.settings->>'name' ILIKE $5 OR ae.author_id ILIKE $5)"
+		query += fmt.Sprintf(" AND (ps.settings->>'name' ILIKE $%d OR ae.author_id ILIKE $%d)", paramIndex, paramIndex)
+		params = append(params, "%"+searchQuery+"%")
+		paramIndex++
 	}
 
 	query += `
 		ORDER BY ae.engagement_score DESC, ae.total_interactions DESC, ae.last_activity DESC
-		LIMIT $6 OFFSET $7;
+		LIMIT $` + fmt.Sprintf("%d", paramIndex) + ` OFFSET $` + fmt.Sprintf("%d", paramIndex+1) + `;
 	`
+	params = append(params, limit, offset)
 
-	// Execute the query with appropriate parameters
-	var rows *sql.Rows
-	var err error
-
-	if len(kinds) > 0 && searchQuery != "" {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, pq.Array(kinds), minNotesCount, minEngagementScore, searchPattern, limit, offset)
-	} else if len(kinds) > 0 {
-		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, pq.Array(kinds), minNotesCount, minEngagementScore, limit, offset)
-	} else if searchQuery != "" {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, minNotesCount, minEngagementScore, searchPattern, limit, offset)
-	} else {
-		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, minNotesCount, minEngagementScore, limit, offset)
-	}
-
+	// Execute the query
+	rows, err := r.db.QueryContext(context.Background(), query, params...)
 	if err != nil {
 		return nil, err
 	}
