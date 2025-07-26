@@ -185,10 +185,8 @@ export const PostEventCard: React.FC<NostrPostEventProps> = (props) => {
     router.push(`/nostr/tags/${tag}`);
   }
 
-
-
-  console.log("event", event)
-  console.log("postSource", postSource)
+  // console.log("event", event)
+  // console.log("postSource", postSource)
 
   return (
     <NostrEventCardBase event={event} profile={profile || props?.profile || undefined} isLoading={props.isLoading} className={props.className}>

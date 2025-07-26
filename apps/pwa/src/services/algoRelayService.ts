@@ -252,6 +252,34 @@ class AlgoRelayService {
     };
   }
 
+  private transformBackendScrapedNoteToViralNote(backendNote: BackendScrapedNote): ViralNote {
+    let rawJson: any = {};
+    try {
+      rawJson = JSON.parse(backendNote.raw_json);
+    } catch (error) {
+      console.warn(`Failed to parse raw_json for note ${backendNote.id}:`, error);
+      rawJson = {};
+    }
+    
+    const createdAt = new Date(backendNote.created_at).getTime() / 1000;
+    
+    return {
+      id: backendNote.id,
+      pubkey: backendNote.author_id,
+      content: backendNote.content,
+      created_at: createdAt,
+      kind: backendNote.kind,
+      tags: rawJson.tags || [],
+      sig: rawJson.sig || '',
+      author_name: undefined, // Will be populated by getAuthorDisplayName
+      author_picture: undefined, // Will be populated by getAuthorAvatar
+      reaction_count: 0, // Will be calculated from tags
+      zap_count: 0, // Will be calculated from tags
+      reply_count: 0, // Will be calculated from tags
+      viral_score: backendNote.viral_score
+    };
+  }
+
   private transformToTrendingNote(note: ScrapedNote | ViralNote): TrendingNote {
     return {
       id: note.id,
@@ -310,11 +338,12 @@ class AlgoRelayService {
     log.info(`Fetching viral notes`, { limit });
     
     try {
-      const viralData = await this.makeRequest<BackendViralNote[]>(`/api/viral-notes?limit=${limit}`);
+      // The backend now returns ScrapedNote objects directly, not BackendViralNote objects
+      const viralData = await this.makeRequest<BackendScrapedNote[]>(`/api/viral-notes?limit=${limit}`);
       
       if (viralData && viralData.length > 0) {
         log.success(`Found ${viralData.length} viral notes`);
-        return viralData.map(note => this.transformBackendViralNote(note));
+        return viralData.map(note => this.transformBackendScrapedNoteToViralNote(note));
       }
       
       log.warning(`No viral notes available`);
@@ -330,11 +359,12 @@ class AlgoRelayService {
     log.info(`Fetching viral notes from scraper`, { limit });
     
     try {
-      const viralData = await this.makeRequest<BackendViralNote[]>(`/api/viral-notes-scraper?limit=${limit}`);
+      // The backend now returns ScrapedNote objects directly, not BackendViralNote objects
+      const viralData = await this.makeRequest<BackendScrapedNote[]>(`/api/viral-notes-scraper?limit=${limit}`);
       
       if (viralData && viralData.length > 0) {
         log.success(`Found ${viralData.length} viral notes from scraper`);
-        return viralData.map(note => this.transformBackendViralNote(note));
+        return viralData.map(note => this.transformBackendScrapedNoteToViralNote(note));
       }
       
       log.warning(`No viral notes from scraper available`);
