@@ -14,6 +14,8 @@ interface FeedContentProps {
   hasMore: boolean;
   loadingMore: boolean;
   onLoadMore: () => void;
+  onRefreshAtEnd: () => void;
+  showRefreshSuccess?: boolean;
   isInfiniteScrollLoading?: boolean;
   loaderRef?: React.RefObject<HTMLDivElement>;
 }
@@ -30,6 +32,8 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   hasMore,
   loadingMore,
   onLoadMore,
+  onRefreshAtEnd,
+  showRefreshSuccess,
   isInfiniteScrollLoading,
   loaderRef
 }) => (
@@ -37,6 +41,30 @@ export const FeedContent: React.FC<FeedContentProps> = ({
     {activeTab === 'top-authors' ? renderTopAuthors() : 
      activeTab === 'trending-top-authors' ? renderTrendingTopAuthors() : 
      renderNotes(getCurrentData())}
+    
+    {/* Refresh success message */}
+    {showRefreshSuccess && (
+      <div className={styles['algo-feed__refresh-success']}>
+        <div className={styles['algo-feed__refresh-success-content']}>
+          <svg 
+            className={styles['algo-feed__refresh-success-icon']}
+            xmlns="http://www.w3.org/2000/svg" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22,4 12,14.01 9,11.01"/>
+          </svg>
+          <span className={styles['algo-feed__refresh-success-text']}>
+            New content found! 🎉
+          </span>
+        </div>
+      </div>
+    )}
     
     {/* Loading more indicator */}
     {(loadingMore || isInfiniteScrollLoading) && (
@@ -76,7 +104,7 @@ export const FeedContent: React.FC<FeedContentProps> = ({
       <div className={styles['algo-feed__end-of-content']}>
         <p>You've reached the end of the content</p>
         <button
-          onClick={onLoadMore}
+          onClick={onRefreshAtEnd}
           className={styles['algo-feed__refresh-end-button']}
           disabled={loadingMore || isInfiniteScrollLoading}
         >

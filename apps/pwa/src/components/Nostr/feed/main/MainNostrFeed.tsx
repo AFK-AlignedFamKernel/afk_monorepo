@@ -124,6 +124,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   // Auto-reload state
   const [isAutoReloading, setIsAutoReloading] = useState(false);
   const [showReloadIndicator, setShowReloadIndicator] = useState(false);
+  const [showRefreshSuccess, setShowRefreshSuccess] = useState(false);
   const lastScrollTop = useRef(0);
 
   // Store state
@@ -301,6 +302,32 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       }, 50); // Small delay to ensure DOM updates are complete
     });
   }, [fetchCurrentTabData]);
+
+  const handleRefreshAtEnd = useCallback(() => {
+    console.log('Refresh at end triggered');
+    logClickedEvent('algo_feed_refresh_at_end', 'click_refresh', activeTab);
+    
+    // Store current data length to check if new content was added
+    const currentDataLength = getCurrentData().length;
+    
+    // Reset pagination and fetch fresh data
+    resetPaginationData();
+    fetchCurrentTabData(false).then(() => {
+      const newDataLength = getCurrentData().length;
+      
+      if (newDataLength > currentDataLength) {
+        console.log(`Refresh successful: found ${newDataLength - currentDataLength} new items`);
+        logClickedEvent('algo_feed_refresh_success', 'refresh_success', `${newDataLength - currentDataLength}_new_items`);
+        
+        // Show success message
+        setShowRefreshSuccess(true);
+        setTimeout(() => setShowRefreshSuccess(false), 3000); // Hide after 3 seconds
+      } else {
+        console.log('Refresh completed: no new content found');
+        logClickedEvent('algo_feed_refresh_no_new', 'refresh_no_new', activeTab);
+      }
+    });
+  }, [activeTab, fetchCurrentTabData, resetPaginationData, getCurrentData]);
 
   // Handle real-time data updates
   const handleRealTimeUpdate = useCallback((newData: any[], dataType: TabType) => {
@@ -738,6 +765,8 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
           hasMore={hasMore}
           loadingMore={loadingMore}
           onLoadMore={handleLoadMore}
+          onRefreshAtEnd={handleRefreshAtEnd}
+          showRefreshSuccess={showRefreshSuccess}
           // isInfiniteScrollLoading={false}
           // loaderRef={null}
         />
