@@ -12,7 +12,7 @@ import ChannelFeed from "../Nostr/Channel/ChannelFeed";
 import ChatScreen from "../Bitchat/ChatScreen";
 import AlgoFeed from "../Nostr/feed/AlgoFeed";
 import AdvancedAlgoFeed from "../Nostr/feed/AdvancedAlgoFeed";
-import MainNostrFeed from "../Nostr/feed/MainNostrFeed";
+import MainNostrFeed from "../Nostr/feed/main/MainNostrFeed";
 
 export default function DiscoverComponent() {
 

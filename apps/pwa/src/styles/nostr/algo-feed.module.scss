@@ -829,6 +829,9 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   background: var(--background);
   border-radius: 0.75rem;
   overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 
   &__header {
     padding: 1.5rem 1.5rem 1rem;
@@ -854,9 +857,33 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     scrollbar-width: none;
     -ms-overflow-style: none;
     margin-bottom: 1rem;
+    padding: 0.25rem 0; // Add padding to prevent cut-off shadows
+    position: relative;
 
     &::-webkit-scrollbar {
       display: none;
+    }
+    
+    // Add scroll indicators for better UX
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 20px;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    &::before {
+      left: 0;
+      background: linear-gradient(to right, var(--card-bg, white) 0%, transparent 100%);
+    }
+    
+    &::after {
+      right: 0;
+      background: linear-gradient(to left, var(--card-bg, white) 0%, transparent 100%);
     }
   }
 
@@ -972,11 +999,15 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
+    min-width: 0; // Allow flex shrinking
+    flex-shrink: 0; // Prevent shrinking
+    position: relative; // For better positioning
 
     &:hover {
       border-color: var(--primary-color);
       color: var(--primary-color);
       background: var(--primary-color-alpha);
+      transform: translateY(-1px);
     }
 
     &--active {
@@ -984,6 +1015,19 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
       background: var(--primary-color);
       color: white;
       box-shadow: 0 4px 12px var(--primary-color-alpha);
+      transform: translateY(-1px);
+    }
+    
+    // Handle text overflow gracefully
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 120px; // Limit text width
+      
+      @media (max-width: 480px) {
+        max-width: 80px; // Even smaller on mobile
+      }
     }
   }
 
@@ -2017,47 +2061,94 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   }
 }
 
+// Content container (non-scrollable)
+.algo-feed__content {
+  padding: 1rem;
+  position: relative;
+}
+
 // Scrollable content container
 .algo-feed__content-scrollable {
-  height: calc(100vh - 200px);
+  height: calc(100vh - 240px); // Adjusted for better mobile compatibility
+  min-height: 400px; // Minimum height to ensure usability
+  max-height: calc(100vh - 240px); // Prevent overflow
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 1rem;
   scroll-behavior: smooth;
+  position: relative;
   
   // Custom scrollbar
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 8px; // Slightly wider for better touch targets
   }
   
   &::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-    border-radius: 3px;
+    background: var(--bg-secondary, #f3f4f6);
+    border-radius: 4px;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 3px;
+    background: var(--border, #d1d5db);
+    border-radius: 4px;
+    border: 1px solid var(--bg-secondary, #f3f4f6);
     
     &:hover {
-      background: var(--text-secondary);
+      background: var(--text-secondary, #6b7280);
+    }
+    
+    &:active {
+      background: var(--text-primary, #374151);
     }
   }
   
   // Firefox scrollbar
   scrollbar-width: thin;
-  scrollbar-color: var(--border) var(--bg-secondary);
+  scrollbar-color: var(--border, #d1d5db) var(--bg-secondary, #f3f4f6);
+  
+  // Ensure smooth scrolling on iOS
+  -webkit-overflow-scrolling: touch;
+  
+  // Prevent double scrollbars
+  &::-webkit-scrollbar:horizontal {
+    display: none;
+  }
 }
 
 // Loading trigger for infinite scroll
 .algo-feed__loading-trigger {
   width: 100%;
-  height: 20px;
-  opacity: 0.1;
+  height: 50px;
+  opacity: 0;
   pointer-events: none;
   position: relative;
   z-index: 1;
   background: transparent;
+  margin: 1rem 0;
+  // Prevent layout shifts
+  min-height: 50px;
+  flex-shrink: 0;
+}
+
+// Note wrapper for better spacing
+.algo-feed__note-wrapper {
+  margin-bottom: 1rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Post card styling
+.algo-feed__post-card {
+  width: 100%;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
 }
 
 // Manual Load More button
@@ -2170,8 +2261,14 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
 // Mobile responsive scrollable container
 @media (max-width: 768px) {
   .algo-feed__content-scrollable {
-    height: calc(100vh - 180px);
+    height: calc(100vh - 200px); // Adjusted for mobile header/footer
+    min-height: 300px; // Lower minimum height for mobile
     padding: 0.75rem;
+    
+    // Wider scrollbar for touch devices
+    &::-webkit-scrollbar {
+      width: 12px;
+    }
   }
   
   .algo-feed__loading-more {

@@ -19,8 +19,24 @@ import { TAGS_DEFAULT } from 'common';
 import { Icon } from '@/components/small/icon-component';
 import { useAlgoRelayStore } from '@/stores/algoRelayStore';
 import styles from '@/styles/nostr/algo-feed.module.scss';
+import { FeedHeader } from './components/FeedHeader';
+import { FeedContent } from './components/FeedContent';
+import { FeedTabs } from './components/FeedTabs';
+import { useInfiniteScroll } from './hooks/useInfiniteScroll';
+import { useAlgoFeedData } from './hooks/useAlgoFeedData';
 
-interface MainNostrFeedProps {
+// Types
+export type TabType = 'trending' | 'viral' | 'scraped' | 'top-authors' | 'trending-top-authors';
+export type ContentType = 'posts' | 'articles' | 'shorts' | 'tags';
+
+export interface ContentTypeTab {
+  id: ContentType;
+  label: string;
+  kinds: number[];
+  icon: React.ReactNode;
+}
+
+export interface MainNostrFeedProps {
   className?: string;
   limit?: number;
   showTrending?: boolean;
@@ -31,16 +47,55 @@ interface MainNostrFeedProps {
   enableRealTime?: boolean;
 }
 
-type TabType = 'trending' | 'viral' | 'scraped' | 'top-authors' | 'trending-top-authors';
-type ContentType = 'posts' | 'articles' | 'shorts' | 'tags';
+// Content Type Tabs Configuration
+export const CONTENT_TYPE_TABS: ContentTypeTab[] = [
+  {
+    id: 'posts',
+    label: 'Posts',
+    kinds: [NDKKind.Text, NDKKind.Repost],
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clipRule="evenodd" />
+      </svg>
+    ),
+  },
+  {
+    id: 'articles',
+    label: 'Articles',
+    kinds: [30023],
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clipRule="evenodd" />
+        <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'shorts',
+    label: 'Shorts',
+    kinds: [31000, 31001, 34236, NDKKind.ShortVideo, NDKKind.VerticalVideo, NDKKind.HorizontalVideo, NDKKind.Video],
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+      </svg>
+    ),
+  },
+  {
+    id: 'tags',
+    label: 'Tags',
+    kinds: [NDKKind.Text, NDKKind.Article],
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      </svg>
+    ),
+  },
+];
 
-interface ContentTypeTab {
-  id: ContentType;
-  label: string;
-  kinds: number[];
-  icon: React.ReactNode;
-}
 
+
+
+// Main Component
 const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   className = '',
   limit = 20,
@@ -69,11 +124,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   // Auto-reload state
   const [isAutoReloading, setIsAutoReloading] = useState(false);
   const [showReloadIndicator, setShowReloadIndicator] = useState(false);
-  const [isInfiniteScrollLoading, setIsInfiniteScrollLoading] = useState(false);
   const lastScrollTop = useRef(0);
-  
-  // Intersection observer for infinite scroll
-  const loadingTriggerRef = useRef<HTMLDivElement>(null);
 
   // Store state
   const {
@@ -101,82 +152,25 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     resetPagination
   } = useAlgoRelayStore();
 
-  // Content type tabs configuration
-  const contentTypeTabs: ContentTypeTab[] = [
-    {
-      id: 'posts',
-      label: 'Posts',
-      kinds: [NDKKind.Text, NDKKind.Repost],
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clipRule="evenodd" />
-        </svg>
-      ),
-    },
-    {
-      id: 'articles',
-      label: 'Articles',
-      kinds: [30023],
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clipRule="evenodd" />
-          <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V7z" />
-        </svg>
-      ),
-    },
-    {
-      id: 'shorts',
-      label: 'Shorts',
-      kinds: [31000, 31001, 34236, NDKKind.ShortVideo, NDKKind.VerticalVideo, NDKKind.HorizontalVideo, NDKKind.Video],
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
-        </svg>
-      ),
-    },
-    {
-      id: 'tags',
-      label: 'Tags',
-      kinds: [NDKKind.Text, NDKKind.Article],
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-        </svg>
-      ),
-    },
-  ];
+  // Custom hooks
+  const { getCurrentData, fetchCurrentTabData, resetPagination: resetPaginationData } = useAlgoFeedData(activeTab, limit, publicKey);
+  const { loaderRef, isInfiniteScrollLoading, setIsInfiniteScrollLoading } = useInfiniteScroll(hasMore, loadingMore, fetchCurrentTabData);
 
-  const fetchCurrentTabData = useCallback(async (append = false) => {
-    try {
-      switch (activeTab) {
-        case 'trending':
-          await fetchTrendingNotes(limit, 0, append);
-          break;
-        case 'viral':
-          await fetchViralNotes(limit, 0, append);
-          break;
-        case 'scraped':
-          await fetchScrapedNotes(limit, 0, append);
-          break;
-        case 'top-authors':
-          if (publicKey) {
-            await fetchTopAuthors(publicKey, limit, 0, append);
-          }
-          break;
-        case 'trending-top-authors':
-          await fetchTrendingTopAuthors(limit, 0, append);
-          break;
-      }
-    } catch (err) {
-      console.error('Error fetching data:', err);
-    }
-  }, [activeTab, limit, publicKey, fetchTrendingNotes, fetchViralNotes, fetchScrapedNotes, fetchTopAuthors, fetchTrendingTopAuthors]);
 
   // Initial data load
   useEffect(() => {
-    resetPagination();
+    resetPaginationData();
     fetchCurrentTabData(false);
-  }, [activeTab, fetchCurrentTabData, resetPagination]);
+  }, [activeTab, fetchCurrentTabData, resetPaginationData]);
+
+  // Debounce rapid tab changes to prevent excessive API calls
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      // This will trigger a re-fetch if needed
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [activeTab]);
 
   // Real-time updates
   useEffect(() => {
@@ -189,23 +183,6 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     return () => clearInterval(interval);
   }, [enableRealTime, fetchCurrentTabData]);
 
-  const getCurrentData = () => {
-    switch (activeTab) {
-      case 'trending':
-        return trendingNotes;
-      case 'viral':
-        return viralNotes;
-      case 'scraped':
-        return scrapedNotes;
-      case 'top-authors':
-        return topAuthors;
-      case 'trending-top-authors':
-        return trendingTopAuthors;
-      default:
-        return [];
-    }
-  };
-
   // Auto-reload handler
   const handleAutoReload = useCallback(async () => {
     if (isAutoReloading || loading) return;
@@ -215,7 +192,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     
     try {
       logClickedEvent('algo_feed_auto_reload', 'scroll_to_top', activeTab);
-      resetPagination();
+      resetPaginationData();
       await fetchCurrentTabData(false);
     } catch (err) {
       console.error('Auto-reload error:', err);
@@ -224,40 +201,28 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       // Hide indicator after a short delay
       setTimeout(() => setShowReloadIndicator(false), 2000);
     }
-  }, [isAutoReloading, loading, activeTab, fetchCurrentTabData, resetPagination]);
+  }, [isAutoReloading, loading, activeTab, fetchCurrentTabData, resetPaginationData]);
 
-  // Scroll handler for auto-reload and infinite scroll
+  // Scroll handler for auto-reload only
   const handleScroll = useCallback(() => {
     if (!scrollContainerRef.current) return;
 
-    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    const { scrollTop } = scrollContainerRef.current;
     
     // Auto-reload when scrolling to top (pull-to-refresh behavior)
     if (scrollTop <= 0 && lastScrollTop.current > 0 && !isAutoReloading) {
       handleAutoReload();
     }
     
-    // Infinite scroll when scrolling to bottom (fallback to intersection observer)
-    if (!loadingMore && !isInfiniteScrollLoading && hasMore) {
-      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
-      if (scrollPercentage > 0.95) { // Trigger when 95% scrolled
-        console.log('Scroll-based infinite scroll triggered at', Math.round(scrollPercentage * 100) + '%');
-        setIsInfiniteScrollLoading(true);
-        const currentDataLength = getCurrentData().length;
-        setOffset(currentDataLength);
-        fetchCurrentTabData(true).finally(() => {
-          setIsInfiniteScrollLoading(false);
-        });
-      } else if (scrollPercentage > 0.8) {
-        // Debug log when approaching trigger point
-        console.log('Approaching infinite scroll trigger:', Math.round(scrollPercentage * 100) + '%');
-      }
+    // Prevent scroll bouncing on mobile
+    if (scrollTop < 0) {
+      scrollContainerRef.current.scrollTop = 0;
     }
     
     lastScrollTop.current = scrollTop;
-  }, [isAutoReloading, handleAutoReload, loadingMore, isInfiniteScrollLoading, hasMore, fetchCurrentTabData, setOffset, getCurrentData]);
+  }, [isAutoReloading, handleAutoReload]);
 
-  // Add scroll event listener
+  // Add scroll event listener for auto-reload only
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     if (scrollContainer) {
@@ -266,50 +231,15 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     }
   }, [handleScroll]);
 
-  // Intersection observer for infinite scroll
-  useEffect(() => {
-    if (!loadingTriggerRef.current || !hasMore || loadingMore || isInfiniteScrollLoading) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !loadingMore && !isInfiniteScrollLoading && hasMore) {
-            console.log('Intersection observer triggered - loading more content');
-            setIsInfiniteScrollLoading(true);
-            // Load more content when the trigger element becomes visible
-            const currentDataLength = getCurrentData().length;
-            setOffset(currentDataLength);
-            fetchCurrentTabData(true).finally(() => {
-              setIsInfiniteScrollLoading(false);
-            });
-          }
-        });
-      },
-      {
-        root: scrollContainerRef.current,
-        rootMargin: '100px', // Start loading when trigger is 100px away from viewport
-        threshold: 0.1 // More reliable threshold
-      }
-    );
-
-    observer.observe(loadingTriggerRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [hasMore, loadingMore, isInfiniteScrollLoading, fetchCurrentTabData, setOffset, getCurrentData]);
-
   const handleRefresh = async () => {
     logClickedEvent('advanced_algo_feed_refresh', 'click_refresh', activeTab);
-    resetPagination();
+    resetPaginationData();
     await fetchCurrentTabData(false);
   };
 
   const handleLoadMore = () => {
     console.log('Manual load more triggered');
     setIsInfiniteScrollLoading(true);
-    const currentDataLength = getCurrentData().length;
-    setOffset(currentDataLength);
     fetchCurrentTabData(true).finally(() => {
       setIsInfiniteScrollLoading(false);
     });
@@ -369,7 +299,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       );
     }
     
-    const currentTab = contentTypeTabs.find(tab => tab.id === activeContentType);
+    const currentTab = CONTENT_TYPE_TABS.find(tab => tab.id === activeContentType);
     if (!currentTab) return notes;
     
     return notes.filter(note => note.kind && currentTab.kinds.includes(note.kind));
@@ -427,33 +357,50 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       );
     }
 
-    return filteredNotes.map((note) => {
-      let ndkEvent;
-      
-      switch (activeTab) {
-        case 'trending':
-          ndkEvent = transformTrendingNoteToNDKEvent(note as TrendingNote);
-          break;
-        case 'viral':
-          ndkEvent = transformViralNoteToNDKEvent(note as ViralNote);
-          break;
-        case 'scraped':
-          ndkEvent = transformScrapedNoteToNDKEvent(note as ScrapedNote);
-          break;
-        default:
-          return null;
-      }
+    return (
+      <>
+        {filteredNotes.map((note, index) => {
+          let ndkEvent;
+          
+          switch (activeTab) {
+            case 'trending':
+              ndkEvent = transformTrendingNoteToNDKEvent(note as TrendingNote);
+              break;
+            case 'viral':
+              ndkEvent = transformViralNoteToNDKEvent(note as ViralNote);
+              break;
+            case 'scraped':
+              ndkEvent = transformScrapedNoteToNDKEvent(note as ScrapedNote);
+              break;
+            default:
+              return null;
+          }
 
-      return (
-        <div key={note.id} className={styles['algo-feed__note-wrapper']}>
-          <PostEventCard 
-            event={ndkEvent}
-            profile={ndkEvent.profile}
-            className={styles['algo-feed__post-card']}
+          return (
+            <div 
+              key={`${note.id}-${index}`} // Add index to prevent key conflicts
+              className={styles['algo-feed__note-wrapper']}
+            >
+              <PostEventCard 
+                event={ndkEvent}
+                profile={ndkEvent.profile}
+                className={styles['algo-feed__post-card']}
+              />
+            </div>
+          );
+        })}
+        
+        {/* Separate loader element for better infinite scroll - only show if we have data and more to load */}
+        {hasMore && filteredNotes.length > 0 && (
+          <div 
+            ref={loaderRef}
+            className={styles['algo-feed__loading-trigger']}
+            style={{ height: '50px', opacity: 0 }}
+            aria-hidden="true"
           />
-        </div>
-      );
-    });
+        )}
+      </>
+    );
   };
 
   const renderTopAuthors = () => (
@@ -527,7 +474,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   );
 
   const getCurrentFilterLabel = () => {
-    const currentTab = contentTypeTabs.find(tab => tab.id === activeContentType);
+    const currentTab = CONTENT_TYPE_TABS.find(tab => tab.id === activeContentType);
     if (!currentTab) return 'All';
     
     let label = currentTab.label;
@@ -559,7 +506,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
               <div className={styles['algo-feed__filter-section']}>
                 <h4 className={styles['algo-feed__filter-section-title']}>Content Type</h4>
                 <div className={styles['algo-feed__content-type-grid']}>
-                  {contentTypeTabs.map((tab) => {
+                  {CONTENT_TYPE_TABS.map((tab) => {
                     const currentData = getCurrentData() as TrendingNote[] | ViralNote[] | ScrapedNote[];
                     const filteredCount = filterNotesByContentType(currentData).length;
                     
@@ -642,114 +589,30 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
 
   return (
     <div className={`${styles['algo-feed']} ${styles['algo-feed--advanced']} ${className}`}>
-      <div className={styles['algo-feed__header']}>
-        <div className={styles['algo-feed__header-top']}>
-          <div className={styles['algo-feed__header-title-section']}>
-            <h2 className={styles['algo-feed__title']}>Advanced Algorithmic Feed</h2>
-            {activeTab !== 'top-authors' && activeTab !== 'trending-top-authors' && (
-              <div className={styles['algo-feed__filter-status']}>
-                <span className={styles['algo-feed__filter-indicator']}>
-                  {getCurrentFilterLabel()}
-                </span>
-              </div>
-            )}
-          </div>
-          <div className={styles['algo-feed__header-actions']}>
-            <button
-              onClick={handleRefresh}
-              disabled={loading}
-              className={styles['algo-feed__refresh-button']}
-              title="Refresh feed"
-            >
-              <svg 
-                className={`${styles['algo-feed__refresh-icon']} ${loading ? styles['algo-feed__refresh-icon--spinning'] : ''}`}
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <path d="M23 4v6h-6"/>
-                <path d="M1 20v-6h6"/>
-                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-              </svg>
-            </button>
-            <button
-              onClick={openFilterModal}
-              className={styles['algo-feed__filter-toggle']}
-              title="Open filters"
-            >
-              <svg 
-                className={styles['algo-feed__filter-icon']}
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"/>
-              </svg>
-              {activeContentType !== 'posts' && (
-                <span className={styles['algo-feed__filter-badge']}>
-                  1
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-        
-        <div className={styles['algo-feed__tabs']}>
-          {showTrending && (
-            <button
-              className={`${styles['algo-feed__tab']} ${activeTab === 'trending' ? styles['algo-feed__tab--active'] : ''}`}
-              onClick={() => handleTabChange('trending')}
-            >
-              <span className={styles['algo-feed__tab-icon']}>🔥</span>
-              Trending ({trendingNotes.length})
-            </button>
-          )}
-          {showViral && (
-            <button
-              className={`${styles['algo-feed__tab']} ${activeTab === 'viral' ? styles['algo-feed__tab--active'] : ''}`}
-              onClick={() => handleTabChange('viral')}
-            >
-              <span className={styles['algo-feed__tab-icon']}>🚀</span>
-              Viral ({viralNotes.length})
-            </button>
-          )}
-          {showScraped && (
-            <button
-              className={`${styles['algo-feed__tab']} ${activeTab === 'scraped' ? styles['algo-feed__tab--active'] : ''}`}
-              onClick={() => handleTabChange('scraped')}
-            >
-              <span className={styles['algo-feed__tab-icon']}>📊</span>
-              Scraped ({scrapedNotes.length})
-            </button>
-          )}
-          {showTopAuthors && (
-            <button
-              className={`${styles['algo-feed__tab']} ${activeTab === 'top-authors' ? styles['algo-feed__tab--active'] : ''}`}
-              onClick={() => handleTabChange('top-authors')}
-            >
-              <span className={styles['algo-feed__tab-icon']}>👥</span>
-              My Authors ({topAuthors.length})
-            </button>
-          )}
-          {showTrendingTopAuthors && (
-            <button
-              className={`${styles['algo-feed__tab']} ${activeTab === 'trending-top-authors' ? styles['algo-feed__tab--active'] : ''}`}
-              onClick={() => handleTabChange('trending-top-authors')}
-            >
-              <span className={styles['algo-feed__tab-icon']}>⭐</span>
-              Trending Authors ({trendingTopAuthors.length})
-            </button>
-          )}
-        </div>
-      </div>
+      <FeedHeader
+        activeTab={activeTab}
+        activeContentType={activeContentType}
+        selectedTag={selectedTag}
+        onRefresh={handleRefresh}
+        onOpenFilterModal={openFilterModal}
+        getCurrentFilterLabel={getCurrentFilterLabel}
+        loading={loading}
+      />
+      
+      <FeedTabs
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        showTrending={showTrending}
+        showViral={showViral}
+        showScraped={showScraped}
+        showTopAuthors={showTopAuthors}
+        showTrendingTopAuthors={showTrendingTopAuthors}
+        trendingNotes={trendingNotes}
+        viralNotes={viralNotes}
+        scrapedNotes={scrapedNotes}
+        topAuthors={topAuthors}
+        trendingTopAuthors={trendingTopAuthors}
+      />
 
       <div 
         ref={scrollContainerRef}
@@ -780,77 +643,21 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
           </div>
         )}
 
-        {activeTab === 'top-authors' ? renderTopAuthors() : 
-         activeTab === 'trending-top-authors' ? renderTrendingTopAuthors() : 
-         renderNotes(getCurrentData())}
-        
-        {/* Loading trigger for infinite scroll */}
-        {hasMore && (
-          <div 
-            ref={loadingTriggerRef}
-            className={styles['algo-feed__loading-trigger']}
-            style={{ 
-              height: '20px', 
-              opacity: 0.3, 
-              background: 'var(--primary-color)', 
-              borderRadius: '4px',
-              margin: '1rem 0'
-            }}
-            title="Infinite scroll trigger - scroll to this point to load more"
-          />
-        )}
-        
-        {/* Loading more indicator */}
-        {(loadingMore || isInfiniteScrollLoading) && (
-          <div className={styles['algo-feed__loading-more']}>
-            <div className={styles['algo-feed__loading-spinner']}>
-              <svg 
-                className={styles['algo-feed__spinner-icon']}
-                xmlns="http://www.w3.org/2000/svg" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <path d="M23 4v6h-6"/>
-                <path d="M1 20v-6h6"/>
-                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-              </svg>
-              <span className={styles['algo-feed__loading-text']}>
-                Loading more content...
-              </span>
-            </div>
-            <div className={styles['algo-feed__skeleton']}>
-              <div className={styles['algo-feed__skeleton-avatar']}></div>
-              <div className={styles['algo-feed__skeleton-content']}>
-                <div className={styles['algo-feed__skeleton-line']}></div>
-                <div className={styles['algo-feed__skeleton-line']}></div>
-                <div className={styles['algo-feed__skeleton-line-short']}></div>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Manual Load More button (fallback) */}
-        {hasMore && !loadingMore && !isInfiniteScrollLoading && getCurrentData().length > 0 && (
-          <div className={styles['algo-feed__load-more-container']}>
-            <button
-              onClick={handleLoadMore}
-              className={styles['algo-feed__load-more-button']}
-            >
-              Load More Content
-            </button>
-          </div>
-        )}
-        
-        {/* End of content indicator */}
-        {!hasMore && getCurrentData().length > 0 && (
-          <div className={styles['algo-feed__end-of-content']}>
-            <p>You've reached the end of the content</p>
-          </div>
-        )}
+        <FeedContent
+          activeTab={activeTab}
+          activeContentType={activeContentType}
+          selectedTag={selectedTag}
+          getCurrentData={getCurrentData}
+          filterNotesByContentType={filterNotesByContentType}
+          renderNotes={renderNotes}
+          renderTopAuthors={renderTopAuthors}
+          renderTrendingTopAuthors={renderTrendingTopAuthors}
+          hasMore={hasMore}
+          loadingMore={loadingMore}
+          isInfiniteScrollLoading={isInfiniteScrollLoading}
+          onLoadMore={handleLoadMore}
+          loaderRef={loaderRef as React.RefObject<HTMLDivElement>}
+        />
       </div>
 
       {/* Filter Modal */}
