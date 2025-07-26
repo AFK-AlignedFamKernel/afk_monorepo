@@ -130,6 +130,9 @@ func main() {
 	// Start the note scraping cron job
 	go scraper.StartScrapingCron()
 
+	// Start the ArticleKind and Video scraping cron job
+	go scraper.StartArticleVideoScrapingCron()
+
 	// Start the comprehensive data setup cron job
 	go scraper.StartDataSetupCron()
 
@@ -299,7 +302,14 @@ func subscribeAll() {
 			nostr.KindFollowList,
 			nostr.KindArticle,
 			nostr.KindReply,
-			20, // KindImage
+			20,   // KindImage
+			1063, // KindVideo
+			nostr.KindGenericRepost,
+			22,    // Short video
+			31000, // VerticalVideo
+			31001, // HorizontalVideo
+			34236, // VerticalVideo
+			34235, // HorizontalVideo
 		},
 		Since: &now,
 	}}

@@ -79,6 +79,25 @@ func (s *NoteScraper) StartScrapingCron() {
 	}
 }
 
+// StartArticleVideoScrapingCron starts a separate cron job for ArticleKind and Video events
+func (s *NoteScraper) StartArticleVideoScrapingCron() {
+	// Scrape ArticleKind and Video events every 30 minutes (less frequent due to larger content)
+	ticker := time.NewTicker(30 * time.Minute)
+	defer ticker.Stop()
+
+	log.Println("📰🎥 Starting ArticleKind and Video scraping cron job (every 30 minutes)")
+
+	// Run initial scrape
+	s.ScrapeArticleVideoNotes()
+
+	for {
+		select {
+		case <-ticker.C:
+			s.ScrapeArticleVideoNotes()
+		}
+	}
+}
+
 // ScrapeNotes scrapes recent notes from relays and saves them to the database
 func (s *NoteScraper) ScrapeNotes() {
 	s.scrapingMutex.Lock()
@@ -93,8 +112,17 @@ func (s *NoteScraper) ScrapeNotes() {
 	filters := nostr.Filters{{
 		Kinds: []int{
 			nostr.KindTextNote,
+			nostr.KindReaction,
+			nostr.KindZap,
+			nostr.KindReply,
 			nostr.KindArticle,
-			20, // KindImage
+			nostr.KindGenericRepost,
+			// 20,    // KindImage
+			// 22,    // Short video
+			// 31000, // VerticalVideo
+			// 31001, // HorizontalVideo
+			// 34236, // VerticalVideo
+			// 34235, // HorizontalVideo
 		},
 		Since: &sinceTimestamp,
 	}}
@@ -193,6 +221,124 @@ func (s *NoteScraper) ScrapeNotes() {
 	s.cleanupExpiredNotes()
 
 	log.Printf("✅ Scraping completed in %v: %d notes scraped, %d viral notes, %d trending notes",
+		time.Since(startTime), scrapedCount, viralCount, trendingCount)
+}
+
+// ScrapeArticleVideoNotes scrapes ArticleKind and Video events specifically
+func (s *NoteScraper) ScrapeArticleVideoNotes() {
+	s.scrapingMutex.Lock()
+	defer s.scrapingMutex.Unlock()
+
+	log.Println("📰🎥 Starting ArticleKind and Video note scraping...")
+	startTime := time.Now()
+
+	// Get notes from the last 4 hours (longer window for articles and videos)
+	since := time.Now().Add(-4 * time.Hour)
+	sinceTimestamp := nostr.Timestamp(since.Unix())
+	filters := nostr.Filters{{
+		Kinds: []int{
+			nostr.KindArticle, // 30023
+			1063,              // KindVideo
+			22,                // Short video
+			31000,             // VerticalVideo
+			31001,             // HorizontalVideo
+			34236,             // VerticalVideo
+			34235,             // HorizontalVideo
+		},
+		Since: &sinceTimestamp,
+	}}
+
+	events := s.pool.SubMany(context.Background(), s.relays, filters)
+
+	scrapedCount := 0
+	viralCount := 0
+	trendingCount := 0
+
+	// Collect all events first to handle dependencies
+	var eventList []*nostr.Event
+	for ev := range events {
+		if ev.Event == nil {
+			continue
+		}
+		eventList = append(eventList, ev.Event)
+	}
+
+	// Sort events to handle dependencies (parent notes before comments)
+	eventList = s.sortEventsByDependencies(eventList)
+
+	for _, ev := range eventList {
+		// Calculate scores
+		interactionScore := s.calculateInteractionScore(ev)
+		viralScore := s.calculateViralScore(ev, interactionScore)
+		trendingScore := s.calculateTrendingScore(ev, interactionScore)
+
+		// Determine if note is viral or trending
+		isViral := viralScore >= viralThreshold
+		isTrending := trendingScore >= 50.0 // Lower threshold for trending
+
+		// Save to the main notes table first
+		if err := repository.SaveNostrEvent(ev); err != nil {
+			// Log error but continue processing other events
+			log.Printf("Error saving note to main table %s: %v", ev.ID, err)
+			continue
+		}
+
+		// Save to scraped notes table with scores and metadata
+		scrapedNote := &ScrapedNote{
+			ID:               ev.ID,
+			AuthorID:         ev.PubKey,
+			Kind:             ev.Kind,
+			Content:          ev.Content,
+			RawJSON:          ev.String(),
+			CreatedAt:        ev.CreatedAt.Time(),
+			ScrapedAt:        time.Now(),
+			InteractionScore: interactionScore,
+			ViralScore:       viralScore,
+			TrendingScore:    trendingScore,
+			IsViral:          isViral,
+			IsTrending:       isTrending,
+		}
+
+		if err := s.saveScrapedNote(scrapedNote); err != nil {
+			log.Printf("Error saving scraped note %s: %v", ev.ID, err)
+			continue
+		}
+		scrapedCount++
+
+		// Save viral note if applicable
+		if isViral {
+			viralNote := &ViralNote{
+				ID:         fmt.Sprintf("%s_viral", ev.ID),
+				NoteID:     ev.ID,
+				ViralScore: viralScore,
+				DetectedAt: time.Now(),
+				ExpiresAt:  time.Now().AddDate(0, 0, 7), // 7 days
+			}
+			if err := s.saveViralNote(viralNote); err != nil {
+				log.Printf("Error saving viral note %s: %v", ev.ID, err)
+			} else {
+				viralCount++
+			}
+		}
+
+		// Save trending note if applicable
+		if isTrending {
+			trendingNote := &TrendingNote{
+				ID:            fmt.Sprintf("%s_trending", ev.ID),
+				NoteID:        ev.ID,
+				TrendingScore: trendingScore,
+				DetectedAt:    time.Now(),
+				ExpiresAt:     time.Now().AddDate(0, 0, 3), // 3 days
+			}
+			if err := s.saveTrendingNote(trendingNote); err != nil {
+				log.Printf("Error saving trending note %s: %v", ev.ID, err)
+			} else {
+				trendingCount++
+			}
+		}
+	}
+
+	log.Printf("📰🎥 ArticleKind and Video scraping completed in %v: %d scraped, %d viral, %d trending",
 		time.Since(startTime), scrapedCount, viralCount, trendingCount)
 }
 
@@ -536,6 +682,7 @@ func (s *NoteScraper) GetViralNotesWithFilters(limit int, offset int, kinds []in
 	// Debug: Log the query and parameters
 	log.Printf("🔍 [VIRAL] Query: %s", baseQuery)
 	log.Printf("🔍 [VIRAL] Params: %v", params)
+	log.Printf("🔍 [VIRAL] Limit: %d, Offset: %d", limit, offset)
 
 	// Execute the query
 	rows, err := s.db.QueryContext(context.Background(), baseQuery, params...)
@@ -624,6 +771,11 @@ func (s *NoteScraper) GetTrendingNotesWithFilters(limit int, offset int, kinds [
 		LIMIT $` + fmt.Sprintf("%d", paramIndex) + ` OFFSET $` + fmt.Sprintf("%d", paramIndex+1)
 	params = append(params, limit, offset)
 
+	// Debug: Log the query and parameters
+	log.Printf("🔍 [TRENDING] Query: %s", baseQuery)
+	log.Printf("🔍 [TRENDING] Params: %v", params)
+	log.Printf("🔍 [TRENDING] Limit: %d, Offset: %d", limit, offset)
+
 	// Execute the query
 	rows, err := s.db.QueryContext(context.Background(), baseQuery, params...)
 	if err != nil {
@@ -703,6 +855,11 @@ func (s *NoteScraper) GetScrapedNotesWithFilters(limit int, offset int, kinds []
 	// Add pagination
 	baseQuery += " LIMIT $" + fmt.Sprintf("%d", paramIndex) + " OFFSET $" + fmt.Sprintf("%d", paramIndex+1)
 	params = append(params, limit, offset)
+
+	// Debug: Log the query and parameters
+	log.Printf("🔍 [SCRAPED] Query: %s", baseQuery)
+	log.Printf("🔍 [SCRAPED] Params: %v", params)
+	log.Printf("🔍 [SCRAPED] Limit: %d, Offset: %d", limit, offset)
 
 	// Execute the query
 	rows, err := s.db.QueryContext(context.Background(), baseQuery, params...)
