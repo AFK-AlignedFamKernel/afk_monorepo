@@ -188,6 +188,23 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     return () => clearInterval(interval);
   }, [enableRealTime, fetchCurrentTabData]);
 
+  const getCurrentData = () => {
+    switch (activeTab) {
+      case 'trending':
+        return trendingNotes;
+      case 'viral':
+        return viralNotes;
+      case 'scraped':
+        return scrapedNotes;
+      case 'top-authors':
+        return topAuthors;
+      case 'trending-top-authors':
+        return trendingTopAuthors;
+      default:
+        return [];
+    }
+  };
+
   // Auto-reload handler
   const handleAutoReload = useCallback(async () => {
     if (isAutoReloading || loading) return;
@@ -208,19 +225,29 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     }
   }, [isAutoReloading, loading, activeTab, fetchCurrentTabData, resetPagination]);
 
-  // Scroll handler for auto-reload only
+  // Scroll handler for auto-reload and infinite scroll
   const handleScroll = useCallback(() => {
     if (!scrollContainerRef.current) return;
 
-    const { scrollTop } = scrollContainerRef.current;
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
     
     // Auto-reload when scrolling to top (pull-to-refresh behavior)
     if (scrollTop <= 0 && lastScrollTop.current > 0 && !isAutoReloading) {
       handleAutoReload();
     }
     
+    // Infinite scroll when scrolling to bottom (fallback to intersection observer)
+    if (!loadingMore && hasMore) {
+      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+      if (scrollPercentage > 0.95) { // Trigger when 95% scrolled
+        const currentDataLength = getCurrentData().length;
+        setOffset(currentDataLength);
+        fetchCurrentTabData(true);
+      }
+    }
+    
     lastScrollTop.current = scrollTop;
-  }, [isAutoReloading, handleAutoReload]);
+  }, [isAutoReloading, handleAutoReload, loadingMore, hasMore, fetchCurrentTabData, setOffset, getCurrentData]);
 
   // Add scroll event listener
   useEffect(() => {
@@ -239,8 +266,10 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && !loadingMore && hasMore) {
+            console.log('Intersection observer triggered - loading more content');
             // Load more content when the trigger element becomes visible
-            setOffset(trendingNotes.length + viralNotes.length + scrapedNotes.length + topAuthors.length + trendingTopAuthors.length);
+            const currentDataLength = getCurrentData().length;
+            setOffset(currentDataLength);
             fetchCurrentTabData(true);
           }
         });
@@ -248,7 +277,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       {
         root: scrollContainerRef.current,
         rootMargin: '100px', // Start loading when trigger is 100px away from viewport
-        threshold: 0.1
+        threshold: 0.1 // More reliable threshold
       }
     );
 
@@ -257,12 +286,19 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     return () => {
       observer.disconnect();
     };
-  }, [hasMore, loadingMore, fetchCurrentTabData, setOffset, trendingNotes.length, viralNotes.length, scrapedNotes.length, topAuthors.length, trendingTopAuthors.length]);
+  }, [hasMore, loadingMore, fetchCurrentTabData, setOffset, getCurrentData]);
 
   const handleRefresh = async () => {
     logClickedEvent('advanced_algo_feed_refresh', 'click_refresh', activeTab);
     resetPagination();
     await fetchCurrentTabData(false);
+  };
+
+  const handleLoadMore = () => {
+    console.log('Manual load more triggered');
+    const currentDataLength = getCurrentData().length;
+    setOffset(currentDataLength);
+    fetchCurrentTabData(true);
   };
 
   const handleTabChange = (tab: TabType) => {
@@ -475,23 +511,6 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       )}
     </div>
   );
-
-  const getCurrentData = () => {
-    switch (activeTab) {
-      case 'trending':
-        return trendingNotes;
-      case 'viral':
-        return viralNotes;
-      case 'scraped':
-        return scrapedNotes;
-      case 'top-authors':
-        return topAuthors;
-      case 'trending-top-authors':
-        return trendingTopAuthors;
-      default:
-        return [];
-    }
-  };
 
   const getCurrentFilterLabel = () => {
     const currentTab = contentTypeTabs.find(tab => tab.id === activeContentType);
@@ -756,7 +775,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
           <div 
             ref={loadingTriggerRef}
             className={styles['algo-feed__loading-trigger']}
-            style={{ height: '1px', opacity: 0 }}
+            style={{ height: '20px', opacity: 0.1, background: 'transparent' }}
           />
         )}
         
@@ -771,6 +790,18 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
                 <div className={styles['algo-feed__skeleton-line-short']}></div>
               </div>
             </div>
+          </div>
+        )}
+        
+        {/* Manual Load More button (fallback) */}
+        {hasMore && !loadingMore && getCurrentData().length > 0 && (
+          <div className={styles['algo-feed__load-more-container']}>
+            <button
+              onClick={handleLoadMore}
+              className={styles['algo-feed__load-more-button']}
+            >
+              Load More Content
+            </button>
           </div>
         )}
         

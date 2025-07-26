@@ -2052,11 +2052,51 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
 // Loading trigger for infinite scroll
 .algo-feed__loading-trigger {
   width: 100%;
-  height: 1px;
-  opacity: 0;
+  height: 20px;
+  opacity: 0.1;
   pointer-events: none;
   position: relative;
-  z-index: -1;
+  z-index: 1;
+  background: transparent;
+}
+
+// Manual Load More button
+.algo-feed__load-more-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.algo-feed__load-more-button {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: var(--primary-600);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &:disabled {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
 }
 
 // Loading more indicator
@@ -2101,6 +2141,15 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   
   .algo-feed__loading-more {
     padding: 1.5rem 0;
+  }
+  
+  .algo-feed__load-more-container {
+    padding: 1.5rem 0;
+  }
+  
+  .algo-feed__load-more-button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8rem;
   }
   
   .algo-feed__end-of-content {

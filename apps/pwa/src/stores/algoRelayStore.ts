@@ -80,14 +80,30 @@ export const useAlgoRelayStore = create<AlgoRelayState>((set, get) => ({
     set({ loadingMore: true, error: null });
     
     try {
-      const data = await algoRelayService.getTrendingNotes(limit);
+      const data = await algoRelayService.getTrendingNotes(limit, offset);
       
-      set(state => ({
-        trendingNotes: append ? [...state.trendingNotes, ...(data || [])] : (data || []),
-        hasMore: (data || []).length === limit,
-        loadingMore: false,
-        lastUpdate: new Date()
-      }));
+      set(state => {
+        if (append) {
+          // Remove duplicates when appending
+          const existingIds = new Set(state.trendingNotes.map(note => note.id));
+          const newNotes = (data || []).filter(note => !existingIds.has(note.id));
+          const combinedNotes = [...state.trendingNotes, ...newNotes];
+          
+          return {
+            trendingNotes: combinedNotes,
+            hasMore: newNotes.length === limit,
+            loadingMore: false,
+            lastUpdate: new Date()
+          };
+        } else {
+          return {
+            trendingNotes: (data || []),
+            hasMore: (data || []).length === limit,
+            loadingMore: false,
+            lastUpdate: new Date()
+          };
+        }
+      });
     } catch (err) {
       set({ 
         error: err instanceof Error ? err.message : 'Failed to fetch trending notes',
@@ -104,14 +120,30 @@ export const useAlgoRelayStore = create<AlgoRelayState>((set, get) => ({
     set({ loadingMore: true, error: null });
     
     try {
-      const data = await algoRelayService.getViralNotes(limit);
+      const data = await algoRelayService.getViralNotes(limit, offset);
       
-      set(state => ({
-        viralNotes: append ? [...state.viralNotes, ...(data || [])] : (data || []),
-        hasMore: (data || []).length === limit,
-        loadingMore: false,
-        lastUpdate: new Date()
-      }));
+      set(state => {
+        if (append) {
+          // Remove duplicates when appending
+          const existingIds = new Set(state.viralNotes.map(note => note.id));
+          const newNotes = (data || []).filter(note => !existingIds.has(note.id));
+          const combinedNotes = [...state.viralNotes, ...newNotes];
+          
+          return {
+            viralNotes: combinedNotes,
+            hasMore: newNotes.length === limit,
+            loadingMore: false,
+            lastUpdate: new Date()
+          };
+        } else {
+          return {
+            viralNotes: (data || []),
+            hasMore: (data || []).length === limit,
+            loadingMore: false,
+            lastUpdate: new Date()
+          };
+        }
+      });
     } catch (err) {
       set({ 
         error: err instanceof Error ? err.message : 'Failed to fetch viral notes',
@@ -128,14 +160,30 @@ export const useAlgoRelayStore = create<AlgoRelayState>((set, get) => ({
     set({ loadingMore: true, error: null });
     
     try {
-      const data = await algoRelayService.getScrapedNotes({ limit });
+      const data = await algoRelayService.getScrapedNotes({ limit, offset });
       
-      set(state => ({
-        scrapedNotes: append ? [...state.scrapedNotes, ...(data || [])] : (data || []),
-        hasMore: (data || []).length === limit,
-        loadingMore: false,
-        lastUpdate: new Date()
-      }));
+      set(state => {
+        if (append) {
+          // Remove duplicates when appending
+          const existingIds = new Set(state.scrapedNotes.map(note => note.id));
+          const newNotes = (data || []).filter(note => !existingIds.has(note.id));
+          const combinedNotes = [...state.scrapedNotes, ...newNotes];
+          
+          return {
+            scrapedNotes: combinedNotes,
+            hasMore: newNotes.length === limit,
+            loadingMore: false,
+            lastUpdate: new Date()
+          };
+        } else {
+          return {
+            scrapedNotes: (data || []),
+            hasMore: (data || []).length === limit,
+            loadingMore: false,
+            lastUpdate: new Date()
+          };
+        }
+      });
     } catch (err) {
       set({ 
         error: err instanceof Error ? err.message : 'Failed to fetch scraped notes',

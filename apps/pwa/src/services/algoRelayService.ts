@@ -299,21 +299,21 @@ class AlgoRelayService {
   }
 
   // Fetch trending notes (using scraped notes as fallback)
-  async getTrendingNotes(limit: number = 20): Promise<TrendingNote[]> {
-    log.info(`Fetching trending notes`, { limit });
+  async getTrendingNotes(limit: number = 20, offset: number = 0): Promise<TrendingNote[]> {
+    log.info(`Fetching trending notes`, { limit, offset });
     
     try {
-      // First try the trending notes endpoint
-      const trendingData = await this.makeRequest<BackendScrapedNote[]>(`/api/trending-notes?limit=${limit}`);
+      // First try the trending notes endpoint with pagination
+      const trendingData = await this.makeRequest<BackendScrapedNote[]>(`/api/trending-notes?limit=${limit}&offset=${offset}`);
       
       if (trendingData && trendingData.length > 0) {
         log.success(`Found ${trendingData.length} trending notes`);
         return trendingData.map(note => this.transformToTrendingNote(this.transformBackendScrapedNote(note)));
       }
       
-      // Fallback to scraped notes with trending filter
+      // Fallback to scraped notes with trending filter and pagination
       log.info(`No trending notes found, falling back to scraped notes`);
-      const scrapedData = await this.makeRequest<BackendScrapedNote[]>(`/api/scraped-notes?limit=${limit}`);
+      const scrapedData = await this.makeRequest<BackendScrapedNote[]>(`/api/scraped-notes?limit=${limit}&offset=${offset}`);
       
       if (scrapedData && scrapedData.length > 0) {
         const trendingNotes = scrapedData
@@ -334,12 +334,12 @@ class AlgoRelayService {
   }
 
   // Fetch viral notes
-  async getViralNotes(limit: number = 20): Promise<ViralNote[]> {
-    log.info(`Fetching viral notes`, { limit });
+  async getViralNotes(limit: number = 20, offset: number = 0): Promise<ViralNote[]> {
+    log.info(`Fetching viral notes`, { limit, offset });
     
     try {
       // The backend now returns ScrapedNote objects directly, not BackendViralNote objects
-      const viralData = await this.makeRequest<BackendScrapedNote[]>(`/api/viral-notes?limit=${limit}`);
+      const viralData = await this.makeRequest<BackendScrapedNote[]>(`/api/viral-notes?limit=${limit}&offset=${offset}`);
       
       if (viralData && viralData.length > 0) {
         log.success(`Found ${viralData.length} viral notes`);
@@ -404,6 +404,7 @@ class AlgoRelayService {
   // Fetch scraped notes with filters
   async getScrapedNotes(params: {
     limit?: number;
+    offset?: number;
     kind?: number;
     since?: string;
   } = {}): Promise<ScrapedNote[]> {
@@ -413,6 +414,7 @@ class AlgoRelayService {
       const searchParams = new URLSearchParams();
       
       if (params.limit) searchParams.append('limit', params.limit.toString());
+      if (params.offset) searchParams.append('offset', params.offset.toString());
       if (params.kind) searchParams.append('kind', params.kind.toString());
       if (params.since) searchParams.append('since', params.since);
 
