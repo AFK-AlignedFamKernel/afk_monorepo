@@ -1083,6 +1083,13 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     }
   }
 
+  &__error-hint {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+    margin-bottom: 1rem;
+  }
+
   &__retry-button {
     background: var(--primary-color);
     color: white;
@@ -1102,6 +1109,105 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     text-align: center;
     padding: 2rem;
     color: var(--text-secondary);
+  }
+
+  // Health Check Styles
+  &__health-check {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  &__health-loading {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+
+  &__health-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+
+    &--healthy {
+      background: rgba(34, 197, 94, 0.1);
+      color: var(--primary-color);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    &--unhealthy {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+  }
+
+  &__health-icon {
+    font-size: 1rem;
+  }
+
+  &__health-text {
+    flex: 1;
+  }
+
+  &__health-retry {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      border-color: var(--primary-color);
+      background: var(--primary-color-alpha);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &__health-troubleshoot {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+
+    p {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      padding: 0.25rem 0;
+      color: var(--text-secondary);
+      position: relative;
+      padding-left: 1rem;
+
+      &::before {
+        content: '•';
+        position: absolute;
+        left: 0;
+        color: var(--primary-color);
+      }
+    }
   }
 }
 

@@ -85,8 +85,8 @@ export default function DiscoverComponent() {
           <div
           // className="flex flex-row gap-4"
           >
-            {/* <AlgoFeed /> */}
-            <FeedTabs className="w-full" />
+            <AlgoFeed />
+            {/* <FeedTabs className="w-full" /> */}
           </div>
         )}
 

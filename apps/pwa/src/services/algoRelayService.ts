@@ -84,6 +84,7 @@ class AlgoRelayService {
           'Content-Type': 'application/json',
           ...options?.headers,
         },
+        credentials: 'include', // Include credentials for CORS
         ...options,
       });
 
@@ -91,7 +92,14 @@ class AlgoRelayService {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return await response.json();
+      const data = await response.json();
+      
+      // Handle null responses by returning empty arrays
+      if (data === null || data === undefined) {
+        return [] as T;
+      }
+      
+      return data;
     } catch (error) {
       console.error(`AlgoRelay API error for ${endpoint}:`, error);
       throw error;
@@ -218,18 +226,15 @@ class AlgoRelayService {
 
   // Utility function to get author avatar
   getAuthorAvatar(note: TrendingNote | ViralNote | ScrapedNote | TopAuthor): string {
-    return note.author_picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${note.pubkey}`;
+    if ('author_picture' in note) {
+      return note.author_picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${note.pubkey}`;
+    }
+    if ('picture' in note) {
+      return note.picture || `https://api.dicebear.com/7.x/avataaars/svg?seed=${note.pubkey}`;
+    }
+    return `https://api.dicebear.com/7.x/avataaars/svg?seed=${note.pubkey}`;
   }
 }
 
 // Export singleton instance
-export const algoRelayService = new AlgoRelayService();
-
-// Export types for use in components
-export type {
-  TrendingNote,
-  TopAuthor,
-  ViralNote,
-  ScrapedNote,
-  UserMetrics,
-}; 
+export const algoRelayService = new AlgoRelayService(); 

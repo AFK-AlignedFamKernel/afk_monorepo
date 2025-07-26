@@ -10,12 +10,14 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/fiatjaf/khatru"
 	"github.com/fiatjaf/khatru/policies"
 	"github.com/joho/godotenv"
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/rs/cors"
 )
 
 var ctx = context.Background()
@@ -232,16 +234,52 @@ func main() {
 	mux.HandleFunc("/api/sync-notes", handleSyncNotesAPI)
 	mux.HandleFunc("/ws", handleWebSocket)
 
-	err = http.ListenAndServe(":3334", relay)
+	// Configure CORS
+	corsHandler := configureCORS(mux)
+
+	log.Printf("listening at http://0.0.0.0:3334")
+	err = http.ListenAndServe("0.0.0.0:3334", corsHandler)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
 
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
-	mux.HandleFunc("/", handleHomePage)
+// configureCORS sets up CORS middleware with environment-based configuration
+func configureCORS(handler http.Handler) http.Handler {
+	// Get allowed origins from environment variable
+	allowedOriginsStr := os.Getenv("ALLOWED_ORIGINS")
+	var allowedOrigins []string
 
-	log.Printf("listening at http://0.0.0.0:3334")
-	http.ListenAndServe("0.0.0.0:3334", relay)
+	if allowedOriginsStr == "" {
+		// Default origins for development
+		allowedOrigins = []string{
+			"http://localhost:3000",
+			"http://localhost:3001",
+			"http://127.0.0.1:3000",
+			"http://127.0.0.1:3001",
+			"https://localhost:3000",
+			"https://localhost:3001",
+		}
+		log.Println("⚠️  No ALLOWED_ORIGINS set, using default development origins")
+	} else {
+		// Parse comma-separated origins
+		allowedOrigins = strings.Split(allowedOriginsStr, ",")
+		for i, origin := range allowedOrigins {
+			allowedOrigins[i] = strings.TrimSpace(origin)
+		}
+		log.Printf("✅ CORS allowed origins: %v", allowedOrigins)
+	}
+
+	// Configure CORS
+	c := cors.New(cors.Options{
+		AllowedOrigins:   allowedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+		Debug:            os.Getenv("CORS_DEBUG") == "true",
+	})
+
+	return c.Handler(handler)
 }
 
 func subscribeAll() {

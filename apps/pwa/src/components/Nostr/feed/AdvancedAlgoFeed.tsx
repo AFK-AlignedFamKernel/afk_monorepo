@@ -64,20 +64,24 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
   const fetchTrendingNotes = useCallback(async () => {
     try {
       const data = await algoRelayService.getTrendingNotes(limit);
-      setTrendingNotes(data);
+      console.log('Trending notes response:', data); // Debug log
+      setTrendingNotes(data || []);
     } catch (err) {
       console.error('Error fetching trending notes:', err);
       setError('Failed to fetch trending notes');
+      setTrendingNotes([]);
     }
   }, [limit]);
 
   const fetchViralNotes = useCallback(async () => {
     try {
       const data = await algoRelayService.getViralNotesScraper(limit);
-      setViralNotes(data);
+      console.log('Viral notes response:', data); // Debug log
+      setViralNotes(data || []);
     } catch (err) {
       console.error('Error fetching viral notes:', err);
       setError('Failed to fetch viral notes');
+      setViralNotes([]);
     }
   }, [limit]);
 
@@ -89,10 +93,12 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
         kind: selectedKind || undefined,
         since: since.toISOString()
       });
-      setScrapedNotes(data);
+      console.log('Scraped notes response:', data); // Debug log
+      setScrapedNotes(data || []);
     } catch (err) {
       console.error('Error fetching scraped notes:', err);
       setError('Failed to fetch scraped notes');
+      setScrapedNotes([]);
     }
   }, [limit, selectedKind, timeFilter]);
 
@@ -101,10 +107,12 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
     
     try {
       const data = await algoRelayService.getTopAuthors(publicKey);
-      setTopAuthors(data);
+      console.log('Top authors response:', data); // Debug log
+      setTopAuthors(data || []);
     } catch (err) {
       console.error('Error fetching top authors:', err);
       setError('Failed to fetch top authors');
+      setTopAuthors([]);
     }
   }, [publicKey]);
 
@@ -360,29 +368,52 @@ const AdvancedAlgoFeed: React.FC<AdvancedAlgoFeedProps> = ({
       );
     }
 
-    switch (activeTab) {
-      case 'trending':
-        return (
-          <div className={styles['algo-feed__notes']}>
-            {sortNotes(trendingNotes).map(renderNoteCard)}
-          </div>
-        );
-      case 'viral':
-        return (
-          <div className={styles['algo-feed__notes']}>
-            {sortNotes(viralNotes).map(renderNoteCard)}
-          </div>
-        );
-      case 'scraped':
-        return (
-          <div className={styles['algo-feed__notes']}>
-            {sortNotes(scrapedNotes).map(renderNoteCard)}
-          </div>
-        );
-      case 'top-authors':
-        return (
-          <div className={styles['algo-feed__authors']}>
-            {topAuthors.map((author) => (
+          switch (activeTab) {
+        case 'trending':
+          return (
+            <div className={styles['algo-feed__notes']}>
+              {(!trendingNotes || trendingNotes.length === 0) ? (
+                <div className={styles['algo-feed__empty']}>
+                  <p>No trending notes found</p>
+                </div>
+              ) : (
+                sortNotes(trendingNotes).map(renderNoteCard)
+              )}
+            </div>
+          );
+        case 'viral':
+          return (
+            <div className={styles['algo-feed__notes']}>
+              {(!viralNotes || viralNotes.length === 0) ? (
+                <div className={styles['algo-feed__empty']}>
+                  <p>No viral notes found</p>
+                </div>
+              ) : (
+                sortNotes(viralNotes).map(renderNoteCard)
+              )}
+            </div>
+          );
+        case 'scraped':
+          return (
+            <div className={styles['algo-feed__notes']}>
+              {(!scrapedNotes || scrapedNotes.length === 0) ? (
+                <div className={styles['algo-feed__empty']}>
+                  <p>No scraped notes found</p>
+                </div>
+              ) : (
+                sortNotes(scrapedNotes).map(renderNoteCard)
+              )}
+            </div>
+          );
+        case 'top-authors':
+          return (
+            <div className={styles['algo-feed__authors']}>
+              {(!topAuthors || topAuthors.length === 0) ? (
+                <div className={styles['algo-feed__empty']}>
+                  <p>No top authors found</p>
+                </div>
+              ) : (
+                topAuthors.map((author) => (
               <div 
                 key={author.pubkey} 
                 className={styles['algo-feed__author-card']}

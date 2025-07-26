@@ -90,6 +90,14 @@ cp .env.example .env
 
 Open the `.env` file and set the necessary environment variables.
 
+**Important:** For frontend integration, you must configure CORS settings. See [CORS_SETUP.md](./CORS_SETUP.md) for detailed instructions.
+
+**Required CORS Configuration:**
+```env
+# Add your frontend URLs to allow CORS requests
+ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,https://yourdomain.com
+```
+
 ### 4. Build the project
 
 Run the following command to build the relay:

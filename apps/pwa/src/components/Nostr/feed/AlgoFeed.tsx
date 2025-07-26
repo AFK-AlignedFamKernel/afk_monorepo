@@ -32,11 +32,14 @@ const AlgoFeed: React.FC<AlgoFeedProps> = ({
     try {
       setLoading(true);
       const data = await algoRelayService.getTrendingNotes(limit);
-      setTrendingNotes(data);
+      console.log('Trending notes response:', data); // Debug log
+      // Handle null/undefined data
+      setTrendingNotes(data || []);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch trending notes');
       console.error('Error fetching trending notes:', err);
+      setTrendingNotes([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -47,9 +50,11 @@ const AlgoFeed: React.FC<AlgoFeedProps> = ({
     
     try {
       const data = await algoRelayService.getTopAuthors(publicKey);
-      setTopAuthors(data);
+      // Handle null/undefined data
+      setTopAuthors(data || []);
     } catch (err) {
       console.error('Error fetching top authors:', err);
+      setTopAuthors([]); // Set empty array on error
     }
   }, [publicKey]);
 
@@ -106,6 +111,9 @@ const AlgoFeed: React.FC<AlgoFeedProps> = ({
       ) : error ? (
         <div className={styles['algo-feed__error']}>
           <p>{error}</p>
+          <p className={styles['algo-feed__error-hint']}>
+            Make sure the algo-relay backend is running on port 3334
+          </p>
           <button 
             onClick={fetchTrendingNotes}
             className={styles['algo-feed__retry-button']}
@@ -113,7 +121,7 @@ const AlgoFeed: React.FC<AlgoFeedProps> = ({
             Retry
           </button>
         </div>
-      ) : trendingNotes.length === 0 ? (
+      ) : !trendingNotes || trendingNotes.length === 0 ? (
         <div className={styles['algo-feed__empty']}>
           <p>No trending notes found</p>
         </div>
@@ -174,7 +182,12 @@ const AlgoFeed: React.FC<AlgoFeedProps> = ({
 
   const renderTopAuthors = () => (
     <div className={styles['algo-feed__authors']}>
-      {topAuthors.map((author) => (
+      {(!topAuthors || topAuthors.length === 0) ? (
+        <div className={styles['algo-feed__empty']}>
+          <p>No top authors found</p>
+        </div>
+      ) : (
+        topAuthors.map((author) => (
         <div 
           key={author.pubkey} 
           className={styles['algo-feed__author-card']}
@@ -194,7 +207,8 @@ const AlgoFeed: React.FC<AlgoFeedProps> = ({
             </span>
           </div>
         </div>
-      ))}
+      ))
+      )}
     </div>
   );
 
