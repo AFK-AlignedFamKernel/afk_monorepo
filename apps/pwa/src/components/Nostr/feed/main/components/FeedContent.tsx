@@ -75,6 +75,13 @@ export const FeedContent: React.FC<FeedContentProps> = ({
     {!hasMore && getCurrentData().length > 0 && (
       <div className={styles['algo-feed__end-of-content']}>
         <p>You've reached the end of the content</p>
+        <button
+          onClick={onLoadMore}
+          className={styles['algo-feed__refresh-end-button']}
+          disabled={loadingMore || isInfiniteScrollLoading}
+        >
+          {loadingMore || isInfiniteScrollLoading ? 'Checking for new content...' : 'Try Refresh'}
+        </button>
       </div>
     )}
   </div>

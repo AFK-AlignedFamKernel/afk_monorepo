@@ -2250,10 +2250,12 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
 // End of content indicator
 .algo-feed__end-of-content {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 2rem 0;
   text-align: center;
+  gap: 1rem;
   
   p {
     color: var(--text-secondary);
@@ -2264,6 +2266,38 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 0.5rem;
+  }
+}
+
+// Refresh button at end of content
+.algo-feed__refresh-end-button {
+  background: var(--green-500, #10b981);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    background: var(--green-600, #059669);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  &:disabled {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 }
 
@@ -2314,6 +2348,11 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
       font-size: 0.8rem;
       padding: 0.75rem 1.5rem;
     }
+  }
+  
+  .algo-feed__refresh-end-button {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.8rem;
   }
 }
 
