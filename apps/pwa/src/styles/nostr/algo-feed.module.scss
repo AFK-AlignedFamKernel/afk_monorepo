@@ -2049,6 +2049,16 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   scrollbar-color: var(--border) var(--bg-secondary);
 }
 
+// Loading trigger for infinite scroll
+.algo-feed__loading-trigger {
+  width: 100%;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  position: relative;
+  z-index: -1;
+}
+
 // Loading more indicator
 .algo-feed__loading-more {
   display: flex;

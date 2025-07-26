@@ -70,6 +70,9 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   const [isAutoReloading, setIsAutoReloading] = useState(false);
   const [showReloadIndicator, setShowReloadIndicator] = useState(false);
   const lastScrollTop = useRef(0);
+  
+  // Intersection observer for infinite scroll
+  const loadingTriggerRef = useRef<HTMLDivElement>(null);
 
   // Store state
   const {
@@ -205,29 +208,19 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     }
   }, [isAutoReloading, loading, activeTab, fetchCurrentTabData, resetPagination]);
 
-  // Scroll handler for infinite scroll and auto-reload
+  // Scroll handler for auto-reload only
   const handleScroll = useCallback(() => {
     if (!scrollContainerRef.current) return;
 
-    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    const { scrollTop } = scrollContainerRef.current;
     
     // Auto-reload when scrolling to top (pull-to-refresh behavior)
     if (scrollTop <= 0 && lastScrollTop.current > 0 && !isAutoReloading) {
       handleAutoReload();
     }
     
-    // Infinite scroll when scrolling to bottom
-    if (!loadingMore && hasMore) {
-      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
-      if (scrollPercentage > 0.8) {
-        // Load more content when user scrolls to 80% of the container
-        setOffset(trendingNotes.length + viralNotes.length + scrapedNotes.length + topAuthors.length + trendingTopAuthors.length);
-        fetchCurrentTabData(true);
-      }
-    }
-    
     lastScrollTop.current = scrollTop;
-  }, [loadingMore, hasMore, fetchCurrentTabData, setOffset, trendingNotes.length, viralNotes.length, scrapedNotes.length, topAuthors.length, trendingTopAuthors.length, isAutoReloading, handleAutoReload]);
+  }, [isAutoReloading, handleAutoReload]);
 
   // Add scroll event listener
   useEffect(() => {
@@ -237,6 +230,34 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       return () => scrollContainer.removeEventListener('scroll', handleScroll);
     }
   }, [handleScroll]);
+
+  // Intersection observer for infinite scroll
+  useEffect(() => {
+    if (!loadingTriggerRef.current || !hasMore || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !loadingMore && hasMore) {
+            // Load more content when the trigger element becomes visible
+            setOffset(trendingNotes.length + viralNotes.length + scrapedNotes.length + topAuthors.length + trendingTopAuthors.length);
+            fetchCurrentTabData(true);
+          }
+        });
+      },
+      {
+        root: scrollContainerRef.current,
+        rootMargin: '100px', // Start loading when trigger is 100px away from viewport
+        threshold: 0.1
+      }
+    );
+
+    observer.observe(loadingTriggerRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, loadingMore, fetchCurrentTabData, setOffset, trendingNotes.length, viralNotes.length, scrapedNotes.length, topAuthors.length, trendingTopAuthors.length]);
 
   const handleRefresh = async () => {
     logClickedEvent('advanced_algo_feed_refresh', 'click_refresh', activeTab);
@@ -729,6 +750,15 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
         {activeTab === 'top-authors' ? renderTopAuthors() : 
          activeTab === 'trending-top-authors' ? renderTrendingTopAuthors() : 
          renderNotes(getCurrentData())}
+        
+        {/* Loading trigger for infinite scroll */}
+        {hasMore && (
+          <div 
+            ref={loadingTriggerRef}
+            className={styles['algo-feed__loading-trigger']}
+            style={{ height: '1px', opacity: 0 }}
+          />
+        )}
         
         {/* Loading more indicator */}
         {loadingMore && (
