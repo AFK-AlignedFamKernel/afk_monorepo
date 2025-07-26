@@ -486,19 +486,25 @@ func (s *NoteScraper) GetViralNotesWithFilters(limit int, offset int, kinds []in
 		timeCutoff = time.Now().Add(-7 * 24 * time.Hour) // Default to 7 days
 	}
 
-	// Build the base query
+	// Build the base query - make it less restrictive
 	baseQuery := `
 		SELECT id, author_id, kind, content, raw_json, 
 		       created_at, scraped_at, interaction_score, 
 		       viral_score, trending_score, is_viral, is_trending
 		FROM scraped_notes
-		WHERE (is_viral = true OR viral_score > $1)
-		AND created_at >= $2
+		WHERE created_at >= $1
 	`
 
 	// Build parameters slice
-	params := []interface{}{minViralScore, timeCutoff}
-	paramIndex := 3
+	params := []interface{}{timeCutoff}
+	paramIndex := 2
+
+	// Add viral score filter if specified
+	if minViralScore > 0 {
+		baseQuery += fmt.Sprintf(" AND (is_viral = true OR viral_score >= $%d)", paramIndex)
+		params = append(params, minViralScore)
+		paramIndex++
+	}
 
 	// Add kinds filter if specified
 	if len(kinds) > 0 {
@@ -521,15 +527,20 @@ func (s *NoteScraper) GetViralNotesWithFilters(limit int, offset int, kinds []in
 		paramIndex++
 	}
 
-	// Add ordering and pagination
+	// Add ordering and pagination - order by viral score first, then by interaction score as fallback
 	baseQuery += `
-		ORDER BY viral_score DESC, created_at DESC
+		ORDER BY viral_score DESC, interaction_score DESC, created_at DESC
 		LIMIT $` + fmt.Sprintf("%d", paramIndex) + ` OFFSET $` + fmt.Sprintf("%d", paramIndex+1)
 	params = append(params, limit, offset)
+
+	// Debug: Log the query and parameters
+	log.Printf("🔍 [VIRAL] Query: %s", baseQuery)
+	log.Printf("🔍 [VIRAL] Params: %v", params)
 
 	// Execute the query
 	rows, err := s.db.QueryContext(context.Background(), baseQuery, params...)
 	if err != nil {
+		log.Printf("❌ [VIRAL] Query error: %v", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -543,11 +554,13 @@ func (s *NoteScraper) GetViralNotesWithFilters(limit int, offset int, kinds []in
 			&note.ViralScore, &note.TrendingScore, &note.IsViral, &note.IsTrending,
 		)
 		if err != nil {
+			log.Printf("❌ [VIRAL] Row scan error: %v", err)
 			return nil, err
 		}
 		notes = append(notes, note)
 	}
 
+	log.Printf("✅ [VIRAL] Found %d viral notes", len(notes))
 	return notes, nil
 }
 

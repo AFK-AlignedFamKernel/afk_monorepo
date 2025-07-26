@@ -1412,9 +1412,15 @@ func (r *NostrRepository) SearchAuthors(searchQuery string, limit int, offset in
 			WHERE p.created_at >= $1
 	`
 
+	// Build parameters slice
+	params := []interface{}{timeCutoff}
+	paramIndex := 2
+
 	// Add kinds filter if specified
 	if len(kinds) > 0 {
-		query += " AND p.kind = ANY($2)"
+		query += fmt.Sprintf(" AND p.kind = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(kinds))
+		paramIndex++
 	}
 
 	query += `
@@ -1435,7 +1441,7 @@ func (r *NostrRepository) SearchAuthors(searchQuery string, limit int, offset in
 				END as engagement_score,
 				last_activity
 			FROM author_stats
-			WHERE notes_count >= $3
+			WHERE notes_count >= $` + fmt.Sprintf("%d", paramIndex) + `
 		)
 		SELECT 
 			ae.author_id,
@@ -1450,29 +1456,21 @@ func (r *NostrRepository) SearchAuthors(searchQuery string, limit int, offset in
 			COALESCE(ps.settings->>'picture', '') as picture
 		FROM author_engagement ae
 		LEFT JOIN pubkey_settings ps ON ae.author_id = ps.pubkey
-		WHERE ae.engagement_score >= $4
+		WHERE ae.engagement_score >= $` + fmt.Sprintf("%d", paramIndex+1) + `
 		AND (
-			ps.settings->>'name' ILIKE $5 
-			OR ae.author_id ILIKE $5 
-			OR ps.settings->>'display_name' ILIKE $5
-			OR ps.settings->>'nip05' ILIKE $5
+			ps.settings->>'name' ILIKE $` + fmt.Sprintf("%d", paramIndex+2) + ` 
+			OR ae.author_id ILIKE $` + fmt.Sprintf("%d", paramIndex+2) + ` 
+			OR ps.settings->>'display_name' ILIKE $` + fmt.Sprintf("%d", paramIndex+2) + `
+			OR ps.settings->>'nip05' ILIKE $` + fmt.Sprintf("%d", paramIndex+2) + `
 		)
 		ORDER BY ae.engagement_score DESC, ae.total_interactions DESC, ae.last_activity DESC
-		LIMIT $6 OFFSET $7;
+		LIMIT $` + fmt.Sprintf("%d", paramIndex+3) + ` OFFSET $` + fmt.Sprintf("%d", paramIndex+4) + `;
 	`
 
-	// Execute the query with appropriate parameters
-	var rows *sql.Rows
-	var err error
+	params = append(params, minNotesCount, minEngagementScore, "%"+searchQuery+"%", limit, offset)
 
-	if len(kinds) > 0 {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, pq.Array(kinds), minNotesCount, minEngagementScore, searchPattern, limit, offset)
-	} else {
-		searchPattern := "%" + searchQuery + "%"
-		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, minNotesCount, minEngagementScore, searchPattern, limit, offset)
-	}
-
+	// Execute the query
+	rows, err := r.db.QueryContext(context.Background(), query, params...)
 	if err != nil {
 		return nil, err
 	}
@@ -1545,19 +1543,27 @@ func (r *NostrRepository) SearchTags(searchQuery string, limit int, offset int, 
 			AND tag_value LIKE 't:%'
 	`
 
+	// Build parameters slice
+	params := []interface{}{timeCutoff}
+	paramIndex := 2
+
 	// Add kinds filter if specified
 	if len(kinds) > 0 {
-		query += " AND n.kind = ANY($2)"
+		query += fmt.Sprintf(" AND n.kind = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(kinds))
+		paramIndex++
 	}
 
 	// Add search filter if specified
 	if searchQuery != "" {
-		query += " AND tag_value ILIKE $3"
+		query += fmt.Sprintf(" AND tag_value ILIKE $%d", paramIndex)
+		params = append(params, "%t:"+searchQuery+"%")
+		paramIndex++
 	}
 
 	query += `
 			GROUP BY tag_value
-			HAVING COUNT(*) >= $4
+			HAVING COUNT(*) >= $` + fmt.Sprintf("%d", paramIndex) + `
 		)
 		SELECT 
 			REPLACE(tag_value, 't:', '') as tag,
@@ -1566,25 +1572,13 @@ func (r *NostrRepository) SearchTags(searchQuery string, limit int, offset int, 
 			EXTRACT(EPOCH FROM last_used)::bigint as last_used_timestamp
 		FROM tag_usage
 		ORDER BY usage_count DESC, unique_authors DESC, last_used DESC
-		LIMIT $5 OFFSET $6;
+		LIMIT $` + fmt.Sprintf("%d", paramIndex+1) + ` OFFSET $` + fmt.Sprintf("%d", paramIndex+2) + `;
 	`
 
-	// Execute the query with appropriate parameters
-	var rows *sql.Rows
-	var err error
+	params = append(params, minUsageCount, limit, offset)
 
-	if len(kinds) > 0 && searchQuery != "" {
-		searchPattern := "%t:" + searchQuery + "%"
-		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, pq.Array(kinds), searchPattern, minUsageCount, limit, offset)
-	} else if len(kinds) > 0 {
-		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, pq.Array(kinds), minUsageCount, limit, offset)
-	} else if searchQuery != "" {
-		searchPattern := "%t:" + searchQuery + "%"
-		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, searchPattern, minUsageCount, limit, offset)
-	} else {
-		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, minUsageCount, limit, offset)
-	}
-
+	// Execute the query
+	rows, err := r.db.QueryContext(context.Background(), query, params...)
 	if err != nil {
 		return nil, err
 	}

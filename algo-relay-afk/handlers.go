@@ -101,6 +101,8 @@ func handleTopAuthorsAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleViralNotesAPI(w http.ResponseWriter, r *http.Request) {
+	log.Printf("📡 [API] Viral notes request received from %s", r.RemoteAddr)
+
 	// Get limit parameter
 	limit := 10
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
@@ -167,20 +169,26 @@ func handleViralNotesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fmt.Printf("Fetching viral notes with limit: %d, offset: %d, kinds: %v, search: %s, timeRange: %s, minViralScore: %f, tags: %v, authors: %v\n",
+	log.Printf("🔍 [API] Fetching viral notes with limit: %d, offset: %d, kinds: %v, search: %s, timeRange: %s, minViralScore: %f, tags: %v, authors: %v",
 		limit, offset, kinds, searchQuery, timeRange, minViralScore, tags, authors)
 
 	notes, err := scraper.GetViralNotesWithFilters(limit, offset, kinds, searchQuery, timeRange, minViralScore, tags, authors)
 	if err != nil {
+		log.Printf("❌ [API] Error fetching viral notes: %v", err)
 		http.Error(w, "Error fetching viral notes: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	log.Printf("✅ [API] Successfully fetched %d viral notes", len(notes))
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(notes); err != nil {
+		log.Printf("❌ [API] Error encoding viral notes response: %v", err)
 		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("📤 [API] Viral notes response sent successfully")
 }
 
 func handleGetNotesAPI(w http.ResponseWriter, r *http.Request) {
@@ -1149,4 +1157,100 @@ func handleSearchTagsAPI(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("📤 [API] Tag search response sent successfully")
+}
+
+// handleDiagnosticAPI provides diagnostic information about the database
+func handleDiagnosticAPI(w http.ResponseWriter, r *http.Request) {
+	log.Printf("🔍 [API] Diagnostic request received from %s", r.RemoteAddr)
+
+	// Check total count of scraped notes
+	var totalCount int
+	err := scraper.db.QueryRow("SELECT COUNT(*) FROM scraped_notes").Scan(&totalCount)
+	if err != nil {
+		log.Printf("❌ [DIAGNOSTIC] Error counting scraped notes: %v", err)
+		http.Error(w, "Error counting scraped notes: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Check count of viral notes
+	var viralCount int
+	err = scraper.db.QueryRow("SELECT COUNT(*) FROM scraped_notes WHERE is_viral = true").Scan(&viralCount)
+	if err != nil {
+		log.Printf("❌ [DIAGNOSTIC] Error counting viral notes: %v", err)
+		http.Error(w, "Error counting viral notes: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Check count of notes with viral score > 0
+	var viralScoreCount int
+	err = scraper.db.QueryRow("SELECT COUNT(*) FROM scraped_notes WHERE viral_score > 0").Scan(&viralScoreCount)
+	if err != nil {
+		log.Printf("❌ [DIAGNOSTIC] Error counting notes with viral score > 0: %v", err)
+		http.Error(w, "Error counting notes with viral score > 0: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Get sample of viral scores
+	rows, err := scraper.db.Query(`
+		SELECT viral_score, is_viral, interaction_score, created_at 
+		FROM scraped_notes 
+		ORDER BY viral_score DESC 
+		LIMIT 10
+	`)
+	if err != nil {
+		log.Printf("❌ [DIAGNOSTIC] Error getting sample viral scores: %v", err)
+		http.Error(w, "Error getting sample viral scores: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var samples []map[string]interface{}
+	for rows.Next() {
+		var viralScore float64
+		var isViral bool
+		var interactionScore int
+		var createdAt time.Time
+
+		err := rows.Scan(&viralScore, &isViral, &interactionScore, &createdAt)
+		if err != nil {
+			log.Printf("❌ [DIAGNOSTIC] Error scanning sample row: %v", err)
+			continue
+		}
+
+		samples = append(samples, map[string]interface{}{
+			"viral_score":       viralScore,
+			"is_viral":          isViral,
+			"interaction_score": interactionScore,
+			"created_at":        createdAt,
+		})
+	}
+
+	// Get recent notes count
+	var recentCount int
+	err = scraper.db.QueryRow("SELECT COUNT(*) FROM scraped_notes WHERE created_at >= NOW() - INTERVAL '7 days'").Scan(&recentCount)
+	if err != nil {
+		log.Printf("❌ [DIAGNOSTIC] Error counting recent notes: %v", err)
+		http.Error(w, "Error counting recent notes: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	diagnostic := map[string]interface{}{
+		"total_scraped_notes":    totalCount,
+		"viral_notes":            viralCount,
+		"notes_with_viral_score": viralScoreCount,
+		"recent_notes_7d":        recentCount,
+		"sample_viral_scores":    samples,
+		"timestamp":              time.Now(),
+	}
+
+	log.Printf("✅ [DIAGNOSTIC] Diagnostic data collected: %+v", diagnostic)
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(diagnostic); err != nil {
+		log.Printf("❌ [DIAGNOSTIC] Error encoding diagnostic response: %v", err)
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("📤 [DIAGNOSTIC] Diagnostic response sent successfully")
 }
