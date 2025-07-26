@@ -2016,3 +2016,89 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     font-size: 1.125rem;
   }
 }
+
+// Scrollable content container
+.algo-feed__content-scrollable {
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+  scroll-behavior: smooth;
+  
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+    
+    &:hover {
+      background: var(--text-secondary);
+    }
+  }
+  
+  // Firefox scrollbar
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--bg-secondary);
+}
+
+// Loading more indicator
+.algo-feed__loading-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 0;
+  
+  .algo-feed__skeleton {
+    width: 100%;
+    max-width: 600px;
+  }
+}
+
+// End of content indicator
+.algo-feed__end-of-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 0;
+  text-align: center;
+  
+  p {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0;
+    padding: 1rem 2rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+  }
+}
+
+// Mobile responsive scrollable container
+@media (max-width: 768px) {
+  .algo-feed__content-scrollable {
+    height: calc(100vh - 180px);
+    padding: 0.75rem;
+  }
+  
+  .algo-feed__loading-more {
+    padding: 1.5rem 0;
+  }
+  
+  .algo-feed__end-of-content {
+    padding: 1.5rem 0;
+    
+    p {
+      font-size: 0.8rem;
+      padding: 0.75rem 1.5rem;
+    }
+  }
+}

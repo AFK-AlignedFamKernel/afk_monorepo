@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from 'afk_nostr_sdk';
 import { NDKKind } from '@nostr-dev-kit/ndk';
 import { logClickedEvent } from '@/lib/analytics';
 import { 
-  algoRelayService, 
   TrendingNote, 
   ViralNote, 
   ScrapedNote, 
@@ -18,6 +17,7 @@ import {
 import { PostEventCard } from '@/components/Nostr/EventCard/PostEventCard';
 import { TAGS_DEFAULT } from 'common';
 import { Icon } from '@/components/small/icon-component';
+import { useAlgoRelayStore } from '@/stores/algoRelayStore';
 import styles from '@/styles/nostr/algo-feed.module.scss';
 
 interface MainNostrFeedProps {
@@ -54,14 +54,6 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   const { publicKey } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>('trending');
   const [activeContentType, setActiveContentType] = useState<ContentType>('posts');
-  const [trendingNotes, setTrendingNotes] = useState<TrendingNote[]>([]);
-  const [viralNotes, setViralNotes] = useState<ViralNote[]>([]);
-  const [scrapedNotes, setScrapedNotes] = useState<ScrapedNote[]>([]);
-  const [topAuthors, setTopAuthors] = useState<TopAuthor[]>([]);
-  const [trendingTopAuthors, setTrendingTopAuthors] = useState<TrendingTopAuthor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   
   // Tag filtering state
   const [tags, setTags] = useState<string[]>(TAGS_DEFAULT);
@@ -70,6 +62,35 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
 
   // Filter modal state
   const [showFilterModal, setShowFilterModal] = useState(false);
+
+  // Scroll container ref for infinite scroll
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Store state
+  const {
+    trendingNotes,
+    viralNotes,
+    scrapedNotes,
+    topAuthors,
+    trendingTopAuthors,
+    loading,
+    loadingMore,
+    error,
+    hasMore,
+    lastUpdate,
+    fetchTrendingNotes,
+    fetchViralNotes,
+    fetchScrapedNotes,
+    fetchTopAuthors,
+    fetchTrendingTopAuthors,
+    resetTrendingNotes,
+    resetViralNotes,
+    resetScrapedNotes,
+    resetTopAuthors,
+    resetTrendingTopAuthors,
+    setOffset,
+    resetPagination
+  } = useAlgoRelayStore();
 
   // Content type tabs configuration
   const contentTypeTabs: ContentTypeTab[] = [
@@ -116,106 +137,76 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     },
   ];
 
-  const fetchTrendingNotes = useCallback(async () => {
-    try {
-      const data = await algoRelayService.getTrendingNotes(limit);
-      setTrendingNotes(data || []);
-    } catch (err) {
-      console.error('Error fetching trending notes:', err);
-      setTrendingNotes([]);
-    }
-  }, [limit]);
-
-  const fetchViralNotes = useCallback(async () => {
-    try {
-      const data = await algoRelayService.getViralNotes(limit);
-      setViralNotes(data || []);
-    } catch (err) {
-      console.error('Error fetching viral notes:', err);
-      setViralNotes([]);
-    }
-  }, [limit]);
-
-  const fetchScrapedNotes = useCallback(async () => {
-    try {
-      const data = await algoRelayService.getScrapedNotes({ limit });
-      setScrapedNotes(data || []);
-    } catch (err) {
-      console.error('Error fetching scraped notes:', err);
-      setScrapedNotes([]);
-    }
-  }, [limit]);
-
-  const fetchTopAuthors = useCallback(async () => {
-    if (!publicKey) return;
-    
-    try {
-      const data = await algoRelayService.getTopAuthors(publicKey);
-      setTopAuthors(data || []);
-    } catch (err) {
-      console.error('Error fetching top authors:', err);
-      setTopAuthors([]);
-    }
-  }, [publicKey]);
-
-  const fetchTrendingTopAuthors = useCallback(async () => {
-    try {
-      const data = await algoRelayService.getTrendingTopAuthors({ limit });
-      setTrendingTopAuthors(data || []);
-    } catch (err) {
-      console.error('Error fetching trending top authors:', err);
-      setTrendingTopAuthors([]);
-    }
-  }, [limit]);
-
-  const fetchCurrentTabData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    
+  const fetchCurrentTabData = useCallback(async (append = false) => {
     try {
       switch (activeTab) {
         case 'trending':
-          await fetchTrendingNotes();
+          await fetchTrendingNotes(limit, 0, append);
           break;
         case 'viral':
-          await fetchViralNotes();
+          await fetchViralNotes(limit, 0, append);
           break;
         case 'scraped':
-          await fetchScrapedNotes();
+          await fetchScrapedNotes(limit, 0, append);
           break;
         case 'top-authors':
-          await fetchTopAuthors();
+          if (publicKey) {
+            await fetchTopAuthors(publicKey, limit, 0, append);
+          }
           break;
         case 'trending-top-authors':
-          await fetchTrendingTopAuthors();
+          await fetchTrendingTopAuthors(limit, 0, append);
           break;
       }
-      setLastUpdate(new Date());
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
-    } finally {
-      setLoading(false);
+      console.error('Error fetching data:', err);
     }
-  }, [activeTab, fetchTrendingNotes, fetchViralNotes, fetchScrapedNotes, fetchTopAuthors, fetchTrendingTopAuthors]);
+  }, [activeTab, limit, publicKey, fetchTrendingNotes, fetchViralNotes, fetchScrapedNotes, fetchTopAuthors, fetchTrendingTopAuthors]);
 
+  // Initial data load
   useEffect(() => {
-    fetchCurrentTabData();
-  }, [fetchCurrentTabData]);
+    resetPagination();
+    fetchCurrentTabData(false);
+  }, [activeTab, fetchCurrentTabData, resetPagination]);
 
   // Real-time updates
   useEffect(() => {
     if (!enableRealTime) return;
 
     const interval = setInterval(() => {
-      fetchCurrentTabData();
+      fetchCurrentTabData(false);
     }, 30000); // Update every 30 seconds
 
     return () => clearInterval(interval);
   }, [enableRealTime, fetchCurrentTabData]);
 
+  // Infinite scroll handler
+  const handleScroll = useCallback(() => {
+    if (!scrollContainerRef.current || loadingMore || !hasMore) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+
+    if (scrollPercentage > 0.8) {
+      // Load more content when user scrolls to 80% of the container
+      setOffset(trendingNotes.length + viralNotes.length + scrapedNotes.length + topAuthors.length + trendingTopAuthors.length);
+      fetchCurrentTabData(true);
+    }
+  }, [loadingMore, hasMore, fetchCurrentTabData, setOffset, trendingNotes.length, viralNotes.length, scrapedNotes.length, topAuthors.length, trendingTopAuthors.length]);
+
+  // Add scroll event listener
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
+
   const handleRefresh = async () => {
     logClickedEvent('advanced_algo_feed_refresh', 'click_refresh', activeTab);
-    await fetchCurrentTabData();
+    resetPagination();
+    await fetchCurrentTabData(false);
   };
 
   const handleTabChange = (tab: TabType) => {
@@ -279,7 +270,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   };
 
   const renderNotes = (notes: TrendingNote[] | ViralNote[] | ScrapedNote[] | TopAuthor[] | TrendingTopAuthor[]) => {
-    if (loading) {
+    if (loading && notes.length === 0) {
       return (
         <div className={styles['algo-feed__loading']}>
           <div className={styles['algo-feed__skeleton']}>
@@ -294,12 +285,12 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
       );
     }
 
-    if (error) {
+    if (error && notes.length === 0) {
       return (
         <div className={styles['algo-feed__error']}>
           <p>{error}</p>
           <button 
-            onClick={fetchCurrentTabData}
+            onClick={() => fetchCurrentTabData(false)}
             className={styles['algo-feed__retry-button']}
           >
             Retry
@@ -671,10 +662,34 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
         </div>
       </div>
 
-      <div className={styles['algo-feed__content']}>
+      <div 
+        ref={scrollContainerRef}
+        className={styles['algo-feed__content-scrollable']}
+      >
         {activeTab === 'top-authors' ? renderTopAuthors() : 
          activeTab === 'trending-top-authors' ? renderTrendingTopAuthors() : 
          renderNotes(getCurrentData())}
+        
+        {/* Loading more indicator */}
+        {loadingMore && (
+          <div className={styles['algo-feed__loading-more']}>
+            <div className={styles['algo-feed__skeleton']}>
+              <div className={styles['algo-feed__skeleton-avatar']}></div>
+              <div className={styles['algo-feed__skeleton-content']}>
+                <div className={styles['algo-feed__skeleton-line']}></div>
+                <div className={styles['algo-feed__skeleton-line']}></div>
+                <div className={styles['algo-feed__skeleton-line-short']}></div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* End of content indicator */}
+        {!hasMore && getCurrentData().length > 0 && (
+          <div className={styles['algo-feed__end-of-content']}>
+            <p>You've reached the end of the content</p>
+          </div>
+        )}
       </div>
 
       {/* Filter Modal */}
