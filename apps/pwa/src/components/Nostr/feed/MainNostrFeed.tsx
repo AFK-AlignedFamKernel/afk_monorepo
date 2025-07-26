@@ -69,6 +69,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   // Auto-reload state
   const [isAutoReloading, setIsAutoReloading] = useState(false);
   const [showReloadIndicator, setShowReloadIndicator] = useState(false);
+  const [isInfiniteScrollLoading, setIsInfiniteScrollLoading] = useState(false);
   const lastScrollTop = useRef(0);
   
   // Intersection observer for infinite scroll
@@ -237,17 +238,24 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     }
     
     // Infinite scroll when scrolling to bottom (fallback to intersection observer)
-    if (!loadingMore && hasMore) {
+    if (!loadingMore && !isInfiniteScrollLoading && hasMore) {
       const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
       if (scrollPercentage > 0.95) { // Trigger when 95% scrolled
+        console.log('Scroll-based infinite scroll triggered at', Math.round(scrollPercentage * 100) + '%');
+        setIsInfiniteScrollLoading(true);
         const currentDataLength = getCurrentData().length;
         setOffset(currentDataLength);
-        fetchCurrentTabData(true);
+        fetchCurrentTabData(true).finally(() => {
+          setIsInfiniteScrollLoading(false);
+        });
+      } else if (scrollPercentage > 0.8) {
+        // Debug log when approaching trigger point
+        console.log('Approaching infinite scroll trigger:', Math.round(scrollPercentage * 100) + '%');
       }
     }
     
     lastScrollTop.current = scrollTop;
-  }, [isAutoReloading, handleAutoReload, loadingMore, hasMore, fetchCurrentTabData, setOffset, getCurrentData]);
+  }, [isAutoReloading, handleAutoReload, loadingMore, isInfiniteScrollLoading, hasMore, fetchCurrentTabData, setOffset, getCurrentData]);
 
   // Add scroll event listener
   useEffect(() => {
@@ -260,17 +268,20 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
 
   // Intersection observer for infinite scroll
   useEffect(() => {
-    if (!loadingTriggerRef.current || !hasMore || loadingMore) return;
+    if (!loadingTriggerRef.current || !hasMore || loadingMore || isInfiniteScrollLoading) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && !loadingMore && hasMore) {
+          if (entry.isIntersecting && !loadingMore && !isInfiniteScrollLoading && hasMore) {
             console.log('Intersection observer triggered - loading more content');
+            setIsInfiniteScrollLoading(true);
             // Load more content when the trigger element becomes visible
             const currentDataLength = getCurrentData().length;
             setOffset(currentDataLength);
-            fetchCurrentTabData(true);
+            fetchCurrentTabData(true).finally(() => {
+              setIsInfiniteScrollLoading(false);
+            });
           }
         });
       },
@@ -286,7 +297,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     return () => {
       observer.disconnect();
     };
-  }, [hasMore, loadingMore, fetchCurrentTabData, setOffset, getCurrentData]);
+  }, [hasMore, loadingMore, isInfiniteScrollLoading, fetchCurrentTabData, setOffset, getCurrentData]);
 
   const handleRefresh = async () => {
     logClickedEvent('advanced_algo_feed_refresh', 'click_refresh', activeTab);
@@ -296,9 +307,12 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
 
   const handleLoadMore = () => {
     console.log('Manual load more triggered');
+    setIsInfiniteScrollLoading(true);
     const currentDataLength = getCurrentData().length;
     setOffset(currentDataLength);
-    fetchCurrentTabData(true);
+    fetchCurrentTabData(true).finally(() => {
+      setIsInfiniteScrollLoading(false);
+    });
   };
 
   const handleTabChange = (tab: TabType) => {
@@ -775,13 +789,39 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
           <div 
             ref={loadingTriggerRef}
             className={styles['algo-feed__loading-trigger']}
-            style={{ height: '20px', opacity: 0.1, background: 'transparent' }}
+            style={{ 
+              height: '20px', 
+              opacity: 0.3, 
+              background: 'var(--primary-color)', 
+              borderRadius: '4px',
+              margin: '1rem 0'
+            }}
+            title="Infinite scroll trigger - scroll to this point to load more"
           />
         )}
         
         {/* Loading more indicator */}
-        {loadingMore && (
+        {(loadingMore || isInfiniteScrollLoading) && (
           <div className={styles['algo-feed__loading-more']}>
+            <div className={styles['algo-feed__loading-spinner']}>
+              <svg 
+                className={styles['algo-feed__spinner-icon']}
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M23 4v6h-6"/>
+                <path d="M1 20v-6h6"/>
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+              </svg>
+              <span className={styles['algo-feed__loading-text']}>
+                Loading more content...
+              </span>
+            </div>
             <div className={styles['algo-feed__skeleton']}>
               <div className={styles['algo-feed__skeleton-avatar']}></div>
               <div className={styles['algo-feed__skeleton-content']}>
@@ -794,7 +834,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
         )}
         
         {/* Manual Load More button (fallback) */}
-        {hasMore && !loadingMore && getCurrentData().length > 0 && (
+        {hasMore && !loadingMore && !isInfiniteScrollLoading && getCurrentData().length > 0 && (
           <div className={styles['algo-feed__load-more-container']}>
             <button
               onClick={handleLoadMore}

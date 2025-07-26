@@ -2102,14 +2102,49 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
 // Loading more indicator
 .algo-feed__loading-more {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   padding: 2rem 0;
-  
-  .algo-feed__skeleton {
-    width: 100%;
-    max-width: 600px;
+  gap: 1rem;
+}
+
+.algo-feed__loading-spinner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.algo-feed__spinner-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--primary-color);
+  animation: spin 1s linear infinite;
+}
+
+.algo-feed__loading-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.algo-feed__loading-more .algo-feed__skeleton {
+  width: 100%;
+  max-width: 600px;
 }
 
 // End of content indicator
@@ -2141,6 +2176,20 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   
   .algo-feed__loading-more {
     padding: 1.5rem 0;
+    gap: 0.75rem;
+  }
+  
+  .algo-feed__loading-spinner {
+    padding: 0.625rem 1.25rem;
+  }
+  
+  .algo-feed__spinner-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  .algo-feed__loading-text {
+    font-size: 0.8rem;
   }
   
   .algo-feed__load-more-container {
