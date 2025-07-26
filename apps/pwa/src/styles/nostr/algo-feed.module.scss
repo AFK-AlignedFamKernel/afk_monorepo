@@ -2333,6 +2333,14 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   color: var(--green-800, #065f46);
 }
 
+// Auto-refresh loading state
+.algo-feed__auto-refresh-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem 0;
+}
+
 @keyframes slideInDown {
   from {
     opacity: 0;
@@ -2413,6 +2421,10 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
   
   .algo-feed__refresh-success-text {
     font-size: 0.8rem;
+  }
+  
+  .algo-feed__auto-refresh-loading {
+    padding: 0.75rem 0;
   }
 }
 

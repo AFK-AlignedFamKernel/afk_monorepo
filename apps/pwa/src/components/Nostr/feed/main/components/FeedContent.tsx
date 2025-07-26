@@ -16,6 +16,8 @@ interface FeedContentProps {
   onLoadMore: () => void;
   onRefreshAtEnd: () => void;
   showRefreshSuccess?: boolean;
+  hasTriedAutoRefresh?: boolean;
+  isAutoRefreshing?: boolean;
   isInfiniteScrollLoading?: boolean;
   loaderRef?: React.RefObject<HTMLDivElement>;
 }
@@ -34,8 +36,10 @@ export const FeedContent: React.FC<FeedContentProps> = ({
   onLoadMore,
   onRefreshAtEnd,
   showRefreshSuccess,
+  hasTriedAutoRefresh,
   isInfiniteScrollLoading,
-  loaderRef
+  loaderRef,
+  isAutoRefreshing
 }) => (
   <div className={styles['algo-feed__content-scrollable']}>
     {activeTab === 'top-authors' ? renderTopAuthors() : 
@@ -102,14 +106,47 @@ export const FeedContent: React.FC<FeedContentProps> = ({
     {/* End of content indicator */}
     {!hasMore && getCurrentData().length > 0 && (
       <div className={styles['algo-feed__end-of-content']}>
-        <p>You've reached the end of the content</p>
-        <button
-          onClick={onRefreshAtEnd}
-          className={styles['algo-feed__refresh-end-button']}
-          disabled={loadingMore || isInfiniteScrollLoading}
-        >
-          {loadingMore || isInfiniteScrollLoading ? 'Checking for new content...' : 'Try Refresh'}
-        </button>
+        {isAutoRefreshing ? (
+          <div className={styles['algo-feed__auto-refresh-loading']}>
+            <div className={styles['algo-feed__loading-spinner']}>
+              <svg 
+                className={styles['algo-feed__spinner-icon']}
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M23 4v6h-6"/>
+                <path d="M1 20v-6h6"/>
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+              </svg>
+              <span className={styles['algo-feed__loading-text']}>
+                Checking for new content...
+              </span>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p>
+              {hasTriedAutoRefresh 
+                ? "You've reached the end of the content" 
+                : "Checking for new content..."
+              }
+            </p>
+            {hasTriedAutoRefresh && (
+              <button
+                onClick={onRefreshAtEnd}
+                className={styles['algo-feed__refresh-end-button']}
+                disabled={loadingMore || isInfiniteScrollLoading}
+              >
+                {loadingMore || isInfiniteScrollLoading ? 'Checking for new content...' : 'Try Refresh'}
+              </button>
+            )}
+          </>
+        )}
       </div>
     )}
   </div>

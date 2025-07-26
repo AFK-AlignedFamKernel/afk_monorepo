@@ -125,6 +125,8 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   const [isAutoReloading, setIsAutoReloading] = useState(false);
   const [showReloadIndicator, setShowReloadIndicator] = useState(false);
   const [showRefreshSuccess, setShowRefreshSuccess] = useState(false);
+  const [hasTriedAutoRefresh, setHasTriedAutoRefresh] = useState(false);
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(false);
   const lastScrollTop = useRef(0);
 
   // Store state
@@ -170,6 +172,8 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   // Initial data load
   useEffect(() => {
     resetPaginationData();
+    setHasTriedAutoRefresh(false); // Reset auto-refresh state for new tab
+    setIsAutoRefreshing(false); // Reset auto-refresh loading state
     fetchCurrentTabData(false);
   }, [activeTab, fetchCurrentTabData, resetPaginationData]);
 
@@ -200,6 +204,43 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
 
     return () => clearInterval(interval);
   }, [enableRealTime, fetchCurrentTabData, activeTab, getCurrentData]);
+
+  // Auto-refresh when reaching end of content
+  useEffect(() => {
+    const currentData = getCurrentData();
+    
+    // If we have data, no more content, and haven't tried auto-refresh yet
+    if (currentData.length > 0 && !hasMore && !hasTriedAutoRefresh && !loadingMore && !isAutoRefreshing) {
+      console.log('Reached end of content, trying automatic refresh...');
+      logClickedEvent('algo_feed_auto_refresh_end', 'auto_refresh', activeTab);
+      
+      // Store current data length to check if new content was added
+      const currentDataLength = currentData.length;
+      
+      // Try one automatic refresh
+      setHasTriedAutoRefresh(true);
+      setIsAutoRefreshing(true);
+      resetPaginationData();
+      fetchCurrentTabData(false).then(() => {
+        const newDataLength = getCurrentData().length;
+        
+        if (newDataLength > currentDataLength) {
+          console.log(`Auto-refresh successful: found ${newDataLength - currentDataLength} new items`);
+          logClickedEvent('algo_feed_auto_refresh_success', 'auto_refresh_success', `${newDataLength - currentDataLength}_new_items`);
+          
+          // Show success message
+          setShowRefreshSuccess(true);
+          setTimeout(() => setShowRefreshSuccess(false), 3000); // Hide after 3 seconds
+        } else {
+          console.log('Auto-refresh completed: no new content found');
+          logClickedEvent('algo_feed_auto_refresh_no_new', 'auto_refresh_no_new', activeTab);
+        }
+        setIsAutoRefreshing(false);
+      }).catch(() => {
+        setIsAutoRefreshing(false);
+      });
+    }
+  }, [hasMore, hasTriedAutoRefresh, loadingMore, isAutoRefreshing, getCurrentData, fetchCurrentTabData, resetPaginationData, activeTab]);
 
   // Auto-reload handler
   const handleAutoReload = useCallback(async () => {
@@ -359,6 +400,8 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
 
   const handleContentTypeChange = (contentType: ContentType) => {
     setActiveContentType(contentType);
+    setHasTriedAutoRefresh(false); // Reset auto-refresh state for new content type
+    setIsAutoRefreshing(false); // Reset auto-refresh loading state
     logClickedEvent('algo_feed_content_type', 'click_content_type', contentType);
     
     // Reset tag selection when switching away from tags
@@ -767,6 +810,8 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
           onLoadMore={handleLoadMore}
           onRefreshAtEnd={handleRefreshAtEnd}
           showRefreshSuccess={showRefreshSuccess}
+          hasTriedAutoRefresh={hasTriedAutoRefresh}
+          isAutoRefreshing={isAutoRefreshing}
           // isInfiniteScrollLoading={false}
           // loaderRef={null}
         />
