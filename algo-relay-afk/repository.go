@@ -1082,7 +1082,7 @@ func (r *NostrRepository) fetchTopInteractedAuthorsWithPagination(userID string,
 }
 
 // GetNotesWithFilters retrieves notes with enhanced filtering and pagination
-func (r *NostrRepository) GetNotesWithFilters(ctx context.Context, limit int, offset int, kind int, searchQuery string, timeRange string) ([]FeedNote, error) {
+func (r *NostrRepository) GetNotesWithFilters(ctx context.Context, limit int, offset int, kinds []int, searchQuery string, timeRange string, tags []string, authors []string) ([]FeedNote, error) {
 	start := time.Now()
 
 	// Calculate the time cutoff based on timeRange
@@ -1132,8 +1132,8 @@ func (r *NostrRepository) GetNotesWithFilters(ctx context.Context, limit int, of
 	`
 
 	// Add kind filter if specified
-	if kind > 0 {
-		baseQuery += " AND n.kind = $2"
+	if len(kinds) > 0 {
+		baseQuery += " AND n.kind = ANY($2)"
 	}
 
 	// Add search filter if specified
@@ -1141,24 +1141,39 @@ func (r *NostrRepository) GetNotesWithFilters(ctx context.Context, limit int, of
 		baseQuery += " AND (n.content ILIKE $3 OR n.author_id ILIKE $3)"
 	}
 
+	// Add authors filter if specified
+	if len(authors) > 0 {
+		baseQuery += " AND n.author_id = ANY($4)"
+	}
+
 	// Add ordering and pagination
 	baseQuery += `
 		ORDER BY n.created_at DESC
-		LIMIT $4 OFFSET $5
+		LIMIT $5 OFFSET $6
 	`
 
 	// Execute the query with appropriate parameters
 	var rows *sql.Rows
 	var err error
 
-	if kind > 0 && searchQuery != "" {
+	if len(kinds) > 0 && searchQuery != "" && len(authors) > 0 {
 		searchPattern := "%" + searchQuery + "%"
-		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, kind, searchPattern, limit, offset)
-	} else if kind > 0 {
-		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, kind, limit, offset)
+		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, pq.Array(kinds), searchPattern, pq.Array(authors), limit, offset)
+	} else if len(kinds) > 0 && searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, pq.Array(kinds), searchPattern, limit, offset)
+	} else if len(kinds) > 0 && len(authors) > 0 {
+		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, pq.Array(kinds), pq.Array(authors), limit, offset)
+	} else if searchQuery != "" && len(authors) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, searchPattern, pq.Array(authors), limit, offset)
+	} else if len(kinds) > 0 {
+		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, pq.Array(kinds), limit, offset)
 	} else if searchQuery != "" {
 		searchPattern := "%" + searchQuery + "%"
 		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, searchPattern, limit, offset)
+	} else if len(authors) > 0 {
+		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, pq.Array(authors), limit, offset)
 	} else {
 		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, limit, offset)
 	}
@@ -1197,13 +1212,13 @@ func (r *NostrRepository) GetNotesWithFilters(ctx context.Context, limit int, of
 		})
 	}
 
-	log.Printf("Fetched notes with filters in %v (limit: %d, offset: %d, kind: %d, search: %s, timeRange: %s)",
-		time.Since(start), limit, offset, kind, searchQuery, timeRange)
+	log.Printf("Fetched notes with filters in %v (limit: %d, offset: %d, kinds: %v, search: %s, timeRange: %s, authors: %v)",
+		time.Since(start), limit, offset, kinds, searchQuery, timeRange, authors)
 	return notes, nil
 }
 
 // fetchTrendingTopAuthorsWithFilters fetches trending top authors with enhanced filtering
-func (r *NostrRepository) fetchTrendingTopAuthorsWithFilters(limit int, offset int, timeRange string, minEngagementScore float64, minNotesCount int, searchQuery string) ([]TrendingTopAuthor, error) {
+func (r *NostrRepository) fetchTrendingTopAuthorsWithFilters(limit int, offset int, timeRange string, minEngagementScore float64, minNotesCount int, searchQuery string, kinds []int) ([]TrendingTopAuthor, error) {
 	start := time.Now()
 
 	// Calculate the time cutoff based on timeRange
@@ -1252,6 +1267,14 @@ func (r *NostrRepository) fetchTrendingTopAuthorsWithFilters(limit int, offset i
 				GROUP BY note_id
 			) c_count ON p.id = c_count.note_id
 			WHERE p.created_at >= $1
+	`
+
+	// Add kinds filter if specified
+	if len(kinds) > 0 {
+		query += " AND p.kind = ANY($2)"
+	}
+
+	query += `
 			GROUP BY p.author_id
 		),
 		author_engagement AS (
@@ -1270,7 +1293,7 @@ func (r *NostrRepository) fetchTrendingTopAuthorsWithFilters(limit int, offset i
 				END as engagement_score,
 				last_activity
 			FROM author_stats
-			WHERE notes_count >= $2  -- Minimum notes count filter
+			WHERE notes_count >= $3  -- Minimum notes count filter
 		)
 		SELECT 
 			ae.author_id,
@@ -1286,24 +1309,29 @@ func (r *NostrRepository) fetchTrendingTopAuthorsWithFilters(limit int, offset i
 		FROM author_engagement ae
 		LEFT JOIN pubkey_settings ps ON ae.author_id = ps.pubkey
 		WHERE ae.total_interactions > 0  -- Only authors with some interactions
-		AND ae.engagement_score >= $3  -- Minimum engagement score filter
+		AND ae.engagement_score >= $4  -- Minimum engagement score filter
 	`
 
 	// Add search filter if specified
 	if searchQuery != "" {
-		query += " AND (ps.settings->>'name' ILIKE $4 OR ae.author_id ILIKE $4)"
+		query += " AND (ps.settings->>'name' ILIKE $5 OR ae.author_id ILIKE $5)"
 	}
 
 	query += `
 		ORDER BY ae.engagement_score DESC, ae.total_interactions DESC, ae.last_activity DESC
-		LIMIT $5 OFFSET $6;
+		LIMIT $6 OFFSET $7;
 	`
 
 	// Execute the query with appropriate parameters
 	var rows *sql.Rows
 	var err error
 
-	if searchQuery != "" {
+	if len(kinds) > 0 && searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, pq.Array(kinds), minNotesCount, minEngagementScore, searchPattern, limit, offset)
+	} else if len(kinds) > 0 {
+		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, pq.Array(kinds), minNotesCount, minEngagementScore, limit, offset)
+	} else if searchQuery != "" {
 		searchPattern := "%" + searchQuery + "%"
 		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, minNotesCount, minEngagementScore, searchPattern, limit, offset)
 	} else {
@@ -1343,7 +1371,260 @@ func (r *NostrRepository) fetchTrendingTopAuthorsWithFilters(limit int, offset i
 		})
 	}
 
-	log.Printf("Fetched trending top authors with filters in %v (limit: %d, offset: %d, timeRange: %s, minEngagementScore: %f, minNotesCount: %d, search: %s)",
-		time.Since(start), limit, offset, timeRange, minEngagementScore, minNotesCount, searchQuery)
+	log.Printf("Fetched trending top authors with filters in %v (limit: %d, offset: %d, timeRange: %s, minEngagementScore: %f, minNotesCount: %d, search: %s, kinds: %v)",
+		time.Since(start), limit, offset, timeRange, minEngagementScore, minNotesCount, searchQuery, kinds)
 	return authors, nil
+}
+
+// SearchAuthors searches for authors based on various criteria
+func (r *NostrRepository) SearchAuthors(searchQuery string, limit int, offset int, timeRange string, minEngagementScore float64, minNotesCount int, kinds []int) ([]TrendingTopAuthor, error) {
+	start := time.Now()
+
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour) // Default to 30 days
+	}
+
+	query := `
+		WITH author_stats AS (
+			SELECT 
+				p.author_id,
+				COUNT(DISTINCT p.id) as notes_count,
+				COALESCE(SUM(r_count.reaction_count), 0) as reactions_received,
+				COALESCE(SUM(z_count.zap_count), 0) as zaps_received,
+				COALESCE(SUM(c_count.reply_count), 0) as replies_received,
+				MAX(p.created_at) as last_activity
+			FROM notes p
+			LEFT JOIN (
+				SELECT note_id, COUNT(*) as reaction_count
+				FROM reactions
+				WHERE created_at >= $1
+				GROUP BY note_id
+			) r_count ON p.id = r_count.note_id
+			LEFT JOIN (
+				SELECT note_id, COUNT(*) as zap_count
+				FROM zaps
+				WHERE created_at >= $1
+				GROUP BY note_id
+			) z_count ON p.id = z_count.note_id
+			LEFT JOIN (
+				SELECT note_id, COUNT(*) as reply_count
+				FROM comments
+				WHERE created_at >= $1
+				GROUP BY note_id
+			) c_count ON p.id = c_count.note_id
+			WHERE p.created_at >= $1
+	`
+
+	// Add kinds filter if specified
+	if len(kinds) > 0 {
+		query += " AND p.kind = ANY($2)"
+	}
+
+	query += `
+			GROUP BY p.author_id
+		),
+		author_engagement AS (
+			SELECT 
+				author_id,
+				notes_count,
+				reactions_received,
+				zaps_received,
+				replies_received,
+				(reactions_received + zaps_received + replies_received) as total_interactions,
+				CASE 
+					WHEN notes_count > 0 THEN 
+						(reactions_received + (zaps_received * 2.0) + (replies_received * 1.5)) / notes_count::float
+					ELSE 0 
+				END as engagement_score,
+				last_activity
+			FROM author_stats
+			WHERE notes_count >= $3
+		)
+		SELECT 
+			ae.author_id,
+			ae.total_interactions,
+			ae.reactions_received,
+			ae.zaps_received,
+			ae.replies_received,
+			ae.notes_count,
+			ae.engagement_score,
+			EXTRACT(EPOCH FROM ae.last_activity)::bigint as last_activity_timestamp,
+			COALESCE(ps.settings->>'name', '') as name,
+			COALESCE(ps.settings->>'picture', '') as picture
+		FROM author_engagement ae
+		LEFT JOIN pubkey_settings ps ON ae.author_id = ps.pubkey
+		WHERE ae.engagement_score >= $4
+		AND (
+			ps.settings->>'name' ILIKE $5 
+			OR ae.author_id ILIKE $5 
+			OR ps.settings->>'display_name' ILIKE $5
+			OR ps.settings->>'nip05' ILIKE $5
+		)
+		ORDER BY ae.engagement_score DESC, ae.total_interactions DESC, ae.last_activity DESC
+		LIMIT $6 OFFSET $7;
+	`
+
+	// Execute the query with appropriate parameters
+	var rows *sql.Rows
+	var err error
+
+	if len(kinds) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, pq.Array(kinds), minNotesCount, minEngagementScore, searchPattern, limit, offset)
+	} else {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, minNotesCount, minEngagementScore, searchPattern, limit, offset)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	authors := make([]TrendingTopAuthor, 0, limit)
+	for rows.Next() {
+		var authorID, name, picture string
+		var totalInteractions, reactionsReceived, zapsReceived, repliesReceived, notesCount int
+		var engagementScore float64
+		var lastActivityTimestamp int64
+
+		if err := rows.Scan(
+			&authorID, &totalInteractions, &reactionsReceived, &zapsReceived, &repliesReceived,
+			&notesCount, &engagementScore, &lastActivityTimestamp, &name, &picture,
+		); err != nil {
+			return nil, err
+		}
+
+		authors = append(authors, TrendingTopAuthor{
+			Pubkey:            authorID,
+			Name:              name,
+			Picture:           picture,
+			TotalInteractions: totalInteractions,
+			ReactionsReceived: reactionsReceived,
+			ZapsReceived:      zapsReceived,
+			RepliesReceived:   repliesReceived,
+			NotesCount:        notesCount,
+			EngagementScore:   engagementScore,
+			LastActivity:      lastActivityTimestamp,
+		})
+	}
+
+	log.Printf("Searched authors in %v (query: %s, limit: %d, offset: %d, timeRange: %s, minEngagementScore: %f, minNotesCount: %d, kinds: %v)",
+		time.Since(start), searchQuery, limit, offset, timeRange, minEngagementScore, minNotesCount, kinds)
+	return authors, nil
+}
+
+// SearchTags searches for popular tags
+func (r *NostrRepository) SearchTags(searchQuery string, limit int, offset int, timeRange string, kinds []int, minUsageCount int) ([]map[string]interface{}, error) {
+	start := time.Now()
+
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour) // Default to 30 days
+	}
+
+	query := `
+		WITH tag_usage AS (
+			SELECT 
+				tag_value,
+				COUNT(*) as usage_count,
+				COUNT(DISTINCT n.author_id) as unique_authors,
+				MAX(n.created_at) as last_used
+			FROM notes n,
+			jsonb_array_elements_text(n.tags) as tag_value
+			WHERE n.created_at >= $1
+			AND tag_value LIKE 't:%'
+	`
+
+	// Add kinds filter if specified
+	if len(kinds) > 0 {
+		query += " AND n.kind = ANY($2)"
+	}
+
+	// Add search filter if specified
+	if searchQuery != "" {
+		query += " AND tag_value ILIKE $3"
+	}
+
+	query += `
+			GROUP BY tag_value
+			HAVING COUNT(*) >= $4
+		)
+		SELECT 
+			REPLACE(tag_value, 't:', '') as tag,
+			usage_count,
+			unique_authors,
+			EXTRACT(EPOCH FROM last_used)::bigint as last_used_timestamp
+		FROM tag_usage
+		ORDER BY usage_count DESC, unique_authors DESC, last_used DESC
+		LIMIT $5 OFFSET $6;
+	`
+
+	// Execute the query with appropriate parameters
+	var rows *sql.Rows
+	var err error
+
+	if len(kinds) > 0 && searchQuery != "" {
+		searchPattern := "%t:" + searchQuery + "%"
+		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, pq.Array(kinds), searchPattern, minUsageCount, limit, offset)
+	} else if len(kinds) > 0 {
+		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, pq.Array(kinds), minUsageCount, limit, offset)
+	} else if searchQuery != "" {
+		searchPattern := "%t:" + searchQuery + "%"
+		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, searchPattern, minUsageCount, limit, offset)
+	} else {
+		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, minUsageCount, limit, offset)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	tags := make([]map[string]interface{}, 0, limit)
+	for rows.Next() {
+		var tag string
+		var usageCount, uniqueAuthors int
+		var lastUsedTimestamp int64
+
+		if err := rows.Scan(&tag, &usageCount, &uniqueAuthors, &lastUsedTimestamp); err != nil {
+			return nil, err
+		}
+
+		tags = append(tags, map[string]interface{}{
+			"tag":            tag,
+			"usage_count":    usageCount,
+			"unique_authors": uniqueAuthors,
+			"last_used":      lastUsedTimestamp,
+		})
+	}
+
+	log.Printf("Searched tags in %v (query: %s, limit: %d, offset: %d, timeRange: %s, kinds: %v, minUsageCount: %d)",
+		time.Since(start), searchQuery, limit, offset, timeRange, kinds, minUsageCount)
+	return tags, nil
 }

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/nbd-wtf/go-nostr"
@@ -116,11 +117,14 @@ func handleViralNotesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Get kind filter
-	kind := 0 // 0 means all kinds
-	if kindStr := r.URL.Query().Get("kind"); kindStr != "" {
-		if parsed, err := strconv.Atoi(kindStr); err == nil && parsed >= 0 {
-			kind = parsed
+	// Get kinds filter (comma-separated)
+	kinds := []int{}
+	if kindsStr := r.URL.Query().Get("kinds"); kindsStr != "" {
+		kindsList := strings.Split(kindsStr, ",")
+		for _, kindStr := range kindsList {
+			if parsed, err := strconv.Atoi(strings.TrimSpace(kindStr)); err == nil && parsed >= 0 {
+				kinds = append(kinds, parsed)
+			}
 		}
 	}
 
@@ -141,10 +145,32 @@ func handleViralNotesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fmt.Printf("Fetching viral notes with limit: %d, offset: %d, kind: %d, search: %s, timeRange: %s, minViralScore: %f\n",
-		limit, offset, kind, searchQuery, timeRange, minViralScore)
+	// Get tags filter (comma-separated)
+	tags := []string{}
+	if tagsStr := r.URL.Query().Get("tags"); tagsStr != "" {
+		tagsList := strings.Split(tagsStr, ",")
+		for _, tag := range tagsList {
+			if trimmed := strings.TrimSpace(tag); trimmed != "" {
+				tags = append(tags, trimmed)
+			}
+		}
+	}
 
-	notes, err := scraper.GetViralNotesWithFilters(limit, offset, kind, searchQuery, timeRange, minViralScore)
+	// Get authors filter (comma-separated)
+	authors := []string{}
+	if authorsStr := r.URL.Query().Get("authors"); authorsStr != "" {
+		authorsList := strings.Split(authorsStr, ",")
+		for _, author := range authorsList {
+			if trimmed := strings.TrimSpace(author); trimmed != "" {
+				authors = append(authors, trimmed)
+			}
+		}
+	}
+
+	fmt.Printf("Fetching viral notes with limit: %d, offset: %d, kinds: %v, search: %s, timeRange: %s, minViralScore: %f, tags: %v, authors: %v\n",
+		limit, offset, kinds, searchQuery, timeRange, minViralScore, tags, authors)
+
+	notes, err := scraper.GetViralNotesWithFilters(limit, offset, kinds, searchQuery, timeRange, minViralScore, tags, authors)
 	if err != nil {
 		http.Error(w, "Error fetching viral notes: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -174,11 +200,14 @@ func handleGetNotesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Get kind filter
-	kind := 0 // 0 means all kinds
-	if kindStr := r.URL.Query().Get("kind"); kindStr != "" {
-		if parsed, err := strconv.Atoi(kindStr); err == nil && parsed >= 0 {
-			kind = parsed
+	// Get kinds filter (comma-separated)
+	kinds := []int{}
+	if kindsStr := r.URL.Query().Get("kinds"); kindsStr != "" {
+		kindsList := strings.Split(kindsStr, ",")
+		for _, kindStr := range kindsList {
+			if parsed, err := strconv.Atoi(strings.TrimSpace(kindStr)); err == nil && parsed >= 0 {
+				kinds = append(kinds, parsed)
+			}
 		}
 	}
 
@@ -191,10 +220,32 @@ func handleGetNotesAPI(w http.ResponseWriter, r *http.Request) {
 		timeRange = "7d" // Default to 7 days
 	}
 
-	fmt.Printf("Fetching notes with limit: %d, offset: %d, kind: %d, search: %s, timeRange: %s\n",
-		limit, offset, kind, searchQuery, timeRange)
+	// Get tags filter (comma-separated)
+	tags := []string{}
+	if tagsStr := r.URL.Query().Get("tags"); tagsStr != "" {
+		tagsList := strings.Split(tagsStr, ",")
+		for _, tag := range tagsList {
+			if trimmed := strings.TrimSpace(tag); trimmed != "" {
+				tags = append(tags, trimmed)
+			}
+		}
+	}
 
-	notes, err := repository.GetNotesWithFilters(context.Background(), limit, offset, kind, searchQuery, timeRange)
+	// Get authors filter (comma-separated)
+	authors := []string{}
+	if authorsStr := r.URL.Query().Get("authors"); authorsStr != "" {
+		authorsList := strings.Split(authorsStr, ",")
+		for _, author := range authorsList {
+			if trimmed := strings.TrimSpace(author); trimmed != "" {
+				authors = append(authors, trimmed)
+			}
+		}
+	}
+
+	fmt.Printf("Fetching notes with limit: %d, offset: %d, kinds: %v, search: %s, timeRange: %s, tags: %v, authors: %v\n",
+		limit, offset, kinds, searchQuery, timeRange, tags, authors)
+
+	notes, err := repository.GetNotesWithFilters(context.Background(), limit, offset, kinds, searchQuery, timeRange, tags, authors)
 	if err != nil {
 		http.Error(w, "Error fetching notes: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -503,11 +554,14 @@ func handleTrendingNotesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Get kind filter
-	kind := 0 // 0 means all kinds
-	if kindStr := r.URL.Query().Get("kind"); kindStr != "" {
-		if parsed, err := strconv.Atoi(kindStr); err == nil && parsed >= 0 {
-			kind = parsed
+	// Get kinds filter (comma-separated)
+	kinds := []int{}
+	if kindsStr := r.URL.Query().Get("kinds"); kindsStr != "" {
+		kindsList := strings.Split(kindsStr, ",")
+		for _, kindStr := range kindsList {
+			if parsed, err := strconv.Atoi(strings.TrimSpace(kindStr)); err == nil && parsed >= 0 {
+				kinds = append(kinds, parsed)
+			}
 		}
 	}
 
@@ -528,11 +582,33 @@ func handleTrendingNotesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	log.Printf("🔍 [API] Fetching trending notes with limit: %d, offset: %d, kind: %d, search: %s, timeRange: %s, minTrendingScore: %f",
-		limit, offset, kind, searchQuery, timeRange, minTrendingScore)
+	// Get tags filter (comma-separated)
+	tags := []string{}
+	if tagsStr := r.URL.Query().Get("tags"); tagsStr != "" {
+		tagsList := strings.Split(tagsStr, ",")
+		for _, tag := range tagsList {
+			if trimmed := strings.TrimSpace(tag); trimmed != "" {
+				tags = append(tags, trimmed)
+			}
+		}
+	}
+
+	// Get authors filter (comma-separated)
+	authors := []string{}
+	if authorsStr := r.URL.Query().Get("authors"); authorsStr != "" {
+		authorsList := strings.Split(authorsStr, ",")
+		for _, author := range authorsList {
+			if trimmed := strings.TrimSpace(author); trimmed != "" {
+				authors = append(authors, trimmed)
+			}
+		}
+	}
+
+	log.Printf("🔍 [API] Fetching trending notes with limit: %d, offset: %d, kinds: %v, search: %s, timeRange: %s, minTrendingScore: %f, tags: %v, authors: %v",
+		limit, offset, kinds, searchQuery, timeRange, minTrendingScore, tags, authors)
 
 	// Fetch trending notes with filters
-	notes, err := scraper.GetTrendingNotesWithFilters(limit, offset, kind, searchQuery, timeRange, minTrendingScore)
+	notes, err := scraper.GetTrendingNotesWithFilters(limit, offset, kinds, searchQuery, timeRange, minTrendingScore, tags, authors)
 	if err != nil {
 		log.Printf("❌ [API] Error fetching trending notes: %v", err)
 		http.Error(w, "Error fetching trending notes: "+err.Error(), http.StatusInternalServerError)
@@ -572,11 +648,14 @@ func handleScrapedNotesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Get kind filter
-	kind := 0 // 0 means all kinds
-	if kindStr := r.URL.Query().Get("kind"); kindStr != "" {
-		if parsed, err := strconv.Atoi(kindStr); err == nil && parsed >= 0 {
-			kind = parsed
+	// Get kinds filter (comma-separated)
+	kinds := []int{}
+	if kindsStr := r.URL.Query().Get("kinds"); kindsStr != "" {
+		kindsList := strings.Split(kindsStr, ",")
+		for _, kindStr := range kindsList {
+			if parsed, err := strconv.Atoi(strings.TrimSpace(kindStr)); err == nil && parsed >= 0 {
+				kinds = append(kinds, parsed)
+			}
 		}
 	}
 
@@ -613,11 +692,33 @@ func handleScrapedNotesAPI(w http.ResponseWriter, r *http.Request) {
 		sortOrder = "created_at_desc" // Default sort order
 	}
 
-	log.Printf("🔍 [API] Fetching scraped notes with limit: %d, offset: %d, kind: %d, search: %s, since: %s, until: %s, minInteractionScore: %d, sort: %s",
-		limit, offset, kind, searchQuery, since.Format(time.RFC3339), until.Format(time.RFC3339), minInteractionScore, sortOrder)
+	// Get tags filter (comma-separated)
+	tags := []string{}
+	if tagsStr := r.URL.Query().Get("tags"); tagsStr != "" {
+		tagsList := strings.Split(tagsStr, ",")
+		for _, tag := range tagsList {
+			if trimmed := strings.TrimSpace(tag); trimmed != "" {
+				tags = append(tags, trimmed)
+			}
+		}
+	}
+
+	// Get authors filter (comma-separated)
+	authors := []string{}
+	if authorsStr := r.URL.Query().Get("authors"); authorsStr != "" {
+		authorsList := strings.Split(authorsStr, ",")
+		for _, author := range authorsList {
+			if trimmed := strings.TrimSpace(author); trimmed != "" {
+				authors = append(authors, trimmed)
+			}
+		}
+	}
+
+	log.Printf("🔍 [API] Fetching scraped notes with limit: %d, offset: %d, kinds: %v, search: %s, since: %s, until: %s, minInteractionScore: %d, sort: %s, tags: %v, authors: %v",
+		limit, offset, kinds, searchQuery, since.Format(time.RFC3339), until.Format(time.RFC3339), minInteractionScore, sortOrder, tags, authors)
 
 	// Fetch scraped notes with filters
-	notes, err := scraper.GetScrapedNotesWithFilters(limit, offset, kind, searchQuery, since, until, minInteractionScore, sortOrder)
+	notes, err := scraper.GetScrapedNotesWithFilters(limit, offset, kinds, searchQuery, since, until, minInteractionScore, sortOrder, tags, authors)
 	if err != nil {
 		log.Printf("❌ [API] Error fetching scraped notes: %v", err)
 		http.Error(w, "Error fetching scraped notes: "+err.Error(), http.StatusInternalServerError)
@@ -737,11 +838,22 @@ func handleTrendingTopAuthorsAPI(w http.ResponseWriter, r *http.Request) {
 	// Get search query for author names
 	searchQuery := r.URL.Query().Get("search")
 
-	log.Printf("🔍 Fetching trending top authors with limit: %d, offset: %d, time range: %s, minEngagementScore: %f, minNotesCount: %d, search: %s",
-		limit, offset, timeRange, minEngagementScore, minNotesCount, searchQuery)
+	// Get kinds filter (comma-separated) - for filtering authors by the kinds they post
+	kinds := []int{}
+	if kindsStr := r.URL.Query().Get("kinds"); kindsStr != "" {
+		kindsList := strings.Split(kindsStr, ",")
+		for _, kindStr := range kindsList {
+			if parsed, err := strconv.Atoi(strings.TrimSpace(kindStr)); err == nil && parsed >= 0 {
+				kinds = append(kinds, parsed)
+			}
+		}
+	}
+
+	log.Printf("🔍 Fetching trending top authors with limit: %d, offset: %d, time range: %s, minEngagementScore: %f, minNotesCount: %d, search: %s, kinds: %v",
+		limit, offset, timeRange, minEngagementScore, minNotesCount, searchQuery, kinds)
 
 	// Fetch trending top authors with filters
-	authors, err := repository.fetchTrendingTopAuthorsWithFilters(limit, offset, timeRange, minEngagementScore, minNotesCount, searchQuery)
+	authors, err := repository.fetchTrendingTopAuthorsWithFilters(limit, offset, timeRange, minEngagementScore, minNotesCount, searchQuery, kinds)
 	if err != nil {
 		log.Printf("❌ Error fetching trending top authors: %v", err)
 		http.Error(w, "Error fetching trending top authors: "+err.Error(), http.StatusInternalServerError)
@@ -761,4 +873,280 @@ func handleTrendingTopAuthorsAPI(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("📤 Sent trending top authors response with %d authors", len(authors))
+}
+
+// New search endpoints
+
+// handleSearchAPI handles comprehensive search across all note types
+func handleSearchAPI(w http.ResponseWriter, r *http.Request) {
+	log.Printf("🔍 [API] Search request received from %s", r.RemoteAddr)
+
+	// Get search query (required)
+	searchQuery := r.URL.Query().Get("q")
+	if searchQuery == "" {
+		http.Error(w, "Missing required 'q' parameter", http.StatusBadRequest)
+		return
+	}
+
+	// Get limit parameter
+	limit := 20
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	// Get offset parameter for pagination
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	// Get kinds filter (comma-separated)
+	kinds := []int{}
+	if kindsStr := r.URL.Query().Get("kinds"); kindsStr != "" {
+		kindsList := strings.Split(kindsStr, ",")
+		for _, kindStr := range kindsList {
+			if parsed, err := strconv.Atoi(strings.TrimSpace(kindStr)); err == nil && parsed >= 0 {
+				kinds = append(kinds, parsed)
+			}
+		}
+	}
+
+	// Get time range filter
+	timeRange := r.URL.Query().Get("time_range")
+	if timeRange == "" {
+		timeRange = "30d" // Default to 30 days
+	}
+
+	// Get tags filter (comma-separated)
+	tags := []string{}
+	if tagsStr := r.URL.Query().Get("tags"); tagsStr != "" {
+		tagsList := strings.Split(tagsStr, ",")
+		for _, tag := range tagsList {
+			if trimmed := strings.TrimSpace(tag); trimmed != "" {
+				tags = append(tags, trimmed)
+			}
+		}
+	}
+
+	// Get authors filter (comma-separated)
+	authors := []string{}
+	if authorsStr := r.URL.Query().Get("authors"); authorsStr != "" {
+		authorsList := strings.Split(authorsStr, ",")
+		for _, author := range authorsList {
+			if trimmed := strings.TrimSpace(author); trimmed != "" {
+				authors = append(authors, trimmed)
+			}
+		}
+	}
+
+	// Get search type
+	searchType := r.URL.Query().Get("type")
+	if searchType == "" {
+		searchType = "all" // Default to search all types
+	}
+
+	log.Printf("🔍 [API] Searching with query: %s, limit: %d, offset: %d, kinds: %v, timeRange: %s, tags: %v, authors: %v, type: %s",
+		searchQuery, limit, offset, kinds, timeRange, tags, authors, searchType)
+
+	// Perform search based on type
+	var results interface{}
+	var err error
+
+	switch searchType {
+	case "trending":
+		results, err = scraper.SearchTrendingNotes(searchQuery, limit, offset, kinds, timeRange, tags, authors)
+	case "viral":
+		results, err = scraper.SearchViralNotes(searchQuery, limit, offset, kinds, timeRange, tags, authors)
+	case "scraped":
+		results, err = scraper.SearchScrapedNotes(searchQuery, limit, offset, kinds, timeRange, tags, authors)
+	case "all":
+		results, err = scraper.SearchAllNotes(searchQuery, limit, offset, kinds, timeRange, tags, authors)
+	default:
+		http.Error(w, "Invalid search type. Must be one of: trending, viral, scraped, all", http.StatusBadRequest)
+		return
+	}
+
+	if err != nil {
+		log.Printf("❌ [API] Error performing search: %v", err)
+		http.Error(w, "Error performing search: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("✅ [API] Search completed successfully")
+
+	// Set content type header
+	w.Header().Set("Content-Type", "application/json")
+
+	// Return the results as JSON
+	if err := json.NewEncoder(w).Encode(results); err != nil {
+		log.Printf("❌ [API] Error encoding search response: %v", err)
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("📤 [API] Search response sent successfully")
+}
+
+// handleSearchAuthorsAPI handles search for authors
+func handleSearchAuthorsAPI(w http.ResponseWriter, r *http.Request) {
+	log.Printf("👥 [API] Author search request received from %s", r.RemoteAddr)
+
+	// Get search query (required)
+	searchQuery := r.URL.Query().Get("q")
+	if searchQuery == "" {
+		http.Error(w, "Missing required 'q' parameter", http.StatusBadRequest)
+		return
+	}
+
+	// Get limit parameter
+	limit := 20
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	// Get offset parameter for pagination
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	// Get time range filter
+	timeRange := r.URL.Query().Get("time_range")
+	if timeRange == "" {
+		timeRange = "30d" // Default to 30 days
+	}
+
+	// Get minimum engagement score filter
+	minEngagementScore := 0.0
+	if scoreStr := r.URL.Query().Get("min_engagement_score"); scoreStr != "" {
+		if parsed, err := strconv.ParseFloat(scoreStr, 64); err == nil && parsed >= 0 {
+			minEngagementScore = parsed
+		}
+	}
+
+	// Get minimum notes count filter
+	minNotesCount := 1
+	if countStr := r.URL.Query().Get("min_notes_count"); countStr != "" {
+		if parsed, err := strconv.Atoi(countStr); err == nil && parsed >= 0 {
+			minNotesCount = parsed
+		}
+	}
+
+	// Get kinds filter (comma-separated)
+	kinds := []int{}
+	if kindsStr := r.URL.Query().Get("kinds"); kindsStr != "" {
+		kindsList := strings.Split(kindsStr, ",")
+		for _, kindStr := range kindsList {
+			if parsed, err := strconv.Atoi(strings.TrimSpace(kindStr)); err == nil && parsed >= 0 {
+				kinds = append(kinds, parsed)
+			}
+		}
+	}
+
+	log.Printf("👥 [API] Searching authors with query: %s, limit: %d, offset: %d, timeRange: %s, minEngagementScore: %f, minNotesCount: %d, kinds: %v",
+		searchQuery, limit, offset, timeRange, minEngagementScore, minNotesCount, kinds)
+
+	// Perform author search
+	authors, err := repository.SearchAuthors(searchQuery, limit, offset, timeRange, minEngagementScore, minNotesCount, kinds)
+	if err != nil {
+		log.Printf("❌ [API] Error searching authors: %v", err)
+		http.Error(w, "Error searching authors: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("✅ [API] Author search completed successfully, found %d authors", len(authors))
+
+	// Set content type header
+	w.Header().Set("Content-Type", "application/json")
+
+	// Return the results as JSON
+	if err := json.NewEncoder(w).Encode(authors); err != nil {
+		log.Printf("❌ [API] Error encoding author search response: %v", err)
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("📤 [API] Author search response sent successfully")
+}
+
+// handleSearchTagsAPI handles search for popular tags
+func handleSearchTagsAPI(w http.ResponseWriter, r *http.Request) {
+	log.Printf("🏷️ [API] Tag search request received from %s", r.RemoteAddr)
+
+	// Get search query (optional)
+	searchQuery := r.URL.Query().Get("q")
+
+	// Get limit parameter
+	limit := 50
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	// Get offset parameter for pagination
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	// Get time range filter
+	timeRange := r.URL.Query().Get("time_range")
+	if timeRange == "" {
+		timeRange = "30d" // Default to 30 days
+	}
+
+	// Get kinds filter (comma-separated)
+	kinds := []int{}
+	if kindsStr := r.URL.Query().Get("kinds"); kindsStr != "" {
+		kindsList := strings.Split(kindsStr, ",")
+		for _, kindStr := range kindsList {
+			if parsed, err := strconv.Atoi(strings.TrimSpace(kindStr)); err == nil && parsed >= 0 {
+				kinds = append(kinds, parsed)
+			}
+		}
+	}
+
+	// Get minimum usage count filter
+	minUsageCount := 1
+	if countStr := r.URL.Query().Get("min_usage_count"); countStr != "" {
+		if parsed, err := strconv.Atoi(countStr); err == nil && parsed >= 0 {
+			minUsageCount = parsed
+		}
+	}
+
+	log.Printf("🏷️ [API] Searching tags with query: %s, limit: %d, offset: %d, timeRange: %s, kinds: %v, minUsageCount: %d",
+		searchQuery, limit, offset, timeRange, kinds, minUsageCount)
+
+	// Perform tag search
+	tags, err := repository.SearchTags(searchQuery, limit, offset, timeRange, kinds, minUsageCount)
+	if err != nil {
+		log.Printf("❌ [API] Error searching tags: %v", err)
+		http.Error(w, "Error searching tags: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("✅ [API] Tag search completed successfully, found %d tags", len(tags))
+
+	// Set content type header
+	w.Header().Set("Content-Type", "application/json")
+
+	// Return the results as JSON
+	if err := json.NewEncoder(w).Encode(tags); err != nil {
+		log.Printf("❌ [API] Error encoding tag search response: %v", err)
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("📤 [API] Tag search response sent successfully")
 }

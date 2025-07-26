@@ -235,6 +235,11 @@ func main() {
 	mux.HandleFunc("/api/sync-notes", handleSyncNotesAPI)
 	mux.HandleFunc("/ws", handleWebSocket)
 
+	// New search endpoints
+	mux.HandleFunc("/api/search", handleSearchAPI)
+	mux.HandleFunc("/api/search/authors", handleSearchAuthorsAPI)
+	mux.HandleFunc("/api/search/tags", handleSearchTagsAPI)
+
 	// Configure CORS
 	corsHandler := configureCORS(mux)
 

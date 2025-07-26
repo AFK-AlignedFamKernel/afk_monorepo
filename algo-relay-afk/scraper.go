@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/nbd-wtf/go-nostr"
 )
 
@@ -467,7 +468,7 @@ func (s *NoteScraper) GetScrapedNotes(limit int, kind int, since time.Time) ([]S
 }
 
 // GetViralNotesWithFilters retrieves viral notes with enhanced filtering and pagination
-func (s *NoteScraper) GetViralNotesWithFilters(limit int, offset int, kind int, searchQuery string, timeRange string, minViralScore float64) ([]ScrapedNote, error) {
+func (s *NoteScraper) GetViralNotesWithFilters(limit int, offset int, kinds []int, searchQuery string, timeRange string, minViralScore float64, tags []string, authors []string) ([]ScrapedNote, error) {
 	// Calculate the time cutoff based on timeRange
 	var timeCutoff time.Time
 	switch timeRange {
@@ -495,9 +496,9 @@ func (s *NoteScraper) GetViralNotesWithFilters(limit int, offset int, kind int, 
 		AND created_at >= $2
 	`
 
-	// Add kind filter if specified
-	if kind > 0 {
-		baseQuery += " AND kind = $3"
+	// Add kinds filter if specified
+	if len(kinds) > 0 {
+		baseQuery += " AND kind = ANY($3)"
 	}
 
 	// Add search filter if specified
@@ -505,24 +506,39 @@ func (s *NoteScraper) GetViralNotesWithFilters(limit int, offset int, kind int, 
 		baseQuery += " AND (content ILIKE $4 OR author_id ILIKE $4)"
 	}
 
+	// Add authors filter if specified
+	if len(authors) > 0 {
+		baseQuery += " AND author_id = ANY($5)"
+	}
+
 	// Add ordering and pagination
 	baseQuery += `
 		ORDER BY viral_score DESC, created_at DESC
-		LIMIT $5 OFFSET $6
+		LIMIT $6 OFFSET $7
 	`
 
 	// Execute the query with appropriate parameters
 	var rows *sql.Rows
 	var err error
 
-	if kind > 0 && searchQuery != "" {
+	if len(kinds) > 0 && searchQuery != "" && len(authors) > 0 {
 		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, kind, searchPattern, limit, offset)
-	} else if kind > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, kind, limit, offset)
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, pq.Array(kinds), searchPattern, pq.Array(authors), limit, offset)
+	} else if len(kinds) > 0 && searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, pq.Array(kinds), searchPattern, limit, offset)
+	} else if len(kinds) > 0 && len(authors) > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, pq.Array(kinds), pq.Array(authors), limit, offset)
+	} else if searchQuery != "" && len(authors) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, searchPattern, pq.Array(authors), limit, offset)
+	} else if len(kinds) > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, pq.Array(kinds), limit, offset)
 	} else if searchQuery != "" {
 		searchPattern := "%" + searchQuery + "%"
 		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, searchPattern, limit, offset)
+	} else if len(authors) > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, pq.Array(authors), limit, offset)
 	} else {
 		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, limit, offset)
 	}
@@ -550,7 +566,7 @@ func (s *NoteScraper) GetViralNotesWithFilters(limit int, offset int, kind int, 
 }
 
 // GetTrendingNotesWithFilters retrieves trending notes with enhanced filtering and pagination
-func (s *NoteScraper) GetTrendingNotesWithFilters(limit int, offset int, kind int, searchQuery string, timeRange string, minTrendingScore float64) ([]ScrapedNote, error) {
+func (s *NoteScraper) GetTrendingNotesWithFilters(limit int, offset int, kinds []int, searchQuery string, timeRange string, minTrendingScore float64, tags []string, authors []string) ([]ScrapedNote, error) {
 	// Calculate the time cutoff based on timeRange
 	var timeCutoff time.Time
 	switch timeRange {
@@ -578,9 +594,9 @@ func (s *NoteScraper) GetTrendingNotesWithFilters(limit int, offset int, kind in
 		AND created_at >= $2
 	`
 
-	// Add kind filter if specified
-	if kind > 0 {
-		baseQuery += " AND kind = $3"
+	// Add kinds filter if specified
+	if len(kinds) > 0 {
+		baseQuery += " AND kind = ANY($3)"
 	}
 
 	// Add search filter if specified
@@ -588,24 +604,39 @@ func (s *NoteScraper) GetTrendingNotesWithFilters(limit int, offset int, kind in
 		baseQuery += " AND (content ILIKE $4 OR author_id ILIKE $4)"
 	}
 
+	// Add authors filter if specified
+	if len(authors) > 0 {
+		baseQuery += " AND author_id = ANY($5)"
+	}
+
 	// Add ordering and pagination
 	baseQuery += `
 		ORDER BY trending_score DESC, created_at DESC
-		LIMIT $5 OFFSET $6
+		LIMIT $6 OFFSET $7
 	`
 
 	// Execute the query with appropriate parameters
 	var rows *sql.Rows
 	var err error
 
-	if kind > 0 && searchQuery != "" {
+	if len(kinds) > 0 && searchQuery != "" && len(authors) > 0 {
 		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, kind, searchPattern, limit, offset)
-	} else if kind > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, kind, limit, offset)
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, pq.Array(kinds), searchPattern, pq.Array(authors), limit, offset)
+	} else if len(kinds) > 0 && searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, pq.Array(kinds), searchPattern, limit, offset)
+	} else if len(kinds) > 0 && len(authors) > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, pq.Array(kinds), pq.Array(authors), limit, offset)
+	} else if searchQuery != "" && len(authors) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, searchPattern, pq.Array(authors), limit, offset)
+	} else if len(kinds) > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, pq.Array(kinds), limit, offset)
 	} else if searchQuery != "" {
 		searchPattern := "%" + searchQuery + "%"
 		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, searchPattern, limit, offset)
+	} else if len(authors) > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, pq.Array(authors), limit, offset)
 	} else {
 		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, limit, offset)
 	}
@@ -633,7 +664,7 @@ func (s *NoteScraper) GetTrendingNotesWithFilters(limit int, offset int, kind in
 }
 
 // GetScrapedNotesWithFilters retrieves scraped notes with enhanced filtering and pagination
-func (s *NoteScraper) GetScrapedNotesWithFilters(limit int, offset int, kind int, searchQuery string, since time.Time, until time.Time, minInteractionScore int, sortOrder string) ([]ScrapedNote, error) {
+func (s *NoteScraper) GetScrapedNotesWithFilters(limit int, offset int, kinds []int, searchQuery string, since time.Time, until time.Time, minInteractionScore int, sortOrder string, tags []string, authors []string) ([]ScrapedNote, error) {
 	// Build the base query
 	baseQuery := `
 		SELECT id, author_id, kind, content, raw_json, created_at, scraped_at,
@@ -643,14 +674,19 @@ func (s *NoteScraper) GetScrapedNotesWithFilters(limit int, offset int, kind int
 		AND interaction_score >= $3
 	`
 
-	// Add kind filter if specified
-	if kind > 0 {
-		baseQuery += " AND kind = $4"
+	// Add kinds filter if specified
+	if len(kinds) > 0 {
+		baseQuery += " AND kind = ANY($4)"
 	}
 
 	// Add search filter if specified
 	if searchQuery != "" {
 		baseQuery += " AND (content ILIKE $5 OR author_id ILIKE $5)"
+	}
+
+	// Add authors filter if specified
+	if len(authors) > 0 {
+		baseQuery += " AND author_id = ANY($6)"
 	}
 
 	// Add ordering based on sortOrder parameter
@@ -670,20 +706,30 @@ func (s *NoteScraper) GetScrapedNotesWithFilters(limit int, offset int, kind int
 	}
 
 	// Add pagination
-	baseQuery += " LIMIT $6 OFFSET $7"
+	baseQuery += " LIMIT $7 OFFSET $8"
 
 	// Execute the query with appropriate parameters
 	var rows *sql.Rows
 	var err error
 
-	if kind > 0 && searchQuery != "" {
+	if len(kinds) > 0 && searchQuery != "" && len(authors) > 0 {
 		searchPattern := "%" + searchQuery + "%"
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, kind, searchPattern, limit, offset)
-	} else if kind > 0 {
-		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, kind, limit, offset)
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, pq.Array(kinds), searchPattern, pq.Array(authors), limit, offset)
+	} else if len(kinds) > 0 && searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, pq.Array(kinds), searchPattern, limit, offset)
+	} else if len(kinds) > 0 && len(authors) > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, pq.Array(kinds), pq.Array(authors), limit, offset)
+	} else if searchQuery != "" && len(authors) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, searchPattern, pq.Array(authors), limit, offset)
+	} else if len(kinds) > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, pq.Array(kinds), limit, offset)
 	} else if searchQuery != "" {
 		searchPattern := "%" + searchQuery + "%"
 		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, searchPattern, limit, offset)
+	} else if len(authors) > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, pq.Array(authors), limit, offset)
 	} else {
 		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, limit, offset)
 	}
@@ -708,6 +754,308 @@ func (s *NoteScraper) GetScrapedNotesWithFilters(limit int, offset int, kind int
 	}
 
 	return notes, nil
+}
+
+// Search methods
+
+// SearchTrendingNotes searches for trending notes
+func (s *NoteScraper) SearchTrendingNotes(searchQuery string, limit int, offset int, kinds []int, timeRange string, tags []string, authors []string) ([]ScrapedNote, error) {
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour) // Default to 30 days
+	}
+
+	// Build the base query
+	baseQuery := `
+		SELECT id, author_id, kind, content, raw_json, 
+		       created_at, scraped_at, interaction_score, 
+		       viral_score, trending_score, is_viral, is_trending
+		FROM scraped_notes
+		WHERE (is_trending = true OR trending_score > 0)
+		AND created_at >= $1
+		AND (
+			content ILIKE $2 
+			OR author_id ILIKE $2
+			OR raw_json::text ILIKE $2
+		)
+	`
+
+	// Add kinds filter if specified
+	if len(kinds) > 0 {
+		baseQuery += " AND kind = ANY($3)"
+	}
+
+	// Add authors filter if specified
+	if len(authors) > 0 {
+		baseQuery += " AND author_id = ANY($4)"
+	}
+
+	// Add ordering and pagination
+	baseQuery += `
+		ORDER BY trending_score DESC, created_at DESC
+		LIMIT $5 OFFSET $6
+	`
+
+	// Execute the query with appropriate parameters
+	var rows *sql.Rows
+	var err error
+
+	if len(kinds) > 0 && len(authors) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, pq.Array(kinds), pq.Array(authors), limit, offset)
+	} else if len(kinds) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, pq.Array(kinds), limit, offset)
+	} else if len(authors) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, pq.Array(authors), limit, offset)
+	} else {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, limit, offset)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notes []ScrapedNote
+	for rows.Next() {
+		var note ScrapedNote
+		err := rows.Scan(
+			&note.ID, &note.AuthorID, &note.Kind, &note.Content, &note.RawJSON,
+			&note.CreatedAt, &note.ScrapedAt, &note.InteractionScore,
+			&note.ViralScore, &note.TrendingScore, &note.IsViral, &note.IsTrending,
+		)
+		if err != nil {
+			return nil, err
+		}
+		notes = append(notes, note)
+	}
+
+	return notes, nil
+}
+
+// SearchViralNotes searches for viral notes
+func (s *NoteScraper) SearchViralNotes(searchQuery string, limit int, offset int, kinds []int, timeRange string, tags []string, authors []string) ([]ScrapedNote, error) {
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour) // Default to 30 days
+	}
+
+	// Build the base query
+	baseQuery := `
+		SELECT id, author_id, kind, content, raw_json, 
+		       created_at, scraped_at, interaction_score, 
+		       viral_score, trending_score, is_viral, is_trending
+		FROM scraped_notes
+		WHERE (is_viral = true OR viral_score > 0)
+		AND created_at >= $1
+		AND (
+			content ILIKE $2 
+			OR author_id ILIKE $2
+			OR raw_json::text ILIKE $2
+		)
+	`
+
+	// Add kinds filter if specified
+	if len(kinds) > 0 {
+		baseQuery += " AND kind = ANY($3)"
+	}
+
+	// Add authors filter if specified
+	if len(authors) > 0 {
+		baseQuery += " AND author_id = ANY($4)"
+	}
+
+	// Add ordering and pagination
+	baseQuery += `
+		ORDER BY viral_score DESC, created_at DESC
+		LIMIT $5 OFFSET $6
+	`
+
+	// Execute the query with appropriate parameters
+	var rows *sql.Rows
+	var err error
+
+	if len(kinds) > 0 && len(authors) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, pq.Array(kinds), pq.Array(authors), limit, offset)
+	} else if len(kinds) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, pq.Array(kinds), limit, offset)
+	} else if len(authors) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, pq.Array(authors), limit, offset)
+	} else {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, limit, offset)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notes []ScrapedNote
+	for rows.Next() {
+		var note ScrapedNote
+		err := rows.Scan(
+			&note.ID, &note.AuthorID, &note.Kind, &note.Content, &note.RawJSON,
+			&note.CreatedAt, &note.ScrapedAt, &note.InteractionScore,
+			&note.ViralScore, &note.TrendingScore, &note.IsViral, &note.IsTrending,
+		)
+		if err != nil {
+			return nil, err
+		}
+		notes = append(notes, note)
+	}
+
+	return notes, nil
+}
+
+// SearchScrapedNotes searches for scraped notes
+func (s *NoteScraper) SearchScrapedNotes(searchQuery string, limit int, offset int, kinds []int, timeRange string, tags []string, authors []string) ([]ScrapedNote, error) {
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour) // Default to 30 days
+	}
+
+	// Build the base query
+	baseQuery := `
+		SELECT id, author_id, kind, content, raw_json, 
+		       created_at, scraped_at, interaction_score, 
+		       viral_score, trending_score, is_viral, is_trending
+		FROM scraped_notes
+		WHERE created_at >= $1
+		AND (
+			content ILIKE $2 
+			OR author_id ILIKE $2
+			OR raw_json::text ILIKE $2
+		)
+	`
+
+	// Add kinds filter if specified
+	if len(kinds) > 0 {
+		baseQuery += " AND kind = ANY($3)"
+	}
+
+	// Add authors filter if specified
+	if len(authors) > 0 {
+		baseQuery += " AND author_id = ANY($4)"
+	}
+
+	// Add ordering and pagination
+	baseQuery += `
+		ORDER BY created_at DESC
+		LIMIT $5 OFFSET $6
+	`
+
+	// Execute the query with appropriate parameters
+	var rows *sql.Rows
+	var err error
+
+	if len(kinds) > 0 && len(authors) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, pq.Array(kinds), pq.Array(authors), limit, offset)
+	} else if len(kinds) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, pq.Array(kinds), limit, offset)
+	} else if len(authors) > 0 {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, pq.Array(authors), limit, offset)
+	} else {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, timeCutoff, searchPattern, limit, offset)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notes []ScrapedNote
+	for rows.Next() {
+		var note ScrapedNote
+		err := rows.Scan(
+			&note.ID, &note.AuthorID, &note.Kind, &note.Content, &note.RawJSON,
+			&note.CreatedAt, &note.ScrapedAt, &note.InteractionScore,
+			&note.ViralScore, &note.TrendingScore, &note.IsViral, &note.IsTrending,
+		)
+		if err != nil {
+			return nil, err
+		}
+		notes = append(notes, note)
+	}
+
+	return notes, nil
+}
+
+// SearchAllNotes searches across all note types
+func (s *NoteScraper) SearchAllNotes(searchQuery string, limit int, offset int, kinds []int, timeRange string, tags []string, authors []string) (map[string]interface{}, error) {
+	// Search in trending notes
+	trendingNotes, err := s.SearchTrendingNotes(searchQuery, limit/3, 0, kinds, timeRange, tags, authors)
+	if err != nil {
+		return nil, err
+	}
+
+	// Search in viral notes
+	viralNotes, err := s.SearchViralNotes(searchQuery, limit/3, 0, kinds, timeRange, tags, authors)
+	if err != nil {
+		return nil, err
+	}
+
+	// Search in scraped notes
+	scrapedNotes, err := s.SearchScrapedNotes(searchQuery, limit/3, 0, kinds, timeRange, tags, authors)
+	if err != nil {
+		return nil, err
+	}
+
+	// Combine results
+	result := map[string]interface{}{
+		"trending": trendingNotes,
+		"viral":    viralNotes,
+		"scraped":  scrapedNotes,
+		"total":    len(trendingNotes) + len(viralNotes) + len(scrapedNotes),
+	}
+
+	return result, nil
 }
 
 // StartDataSetupCron starts the cron job for comprehensive data setup and import
