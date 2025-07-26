@@ -12,6 +12,7 @@ import ChannelFeed from "../Nostr/Channel/ChannelFeed";
 import ChatScreen from "../Bitchat/ChatScreen";
 import AlgoFeed from "../Nostr/feed/AlgoFeed";
 import AdvancedAlgoFeed from "../Nostr/feed/AdvancedAlgoFeed";
+import MainNostrFeed from "../Nostr/feed/MainNostrFeed";
 
 export default function DiscoverComponent() {
 
@@ -85,8 +86,8 @@ export default function DiscoverComponent() {
           <div
           // className="flex flex-row gap-4"
           >
-            {/* <AlgoFeed /> */}
-            <AdvancedAlgoFeed />
+            <MainNostrFeed />
+            {/* <AdvancedAlgoFeed /> */}
             {/* <FeedTabs className="w-full" /> */}
           </div>
         )}
