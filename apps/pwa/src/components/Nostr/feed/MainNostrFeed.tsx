@@ -65,6 +65,11 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
 
   // Scroll container ref for infinite scroll
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-reload state
+  const [isAutoReloading, setIsAutoReloading] = useState(false);
+  const [showReloadIndicator, setShowReloadIndicator] = useState(false);
+  const lastScrollTop = useRef(0);
 
   // Store state
   const {
@@ -180,19 +185,49 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     return () => clearInterval(interval);
   }, [enableRealTime, fetchCurrentTabData]);
 
-  // Infinite scroll handler
+  // Auto-reload handler
+  const handleAutoReload = useCallback(async () => {
+    if (isAutoReloading || loading) return;
+    
+    setIsAutoReloading(true);
+    setShowReloadIndicator(true);
+    
+    try {
+      logClickedEvent('algo_feed_auto_reload', 'scroll_to_top', activeTab);
+      resetPagination();
+      await fetchCurrentTabData(false);
+    } catch (err) {
+      console.error('Auto-reload error:', err);
+    } finally {
+      setIsAutoReloading(false);
+      // Hide indicator after a short delay
+      setTimeout(() => setShowReloadIndicator(false), 2000);
+    }
+  }, [isAutoReloading, loading, activeTab, fetchCurrentTabData, resetPagination]);
+
+  // Scroll handler for infinite scroll and auto-reload
   const handleScroll = useCallback(() => {
-    if (!scrollContainerRef.current || loadingMore || !hasMore) return;
+    if (!scrollContainerRef.current) return;
 
     const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-    const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
-
-    if (scrollPercentage > 0.8) {
-      // Load more content when user scrolls to 80% of the container
-      setOffset(trendingNotes.length + viralNotes.length + scrapedNotes.length + topAuthors.length + trendingTopAuthors.length);
-      fetchCurrentTabData(true);
+    
+    // Auto-reload when scrolling to top (pull-to-refresh behavior)
+    if (scrollTop <= 0 && lastScrollTop.current > 0 && !isAutoReloading) {
+      handleAutoReload();
     }
-  }, [loadingMore, hasMore, fetchCurrentTabData, setOffset, trendingNotes.length, viralNotes.length, scrapedNotes.length, topAuthors.length, trendingTopAuthors.length]);
+    
+    // Infinite scroll when scrolling to bottom
+    if (!loadingMore && hasMore) {
+      const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+      if (scrollPercentage > 0.8) {
+        // Load more content when user scrolls to 80% of the container
+        setOffset(trendingNotes.length + viralNotes.length + scrapedNotes.length + topAuthors.length + trendingTopAuthors.length);
+        fetchCurrentTabData(true);
+      }
+    }
+    
+    lastScrollTop.current = scrollTop;
+  }, [loadingMore, hasMore, fetchCurrentTabData, setOffset, trendingNotes.length, viralNotes.length, scrapedNotes.length, topAuthors.length, trendingTopAuthors.length, isAutoReloading, handleAutoReload]);
 
   // Add scroll event listener
   useEffect(() => {
@@ -666,6 +701,31 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
         ref={scrollContainerRef}
         className={styles['algo-feed__content-scrollable']}
       >
+        {/* Auto-reload indicator */}
+        {showReloadIndicator && (
+          <div className={styles['algo-feed__auto-reload-indicator']}>
+            <div className={styles['algo-feed__auto-reload-content']}>
+              <svg 
+                className={`${styles['algo-feed__auto-reload-icon']} ${isAutoReloading ? styles['algo-feed__auto-reload-icon--spinning'] : ''}`}
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M23 4v6h-6"/>
+                <path d="M1 20v-6h6"/>
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+              </svg>
+              <span className={styles['algo-feed__auto-reload-text']}>
+                {isAutoReloading ? 'Refreshing...' : 'Refreshed!'}
+              </span>
+            </div>
+          </div>
+        )}
+
         {activeTab === 'top-authors' ? renderTopAuthors() : 
          activeTab === 'trending-top-authors' ? renderTrendingTopAuthors() : 
          renderNotes(getCurrentData())}

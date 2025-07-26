@@ -2102,3 +2102,79 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     }
   }
 }
+
+// Auto-reload indicator
+.algo-feed__auto-reload-indicator {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg-primary);
+  border-bottom: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: slideDown 0.3s ease-out;
+}
+
+.algo-feed__auto-reload-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.algo-feed__auto-reload-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--primary-color);
+  
+  &--spinning {
+    animation: spin 1s linear infinite;
+  }
+}
+
+.algo-feed__auto-reload-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Mobile responsive auto-reload
+@media (max-width: 768px) {
+  .algo-feed__auto-reload-indicator {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .algo-feed__auto-reload-content {
+    padding: 0.375rem 0.75rem;
+  }
+  
+  .algo-feed__auto-reload-text {
+    font-size: 0.8rem;
+  }
+}
