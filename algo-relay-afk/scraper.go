@@ -466,6 +466,250 @@ func (s *NoteScraper) GetScrapedNotes(limit int, kind int, since time.Time) ([]S
 	return notes, nil
 }
 
+// GetViralNotesWithFilters retrieves viral notes with enhanced filtering and pagination
+func (s *NoteScraper) GetViralNotesWithFilters(limit int, offset int, kind int, searchQuery string, timeRange string, minViralScore float64) ([]ScrapedNote, error) {
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour) // Default to 7 days
+	}
+
+	// Build the base query
+	baseQuery := `
+		SELECT id, author_id, kind, content, raw_json, 
+		       created_at, scraped_at, interaction_score, 
+		       viral_score, trending_score, is_viral, is_trending
+		FROM scraped_notes
+		WHERE (is_viral = true OR viral_score > $1)
+		AND created_at >= $2
+	`
+
+	// Add kind filter if specified
+	if kind > 0 {
+		baseQuery += " AND kind = $3"
+	}
+
+	// Add search filter if specified
+	if searchQuery != "" {
+		baseQuery += " AND (content ILIKE $4 OR author_id ILIKE $4)"
+	}
+
+	// Add ordering and pagination
+	baseQuery += `
+		ORDER BY viral_score DESC, created_at DESC
+		LIMIT $5 OFFSET $6
+	`
+
+	// Execute the query with appropriate parameters
+	var rows *sql.Rows
+	var err error
+
+	if kind > 0 && searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, kind, searchPattern, limit, offset)
+	} else if kind > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, kind, limit, offset)
+	} else if searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, searchPattern, limit, offset)
+	} else {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minViralScore, timeCutoff, limit, offset)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notes []ScrapedNote
+	for rows.Next() {
+		var note ScrapedNote
+		err := rows.Scan(
+			&note.ID, &note.AuthorID, &note.Kind, &note.Content, &note.RawJSON,
+			&note.CreatedAt, &note.ScrapedAt, &note.InteractionScore,
+			&note.ViralScore, &note.TrendingScore, &note.IsViral, &note.IsTrending,
+		)
+		if err != nil {
+			return nil, err
+		}
+		notes = append(notes, note)
+	}
+
+	return notes, nil
+}
+
+// GetTrendingNotesWithFilters retrieves trending notes with enhanced filtering and pagination
+func (s *NoteScraper) GetTrendingNotesWithFilters(limit int, offset int, kind int, searchQuery string, timeRange string, minTrendingScore float64) ([]ScrapedNote, error) {
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour) // Default to 7 days
+	}
+
+	// Build the base query
+	baseQuery := `
+		SELECT id, author_id, kind, content, raw_json, 
+		       created_at, scraped_at, interaction_score, 
+		       viral_score, trending_score, is_viral, is_trending
+		FROM scraped_notes
+		WHERE (is_trending = true OR trending_score > $1)
+		AND created_at >= $2
+	`
+
+	// Add kind filter if specified
+	if kind > 0 {
+		baseQuery += " AND kind = $3"
+	}
+
+	// Add search filter if specified
+	if searchQuery != "" {
+		baseQuery += " AND (content ILIKE $4 OR author_id ILIKE $4)"
+	}
+
+	// Add ordering and pagination
+	baseQuery += `
+		ORDER BY trending_score DESC, created_at DESC
+		LIMIT $5 OFFSET $6
+	`
+
+	// Execute the query with appropriate parameters
+	var rows *sql.Rows
+	var err error
+
+	if kind > 0 && searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, kind, searchPattern, limit, offset)
+	} else if kind > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, kind, limit, offset)
+	} else if searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, searchPattern, limit, offset)
+	} else {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, minTrendingScore, timeCutoff, limit, offset)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notes []ScrapedNote
+	for rows.Next() {
+		var note ScrapedNote
+		err := rows.Scan(
+			&note.ID, &note.AuthorID, &note.Kind, &note.Content, &note.RawJSON,
+			&note.CreatedAt, &note.ScrapedAt, &note.InteractionScore,
+			&note.ViralScore, &note.TrendingScore, &note.IsViral, &note.IsTrending,
+		)
+		if err != nil {
+			return nil, err
+		}
+		notes = append(notes, note)
+	}
+
+	return notes, nil
+}
+
+// GetScrapedNotesWithFilters retrieves scraped notes with enhanced filtering and pagination
+func (s *NoteScraper) GetScrapedNotesWithFilters(limit int, offset int, kind int, searchQuery string, since time.Time, until time.Time, minInteractionScore int, sortOrder string) ([]ScrapedNote, error) {
+	// Build the base query
+	baseQuery := `
+		SELECT id, author_id, kind, content, raw_json, created_at, scraped_at,
+		       interaction_score, viral_score, trending_score, is_viral, is_trending
+		FROM scraped_notes
+		WHERE created_at >= $1 AND created_at <= $2
+		AND interaction_score >= $3
+	`
+
+	// Add kind filter if specified
+	if kind > 0 {
+		baseQuery += " AND kind = $4"
+	}
+
+	// Add search filter if specified
+	if searchQuery != "" {
+		baseQuery += " AND (content ILIKE $5 OR author_id ILIKE $5)"
+	}
+
+	// Add ordering based on sortOrder parameter
+	switch sortOrder {
+	case "created_at_asc":
+		baseQuery += " ORDER BY created_at ASC"
+	case "created_at_desc":
+		baseQuery += " ORDER BY created_at DESC"
+	case "interaction_score_desc":
+		baseQuery += " ORDER BY interaction_score DESC"
+	case "viral_score_desc":
+		baseQuery += " ORDER BY viral_score DESC"
+	case "trending_score_desc":
+		baseQuery += " ORDER BY trending_score DESC"
+	default:
+		baseQuery += " ORDER BY created_at DESC" // Default sort order
+	}
+
+	// Add pagination
+	baseQuery += " LIMIT $6 OFFSET $7"
+
+	// Execute the query with appropriate parameters
+	var rows *sql.Rows
+	var err error
+
+	if kind > 0 && searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, kind, searchPattern, limit, offset)
+	} else if kind > 0 {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, kind, limit, offset)
+	} else if searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, searchPattern, limit, offset)
+	} else {
+		rows, err = s.db.QueryContext(context.Background(), baseQuery, since, until, minInteractionScore, limit, offset)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notes []ScrapedNote
+	for rows.Next() {
+		var note ScrapedNote
+		err := rows.Scan(
+			&note.ID, &note.AuthorID, &note.Kind, &note.Content, &note.RawJSON,
+			&note.CreatedAt, &note.ScrapedAt, &note.InteractionScore,
+			&note.ViralScore, &note.TrendingScore, &note.IsViral, &note.IsTrending,
+		)
+		if err != nil {
+			return nil, err
+		}
+		notes = append(notes, note)
+	}
+
+	return notes, nil
+}
+
 // StartDataSetupCron starts the cron job for comprehensive data setup and import
 func (s *NoteScraper) StartDataSetupCron() {
 	// Run data setup every 6 hours

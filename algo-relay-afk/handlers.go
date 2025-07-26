@@ -60,16 +60,33 @@ func handleTopAuthorsAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch top interacted authors
-	authors, err := repository.fetchTopInteractedAuthors(pubkey)
+	// Get limit parameter
+	limit := 35
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	// Get offset parameter for pagination
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	// Get time range parameter
+	timeRange := r.URL.Query().Get("time_range")
+	if timeRange == "" {
+		timeRange = "30d" // Default to 30 days
+	}
+
+	// Fetch top interacted authors with pagination
+	authors, err := repository.fetchTopInteractedAuthorsWithPagination(pubkey, limit, offset, timeRange)
 	if err != nil {
 		http.Error(w, "Error fetching top authors: "+err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	// Limit to top 15 authors
-	if len(authors) > 35 {
-		authors = authors[:35]
 	}
 
 	// Set content type header
@@ -83,22 +100,51 @@ func handleTopAuthorsAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleViralNotesAPI(w http.ResponseWriter, r *http.Request) {
-
-	limit := r.URL.Query().Get("limit")
-	if limit == "" {
-		limit = "10"
+	// Get limit parameter
+	limit := 10
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+			limit = parsed
+		}
 	}
 
-	fmt.Println("limit", limit)
-
-	limitInt, err := strconv.Atoi(limit)
-	if err != nil {
-		http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
-		return
+	// Get offset parameter for pagination
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
 	}
 
-	notes, err := repository.GetNotes(context.Background(), limitInt)
-	fmt.Println("notes", notes)
+	// Get kind filter
+	kind := 0 // 0 means all kinds
+	if kindStr := r.URL.Query().Get("kind"); kindStr != "" {
+		if parsed, err := strconv.Atoi(kindStr); err == nil && parsed >= 0 {
+			kind = parsed
+		}
+	}
+
+	// Get search query
+	searchQuery := r.URL.Query().Get("search")
+
+	// Get time range filter
+	timeRange := r.URL.Query().Get("time_range")
+	if timeRange == "" {
+		timeRange = "7d" // Default to 7 days
+	}
+
+	// Get minimum viral score filter
+	minViralScore := 0.0
+	if scoreStr := r.URL.Query().Get("min_viral_score"); scoreStr != "" {
+		if parsed, err := strconv.ParseFloat(scoreStr, 64); err == nil && parsed >= 0 {
+			minViralScore = parsed
+		}
+	}
+
+	fmt.Printf("Fetching viral notes with limit: %d, offset: %d, kind: %d, search: %s, timeRange: %s, minViralScore: %f\n",
+		limit, offset, kind, searchQuery, timeRange, minViralScore)
+
+	notes, err := scraper.GetViralNotesWithFilters(limit, offset, kind, searchQuery, timeRange, minViralScore)
 	if err != nil {
 		http.Error(w, "Error fetching viral notes: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -112,24 +158,45 @@ func handleViralNotesAPI(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGetNotesAPI(w http.ResponseWriter, r *http.Request) {
-
-	limit := r.URL.Query().Get("limit")
-	if limit == "" {
-		limit = "10"
+	// Get limit parameter
+	limit := 10
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+			limit = parsed
+		}
 	}
 
-	fmt.Println("limit", limit)
-
-	limitInt, err := strconv.Atoi(limit)
-	if err != nil {
-		http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
-		return
+	// Get offset parameter for pagination
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
 	}
 
-	notes, err := repository.GetNotes(context.Background(), limitInt)
-	fmt.Println("notes", notes)
+	// Get kind filter
+	kind := 0 // 0 means all kinds
+	if kindStr := r.URL.Query().Get("kind"); kindStr != "" {
+		if parsed, err := strconv.Atoi(kindStr); err == nil && parsed >= 0 {
+			kind = parsed
+		}
+	}
+
+	// Get search query
+	searchQuery := r.URL.Query().Get("search")
+
+	// Get time range filter
+	timeRange := r.URL.Query().Get("time_range")
+	if timeRange == "" {
+		timeRange = "7d" // Default to 7 days
+	}
+
+	fmt.Printf("Fetching notes with limit: %d, offset: %d, kind: %d, search: %s, timeRange: %s\n",
+		limit, offset, kind, searchQuery, timeRange)
+
+	notes, err := repository.GetNotesWithFilters(context.Background(), limit, offset, kind, searchQuery, timeRange)
 	if err != nil {
-		http.Error(w, "Error fetching viral notes: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Error fetching notes: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -420,20 +487,52 @@ func handleViralNotesScraperAPI(w http.ResponseWriter, r *http.Request) {
 func handleTrendingNotesAPI(w http.ResponseWriter, r *http.Request) {
 	log.Printf("📡 [API] Trending notes request received from %s", r.RemoteAddr)
 
-	// Get limit from query parameter, default to 20
+	// Get limit parameter, default to 20
 	limit := 20
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
-		if parsed, err := fmt.Sscanf(limitStr, "%d", &limit); parsed != 1 || err != nil {
-			log.Printf("❌ [API] Invalid limit parameter: %s", limitStr)
-			http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
-			return
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+			limit = parsed
 		}
 	}
 
-	log.Printf("🔍 [API] Fetching trending notes with limit: %d", limit)
+	// Get offset parameter for pagination
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
 
-	// Fetch trending notes
-	notes, err := scraper.GetTrendingNotes(limit)
+	// Get kind filter
+	kind := 0 // 0 means all kinds
+	if kindStr := r.URL.Query().Get("kind"); kindStr != "" {
+		if parsed, err := strconv.Atoi(kindStr); err == nil && parsed >= 0 {
+			kind = parsed
+		}
+	}
+
+	// Get search query
+	searchQuery := r.URL.Query().Get("search")
+
+	// Get time range filter
+	timeRange := r.URL.Query().Get("time_range")
+	if timeRange == "" {
+		timeRange = "7d" // Default to 7 days
+	}
+
+	// Get minimum trending score filter
+	minTrendingScore := 0.0
+	if scoreStr := r.URL.Query().Get("min_trending_score"); scoreStr != "" {
+		if parsed, err := strconv.ParseFloat(scoreStr, 64); err == nil && parsed >= 0 {
+			minTrendingScore = parsed
+		}
+	}
+
+	log.Printf("🔍 [API] Fetching trending notes with limit: %d, offset: %d, kind: %d, search: %s, timeRange: %s, minTrendingScore: %f",
+		limit, offset, kind, searchQuery, timeRange, minTrendingScore)
+
+	// Fetch trending notes with filters
+	notes, err := scraper.GetTrendingNotesWithFilters(limit, offset, kind, searchQuery, timeRange, minTrendingScore)
 	if err != nil {
 		log.Printf("❌ [API] Error fetching trending notes: %v", err)
 		http.Error(w, "Error fetching trending notes: "+err.Error(), http.StatusInternalServerError)
@@ -457,24 +556,34 @@ func handleTrendingNotesAPI(w http.ResponseWriter, r *http.Request) {
 
 // handleScrapedNotesAPI handles requests for scraped notes
 func handleScrapedNotesAPI(w http.ResponseWriter, r *http.Request) {
-	// Get parameters from query
+	// Get limit parameter
 	limit := 50
 	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
-		if parsed, err := fmt.Sscanf(limitStr, "%d", &limit); parsed != 1 || err != nil {
-			http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
-			return
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+			limit = parsed
 		}
 	}
 
+	// Get offset parameter for pagination
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	// Get kind filter
 	kind := 0 // 0 means all kinds
 	if kindStr := r.URL.Query().Get("kind"); kindStr != "" {
-		if parsed, err := fmt.Sscanf(kindStr, "%d", &kind); parsed != 1 || err != nil {
-			http.Error(w, "Invalid kind parameter", http.StatusBadRequest)
-			return
+		if parsed, err := strconv.Atoi(kindStr); err == nil && parsed >= 0 {
+			kind = parsed
 		}
 	}
 
-	// Default to last 24 hours
+	// Get search query
+	searchQuery := r.URL.Query().Get("search")
+
+	// Get since parameter (default to last 24 hours)
 	since := time.Now().Add(-24 * time.Hour)
 	if sinceStr := r.URL.Query().Get("since"); sinceStr != "" {
 		if parsed, err := time.Parse(time.RFC3339, sinceStr); err == nil {
@@ -482,21 +591,52 @@ func handleScrapedNotesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Fetch scraped notes
-	notes, err := scraper.GetScrapedNotes(limit, kind, since)
+	// Get until parameter (default to now)
+	until := time.Now()
+	if untilStr := r.URL.Query().Get("until"); untilStr != "" {
+		if parsed, err := time.Parse(time.RFC3339, untilStr); err == nil {
+			until = parsed
+		}
+	}
+
+	// Get minimum interaction score filter
+	minInteractionScore := 0
+	if scoreStr := r.URL.Query().Get("min_interaction_score"); scoreStr != "" {
+		if parsed, err := strconv.Atoi(scoreStr); err == nil && parsed >= 0 {
+			minInteractionScore = parsed
+		}
+	}
+
+	// Get sort order
+	sortOrder := r.URL.Query().Get("sort")
+	if sortOrder == "" {
+		sortOrder = "created_at_desc" // Default sort order
+	}
+
+	log.Printf("🔍 [API] Fetching scraped notes with limit: %d, offset: %d, kind: %d, search: %s, since: %s, until: %s, minInteractionScore: %d, sort: %s",
+		limit, offset, kind, searchQuery, since.Format(time.RFC3339), until.Format(time.RFC3339), minInteractionScore, sortOrder)
+
+	// Fetch scraped notes with filters
+	notes, err := scraper.GetScrapedNotesWithFilters(limit, offset, kind, searchQuery, since, until, minInteractionScore, sortOrder)
 	if err != nil {
+		log.Printf("❌ [API] Error fetching scraped notes: %v", err)
 		http.Error(w, "Error fetching scraped notes: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("✅ [API] Successfully fetched %d scraped notes", len(notes))
 
 	// Set content type header
 	w.Header().Set("Content-Type", "application/json")
 
 	// Return the notes as JSON
 	if err := json.NewEncoder(w).Encode(notes); err != nil {
+		log.Printf("❌ [API] Error encoding response: %v", err)
 		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("📤 [API] Scraped notes response sent successfully")
 }
 
 // handleTriggerDataSetupAPI triggers the comprehensive data setup manually
@@ -557,15 +697,19 @@ func handleTrendingTopAuthorsAPI(w http.ResponseWriter, r *http.Request) {
 	log.Printf("📊 Trending top authors API called")
 
 	// Get limit parameter
-	limit := r.URL.Query().Get("limit")
-	if limit == "" {
-		limit = "20"
+	limit := 20
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+			limit = parsed
+		}
 	}
 
-	limitInt, err := strconv.Atoi(limit)
-	if err != nil {
-		http.Error(w, "Invalid limit parameter", http.StatusBadRequest)
-		return
+	// Get offset parameter for pagination
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
 	}
 
 	// Get time range parameter (default: 7 days)
@@ -574,10 +718,30 @@ func handleTrendingTopAuthorsAPI(w http.ResponseWriter, r *http.Request) {
 		timeRange = "7d"
 	}
 
-	log.Printf("🔍 Fetching trending top authors with limit: %d, time range: %s", limitInt, timeRange)
+	// Get minimum engagement score filter
+	minEngagementScore := 0.0
+	if scoreStr := r.URL.Query().Get("min_engagement_score"); scoreStr != "" {
+		if parsed, err := strconv.ParseFloat(scoreStr, 64); err == nil && parsed >= 0 {
+			minEngagementScore = parsed
+		}
+	}
 
-	// Fetch trending top authors
-	authors, err := repository.fetchTrendingTopAuthors(limitInt, timeRange)
+	// Get minimum notes count filter
+	minNotesCount := 1
+	if countStr := r.URL.Query().Get("min_notes_count"); countStr != "" {
+		if parsed, err := strconv.Atoi(countStr); err == nil && parsed >= 0 {
+			minNotesCount = parsed
+		}
+	}
+
+	// Get search query for author names
+	searchQuery := r.URL.Query().Get("search")
+
+	log.Printf("🔍 Fetching trending top authors with limit: %d, offset: %d, time range: %s, minEngagementScore: %f, minNotesCount: %d, search: %s",
+		limit, offset, timeRange, minEngagementScore, minNotesCount, searchQuery)
+
+	// Fetch trending top authors with filters
+	authors, err := repository.fetchTrendingTopAuthorsWithFilters(limit, offset, timeRange, minEngagementScore, minNotesCount, searchQuery)
 	if err != nil {
 		log.Printf("❌ Error fetching trending top authors: %v", err)
 		http.Error(w, "Error fetching trending top authors: "+err.Error(), http.StatusInternalServerError)

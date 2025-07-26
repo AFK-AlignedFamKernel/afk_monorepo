@@ -979,3 +979,371 @@ func (r *NostrRepository) fetchTrendingTopAuthors(limit int, timeRange string) (
 	log.Printf("Fetched trending top authors in %v (time range: %s, limit: %d)", time.Since(start), timeRange, limit)
 	return authors, nil
 }
+
+// fetchTopInteractedAuthorsWithPagination fetches top interacted authors with pagination and time range
+func (r *NostrRepository) fetchTopInteractedAuthorsWithPagination(userID string, limit int, offset int, timeRange string) ([]TopAuthor, error) {
+	start := time.Now()
+
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour) // Default to 30 days
+	}
+
+	query := `
+		WITH user_interactions AS (
+			SELECT DISTINCT
+				CASE 
+					WHEN r.author_id = $1 THEN r.target_author_id
+					WHEN c.author_id = $1 THEN c.target_author_id
+					WHEN z.author_id = $1 THEN z.target_author_id
+					ELSE NULL
+				END as interacted_author_id,
+				CASE 
+					WHEN r.author_id = $1 THEN r.created_at
+					WHEN c.author_id = $1 THEN c.created_at
+					WHEN z.author_id = $1 THEN z.created_at
+					ELSE NULL
+				END as interaction_time
+			FROM (
+				SELECT author_id, target_author_id, created_at
+				FROM reactions
+				WHERE author_id = $1 AND created_at >= $2
+				UNION ALL
+				SELECT author_id, target_author_id, created_at
+				FROM comments
+				WHERE author_id = $1 AND created_at >= $2
+				UNION ALL
+				SELECT author_id, target_author_id, created_at
+				FROM zaps
+				WHERE author_id = $1 AND created_at >= $2
+			) AS combined_interactions
+		),
+		author_interaction_counts AS (
+			SELECT 
+				interacted_author_id,
+				COUNT(*) as interaction_count,
+				MAX(interaction_time) as last_interaction
+			FROM user_interactions
+			WHERE interacted_author_id IS NOT NULL
+			GROUP BY interacted_author_id
+		)
+		SELECT 
+			aic.interacted_author_id,
+			aic.interaction_count,
+			EXTRACT(EPOCH FROM aic.last_interaction)::bigint as last_interaction_timestamp,
+			COALESCE(ps.settings->>'name', '') as name,
+			COALESCE(ps.settings->>'picture', '') as picture
+		FROM author_interaction_counts aic
+		LEFT JOIN pubkey_settings ps ON aic.interacted_author_id = ps.pubkey
+		ORDER BY aic.interaction_count DESC, aic.last_interaction DESC
+		LIMIT $3 OFFSET $4
+	`
+
+	rows, err := r.db.QueryContext(context.Background(), query, userID, timeCutoff, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var authors []TopAuthor
+	for rows.Next() {
+		var authorID, name, picture string
+		var interactionCount int
+		var lastInteractionTimestamp int64
+
+		if err := rows.Scan(&authorID, &interactionCount, &lastInteractionTimestamp, &name, &picture); err != nil {
+			return nil, err
+		}
+
+		authors = append(authors, TopAuthor{
+			Pubkey:           authorID,
+			Name:             name,
+			Picture:          picture,
+			InteractionCount: interactionCount,
+			LastInteraction:  lastInteractionTimestamp,
+		})
+	}
+
+	log.Printf("Fetched top interacted authors with pagination in %v (user: %s, limit: %d, offset: %d, timeRange: %s)",
+		time.Since(start), userID, limit, offset, timeRange)
+	return authors, nil
+}
+
+// GetNotesWithFilters retrieves notes with enhanced filtering and pagination
+func (r *NostrRepository) GetNotesWithFilters(ctx context.Context, limit int, offset int, kind int, searchQuery string, timeRange string) ([]FeedNote, error) {
+	start := time.Now()
+
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour) // Default to 7 days
+	}
+
+	// Build the base query
+	baseQuery := `
+		SELECT 
+			n.id, n.author_id, n.kind, n.content, n.created_at,
+			COALESCE(r_count.reaction_count, 0) as reaction_count,
+			COALESCE(c_count.comment_count, 0) as comment_count,
+			COALESCE(z_count.zap_count, 0) as zap_count
+		FROM notes n
+		LEFT JOIN (
+			SELECT note_id, COUNT(*) as reaction_count
+			FROM reactions
+			WHERE created_at >= $1
+			GROUP BY note_id
+		) r_count ON n.id = r_count.note_id
+		LEFT JOIN (
+			SELECT note_id, COUNT(*) as comment_count
+			FROM comments
+			WHERE created_at >= $1
+			GROUP BY note_id
+		) c_count ON n.id = c_count.note_id
+		LEFT JOIN (
+			SELECT note_id, COUNT(*) as zap_count
+			FROM zaps
+			WHERE created_at >= $1
+			GROUP BY note_id
+		) z_count ON n.id = z_count.note_id
+		WHERE n.created_at >= $1
+	`
+
+	// Add kind filter if specified
+	if kind > 0 {
+		baseQuery += " AND n.kind = $2"
+	}
+
+	// Add search filter if specified
+	if searchQuery != "" {
+		baseQuery += " AND (n.content ILIKE $3 OR n.author_id ILIKE $3)"
+	}
+
+	// Add ordering and pagination
+	baseQuery += `
+		ORDER BY n.created_at DESC
+		LIMIT $4 OFFSET $5
+	`
+
+	// Execute the query with appropriate parameters
+	var rows *sql.Rows
+	var err error
+
+	if kind > 0 && searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, kind, searchPattern, limit, offset)
+	} else if kind > 0 {
+		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, kind, limit, offset)
+	} else if searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, searchPattern, limit, offset)
+	} else {
+		rows, err = r.db.QueryContext(ctx, baseQuery, timeCutoff, limit, offset)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notes []FeedNote
+	for rows.Next() {
+		var id, authorID, content string
+		var kind int
+		var createdAt time.Time
+		var reactionCount, commentCount, zapCount int
+
+		if err := rows.Scan(&id, &authorID, &kind, &content, &createdAt, &reactionCount, &commentCount, &zapCount); err != nil {
+			return nil, err
+		}
+
+		// Create nostr.Event
+		event := nostr.Event{
+			ID:        id,
+			PubKey:    authorID,
+			CreatedAt: nostr.Timestamp(createdAt.Unix()),
+			Kind:      kind,
+			Content:   content,
+		}
+
+		// Calculate score based on interactions
+		score := float64(reactionCount + commentCount + zapCount*2)
+
+		notes = append(notes, FeedNote{
+			Event: event,
+			Score: score,
+		})
+	}
+
+	log.Printf("Fetched notes with filters in %v (limit: %d, offset: %d, kind: %d, search: %s, timeRange: %s)",
+		time.Since(start), limit, offset, kind, searchQuery, timeRange)
+	return notes, nil
+}
+
+// fetchTrendingTopAuthorsWithFilters fetches trending top authors with enhanced filtering
+func (r *NostrRepository) fetchTrendingTopAuthorsWithFilters(limit int, offset int, timeRange string, minEngagementScore float64, minNotesCount int, searchQuery string) ([]TrendingTopAuthor, error) {
+	start := time.Now()
+
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour) // Default to 7 days
+	}
+
+	query := `
+		WITH author_stats AS (
+			SELECT 
+				p.author_id,
+				COUNT(DISTINCT p.id) as notes_count,
+				COALESCE(SUM(r_count.reaction_count), 0) as reactions_received,
+				COALESCE(SUM(z_count.zap_count), 0) as zaps_received,
+				COALESCE(SUM(c_count.reply_count), 0) as replies_received,
+				MAX(p.created_at) as last_activity
+			FROM notes p
+			LEFT JOIN (
+				SELECT note_id, COUNT(*) as reaction_count
+				FROM reactions
+				WHERE created_at >= $1
+				GROUP BY note_id
+			) r_count ON p.id = r_count.note_id
+			LEFT JOIN (
+				SELECT note_id, COUNT(*) as zap_count
+				FROM zaps
+				WHERE created_at >= $1
+				GROUP BY note_id
+			) z_count ON p.id = z_count.note_id
+			LEFT JOIN (
+				SELECT note_id, COUNT(*) as reply_count
+				FROM comments
+				WHERE created_at >= $1
+				GROUP BY note_id
+			) c_count ON p.id = c_count.note_id
+			WHERE p.created_at >= $1
+			GROUP BY p.author_id
+		),
+		author_engagement AS (
+			SELECT 
+				author_id,
+				notes_count,
+				reactions_received,
+				zaps_received,
+				replies_received,
+				(reactions_received + zaps_received + replies_received) as total_interactions,
+				-- Calculate engagement score: (reactions + zaps*2 + replies*1.5) / notes_count
+				CASE 
+					WHEN notes_count > 0 THEN 
+						(reactions_received + (zaps_received * 2.0) + (replies_received * 1.5)) / notes_count::float
+					ELSE 0 
+				END as engagement_score,
+				last_activity
+			FROM author_stats
+			WHERE notes_count >= $2  -- Minimum notes count filter
+		)
+		SELECT 
+			ae.author_id,
+			ae.total_interactions,
+			ae.reactions_received,
+			ae.zaps_received,
+			ae.replies_received,
+			ae.notes_count,
+			ae.engagement_score,
+			EXTRACT(EPOCH FROM ae.last_activity)::bigint as last_activity_timestamp,
+			COALESCE(ps.settings->>'name', '') as name,
+			COALESCE(ps.settings->>'picture', '') as picture
+		FROM author_engagement ae
+		LEFT JOIN pubkey_settings ps ON ae.author_id = ps.pubkey
+		WHERE ae.total_interactions > 0  -- Only authors with some interactions
+		AND ae.engagement_score >= $3  -- Minimum engagement score filter
+	`
+
+	// Add search filter if specified
+	if searchQuery != "" {
+		query += " AND (ps.settings->>'name' ILIKE $4 OR ae.author_id ILIKE $4)"
+	}
+
+	query += `
+		ORDER BY ae.engagement_score DESC, ae.total_interactions DESC, ae.last_activity DESC
+		LIMIT $5 OFFSET $6;
+	`
+
+	// Execute the query with appropriate parameters
+	var rows *sql.Rows
+	var err error
+
+	if searchQuery != "" {
+		searchPattern := "%" + searchQuery + "%"
+		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, minNotesCount, minEngagementScore, searchPattern, limit, offset)
+	} else {
+		rows, err = r.db.QueryContext(context.Background(), query, timeCutoff, minNotesCount, minEngagementScore, limit, offset)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	authors := make([]TrendingTopAuthor, 0, limit)
+	for rows.Next() {
+		var authorID, name, picture string
+		var totalInteractions, reactionsReceived, zapsReceived, repliesReceived, notesCount int
+		var engagementScore float64
+		var lastActivityTimestamp int64
+
+		if err := rows.Scan(
+			&authorID, &totalInteractions, &reactionsReceived, &zapsReceived, &repliesReceived,
+			&notesCount, &engagementScore, &lastActivityTimestamp, &name, &picture,
+		); err != nil {
+			return nil, err
+		}
+
+		authors = append(authors, TrendingTopAuthor{
+			Pubkey:            authorID,
+			Name:              name,
+			Picture:           picture,
+			TotalInteractions: totalInteractions,
+			ReactionsReceived: reactionsReceived,
+			ZapsReceived:      zapsReceived,
+			RepliesReceived:   repliesReceived,
+			NotesCount:        notesCount,
+			EngagementScore:   engagementScore,
+			LastActivity:      lastActivityTimestamp,
+		})
+	}
+
+	log.Printf("Fetched trending top authors with filters in %v (limit: %d, offset: %d, timeRange: %s, minEngagementScore: %f, minNotesCount: %d, search: %s)",
+		time.Since(start), limit, offset, timeRange, minEngagementScore, minNotesCount, searchQuery)
+	return authors, nil
+}
