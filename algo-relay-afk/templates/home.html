@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoRelay - Empower Your Nostr Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nostr-tools/lib/nostr.bundle.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(180deg, #1a1033, #2d1b5e, #3b2a7a);
+            background-attachment: fixed;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .purple-glow {
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.5);
+        }
+        input[type="range"] {
+            accent-color: #9333ea; /* Purple for slider thumb */
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen text-gray-100">
+    <!-- Header -->
+    <header class="w-full py-6 bg-opacity-80 glass-effect sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
+            <div>
+                <h1 class="text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-purple-600">
+                    AlgoRelay
+                </h1>
+                <p class="text-xl mt-2 text-gray-300">Nostr's First Algorithmic Relay</p>
+            </div>
+            <div id="login-section">
+                <button id="login-button" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-300 purple-glow">
+                    Login with Nostr
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="max-w-7xl mx-auto text-center py-20 px-4">
+        <h2 class="text-4xl md:text-6xl font-bold text-purple-300 leading-tight">
+            Your Feed, Your Rules
+        </h2>
+        <p class="text-lg md:text-xl mt-4 text-gray-400 max-w-2xl mx-auto">
+            Experience a social network where the algorithm works for you, not against you. AlgoRelay redefines content discovery on Nostr.
+        </p>
+        <div class="mt-8 flex justify-center gap-6">
+            <a href="https://jumble.social/?r=algo.utxo.one" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-300 purple-glow">
+                Try on Jumble
+            </a>
+            <a href="https://coracle.social/relays/wss%253A%252F%252Falgo.utxo.one%252F" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-300 purple-glow">
+                Try on Coracle
+            </a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="max-w-7xl mx-auto py-20 px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="p-6 rounded-xl glass-effect">
+            <h3 class="text-2xl font-semibold text-purple-300">Content That Matters</h3>
+            <p class="mt-3 text-gray-300">
+                Our algorithm surfaces content from authors you actually interact with—friends, creators, and communities you care about. No noise, just signal.
+            </p>
+        </div>
+        <div class="p-6 rounded-xl glass-effect">
+            <h3 class="text-2xl font-semibold text-purple-300">You Control the Algorithm</h3>
+            <p class="mt-3 text-gray-300">
+                Take the driver's seat. Customize how your feed works with an algorithm that bends to your preferences, not a corporate agenda.
+            </p>
+        </div>
+        <div class="p-6 rounded-xl glass-effect">
+            <h3 class="text-2xl font-semibold text-purple-300">Host Your Own Relay</h3>
+            <p class="mt-3 text-gray-300">
+                100% open source. Anyone can run an AlgoRelay, decentralizing power and putting it back in the hands of the community.
+            </p>
+        </div>
+        <div class="p-6 rounded-xl glass-effect">
+            <h3 class="text-2xl font-semibold text-purple-300">A Marketplace of Algorithms</h3>
+            <p class="mt-3 text-gray-300">
+                Competition breeds innovation. AlgoRelay enables a thriving ecosystem where the best algorithms rise to the top.
+            </p>
+        </div>
+    </section>
+
+    <!-- Algorithm Tuning Section -->
+    <section class="max-w-7xl mx-auto py-20 px-4 text-center">
+        <h2 class="text-4xl font-bold text-purple-300">Tune Your Algorithm</h2>
+        <p class="text-lg mt-4 text-gray-400 max-w-xl mx-auto">
+            Adjust the sliders below to see how you can shape your feed. Prioritize what matters most to you.
+        </p>
+        <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <div class="p-4 glass-effect rounded-lg">
+                <label class="block text-lg font-medium text-purple-300">Interactions with Authors (4)</label>
+                <input type="range" min="0" max="10" value="4" class="w-full mt-2">
+                <p class="mt-2 text-sm text-gray-400">Boost posts from authors you engage with most.</p>
+            </div>
+            <div class="p-4 glass-effect rounded-lg">
+                <label class="block text-lg font-medium text-purple-300">Global Comments (2)</label>
+                <input type="range" min="0" max="10" value="2" class="w-full mt-2">
+                <p class="mt-2 text-sm text-gray-400">Favor posts sparking big discussions.</p>
+            </div>
+            <div class="p-4 glass-effect rounded-lg">
+                <label class="block text-lg font-medium text-purple-300">Global Reactions (2)</label>
+                <input type="range" min="0" max="10" value="2" class="w-full mt-2">
+                <p class="mt-2 text-sm text-gray-400">Highlight posts with widespread approval.</p>
+            </div>
+            <div class="p-4 glass-effect rounded-lg">
+                <label class="block text-lg font-medium text-purple-300">Global Zaps (3)</label>
+                <input type="range" min="0" max="10" value="3" class="w-full mt-2">
+                <p class="mt-2 text-sm text-gray-400">Prioritize posts backed by real support.</p>
+            </div>
+            <div class="p-4 glass-effect rounded-lg">
+                <label class="block text-lg font-medium text-purple-300">Recency (10)</label>
+                <input type="range" min="0" max="20" value="10" class="w-full mt-2">
+                <p class="mt-2 text-sm text-gray-400">Keep your feed fresh with new content.</p>
+            </div>
+            <div class="p-4 glass-effect rounded-lg">
+                <label class="block text-lg font-medium text-purple-300">Decay Rate (0.1)</label>
+                <input type="range" min="0" max="1" step="0.1" value="0.1" class="w-full mt-2">
+                <p class="mt-2 text-sm text-gray-400">Control how fast older posts fade away.</p>
+            </div>
+        </div>
+        <p class="mt-6 text-gray-400">Plus, set thresholds like <span class="text-purple-300">Viral Threshold (100)</span> and fine-tune dampening for viral posts!</p>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="max-w-7xl mx-auto py-20 px-4 text-center">
+        <h2 class="text-4xl font-bold text-purple-300">Take Back Control</h2>
+        <p class="text-lg mt-4 text-gray-400 max-w-xl mx-auto">
+            Empower your Nostr experience today with a relay that's built for you.
+        </p>
+        <a href="https://github.com/bitvora/algo-relay" class="mt-6 inline-block px-8 py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-300 purple-glow">
+            Get Started on GitHub
+        </a>
+    </section>
+
+    <!-- Footer -->
+    <footer class="w-full py-6 bg-opacity-80 glass-effect">
+        <div class="max-w-7xl mx-auto text-center">
+            <p class="text-gray-400">Built with ❤️ by <a href="https://bitvora.com" class="text-purple-300 hover:text-purple-100">Bitvora</a></p>
+            <a href="https://github.com/bitvora/algo-relay" class="mt-2 inline-block text-purple-300 hover:text-purple-100 transition duration-300">
+                GitHub Repository
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        // Nostr login functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginButton = document.getElementById('login-button');
+            
+            // Check if user is already logged in
+            const storedPubkey = localStorage.getItem('nostr_pubkey');
+            if (storedPubkey) {
+                loginButton.textContent = 'Go to Dashboard';
+                loginButton.addEventListener('click', () => {
+                    window.location.href = '/dashboard.html';
+                });
+            } else {
+                // Direct login with Nostr extension when login button is clicked
+                loginButton.addEventListener('click', async () => {
+                    try {
+                        // Check if Nostr extension is available
+                        if (!window.nostr) {
+                            alert('Nostr extension not found. Please install a Nostr extension like nos2x or Alby.');
+                            return;
+                        }
+                        
+                        // Get public key from extension
+                        const pubkey = await window.nostr.getPublicKey();
+                        
+                        // Create a signed event to prove ownership of the pubkey
+                        const event = {
+                            kind: 1,
+                            created_at: Math.floor(Date.now() / 1000),
+                            tags: [],
+                            content: 'Logging in to AlgoRelay',
+                            pubkey: pubkey
+                        };
+                        
+                        const signedEvent = await window.nostr.signEvent(event);
+                        
+                        // Send the signed event to the server for verification
+                        const response = await fetch('/auth', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(signedEvent)
+                        });
+                        
+                        if (response.ok) {
+                            // Store the pubkey in localStorage
+                            localStorage.setItem('nostr_pubkey', pubkey);
+                            
+                            // Redirect to dashboard
+                            window.location.href = '/dashboard.html';
+                        } else {
+                            const errorData = await response.json();
+                            alert(`Login failed: ${errorData.error || 'Unknown error'}`);
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        alert(`Login error: ${error.message}`);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
