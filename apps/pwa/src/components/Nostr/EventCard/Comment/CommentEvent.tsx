@@ -152,9 +152,9 @@ export const CommentEvent: React.FC<CommentContainerProps> = (props) => {
             }
             aria-label="View profile"
           >
-            {profile?.image_url ? (
+            {profile?.image ? (
               <img
-                src={profile.image_url as string}
+                src={profile.image as string}
                 alt="Profile"
                 width={40}
                 height={40}
