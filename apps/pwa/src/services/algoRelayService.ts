@@ -472,15 +472,15 @@ class AlgoRelayService {
   }
 
   // Enhanced trending notes with better error handling
-  async getTrendingNotes(limit: number = 20, offset: number = 0): Promise<TrendingNote[]> {
-    log.info(`Fetching trending notes`, { limit, offset });
+  async getTrendingNotes(limit: number = 20, offset: number = 0, minInteractionCount: number = 1): Promise<TrendingNote[]> {
+    log.info(`Fetching trending notes`, { limit, offset, minInteractionCount });
     
     try {
-      // First try the trending notes endpoint with pagination
-      const trendingData = await this.makeRequest<BackendScrapedNote[]>(`/api/trending-notes?limit=${limit}&offset=${offset}`);
+      // First try the trending notes endpoint with pagination and interaction filter
+      const trendingData = await this.makeRequest<BackendScrapedNote[]>(`/api/trending-notes?limit=${limit}&offset=${offset}&min_interaction_count=${minInteractionCount}`);
       
       if (trendingData && trendingData.length > 0) {
-        log.success(`Found ${trendingData.length} trending notes`);
+        log.success(`Found ${trendingData.length} trending notes with min ${minInteractionCount} interactions`);
         return trendingData.map(note => this.transformToTrendingNote(this.transformBackendScrapedNote(note)));
       }
       
@@ -605,8 +605,8 @@ class AlgoRelayService {
   }
 
   // Get trending notes with different time ranges
-  async getTrendingNotesByTimeRange(timeRange: '1h' | '6h' | '24h' | '7d' = '24h', limit: number = 20): Promise<TrendingNote[]> {
-    log.info(`Fetching trending notes by time range`, { timeRange, limit });
+  async getTrendingNotesByTimeRange(timeRange: '1h' | '6h' | '24h' | '7d' = '24h', limit: number = 20, minInteractionCount: number = 1): Promise<TrendingNote[]> {
+    log.info(`Fetching trending notes by time range`, { timeRange, limit, minInteractionCount });
     
     const now = new Date();
     let since: Date;
@@ -642,6 +642,25 @@ class AlgoRelayService {
       log.error(`Error fetching trending notes by time range`, { error });
       return [];
     }
+  }
+
+  // Get trending notes with different interaction thresholds
+  async getTrendingNotesByInteractionLevel(interactionLevel: 'low' | 'medium' | 'high' = 'medium', limit: number = 20): Promise<TrendingNote[]> {
+    log.info(`Fetching trending notes by interaction level`, { interactionLevel, limit });
+    
+    let minInteractionCount: number;
+    switch (interactionLevel) {
+      case 'high':
+        minInteractionCount = 10; // At least 10 interactions
+        break;
+      case 'medium':
+        minInteractionCount = 3; // At least 3 interactions
+        break;
+      default: // low
+        minInteractionCount = 1; // At least 1 interaction
+    }
+    
+    return this.getTrendingNotes(limit, 0, minInteractionCount);
   }
 
   // Get notes by content type

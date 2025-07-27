@@ -1608,7 +1608,7 @@ func (r *NostrRepository) SearchTags(searchQuery string, limit int, offset int, 
 }
 
 // GetNotesWithViralTrendingScores retrieves notes from main table and enhances with viral/trending scores
-func (r *NostrRepository) GetNotesWithViralTrendingScores(ctx context.Context, limit int, offset int, kinds []int, searchQuery string, timeRange string, tags []string, authors []string, minViralScore float64, minTrendingScore float64) ([]FeedNote, error) {
+func (r *NostrRepository) GetNotesWithViralTrendingScores(ctx context.Context, limit int, offset int, kinds []int, searchQuery string, timeRange string, tags []string, authors []string, minViralScore float64, minTrendingScore float64, minInteractionCount int) ([]FeedNote, error) {
 	start := time.Now()
 
 	// Calculate the time cutoff based on timeRange
@@ -1699,6 +1699,13 @@ func (r *NostrRepository) GetNotesWithViralTrendingScores(ctx context.Context, l
 	if minTrendingScore > 0 {
 		baseQuery += fmt.Sprintf(" AND (sn.is_trending = true OR sn.trending_score >= $%d)", paramIndex)
 		params = append(params, minTrendingScore)
+		paramIndex++
+	}
+
+	// Add minimum interaction count filter (reactions + comments + zaps)
+	if minInteractionCount > 0 {
+		baseQuery += fmt.Sprintf(" AND (COALESCE(r_count.reaction_count, 0) + COALESCE(c_count.comment_count, 0) + COALESCE(z_count.zap_count, 0)) >= $%d", paramIndex)
+		params = append(params, minInteractionCount)
 		paramIndex++
 	}
 

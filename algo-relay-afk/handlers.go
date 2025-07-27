@@ -173,7 +173,7 @@ func handleViralNotesAPI(w http.ResponseWriter, r *http.Request) {
 		limit, offset, kinds, searchQuery, timeRange, minViralScore, tags, authors)
 
 	// Use hybrid approach: get notes from main table with viral scores
-	feedNotes, err := repository.GetNotesWithViralTrendingScores(context.Background(), limit, offset, kinds, searchQuery, timeRange, tags, authors, minViralScore, 0.0)
+	feedNotes, err := repository.GetNotesWithViralTrendingScores(context.Background(), limit, offset, kinds, searchQuery, timeRange, tags, authors, minViralScore, 0.0, 1)
 	if err != nil {
 		log.Printf("❌ [API] Error fetching viral notes: %v", err)
 		http.Error(w, "Error fetching viral notes: "+err.Error(), http.StatusInternalServerError)
@@ -615,6 +615,14 @@ func handleTrendingNotesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Get minimum interaction count filter (default: 1 to ensure at least 1 reply/comment)
+	minInteractionCount := 1
+	if interactionStr := r.URL.Query().Get("min_interaction_count"); interactionStr != "" {
+		if parsed, err := strconv.Atoi(interactionStr); err == nil && parsed >= 0 {
+			minInteractionCount = parsed
+		}
+	}
+
 	// Get tags filter (comma-separated)
 	tags := []string{}
 	if tagsStr := r.URL.Query().Get("tags"); tagsStr != "" {
@@ -637,11 +645,11 @@ func handleTrendingNotesAPI(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	log.Printf("🔍 [API] Fetching trending notes with limit: %d, offset: %d, kinds: %v, search: %s, timeRange: %s, minTrendingScore: %f, tags: %v, authors: %v",
-		limit, offset, kinds, searchQuery, timeRange, minTrendingScore, tags, authors)
+	log.Printf("🔍 [API] Fetching trending notes with limit: %d, offset: %d, kinds: %v, search: %s, timeRange: %s, minTrendingScore: %f, minInteractionCount: %d, tags: %v, authors: %v",
+		limit, offset, kinds, searchQuery, timeRange, minTrendingScore, minInteractionCount, tags, authors)
 
 	// Use hybrid approach: get notes from main table with trending scores
-	feedNotes, err := repository.GetNotesWithViralTrendingScores(context.Background(), limit, offset, kinds, searchQuery, timeRange, tags, authors, 0.0, minTrendingScore)
+	feedNotes, err := repository.GetNotesWithViralTrendingScores(context.Background(), limit, offset, kinds, searchQuery, timeRange, tags, authors, 0.0, minTrendingScore, minInteractionCount)
 	if err != nil {
 		log.Printf("❌ [API] Error fetching trending notes: %v", err)
 		http.Error(w, "Error fetching trending notes: "+err.Error(), http.StatusInternalServerError)
@@ -1386,7 +1394,7 @@ func handleMainNotesAPI(w http.ResponseWriter, r *http.Request) {
 		limit, offset, kinds, searchQuery, timeRange, minViralScore, minTrendingScore, tags, authors)
 
 	// Use hybrid approach: get notes from main table with viral/trending scores
-	feedNotes, err := repository.GetNotesWithViralTrendingScores(context.Background(), limit, offset, kinds, searchQuery, timeRange, tags, authors, minViralScore, minTrendingScore)
+	feedNotes, err := repository.GetNotesWithViralTrendingScores(context.Background(), limit, offset, kinds, searchQuery, timeRange, tags, authors, minViralScore, minTrendingScore, 1)
 	if err != nil {
 		log.Printf("❌ [API] Error fetching main notes: %v", err)
 		http.Error(w, "Error fetching main notes: "+err.Error(), http.StatusInternalServerError)
