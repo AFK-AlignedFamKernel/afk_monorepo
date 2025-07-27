@@ -55,25 +55,25 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   // const bgColor = useColorModeValue('gray.300', 'gray.700');
   // const textColor = useColorModeValue('gray.800', 'gray.300');
 
-  const { ndk } = useNostrContext()
+  const { ndk, isNdkConnected  } = useNostrContext()
   const [isConnectedLoading, setIsConnectedLoading] = useState(false)
   const { setIsConnected, isConnected } = useSettingsStore()
   // console.log("isConnected", isConnected)
-  // useEffect(() => {
-  //   // console.log("ndk", ndk)
+  useEffect(() => {
+    // console.log("ndk", ndk)
 
-  //   if(ndk?.pool?.connectedRelays().length > 0 && !isConnected) {
-  //     console.log("connectedRelays", ndk?.pool?.connectedRelays)
-  //     setIsConnected(true)
-  //   } else {
-  //     console.log("not connected")
-  //     setIsConnected(false)
-  //     setIsConnectedLoading(true)
-  //     ndk?.connect()
-  //     setIsConnectedLoading(false)
-  //     setIsConnected(true)
-  //   }
-  // }, [ndk])
+    // if(ndk?.pool?.connectedRelays().length > 0 && !isConnected) {
+    //   console.log("connectedRelays", ndk?.pool?.connectedRelays)
+    //   setIsConnected(true)
+    // } else {
+    //   console.log("not connected")
+    //   setIsConnected(false)
+    //   setIsConnectedLoading(true)
+    //   ndk?.connect()
+    //   setIsConnectedLoading(false)
+    //   setIsConnected(true)
+    // }
+  }, [ndk, isNdkConnected, isConnected])
 
   useEffect(() => {
     checkIsConnected(ndk).then((res) => {

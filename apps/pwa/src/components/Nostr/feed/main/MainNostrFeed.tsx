@@ -12,7 +12,8 @@ import {
   TrendingTopAuthor,
   transformTrendingNoteToNDKEvent,
   transformViralNoteToNDKEvent,
-  transformScrapedNoteToNDKEvent
+  transformScrapedNoteToNDKEvent,
+  algoRelayService
 } from '@/services/algoRelayService';
 import { PostEventCard } from '@/components/Nostr/EventCard/PostEventCard';
 import { TAGS_DEFAULT } from 'common';
@@ -176,6 +177,14 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     setIsAutoRefreshing(false); // Reset auto-refresh loading state
     fetchCurrentTabData(false);
   }, [activeTab, fetchCurrentTabData, resetPaginationData]);
+
+  // Handle initial tag search when in tags mode
+  useEffect(() => {
+    if (activeContentType === 'tags' && selectedTag) {
+      // Trigger tag search when component loads in tags mode
+      handleTagSelect(selectedTag);
+    }
+  }, [activeContentType, selectedTag]); // Only run when content type or selected tag changes
 
   // Debounce rapid tab changes to prevent excessive API calls
   useEffect(() => {
@@ -398,7 +407,7 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     logClickedEvent('advanced_algo_feed_tab', 'click_tab', tab);
   };
 
-  const handleContentTypeChange = (contentType: ContentType) => {
+  const handleContentTypeChange = async (contentType: ContentType) => {
     setActiveContentType(contentType);
     setHasTriedAutoRefresh(false); // Reset auto-refresh state for new content type
     setIsAutoRefreshing(false); // Reset auto-refresh loading state
@@ -407,22 +416,197 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     // Reset tag selection when switching away from tags
     if (contentType !== 'tags') {
       setSelectedTag(TAGS_DEFAULT[0]);
+    } else {
+      // If switching to tags mode and we have a selected tag, search for it
+      if (selectedTag) {
+        try {
+          // Reset pagination for new search
+          resetPagination();
+          
+          // Search for notes by topic using the algoRelayService
+          const topicNotes = await algoRelayService.searchNotesByTopic({
+            topic: selectedTag,
+            limit: limit,
+            timeRange: '7d',
+            minInteractionCount: 1,
+            sortOrder: 'created_at_desc'
+          });
+          
+          // Update the store with the search results based on current tab
+          if (activeTab === 'trending') {
+            resetTrendingNotes();
+            if (topicNotes.length > 0) {
+              pushTrendingNotes(topicNotes);
+            }
+          } else if (activeTab === 'viral') {
+            resetViralNotes();
+            if (topicNotes.length > 0) {
+              pushViralNotes(topicNotes);
+            }
+          } else if (activeTab === 'scraped') {
+            // For scraped notes, we need to convert TrendingNote to ScrapedNote
+            resetScrapedNotes();
+            if (topicNotes.length > 0) {
+              const scrapedNotes: ScrapedNote[] = topicNotes.map(note => ({
+                id: note.id,
+                pubkey: note.pubkey,
+                content: note.content,
+                created_at: note.created_at,
+                kind: note.kind,
+                tags: note.tags,
+                sig: note.sig,
+                author_name: note.author_name,
+                author_picture: note.author_picture,
+                reaction_count: note.reaction_count || 0,
+                zap_count: note.zap_count || 0,
+                reply_count: note.reply_count || 0,
+                scraped_at: note.created_at, // Use created_at as fallback
+                interaction_score: 0,
+                viral_score: note.score || 0,
+                trending_score: note.score || 0,
+                is_viral: false,
+                is_trending: true
+              }));
+              pushScrapedNotes(scrapedNotes);
+            }
+          }
+        } catch (error) {
+          console.error('Error searching for topic:', error);
+        }
+      }
     }
   };
 
-  const handleTagSelect = (tag: string) => {
+  const handleTagSelect = async (tag: string) => {
     setSelectedTag(tag);
     logClickedEvent(`select_tag_${tag}`, "click", tag);
+    
+    // If we're in tags mode, search for content with this topic
+    if (activeContentType === 'tags') {
+      try {
+        // Reset pagination for new search
+        resetPagination();
+        
+        // Search for notes by topic using the algoRelayService
+        const topicNotes = await algoRelayService.searchNotesByTopic({
+          topic: tag,
+          limit: limit,
+          timeRange: '7d',
+          minInteractionCount: 1,
+          sortOrder: 'created_at_desc'
+        });
+        
+        // Update the store with the search results based on current tab
+        if (activeTab === 'trending') {
+          resetTrendingNotes();
+          if (topicNotes.length > 0) {
+            pushTrendingNotes(topicNotes);
+          }
+        } else if (activeTab === 'viral') {
+          resetViralNotes();
+          if (topicNotes.length > 0) {
+            pushViralNotes(topicNotes);
+          }
+        } else if (activeTab === 'scraped') {
+          // For scraped notes, we need to convert TrendingNote to ScrapedNote
+          resetScrapedNotes();
+          if (topicNotes.length > 0) {
+            const scrapedNotes: ScrapedNote[] = topicNotes.map(note => ({
+              id: note.id,
+              pubkey: note.pubkey,
+              content: note.content,
+              created_at: note.created_at,
+              kind: note.kind,
+              tags: note.tags,
+              sig: note.sig,
+              author_name: note.author_name,
+              author_picture: note.author_picture,
+              reaction_count: note.reaction_count || 0,
+              zap_count: note.zap_count || 0,
+              reply_count: note.reply_count || 0,
+              scraped_at: note.created_at, // Use created_at as fallback
+              interaction_score: 0,
+              viral_score: note.score || 0,
+              trending_score: note.score || 0,
+              is_viral: false,
+              is_trending: true
+            }));
+            pushScrapedNotes(scrapedNotes);
+          }
+        }
+      } catch (error) {
+        console.error('Error searching for topic:', error);
+      }
+    }
   };
 
-  const handleTagSearch = (e: React.FormEvent) => {
+  const handleTagSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (tagSearchInput.trim()) {
-      if (!tags.includes(tagSearchInput.trim())) {
-        setTags([tagSearchInput.trim(), ...tags]);
+      const newTag = tagSearchInput.trim();
+      if (!tags.includes(newTag)) {
+        setTags([newTag, ...tags]);
       }
-      setSelectedTag(tagSearchInput.trim());
+      setSelectedTag(newTag);
       setTagSearchInput('');
+      
+      // If we're in tags mode, search for content with this topic
+      if (activeContentType === 'tags') {
+        try {
+          // Reset pagination for new search
+          resetPagination();
+          
+          // Search for notes by topic using the algoRelayService
+          const topicNotes = await algoRelayService.searchNotesByTopic({
+            topic: newTag,
+            limit: limit,
+            timeRange: '7d',
+            minInteractionCount: 1,
+            sortOrder: 'created_at_desc'
+          });
+          
+          // Update the store with the search results based on current tab
+          if (activeTab === 'trending') {
+            resetTrendingNotes();
+            if (topicNotes.length > 0) {
+              pushTrendingNotes(topicNotes);
+            }
+          } else if (activeTab === 'viral') {
+            resetViralNotes();
+            if (topicNotes.length > 0) {
+              pushViralNotes(topicNotes);
+            }
+          } else if (activeTab === 'scraped') {
+            // For scraped notes, we need to convert TrendingNote to ScrapedNote
+            resetScrapedNotes();
+            if (topicNotes.length > 0) {
+              const scrapedNotes: ScrapedNote[] = topicNotes.map(note => ({
+                id: note.id,
+                pubkey: note.pubkey,
+                content: note.content,
+                created_at: note.created_at,
+                kind: note.kind,
+                tags: note.tags,
+                sig: note.sig,
+                author_name: note.author_name,
+                author_picture: note.author_picture,
+                reaction_count: note.reaction_count || 0,
+                zap_count: note.zap_count || 0,
+                reply_count: note.reply_count || 0,
+                scraped_at: note.created_at, // Use created_at as fallback
+                interaction_score: 0,
+                viral_score: note.score || 0,
+                trending_score: note.score || 0,
+                is_viral: false,
+                is_trending: true
+              }));
+              pushScrapedNotes(scrapedNotes);
+            }
+          }
+        } catch (error) {
+          console.error('Error searching for topic:', error);
+        }
+      }
     }
   };
 
@@ -440,13 +624,9 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
   const filterNotesByContentType = (notes: TrendingNote[] | ViralNote[] | ScrapedNote[]) => {
     if (!notes || notes.length === 0) return [];
     
+    // For tags mode, we don't need to filter since we're already searching by topic
     if (activeContentType === 'tags') {
-      if (!selectedTag) return notes;
-      return notes.filter(note => 
-        note.tags && note.tags.some(tag => 
-          tag && tag.length >= 2 && tag[0] === 't' && tag[1] === selectedTag
-        )
-      );
+      return notes;
     }
     
     const currentTab = CONTENT_TYPE_TABS.find(tab => tab.id === activeContentType);
@@ -502,7 +682,12 @@ const MainNostrFeed: React.FC<MainNostrFeedProps> = ({
     if (filteredNotes.length === 0) {
       return (
         <div className={styles['algo-feed__empty']}>
-          <p>No {activeContentType} found in {activeTab}</p>
+          <p>
+            {activeContentType === 'tags' && selectedTag 
+              ? `No content found for topic "${selectedTag}" in ${activeTab}`
+              : `No ${activeContentType} found in ${activeTab}`
+            }
+          </p>
         </div>
       );
     }

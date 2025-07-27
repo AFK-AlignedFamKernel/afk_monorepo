@@ -64,11 +64,18 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({ children }) =
   useEffect(() => {
     const newNdk = new NDK({
       explicitRelayUrls: relays ?? AFK_RELAYS,
-      signer: privateKey
+      signer: isExtension ? nip07Signer : privateKey
         ? new NDKPrivateKeySigner(privateKey)
         : isExtension
           ? nip07Signer
           : undefined,
+
+
+      // signer: privateKey
+      // ? new NDKPrivateKeySigner(privateKey)
+      // : isExtension
+      //   ? nip07Signer
+      //   : undefined,
     });
 
     newNdk.connect().then(() => {
@@ -88,6 +95,23 @@ export const NostrProvider: React.FC<React.PropsWithChildren> = ({ children }) =
     // const ndkNewWallet = new NDKWalletNWC(ndk as any);
     // setNDKWallet(ndkNewWallet);
   }, [privateKey, isExtension, relays]);
+
+  useEffect(() => {
+    if (isExtension) {
+      const newNdk = new NDK({
+        explicitRelayUrls: relays ?? AFK_RELAYS,
+        signer: nip07Signer,
+      });
+
+      newNdk.connect().then(() => {
+        setNdk(newNdk);
+        setIsNdkConnected(true);
+      }).catch((err) => {
+        console.error('Failed to connect to relays', err);
+        setIsNdkConnected(false);
+      });
+    }
+  }, [isExtension]);
 
   useEffect(() => {
     if (nwcUrl) {

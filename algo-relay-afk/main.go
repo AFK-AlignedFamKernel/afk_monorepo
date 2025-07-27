@@ -27,13 +27,14 @@ var scraper *NoteScraper
 var wsManager *WebSocketManager
 var relays = []string{
 	"wss://relay.primal.net",
-	"wss://relay.damus.io",
 	"wss://nos.lol",
-	"wss://news.utxo.one",
-	"wss://relay.nostr.band",
-	"wss://relay.snort.social",
 	"wss://nostr-relay-nestjs-production.up.railway.app",
 
+	// "wss://relay.nostr.band",
+	// "wss://relay.snort.social",
+
+	// "wss://relay.damus.io",
+	// "wss://news.utxo.one",
 	// "wss://relay.lexingtonbitcoin.org",
 	// "wss://nostr.600.wtf",
 	// "wss://nostr.hexhex.online",
