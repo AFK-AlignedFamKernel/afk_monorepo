@@ -29,7 +29,7 @@ export const QuoteRepostComponent = ({ event }: QuoteRepostComponentProps) => {
     const [type, setType] = useState<QuoteNostrTypeMode>(QuoteNostrTypeMode.REPOST);
     const quoteMutation = useQuote({ event: event ?? undefined, content: quoteContent, tags: [['e', event?.id ?? '', '', 'root', event?.pubkey ?? '']] });
 
-    console.log("event", event);
+    // console.log("event", event);
     const { showToast } = useUIStore()
     const handleRepost = async () => {
         if (!event || !event?.id) return;

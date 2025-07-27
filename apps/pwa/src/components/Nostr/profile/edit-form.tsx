@@ -183,7 +183,7 @@ export const NostrProfileEditForm = () => {
                     value={formData.about ?? ''}
                     onChange={handleChange}
                     rows={3}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg dark:bg-gray-800 dark:border-gray-600 dark:text-black dark:focus:border-blue-400 dark:focus:ring-blue-400 text-black"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-lg dark:bg-gray-800 dark:border-gray-600 dark:focus:border-blue-400 dark:focus:ring-blue-400"
                 />
             </div>
 

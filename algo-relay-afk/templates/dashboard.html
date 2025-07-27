@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoRelay Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nostr-tools/lib/nostr.bundle.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(180deg, #1a1033, #2d1b5e, #3b2a7a);
+            background-attachment: fixed;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .purple-glow {
+            box-shadow: 0 0 20px rgba(147, 51, 234, 0.5);
+        }
+        input[type="range"] {
+            accent-color: #9333ea; /* Purple for slider thumb */
+        }
+        .avatar {
+            transition: all 0.3s ease;
+        }
+        .avatar:hover {
+            transform: scale(1.1);
+        }
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen text-gray-100">
+    <!-- Header -->
+    <header class="w-full py-6 bg-opacity-80 glass-effect sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto flex justify-between items-center px-4">
+            <div>
+                <h1 class="text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-purple-600">
+                    AlgoRelay
+                </h1>
+                <p class="text-xl mt-2 text-gray-300">Nostr's first algorithmic relay</p>
+            </div>
+            <div id="user-section" class="flex items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div id="user-avatar" class="w-10 h-10 rounded-full overflow-hidden bg-purple-800">
+                        <!-- Default avatar placeholder, will be replaced by actual avatar -->
+                        <img src="https://i.pravatar.cc/200?img=0" alt="Your avatar" class="w-full h-full object-cover">
+                    </div>
+                    <span id="user-name" class="text-purple-300 font-medium"></span>
+                </div>
+                <button id="logout-button" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-300 purple-glow">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto py-12 px-4 space-y-12">
+        <!-- Welcome Section -->
+        <section class="text-center">
+            <h2 class="text-4xl font-bold text-purple-300">Welcome to Your AlgoRelay Dashboard</h2>
+            <p class="text-lg mt-4 text-gray-400 max-w-2xl mx-auto">
+                Customize your Nostr experience and see insights about your network.
+            </p>
+        </section>
+
+        <!-- Favorite Authors Section -->
+        <section class="glass-effect rounded-xl p-8">
+            <h2 class="text-3xl font-bold text-purple-300 mb-6">Your Network</h2>
+            <p class="text-gray-400 mb-8">The authors you interact with most frequently on Nostr.</p>
+            
+            <!-- Top 5 Authors -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-purple-200 mb-4">Top Authors</h3>
+                <div class="flex flex-wrap justify-center gap-6 top-authors-container">
+                    <!-- This will be populated dynamically by JavaScript -->
+                    <div class="flex flex-col items-center">
+                        <div class="w-24 h-24 rounded-full overflow-hidden purple-glow avatar">
+                            <img src="https://i.pravatar.cc/200?img=1" alt="Loading..." class="w-full h-full object-cover">
+                        </div>
+                        <span class="mt-2 text-purple-200 font-medium">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Next 10 Authors -->
+            <div>
+                <h3 class="text-xl font-semibold text-purple-200 mb-4">Frequent Connections</h3>
+                <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-10 gap-4 frequent-authors-container">
+                    <!-- This will be populated dynamically by JavaScript -->
+                    <div class="flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full overflow-hidden avatar">
+                            <img src="https://i.pravatar.cc/200?img=6" alt="Loading..." class="w-full h-full object-cover">
+                        </div>
+                        <span class="mt-1 text-sm text-purple-200">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Metrics Section -->
+        <section class="glass-effect rounded-xl p-8">
+            <h2 class="text-3xl font-bold text-purple-300 mb-6">Your Nostr Activity</h2>
+            <p class="text-gray-400 mb-8">A summary of your interactions on the Nostr network.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass-effect rounded-lg p-6 text-center metric-card purple-glow">
+                    <h3 class="text-xl font-semibold text-purple-200 mb-2">Network Size</h3>
+                    <p class="text-4xl font-bold text-white">247</p>
+                    <p class="text-sm text-gray-400 mt-2">Authors you've interacted with</p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 text-center metric-card purple-glow">
+                    <h3 class="text-xl font-semibold text-purple-200 mb-2">Reactions</h3>
+                    <p class="text-4xl font-bold text-white">1,892</p>
+                    <p class="text-sm text-gray-400 mt-2">Likes and reactions given</p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 text-center metric-card purple-glow">
+                    <h3 class="text-xl font-semibold text-purple-200 mb-2">Conversations</h3>
+                    <p class="text-4xl font-bold text-white">583</p>
+                    <p class="text-sm text-gray-400 mt-2">Replies to posts</p>
+                </div>
+                
+                <div class="glass-effect rounded-lg p-6 text-center metric-card purple-glow">
+                    <h3 class="text-xl font-semibold text-purple-200 mb-2">Zaps</h3>
+                    <p class="text-4xl font-bold text-white">126</p>
+                    <p class="text-sm text-gray-400 mt-2">Lightning payments sent</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Algorithm Tuning Section -->
+        <section class="glass-effect rounded-xl p-8">
+            <h2 class="text-3xl font-bold text-purple-300 mb-6">Customize Your Algorithm</h2>
+            <p class="text-gray-400 mb-8">Adjust these parameters to fine-tune how your feed is curated.</p>
+            
+            <form id="algorithm-form" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <div class="p-4 glass-effect rounded-lg">
+                    <label class="block text-lg font-medium text-purple-300">Interactions with Authors</label>
+                    <div class="flex items-center gap-2">
+                        <input type="range" min="0" max="10" value="4" class="w-full mt-2" id="author-interactions">
+                        <span id="author-interactions-value" class="text-white font-medium">4</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-400">Boost posts from authors you engage with most.</p>
+                </div>
+                
+                <div class="p-4 glass-effect rounded-lg">
+                    <label class="block text-lg font-medium text-purple-300">Global Comments</label>
+                    <div class="flex items-center gap-2">
+                        <input type="range" min="0" max="10" value="2" class="w-full mt-2" id="global-comments">
+                        <span id="global-comments-value" class="text-white font-medium">2</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-400">Favor posts sparking big discussions.</p>
+                </div>
+                
+                <div class="p-4 glass-effect rounded-lg">
+                    <label class="block text-lg font-medium text-purple-300">Global Reactions</label>
+                    <div class="flex items-center gap-2">
+                        <input type="range" min="0" max="10" value="2" class="w-full mt-2" id="global-reactions">
+                        <span id="global-reactions-value" class="text-white font-medium">2</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-400">Highlight posts with widespread approval.</p>
+                </div>
+                
+                <div class="p-4 glass-effect rounded-lg">
+                    <label class="block text-lg font-medium text-purple-300">Global Zaps</label>
+                    <div class="flex items-center gap-2">
+                        <input type="range" min="0" max="10" value="3" class="w-full mt-2" id="global-zaps">
+                        <span id="global-zaps-value" class="text-white font-medium">3</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-400">Prioritize posts backed by real support.</p>
+                </div>
+                
+                <div class="p-4 glass-effect rounded-lg">
+                    <label class="block text-lg font-medium text-purple-300">Recency</label>
+                    <div class="flex items-center gap-2">
+                        <input type="range" min="0" max="20" value="10" class="w-full mt-2" id="recency">
+                        <span id="recency-value" class="text-white font-medium">10</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-400">Keep your feed fresh with new content.</p>
+                </div>
+                
+                <div class="p-4 glass-effect rounded-lg">
+                    <label class="block text-lg font-medium text-purple-300">Decay Rate</label>
+                    <div class="flex items-center gap-2">
+                        <input type="range" min="0" max="1" step="0.1" value="0.1" class="w-full mt-2" id="decay-rate">
+                        <span id="decay-rate-value" class="text-white font-medium">0.1</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-400">Control how fast older posts fade away.</p>
+                </div>
+                
+                <div class="p-4 glass-effect rounded-lg">
+                    <label class="block text-lg font-medium text-purple-300">Viral Threshold</label>
+                    <div class="flex items-center gap-2">
+                        <input type="range" min="0" max="500" step="10" value="100" class="w-full mt-2" id="viral-threshold">
+                        <span id="viral-threshold-value" class="text-white font-medium">100</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-400">Set the bar for what's considered viral content.</p>
+                </div>
+                
+                <div class="p-4 glass-effect rounded-lg">
+                    <label class="block text-lg font-medium text-purple-300">Viral Dampening</label>
+                    <div class="flex items-center gap-2">
+                        <input type="range" min="0" max="1" step="0.1" value="0.5" class="w-full mt-2" id="viral-dampening">
+                        <span id="viral-dampening-value" class="text-white font-medium">0.5</span>
+                    </div>
+                    <p class="mt-2 text-sm text-gray-400">Reduce the impact of extremely viral content.</p>
+                </div>
+                
+                <div class="col-span-1 md:col-span-2 flex justify-center mt-4">
+                    <button type="submit" class="px-8 py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-300 purple-glow">
+                        Save Algorithm Settings
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full py-6 bg-opacity-80 glass-effect mt-12">
+        <div class="max-w-7xl mx-auto text-center">
+            <p class="text-gray-400">Built with ❤️ by <a href="https://bitvora.com" class="text-purple-300 hover:text-purple-100">Bitvora</a></p>
+            <a href="https://github.com/bitvora/algo-relay" class="mt-2 inline-block text-purple-300 hover:text-purple-100 transition duration-300">
+                GitHub Repository
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get pubkey from localStorage
+            const pubkey = localStorage.getItem('nostr_pubkey');
+            if (!pubkey) {
+                window.location.href = '/'; // Redirect to home if not logged in
+                return;
+            }
+            
+            // Fetch user settings first
+            fetchUserSettings(pubkey).then(() => {
+                // After settings are loaded, fetch top authors
+                fetchTopAuthors(pubkey);
+                // Also fetch user metrics
+                fetchUserMetrics(pubkey);
+            });
+            
+            // Handle logout
+            document.getElementById('logout-button').addEventListener('click', function() {
+                localStorage.removeItem('nostr_pubkey');
+                window.location.href = '/';
+            });
+            
+            // Update slider value displays
+            const sliders = [
+                'author-interactions',
+                'global-comments',
+                'global-reactions',
+                'global-zaps',
+                'recency',
+                'decay-rate',
+                'viral-threshold',
+                'viral-dampening'
+            ];
+            
+            sliders.forEach(id => {
+                const slider = document.getElementById(id);
+                const valueDisplay = document.getElementById(`${id}-value`);
+                
+                slider.addEventListener('input', function() {
+                    valueDisplay.textContent = this.value;
+                });
+            });
+            
+            // Handle form submission
+            document.getElementById('algorithm-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const pubkey = localStorage.getItem('nostr_pubkey');
+                if (!pubkey) {
+                    alert('You need to be logged in to save settings');
+                    window.location.href = '/';
+                    return;
+                }
+                
+                const settings = {
+                    pubkey: pubkey,
+                    authorInteractions: parseFloat(document.getElementById('author-interactions').value),
+                    globalComments: parseFloat(document.getElementById('global-comments').value),
+                    globalReactions: parseFloat(document.getElementById('global-reactions').value),
+                    globalZaps: parseFloat(document.getElementById('global-zaps').value),
+                    recency: parseFloat(document.getElementById('recency').value),
+                    decayRate: parseFloat(document.getElementById('decay-rate').value),
+                    viralThreshold: parseFloat(document.getElementById('viral-threshold').value),
+                    viralDampening: parseFloat(document.getElementById('viral-dampening').value)
+                };
+                
+                try {
+                    // Check if Nostr extension is available
+                    if (!window.nostr) {
+                        alert('Nostr extension not found. Please install a Nostr extension to save settings.');
+                        return;
+                    }
+                    
+                    // Create event content with the settings
+                    const eventContent = JSON.stringify({
+                        type: 'algo_relay_settings',
+                        settings: settings,
+                        timestamp: Math.floor(Date.now() / 1000)
+                    });
+                    
+                    // Create the event object
+                    const event = {
+                        kind: 1,
+                        created_at: Math.floor(Date.now() / 1000),
+                        tags: [['t', 'algo_relay_settings']],
+                        content: eventContent,
+                        pubkey: pubkey
+                    };
+                    
+                    // Sign the event using the Nostr extension
+                    let signedEvent;
+                    try {
+                        // Get the event ID
+                        const nostr = window.NostrTools || window.nostr;
+                        
+                        // This is how it's done in home.html - we need to use window.nostr directly
+                        signedEvent = await window.nostr.signEvent(event);
+                    } catch (error) {
+                        console.error('Error signing event:', error);
+                        alert('Error signing with your Nostr extension. Please try again.');
+                        return;
+                    }
+                    
+                    // Send both the settings and the signed event to verify ownership
+                    const response = await fetch('/api/settings', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            settings: settings,
+                            signedEvent: signedEvent
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        alert('Your algorithm settings have been saved!');
+                    } else {
+                        const errorData = await response.json();
+                        alert(`Error: ${errorData.error || 'Unknown error'}`);
+                    }
+                } catch (error) {
+                    console.error('Settings error:', error);
+                    alert(`Error saving settings: ${error.message}`);
+                }
+            });
+        });
+        
+        // Function to fetch user settings
+        async function fetchUserSettings(pubkey) {
+            try {
+                const response = await fetch(`/api/settings?pubkey=${pubkey}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const settings = await response.json();
+                
+                // Update the form with the user's settings
+                document.getElementById('author-interactions').value = settings.authorInteractions;
+                document.getElementById('author-interactions-value').textContent = settings.authorInteractions;
+                
+                document.getElementById('global-comments').value = settings.globalComments;
+                document.getElementById('global-comments-value').textContent = settings.globalComments;
+                
+                document.getElementById('global-reactions').value = settings.globalReactions;
+                document.getElementById('global-reactions-value').textContent = settings.globalReactions;
+                
+                document.getElementById('global-zaps').value = settings.globalZaps;
+                document.getElementById('global-zaps-value').textContent = settings.globalZaps;
+                
+                document.getElementById('recency').value = settings.recency;
+                document.getElementById('recency-value').textContent = settings.recency;
+                
+                document.getElementById('decay-rate').value = settings.decayRate;
+                document.getElementById('decay-rate-value').textContent = settings.decayRate;
+                
+                document.getElementById('viral-threshold').value = settings.viralThreshold;
+                document.getElementById('viral-threshold-value').textContent = settings.viralThreshold;
+                
+                document.getElementById('viral-dampening').value = settings.viralDampening;
+                document.getElementById('viral-dampening-value').textContent = settings.viralDampening;
+                
+                console.log('User settings loaded successfully');
+            } catch (error) {
+                console.error('Error fetching user settings:', error);
+                // Continue with default values already in the HTML
+            }
+        }
+        
+        // Function to fetch top interacted authors
+        async function fetchTopAuthors(pubkey) {
+            try {
+                const response = await fetch(`/api/top-authors?pubkey=${pubkey}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const authors = await response.json();
+                if (authors && authors.length > 0) {
+                    // Fetch all author profiles at once
+                    const authorIds = authors.map(author => author.AuthorID);
+                    // Add the current user's pubkey to the list
+                    authorIds.push(pubkey);
+                    
+                    // Fetch all profiles in a single call
+                    const profiles = await fetchMultipleProfiles(authorIds);
+                    
+                    // Process the top 5 authors for the main display
+                    const topAuthors = authors.slice(0, 5);
+                    const topAuthorsContainer = document.querySelector('.top-authors-container');
+                    if (topAuthorsContainer) {
+                        topAuthorsContainer.innerHTML = ''; // Clear placeholder content
+                        
+                        for (const author of topAuthors) {
+                            addAuthorToContainer(author, topAuthorsContainer, true, profiles[author.AuthorID]);
+                        }
+                    }
+                    
+                    // Process the next 30 authors for the frequent connections (3 rows of 10)
+                    const nextAuthors = authors.slice(5, 35);
+                    const nextAuthorsContainer = document.querySelector('.frequent-authors-container');
+                    if (nextAuthorsContainer) {
+                        nextAuthorsContainer.innerHTML = ''; // Clear placeholder content
+                        
+                        for (const author of nextAuthors) {
+                            addAuthorToContainer(author, nextAuthorsContainer, false, profiles[author.AuthorID]);
+                        }
+                    }
+                    
+                    // Update the current user's profile
+                    updateProfileUI(profiles[pubkey]);
+                }
+            } catch (error) {
+                console.error('Error fetching top authors:', error);
+            }
+        }
+        
+        // Function to add an author to a container with profile data
+        function addAuthorToContainer(author, container, isTopAuthor, profileData) {
+            const authorDiv = document.createElement('div');
+            authorDiv.className = 'flex flex-col items-center';
+            
+            // Create avatar container
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = isTopAuthor 
+                ? 'w-24 h-24 rounded-full overflow-hidden purple-glow avatar' 
+                : 'w-16 h-16 rounded-full overflow-hidden avatar';
+            
+            // Create avatar image
+            const avatarImg = document.createElement('img');
+            avatarImg.src = 'https://i.pravatar.cc/200?img=0'; // Default image
+            avatarImg.className = 'w-full h-full object-cover';
+            avatarImg.alt = `Author ${author.AuthorID}`;
+            
+            // Create name span
+            const nameSpan = document.createElement('span');
+            nameSpan.className = isTopAuthor ? 'mt-2 text-purple-200 font-medium' : 'mt-1 text-sm text-purple-200';
+            nameSpan.textContent = `@${author.AuthorID.substring(0, 8)}...`;
+            
+            // Apply profile data if available
+            if (profileData) {
+                if (profileData.picture) {
+                    avatarImg.src = profileData.picture;
+                }
+                
+                if (profileData.display_name || profileData.name) {
+                    nameSpan.textContent = profileData.display_name || profileData.name;
+                }
+            }
+            
+            // Assemble the elements
+            avatarDiv.appendChild(avatarImg);
+            authorDiv.appendChild(avatarDiv);
+            authorDiv.appendChild(nameSpan);
+            
+            // Add interaction count if it's a top author
+            if (isTopAuthor && author.InteractionCount > 0) {
+                const countSpan = document.createElement('span');
+                countSpan.className = 'text-xs text-purple-400';
+                countSpan.textContent = `${author.InteractionCount} interactions`;
+                authorDiv.appendChild(countSpan);
+            }
+            
+            // Add to container
+            container.appendChild(authorDiv);
+        }
+        
+        // Function to fetch multiple profiles at once
+        async function fetchMultipleProfiles(pubkeys) {
+            try {
+                const nostr = window.NostrTools || window.nostr;
+                if (!nostr) {
+                    console.error('Nostr tools library not found');
+                    return {};
+                }
+                
+                const pool = new nostr.SimplePool();
+                const relays = [
+                    'wss://purplepag.es',
+                    'wss://relay.primal.net',
+                    'wss://relay.damus.io',
+                    'wss://nos.lol'
+                ];
+                
+                const filter = {
+                    kinds: [0],
+                    authors: pubkeys,
+                };
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+                
+                try {
+                    const events = await pool.querySync(relays, filter, { signal: controller.signal });
+                    
+                    // Create a map to store the latest event for each pubkey
+                    const latestEvents = {};
+                    
+                    for (const event of events) {
+                        const pubkey = event.pubkey;
+                        if (!latestEvents[pubkey] || event.created_at > latestEvents[pubkey].created_at) {
+                            latestEvents[pubkey] = event;
+                        }
+                    }
+                    
+                    // Parse the content of each latest event
+                    const profiles = {};
+                    for (const [pubkey, event] of Object.entries(latestEvents)) {
+                        try {
+                            profiles[pubkey] = JSON.parse(event.content);
+                        } catch (e) {
+                            console.error(`Error parsing profile data for ${pubkey}:`, e);
+                            profiles[pubkey] = null;
+                        }
+                    }
+                    
+                    return profiles;
+                } finally {
+                    clearTimeout(timeoutId);
+                    pool.close(relays);
+                }
+            } catch (error) {
+                console.error('Error fetching multiple profiles:', error);
+                return {};
+            }
+        }
+        
+        // Function to update UI with profile data
+        function updateProfileUI(profileData) {
+            const userAvatarElement = document.getElementById('user-avatar').querySelector('img');
+            const userNameElement = document.getElementById('user-name');
+            
+            if (profileData && profileData.picture) {
+                userAvatarElement.src = profileData.picture;
+            } else {
+                // Use default avatar if no profile picture is available
+                userAvatarElement.src = 'https://i.pravatar.cc/200?img=0';
+            }
+            
+            if (profileData && (profileData.display_name || profileData.name)) {
+                userNameElement.textContent = profileData.display_name || profileData.name;
+            } else {
+                userNameElement.textContent = 'Nostr User';
+            }
+        }
+        
+        // Function to fetch user metrics
+        async function fetchUserMetrics(pubkey) {
+            try {
+                const response = await fetch(`/api/user-metrics?pubkey=${pubkey}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const metrics = await response.json();
+                
+                // Update the metrics in the UI
+                document.querySelector('.metric-card:nth-child(1) .text-4xl').textContent = metrics.networkSize.toLocaleString();
+                document.querySelector('.metric-card:nth-child(2) .text-4xl').textContent = metrics.reactions.toLocaleString();
+                document.querySelector('.metric-card:nth-child(3) .text-4xl').textContent = metrics.conversations.toLocaleString();
+                document.querySelector('.metric-card:nth-child(4) .text-4xl').textContent = metrics.zaps.toLocaleString();
+                
+                console.log('User metrics loaded successfully');
+            } catch (error) {
+                console.error('Error fetching user metrics:', error);
+                // Keep the placeholder values in case of error
+            }
+        }
+    </script>
+</body>
+</html> 

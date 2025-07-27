@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algo Relay WebSocket Client Example</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .connection-status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .connected {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        input, button {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            background: #f8f9fa;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 4px solid #007bff;
+        }
+        .message.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        .message.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        .message.info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #666;
+        }
+        .tab.active {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔌 Algo Relay WebSocket Client</h1>
+            <p>Real-time data streaming from the algorithmic relay</p>
+        </div>
+
+        <div id="connectionStatus" class="connection-status disconnected">
+            Disconnected
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <input type="text" id="userId" placeholder="Enter your Nostr user ID" />
+                <button onclick="connect()" id="connectBtn">Connect</button>
+                <button onclick="disconnect()" id="disconnectBtn" disabled>Disconnect</button>
+            </div>
+            <div class="control-group">
+                <button onclick="authenticate()" id="authBtn" disabled>Authenticate</button>
+                <button onclick="getFeed()" id="feedBtn" disabled>Get Feed</button>
+            </div>
+            <div class="control-group">
+                <button onclick="getViralNotes()" id="viralBtn" disabled>Get Viral Notes</button>
+                <button onclick="getTrendingNotes()" id="trendingBtn" disabled>Get Trending Notes</button>
+            </div>
+            <div class="control-group">
+                <button onclick="subscribeViral()" id="subscribeViralBtn" disabled>Subscribe Viral</button>
+                <button onclick="subscribeTrending()" id="subscribeTrendingBtn" disabled>Subscribe Trending</button>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('messages')">Messages</button>
+            <button class="tab" onclick="showTab('feed')">Feed</button>
+            <button class="tab" onclick="showTab('viral')">Viral Notes</button>
+            <button class="tab" onclick="showTab('trending')">Trending Notes</button>
+        </div>
+
+        <div id="messagesTab" class="tab-content active">
+            <div id="messages" class="messages"></div>
+        </div>
+
+        <div id="feedTab" class="tab-content">
+            <div id="feedData" class="messages"></div>
+        </div>
+
+        <div id="viralTab" class="tab-content">
+            <div id="viralData" class="messages"></div>
+        </div>
+
+        <div id="trendingTab" class="tab-content">
+            <div id="trendingData" class="messages"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let isConnected = false;
+        let isAuthenticated = false;
+
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusDiv = document.getElementById('connectionStatus');
+            const connectBtn = document.getElementById('connectBtn');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+            const authBtn = document.getElementById('authBtn');
+
+            isConnected = connected;
+            
+            if (connected) {
+                statusDiv.textContent = 'Connected';
+                statusDiv.className = 'connection-status connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                authBtn.disabled = false;
+            } else {
+                statusDiv.textContent = 'Disconnected';
+                statusDiv.className = 'connection-status disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                authBtn.disabled = true;
+                isAuthenticated = false;
+                updateAuthButtons();
+            }
+        }
+
+        function updateAuthButtons() {
+            const feedBtn = document.getElementById('feedBtn');
+            const viralBtn = document.getElementById('viralBtn');
+            const trendingBtn = document.getElementById('trendingBtn');
+            const subscribeViralBtn = document.getElementById('subscribeViralBtn');
+            const subscribeTrendingBtn = document.getElementById('subscribeTrendingBtn');
+
+            const enabled = isConnected && isAuthenticated;
+            feedBtn.disabled = !enabled;
+            viralBtn.disabled = !isConnected;
+            trendingBtn.disabled = !isConnected;
+            subscribeViralBtn.disabled = !isConnected;
+            subscribeTrendingBtn.disabled = !isConnected;
+        }
+
+        function addMessage(message, type = 'info') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function addDataToTab(tabName, data, title) {
+            const tabDiv = document.getElementById(tabName + 'Data');
+            const dataDiv = document.createElement('div');
+            dataDiv.className = 'message info';
+            dataDiv.innerHTML = `<strong>${title}</strong><br>${JSON.stringify(data, null, 2)}`;
+            tabDiv.appendChild(dataDiv);
+            tabDiv.scrollTop = tabDiv.scrollHeight;
+        }
+
+        function connect() {
+            const userId = document.getElementById('userId').value;
+            if (!userId) {
+                alert('Please enter a user ID');
+                return;
+            }
+
+            ws = new WebSocket('ws://localhost:3334/ws');
+            
+            ws.onopen = function() {
+                addMessage('WebSocket connected', 'success');
+                updateConnectionStatus(true);
+            };
+
+            ws.onmessage = function(event) {
+                try {
+                    const message = JSON.parse(event.data);
+                    addMessage(`Received: ${message.type}`, 'info');
+                    
+                    switch (message.type) {
+                        case 'auth_success':
+                            isAuthenticated = true;
+                            updateAuthButtons();
+                            addMessage('Authentication successful', 'success');
+                            break;
+                        case 'feed_data':
+                            addDataToTab('feed', message.data, 'Feed Data');
+                            break;
+                        case 'viral_notes':
+                            addDataToTab('viral', message.data, 'Viral Notes');
+                            break;
+                        case 'trending_notes':
+                            addDataToTab('trending', message.data, 'Trending Notes');
+                            break;
+                        case 'viral_notes_update':
+                            addDataToTab('viral', message.data, 'Viral Notes Update');
+                            break;
+                        case 'trending_notes_update':
+                            addDataToTab('trending', message.data, 'Trending Notes Update');
+                            break;
+                        case 'error':
+                            addMessage(`Error: ${message.error}`, 'error');
+                            break;
+                        default:
+                            addMessage(`Unknown message type: ${message.type}`, 'info');
+                    }
+                } catch (error) {
+                    addMessage(`Failed to parse message: ${error}`, 'error');
+                }
+            };
+
+            ws.onclose = function() {
+                addMessage('WebSocket disconnected', 'error');
+                updateConnectionStatus(false);
+            };
+
+            ws.onerror = function(error) {
+                addMessage(`WebSocket error: ${error}`, 'error');
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function sendMessage(message) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(message));
+                addMessage(`Sent: ${message.type}`, 'info');
+            } else {
+                addMessage('WebSocket not connected', 'error');
+            }
+        }
+
+        function authenticate() {
+            const userId = document.getElementById('userId').value;
+            sendMessage({
+                type: 'auth',
+                user_id: userId
+            });
+        }
+
+        function getFeed() {
+            sendMessage({
+                type: 'get_feed',
+                kind: 1,
+                limit: 20
+            });
+        }
+
+        function getViralNotes() {
+            sendMessage({
+                type: 'get_viral_notes',
+                limit: 10
+            });
+        }
+
+        function getTrendingNotes() {
+            sendMessage({
+                type: 'get_trending_notes',
+                limit: 10
+            });
+        }
+
+        function subscribeViral() {
+            sendMessage({
+                type: 'subscribe_viral'
+            });
+        }
+
+        function subscribeTrending() {
+            sendMessage({
+                type: 'subscribe_trending'
+            });
+        }
+    </script>
+</body>
+</html> 

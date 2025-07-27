@@ -10,7 +10,9 @@ import PumpComponent from "../launchpad/PumpComponent";
 import CommunitiesList from "../Communities";
 import ChannelFeed from "../Nostr/Channel/ChannelFeed";
 import ChatScreen from "../Bitchat/ChatScreen";
-// import { ChatScreen } from "@/components/Bitchat/ChatScreen";
+import AlgoFeed from "../Nostr/feed/AlgoFeed";
+import AdvancedAlgoFeed from "../Nostr/feed/AdvancedAlgoFeed";
+import MainNostrFeed from "../Nostr/feed/main/MainNostrFeed";
 
 export default function DiscoverComponent() {
 
@@ -26,13 +28,13 @@ export default function DiscoverComponent() {
 
         <div className="flex flex-row gap-2 overflow-x-auto scrollbar-hide rounded-xl p-2 shadow-md justify-start ">
           {[
-            { key: "feed", label: "Feed" },
             { key: "brand", label: "Brands" },
             { key: "creator", label: "Creators" },
+            { key: "feed", label: "Feed" },
+            { key: "chat", label: "Chat" },
             { key: "launchpad", label: "Tokens" },
             { key: "channels", label: "Channels" },
             { key: "communities", label: "Communities" },
-            { key: "chat", label: "Chat" },
             // { key: "topic", label: "Topics" },
           ].map(tab => (
             <button
@@ -84,7 +86,10 @@ export default function DiscoverComponent() {
           <div
           // className="flex flex-row gap-4"
           >
-            <FeedTabs className="w-full" />
+            <FeedTabs className="w-full" /> 
+            {/* <MainNostrFeed /> */}
+            {/* <AdvancedAlgoFeed /> */}
+            {/* <FeedTabs className="w-full" /> */}
           </div>
         )}
 

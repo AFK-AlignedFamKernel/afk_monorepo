@@ -161,7 +161,19 @@ const MobileBottomBar = () => {
             <p className="text-xs font-medium leading-normal tracking-[0.015em]">Home</p>
           </Link>
 
-          <Link href="/launchpad" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}
+
+          <Link href="/discover" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}
+          onClick={() => {
+            logClickedEvent('discover_button_link_mobile');
+          }}
+          >
+            <div className="flex h-8 items-center justify-center">
+              <Icon name="DiscoverIcon" className='w-6 h-6' />
+            </div>
+            <p className="text-xs font-medium leading-normal tracking-[0.015em]">Discover</p>
+          </Link>
+
+          {/* <Link href="/launchpad" className="flex flex-1 flex-col items-center justify-end gap-1" style={{ color: secondaryTextColor }}
           onClick={() => {
             logClickedEvent('swap_button_link_mobile');
           }}
@@ -170,7 +182,7 @@ const MobileBottomBar = () => {
               <Icon name="UpwardTrendGraphIcon" className='w-6 h-6' />
             </div>
             <p className="text-xs font-medium leading-normal tracking-[0.015em]">Swap</p>
-          </Link>
+          </Link> */}
 
 
           <button 

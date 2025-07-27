@@ -17,6 +17,12 @@ const AuthNostrProviderComponent = () => {
     }
   }, [ ndk, publicKey, privateKey, isNdkConnected]);
 
+  useEffect(() => {
+    if(!isNdkConnected){
+      checkIsConnected(ndk);  
+    }
+  }, [isNdkConnected]);
+
   const handleAuth = async () => {
     await authenticateWithRelay(RELAY_AFK_PRODUCTION);
   };

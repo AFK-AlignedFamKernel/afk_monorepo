@@ -52,6 +52,30 @@ services:
     env_file:
       - .env
 
+  algo-relay:
+    build:
+      context: .
+      dockerfile: algo-relay-afk/Dockerfile
+    ports:
+      - "${ALGO_RELAY_PORT:-8080}:8080"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    shm_size: 16g
+    container_name: postgres_db
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   packages:
     build:
       context: .
@@ -64,3 +88,6 @@ services:
       - .:/app
     env_file:
       - .env
+
+volumes:
+  postgres_data:
