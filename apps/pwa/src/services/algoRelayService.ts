@@ -663,6 +663,99 @@ class AlgoRelayService {
     return this.getTrendingNotes(limit, 0, minInteractionCount);
   }
 
+  // Search notes by topic tag
+  async searchNotesByTopic(params: {
+    topic: string;
+    limit?: number;
+    offset?: number;
+    kinds?: number[];
+    timeRange?: '1h' | '6h' | '24h' | '1d' | '7d' | '30d';
+    minInteractionCount?: number;
+    sortOrder?: 'created_at_asc' | 'created_at_desc' | 'interaction_score_desc' | 'viral_score_desc' | 'trending_score_desc' | 'reactions_desc' | 'comments_desc' | 'zaps_desc';
+  }): Promise<TrendingNote[]> {
+    const { 
+      topic, 
+      limit = 20, 
+      offset = 0, 
+      kinds = [], 
+      timeRange = '7d', 
+      minInteractionCount = 0,
+      sortOrder = 'created_at_desc'
+    } = params;
+    
+    log.info(`Searching notes by topic`, { topic, limit, offset, kinds, timeRange, minInteractionCount, sortOrder });
+    
+    try {
+      const searchParams = new URLSearchParams();
+      searchParams.append('topic', topic);
+      searchParams.append('limit', limit.toString());
+      searchParams.append('offset', offset.toString());
+      searchParams.append('time_range', timeRange);
+      searchParams.append('min_interaction_count', minInteractionCount.toString());
+      searchParams.append('sort', sortOrder);
+      
+      if (kinds.length > 0) {
+        searchParams.append('kinds', kinds.join(','));
+      }
+
+      const queryString = searchParams.toString();
+      const topicData = await this.makeRequest<BackendScrapedNote[]>(`/api/search/topics?${queryString}`);
+      
+      if (topicData && topicData.length > 0) {
+        log.success(`Found ${topicData.length} notes for topic "${topic}"`);
+        return topicData.map(note => this.transformToTrendingNote(this.transformBackendScrapedNote(note)));
+      }
+      
+      log.warning(`No notes found for topic "${topic}"`);
+      return [];
+    } catch (error) {
+      log.error(`Error searching notes by topic`, { error, topic });
+      return [];
+    }
+  }
+
+  // Get popular topics
+  async getPopularTopics(params: {
+    limit?: number;
+    timeRange?: '1h' | '6h' | '24h' | '1d' | '7d' | '30d';
+    minUsageCount?: number;
+  } = {}): Promise<Array<{
+    tag: string;
+    usage_count: number;
+    unique_authors: number;
+    last_used: number;
+  }>> {
+    const { limit = 50, timeRange = '7d', minUsageCount = 1 } = params;
+    
+    log.info(`Fetching popular topics`, { limit, timeRange, minUsageCount });
+    
+    try {
+      const searchParams = new URLSearchParams();
+      searchParams.append('limit', limit.toString());
+      searchParams.append('time_range', timeRange);
+      searchParams.append('min_usage_count', minUsageCount.toString());
+
+      const queryString = searchParams.toString();
+      const topicsData = await this.makeRequest<Array<{
+        tag: string;
+        usage_count: number;
+        unique_authors: number;
+        last_used: number;
+      }>>(`/api/search/tags?${queryString}`);
+      
+      if (topicsData && topicsData.length > 0) {
+        log.success(`Found ${topicsData.length} popular topics`);
+        return topicsData;
+      }
+      
+      log.warning(`No popular topics found`);
+      return [];
+    } catch (error) {
+      log.error(`Error fetching popular topics`, { error });
+      return [];
+    }
+  }
+
   // Get notes by content type
   async getNotesByContentType(contentType: 'text' | 'image' | 'article' | 'video' = 'text', limit: number = 20): Promise<ScrapedNote[]> {
     log.info(`Fetching notes by content type`, { contentType, limit });

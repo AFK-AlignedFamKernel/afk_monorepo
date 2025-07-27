@@ -1607,6 +1607,162 @@ func (r *NostrRepository) SearchTags(searchQuery string, limit int, offset int, 
 	return tags, nil
 }
 
+// SearchNotesByTopic searches for notes that contain a specific topic tag
+func (r *NostrRepository) SearchNotesByTopic(topic string, limit int, offset int, kinds []int, timeRange string, minInteractionCount int, sortOrder string) ([]FeedNote, error) {
+	start := time.Now()
+
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour) // Default to 7 days
+	}
+
+	// Build the base query to find notes with the specific topic tag
+	baseQuery := `
+		SELECT 
+			n.id, n.author_id, n.kind, n.content, n.created_at,
+			COALESCE(r_count.reaction_count, 0) as reaction_count,
+			COALESCE(c_count.comment_count, 0) as comment_count,
+			COALESCE(z_count.zap_count, 0) as zap_count,
+			COALESCE(sn.viral_score, 0) as viral_score,
+			COALESCE(sn.trending_score, 0) as trending_score,
+			COALESCE(sn.interaction_score, 0) as interaction_score,
+			COALESCE(sn.is_viral, false) as is_viral,
+			COALESCE(sn.is_trending, false) as is_trending
+		FROM notes n
+		LEFT JOIN (
+			SELECT note_id, COUNT(*) as reaction_count
+			FROM reactions
+			WHERE created_at >= $1
+			GROUP BY note_id
+		) r_count ON n.id = r_count.note_id
+		LEFT JOIN (
+			SELECT note_id, COUNT(*) as comment_count
+			FROM comments
+			WHERE created_at >= $1
+			GROUP BY note_id
+		) c_count ON n.id = c_count.note_id
+		LEFT JOIN (
+			SELECT note_id, COUNT(*) as zap_count
+			FROM zaps
+			WHERE created_at >= $1
+			GROUP BY note_id
+		) z_count ON n.id = z_count.note_id
+		LEFT JOIN scraped_notes sn ON n.id = sn.id
+		WHERE n.created_at >= $1
+		AND n.tags @> $2
+	`
+
+	// Build parameters slice
+	params := []interface{}{timeCutoff, fmt.Sprintf(`[["t", "%s"]]`, topic)}
+	paramIndex := 3
+
+	// Add kinds filter if specified
+	if len(kinds) > 0 {
+		baseQuery += fmt.Sprintf(" AND n.kind = ANY($%d)", paramIndex)
+		params = append(params, pq.Array(kinds))
+		paramIndex++
+	}
+
+	// Add minimum interaction count filter
+	if minInteractionCount > 0 {
+		baseQuery += fmt.Sprintf(" AND (COALESCE(r_count.reaction_count, 0) + COALESCE(c_count.comment_count, 0) + COALESCE(z_count.zap_count, 0)) >= $%d", paramIndex)
+		params = append(params, minInteractionCount)
+		paramIndex++
+	}
+
+	// Add ordering based on sortOrder parameter
+	switch sortOrder {
+	case "created_at_asc":
+		baseQuery += " ORDER BY n.created_at ASC"
+	case "created_at_desc":
+		baseQuery += " ORDER BY n.created_at DESC"
+	case "interaction_score_desc":
+		baseQuery += " ORDER BY COALESCE(sn.interaction_score, 0) DESC"
+	case "viral_score_desc":
+		baseQuery += " ORDER BY COALESCE(sn.viral_score, 0) DESC"
+	case "trending_score_desc":
+		baseQuery += " ORDER BY COALESCE(sn.trending_score, 0) DESC"
+	case "reactions_desc":
+		baseQuery += " ORDER BY COALESCE(r_count.reaction_count, 0) DESC"
+	case "comments_desc":
+		baseQuery += " ORDER BY COALESCE(c_count.comment_count, 0) DESC"
+	case "zaps_desc":
+		baseQuery += " ORDER BY COALESCE(z_count.zap_count, 0) DESC"
+	default:
+		baseQuery += " ORDER BY n.created_at DESC" // Default sort order
+	}
+
+	// Add pagination
+	baseQuery += " LIMIT $" + fmt.Sprintf("%d", paramIndex) + " OFFSET $" + fmt.Sprintf("%d", paramIndex+1)
+	params = append(params, limit, offset)
+
+	// Debug: Log the query and parameters
+	log.Printf("🔍 [TOPIC] Query: %s", baseQuery)
+	log.Printf("🔍 [TOPIC] Params: %v", params)
+	log.Printf("🔍 [TOPIC] Topic: %s, Limit: %d, Offset: %d", topic, limit, offset)
+
+	// Execute the query
+	rows, err := r.db.QueryContext(context.Background(), baseQuery, params...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notes []FeedNote
+	for rows.Next() {
+		var id, authorID, content string
+		var kind int
+		var createdAt time.Time
+		var reactionCount, commentCount, zapCount, interactionScore int
+		var viralScore, trendingScore float64
+		var isViral, isTrending bool
+
+		err := rows.Scan(
+			&id, &authorID, &kind, &content, &createdAt,
+			&reactionCount, &commentCount, &zapCount,
+			&viralScore, &trendingScore, &interactionScore,
+			&isViral, &isTrending,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		// Create nostr.Event
+		event := nostr.Event{
+			ID:        id,
+			PubKey:    authorID,
+			Kind:      kind,
+			Content:   content,
+			CreatedAt: nostr.Timestamp(createdAt.Unix()),
+			Tags:      nostr.Tags{}, // We'll need to fetch tags separately if needed
+		}
+
+		// Calculate score based on interactions
+		score := float64(reactionCount + commentCount + zapCount)
+
+		notes = append(notes, FeedNote{
+			Event: event,
+			Score: score,
+		})
+	}
+
+	log.Printf("Searched notes by topic '%s' in %v (limit: %d, offset: %d, timeRange: %s, kinds: %v, minInteractionCount: %d, sort: %s)",
+		topic, time.Since(start), limit, offset, timeRange, kinds, minInteractionCount, sortOrder)
+	return notes, nil
+}
+
 // GetNotesWithViralTrendingScores retrieves notes from main table and enhances with viral/trending scores
 func (r *NostrRepository) GetNotesWithViralTrendingScores(ctx context.Context, limit int, offset int, kinds []int, searchQuery string, timeRange string, tags []string, authors []string, minViralScore float64, minTrendingScore float64, minInteractionCount int) ([]FeedNote, error) {
 	start := time.Now()

@@ -278,6 +278,7 @@ func main() {
 	mux.HandleFunc("/api/search", handleSearchAPI)
 	mux.HandleFunc("/api/search/authors", handleSearchAuthorsAPI)
 	mux.HandleFunc("/api/search/tags", handleSearchTagsAPI)
+	mux.HandleFunc("/api/search/topics", handleSearchTopicsAPI)
 	mux.HandleFunc("/api/diagnostic", handleDiagnosticAPI)
 
 	// Configure CORS

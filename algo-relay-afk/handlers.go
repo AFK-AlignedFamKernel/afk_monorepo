@@ -1216,6 +1216,90 @@ func handleSearchTagsAPI(w http.ResponseWriter, r *http.Request) {
 	log.Printf("📤 [API] Tag search response sent successfully")
 }
 
+// handleSearchTopicsAPI handles search for notes by topic tags
+func handleSearchTopicsAPI(w http.ResponseWriter, r *http.Request) {
+	log.Printf("🏷️ [API] Topic search request received from %s", r.RemoteAddr)
+
+	// Get topic parameter (required)
+	topic := r.URL.Query().Get("topic")
+	if topic == "" {
+		http.Error(w, "Missing topic parameter", http.StatusBadRequest)
+		return
+	}
+
+	// Get limit parameter
+	limit := 20
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		if parsed, err := strconv.Atoi(limitStr); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	// Get offset parameter for pagination
+	offset := 0
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		if parsed, err := strconv.Atoi(offsetStr); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	// Get kinds filter (comma-separated)
+	kinds := []int{}
+	if kindsStr := r.URL.Query().Get("kinds"); kindsStr != "" {
+		kindsList := strings.Split(kindsStr, ",")
+		for _, kindStr := range kindsList {
+			if parsed, err := strconv.Atoi(strings.TrimSpace(kindStr)); err == nil && parsed >= 0 {
+				kinds = append(kinds, parsed)
+			}
+		}
+	}
+
+	// Get time range filter
+	timeRange := r.URL.Query().Get("time_range")
+	if timeRange == "" {
+		timeRange = "7d" // Default to 7 days
+	}
+
+	// Get minimum interaction count filter
+	minInteractionCount := 0
+	if interactionStr := r.URL.Query().Get("min_interaction_count"); interactionStr != "" {
+		if parsed, err := strconv.Atoi(interactionStr); err == nil && parsed >= 0 {
+			minInteractionCount = parsed
+		}
+	}
+
+	// Get sort order
+	sortOrder := r.URL.Query().Get("sort")
+	if sortOrder == "" {
+		sortOrder = "created_at_desc" // Default sort order
+	}
+
+	log.Printf("🏷️ [API] Searching notes by topic: %s, limit: %d, offset: %d, kinds: %v, timeRange: %s, minInteractionCount: %d, sort: %s",
+		topic, limit, offset, kinds, timeRange, minInteractionCount, sortOrder)
+
+	// Search notes by topic
+	notes, err := repository.SearchNotesByTopic(topic, limit, offset, kinds, timeRange, minInteractionCount, sortOrder)
+	if err != nil {
+		log.Printf("❌ [API] Error searching notes by topic: %v", err)
+		http.Error(w, "Error searching notes by topic: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("✅ [API] Topic search completed successfully, found %d notes", len(notes))
+
+	// Set content type header
+	w.Header().Set("Content-Type", "application/json")
+
+	// Return the results as JSON
+	if err := json.NewEncoder(w).Encode(notes); err != nil {
+		log.Printf("❌ [API] Error encoding topic search response: %v", err)
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	log.Printf("📤 [API] Topic search response sent successfully")
+}
+
 // handleDiagnosticAPI provides diagnostic information about the database
 func handleDiagnosticAPI(w http.ResponseWriter, r *http.Request) {
 	log.Printf("🔍 [API] Diagnostic request received from %s", r.RemoteAddr)
