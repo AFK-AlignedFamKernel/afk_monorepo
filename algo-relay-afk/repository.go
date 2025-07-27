@@ -1661,7 +1661,7 @@ func (r *NostrRepository) SearchNotesByTopic(topic string, limit int, offset int
 		) z_count ON n.id = z_count.note_id
 		LEFT JOIN scraped_notes sn ON n.id = sn.id
 		WHERE n.created_at >= $1
-		AND n.tags @> $2
+		AND n.raw_json->'tags' @> $2
 	`
 
 	// Build parameters slice

@@ -702,11 +702,11 @@ class AlgoRelayService {
       const topicData = await this.makeRequest<BackendScrapedNote[]>(`/api/search/topics?${queryString}`);
       
       if (topicData && topicData.length > 0) {
-        log.success(`Found ${topicData.length} notes for topic "${topic}"`);
+        log.success(`Found ${topicData.length} notes for topic "${topic}" (from database + relay fallback)`);
         return topicData.map(note => this.transformToTrendingNote(this.transformBackendScrapedNote(note)));
       }
       
-      log.warning(`No notes found for topic "${topic}"`);
+      log.warning(`No notes found for topic "${topic}" in database or relays`);
       return [];
     } catch (error) {
       log.error(`Error searching notes by topic`, { error, topic });

@@ -1277,15 +1277,28 @@ func handleSearchTopicsAPI(w http.ResponseWriter, r *http.Request) {
 	log.Printf("🏷️ [API] Searching notes by topic: %s, limit: %d, offset: %d, kinds: %v, timeRange: %s, minInteractionCount: %d, sort: %s",
 		topic, limit, offset, kinds, timeRange, minInteractionCount, sortOrder)
 
-	// Search notes by topic
+	// Search notes by topic from local database
 	notes, err := repository.SearchNotesByTopic(topic, limit, offset, kinds, timeRange, minInteractionCount, sortOrder)
 	if err != nil {
-		log.Printf("❌ [API] Error searching notes by topic: %v", err)
-		http.Error(w, "Error searching notes by topic: "+err.Error(), http.StatusInternalServerError)
-		return
+		log.Printf("❌ [API] Error searching notes by topic in database: %v", err)
+		// Continue to fallback instead of returning error
+		notes = []FeedNote{}
 	}
 
-	log.Printf("✅ [API] Topic search completed successfully, found %d notes", len(notes))
+	// If no results from database, try direct relay search
+	if len(notes) == 0 {
+		log.Printf("🔍 [API] No local results found, trying direct relay search for topic: %s", topic)
+
+		relayNotes, err := searchNotesByTopicFromRelays(topic, limit, kinds, timeRange)
+		if err != nil {
+			log.Printf("❌ [API] Error searching relays: %v", err)
+		} else {
+			log.Printf("✅ [API] Found %d notes from relays for topic: %s", len(relayNotes), topic)
+			notes = relayNotes
+		}
+	}
+
+	log.Printf("✅ [API] Topic search completed successfully, found %d notes total", len(notes))
 
 	// Set content type header
 	w.Header().Set("Content-Type", "application/json")
@@ -1298,6 +1311,72 @@ func handleSearchTopicsAPI(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("📤 [API] Topic search response sent successfully")
+}
+
+// searchNotesByTopicFromRelays searches for notes with a specific topic tag directly from Nostr relays
+func searchNotesByTopicFromRelays(topic string, limit int, kinds []int, timeRange string) ([]FeedNote, error) {
+	// Calculate the time cutoff based on timeRange
+	var timeCutoff time.Time
+	switch timeRange {
+	case "1h":
+		timeCutoff = time.Now().Add(-1 * time.Hour)
+	case "6h":
+		timeCutoff = time.Now().Add(-6 * time.Hour)
+	case "24h", "1d":
+		timeCutoff = time.Now().Add(-24 * time.Hour)
+	case "7d":
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour)
+	case "30d":
+		timeCutoff = time.Now().Add(-30 * 24 * time.Hour)
+	default:
+		timeCutoff = time.Now().Add(-7 * 24 * time.Hour) // Default to 7 days
+	}
+
+	// Set default kinds if not specified
+	if len(kinds) == 0 {
+		kinds = []int{nostr.KindTextNote, nostr.KindArticle}
+	}
+
+	// Create filters for the topic search
+	sinceTimestamp := nostr.Timestamp(timeCutoff.Unix())
+	filters := nostr.Filters{{
+		Kinds: kinds,
+		Since: &sinceTimestamp,
+		Tags:  nostr.TagMap{"t": []string{topic}},
+		Limit: limit,
+	}}
+
+	log.Printf("🔍 [RELAY] Searching relays for topic '%s' with filters: %+v", topic, filters)
+
+	// Search from all connected relays
+	events := pool.SubMany(context.Background(), relays, filters)
+
+	var notes []FeedNote
+	eventCount := 0
+
+	// Collect events from relays
+	for ev := range events {
+		if ev.Event == nil {
+			continue
+		}
+
+		// Create FeedNote from the event
+		note := FeedNote{
+			Event: *ev.Event,
+			Score: 0.0, // We don't have interaction data from relays
+		}
+
+		notes = append(notes, note)
+		eventCount++
+
+		// Stop if we've reached the limit
+		if eventCount >= limit {
+			break
+		}
+	}
+
+	log.Printf("✅ [RELAY] Found %d notes from relays for topic '%s'", len(notes), topic)
+	return notes, nil
 }
 
 // handleDiagnosticAPI provides diagnostic information about the database
