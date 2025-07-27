@@ -298,61 +298,7 @@ class AlgoRelayService {
     };
   }
 
-  // Fetch trending notes (using scraped notes as fallback)
-  async getTrendingNotes(limit: number = 20, offset: number = 0): Promise<TrendingNote[]> {
-    log.info(`Fetching trending notes`, { limit, offset });
-    
-    try {
-      // First try the trending notes endpoint with pagination
-      const trendingData = await this.makeRequest<BackendScrapedNote[]>(`/api/trending-notes?limit=${limit}&offset=${offset}`);
-      
-      if (trendingData && trendingData.length > 0) {
-        log.success(`Found ${trendingData.length} trending notes`);
-        return trendingData.map(note => this.transformToTrendingNote(this.transformBackendScrapedNote(note)));
-      }
-      
-      // Fallback to scraped notes with trending filter and pagination
-      log.info(`No trending notes found, falling back to scraped notes`);
-      const scrapedData = await this.makeRequest<BackendScrapedNote[]>(`/api/scraped-notes?limit=${limit}&offset=${offset}`);
-      
-      if (scrapedData && scrapedData.length > 0) {
-        const trendingNotes = scrapedData
-          .filter(note => note.is_trending || note.trending_score > 0)
-          .sort((a, b) => b.trending_score - a.trending_score)
-          .slice(0, limit);
-        
-        log.success(`Found ${trendingNotes.length} trending notes from scraped data`);
-        return trendingNotes.map(note => this.transformToTrendingNote(this.transformBackendScrapedNote(note)));
-      }
-      
-      log.warning(`No trending notes available`);
-      return [];
-    } catch (error) {
-      log.error(`Error fetching trending notes`, { error });
-      return [];
-    }
-  }
 
-  // Fetch viral notes
-  async getViralNotes(limit: number = 20, offset: number = 0): Promise<ViralNote[]> {
-    log.info(`Fetching viral notes`, { limit, offset });
-    
-    try {
-      // The backend now returns ScrapedNote objects directly, not BackendViralNote objects
-      const viralData = await this.makeRequest<BackendScrapedNote[]>(`/api/viral-notes?limit=${limit}&offset=${offset}`);
-      
-      if (viralData && viralData.length > 0) {
-        log.success(`Found ${viralData.length} viral notes`);
-        return viralData.map(note => this.transformBackendScrapedNoteToViralNote(note));
-      }
-      
-      log.warning(`No viral notes available`);
-      return [];
-    } catch (error) {
-      log.error(`Error fetching viral notes`, { error });
-      return [];
-    }
-  }
 
   // Fetch viral notes from scraper
   async getViralNotesScraper(limit: number = 20): Promise<ViralNote[]> {
@@ -521,6 +467,84 @@ class AlgoRelayService {
       return [];
     } catch (error) {
       log.error(`Error fetching scraped notes`, { error });
+      return [];
+    }
+  }
+
+  // Enhanced trending notes with better error handling
+  async getTrendingNotes(limit: number = 20, offset: number = 0): Promise<TrendingNote[]> {
+    log.info(`Fetching trending notes`, { limit, offset });
+    
+    try {
+      // First try the trending notes endpoint with pagination
+      const trendingData = await this.makeRequest<BackendScrapedNote[]>(`/api/trending-notes?limit=${limit}&offset=${offset}`);
+      
+      if (trendingData && trendingData.length > 0) {
+        log.success(`Found ${trendingData.length} trending notes`);
+        return trendingData.map(note => this.transformToTrendingNote(this.transformBackendScrapedNote(note)));
+      }
+      
+      // Fallback to scraped notes with trending filter and pagination
+      log.info(`No trending notes found, falling back to scraped notes`);
+      const scrapedData = await this.makeRequest<BackendScrapedNote[]>(`/api/scraped-notes?limit=${limit}&offset=${offset}`);
+      
+      if (scrapedData && scrapedData.length > 0) {
+        const trendingNotes = scrapedData
+          .filter(note => note.is_trending || note.trending_score > 0)
+          .sort((a, b) => b.trending_score - a.trending_score)
+          .slice(0, limit);
+        
+        log.success(`Found ${trendingNotes.length} trending notes from scraped data`);
+        return trendingNotes.map(note => this.transformToTrendingNote(this.transformBackendScrapedNote(note)));
+      }
+      
+      // If still no data, check if database is empty
+      log.warning(`No trending notes available - checking database status`);
+      try {
+        const diagnostic = await this.getDiagnosticInfo();
+        if (diagnostic.total_scraped_notes === 0) {
+          log.warning(`Database is empty - data setup may be needed`);
+        }
+      } catch (diagnosticError) {
+        log.error(`Could not check diagnostic info`, { diagnosticError });
+      }
+      
+      log.warning(`No trending notes available`);
+      return [];
+    } catch (error) {
+      log.error(`Error fetching trending notes`, { error });
+      return [];
+    }
+  }
+
+  // Enhanced viral notes with better error handling
+  async getViralNotes(limit: number = 20, offset: number = 0): Promise<ViralNote[]> {
+    log.info(`Fetching viral notes`, { limit, offset });
+    
+    try {
+      // The backend now returns ScrapedNote objects directly, not BackendViralNote objects
+      const viralData = await this.makeRequest<BackendScrapedNote[]>(`/api/viral-notes?limit=${limit}&offset=${offset}`);
+      
+      if (viralData && viralData.length > 0) {
+        log.success(`Found ${viralData.length} viral notes`);
+        return viralData.map(note => this.transformBackendScrapedNoteToViralNote(note));
+      }
+      
+      // If no viral notes, check if database is empty
+      log.warning(`No viral notes available - checking database status`);
+      try {
+        const diagnostic = await this.getDiagnosticInfo();
+        if (diagnostic.total_scraped_notes === 0) {
+          log.warning(`Database is empty - data setup may be needed`);
+        }
+      } catch (diagnosticError) {
+        log.error(`Could not check diagnostic info`, { diagnosticError });
+      }
+      
+      log.warning(`No viral notes available`);
+      return [];
+    } catch (error) {
+      log.error(`Error fetching viral notes`, { error });
       return [];
     }
   }

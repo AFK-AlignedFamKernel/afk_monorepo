@@ -123,6 +123,37 @@ func main() {
 		return
 	}
 
+	// Auto-trigger data setup on startup if database is empty
+	go func() {
+		// Check if auto data setup is enabled (default: true)
+		autoDataSetup := os.Getenv("AUTO_DATA_SETUP")
+		if autoDataSetup == "false" {
+			log.Println("⚠️  Auto data setup disabled by AUTO_DATA_SETUP=false")
+			return
+		}
+
+		// Wait a bit for other services to initialize
+		time.Sleep(5 * time.Second)
+
+		log.Println("🔍 Checking if database needs initial data setup...")
+
+		// Check if scraped_notes table is empty
+		var count int
+		err := scraper.db.QueryRow("SELECT COUNT(*) FROM scraped_notes").Scan(&count)
+		if err != nil {
+			log.Printf("❌ Error checking scraped_notes count: %v", err)
+			return
+		}
+
+		if count == 0 {
+			log.Println("📊 Database is empty - triggering initial data setup...")
+			scraper.RunDataSetup()
+			log.Println("✅ Initial data setup completed")
+		} else {
+			log.Printf("✅ Database already has %d scraped notes - skipping initial setup", count)
+		}
+	}()
+
 	go subscribeAll()
 	go purgeData(purgeMonths)
 
