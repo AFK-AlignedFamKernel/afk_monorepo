@@ -401,7 +401,85 @@ class AlgoRelayService {
     }
   }
 
-  // Fetch scraped notes with filters
+  // Get diagnostic information about the database
+  async getDiagnosticInfo(): Promise<{
+    total_scraped_notes: number;
+    viral_notes: number;
+    notes_with_viral_score: number;
+    recent_notes_7d: number;
+    sample_viral_scores: Array<{
+      viral_score: number;
+      is_viral: boolean;
+      interaction_score: number;
+      created_at: string;
+    }>;
+    timestamp: string;
+  }> {
+    log.info(`Fetching diagnostic information`);
+    
+    try {
+      const diagnostic = await this.makeRequest<{
+        total_scraped_notes: number;
+        viral_notes: number;
+        notes_with_viral_score: number;
+        recent_notes_7d: number;
+        sample_viral_scores: Array<{
+          viral_score: number;
+          is_viral: boolean;
+          interaction_score: number;
+          created_at: string;
+        }>;
+        timestamp: string;
+      }>('/api/diagnostic');
+      
+      log.success(`Diagnostic info retrieved`, { 
+        totalNotes: diagnostic.total_scraped_notes,
+        viralNotes: diagnostic.viral_notes,
+        recentNotes: diagnostic.recent_notes_7d
+      });
+      
+      return diagnostic;
+    } catch (error) {
+      log.error(`Error fetching diagnostic info`, { error });
+      throw error;
+    }
+  }
+
+  // Trigger data setup to populate the database
+  async triggerDataSetup(): Promise<{ status: string; message: string }> {
+    log.info(`Triggering data setup`);
+    
+    try {
+      const response = await this.makeRequest<{ status: string; message: string }>('/api/trigger-data-setup', {
+        method: 'POST',
+      });
+      
+      log.success(`Data setup triggered successfully`);
+      return response;
+    } catch (error) {
+      log.error(`Error triggering data setup`, { error });
+      throw error;
+    }
+  }
+
+  // Sync existing notes to scraped_notes table
+  async syncNotes(): Promise<{ status: string; message: string }> {
+    log.info(`Triggering note sync`);
+    
+    try {
+      const response = await this.makeRequest<{ status: string; message: string }>('/api/sync-notes', {
+        method: 'POST',
+      });
+      
+      log.success(`Note sync triggered successfully`);
+      return response;
+    } catch (error) {
+      log.error(`Error triggering note sync`, { error });
+      throw error;
+    }
+  }
+
+  // Enhanced getScrapedNotes with better error handling and fallback
   async getScrapedNotes(params: {
     limit?: number;
     offset?: number;
@@ -424,6 +502,19 @@ class AlgoRelayService {
       if (scrapedData && scrapedData.length > 0) {
         log.success(`Found ${scrapedData.length} scraped notes`);
         return scrapedData.map(note => this.transformBackendScrapedNote(note));
+      }
+      
+      // If no data found, check if database is empty
+      log.warning(`No scraped notes found - checking if database is empty`);
+      try {
+        const diagnostic = await this.getDiagnosticInfo();
+        if (diagnostic.total_scraped_notes === 0) {
+          log.warning(`Database is empty - suggesting data setup`);
+          // You could trigger data setup here automatically, but for now just log
+          log.info(`Consider calling triggerDataSetup() to populate the database`);
+        }
+      } catch (diagnosticError) {
+        log.error(`Could not check diagnostic info`, { diagnosticError });
       }
       
       log.warning(`No scraped notes available`);
@@ -648,22 +739,6 @@ class AlgoRelayService {
       return [];
     }
   }
-
-  // Trigger data setup (admin function)
-  async triggerDataSetup(): Promise<{ status: string; message: string }> {
-    return this.makeRequest<{ status: string; message: string }>('/api/trigger-data-setup', {
-      method: 'POST',
-    });
-  }
-
-  // Sync notes (admin function)
-  async syncNotes(): Promise<{ status: string; message: string }> {
-    return this.makeRequest<{ status: string; message: string }>('/api/sync-notes', {
-      method: 'POST',
-    });
-  }
-
-
 
   // WebSocket connection for real-time updates
   connectWebSocket(onMessage: (data: any) => void, onError?: (error: Event) => void): WebSocket {
