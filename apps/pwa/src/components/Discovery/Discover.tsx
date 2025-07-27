@@ -28,13 +28,13 @@ export default function DiscoverComponent() {
 
         <div className="flex flex-row gap-2 overflow-x-auto scrollbar-hide rounded-xl p-2 shadow-md justify-start ">
           {[
-            { key: "feed", label: "Feed" },
             { key: "brand", label: "Brands" },
             { key: "creator", label: "Creators" },
+            { key: "feed", label: "Feed" },
+            { key: "chat", label: "Chat" },
             { key: "launchpad", label: "Tokens" },
             { key: "channels", label: "Channels" },
             { key: "communities", label: "Communities" },
-            { key: "chat", label: "Chat" },
             // { key: "topic", label: "Topics" },
           ].map(tab => (
             <button

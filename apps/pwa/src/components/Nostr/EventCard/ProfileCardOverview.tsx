@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useMemo, useState } from 'react';
 import { NostrEventBase, formatTimestamp, truncate } from '@/types/nostr';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -11,6 +11,9 @@ import { logClickedEvent } from '@/lib/analytics';
 import Image from 'next/image';
 import styles from '@/styles/nostr/feed.module.scss';
 import { ButtonPrimary } from '@/components/button/Buttons';
+import { useEditContacts } from '../../../../../../packages/afk_nostr_sdk/src/hooks/useEditContacts';
+import { useContacts } from '../../../../../../packages/afk_nostr_sdk/src/hooks/useContacts';
+import { useAuth } from 'afk_nostr_sdk';
 interface IProfileCardOverviewProps extends NostrEventBase {
   children?: ReactNode;
   profileParent?: string;
@@ -29,12 +32,91 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
   isLinkToProfile = true,
 }) => {
   const router = useRouter();
-  const { showModal } = useUIStore();
+  const { showModal, showToast } = useUIStore();
 
   if (!profileParent && !profilePubkey && !profile) {
     return null;
   }
 
+
+  const { publicKey } = useAuth();
+  const contacts = useContacts({
+    authors: [profilePubkey || event?.pubkey as string]
+  })
+  // console.log("contacts of profile", contacts?.data)
+
+  const { data: myContacts } = useContacts({
+    authors: [publicKey]
+  })
+
+
+  const editContact = useEditContacts()
+  const [isFollowinNow, setIsFollowinNow] = useState(myContacts?.some((contact) => contact === (profilePubkey || event?.pubkey)))
+
+  const isFollowing = useMemo(() => {
+    // console.log("myContacts", myContacts)
+    // console.log("profile?.pubkey", profile?.pubkey)
+    // console.log("address", address)
+    return isFollowinNow
+    // return myContacts?.some((contact) => contact === (profile?.pubkey ?? address))
+  }, [myContacts, profilePubkey, event?.pubkey, isFollowinNow])
+
+  const handleFollow = async () => {
+
+    let res: Set<any> | null = new Set()
+
+    const pubkeyAddress = profilePubkey || event?.pubkey
+    if (!pubkeyAddress) {
+      showToast({
+        message: "Error",
+        type: "error"
+      })
+      return
+    }
+    // console.log("isFollowing", isFollowing)
+    if (isFollowing) {
+      res = await editContact.mutateAsync({
+        pubkey: pubkeyAddress as string,
+        type: "remove"
+      })
+      if (res && res.size > 0) {
+        logClickedEvent('unfollow_profile', 'Interaction', 'Button Click', 1);
+        showToast({
+          message: "Unfollowed",
+          type: "success"
+        })
+        setIsFollowinNow(false)
+      } else {
+        showToast({
+          message: "Error",
+          type: "error"
+        })
+        logClickedEvent('unfollow_profile_error', 'Interaction', 'Button Click', 1);
+      }
+    } else {
+      res = await editContact.mutateAsync({
+        pubkey: pubkeyAddress as string,
+        type: "add"
+      })
+
+      if (res && res.size > 0) {
+        console.log("success")
+        showToast({
+          message: "Followed",
+          type: "success"
+        })
+        logClickedEvent('follow_profile', 'Interaction', 'Button Click', 1);
+        setIsFollowinNow(true)
+      } else {
+        console.log("error")
+        showToast({
+          message: "Error",
+          type: "error"
+        })
+        logClickedEvent('follow_profile_error', 'Interaction', 'Button Click', 1);
+      }
+    }
+  }
   if (isLoading) {
     return (
       <div className={styles['nostr-feed__card--skeleton']}>
@@ -98,6 +180,20 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
           )}
         </div>
       </div>
+
+      <div>
+        <button
+          className="py-2 rounded-md shadow-md flex gap-1 items-center"
+          onClick={() => {
+            handleFollow()
+            logClickedEvent(isFollowing ? 'unfollow_profile_button' : 'follow_profile_button', 'Interaction', 'Button Click', 1);
+          }}
+        >
+          <Icon name={isFollowing ? "UnfollowIcon" : "FollowIcon"} size={20} />
+          {isFollowing ? "Unfollow" : "Follow"}
+        </button>
+      </div>
+
       <div className="mb-4 mt-2">
         {profile?.about && (
           <div className="text-xs rounded p-2" style={{ wordBreak: 'break-word' }}>
@@ -145,7 +241,7 @@ export const ProfileCardOverview: React.FC<IProfileCardOverviewProps> = ({
             <ButtonPrimary
               className='btn btn-sm btn-primary mt-1'
               onClick={() => {
-                if ( profile && profile?.lud16) {
+                if (profile && profile?.lud16) {
                   showModal(<TipNostrUser profile={profile} pubkey={event?.pubkey || ''} />);
                   logClickedEvent('tip_note_modal_open', 'Interaction', 'Button Click', 1);
                 }

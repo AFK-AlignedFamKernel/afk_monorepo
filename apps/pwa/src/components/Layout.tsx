@@ -173,7 +173,7 @@ const Layout = ({ children }: LayoutProps) => {
           <Link href="/" onClick={() => {
             logClickedEvent("go_to_home_nav", "click", "link_drawer")
             // closeSidebar()
-          }}> 
+          }}>
             <Image
               src="/afk_logo_circle.png"
               alt="AFK Logo"
@@ -333,14 +333,20 @@ const Layout = ({ children }: LayoutProps) => {
                 ]} />
             </div> */}
 
-
-            <Link href="/launchpad" className="sidebar-nav-item" onClick={() => {
+            <Link href="/discover" className="sidebar-nav-item" onClick={() => {
+              logClickedEvent("go_to_discover", "click", "link_drawer")
+              closeSidebar()
+            }}>
+              <Icon name="DiscoverIcon" size={24} />
+              Discover
+            </Link>
+            {/* <Link href="/launchpad" className="sidebar-nav-item" onClick={() => {
               logClickedEvent("go_to_launchpad", "click", "link_drawer")
               closeSidebar()
             }}>
               <Icon name="UpwardTrendGraphIcon" size={24} />
               Launchpad
-            </Link>
+            </Link> */}
 
             {/* <Link href="/discover" className="sidebar-nav-item" onClick={() => {
               logClickedEvent("go_to_discover", "click", "link_drawer")
