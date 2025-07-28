@@ -157,7 +157,7 @@ export const NostrMessagesComponent: React.FC = () => {
       {activeTab == "messages" && (
 
         <>
-          <NostrConversationList type={type} setType={setType} />
+          <NostrConversationList type={"NIP17"} />
         </>
       )}
 

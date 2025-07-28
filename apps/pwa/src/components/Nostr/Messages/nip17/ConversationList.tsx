@@ -49,6 +49,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const { data: incomingMessages, isPending, refetch } = useIncomingMessageUsers({
     limit: 100,
   });
+
   
   const contacts = useContacts();
   const [message, setMessage] = useState<string | null>(null);
@@ -284,10 +285,17 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     }
   };
 
-  const { data: messagesSent, isLoading: isLoadingMessagesSent } = useRoomMessages({
-    roomParticipants: roomIds,
+  // const { data: messagesSent, isLoading: isLoadingMessagesSent } = useRoomMessages({
+  //   roomParticipants: roomIds,
+  //   limit: 100,
+  // });
+
+  const { data: messagesSent, isLoading: isLoadingMessagesSent } = useMyMessagesSent({
+    authors: [publicKey],
     limit: 100,
   });
+
+  console.log("messagesSent", messagesSent);
 
   const messagesSentState = React.useMemo(() => {
     if (roomIds.length === 0 || isBack) {
@@ -376,6 +384,8 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       return roomIds.includes(msg.senderPublicKey) && roomIds.includes(msg.receiverPublicKey);
     })
     .sort((a, b) => b.created_at - a.created_at); // Sort by timestamp, newest first
+
+  console.log("messages", messages);
 
   const groupedMessages = (messages || [])
     .filter(msg => msg && typeof msg.created_at === 'number' && !isNaN(msg.created_at))
