@@ -82,6 +82,8 @@ export const useRelayAuth = () => {
         ["origin", typeof window !== "undefined" ? window.location.origin : ""],
       ];
       await authEvent.sign();
+      // Send the AUTH response via direct WebSocket
+      await sendRawAuthWs(relay.url, authEvent);
       return true;
     };
   }, [ndk, publicKey, privateKey]);
