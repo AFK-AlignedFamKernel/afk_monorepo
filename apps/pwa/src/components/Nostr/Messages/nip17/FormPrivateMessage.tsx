@@ -40,8 +40,7 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   const [activeTab, setActiveTab] = useState<"NIP4" | "NIP17">('NIP4');
   const [relayUrl, setRelayUrl] = useState('');
 
-  const handleSubmitMessage = async (message: string) => {
-
+  const handleSendNip4 = async () => {
     try {
 
       if (!message) return;
@@ -90,6 +89,18 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
       showToast({ message: 'Error sending message', type: 'error' });
     }
 
+  }
+  const handleSubmitMessage = async (message: string) => {
+    if (type == "NIP4") {
+      await handleSendNip4();
+    } else if (type == "NIP17") {
+      await mutateAsync(
+        {
+          content: message,
+          receiverPublicKeyProps: recipient,
+        },
+      );
+    }
   }
 
 

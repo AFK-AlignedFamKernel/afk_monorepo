@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { useAuth, useContacts, useNostrContext, useSendPrivateMessage, useRelayAuthInit, useNip17Conversations, useNip17MessagesBetweenUsers } from 'afk_nostr_sdk';
+import { useAuth, useContacts, useNostrContext, useRelayAuthInit, useNip17Conversations, useNip17MessagesBetweenUsers, useSendNip17Message } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
 import { ChatConversation } from './ChatConversation';
@@ -30,7 +30,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
   const contacts = useContacts();
   const { ndk } = useNostrContext();
-  const { mutateAsync: sendMessage } = useSendPrivateMessage();
+  const { mutateAsync: sendNip17Message } = useSendNip17Message();
   const { showToast } = useUIStore();
 
   // Use NIP-17 hooks for conversations and messages
@@ -120,10 +120,10 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     if (!message || !selectedConversation?.receiverPublicKey) return;
     
     try {
-      await sendMessage(
+      await sendNip17Message(
         {
-          content: message,
-          receiverPublicKeyProps: selectedConversation.receiverPublicKey,
+          receiverPublicKey: selectedConversation.receiverPublicKey,
+          message: message,
         },
         {
           onSuccess: () => {
