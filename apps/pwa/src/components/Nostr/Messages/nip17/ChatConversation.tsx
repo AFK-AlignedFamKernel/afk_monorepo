@@ -38,21 +38,32 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const { data: receiverProfile } = useProfile({ publicKey: receiverPublicKey });
     const queryClient = useQueryClient();
 
-    // Use NIP-17 messages hook for fetching messages between users
-    const { 
-        data: messagesData, 
-        isLoading: isLoadingMessages,
-        refetch: refetchMessages 
-    } = useNip17MessagesBetweenUsers(receiverPublicKey, {
-        enabled: type === "NIP17" && !!publicKey && !!privateKey && !!receiverPublicKey,
-    });
+    // Use the messages passed from parent component instead of calling the hook again
+    const messagesData = { pages: [messagesSentParents] };
+    const isLoadingMessages = false; // We're not loading since data is passed from parent
+    const refetchMessages = () => {}; // No-op since parent handles refetching
 
     // Process messages for NIP-17
     const processedMessages = useMemo(() => {
+        console.log('ChatConversation: messagesData:', messagesData);
+        console.log('ChatConversation: receiverPublicKey:', receiverPublicKey);
+        console.log('ChatConversation: publicKey:', publicKey);
+        
         if (type === "NIP17" && messagesData?.pages) {
             const allMessages = messagesData.pages.flat();
-            return allMessages
-                .filter((msg: any) => msg && msg.decryptedContent) // Only include successfully decrypted messages
+            console.log('ChatConversation: allMessages:', allMessages);
+            
+            const filteredMessages = allMessages.filter((msg: any) => {
+                const hasContent = msg && msg.decryptedContent;
+                if (!hasContent) {
+                    console.log('ChatConversation: Filtering out message without decryptedContent:', msg);
+                }
+                return hasContent;
+            });
+            
+            console.log('ChatConversation: filteredMessages:', filteredMessages);
+            
+            return filteredMessages
                 .map((msg: any) => ({
                     id: msg.id,
                     content: msg.decryptedContent,

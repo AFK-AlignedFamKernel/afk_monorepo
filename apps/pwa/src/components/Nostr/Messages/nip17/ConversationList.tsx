@@ -56,6 +56,8 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   );
 
   console.log("conversations", conversations);
+  console.log("messagesBetweenUsers", messagesBetweenUsers);
+  console.log("selectedConversation", selectedConversation);
 
   // Handle refresh for NIP-17
   const handleRefresh = useCallback(async () => {
