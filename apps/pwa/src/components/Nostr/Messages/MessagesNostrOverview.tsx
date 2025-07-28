@@ -11,8 +11,9 @@ export default function MessagesNostrOverview() {
     return (
         <div className="h-full">
 
-            <div className="justify-center items-center h-full">
-                <p className="text-2xl font-bold">Under development</p>
+            <div className="justify-center items-center h-full p-4">
+                <p className="text-lg">This feature is still in development. Use at your own risk.</p>
+                <p className="text-sm italic text-gray-500">Please report any issues you encounter.</p>
             </div>
             <RelayAuthInitializer showStatus={false}>
                 {/* <div className="flex border-b">

@@ -305,6 +305,16 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
         {type}
       </div> */}
 
+      <div className="mb-4">
+
+        <p className="text-sm text-gray-500">
+          This feature is still in development. Use at your own risk.
+        </p>
+        <p className="text-sm italic text-gray-500">
+          Please report any issues you encounter.
+        </p>
+      </div>
+
       <div
         //   onSubmit={handleSubmit} 
         className="space-y-4">

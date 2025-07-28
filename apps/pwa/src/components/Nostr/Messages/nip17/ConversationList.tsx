@@ -22,10 +22,10 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"messages" | "contacts" | "followers" | "direct_messages">('messages');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
+
   // Use the new relay auth initialization
   const { isAuthenticated, isInitializing, hasError, errorMessage, initializeAuth } = useRelayAuthInit();
-  
+
   const [isBack, setIsBack] = useState(false);
   const [showNewMessageForm, setShowNewMessageForm] = useState(false);
 
@@ -36,18 +36,18 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const { showToast } = useUIStore();
 
   // Use NIP-17 hooks for conversations and messages
-  const { 
-    data: conversations, 
-    isLoading: isLoadingConversations, 
-    refetch: refetchConversations 
+  const {
+    data: conversations,
+    isLoading: isLoadingConversations,
+    refetch: refetchConversations
   } = useNip17Conversations({
     enabled: type === "NIP17" && !!publicKey && !!privateKey,
   });
 
-  const { 
-    data: messagesBetweenUsers, 
+  const {
+    data: messagesBetweenUsers,
     isLoading: isLoadingMessages,
-    refetch: refetchMessages 
+    refetch: refetchMessages
   } = useNip17MessagesBetweenUsers(
     selectedConversation?.participant || '',
     {
@@ -134,7 +134,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
   const handleSendMessage = async (message: string) => {
     if (!message || !selectedConversation?.receiverPublicKey) return;
-    
+
     try {
       if (type === "NIP17") {
         await sendNip17Message(
@@ -191,12 +191,18 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                   <Icon name="BackIcon" size={20} />
                 </button>
               }
+
+            </div>
+
+            <div
+              className="flex justify-end px-4 py-2"
+            >
               <button
                 className="py-4"
                 onClick={handleRefresh}
                 disabled={isRefreshing}
               >
-                <Icon name="RefreshIcon" size={20} />
+                <Icon name="RefreshIcon" size={24} />
                 {isRefreshing && <CryptoLoading />}
               </button>
             </div>
@@ -233,7 +239,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                         handleConversationClick(conversation);
                         logClickedEvent('open_conversation_nip17', 'conversations');
                       }}
-                      className="w-full p-4 border-b hover:bg-gray-50"
+                      className="w-full p-4 border-b hover:bg-gray-500"
                     >
                       <div className="flex items-center">
                         <div className="w-10 h-10 rounded-full bg-gray-200 mr-3" />
@@ -241,10 +247,10 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                           <p className="font-medium">
                             {conversation.participant?.slice(0, 8) || 'Unknown'}
                           </p>
-                          <p className="text-sm text-gray-500 truncate">
+                          <p className="text-md truncate">
                             {conversation.lastMessageContent || 'No messages yet'}
                           </p>
-                          <p className="text-xs text-gray-400">
+                          <p className="text-xs text-gray-500">
                             {conversation.messageCount} message{conversation.messageCount !== 1 ? 's' : ''}
                           </p>
                         </div>
