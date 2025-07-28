@@ -68,6 +68,17 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
     try {
       await checkIsConnected(ndk);
       
+      // Test relay connection first
+      const connectedRelays = ndk.pool.connectedRelays();
+      console.log('Connected relays:', connectedRelays.map(r => r.url));
+      
+      if (connectedRelays.length === 0) {
+        console.warn('No relays connected, trying to connect...');
+        await ndk.connect();
+        const newConnectedRelays = ndk.pool.connectedRelays();
+        console.log('After connect - Connected relays:', newConnectedRelays.map(r => r.url));
+      }
+      
       // Add timeout to prevent infinite loading
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Fetch timeout')), 10000); // 10 second timeout
@@ -94,9 +105,20 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
 
       console.log('Fetched NIP-04 messages:', events);
 
+      // Check if events is valid and convert to array
+      if (!events || typeof events !== 'object') {
+        console.warn('No events received or invalid events object');
+        setMessages([]);
+        return;
+      }
+
+      // Convert events to array if it's not already
+      const eventsArray = Array.isArray(events) ? events : Array.from(events as any);
+      console.log('Events array length:', eventsArray.length);
+
       // Decrypt messages
       const decryptedEvents = await Promise.all(
-        Array.from(events as any[]).map(async (event: any) => {
+        eventsArray.map(async (event: any) => {
           let decryptedContent = '';
           try {
             let peerPubkey = event.pubkey === publicKey ? 
@@ -138,12 +160,15 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
     try {
       await checkIsConnected(ndk);
       
+      console.log('Setting up NIP-04 subscription for:', publicKey);
+      
       // Add timeout to prevent infinite subscription
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Subscription timeout')), 5000); // 5 second timeout
       });
       
-      const subscriptionPromise = ndk.subscribe([
+      // Create filters with proper validation
+      const filters = [
         {
           kinds: [4],
           authors: [publicKey],
@@ -154,12 +179,17 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
           '#p': [publicKey],
           limit: 10,
         }
-      ]);
+      ];
+      
+      console.log('Subscription filters:', filters);
+      
+      const subscriptionPromise = ndk.subscribe(filters);
 
       const subscription = await Promise.race([subscriptionPromise, timeoutPromise]) as any;
 
       const handleEvent = async (event: any) => {
         try {
+          console.log('Received NIP-04 event:', event.id);
           let decryptedContent = '';
           let peerPubkey = event.pubkey === publicKey ? 
             event.tags?.find((t: any) => t[0] === 'p')?.[1] : 
@@ -188,6 +218,8 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
 
       subscription.on("event", handleEvent);
       subscription.on("event:dup", handleEvent);
+      
+      console.log('NIP-04 subscription set up successfully');
       
       // Store subscription for cleanup
       setSubscription(subscription);
