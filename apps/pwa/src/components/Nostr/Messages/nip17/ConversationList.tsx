@@ -55,6 +55,8 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     }
   );
 
+  console.log("conversations", conversations);
+
   // Handle refresh for NIP-17
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -96,6 +98,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   };
 
   const handleConversationClick = (conversation: any) => {
+    console.log("conversation", conversation);
     setSelectedConversation({
       ...conversation,
       senderPublicKey: publicKey,
@@ -212,7 +215,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                   </div>
                 )}
                 <div className="overflow-y-auto h-full">
-                  {conversations?.map((conversation: any) => (
+                  {conversations && conversations.pages.length > 0 && conversations?.pages[0]?.conversations?.map((conversation: any) => (
                     <button
                       key={conversation.participant}
                       onClick={() => {
@@ -228,6 +231,9 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                             {conversation.participant?.slice(0, 8) || 'Unknown'}
                           </p>
                           <p className="text-sm text-gray-500 truncate">
+                            {conversation.lastMessageContent || 'No messages yet'}
+                          </p>
+                          <p className="text-xs text-gray-400">
                             {conversation.messageCount} message{conversation.messageCount !== 1 ? 's' : ''}
                           </p>
                         </div>

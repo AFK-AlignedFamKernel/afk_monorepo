@@ -113,6 +113,9 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
       ...giftWrapEvent,
       decryptedContent: actualMessage,
       sealEvent,
+      // Add the actual sender pubkey from the seal event for proper conversation grouping
+      actualSenderPubkey: sealEvent.pubkey,
+      actualReceiverPubkey: sealEvent.tags?.find(tag => tag[0] === 'p')?.[1],
     };
   } catch (error) {
     console.error('Error decrypting gift wrap content:', error);
@@ -303,13 +306,30 @@ export const useNip17Conversations = (options: UseNip17MessagesOptions = {}): Us
 
       const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents)];
 
-      // Group messages by conversation (other participant)
+      // Decrypt all events to get the actual message data
+      const decryptedEvents = await Promise.all(
+        allEvents.map(event => decryptGiftWrapContent(event, privateKey, publicKey))
+      );
+
+      const validEvents = decryptedEvents.filter(event => event !== null);
+
+      // Group messages by conversation using the actual sender/receiver pubkeys from seal events
       const conversationsMap = new Map<string, any>();
 
-      for (const event of allEvents) {
-        const otherParticipant = event.pubkey === publicKey 
-          ? event.tags?.find(tag => tag[0] === 'p')?.[1]
-          : event.pubkey;
+      for (const event of validEvents) {
+        // Use the actual sender pubkey from the seal event for grouping
+        const actualSenderPubkey = event.actualSenderPubkey;
+        const actualReceiverPubkey = event.actualReceiverPubkey;
+        
+        // Determine the other participant in the conversation
+        let otherParticipant;
+        if (actualSenderPubkey === publicKey) {
+          // We sent this message, so the other participant is the receiver
+          otherParticipant = actualReceiverPubkey;
+        } else {
+          // We received this message, so the other participant is the sender
+          otherParticipant = actualSenderPubkey;
+        }
 
         if (otherParticipant && otherParticipant !== publicKey) {
           if (!conversationsMap.has(otherParticipant)) {
@@ -317,6 +337,8 @@ export const useNip17Conversations = (options: UseNip17MessagesOptions = {}): Us
               participant: otherParticipant,
               lastMessage: event,
               messageCount: 0,
+              lastMessageContent: event.decryptedContent,
+              lastMessageTime: event.created_at,
             });
           }
 
@@ -326,12 +348,14 @@ export const useNip17Conversations = (options: UseNip17MessagesOptions = {}): Us
           // Update last message if this one is newer
           if (!conversation.lastMessage || event.created_at > conversation.lastMessage.created_at) {
             conversation.lastMessage = event;
+            conversation.lastMessageContent = event.decryptedContent;
+            conversation.lastMessageTime = event.created_at;
           }
         }
       }
 
       const conversations = Array.from(conversationsMap.values())
-        .sort((a, b) => (b.lastMessage?.created_at || 0) - (a.lastMessage?.created_at || 0));
+        .sort((a, b) => (b.lastMessageTime || 0) - (a.lastMessageTime || 0));
 
       const nextCursor = allEvents.length === limit ? allEvents[allEvents.length - 1]?.created_at : undefined;
 

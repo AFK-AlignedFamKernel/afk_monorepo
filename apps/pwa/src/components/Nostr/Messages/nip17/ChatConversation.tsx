@@ -57,8 +57,8 @@ export const ChatConversation: React.FC<ChatProps> = ({
                     id: msg.id,
                     content: msg.decryptedContent,
                     created_at: msg.created_at,
-                    pubkey: msg.pubkey,
-                    isFromMe: msg.pubkey === publicKey,
+                    pubkey: msg.actualSenderPubkey || msg.pubkey, // Use actual sender pubkey from seal event
+                    isFromMe: (msg.actualSenderPubkey || msg.pubkey) === publicKey,
                     timestamp: new Date(msg.created_at * 1000),
                 }))
                 .sort((a: any, b: any) => a.created_at - b.created_at);

@@ -86,6 +86,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
       }
     });
 
+    console.log("conversations", conversationMap);
     return Array.from(conversationMap.values())
       .sort((a, b) => b.lastActivity - a.lastActivity);
   }, [subscriptionMessages, publicKey]);
@@ -225,14 +226,14 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             <p className="mt-2 text-gray-600">Loading messages...</p>
           </div>
-        ) : conversations.length === 0 ? (
+        ) : conversations?.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-gray-500">
             <p>No conversations yet</p>
             <p className="text-sm">Start a conversation to see messages here</p>
           </div>
         ) : (
           <div className="space-y-1">
-            {conversations.map((conversation: any) => (
+            {conversations && conversations.length > 0 && conversations?.map((conversation: any) => (
               <div
                 key={conversation.id}
                 onClick={() => handleConversationClick(conversation)}
