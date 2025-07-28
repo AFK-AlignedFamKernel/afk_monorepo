@@ -143,7 +143,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
     return (
         <div className="flex flex-col h-full">
             {/* Header */}
-            <div className="flex items-center p-4 border-b bg-white">
+            <div className="flex items-center p-4 border-b ">
                 <button
                     onClick={handleGoBack}
                     className="mr-3 p-2 hover:bg-gray-100 rounded-full"
@@ -151,7 +151,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
                     <Icon name="BackIcon" size={20} />
                 </button>
                 <div className="flex items-center flex-1">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 mr-3 flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full  mr-3 flex-shrink-0">
                         {receiverProfile?.picture && (
                             <Image
                                 src={receiverProfile.picture}
@@ -188,13 +188,13 @@ export const ChatConversation: React.FC<ChatProps> = ({
                             <div
                                 className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
                                     msg.isFromMe
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-gray-200 text-gray-900'
+                                        ? 'justify-start bg-gray-500'
+                                        : 'justify-end bg-gray-500'
                                 }`}
                             >
                                 <p className="text-sm">{msg.content}</p>
                                 <p className={`text-xs mt-1 ${
-                                    msg.isFromMe ? 'text-blue-100' : 'text-gray-500'
+                                    msg.isFromMe ? 'text-gray-500' : 'text-gray-500'
                                 }`}>
                                     {formatDistanceToNow(msg.timestamp, { addSuffix: true })}
                                 </p>
@@ -206,7 +206,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t bg-white">
+            <div className="p-4 border-t">
                 <div className="flex items-center space-x-2">
                     <textarea
                         value={message}
