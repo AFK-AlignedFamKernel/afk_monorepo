@@ -3,7 +3,6 @@ import { useNostrContext } from '../../../context/NostrContext';
 import { useAuth } from '../../../store';
 import { checkIsConnected } from '../../connect';
 import { NDKKind } from '@nostr-dev-kit/ndk';
-import { nip04 } from 'nostr-tools';
 import { v2 } from "../../../utils/nip44";
 import { deriveSharedKey, fixPubKey } from '../../../utils/keypair';
 
@@ -13,7 +12,7 @@ export type UseNip17MessagesOptions = {
   enabled?: boolean;
 };
 
-// Helper function to decrypt gift wrap content and extract NIP-4 message
+// Helper function to decrypt gift wrap content and extract NIP-44 message
 const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, currentUserPublicKey: string) => {
   try {
     console.log('NIP-17: Attempting to decrypt event:', {
@@ -60,35 +59,20 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
 
     console.log('NIP-17: Attempting to decrypt content with length:', giftWrapEvent.content.length);
 
-    // Decrypt the gift wrap content - nip04.decrypt(privateKey, senderPublicKey, encryptedContent)
+    // Decrypt the gift wrap content using NIP-44
     let decryptedContent;
     try {
-      decryptedContent = await nip04.decrypt(privateKey, giftWrapEvent.pubkey, giftWrapEvent.content);
-      // const conversationKey = deriveSharedKey(privateKey, fixPubKey(giftWrapEvent.pubkey));
-
-      // decryptedContent =  v2.decrypt(giftWrapEvent?.content, conversationKey);
-      console.log("decryptedContent", decryptedContent);
+      decryptedContent = v2.decryptNip44(giftWrapEvent.content, privateKey, giftWrapEvent.pubkey);
+      console.log("NIP-17: Successfully decrypted gift wrap content using NIP-44");
     } catch (decryptError) {
-
-      const conversationKey = deriveSharedKey(privateKey, fixPubKey(giftWrapEvent.pubkey));
-
-      decryptedContent =  v2.decrypt(giftWrapEvent?.content, conversationKey);
-
-      if (!decryptedContent) {
-        console.warn('Failed to decrypt gift wrap content');
-        console.error('NIP-17: Failed to decrypt gift wrap content:', decryptError);
-        console.error('NIP-17: Decrypt parameters:', {
-          privateKeyLength: privateKey?.length,
-          senderPubkey: giftWrapEvent.pubkey,
-          contentLength: giftWrapEvent.content?.length,
-          contentPreview: giftWrapEvent.content?.substring(0, 50)
-        });
-        return null;
-      }
-
-      console.log("decryptedContent", decryptedContent);
-
-   
+      console.error('NIP-17: Failed to decrypt gift wrap content with NIP-44:', decryptError);
+      console.error('NIP-17: Decrypt parameters:', {
+        privateKeyLength: privateKey?.length,
+        senderPubkey: giftWrapEvent.pubkey,
+        contentLength: giftWrapEvent.content?.length,
+        contentPreview: giftWrapEvent.content?.substring(0, 50)
+      });
+      return null;
     }
 
     if (!decryptedContent) {
@@ -98,53 +82,28 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
 
     console.log('NIP-17: Successfully decrypted gift wrap content, length:', decryptedContent.length);
 
-    // Parse the decrypted content as a seal event (kind 13)
+    // Parse the decrypted content as JSON (it should contain the seal event)
     let sealEvent;
     try {
       sealEvent = JSON.parse(decryptedContent);
     } catch (parseError) {
-      console.warn('Failed to parse decrypted content as JSON:', parseError);
-      console.warn('Decrypted content preview:', decryptedContent.substring(0, 100));
+      console.error('NIP-17: Failed to parse decrypted content as JSON:', parseError);
       return null;
     }
 
-    if (!sealEvent || sealEvent.kind !== 13) {
-      console.warn('Invalid seal event or wrong kind:', sealEvent?.kind);
+    // Validate seal event structure
+    if (!sealEvent || sealEvent.kind !== 13 || !sealEvent.content) {
+      console.error('NIP-17: Invalid seal event structure:', sealEvent);
       return null;
     }
 
-    // Validate seal event has required fields
-    if (!sealEvent.content || !sealEvent.pubkey) {
-      console.warn('Seal event missing required fields');
-      return null;
-    }
-
-    // Ensure seal event content is a string
-    if (typeof sealEvent.content !== 'string') {
-      console.warn('Seal event content is not a string:', typeof sealEvent.content);
-      return null;
-    }
-
-    console.log('NIP-17: Attempting to decrypt seal event content, length:', sealEvent.content.length);
-
-    // Decrypt the seal event content to get the actual NIP-4 message
-    // For the seal event, we need to decrypt using the seal event's pubkey as the sender
+    // Decrypt the seal event content (the actual message)
     let actualMessage;
     try {
-      actualMessage = await nip04.decrypt(privateKey, sealEvent.pubkey, sealEvent.content);
-    } catch (decryptError) {
-      console.error('NIP-17: Failed to decrypt seal event content:', decryptError);
-      console.error('NIP-17: Seal decrypt parameters:', {
-        privateKeyLength: privateKey?.length,
-        sealPubkey: sealEvent.pubkey,
-        contentLength: sealEvent.content?.length,
-        contentPreview: sealEvent.content?.substring(0, 50)
-      });
-      return null;
-    }
-
-    if (!actualMessage) {
-      console.warn('Failed to decrypt seal event content');
+      actualMessage = v2.decryptNip44(sealEvent.content, privateKey, sealEvent.pubkey);
+      console.log('NIP-17: Successfully decrypted seal event content');
+    } catch (sealDecryptError) {
+      console.error('NIP-17: Failed to decrypt seal event content:', sealDecryptError);
       return null;
     }
 
@@ -161,27 +120,27 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
   }
 };
 
-// Helper function to create and send NIP-17 gift wrap message
+// Helper function to create and send NIP-17 gift wrap message using NIP-44
 const createNip17Message = async (
   ndk: any,
   senderPrivateKey: string,
   receiverPublicKey: string,
   message: string
 ) => {
-  // First, create the NIP-4 encrypted message (seal event content)
-  const nip4EncryptedContent = await nip04.encrypt(senderPrivateKey, receiverPublicKey, message);
+  // First, create the NIP-44 encrypted message (seal event content)
+  const nip44EncryptedContent = v2.encryptNip44(message, senderPrivateKey, receiverPublicKey);
 
   // Create the seal event (kind 13)
   const sealEvent = {
     kind: 13,
     pubkey: receiverPublicKey,
-    content: nip4EncryptedContent,
+    content: nip44EncryptedContent,
     tags: [['p', receiverPublicKey]],
     created_at: Math.floor(Date.now() / 1000),
   };
 
-  // Encrypt the seal event for the gift wrap
-  const giftWrapEncryptedContent = await nip04.encrypt(senderPrivateKey, receiverPublicKey, JSON.stringify(sealEvent));
+  // Encrypt the seal event for the gift wrap using NIP-44
+  const giftWrapEncryptedContent = v2.encryptNip44(JSON.stringify(sealEvent), senderPrivateKey, receiverPublicKey);
 
   // Create the gift wrap event (kind 1059)
   const giftWrapEvent = {

@@ -98,6 +98,7 @@ export {useGetAllMessages, useGetMessagesSent, useGetMessagesReceived, fetchMess
 export {useEncryptedMessage} from './messages/nip4/useEncryptedMessage';
 export {useNip4Subscription} from './messages/nip4/useNip4Subscription';
 export {useNip17Messages, useNip17MessagesReceived, useNip17Conversations, useNip17MessagesBetweenUsers, useSendNip17Message} from './messages/nip17/useNip17Messages';
+export {useNip44Message, useNip44Decrypt} from './messages/nip44/useNip44Message';
 export {useConnect, checkIsConnected} from './connect';
 export {useRelayAuthInit} from './connect/useRelayAuthInit';
 export {useRelayAuth, useRelayAuthState} from './connect/auth';

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useAuth, useContacts, useNostrContext, useRelayAuthInit, useNip17Conversations, useNip17MessagesBetweenUsers, useSendNip17Message } from 'afk_nostr_sdk';
+import { useNip44Message } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
 import { ChatConversation } from './ChatConversation';
@@ -11,8 +12,8 @@ import { logClickedEvent } from '@/lib/analytics';
 import { Icon } from '@/components/small/icon-component';
 
 interface NostrConversationListProps {
-  type: "NIP4" | "NIP17";
-  setType?: (type: "NIP4" | "NIP17") => void;
+  type: "NIP4" | "NIP17" | "NIP44";
+  setType?: (type: "NIP4" | "NIP17" | "NIP44") => void;
 }
 
 export const NostrConversationList: React.FC<NostrConversationListProps> = ({ type, setType }) => {
@@ -31,6 +32,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const contacts = useContacts();
   const { ndk } = useNostrContext();
   const { mutateAsync: sendNip17Message } = useSendNip17Message();
+  const { mutateAsync: sendNip44Message } = useNip44Message();
   const { showToast } = useUIStore();
 
   // Use NIP-17 hooks for conversations and messages
@@ -120,21 +122,39 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     if (!message || !selectedConversation?.receiverPublicKey) return;
     
     try {
-      await sendNip17Message(
-        {
-          receiverPublicKey: selectedConversation.receiverPublicKey,
-          message: message,
-        },
-        {
-          onSuccess: () => {
-            showToast({ message: 'Message sent', type: 'success' });
-            refetchMessages();
+      if (type === "NIP17") {
+        await sendNip17Message(
+          {
+            receiverPublicKey: selectedConversation.receiverPublicKey,
+            message: message,
           },
-          onError() {
-            showToast({ message: 'Error sending message', type: 'error' });
+          {
+            onSuccess: () => {
+              showToast({ message: 'Message sent', type: 'success' });
+              refetchMessages();
+            },
+            onError() {
+              showToast({ message: 'Error sending message', type: 'error' });
+            },
           },
-        },
-      );
+        );
+      } else if (type === "NIP44") {
+        await sendNip44Message(
+          {
+            content: message,
+            receiverPublicKey: selectedConversation.receiverPublicKey,
+          },
+          {
+            onSuccess: () => {
+              showToast({ message: 'NIP-44 message sent', type: 'success' });
+              refetchMessages();
+            },
+            onError() {
+              showToast({ message: 'Error sending NIP-44 message', type: 'error' });
+            },
+          },
+        );
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       showToast({ message: 'Error sending message', type: 'error' });

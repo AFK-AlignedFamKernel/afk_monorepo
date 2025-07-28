@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth, useEncryptedMessage, useNostrContext, useSendPrivateMessage } from 'afk_nostr_sdk';
+import { useAuth, useEncryptedMessage, useNostrContext, useSendPrivateMessage, useNip44Message } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
 import { generateRandomBytesLength } from 'afk_nostr_sdk';
@@ -14,8 +14,8 @@ import { hexToBytes } from '@noble/hashes/utils';
 interface FormPrivateMessageProps {
   onClose: () => void;
   onMessageSent?: () => void;
-  type: "NIP4" | "NIP17";
-  setType?: (type: "NIP4" | "NIP17") => void;
+  type: "NIP4" | "NIP17" | "NIP44";
+  setType?: (type: "NIP4" | "NIP17" | "NIP44") => void;
 }
 
 export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
@@ -31,13 +31,14 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   const [error, setError] = useState<string | null>(null);
   const { mutateAsync, mutate } = useSendPrivateMessage();
   const { mutateAsync: sendMessage } = useEncryptedMessage();
+  const { mutateAsync: sendNip44Message } = useNip44Message();
   const roomIds = [publicKey, recipient];
   const { showToast } = useUIStore();
   const queryClient = useQueryClient();
   const { ndk } = useNostrContext();
   const [subject, setSubject] = useState('');
 
-  const [activeTab, setActiveTab] = useState<"NIP4" | "NIP17">('NIP4');
+  const [activeTab, setActiveTab] = useState<"NIP4" | "NIP17" | "NIP44">('NIP4');
   const [relayUrl, setRelayUrl] = useState('');
 
   const handleSendNip4 = async () => {
@@ -90,6 +91,39 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
     }
 
   }
+
+  const handleSendNip44 = async () => {
+    try {
+      if (!message) return;
+      console.log('NIP-44: Sending message to', recipient);
+      
+      let receiverPublicKey = roomIds.find((id) => id !== publicKey);
+
+      if (!receiverPublicKey) {
+        showToast({ message: 'Invalid receiver', type: 'error' });
+        return;
+      }
+
+      if (!privateKey) {
+        showToast({ message: 'Please connect your wallet', type: 'error' });
+        return;
+      }
+
+      await sendNip44Message({
+        content: message,
+        receiverPublicKey: receiverPublicKey,
+        relayUrl: relayUrl,
+        subject: subject,
+      });
+
+      showToast({ message: 'NIP-44 message sent successfully', type: 'success' });
+      onMessageSent?.();
+    } catch (error) {
+      console.error('NIP-44: Error sending message:', error);
+      showToast({ message: 'Error sending NIP-44 message', type: 'error' });
+    }
+  }
+
   const handleSubmitMessage = async (message: string) => {
     if (type == "NIP4") {
       await handleSendNip4();
@@ -100,17 +134,22 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
           receiverPublicKeyProps: recipient,
         },
       );
+    } else if (type == "NIP44") {
+      await handleSendNip44();
     }
   }
 
 
-  const handleActiveType = (type: "NIP4" | "NIP17") => {
+  const handleActiveType = (type: "NIP4" | "NIP17" | "NIP44") => {
     if (type == "NIP4") {
       setActiveTab("NIP4");
       setType?.("NIP4");
     } else if (type == "NIP17") {
       setActiveTab("NIP17");
       setType?.("NIP17");
+    } else if (type == "NIP44") {
+      setActiveTab("NIP44");
+      setType?.("NIP44");
     }
   }
 

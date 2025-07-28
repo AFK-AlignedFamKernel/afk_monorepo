@@ -1,4 +1,4 @@
-// NIP-44 v2 implementation based on https://github.com/nostr-protocol/nips/blob/master/44.md
+// https://github.com/paulmillr/nip44/blob/main/javascript/index.ts
 
 import {chacha20} from '@noble/ciphers/chacha';
 import {ensureBytes, equalBytes} from '@noble/ciphers/utils';
@@ -12,7 +12,6 @@ import {base64} from '@scure/base';
 declare const TextDecoder: any;
 
 const decoder = new TextDecoder();
-
 const u = {
   minPlaintextSize: 0x0001, // 1b msg => padded to 32b
   maxPlaintextSize: 0xffff, // 65535 (64kb-1) => padded to 64kb
@@ -22,11 +21,8 @@ const u = {
     return decoder.decode(bytes);
   },
 
-  // Get conversation key using secp256k1 shared secret
   getConversationKey(privkeyA: string, pubkeyB: string): Uint8Array {
-    // Ensure pubkeyB has the '02' prefix for compressed format
-    const pubkeyWithPrefix = pubkeyB.startsWith('02') ? pubkeyB : '02' + pubkeyB;
-    const sharedX = secp256k1.getSharedSecret(privkeyA, pubkeyWithPrefix).subarray(1, 33);
+    const sharedX = secp256k1.getSharedSecret(privkeyA, '02' + pubkeyB).subarray(1, 33);
     return hkdf_extract(sha256, sharedX, 'nip44-v2');
   },
 
@@ -130,28 +126,8 @@ function decrypt(payload: string, conversationKey: Uint8Array): string {
   return u.unpad(padded);
 }
 
-// Helper function to get conversation key from private and public keys
-function getConversationKey(privateKey: string, publicKey: string): Uint8Array {
-  return u.getConversationKey(privateKey, publicKey);
-}
-
-// Helper function to encrypt with NIP-44
-function encryptNip44(plaintext: string, privateKey: string, publicKey: string): string {
-  const conversationKey = getConversationKey(privateKey, publicKey);
-  return encrypt(plaintext, conversationKey);
-}
-
-// Helper function to decrypt with NIP-44
-function decryptNip44(payload: string, privateKey: string, publicKey: string): string {
-  const conversationKey = getConversationKey(privateKey, publicKey);
-  return decrypt(payload, conversationKey);
-}
-
 export const v2 = {
   utils: u,
   encrypt,
   decrypt,
-  getConversationKey,
-  encryptNip44,
-  decryptNip44,
 };
