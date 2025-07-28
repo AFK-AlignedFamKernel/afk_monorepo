@@ -503,6 +503,7 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
       const limit = options.limit || 50;
 
       // Fetch messages between the two users
+      // For received messages, we need to fetch ALL messages where we are tagged as recipient
       const [sentEvents, receivedEvents] = await Promise.all([
         ndk.fetchEvents({
           kinds: [1059 as NDKKind],
@@ -520,12 +521,21 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
         }),
       ]);
 
-      console.log('useNip17MessagesBetweenUsers: Fetched events:', {
-        sentEventsCount: sentEvents.size,
-        receivedEventsCount: receivedEvents.size
+      // Also fetch any messages where we are tagged as recipient (in case we haven't sent any)
+      const allReceivedEvents = await ndk.fetchEvents({
+        kinds: [1059 as NDKKind],
+        '#p': [publicKey], // We are tagged as recipient
+        limit: limit,
+        ...(pageParam && { until: pageParam as number }),
       });
 
-      const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents)];
+      console.log('useNip17MessagesBetweenUsers: Fetched events:', {
+        sentEventsCount: sentEvents.size,
+        receivedEventsCount: receivedEvents.size,
+        allReceivedEventsCount: allReceivedEvents.size
+      });
+
+      const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents), ...Array.from(allReceivedEvents)];
       console.log('useNip17MessagesBetweenUsers: Total events:', allEvents.length);
 
       // Decrypt all events
@@ -533,8 +543,23 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
         allEvents.map(event => decryptGiftWrapContent(event, privateKey, publicKey))
       );
 
+      // Filter messages to only include those between the two specific users
       const validMessages = decryptedEvents
-        .filter(event => event !== null)
+        .filter(event => {
+          if (!event) return false;
+          
+          // Check if this message is between the two users
+          const actualSenderPubkey = event.actualSenderPubkey;
+          const actualReceiverPubkey = event.actualReceiverPubkey;
+          
+          // Message is between the two users if:
+          // 1. We sent it to the other user, OR
+          // 2. The other user sent it to us
+          const isFromUsToThem = actualSenderPubkey === publicKey && actualReceiverPubkey === otherUserPublicKey;
+          const isFromThemToUs = actualSenderPubkey === otherUserPublicKey && actualReceiverPubkey === publicKey;
+          
+          return isFromUsToThem || isFromThemToUs;
+        })
         .sort((a, b) => (a?.created_at || 0) - (b?.created_at || 0));
 
       console.log('useNip17MessagesBetweenUsers: Valid messages:', validMessages.length);
