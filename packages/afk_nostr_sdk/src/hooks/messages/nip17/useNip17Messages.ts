@@ -4,6 +4,8 @@ import { useAuth } from '../../../store';
 import { checkIsConnected } from '../../connect';
 import { NDKKind } from '@nostr-dev-kit/ndk';
 import { nip04 } from 'nostr-tools';
+import { v2 } from "../../../utils/nip44";
+import { deriveSharedKey, fixPubKey } from '../../../utils/keypair';
 
 export type UseNip17MessagesOptions = {
   authors?: string[];
@@ -12,21 +14,142 @@ export type UseNip17MessagesOptions = {
 };
 
 // Helper function to decrypt gift wrap content and extract NIP-4 message
-const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string) => {
+const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, currentUserPublicKey: string) => {
   try {
-    // Decrypt the gift wrap content
-    const decryptedContent = await nip04.decrypt(privateKey, giftWrapEvent.pubkey, giftWrapEvent.content);
-    
-    // Parse the decrypted content as a seal event (kind 13)
-    const sealEvent = JSON.parse(decryptedContent);
-    
-    if (sealEvent.kind !== 13) {
-      throw new Error('Invalid seal event kind');
+    console.log('NIP-17: Attempting to decrypt event:', {
+      id: giftWrapEvent?.id,
+      kind: giftWrapEvent?.kind,
+      pubkey: giftWrapEvent?.pubkey,
+      contentLength: giftWrapEvent?.content?.length,
+      contentType: typeof giftWrapEvent?.content,
+      hasContent: !!giftWrapEvent?.content,
+      content: giftWrapEvent?.content,
+      tags: giftWrapEvent?.tags
+    });
+
+    // Validate inputs
+    if (!giftWrapEvent || !giftWrapEvent.content || !giftWrapEvent.pubkey || !privateKey) {
+      console.warn('Invalid gift wrap event or missing required fields');
+      return null;
     }
-    
+
+    // Ensure content is a string
+    if (typeof giftWrapEvent.content !== 'string') {
+      console.warn('Gift wrap event content is not a string:', typeof giftWrapEvent.content);
+      return null;
+    }
+
+    // Check if content is empty
+    if (giftWrapEvent.content.trim() === '') {
+      console.warn('Gift wrap event content is empty');
+      return null;
+    }
+
+    // Check if this event is meant for us (we should be tagged as recipient)
+    const recipientTag = giftWrapEvent.tags?.find(tag => tag[0] === 'p');
+    if (!recipientTag || recipientTag[1] !== currentUserPublicKey) {
+      console.warn('Gift wrap event is not meant for us:', recipientTag?.[1], 'vs', currentUserPublicKey);
+      return null;
+    }
+
+    // Check if this event was sent by us (we can't decrypt our own sent messages)
+    if (giftWrapEvent.pubkey === currentUserPublicKey) {
+      console.warn('Gift wrap event was sent by us, skipping decryption');
+      return null;
+    }
+
+    console.log('NIP-17: Attempting to decrypt content with length:', giftWrapEvent.content.length);
+
+    // Decrypt the gift wrap content - nip04.decrypt(privateKey, senderPublicKey, encryptedContent)
+    let decryptedContent;
+    try {
+      decryptedContent = await nip04.decrypt(privateKey, giftWrapEvent.pubkey, giftWrapEvent.content);
+      // const conversationKey = deriveSharedKey(privateKey, fixPubKey(giftWrapEvent.pubkey));
+
+      // decryptedContent =  v2.decrypt(giftWrapEvent?.content, conversationKey);
+      console.log("decryptedContent", decryptedContent);
+    } catch (decryptError) {
+
+      const conversationKey = deriveSharedKey(privateKey, fixPubKey(giftWrapEvent.pubkey));
+
+      decryptedContent =  v2.decrypt(giftWrapEvent?.content, conversationKey);
+
+      if (!decryptedContent) {
+        console.warn('Failed to decrypt gift wrap content');
+        console.error('NIP-17: Failed to decrypt gift wrap content:', decryptError);
+        console.error('NIP-17: Decrypt parameters:', {
+          privateKeyLength: privateKey?.length,
+          senderPubkey: giftWrapEvent.pubkey,
+          contentLength: giftWrapEvent.content?.length,
+          contentPreview: giftWrapEvent.content?.substring(0, 50)
+        });
+        return null;
+      }
+
+      console.log("decryptedContent", decryptedContent);
+
+   
+    }
+
+    if (!decryptedContent) {
+      console.warn('Failed to decrypt gift wrap content');
+      return null;
+    }
+
+    console.log('NIP-17: Successfully decrypted gift wrap content, length:', decryptedContent.length);
+
+    // Parse the decrypted content as a seal event (kind 13)
+    let sealEvent;
+    try {
+      sealEvent = JSON.parse(decryptedContent);
+    } catch (parseError) {
+      console.warn('Failed to parse decrypted content as JSON:', parseError);
+      console.warn('Decrypted content preview:', decryptedContent.substring(0, 100));
+      return null;
+    }
+
+    if (!sealEvent || sealEvent.kind !== 13) {
+      console.warn('Invalid seal event or wrong kind:', sealEvent?.kind);
+      return null;
+    }
+
+    // Validate seal event has required fields
+    if (!sealEvent.content || !sealEvent.pubkey) {
+      console.warn('Seal event missing required fields');
+      return null;
+    }
+
+    // Ensure seal event content is a string
+    if (typeof sealEvent.content !== 'string') {
+      console.warn('Seal event content is not a string:', typeof sealEvent.content);
+      return null;
+    }
+
+    console.log('NIP-17: Attempting to decrypt seal event content, length:', sealEvent.content.length);
+
     // Decrypt the seal event content to get the actual NIP-4 message
-    const actualMessage = await nip04.decrypt(privateKey, sealEvent.pubkey, sealEvent.content);
-    
+    // For the seal event, we need to decrypt using the seal event's pubkey as the sender
+    let actualMessage;
+    try {
+      actualMessage = await nip04.decrypt(privateKey, sealEvent.pubkey, sealEvent.content);
+    } catch (decryptError) {
+      console.error('NIP-17: Failed to decrypt seal event content:', decryptError);
+      console.error('NIP-17: Seal decrypt parameters:', {
+        privateKeyLength: privateKey?.length,
+        sealPubkey: sealEvent.pubkey,
+        contentLength: sealEvent.content?.length,
+        contentPreview: sealEvent.content?.substring(0, 50)
+      });
+      return null;
+    }
+
+    if (!actualMessage) {
+      console.warn('Failed to decrypt seal event content');
+      return null;
+    }
+
+    console.log('NIP-17: Successfully decrypted seal event content, length:', actualMessage.length);
+
     return {
       ...giftWrapEvent,
       decryptedContent: actualMessage,
@@ -47,7 +170,7 @@ const createNip17Message = async (
 ) => {
   // First, create the NIP-4 encrypted message (seal event content)
   const nip4EncryptedContent = await nip04.encrypt(senderPrivateKey, receiverPublicKey, message);
-  
+
   // Create the seal event (kind 13)
   const sealEvent = {
     kind: 13,
@@ -56,10 +179,10 @@ const createNip17Message = async (
     tags: [['p', receiverPublicKey]],
     created_at: Math.floor(Date.now() / 1000),
   };
-  
+
   // Encrypt the seal event for the gift wrap
   const giftWrapEncryptedContent = await nip04.encrypt(senderPrivateKey, receiverPublicKey, JSON.stringify(sealEvent));
-  
+
   // Create the gift wrap event (kind 1059)
   const giftWrapEvent = {
     kind: 1059,
@@ -67,11 +190,11 @@ const createNip17Message = async (
     tags: [['p', receiverPublicKey]],
     created_at: Math.floor(Date.now() / 1000),
   };
-  
+
   // Sign and publish the gift wrap event
   const signedEvent = await ndk.signEvent(giftWrapEvent);
   await ndk.publish(signedEvent);
-  
+
   return signedEvent;
 };
 
@@ -87,7 +210,7 @@ export const useSendNip17Message = () => {
       }
 
       await checkIsConnected(ndk);
-      
+
       return await createNip17Message(ndk, privateKey, receiverPublicKey, message);
     },
     onSuccess: () => {
@@ -124,12 +247,12 @@ export const useNip17Messages = (options: UseNip17MessagesOptions = {}) => {
       });
 
       const eventsArray = Array.from(events);
-      
+
       // Decrypt gift wrap events to get actual messages
       const decryptedEvents = await Promise.all(
-        eventsArray.map(event => decryptGiftWrapContent(event, privateKey))
+        eventsArray.map(event => decryptGiftWrapContent(event, privateKey, publicKey))
       );
-      
+
       const validEvents = decryptedEvents.filter(event => event !== null);
       const nextCursor = eventsArray.length === limit ? eventsArray[eventsArray.length - 1]?.created_at : undefined;
 
@@ -168,12 +291,12 @@ export const useNip17MessagesReceived = (options: UseNip17MessagesOptions = {}) 
       });
 
       const eventsArray = Array.from(events);
-      
+
       // Decrypt gift wrap events to get actual messages
       const decryptedEvents = await Promise.all(
-        eventsArray.map(event => decryptGiftWrapContent(event, privateKey))
+        eventsArray.map(event => decryptGiftWrapContent(event, privateKey, publicKey))
       );
-      
+
       const validEvents = decryptedEvents.filter(event => event !== null);
       const nextCursor = eventsArray.length === limit ? eventsArray[eventsArray.length - 1]?.created_at : undefined;
 
@@ -216,23 +339,57 @@ export const useNip17Conversations = (options: UseNip17MessagesOptions = {}) => 
       ]);
 
       const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents)];
-      
+
+      console.log('NIP-17: Found', allEvents.length, 'gift wrap events');
+
+      // Filter to ensure we only process actual gift wrap events
+      const validGiftWrapEvents = allEvents.filter(event => {
+        // Handle NDK events properly
+        const plainEvent = event;
+
+        const isValid = plainEvent && plainEvent.kind === 1059 && plainEvent.content && typeof plainEvent.content === 'string';
+        if (!isValid) {
+          console.warn('NIP-17: Skipping invalid gift wrap event:', {
+            id: plainEvent?.id,
+            kind: plainEvent?.kind,
+            hasContent: !!plainEvent?.content,
+            contentType: typeof plainEvent?.content
+          });
+        }
+        return isValid;
+      });
+
+      console.log('NIP-17: Valid gift wrap events:', validGiftWrapEvents.length);
+
       // Decrypt all gift wrap events
       const decryptedEvents = await Promise.all(
-        allEvents.map(event => decryptGiftWrapContent(event, privateKey))
+        validGiftWrapEvents.map(async (event) => {
+          console.log('NIP-17: Processing event:', {
+            id: event.id,
+            kind: event.kind,
+            pubkey: event.pubkey,
+            content: event.content,
+            contentLength: event.content?.length,
+            hasContent: !!event.content,
+            tags: event.tags
+          });
+          return await decryptGiftWrapContent(event, privateKey, publicKey);
+        })
       );
-      
+
+      console.log("decryptedEvents", decryptedEvents);
       const validEvents = decryptedEvents.filter(event => event !== null);
-      
+      console.log('NIP-17: Successfully decrypted', validEvents.length, 'out of', allEvents.length, 'events');
+
       // Group by conversation (other participant)
       const conversations = new Map();
-      
+
       validEvents.forEach(event => {
         // Extract the other participant from the seal event
-        const otherParticipant = event.sealEvent.pubkey === publicKey 
+        const otherParticipant = event.sealEvent.pubkey === publicKey
           ? event.sealEvent.tags?.find(tag => tag[0] === 'p')?.[1]
           : event.sealEvent.pubkey;
-        
+
         if (otherParticipant && otherParticipant !== publicKey) {
           if (!conversations.has(otherParticipant)) {
             conversations.set(otherParticipant, {
@@ -241,10 +398,10 @@ export const useNip17Conversations = (options: UseNip17MessagesOptions = {}) => 
               messageCount: 0,
             });
           }
-          
+
           const conversation = conversations.get(otherParticipant);
           conversation.messageCount++;
-          
+
           // Update last message if this one is newer
           if (event.created_at > conversation.lastMessage.created_at) {
             conversation.lastMessage = event;
@@ -252,8 +409,11 @@ export const useNip17Conversations = (options: UseNip17MessagesOptions = {}) => 
         }
       });
 
-      return Array.from(conversations.values())
+      const result = Array.from(conversations.values())
         .sort((a, b) => b.lastMessage.created_at - a.lastMessage.created_at);
+
+      console.log('NIP-17: Found', result.length, 'conversations');
+      return result;
     },
     enabled: options.enabled !== false && !!ndk && !!publicKey && !!privateKey,
   });
@@ -293,15 +453,15 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
       ]);
 
       const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents)];
-      
+
       // Decrypt all gift wrap events
       const decryptedEvents = await Promise.all(
-        allEvents.map(event => decryptGiftWrapContent(event, privateKey))
+        allEvents.map(event => decryptGiftWrapContent(event, privateKey, publicKey))
       );
-      
+
       const validEvents = decryptedEvents.filter(event => event !== null);
       const sortedEvents = validEvents.sort((a, b) => a.created_at - b.created_at);
-      
+
       const nextCursor = sortedEvents.length === limit ? sortedEvents[sortedEvents.length - 1]?.created_at : undefined;
 
       return {
