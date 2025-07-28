@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient, UseInfiniteQueryResult } from '@tanstack/react-query';
 import { useNostrContext } from '../../../context/NostrContext';
 import { useAuth } from '../../../store';
 import { checkIsConnected } from '../../connect';
@@ -181,7 +181,7 @@ export const useSendNip17Message = () => {
   });
 };
 
-export const useNip17Messages = (options: UseNip17MessagesOptions = {}) => {
+export const useNip17Messages = (options: UseNip17MessagesOptions = {}): UseInfiniteQueryResult<any, Error> => {
   const { ndk } = useNostrContext();
   const { publicKey, privateKey } = useAuth();
 
@@ -220,18 +220,18 @@ export const useNip17Messages = (options: UseNip17MessagesOptions = {}) => {
         nextCursor,
       };
     },
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: options.enabled !== false && !!ndk && !!publicKey && !!privateKey,
+    getNextPageParam: (lastPage: any) => lastPage.nextCursor,
     initialPageParam: 0,
   });
 };
 
-export const useNip17MessagesReceived = (options: UseNip17MessagesOptions = {}) => {
+export const useNip17MessagesReceived = (options: UseNip17MessagesOptions = {}): UseInfiniteQueryResult<any, Error> => {
   const { ndk } = useNostrContext();
   const { publicKey, privateKey } = useAuth();
 
   return useInfiniteQuery({
-    queryKey: ['nip17-messages-received', publicKey, options.limit, ndk],
+    queryKey: ['nip17-messages-received', options.authors, options.limit, ndk],
     queryFn: async ({ pageParam = 0 }) => {
       if (!ndk || !publicKey || !privateKey) {
         return { events: [], nextCursor: undefined };
@@ -241,10 +241,10 @@ export const useNip17MessagesReceived = (options: UseNip17MessagesOptions = {}) 
 
       const limit = options.limit || 50;
 
-      // Fetch NIP-17 gift wrap events received by the current user
+      // Fetch NIP-17 gift wrap events (kind 1059) where we are the recipient
       const events = await ndk.fetchEvents({
         kinds: [1059 as NDKKind], // Gift wrap events
-        '#p': [publicKey], // Messages where current user is tagged as recipient
+        '#p': [publicKey], // We are tagged as recipient
         limit,
         ...(pageParam && { until: pageParam as number }),
       });
@@ -264,172 +264,141 @@ export const useNip17MessagesReceived = (options: UseNip17MessagesOptions = {}) 
         nextCursor,
       };
     },
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: options.enabled !== false && !!ndk && !!publicKey && !!privateKey,
+    getNextPageParam: (lastPage: any) => lastPage.nextCursor,
     initialPageParam: 0,
   });
 };
 
-export const useNip17Conversations = (options: UseNip17MessagesOptions = {}) => {
-  const { ndk } = useNostrContext();
-  const { publicKey, privateKey } = useAuth();
-
-  return useQuery({
-    queryKey: ['nip17-conversations', publicKey, ndk],
-    queryFn: async () => {
-      if (!ndk || !publicKey || !privateKey) {
-        return [];
-      }
-
-      await checkIsConnected(ndk);
-
-      // Fetch both sent and received NIP-17 gift wrap events
-      const [sentEvents, receivedEvents] = await Promise.all([
-        ndk.fetchEvents({
-          kinds: [1059 as NDKKind], // Gift wrap events
-          authors: [publicKey],
-          limit: 100,
-        }),
-        ndk.fetchEvents({
-          kinds: [1059 as NDKKind], // Gift wrap events
-          '#p': [publicKey],
-          limit: 100,
-        }),
-      ]);
-
-      const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents)];
-
-      console.log('NIP-17: Found', allEvents.length, 'gift wrap events');
-
-      // Filter to ensure we only process actual gift wrap events
-      const validGiftWrapEvents = allEvents.filter(event => {
-        // Handle NDK events properly
-        const plainEvent = event;
-
-        const isValid = plainEvent && plainEvent.kind === 1059 && plainEvent.content && typeof plainEvent.content === 'string';
-        if (!isValid) {
-          console.warn('NIP-17: Skipping invalid gift wrap event:', {
-            id: plainEvent?.id,
-            kind: plainEvent?.kind,
-            hasContent: !!plainEvent?.content,
-            contentType: typeof plainEvent?.content
-          });
-        }
-        return isValid;
-      });
-
-      console.log('NIP-17: Valid gift wrap events:', validGiftWrapEvents.length);
-
-      // Decrypt all gift wrap events
-      const decryptedEvents = await Promise.all(
-        validGiftWrapEvents.map(async (event) => {
-          console.log('NIP-17: Processing event:', {
-            id: event.id,
-            kind: event.kind,
-            pubkey: event.pubkey,
-            content: event.content,
-            contentLength: event.content?.length,
-            hasContent: !!event.content,
-            tags: event.tags
-          });
-          return await decryptGiftWrapContent(event, privateKey, publicKey);
-        })
-      );
-
-      console.log("decryptedEvents", decryptedEvents);
-      const validEvents = decryptedEvents.filter(event => event !== null);
-      console.log('NIP-17: Successfully decrypted', validEvents.length, 'out of', allEvents.length, 'events');
-
-      // Group by conversation (other participant)
-      const conversations = new Map();
-
-      validEvents.forEach(event => {
-        // Extract the other participant from the seal event
-        const otherParticipant = event.sealEvent.pubkey === publicKey
-          ? event.sealEvent.tags?.find(tag => tag[0] === 'p')?.[1]
-          : event.sealEvent.pubkey;
-
-        if (otherParticipant && otherParticipant !== publicKey) {
-          if (!conversations.has(otherParticipant)) {
-            conversations.set(otherParticipant, {
-              participant: otherParticipant,
-              lastMessage: event,
-              messageCount: 0,
-            });
-          }
-
-          const conversation = conversations.get(otherParticipant);
-          conversation.messageCount++;
-
-          // Update last message if this one is newer
-          if (event.created_at > conversation.lastMessage.created_at) {
-            conversation.lastMessage = event;
-          }
-        }
-      });
-
-      const result = Array.from(conversations.values())
-        .sort((a, b) => b.lastMessage.created_at - a.lastMessage.created_at);
-
-      console.log('NIP-17: Found', result.length, 'conversations');
-      return result;
-    },
-    enabled: options.enabled !== false && !!ndk && !!publicKey && !!privateKey,
-  });
-};
-
-export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options: UseNip17MessagesOptions = {}) => {
+export const useNip17Conversations = (options: UseNip17MessagesOptions = {}): UseInfiniteQueryResult<any, Error> => {
   const { ndk } = useNostrContext();
   const { publicKey, privateKey } = useAuth();
 
   return useInfiniteQuery({
-    queryKey: ['nip17-messages-between', publicKey, otherUserPublicKey, options.limit, ndk],
+    queryKey: ['nip17-conversations', options.limit, ndk],
     queryFn: async ({ pageParam = 0 }) => {
-      if (!ndk || !publicKey || !privateKey || !otherUserPublicKey) {
-        return { events: [], nextCursor: undefined };
+      if (!ndk || !publicKey || !privateKey) {
+        return { conversations: [], nextCursor: undefined };
       }
 
       await checkIsConnected(ndk);
 
       const limit = options.limit || 50;
 
-      // Fetch NIP-17 gift wrap events between the two users
+      // Fetch both sent and received NIP-17 messages
       const [sentEvents, receivedEvents] = await Promise.all([
         ndk.fetchEvents({
-          kinds: [1059 as NDKKind], // Gift wrap events
+          kinds: [1059 as NDKKind],
           authors: [publicKey],
-          '#p': [otherUserPublicKey],
-          limit,
+          limit: limit / 2,
           ...(pageParam && { until: pageParam as number }),
         }),
         ndk.fetchEvents({
-          kinds: [1059 as NDKKind], // Gift wrap events
-          authors: [otherUserPublicKey],
+          kinds: [1059 as NDKKind],
           '#p': [publicKey],
-          limit,
+          limit: limit / 2,
           ...(pageParam && { until: pageParam as number }),
         }),
       ]);
 
       const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents)];
 
-      // Decrypt all gift wrap events
+      // Group messages by conversation (other participant)
+      const conversationsMap = new Map<string, any>();
+
+      for (const event of allEvents) {
+        const otherParticipant = event.pubkey === publicKey 
+          ? event.tags?.find(tag => tag[0] === 'p')?.[1]
+          : event.pubkey;
+
+        if (otherParticipant && otherParticipant !== publicKey) {
+          if (!conversationsMap.has(otherParticipant)) {
+            conversationsMap.set(otherParticipant, {
+              participant: otherParticipant,
+              lastMessage: event,
+              messageCount: 0,
+            });
+          }
+
+          const conversation = conversationsMap.get(otherParticipant);
+          conversation.messageCount++;
+          
+          // Update last message if this one is newer
+          if (!conversation.lastMessage || event.created_at > conversation.lastMessage.created_at) {
+            conversation.lastMessage = event;
+          }
+        }
+      }
+
+      const conversations = Array.from(conversationsMap.values())
+        .sort((a, b) => (b.lastMessage?.created_at || 0) - (a.lastMessage?.created_at || 0));
+
+      const nextCursor = allEvents.length === limit ? allEvents[allEvents.length - 1]?.created_at : undefined;
+
+      return {
+        conversations,
+        nextCursor,
+      };
+    },
+    enabled: options.enabled !== false && !!ndk && !!publicKey && !!privateKey,
+    getNextPageParam: (lastPage: any) => lastPage.nextCursor,
+    initialPageParam: 0,
+  });
+};
+
+export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options: UseNip17MessagesOptions = {}): UseInfiniteQueryResult<any, Error> => {
+  const { ndk } = useNostrContext();
+  const { publicKey, privateKey } = useAuth();
+
+  return useInfiniteQuery({
+    queryKey: ['nip17-messages-between', otherUserPublicKey, options.limit, ndk],
+    queryFn: async ({ pageParam = 0 }) => {
+      if (!ndk || !publicKey || !privateKey || !otherUserPublicKey) {
+        return { messages: [], nextCursor: undefined };
+      }
+
+      await checkIsConnected(ndk);
+
+      const limit = options.limit || 50;
+
+      // Fetch messages between the two users
+      const [sentEvents, receivedEvents] = await Promise.all([
+        ndk.fetchEvents({
+          kinds: [1059 as NDKKind],
+          authors: [publicKey],
+          '#p': [otherUserPublicKey],
+          limit: limit / 2,
+          ...(pageParam && { until: pageParam as number }),
+        }),
+        ndk.fetchEvents({
+          kinds: [1059 as NDKKind],
+          authors: [otherUserPublicKey],
+          '#p': [publicKey],
+          limit: limit / 2,
+          ...(pageParam && { until: pageParam as number }),
+        }),
+      ]);
+
+      const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents)];
+
+      // Decrypt all events
       const decryptedEvents = await Promise.all(
         allEvents.map(event => decryptGiftWrapContent(event, privateKey, publicKey))
       );
 
-      const validEvents = decryptedEvents.filter(event => event !== null);
-      const sortedEvents = validEvents.sort((a, b) => a.created_at - b.created_at);
+      const validMessages = decryptedEvents
+        .filter(event => event !== null)
+        .sort((a, b) => (a?.created_at || 0) - (b?.created_at || 0));
 
-      const nextCursor = sortedEvents.length === limit ? sortedEvents[sortedEvents.length - 1]?.created_at : undefined;
+      const nextCursor = allEvents.length === limit ? allEvents[allEvents.length - 1]?.created_at : undefined;
 
       return {
-        events: sortedEvents,
+        messages: validMessages,
         nextCursor,
       };
     },
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
     enabled: options.enabled !== false && !!ndk && !!publicKey && !!privateKey && !!otherUserPublicKey,
+    getNextPageParam: (lastPage: any) => lastPage.nextCursor,
     initialPageParam: 0,
   });
 }; 
