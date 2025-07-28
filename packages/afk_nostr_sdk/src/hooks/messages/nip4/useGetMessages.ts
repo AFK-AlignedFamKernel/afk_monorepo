@@ -4,6 +4,7 @@ import {InfiniteData, useInfiniteQuery, UseInfiniteQueryResult} from '@tanstack/
 import {useNostrContext} from '../../../context/NostrContext';
 import {useAuth, useSettingsStore} from '../../../store';
 import {deriveSharedKey, generateRandomBytes, generateRandomKeypair} from '../../../utils/keypair';
+import {checkIsConnected} from '../../connect';
 /** NIP-4 Encrypted message: https://nips.nostr.com/4
  * Deprecated
  * Fix private message and user a relay that's enable it
@@ -18,24 +19,40 @@ interface UseMyMessagesSentOptions {
 
 export const fetchMessagesSent = async (ndk: NDK, publicKey: string, pageParam: number, limit: number): Promise<NDKEvent[]> => {
   console.log("fetchMessagesSent", ndk, publicKey, pageParam, limit);
-  const directMessagesSent = await ndk.fetchEvents({
-    kinds: [NDKKind.EncryptedDirectMessage],
-    authors: [publicKey],
-    since: pageParam || undefined,
-    limit: limit || 30,
-  });
+  await checkIsConnected(ndk);
+  
+  // Add timeout to fetchEvents
+  const directMessagesSent = await Promise.race([
+    ndk.fetchEvents({
+      kinds: [NDKKind.EncryptedDirectMessage],
+      authors: [publicKey],
+      since: pageParam || undefined,
+      limit: limit || 30,
+    }),
+    new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+    )
+  ]);
+  
   console.log("directMessagesSent", directMessagesSent);
   return Array.from(directMessagesSent);
 };
 
 export const fetchMessagesReceived = async (ndk: NDK, publicKey: string, pageParam: number, limit: number): Promise<NDKEvent[]> => {
-
-  const directMessagesReceived = await ndk.fetchEvents({
-    kinds: [NDKKind.EncryptedDirectMessage],
-    '#p': [publicKey],
-    since: pageParam || undefined,
-    limit: limit || 30,
-  });
+  await checkIsConnected(ndk);
+  
+  // Add timeout to fetchEvents
+  const directMessagesReceived = await Promise.race([
+    ndk.fetchEvents({
+      kinds: [NDKKind.EncryptedDirectMessage],
+      '#p': [publicKey],
+      since: pageParam || undefined,
+      limit: limit || 30,
+    }),
+    new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+    )
+  ]);
 
   console.log("directMessagesReceived", directMessagesReceived);
   return Array.from(directMessagesReceived);
@@ -59,18 +76,17 @@ export const useGetAllMessages = (options?: UseMyMessagesSentOptions):UseInfinit
     queryFn: async ({pageParam}) => {
 
       console.log("queryFn");
-      const connectedRelays = ndk.pool.connectedRelays();
-      console.log("connectedRelays", connectedRelays);
-
-      if (connectedRelays.length === 0) {
-        console.log("no connected relays");
-        await ndk.connect();
-        console.log("connected relays", ndk.pool.connectedRelays());
-      }
+      await checkIsConnected(ndk);
       
-      const directMessagesAll = await Promise.all([
-        fetchMessagesSent(ndk, publicKey, pageParam, options?.limit || 30),
-        fetchMessagesReceived(ndk, publicKey, pageParam, options?.limit || 30),
+      // Add timeout to Promise.all
+      const directMessagesAll = await Promise.race([
+        Promise.all([
+          fetchMessagesSent(ndk, publicKey, pageParam, options?.limit || 30),
+          fetchMessagesReceived(ndk, publicKey, pageParam, options?.limit || 30),
+        ]),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Fetch timeout')), 20000)
+        )
       ]);
 
       console.log("directMessagesAll", directMessagesAll);
@@ -98,12 +114,20 @@ export const useGetMessagesSent = (options?: UseMyMessagesSentOptions):UseInfini
       return pageParam;
     },
     queryFn: async ({pageParam}) => {
-      const directMessagesSent = await ndk.fetchEvents({
+      await checkIsConnected(ndk);
+      
+      // Add timeout to fetchEvents
+      const directMessagesSent = await Promise.race([
+        ndk.fetchEvents({
           kinds: [NDKKind.EncryptedDirectMessage],
           authors: [publicKey],
           // until: pageParam + 1 || undefined,
           limit: options?.limit || 30,
-        });
+        }),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+        )
+      ]);
 
       return directMessagesSent;
     },
@@ -126,13 +150,21 @@ export const useGetMessagesReceived = (options?: UseMyMessagesSentOptions):UseIn
       return pageParam;
     },
     queryFn: async ({pageParam}) => {
-      const directMessagesReceived = await ndk.fetchEvents({
+      await checkIsConnected(ndk);
+      
+      // Add timeout to fetchEvents
+      const directMessagesReceived = await Promise.race([
+        ndk.fetchEvents({
           kinds: [NDKKind.EncryptedDirectMessage],
           '#p': [publicKey],
           since: pageParam || undefined,
           // until: pageParam + 1 || undefined,
           limit: options?.limit || 20,
-        });
+        }),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+        )
+      ]);
 
       return directMessagesReceived;
     },

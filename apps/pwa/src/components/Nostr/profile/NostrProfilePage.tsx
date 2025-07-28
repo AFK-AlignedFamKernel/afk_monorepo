@@ -8,6 +8,7 @@ import { useNostrContext } from 'afk_nostr_sdk'
 import { logClickedEvent } from '@/lib/analytics'
 import { Icon } from '@/components/small/icon-component'
 import Image from 'next/image'
+import { FormPrivateMessage } from '../Messages/nip17/FormPrivateMessage'
 
 export default function NostrProfilePage({ address }: { address: string }) {
   // console.log("address", address)
@@ -318,6 +319,7 @@ const ProfileHeader = (props?: any) => {
         className="py-2 rounded-md shadow-md flex gap-1 items-center"
           onClick={() => {
             logClickedEvent('message_profile', 'Interaction', 'Button Click', 1);
+            showModal(<FormPrivateMessage type="NIP17" recipientAddress={address} onClose={() => {}} />)
           }}
         >
           <Icon name="MessageIcon" size={20} />

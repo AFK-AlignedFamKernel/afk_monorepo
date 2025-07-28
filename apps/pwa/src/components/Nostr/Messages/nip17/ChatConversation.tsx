@@ -4,14 +4,12 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
-// importuseMyMessagesSent, useAuth, useProfile,  { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
-// import { NDKUser } from '@nostr-dev-kit/ndk';
-import { useAuth, useSendPrivateMessage, useProfile, useMyMessagesSent, useIncomingMessageUsers, useNostrContext, checkIsConnected, useEncryptedMessage } from 'afk_nostr_sdk';
+import { useAuth, useSendNip17Message, useProfile, useNostrContext, useRelayAuthInit, useNip17MessagesBetweenUsers } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { logClickedEvent } from '@/lib/analytics';
 import { useUIStore } from '@/store/uiStore';
-import { NDKKind } from '@nostr-dev-kit/ndk';
+import { Icon } from '@/components/small/icon-component';
 import { nip04 } from 'nostr-tools';
 
 interface ChatProps {
@@ -19,378 +17,310 @@ interface ChatProps {
     publicKeyProps: string;
     receiverPublicKey: string;
     handleGoBack: () => void;
-    messagesSentParents: any[];
-    type?: "NIP4" | "NIP17";
+    messagesSentParents?: any[];
+    type: "NIP4" | "NIP17";
 }
 
 export const ChatConversation: React.FC<ChatProps> = ({
     item,
-    handleGoBack,
-    messagesSentParents,
     publicKeyProps,
     receiverPublicKey,
+    handleGoBack,
+    messagesSentParents = [],
     type
 }) => {
-    const { data: profile } = useProfile(item.senderPublicKey);
-    const [message, setMessage] = useState('');
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const { publicKey, privateKey, isNostrAuthed } = useAuth();
-    const { mutateAsync: sendMessage } = useSendPrivateMessage();
-    const { mutateAsync: sendEncryptedMessageNip4 } = useEncryptedMessage();
-
-    const queryClient = useQueryClient();
+    const { publicKey, privateKey } = useAuth();
+    const { mutateAsync: sendMessage } = useSendNip17Message();
     const { showToast } = useUIStore();
-    const [isSendingMessage, setIsSendingMessage] = useState(false);
-    const { ndk } = useNostrContext();
-    // Use the old hooks for fetching conversation messages
-    const roomIds = useMemo(() => [publicKey, receiverPublicKey], [publicKey, receiverPublicKey]);
-    const { data: messagesSent, isLoading: isLoadingSent } = useMyMessagesSent({
-        authors: roomIds,
-    });
-    const { data: incomingMessages, isLoading: isLoadingIncoming } = useIncomingMessageUsers({
-        authors: roomIds,
-    });
+    const [message, setMessage] = useState('');
+    const [isProcessingMessage, setIsProcessingMessage] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const { data: receiverProfile } = useProfile({ publicKey: receiverPublicKey });
+    const queryClient = useQueryClient();
 
-    const [allMessagesState, setAllMessagesState] = useState<any[]>([]);
-
-    // Combine all NIP4 messages between the two parties
-    const allMessagesNip4 = useMemo(() => {
-        // Remove duplicates by event id
-        const unique = new Map();
-        allMessagesState.forEach((msg: any) => {
-            // Only include messages where (sender, receiver) matches (publicKey, receiverPublicKey) or (receiverPublicKey, publicKey)
-            const isBetweenUsers =
-                (msg.pubkey === publicKey && msg.tags?.some((t: any) => t[0] === 'p' && t[1] === receiverPublicKey)) ||
-                (msg.pubkey === receiverPublicKey && msg.tags?.some((t: any) => t[0] === 'p' && t[1] === publicKey));
-            if (msg.type === "NIP4" && isBetweenUsers) {
-                unique.set(msg.id, msg);
-            }
-        });
-        // Sort by created_at
-        return Array.from(unique.values()).sort((a, b) => a.created_at - b.created_at);
-    }, [allMessagesState, publicKey, receiverPublicKey]);
-
-    const allMessagesNip17 = useMemo(() => {
-        return allMessagesState.filter((msg: any) => msg.type === "NIP17");
-    }, [allMessagesState]);
-    useEffect(() => {
-
-        if(isNostrAuthed){
-            console.log("isNostrAuthed", isNostrAuthed);
-            fetchAllMessages();
-            fetchAllMessagesSubscription();
-        }
-    }, [publicKey, receiverPublicKey, isNostrAuthed]);
-    // Combine and sort messages
-    const allMessages = useMemo(() => {
-        const sent = messagesSent?.pages?.flat() || [];
-        const received = incomingMessages?.pages?.flat() || [];
+    // Use the messages passed from parent component instead of calling the hook again
+    const messagesData = { pages: messagesSentParents };
+    // const [isLoadingMessages, setIsLoadingMessages] = useState(false); // We're not loading since data is passed from parent
+    // const refetchMessages = () => { }; // No-op since parent handles refetching
 
 
-        return [...sent, ...received]
-            .filter(Boolean)
-            .filter((a) => a?.pubkey === publicKey || a?.pubkey === receiverPublicKey)
-            .sort((a, b) => a.created_at - b.created_at);
-    }, [messagesSent?.pages, incomingMessages?.pages]);
 
-    const fetchAllMessages = async () => {
-        if (!publicKey || !receiverPublicKey) {
-            return;
-        }
-        try {
-            await checkIsConnected(ndk);
-            // Fetch both directions in a single call
-            const events = await ndk.fetchEvents([
-                {
-                    kinds: [4 as NDKKind],
-                    authors: [publicKey],
-                    '#p': [receiverPublicKey],
-                    limit: 20,
-                },
-                {
-                    kinds: [4 as NDKKind],
-                    authors: [receiverPublicKey],
-                    '#p': [publicKey],
-                    limit: 20,
-                }
-            ]);
-            // Decrypt and set state
-            const decryptedEvents = await Promise.all(
-                Array.from(events).map(async (event: any) => {
-                    let decryptedContent = '';
-                    try {
-                        let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
-                        decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
-                    } catch (e) {
-                        decryptedContent = '[Unable to decrypt]';
-                    }
-                    return { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent };
-                })
-            );
-            setAllMessagesState(decryptedEvents);
-        } catch (error) {
-            console.error("Error fetching events:", error);
-        }
+  const { 
+    data: messagesBetweenUsers, 
+    isLoading: isLoadingMessages,
+    refetch: refetchMessages 
+  } = useNip17MessagesBetweenUsers(
+    receiverPublicKey,
+    {
+      enabled: type === "NIP17" && !!receiverPublicKey && !!publicKey && !!privateKey,
+      limit: 50,
     }
+  );
 
+    // console.log('ChatConversation: messagesSentParents length:', messagesSentParents?.length || 0);
+    // console.log('ChatConversation: messagesData pages length:', messagesData?.pages?.length || 0);
+    // console.log('ChatConversation: messagesData.pages[0] type:', typeof messagesData?.pages?.[0]);
 
-    const fetchAllMessagesSubscription = async () => {
-        if (!publicKey || !receiverPublicKey) {
-            return;
-        }
-        try {
-            await checkIsConnected(ndk);
-            // Subscribe to both directions in a single subscription
-            const subscription = ndk.subscribe([
-                {
-                    kinds: [4 as NDKKind],
-                    authors: [publicKey],
-                    '#p': [receiverPublicKey],
-                    limit: 20,
-                },
-                {
-                    kinds: [4 as NDKKind],
-                    authors: [receiverPublicKey],
-                    '#p': [publicKey],
-                    limit: 20,
+    // Process messages for NIP-17
+    const processedMessages = useMemo(() => {
+        // console.log('ChatConversation: messagesData:', messagesData);
+        // console.log('ChatConversation: receiverPublicKey:', receiverPublicKey);
+        // console.log('ChatConversation: publicKey:', publicKey);
+
+        if (type === "NIP17" && messagesData?.pages) {
+            // Extract messages from the pages structure
+            const allMessages = messagesData.pages.flat().map(page => {
+                // console.log('ChatConversation: Processing page type:', typeof page);
+                // Handle the format where each page has a messages property (from useNip17MessagesBetweenUsers)
+                if (page && page.messages && Array.isArray(page.messages)) {
+                    // console.log('ChatConversation: Found messages array in page, length:', page.messages.length);
+                    return page.messages;
                 }
-            ]);
-            const handleEvent = async (event: any) => {
-                let decryptedContent = '';
-                try {
-                    let peerPubkey = event.pubkey === publicKey ? receiverPublicKey : event.pubkey;
-                    decryptedContent = await nip04.decrypt(privateKey, peerPubkey, event.content);
-                } catch (e) {
-                    decryptedContent = '[Unable to decrypt]';
+                // Handle direct array format
+                if (page && Array.isArray(page)) {
+                    // console.log('ChatConversation: Found direct array page, length:', page.length);
+                    return page;
                 }
-                setAllMessagesState((prev: any) => {
-                    // Avoid duplicates
-                    if (prev.some((m: any) => m.id === event.id)) return prev;
-                    return [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4", content: decryptedContent }];
-                });
-            };
-            subscription.on("event", handleEvent);
-            subscription.on("event:dup", handleEvent);
-        } catch (error) {
-            console.error("Error subscribing to events:", error);
-        }
-    }
-    useEffect(() => {
-        // console.log("item", item);
+                // console.log('ChatConversation: No valid message structure found in page');
+                return [];
+            }).flat();
 
-        if (type === "NIP4") {
-            fetchAllMessages();
-            fetchAllMessagesSubscription();
-        }
-    }, [item]);
+            // console.log('ChatConversation: allMessages:', allMessages);
+            // console.log('ChatConversation: allMessages length:', allMessages.length);
 
-    // Guard: Only proceed if both keys are valid
-    if (!publicKey || !receiverPublicKey) {
-        return <div className="flex items-center justify-center h-full">No conversation selected.</div>;
-    }
+            // Debug: Log each message to understand the structure
+            allMessages.forEach((msg, index) => {
+                // console.log(`ChatConversation: Message ${index}:`, {
+                //     id: msg?.id,
+                //     actualSenderPubkey: msg?.actualSenderPubkey,
+                //     actualReceiverPubkey: msg?.actualReceiverPubkey,
+                //     pubkey: msg?.pubkey,
+                //     hasDecryptedContent: !!msg?.decryptedContent,
+                //     hasContent: !!msg?.content,
+                //     contentLength: msg?.decryptedContent?.length || msg?.content?.length || 0
+                // });
+            });
+
+            const filteredMessages = allMessages.filter((msg: any) => {
+                const hasContent = msg && (msg.decryptedContent || msg.content);
+                if (!hasContent) {
+                    // console.log('ChatConversation: Filtering out message without content:', msg);
+                    return false;
+                }
+
+                // Only include messages that are part of this conversation
+                const actualSenderPubkey = msg.actualSenderPubkey || msg.pubkey;
+                const actualReceiverPubkey = msg.actualReceiverPubkey;
+
+                // Check if this message is between the current user and the conversation participant
+                const isFromUsToThem = actualSenderPubkey === publicKey && actualReceiverPubkey === receiverPublicKey;
+                const isFromThemToUs = actualSenderPubkey === receiverPublicKey && actualReceiverPubkey === publicKey;
+
+                // STRICT: Do NOT include self-messages in regular conversations
+                // Self-messages should only appear in the saved messages section
+                const isSelfMessage = actualSenderPubkey === actualReceiverPubkey;
+                if (isSelfMessage) {
+                    // console.log('ChatConversation: Excluding self-message from regular conversation');
+                    return false;
+                }
+
+                const isPartOfConversation = isFromUsToThem || isFromThemToUs;
+
+                // console.log('ChatConversation: Message filtering check:', {
+                //     actualSenderPubkey,
+                //     actualReceiverPubkey,
+                //     publicKey,
+                //     receiverPublicKey,
+                //     isFromUsToThem,
+                //     isFromThemToUs,
+                //     isSelfMessage,
+                //     isPartOfConversation,
+                //     reason: isPartOfConversation ? 'Valid conversation message' : 'Not part of conversation'
+                // });
+
+                if (!isPartOfConversation) {
+                    //  console.log('ChatConversation: Filtering out message not part of conversation');
+                    return false;
+                }
+
+                return true;
+            });
+
+            // console.log('ChatConversation: filteredMessages length:', filteredMessages.length);
+
+            return filteredMessages
+                .map((msg: any) => ({
+                    id: msg.id,
+                    content: msg.decryptedContent || msg.content || '[Failed to decrypt]',
+                    created_at: msg.created_at,
+                    pubkey: msg.actualSenderPubkey || msg.pubkey, // Use actual sender pubkey from seal event
+                    // isFromMe: (msg.actualSenderPubkey || msg.pubkey) === publicKey,
+                    isFromMe: (msg.pubkey) === publicKey,
+                    timestamp: new Date(msg.created_at * 1000),
+                }))
+                .sort((a: any, b: any) => a.created_at - b.created_at);
+        }
+        return [];
+    }, [messagesData, type, publicKey, receiverPublicKey]);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [allMessages]);
-    // console.log("allMessagesState", allMessagesState);
+        scrollToBottom();
+    }, [processedMessages]);
 
-    const handleSendMessage = useCallback(() => {
+    const handleSendMessage = async () => {
+        if (!message.trim() || !receiverPublicKey || !publicKey || !privateKey) return;
 
+        setIsProcessingMessage(true);
         try {
-            setIsSendingMessage(true);
-            if (!message.trim()) {
-                showToast({ message: 'Please enter a message', type: 'error' });
-                return;
-            }
-            // let receiverPublicKey = roomIds.find((id) => id !== publicKey);
-
-            console.log("receiverPublicKey", receiverPublicKey);
-            // TODO auto saved message
-            // if (roomIds[0] === roomIds[1]) {
-            //     receiverPublicKey = roomIds[0] ?? publicKey;
-            // }
-            if (!receiverPublicKey && roomIds.length > 1 && roomIds[0] != roomIds[1]) {
-                showToast({ message: 'Invalid receiver', type: 'error' });
-                return;
-            }
-
-            if (!receiverPublicKey) {
-                showToast({ message: 'Invalid receiver', type: 'error' });
-                return;
-            }
-
-            if (type === "NIP4") {
-                console.log("nip4 message", message);
-                sendEncryptedMessageNip4({
-                    content: message,
+            await sendMessage(
+                {
                     receiverPublicKey: receiverPublicKey,
-                    // subject: "test",
-                })
-            } else {
-                console.log("nip17 message", message);
-
-                sendMessage(
-                    {
-                        content: message,
-                        receiverPublicKeyProps: receiverPublicKey,
+                    message: message,
+                },
+                {
+                    onSuccess: () => {
+                        setMessage('');
+                        showToast({ message: 'Message sent', type: 'success' });
+                        refetchMessages();
                     },
-                    {
-                        onSuccess: () => {
-                            setMessage('');
-                            showToast({ message: 'Message sent', type: 'success' });
-                            queryClient.invalidateQueries({ queryKey: ['myMessagesSent'] });
-                            queryClient.invalidateQueries({ queryKey: ['messageUsers'] });
-                        },
-                        onError: (error) => {
-                            console.error('Error sending message:', error);
-                            showToast({ message: 'Error sending message', type: 'error' });
-                        },
-                    }
-                );
-
-            }
-
-            showToast({ message: 'Message sent', type: 'success' });
-
-            setIsSendingMessage(false);
+                    onError() {
+                        showToast({ message: 'Error sending message', type: 'error' });
+                    },
+                },
+            );
         } catch (error) {
-            setIsSendingMessage(false);
+            console.error('Error sending message:', error);
+            showToast({ message: 'Error sending message', type: 'error' });
+        } finally {
+            setIsProcessingMessage(false);
         }
-        finally {
-            setIsSendingMessage(false);
-        }
-    }, [message, receiverPublicKey, sendMessage, queryClient]);
+    };
 
-    // if (isLoadingSent || isLoadingIncoming) {
-    //     return (
-    //         <div className="flex items-center justify-center h-full">
-    //             <p>Loading messages...</p>
-    //         </div>
-    //     );
-    // }
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+        }
+    };
+
+    if (isLoadingMessages) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <CryptoLoading />
+                <span className="ml-2">Loading messages...</span>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-full">
             {/* Header */}
-            <div className="flex items-center p-4 border-b">
+            <div className="flex items-center p-4 border-b ">
                 <button
-                    onClick={() => {
-                        handleGoBack();
-                        logClickedEvent('go_conversation_nip17', 'messages_data');
-                        setMessage('');
-                    }}
-                    className="p-2 rounded"
+                    onClick={handleGoBack}
+                    className="mr-3 p-2 hover:bg-gray-100 rounded-full"
                 >
-                    ←
+                    <Icon name="BackIcon" size={20} />
                 </button>
-                <div className="flex items-center ml-2">
-                    {profile?.image ? (
-                        <Image
-                            src={profile.image}
-                            width={32}
-                            height={32}
-                            alt={profile?.name || item.senderPublicKey.slice(0, 8)}
-                            className="rounded-full"
-                        />
-                    ) : (
-                        <div className="w-8 h-8 rounded-full bg-gray-200" />
-                    )}
-                    <div className="ml-2">
-                        <p className="font-medium">
-                            {profile?.name || item.senderPublicKey.slice(0, 8)}
+                <div className="flex items-center flex-1">
+                    <div className="w-10 h-10 rounded-full  mr-3 flex-shrink-0">
+                        {receiverProfile?.picture && (
+                            <Image
+                                src={receiverProfile.picture}
+                                alt="Profile"
+                                width={40}
+                                height={40}
+                                className="rounded-full"
+                            />
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">
+                            {receiverProfile?.display_name || receiverProfile?.name || receiverPublicKey?.slice(0, 8) || 'Unknown'}
+                        </h3>
+                        <p className="text-sm text-gray-500 truncate">
+                            {receiverPublicKey}
                         </p>
                     </div>
                 </div>
             </div>
 
+
+            {isLoadingMessages && (
+                <div className="flex items-center justify-center h-64">
+                    <CryptoLoading />
+                    <span className="ml-2">Loading messages...</span>
+                </div>
+            )}
             {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4  max-h-[350px] lg:max-h-[500px]">
-
-                <div>
-
-                    {allMessagesNip4.map((msg: any) => {
-                        const isSent = msg.pubkey === publicKey;
-                        return (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {processedMessages.length === 0 && !isLoadingMessages ? (
+                    <div className="text-center text-gray-500 py-8">
+                        <div>No messages yet. Start the conversation!</div>
+                        {/* Debug: Show raw message data */}
+                        {process.env.NODE_ENV === 'development' && (
+                        <div className="mt-4 text-xs text-gray-400">
+                            <div>Debug Info:</div>
+                            <div>Messages data: {JSON.stringify(messagesData)}</div>
+                            <div>All messages length: {messagesData?.pages?.flat().length || 0}</div>
+                            <div>Public key: {publicKey}</div>
+                            <div>Receiver public key: {receiverPublicKey}</div>
+                        </div>
+                        )}
+                    </div>
+                ) : (
+                    processedMessages.map((msg: any) => (
+                        <div
+                            key={msg.id}
+                            className={`flex ${msg.pubkey === publicKey ? 'justify-start' : 'justify-end'}`}
+                        >
                             <div
-                                key={msg.id}
-                                className={`flex ${isSent ? 'justify-end' : 'justify-start'} mb-2`}
+                                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.pubkey === publicKey
+                                        ? 'justify-start bg-gray-500'
+                                        : 'justify-end bg-gray-700'
+                                    }`}
                             >
-                                <div
-                                    className={`
-                                        max-w-[70%]
-                                        rounded-lg
-                                        px-4 py-2
-                                        text-sm
-                                        shadow
-                                        ${isSent
-                                            ? 'bg-blue-500 text-white rounded-br-none'
-                                            : 'bg-neutral-100 dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-bl-none'
-                                        }
-                                    `}
-                                    style={{
-                                        wordBreak: 'break-word',
-                                        borderTopRightRadius: isSent ? 0 : undefined,
-                                        borderTopLeftRadius: !isSent ? 0 : undefined,
-                                    }}
-                                >
-                                    <p>{msg.content}</p>
-                                    <span className="block text-xs opacity-60 mt-1 text-right">
-                                        {msg.created_at
-                                            ? formatDistanceToNow(new Date(msg.created_at * 1000), { addSuffix: true })
-                                            : ''}
-                                    </span>
+                                <div>
+                                    {/* <p className="text-sm">{msg.pubkey}</p> */}
                                 </div>
+                                <p className="text-sm">{msg.content}</p>
+                                <p className={`text-xs mt-1 ${msg.isFromMe ? 'text-gray-500' : 'text-gray-500'
+                                    }`}>
+                                    {formatDistanceToNow(msg.timestamp, { addSuffix: true })}
+                                </p>
                             </div>
-                        );
-                    })}
-                </div>
-                <div className="space-y-4">
-                    {/* {allMessages.length === 0 ? (
-                        <div className="text-center text-gray-400">No messages yet.</div>
-                    ) : (
-                        allMessages.map((msg: any) => (
-                            <div
-                                key={msg.id}
-                                className={`flex ${msg.senderPublicKey === publicKey ? 'justify-end' : 'justify-start'}`}
-                            >
-                                <div
-                                    className={`max-w-[70%] rounded-lg p-3 ${msg.senderPublicKey === publicKey
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-gray-100'
-                                        }`}
-                                >
-                                    <p className="text-sm">{msg.decryptedContent || msg.content}</p>
-                                    <span className="text-xs opacity-70">
-                                        {formatDistanceToNow(new Date(msg?.created_at * 1000), { addSuffix: true })}
-                                    </span>
-                                </div>
-                            </div>
-                        ))
-                    )} */}
-                </div>
+                        </div>
+                    ))
+                )}
+                <div ref={messagesEndRef} />
             </div>
 
             {/* Message Input */}
             <div className="p-4 border-t">
-                <div className="flex space-x-2">
-                    <input
+                <div className="flex items-center space-x-2">
+                    <textarea
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
+                        onKeyPress={handleKeyPress}
                         placeholder="Type a message..."
-                        className="flex-1 p-2 border rounded"
-                    // onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                        className="flex-1 p-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        rows={1}
+                        disabled={isProcessingMessage}
                     />
                     <button
-                        disabled={isSendingMessage}
-                        onClick={() => {
-                            handleSendMessage();
-                            logClickedEvent(`send_message_${type}`, 'messages_data');
-                        }}
-                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        onClick={handleSendMessage}
+                        disabled={!message.trim() || isProcessingMessage}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        Send
+                        {isProcessingMessage ? (
+                            <CryptoLoading />
+                        ) : (
+                            <Icon name="SendIcon" size={20} />
+                        )}
                     </button>
                 </div>
             </div>

@@ -9,6 +9,7 @@ import { NostrMessagesComponent } from "../Nostr/Messages/nip17";
 import { useUIStore } from "@/store/uiStore";
 import { ProfileManagement } from "./profile-management";
 import { logClickedEvent } from "@/lib/analytics";
+import MessagesNostrOverview from "../Nostr/Messages/MessagesNostrOverview";
 
 export default function ProfileAfk() {
 
@@ -29,12 +30,15 @@ export default function ProfileAfk() {
 
         <div className="flex flex-col md:grid md:grid-cols-2 gap-8 overflow-x-auto">
 
-
           <div className="bg-contrast-100 p-6 rounded-lg shadow-lg text-left">
             <h2 className="text-sm font-semibold mb-4 italic">Decentralized Identities</h2>
             <div className="flex flex-row gap-2 py-4">
 
-              <button className="btn btn-basic flex items-center gap-2" onClick={() => {
+              <button 
+              // className="btn btn-basic   p-4 flex items-center gap-2" 
+              className="btn btn-basic  w-full  rounded-md border-2 border-contrast-200  p-4 flex items-center gap-2"
+
+              onClick={() => {
                 logClickedEvent("login-button-modal-profile-afk")
                 showModal(<ProfileManagement />)
               }}>
@@ -48,7 +52,9 @@ export default function ProfileAfk() {
               <button onClick={() => {
                 logClickedEvent("nostr--edit-my-profile")
                 handleTabChange("nostr")
-              }} className="btn w-full flex items-center justify-between border-1 border-contrast-200 rounded-lg">
+              }} 
+              className="btn btn-basic  w-full  rounded-md border-2 border-contrast-200  p-4 flex items-center gap-2"
+              >
                 <div className={`${activeTab === "nostr" ? "text-contrast-500" : ""}`}>
                   <p className="font-semibold text-left">Nostr Profile</p>
                   <p className="text-sm opacity-80">Manage your decentralized social identity</p>
@@ -58,6 +64,18 @@ export default function ProfileAfk() {
                 </svg>
               </button>
 
+              <button onClick={() => {
+                logClickedEvent("messages-selected")
+                handleTabChange("dm")
+              }} className="btn w-full flex justify-between border-2 border-contrast-200 rounded-lg">
+                <div>
+                  <p className="font-semibold">Messages</p>
+                  <p className="text-sm opacity-80">Manage your messages</p>
+                </div>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -90,19 +108,7 @@ export default function ProfileAfk() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
-              {/* 
-              <button onClick={() => {
-                logClickedEvent("messages-selected")
-                handleTabChange("dm")
-              }} className="btn w-full flex justify-between border-2 border-contrast-200 rounded-lg">
-                <div>
-                  <p className="font-semibold">Messages</p>
-                  <p className="text-sm opacity-80">Manage your messages</p>
-                </div>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button> */}
+
 
             </div>
           </div>
@@ -112,7 +118,7 @@ export default function ProfileAfk() {
               <button onClick={() => {
                 logClickedEvent("rewards-selected")
                 handleTabChange("rewards")
-              }} className="btn w-full flex items-center justify-between border-2 border-contrast-200 rounded-lg">
+              }} className="btn w-full flex items-center justify-between rounded-lg">
                 <div className="flex items-center gap-2">
                   <Icon name="RewardsIcon" size={24} />
                   <p className="font-semibold">Rewards</p>
@@ -159,19 +165,19 @@ export default function ProfileAfk() {
 
       {activeTab && (
         <div className="mt-8">
-          <button 
-          className="btn w-full flex items-center justify-between p-2"
-          onClick={() => {
-            logClickedEvent("back-button-modal-profile-afk")
-            setActiveTab(undefined)
-          }}>
+          <button
+            className="btn w-full flex items-center justify-between p-2"
+            onClick={() => {
+              logClickedEvent("back-button-modal-profile-afk")
+              setActiveTab(undefined)
+            }}>
             <Icon name="BackIcon" size={24} />
           </button>
           {activeTab === "nostr" && <MyNostrProfileComponent />}
           {activeTab === "brand" && <ManageBrandProfile />}
           {activeTab === "content-creator" && <ManageCreatorProfile />}
           {activeTab === "rewards" && <RewardsCenter />}
-          {activeTab === "dm" && <NostrMessagesComponent />}
+          {activeTab === "dm" && <MessagesNostrOverview />}
         </div>
       )}
 

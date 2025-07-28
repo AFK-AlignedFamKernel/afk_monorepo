@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth, useEncryptedMessage, useNostrContext, useSendPrivateMessage } from 'afk_nostr_sdk';
+import { useAuth, useEncryptedMessage, useNostrContext, useSendPrivateMessage, useNip44Message, useSendNip17Message } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
 import { generateRandomBytesLength } from 'afk_nostr_sdk';
@@ -14,34 +14,37 @@ import { hexToBytes } from '@noble/hashes/utils';
 interface FormPrivateMessageProps {
   onClose: () => void;
   onMessageSent?: () => void;
-  type: "NIP4" | "NIP17";
-  setType?: (type: "NIP4" | "NIP17") => void;
+  type: "NIP4" | "NIP17" | "NIP44";
+  setType?: (type: "NIP4" | "NIP17" | "NIP44") => void;
+  recipientAddress?: string;
 }
 
 export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   onClose,
   onMessageSent,
   type,
-  setType
+  setType,
+  recipientAddress
 }) => {
   const { publicKey, privateKey } = useAuth();
-  const [recipient, setRecipient] = useState('');
+  const [recipient, setRecipient] = useState(recipientAddress);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { mutateAsync, mutate } = useSendPrivateMessage();
   const { mutateAsync: sendMessage } = useEncryptedMessage();
+  const { mutateAsync: sendNip44Message } = useNip44Message();
+  const { mutateAsync: sendNip17Message } = useSendNip17Message();
   const roomIds = [publicKey, recipient];
   const { showToast } = useUIStore();
   const queryClient = useQueryClient();
   const { ndk } = useNostrContext();
   const [subject, setSubject] = useState('');
 
-  const [activeTab, setActiveTab] = useState<"NIP4" | "NIP17">('NIP4');
+  const [activeTab, setActiveTab] = useState<"NIP4" | "NIP17" | "NIP44">('NIP4');
   const [relayUrl, setRelayUrl] = useState('');
 
-  const handleSubmitMessage = async (message: string) => {
-
+  const handleSendNip4 = async () => {
     try {
 
       if (!message) return;
@@ -92,14 +95,89 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
 
   }
 
+  const handleSendNip44 = async () => {
+    try {
+      if (!message) return;
+      console.log('NIP-44: Sending message to', recipient);
+      
+      let receiverPublicKey = roomIds.find((id) => id !== publicKey);
 
-  const handleActiveType = (type: "NIP4" | "NIP17") => {
+      if (!receiverPublicKey) {
+        showToast({ message: 'Invalid receiver', type: 'error' });
+        return;
+      }
+
+      if (!privateKey) {
+        showToast({ message: 'Please connect your wallet', type: 'error' });
+        return;
+      }
+
+      await sendNip44Message({
+        content: message,
+        receiverPublicKey: receiverPublicKey,
+        relayUrl: relayUrl,
+        subject: subject,
+      });
+
+      showToast({ message: 'NIP-44 message sent successfully', type: 'success' });
+      onMessageSent?.();
+    } catch (error) {
+      console.error('NIP-44: Error sending message:', error);
+      showToast({ message: 'Error sending NIP-44 message', type: 'error' });
+    }
+  }
+
+  const handleSendNip17 = async () => {
+    try {
+      if (!message) return;
+      console.log('NIP-17: Sending message to', recipient);
+      
+      let receiverPublicKey = roomIds.find((id) => id !== publicKey);
+
+      if (!receiverPublicKey) {
+        showToast({ message: 'Invalid receiver', type: 'error' });
+        return;
+      }
+
+      if (!privateKey) {
+        showToast({ message: 'Please connect your wallet', type: 'error' });
+        return;
+      }
+
+      await sendNip17Message({
+        receiverPublicKey: receiverPublicKey,
+        message: message,
+      });
+
+      showToast({ message: 'NIP-17 message sent successfully', type: 'success' });
+      onMessageSent?.();
+    } catch (error) {
+      console.error('NIP-17: Error sending message:', error);
+      showToast({ message: 'Error sending NIP-17 message', type: 'error' });
+    }
+  }
+
+  const handleSubmitMessage = async (message: string) => {
+    if (type == "NIP4") {
+      await handleSendNip4();
+    } else if (type == "NIP17") {
+      await handleSendNip17();
+    } else if (type == "NIP44") {
+      await handleSendNip44();
+    }
+  }
+
+
+  const handleActiveType = (type: "NIP4" | "NIP17" | "NIP44") => {
     if (type == "NIP4") {
       setActiveTab("NIP4");
       setType?.("NIP4");
     } else if (type == "NIP17") {
       setActiveTab("NIP17");
       setType?.("NIP17");
+    } else if (type == "NIP44") {
+      setActiveTab("NIP44");
+      setType?.("NIP44");
     }
   }
 
@@ -144,23 +222,33 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
       showToast({ message: 'Message sent', type: 'success' });
       onMessageSent?.();
     } else if (type == "NIP17") {
-      await mutateAsync(
-        {
-          content: message,
-          receiverPublicKeyProps: receiverPublicKey,
+      await sendNip17Message({
+        receiverPublicKey: receiverPublicKey,
+        message: message,
+      }, {
+        onSuccess: () => {
+          showToast({ message: 'NIP-17 message sent successfully', type: 'success' });
+          onMessageSent?.();
         },
-        {
-          onSuccess: () => {
-            showToast({ message: 'Message sent', type: 'success' });
-            //   queryClient.invalidateQueries({
-            //     queryKey: ['messagesSent'],
-            //   });
-          },
-          onError() {
-            showToast({ message: 'Error sending message', type: 'error' });
-          },
+        onError() {
+          showToast({ message: 'Error sending NIP-17 message', type: 'error' });
         },
-      );
+      });
+    } else if (type == "NIP44") {
+      await sendNip44Message({
+        content: message,
+        receiverPublicKey: receiverPublicKey,
+        relayUrl: relayUrl,
+        subject: subject,
+      }, {
+        onSuccess: () => {
+          showToast({ message: 'NIP-44 message sent successfully', type: 'success' });
+          onMessageSent?.();
+        },
+        onError() {
+          showToast({ message: 'Error sending NIP-44 message', type: 'error' });
+        },
+      });
     }
 
   };
@@ -170,7 +258,7 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
     setIsLoading(true);
 
     try {
-      if (!recipient.trim()) {
+      if (!recipient?.trim()) {
         throw new Error('Recipient is required');
       }
 
@@ -192,7 +280,7 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   };
 
   return (
-    <div className="p-4 card">
+    <div className="p-4 w-full">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">New Message</h2>
         <button
@@ -203,13 +291,28 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
         </button>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
-        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP4' ? 'border-b-2 border-blue-500' : ''}`} onClick={() => handleActiveType("NIP4")}>
+      {/* <div className="flex justify-between items-center mb-4">
+        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP4' ? 'border border-gray-500' : ''}`} onClick={() => handleActiveType("NIP4")}>
           NIP4
         </button>
-        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP17' ? 'border-b-2 border-blue-500' : ''}`} onClick={() => handleActiveType("NIP17")}>
+        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP17' ? 'border border-gray-500' : ''}`} onClick={() => handleActiveType("NIP17")}>
           NIP17
         </button>
+    
+      </div>
+
+      <div>
+        {type}
+      </div> */}
+
+      <div className="mb-4">
+
+        <p className="text-sm text-gray-500">
+          This feature is still in development. Use at your own risk.
+        </p>
+        <p className="text-sm italic text-gray-500">
+          Please report any issues you encounter.
+        </p>
       </div>
 
       <div
@@ -241,7 +344,7 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your message..."
             rows={4}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             disabled={isLoading}
           />
         </div>

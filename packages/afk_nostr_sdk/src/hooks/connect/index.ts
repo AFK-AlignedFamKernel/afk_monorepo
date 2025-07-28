@@ -9,7 +9,15 @@ export const checkIsConnected = async (ndk: NDK) => {
     //  console.log("connectedRelays", connectedRelays);
     if (connectedRelays.length === 0) {
       console.log("no connected relays, please wait");
-      await ndk.connect();
+      
+      // Add timeout to connection
+      await Promise.race([
+        ndk.connect(),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Connection timeout')), 10000)
+        )
+      ]);
+      
       // console.log("connected relays", ndk.pool.connectedRelays());
     }
 

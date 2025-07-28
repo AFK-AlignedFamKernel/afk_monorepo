@@ -96,5 +96,9 @@ export {useProfileUser} from './useProfileUser';
 export {useFetchEvents} from "./search/useFetchEvents"
 export {useGetAllMessages, useGetMessagesSent, useGetMessagesReceived, fetchMessagesSent, fetchMessagesReceived} from './messages/nip4/useGetMessages';
 export {useEncryptedMessage} from './messages/nip4/useEncryptedMessage';
+export {useNip4Subscription} from './messages/nip4/useNip4Subscription';
+export {useNip17Messages, useNip17MessagesReceived, useNip17Conversations, useNip17MessagesBetweenUsers, useSendNip17Message, useNip17SavedMessages, useNip17SavedMessageConversations, } from './messages/nip17/useNip17Messages';
+export {useNip44Message, useNip44Decrypt, useNip44Conversations, useNip44MessagesBetweenUsers} from './messages/nip44/useNip44Message';
 export {useConnect, checkIsConnected} from './connect';
+export {useRelayAuthInit} from './connect/useRelayAuthInit';
 export {useRelayAuth, useRelayAuthState} from './connect/auth';

@@ -55,7 +55,7 @@ export const useMyMessagesSent = (options?: {
       const messages = await ndk.fetchEvents({
         kinds: [1059 as NDKKind],
         // authors: options?.authors || [publicKey],
-        authors: options?.authors,
+        // authors: options?.authors,
         since: pageParam || undefined,
         limit: options?.limit || 20,
         "#p": options?.authors || [publicKey],

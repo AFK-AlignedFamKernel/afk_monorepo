@@ -37,7 +37,7 @@
  * const allAuthenticated = areAllRelaysAuthenticated();
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNostrContext } from "../../context/NostrContext";
 import { useAuth } from "../../store/auth";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
@@ -56,6 +56,9 @@ interface AuthResponse {
   signature: string;
 }
 
+// Shared authentication state to avoid circular dependencies
+let globalRelayAuthState: { [relayUrl: string]: 'pending' | 'authenticated' | 'failed' } = {};
+
 /**
  * Hook for handling NIP-42 relay authentication
  * 
@@ -68,36 +71,63 @@ export const useRelayAuth = () => {
   const { ndk } = useNostrContext();
   const { publicKey, privateKey, setIsNostrAuthed } = useAuth();
   const [relayAuthState, setRelayAuthState] = useState<{ [relayUrl: string]: 'pending' | 'authenticated' | 'failed' }>({});
+  
+  // Use refs to track if we've already set up the auth policy and listeners
+  const hasSetupAuthPolicy = useRef(false);
+  const hasSetupListeners = useRef(false);
+  
+  // Track challenges we've already responded to to prevent infinite loops
+  const respondedChallenges = useRef<Set<string>>(new Set());
+  const challengeAttempts = useRef<Map<string, number>>(new Map());
 
-  // 1. Set up the default auth policy for all relays
+  // Update global state when local state changes
   useEffect(() => {
-    ndk.relayAuthDefaultPolicy = async (relay, challenge) => {
-      if (!privateKey || !publicKey) return false;
-      const authEvent = new NDKEvent(ndk);
-      authEvent.kind = 22242;
-      authEvent.content = challenge;
-      authEvent.tags = [
-        ["relay", relay.url],
-        ["challenge", challenge],
-        ["origin", typeof window !== "undefined" ? window.location.origin : ""],
-      ];
-      await authEvent.sign();
-      return true;
-    };
+    globalRelayAuthState = relayAuthState;
+  }, [relayAuthState]);
+
+  // 1. Set up the default auth policy for all relays (only once)
+  useEffect(() => {
+    if (!hasSetupAuthPolicy.current && ndk && publicKey && privateKey) {
+      // Disable the default auth policy to prevent conflicts with manual handling
+      ndk.relayAuthDefaultPolicy = async (relay, challenge) => {
+        console.log(`Default auth policy called for ${relay.url}, handling automatically`);
+        return true;
+      };
+      hasSetupAuthPolicy.current = true;
+    }
   }, [ndk, publicKey, privateKey]);
 
-  // 2. Listen for AUTH challenges and update state
+  // 2. Listen for AUTH challenges and update state (only once)
   const setupAuthListeners = () => {
+    if (hasSetupListeners.current) {
+      return; // Already set up
+    }
+    
     try {
       ndk.pool.on("relay:auth", async (relay, challenge) => {
         // Respond only to real relay challenges
         try {
-          const { publicKey, privateKey } = useAuth();
-          // console.log("relay:auth", relay);
+          console.log("relay:auth challenge received from", relay.url);
           if (!privateKey || !publicKey) {
             console.warn("No private/public key available for AUTH response");
             return;
           }
+          
+          // Check if we've already responded to this challenge or exceeded attempts
+          const challengeKey = `${relay.url}:${challenge}`;
+          const attempts = challengeAttempts.current.get(challengeKey) || 0;
+          
+          if (respondedChallenges.current.has(challengeKey)) {
+            console.log(`Already responded to challenge for ${relay.url}, skipping manual response`);
+            return;
+          }
+          
+          if (attempts >= 3) {
+            console.log(`Too many attempts for challenge from ${relay.url}, giving up`);
+            setRelayAuthState(prev => ({ ...prev, [relay.url]: 'failed' }));
+            return;
+          }
+          
           // Create and sign AUTH event
           const authEvent = new NDKEvent(ndk);
           authEvent.kind = 22242;
@@ -105,31 +135,50 @@ export const useRelayAuth = () => {
           authEvent.tags = [
             ["relay", relay.url],
             ["challenge", challenge],
-            ["origin", typeof window !== "undefined" ? window.location.origin : ""],
+            ["origin", typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || ""],
           ];
           await authEvent.sign();
-          // Send AUTH event via direct WebSocket
-          sendRawAuthWs(relay.url, authEvent);
+          
+          // Increment attempt counter
+          challengeAttempts.current.set(challengeKey, attempts + 1);
+          
+          // Mark this challenge as responded to
+          respondedChallenges.current.add(challengeKey);
+          
+          console.log("AUTH response created for", relay.url);
+          // Let NDK handle the AUTH response automatically
+          // The relay will receive the AUTH event through the normal NDK flow
         } catch (err) {
           console.error("Failed to handle real AUTH challenge:", err);
         }
       });
       ndk.pool.on("relay:authed", (relay) => {
-        console.log("relay:authed; auth with relay: ", relay.url);
+        console.log("✅ relay:authed; auth with relay: ", relay.url);
         setRelayAuthState(prev => ({ ...prev, [relay.url]: 'authenticated' }));
         setIsNostrAuthed(true);
-        // console.log("relayAuthState", relayAuthState);
-        // Update your state here
+        
+        // Clean up challenges for this relay after successful authentication
+        const relayChallenges = Array.from(respondedChallenges.current).filter(key => key.startsWith(relay.url));
+        relayChallenges.forEach(challenge => {
+          respondedChallenges.current.delete(challenge);
+          challengeAttempts.current.delete(challenge);
+        });
       });
-      // ndk.pool.on("relay:connect", (relay) => {
-      //   setRelayAuthState(prev => ({ ...prev, [relay.url]: 'pending' }));
-      // });
       ndk.pool.on("notice", (relay, notice) => {
         if (notice.includes('auth') || notice.includes('AUTH')) {
           console.log("notice", notice);
           setRelayAuthState(prev => ({ ...prev, [relay.url]: 'failed' }));
+          
+          // Clean up challenges for failed authentication
+          const relayChallenges = Array.from(respondedChallenges.current).filter(key => key.startsWith(relay.url));
+          relayChallenges.forEach(challenge => {
+            respondedChallenges.current.delete(challenge);
+            challengeAttempts.current.delete(challenge);
+          });
         }
       });
+      
+      hasSetupListeners.current = true;
     } catch (error) {
       console.error(`Failed to setup auth listeners:`, error);
     }
@@ -163,46 +212,7 @@ export const useRelayAuth = () => {
     };
   };
 
-  /**
-   * Handle AUTH challenge from a relay
-   */
-  // This useMutation is no longer needed as the default policy handles the response
-  // const handleAuthChallenge = useMutation({
-  //   mutationKey: ['handleAuthChallenge', ndk],
-  //   mutationFn: async ({ relay, challenge }: AuthChallenge) => {
-  //     try {
-  //       const response = await createAuthResponse(challenge, relay);
-        
-  //       // In a real implementation, you would send this to the relay
-  //       // via the NDK's relay communication mechanism
-  //       console.log(`Sending AUTH response to ${relay}:`, response);
 
-  //       return response;
-  //     } catch (error) {
-  //       console.error("Failed to handle AUTH challenge:", error);
-  //       throw error;
-  //     }
-  //   },
-  // });
-
-  /**
-   * Send a raw AUTH message to a relay using direct WebSocket access (bypassing NDK)
-   */
-  const sendRawAuthWs = (relayUrl: string, authEvent: any) => {
-    try {
-      const ws = new (window.WebSocket || (global as any).WebSocket)(relayUrl);
-      ws.onopen = () => {
-        ws.send(JSON.stringify(["AUTH", authEvent]));
-        ws.close();
-        console.log(`Sent AUTH event to ${relayUrl} via direct WebSocket.`);
-      };
-      ws.onerror = (err) => {
-        console.error(`WebSocket error sending AUTH to ${relayUrl}:`, err);
-      };
-    } catch (err) {
-      console.error(`Failed to send AUTH via direct WebSocket to ${relayUrl}:`, err);
-    }
-  };
 
   /**
    * Authenticate with a specific relay
@@ -251,16 +261,19 @@ export const useRelayAuthState = () => {
 
   /**
    * Get authentication status for all connected relays
-   * Note: This is a placeholder - in practice, you'd track auth state
    */
   const getAuthStatus = () => {
     const connectedRelays = ndk.pool.connectedRelays();
     const authStatus: Record<string, boolean> = {};
 
+    console.log('🔍 Checking auth status for relays:', connectedRelays.map(r => r.url));
+    console.log('🔍 Global auth state:', globalRelayAuthState);
+
     connectedRelays.forEach((relay) => {
-      // In practice, you'd track authentication state per relay
-      // For now, we'll assume relays are authenticated if connected
-      authStatus[relay.url] = true; // Placeholder
+      // Check actual authentication state from global relayAuthState
+      const authState = globalRelayAuthState[relay.url];
+      authStatus[relay.url] = authState === 'authenticated';
+      console.log(`🔍 Relay ${relay.url}: ${authState} -> ${authStatus[relay.url]}`);
     });
 
     return authStatus;
