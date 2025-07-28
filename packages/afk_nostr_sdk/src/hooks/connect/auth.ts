@@ -95,7 +95,7 @@ export const useRelayAuth = () => {
         // Respond only to real relay challenges
         try {
           const { publicKey, privateKey } = useAuth();
-          // console.log("relay:auth", relay);
+          console.log("relay:auth challenge received from", relay.url);
           if (!privateKey || !publicKey) {
             console.warn("No private/public key available for AUTH response");
             return;
@@ -110,6 +110,7 @@ export const useRelayAuth = () => {
             ["origin", typeof window !== "undefined" ? window.location.origin : ""],
           ];
           await authEvent.sign();
+          console.log("Sending AUTH response to", relay.url);
           // Send AUTH event via direct WebSocket
           await sendRawAuthWs(relay.url, authEvent);
         } catch (err) {
@@ -192,16 +193,25 @@ export const useRelayAuth = () => {
    */
   const sendRawAuthWs = async (relayUrl: string, authEvent: any) => {
     try {
+      console.log(`Creating WebSocket connection to ${relayUrl} for AUTH`);
       const ws = new (window.WebSocket || (global as any).WebSocket)(relayUrl);
       ws.onopen = async () => {
-        // Convert NDKEvent to proper Nostr event format
-        const nostrEvent = await authEvent.toNostrEvent();
-        ws.send(JSON.stringify(["AUTH", nostrEvent]));
-        ws.close();
-        console.log(`Sent AUTH event to ${relayUrl} via direct WebSocket.`);
+        try {
+          // Convert NDKEvent to proper Nostr event format
+          const nostrEvent = await authEvent.toNostrEvent();
+          console.log(`Sending AUTH message to ${relayUrl}:`, nostrEvent);
+          ws.send(JSON.stringify(["AUTH", nostrEvent]));
+          ws.close();
+          console.log(`Sent AUTH event to ${relayUrl} via direct WebSocket.`);
+        } catch (err) {
+          console.error(`Error sending AUTH to ${relayUrl}:`, err);
+        }
       };
       ws.onerror = (err) => {
         console.error(`WebSocket error sending AUTH to ${relayUrl}:`, err);
+      };
+      ws.onclose = () => {
+        console.log(`WebSocket connection to ${relayUrl} closed`);
       };
     } catch (err) {
       console.error(`Failed to send AUTH via direct WebSocket to ${relayUrl}:`, err);

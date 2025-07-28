@@ -8,40 +8,41 @@ const AuthNostrProviderComponent = () => {
   const { setupAuthListeners, authenticateWithRelay, isAuthenticating } = useRelayAuth();
   const { getAuthStatus, areAllRelaysAuthenticated } = useRelayAuthState();
   const {showToast} = useUIStore();
+
+  // Set up auth listeners once when component mounts
   useEffect(() => {
+    setupAuthListeners();
+  }, []);
 
-    if (publicKey && privateKey && isNdkConnected) {
-
-      setupAuthListeners();
-      handleMultiAuth(AFK_RELAYS);
-    }
-  }, [ ndk, publicKey, privateKey, isNdkConnected]);
-
+  // Handle connection and authentication
   useEffect(() => {
-    if(!isNdkConnected){
-      checkIsConnected(ndk);  
-    }
-  }, [isNdkConnected]);
+    const handleConnectionAndAuth = async () => {
+      if (!isNdkConnected) {
+        await checkIsConnected(ndk);
+      }
+      
+      if (publicKey && privateKey && isNdkConnected) {
+        await handleMultiAuth(AFK_RELAYS);
+      }
+    };
+
+    handleConnectionAndAuth();
+  }, [ndk, publicKey, privateKey, isNdkConnected]);
 
   const handleAuth = async () => {
     await authenticateWithRelay(RELAY_AFK_PRODUCTION);
   };
 
-  useEffect(() => {
-    if(!isNdkConnected){
-      setupAuthListeners();
-      handleMultiAuth(AFK_RELAYS);
-    }
-  }, [isNdkConnected]);
-
   const handleMultiAuth = async (relayUrls: string[]) => {
-    // console.log('handleMultiAuth', relayUrls);
+    console.log('handleMultiAuth', relayUrls);
     try {
       await checkIsConnected(ndk);
       const origin = window && window.location?.origin ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL;
+      console.log('Authenticating with relays:', relayUrls);
       await Promise.all(relayUrls.map(url => authenticateWithRelay(url)));
       
       setIsNdkConnected(true);
+      console.log('Successfully authenticated with all relays');
       // showToast({
       //   message: 'Authenticated with all relays!',
       //   description: 'You can now use the app',
