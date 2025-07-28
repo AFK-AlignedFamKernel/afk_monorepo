@@ -57,6 +57,36 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
     }));
   }, [ndk.pool, authStatus]);
 
+
+  const handleSubscriptions =  () => {
+    const subscription = ndk.subscribe(
+      [
+        { 
+          kinds: [NDKKind.EncryptedDirectMessage],
+          authors: [publicKey],
+        },
+        {
+          kinds: [NDKKind.EncryptedDirectMessage],
+          '#p': [publicKey],  
+        } 
+      ]
+    );
+
+    subscription.on('event', (event: NDKEvent) => {
+      console.log('Received NIP-4 event via subscription:', event.id);
+    });
+
+    subscription.on('eose', () => {
+      console.log('NIP-4 subscription EOSE received');
+    });
+  }
+
+  const handleUnsubscriptions = () => {
+    if (subscriptionRef.current) {
+      subscriptionRef.current.stop();
+    }
+  }
+
   // Fetch messages from relays (authenticated or all if fallback is enabled)
   const fetchMessagesFromRelays = useCallback(async () => {
     if (!publicKey || !privateKey) {
@@ -389,6 +419,7 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
 
   // Refresh messages manually
   const refreshMessages = useCallback(async () => {
+    await handleSubscriptions()
     const newMessages = await fetchMessagesFromRelays();
     setMessages(newMessages);
   }, [fetchMessagesFromRelays]);

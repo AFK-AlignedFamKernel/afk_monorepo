@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useAuth, useEncryptedMessage, useNostrContext, useSendPrivateMessage, useNip44Message } from 'afk_nostr_sdk';
+import { useAuth, useEncryptedMessage, useNostrContext, useSendPrivateMessage, useNip44Message, useSendNip17Message } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUIStore } from '@/store/uiStore';
 import { generateRandomBytesLength } from 'afk_nostr_sdk';
@@ -32,6 +32,7 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   const { mutateAsync, mutate } = useSendPrivateMessage();
   const { mutateAsync: sendMessage } = useEncryptedMessage();
   const { mutateAsync: sendNip44Message } = useNip44Message();
+  const { mutateAsync: sendNip17Message } = useSendNip17Message();
   const roomIds = [publicKey, recipient];
   const { showToast } = useUIStore();
   const queryClient = useQueryClient();
@@ -124,16 +125,41 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
     }
   }
 
+  const handleSendNip17 = async () => {
+    try {
+      if (!message) return;
+      console.log('NIP-17: Sending message to', recipient);
+      
+      let receiverPublicKey = roomIds.find((id) => id !== publicKey);
+
+      if (!receiverPublicKey) {
+        showToast({ message: 'Invalid receiver', type: 'error' });
+        return;
+      }
+
+      if (!privateKey) {
+        showToast({ message: 'Please connect your wallet', type: 'error' });
+        return;
+      }
+
+      await sendNip17Message({
+        receiverPublicKey: receiverPublicKey,
+        message: message,
+      });
+
+      showToast({ message: 'NIP-17 message sent successfully', type: 'success' });
+      onMessageSent?.();
+    } catch (error) {
+      console.error('NIP-17: Error sending message:', error);
+      showToast({ message: 'Error sending NIP-17 message', type: 'error' });
+    }
+  }
+
   const handleSubmitMessage = async (message: string) => {
     if (type == "NIP4") {
       await handleSendNip4();
     } else if (type == "NIP17") {
-      await mutateAsync(
-        {
-          content: message,
-          receiverPublicKeyProps: recipient,
-        },
-      );
+      await handleSendNip17();
     } else if (type == "NIP44") {
       await handleSendNip44();
     }
@@ -194,23 +220,33 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
       showToast({ message: 'Message sent', type: 'success' });
       onMessageSent?.();
     } else if (type == "NIP17") {
-      await mutateAsync(
-        {
-          content: message,
-          receiverPublicKeyProps: receiverPublicKey,
+      await sendNip17Message({
+        receiverPublicKey: receiverPublicKey,
+        message: message,
+      }, {
+        onSuccess: () => {
+          showToast({ message: 'NIP-17 message sent successfully', type: 'success' });
+          onMessageSent?.();
         },
-        {
-          onSuccess: () => {
-            showToast({ message: 'Message sent', type: 'success' });
-            //   queryClient.invalidateQueries({
-            //     queryKey: ['messagesSent'],
-            //   });
-          },
-          onError() {
-            showToast({ message: 'Error sending message', type: 'error' });
-          },
+        onError() {
+          showToast({ message: 'Error sending NIP-17 message', type: 'error' });
         },
-      );
+      });
+    } else if (type == "NIP44") {
+      await sendNip44Message({
+        content: message,
+        receiverPublicKey: receiverPublicKey,
+        relayUrl: relayUrl,
+        subject: subject,
+      }, {
+        onSuccess: () => {
+          showToast({ message: 'NIP-44 message sent successfully', type: 'success' });
+          onMessageSent?.();
+        },
+        onError() {
+          showToast({ message: 'Error sending NIP-44 message', type: 'error' });
+        },
+      });
     }
 
   };
@@ -259,6 +295,9 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
         </button>
         <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP17' ? 'border-b-2 border-blue-500' : ''}`} onClick={() => handleActiveType("NIP17")}>
           NIP17
+        </button>
+        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP44' ? 'border-b-2 border-blue-500' : ''}`} onClick={() => handleActiveType("NIP44")}>
+          NIP44
         </button>
       </div>
 

@@ -5,6 +5,7 @@ import { checkIsConnected } from '../../connect';
 import { NDKKind } from '@nostr-dev-kit/ndk';
 import { v2 } from "../../../utils/nip44";
 import { deriveSharedKey, fixPubKey } from '../../../utils/keypair';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
 
 export type UseNip17MessagesOptions = {
   authors?: string[];
@@ -145,19 +146,18 @@ const createNip17Message = async (
   // Encrypt the seal event for the gift wrap using NIP-44
   const giftWrapEncryptedContent = v2.encryptNip44(JSON.stringify(sealEvent), senderPrivateKey, receiverPublicKey);
 
-  // Create the gift wrap event (kind 1059)
-  const giftWrapEvent = {
-    kind: 1059,
-    content: giftWrapEncryptedContent,
-    tags: [['p', receiverPublicKey]],
-    created_at: Math.floor(Date.now() / 1000),
-  };
+  // Create the gift wrap event (kind 1059) using NDKEvent
+  const giftWrapEvent = new NDKEvent(ndk);
+  giftWrapEvent.kind = 1059;
+  giftWrapEvent.content = giftWrapEncryptedContent;
+  giftWrapEvent.tags = [['p', receiverPublicKey]];
+  giftWrapEvent.created_at = Math.floor(Date.now() / 1000);
 
   // Sign and publish the gift wrap event
-  const signedEvent = await ndk.signEvent(giftWrapEvent);
-  await ndk.publish(signedEvent);
+  await giftWrapEvent.sign();
+  await giftWrapEvent.publish();
 
-  return signedEvent;
+  return giftWrapEvent;
 };
 
 export const useSendNip17Message = () => {

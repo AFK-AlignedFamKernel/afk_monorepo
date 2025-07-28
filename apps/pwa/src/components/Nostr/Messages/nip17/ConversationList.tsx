@@ -209,7 +209,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                     <span className="ml-2 text-gray-600">Loading conversations...</span>
                   </div>
                 )}
-                {conversations?.length === 0 && !isLoadingConversations && (
+                {conversations?.pages?.length === 0 && !isLoadingConversations && (
                   <div className="flex items-center justify-center h-24">
                     <span className="text-gray-500">No conversations found</span>
                   </div>
