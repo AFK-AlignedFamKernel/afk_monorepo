@@ -37,7 +37,7 @@
  * const allAuthenticated = areAllRelaysAuthenticated();
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNostrContext } from "../../context/NostrContext";
 import { useAuth } from "../../store/auth";
 import { NDKEvent } from "@nostr-dev-kit/ndk";
@@ -68,33 +68,43 @@ export const useRelayAuth = () => {
   const { ndk } = useNostrContext();
   const { publicKey, privateKey, setIsNostrAuthed } = useAuth();
   const [relayAuthState, setRelayAuthState] = useState<{ [relayUrl: string]: 'pending' | 'authenticated' | 'failed' }>({});
+  
+  // Use refs to track if we've already set up the auth policy and listeners
+  const hasSetupAuthPolicy = useRef(false);
+  const hasSetupListeners = useRef(false);
 
-  // 1. Set up the default auth policy for all relays
+  // 1. Set up the default auth policy for all relays (only once)
   useEffect(() => {
-    ndk.relayAuthDefaultPolicy = async (relay, challenge) => {
-      if (!privateKey || !publicKey) return false;
-      const authEvent = new NDKEvent(ndk);
-      authEvent.kind = 22242;
-      authEvent.content = challenge;
-      authEvent.tags = [
-        ["relay", relay.url],
-        ["challenge", challenge],
-        ["origin", typeof window !== "undefined" ? window.location.origin : ""],
-      ];
-      await authEvent.sign();
-      // Send the AUTH response via direct WebSocket
-      await sendRawAuthWs(relay.url, authEvent);
-      return true;
-    };
+    if (!hasSetupAuthPolicy.current && ndk && publicKey && privateKey) {
+      ndk.relayAuthDefaultPolicy = async (relay, challenge) => {
+        if (!privateKey || !publicKey) return false;
+        const authEvent = new NDKEvent(ndk);
+        authEvent.kind = 22242;
+        authEvent.content = challenge;
+        authEvent.tags = [
+          ["relay", relay.url],
+          ["challenge", challenge],
+          ["origin", typeof window !== "undefined" ? window.location.origin : ""],
+        ];
+        await authEvent.sign();
+        // Send the AUTH response via direct WebSocket
+        await sendRawAuthWs(relay.url, authEvent);
+        return true;
+      };
+      hasSetupAuthPolicy.current = true;
+    }
   }, [ndk, publicKey, privateKey]);
 
-  // 2. Listen for AUTH challenges and update state
+  // 2. Listen for AUTH challenges and update state (only once)
   const setupAuthListeners = () => {
+    if (hasSetupListeners.current) {
+      return; // Already set up
+    }
+    
     try {
       ndk.pool.on("relay:auth", async (relay, challenge) => {
         // Respond only to real relay challenges
         try {
-          const { publicKey, privateKey } = useAuth();
           console.log("relay:auth challenge received from", relay.url);
           if (!privateKey || !publicKey) {
             console.warn("No private/public key available for AUTH response");
@@ -121,18 +131,15 @@ export const useRelayAuth = () => {
         console.log("relay:authed; auth with relay: ", relay.url);
         setRelayAuthState(prev => ({ ...prev, [relay.url]: 'authenticated' }));
         setIsNostrAuthed(true);
-        // console.log("relayAuthState", relayAuthState);
-        // Update your state here
       });
-      // ndk.pool.on("relay:connect", (relay) => {
-      //   setRelayAuthState(prev => ({ ...prev, [relay.url]: 'pending' }));
-      // });
       ndk.pool.on("notice", (relay, notice) => {
         if (notice.includes('auth') || notice.includes('AUTH')) {
           console.log("notice", notice);
           setRelayAuthState(prev => ({ ...prev, [relay.url]: 'failed' }));
         }
       });
+      
+      hasSetupListeners.current = true;
     } catch (error) {
       console.error(`Failed to setup auth listeners:`, error);
     }
@@ -167,54 +174,51 @@ export const useRelayAuth = () => {
   };
 
   /**
-   * Handle AUTH challenge from a relay
-   */
-  // This useMutation is no longer needed as the default policy handles the response
-  // const handleAuthChallenge = useMutation({
-  //   mutationKey: ['handleAuthChallenge', ndk],
-  //   mutationFn: async ({ relay, challenge }: AuthChallenge) => {
-  //     try {
-  //       const response = await createAuthResponse(challenge, relay);
-        
-  //       // In a real implementation, you would send this to the relay
-  //       // via the NDK's relay communication mechanism
-  //       console.log(`Sending AUTH response to ${relay}:`, response);
-
-  //       return response;
-  //     } catch (error) {
-  //       console.error("Failed to handle AUTH challenge:", error);
-  //       throw error;
-  //     }
-  //   },
-  // });
-
-  /**
    * Send a raw AUTH message to a relay using direct WebSocket access (bypassing NDK)
    */
   const sendRawAuthWs = async (relayUrl: string, authEvent: any) => {
     try {
       console.log(`Creating WebSocket connection to ${relayUrl} for AUTH`);
       const ws = new (window.WebSocket || (global as any).WebSocket)(relayUrl);
-      ws.onopen = async () => {
-        try {
-          // Convert NDKEvent to proper Nostr event format
-          const nostrEvent = await authEvent.toNostrEvent();
-          console.log(`Sending AUTH message to ${relayUrl}:`, nostrEvent);
-          ws.send(JSON.stringify(["AUTH", nostrEvent]));
+      
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
           ws.close();
-          console.log(`Sent AUTH event to ${relayUrl} via direct WebSocket.`);
-        } catch (err) {
-          console.error(`Error sending AUTH to ${relayUrl}:`, err);
-        }
-      };
-      ws.onerror = (err) => {
-        console.error(`WebSocket error sending AUTH to ${relayUrl}:`, err);
-      };
-      ws.onclose = () => {
-        console.log(`WebSocket connection to ${relayUrl} closed`);
-      };
+          reject(new Error(`AUTH timeout for ${relayUrl}`));
+        }, 10000); // 10 second timeout
+        
+        ws.onopen = async () => {
+          try {
+            // Convert NDKEvent to proper Nostr event format
+            const nostrEvent = await authEvent.toNostrEvent();
+            console.log(`Sending AUTH message to ${relayUrl}:`, nostrEvent);
+            ws.send(JSON.stringify(["AUTH", nostrEvent]));
+            clearTimeout(timeout);
+            ws.close();
+            console.log(`Sent AUTH event to ${relayUrl} via direct WebSocket.`);
+            resolve(true);
+          } catch (err) {
+            clearTimeout(timeout);
+            ws.close();
+            console.error(`Error sending AUTH to ${relayUrl}:`, err);
+            reject(err);
+          }
+        };
+        
+        ws.onerror = (err) => {
+          clearTimeout(timeout);
+          console.error(`WebSocket error sending AUTH to ${relayUrl}:`, err);
+          reject(err);
+        };
+        
+        ws.onclose = () => {
+          clearTimeout(timeout);
+          console.log(`WebSocket connection to ${relayUrl} closed`);
+        };
+      });
     } catch (err) {
       console.error(`Failed to send AUTH via direct WebSocket to ${relayUrl}:`, err);
+      throw err;
     }
   };
 

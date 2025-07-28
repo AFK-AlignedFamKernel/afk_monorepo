@@ -30,6 +30,14 @@ export const useEncryptedMessage = () => {
       console.log('receiverPublicKey', receiverPublicKey);
       console.log('privateKey', privateKey);
 
+      if (!privateKey || !publicKey) {
+        throw new Error('Private key and public key are required for NIP-04 encryption');
+      }
+
+      if (!receiverPublicKey) {
+        throw new Error('Receiver public key is required');
+      }
+
       // 1. Convert keys to Uint8Array
       const privateKeyBytes = hexToBytes(privateKey); // 32 bytes
       const receiverPublicKeyBytes = hexToBytes(receiverPublicKey); // 32 bytes
@@ -52,11 +60,35 @@ export const useEncryptedMessage = () => {
       eventDirectMessage.created_at = Math.floor(Date.now() / 1000);
       eventDirectMessage.content = encryptedContent;
       eventDirectMessage.tags = [
-        ["p", receiverPublicKey, relayUrl],
+        ["p", receiverPublicKey, relayUrl || ""],
         ...(subject ? [["subject", subject]] : []),
       ];
-      await eventDirectMessage.publish();
-      return eventDirectMessage;
+
+      // 6. Sign the event
+      await eventDirectMessage.sign();
+
+      console.log('Publishing NIP-04 event:', {
+        id: eventDirectMessage.id,
+        pubkey: eventDirectMessage.pubkey,
+        kind: eventDirectMessage.kind,
+        content: encryptedContent.substring(0, 50) + '...',
+        tags: eventDirectMessage.tags,
+      });
+
+      // 7. Publish with better error handling
+      try {
+        const publishResult = await eventDirectMessage.publish();
+        console.log('NIP-04 message published successfully:', publishResult);
+        return eventDirectMessage;
+      } catch (error) {
+        console.error('Failed to publish NIP-04 message:', error);
+        
+        // Try to get more details about the failure
+        const connectedRelays = ndk.pool.connectedRelays();
+        console.log('Connected relays:', connectedRelays.map(r => r.url));
+        
+        throw new Error(`Failed to publish NIP-04 message: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     },
   });
 };

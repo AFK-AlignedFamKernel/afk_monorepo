@@ -1,10 +1,34 @@
-import { NostrMessagesComponent } from "@/components/Nostr/Messages/nip17";
+'use client';
 
-    export default function Messages() {
+import { useState } from 'react';
+import { NostrMessagesComponent } from "@/components/Nostr/Messages/nip17";
+import { NostrMessagesComponentNip4 } from "@/components/Nostr/Messages/nip4";
+
+export default function Messages() {
+    const [activeType, setActiveType] = useState<'NIP4' | 'NIP17'>('NIP4');
+
     return (
-        <div>
-            <h1>Messages</h1>
-            <NostrMessagesComponent />
+        <div className="h-full">
+            <div className="flex border-b">
+                <button
+                    className={`flex-1 py-2 px-4 ${activeType === 'NIP4' ? 'border-b-2 border-blue-500' : ''}`}
+                    onClick={() => setActiveType('NIP4')}
+                >
+                    NIP-04 Messages
+                </button>
+                <button
+                    className={`flex-1 py-2 px-4 ${activeType === 'NIP17' ? 'border-b-2 border-blue-500' : ''}`}
+                    onClick={() => setActiveType('NIP17')}
+                >
+                    NIP-17 Messages
+                </button>
+            </div>
+            
+            {activeType === 'NIP4' ? (
+                <NostrMessagesComponentNip4 />
+            ) : (
+                <NostrMessagesComponent />
+            )}
         </div>
     )
 }
