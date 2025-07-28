@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useAuth, useContacts, useGetAllMessages, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages, useRelayAuthInit } from 'afk_nostr_sdk';
+import { useAuth, useContacts, useNostrContext, useRelayAuthInit } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
-import NDK, { NDKKind, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
 import { NostrConversationList } from './ConversationList';
 import { NostrContactList } from '../NostrContactList';
+
 export const NostrMessagesComponent: React.FC = () => {
-  const [type, setType] = useState<"NIP4" | "NIP17">('NIP4');
+  const [type, setType] = useState<"NIP4" | "NIP17">('NIP17');
   const { publicKey, privateKey } = useAuth();
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
   const [selectedConversation, setSelectedConversation] = useState<any>(null);
@@ -19,10 +19,7 @@ export const NostrMessagesComponent: React.FC = () => {
   const [showNewMessageForm, setShowNewMessageForm] = useState(false);
 
   const contacts = useContacts();
-
   const { ndk } = useNostrContext();
-  const [ndkSigner, setNdkSigner] = useState<NDKPrivateKeySigner | null>(null);
-  const [ndkUser, setNdkUser] = useState<NDKUser | null>(null);
   
   // Use the new relay auth initialization
   const { isAuthenticated, isInitializing, hasError, errorMessage, initializeAuth } = useRelayAuthInit();
@@ -37,7 +34,6 @@ export const NostrMessagesComponent: React.FC = () => {
       // refetch();
     }
   };
-
 
   const handleNewMessageSent = () => {
     setShowNewMessageForm(false);
@@ -100,30 +96,6 @@ export const NostrMessagesComponent: React.FC = () => {
     );
   }
 
-
-  // if (isLoadingAllMessages) {
-  //   return <div>Loading...</div>;
-  // }
-  //   useEffect(() => {
-  //   if (publicKey) {
-
-  //     ndk.fetchEvents({
-  //       kinds: [NDKKind.PrivateDirectMessage],
-  //       authors: [publicKey],
-  //     }).then((events) => {
-  //       console.log(events);
-  //     });
-
-  //     ndk.fetchEvents({
-  //       kinds: [NDKKind.PrivateDirectMessage],
-  //       '#p': [publicKey],
-  //     }).then((events) => {
-  //       console.log(events);
-  //     });
-
-  //   }
-  // }, [publicKey, privateKey]);
-
   return (
     <div className="flex flex-col h-full">
       {/* Tabs */}
@@ -155,9 +127,8 @@ export const NostrMessagesComponent: React.FC = () => {
       </div>
 
       {activeTab == "messages" && (
-
         <>
-          <NostrConversationList type={"NIP17"} />
+          <NostrConversationList type={type} setType={setType} />
         </>
       )}
 
