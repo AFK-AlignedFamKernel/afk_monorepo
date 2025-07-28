@@ -37,11 +37,11 @@ export const SavedMessages: React.FC = () => {
   const handleSendMessage = async () => {
     if (!message.trim() || !publicKey || !privateKey) return;
 
-    console.log('SavedMessages: Sending message to self:', {
-      message: message,
-      publicKey: publicKey,
-      hasPrivateKey: !!privateKey
-    });
+    // console.log('SavedMessages: Sending message to self:', {
+    //   message: message,
+    //   publicKey: publicKey,
+    //   hasPrivateKey: !!privateKey
+    // });
 
     setIsProcessingMessage(true);
     try {
@@ -52,13 +52,13 @@ export const SavedMessages: React.FC = () => {
         },
         {
           onSuccess: () => {
-            console.log('SavedMessages: Message sent successfully');
+            // console.log('SavedMessages: Message sent successfully');
             setMessage('');
             showToast({ message: 'Saved message sent', type: 'success' });
             refetchMessages();
           },
           onError() {
-            console.error('SavedMessages: Error sending message');
+            // console.error('SavedMessages: Error sending message');
             showToast({ message: 'Error sending saved message', type: 'error' });
           },
         },
@@ -114,30 +114,30 @@ export const SavedMessages: React.FC = () => {
     index === self.findIndex(m => m.id === msg.id)
   );
 
-  console.log('SavedMessages: savedMessagesList length:', savedMessagesList.length);
-  console.log('SavedMessages: allMessagesList length:', allMessagesList.length);
-  console.log('SavedMessages: uniqueMessages length:', uniqueMessages.length);
-  console.log('SavedMessages: uniqueMessages sample:', uniqueMessages.slice(0, 3).map(msg => ({
-    id: msg?.id,
-    actualSenderPubkey: msg?.actualSenderPubkey,
-    actualReceiverPubkey: msg?.actualReceiverPubkey,
-    hasContent: !!(msg?.decryptedContent || msg?.content)
-  })));
+  // console.log('SavedMessages: savedMessagesList length:', savedMessagesList.length);
+  // console.log('SavedMessages: allMessagesList length:', allMessagesList.length);
+  // console.log('SavedMessages: uniqueMessages length:', uniqueMessages.length);
+  // console.log('SavedMessages: uniqueMessages sample:', uniqueMessages.slice(0, 3).map(msg => ({
+  //   id: msg?.id,
+  //   actualSenderPubkey: msg?.actualSenderPubkey,
+  //   actualReceiverPubkey: msg?.actualReceiverPubkey,
+  //   hasContent: !!(msg?.decryptedContent || msg?.content)
+  // })));
 
   // Filter to only show self-messages (where sender and receiver are the same)
   const processedMessages = uniqueMessages
     .filter((msg: any) => {
-      console.log('SavedMessages: Checking message:', {
-        id: msg?.id,
-        actualSenderPubkey: msg?.actualSenderPubkey,
-        actualReceiverPubkey: msg?.actualReceiverPubkey,
-        pubkey: msg?.pubkey,
-        publicKey,
-        hasDecryptedContent: !!msg?.decryptedContent,
-        hasContent: !!msg?.content,
-        decryptedContent: msg?.decryptedContent,
-        content: msg?.content
-      });
+      // console.log('SavedMessages: Checking message:', {
+      //   id: msg?.id,
+      //   actualSenderPubkey: msg?.actualSenderPubkey,
+      //   actualReceiverPubkey: msg?.actualReceiverPubkey,
+      //   pubkey: msg?.pubkey,
+      //   publicKey,
+      //   hasDecryptedContent: !!msg?.decryptedContent,
+      //   hasContent: !!msg?.content,
+      //   decryptedContent: msg?.decryptedContent,
+      //   content: msg?.content
+      // });
 
       // Validate that we have the required fields
       if (!msg?.actualSenderPubkey || !msg?.actualReceiverPubkey) {
@@ -156,19 +156,19 @@ export const SavedMessages: React.FC = () => {
       // Additional validation: ensure this is not a message between two different users
       const isBetweenDifferentUsers = msg.actualSenderPubkey !== msg.actualReceiverPubkey;
       if (isBetweenDifferentUsers) {
-        console.log('SavedMessages: Excluding message between different users');
+        // console.log('SavedMessages: Excluding message between different users');
         return false;
       }
 
-      console.log('SavedMessages: Message filtering:', {
-        isSelfMessage,
-        hasContent,
-        isBetweenDifferentUsers,
-        willInclude: isSelfMessage && hasContent && !isBetweenDifferentUsers,
-        reason: isSelfMessage && hasContent && !isBetweenDifferentUsers ? 'Valid self-message' : 
-                !isSelfMessage ? 'Not a self-message' : 
-                !hasContent ? 'No content' : 'Between different users'
-      });
+      // console.log('SavedMessages: Message filtering:', {
+      //   isSelfMessage,
+      //   hasContent,
+      //   isBetweenDifferentUsers,
+      //   willInclude: isSelfMessage && hasContent && !isBetweenDifferentUsers,
+      //   reason: isSelfMessage && hasContent && !isBetweenDifferentUsers ? 'Valid self-message' : 
+      //           !isSelfMessage ? 'Not a self-message' : 
+      //           !hasContent ? 'No content' : 'Between different users'
+      // });
 
       return isSelfMessage && hasContent && !isBetweenDifferentUsers;
     })
@@ -180,8 +180,8 @@ export const SavedMessages: React.FC = () => {
     }))
     .sort((a: any, b: any) => a.created_at - b.created_at);
 
-  console.log('SavedMessages: processedMessages length:', processedMessages.length);
-  console.log('SavedMessages: processedMessages:', processedMessages);
+  // console.log('SavedMessages: processedMessages length:', processedMessages.length);
+  // console.log('SavedMessages: processedMessages:', processedMessages);
 
   return (
     <div className="flex flex-col h-full">
@@ -223,7 +223,7 @@ export const SavedMessages: React.FC = () => {
               key={msg.id}
               className="flex justify-start"
             >
-              <div className="max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-blue-100 border border-blue-200">
+              <div className="max-w-xs lg:max-w-md px-4 py-2 rounded-lg border border-gray-500">
                 <p className="text-sm">{msg.content}</p>
                 <p className="text-xs mt-1">
                   {formatDistanceToNow(msg.timestamp, { addSuffix: true })}
@@ -249,7 +249,7 @@ export const SavedMessages: React.FC = () => {
           <button
             onClick={handleSendMessage}
             disabled={!message.trim() || isProcessingMessage}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessingMessage ? (
               <CryptoLoading />

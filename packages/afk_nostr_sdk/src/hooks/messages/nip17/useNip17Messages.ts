@@ -14,32 +14,6 @@ export type UseNip17MessagesOptions = {
   enabled?: boolean;
 };
 
-// Helper function to validate if a message is a saved message (self-message)
-const isValidSavedMessage = (
-  message: any,
-  currentUserPublicKey: string
-): boolean => {
-  if (!message || !message.actualSenderPubkey || !message.actualReceiverPubkey) {
-    console.log('isValidSavedMessage: Missing required fields');
-    return false;
-  }
-
-  const { actualSenderPubkey, actualReceiverPubkey } = message;
-
-  // A saved message must be a self-message (sender = receiver = current user)
-  const isSelfMessage = actualSenderPubkey === currentUserPublicKey && 
-                       actualReceiverPubkey === currentUserPublicKey;
-
-  console.log('isValidSavedMessage:', {
-    actualSenderPubkey,
-    actualReceiverPubkey,
-    currentUserPublicKey,
-    isSelfMessage,
-    reason: isSelfMessage ? 'Valid saved message' : 'Not a saved message'
-  });
-
-  return isSelfMessage;
-};
 
 // Helper function to validate if a message belongs to a specific conversation
 // This function is used for regular conversations between two users
@@ -70,23 +44,23 @@ const isValidConversationMessage = (
   // Explicitly exclude self-messages from regular conversations
   const isSelfMessage = actualSenderPubkey === actualReceiverPubkey;
   if (isSelfMessage) {
-    console.log('isValidConversationMessage: Excluding self-message from regular conversation');
+    // console.log('isValidConversationMessage: Excluding self-message from regular conversation');
     return false;
   }
 
   const isValid = isFromUsToThem || isFromThemToUs;
 
-  console.log('isValidConversationMessage:', {
-    actualSenderPubkey,
-    actualReceiverPubkey,
-    currentUserPublicKey,
-    otherUserPublicKey,
-    isFromUsToThem,
-    isFromThemToUs,
-    isSelfMessage,
-    isValid,
-    reason: isValid ? 'Valid conversation message' : 'Not part of this conversation'
-  });
+  // console.log('isValidConversationMessage:', {
+  //   actualSenderPubkey,
+  //   actualReceiverPubkey,
+  //   currentUserPublicKey,
+  //   otherUserPublicKey,
+  //   isFromUsToThem,
+  //   isFromThemToUs,
+  //   isSelfMessage,
+  //   isValid,
+  //   reason: isValid ? 'Valid conversation message' : 'Not part of this conversation'
+  // });
 
   return isValid;
 };
@@ -94,13 +68,13 @@ const isValidConversationMessage = (
 // Helper function to decrypt gift wrap content and extract NIP-44 message
 const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, currentUserPublicKey: string) => {
   try {
-    console.log('NIP-17: Attempting to decrypt event:', {
-      id: giftWrapEvent.id,
-      pubkey: giftWrapEvent.pubkey,
-      kind: giftWrapEvent.kind,
-      contentLength: giftWrapEvent.content?.length || 0,
-      tags: giftWrapEvent.tags
-    });
+    // console.log('NIP-17: Attempting to decrypt event:', {
+    //   id: giftWrapEvent.id,
+    //   pubkey: giftWrapEvent.pubkey,
+    //   kind: giftWrapEvent.kind,
+    //   contentLength: giftWrapEvent.content?.length || 0,
+    //   tags: giftWrapEvent.tags
+    // });
 
     // Validate inputs
     if (!giftWrapEvent || !giftWrapEvent.content || !giftWrapEvent.pubkey || !privateKey) {
@@ -143,15 +117,15 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
       return null;
     }
 
-    console.log('NIP-17: Gift wrap event validation:', {
-      isRecipient,
-      isSender,
-      intendedRecipient,
-      currentUserPublicKey,
-      giftWrapPubkey: giftWrapEvent.pubkey
-    });
+    // console.log('NIP-17: Gift wrap event validation:', {
+    //   isRecipient,
+    //   isSender,
+    //   intendedRecipient,
+    //   currentUserPublicKey,
+    //   giftWrapPubkey: giftWrapEvent.pubkey
+    // });
 
-    console.log('NIP-17: Attempting to decrypt content with length:', giftWrapEvent.content.length);
+    // console.log('NIP-17: Attempting to decrypt content with length:', giftWrapEvent.content.length);
 
     // Try both decryption methods: old method first, then NIP-44
     let decryptedContent = null;
@@ -184,10 +158,10 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
       if (conversationKey) {
         decryptedContent = v2.decrypt(giftWrapEvent.content, conversationKey);
         decryptionMethod = 'old_method';
-        console.log("NIP-17: Successfully decrypted gift wrap content using old method", { isSender, isRecipient });
+        // console.log("NIP-17: Successfully decrypted gift wrap content using old method", { isSender, isRecipient });
       }
     } catch (oldMethodError) {
-      console.log('NIP-17: Old decryption method failed, trying NIP-44:', oldMethodError);
+      // console.log('NIP-17: Old decryption method failed, trying NIP-44:', oldMethodError);
     }
 
     // Method 2: Try NIP-44 decryption if old method failed
@@ -207,15 +181,15 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
         
         decryptedContent = v2.decryptNip44(giftWrapEvent.content, privateKey, otherPartyPubkey);
         decryptionMethod = 'nip44';
-        console.log("NIP-17: Successfully decrypted gift wrap content using NIP-44", { isSender, otherPartyPubkey });
+        // console.log("NIP-17: Successfully decrypted gift wrap content using NIP-44", { isSender, otherPartyPubkey });
       } catch (nip44Error) {
-        console.error('NIP-17: Failed to decrypt gift wrap content with NIP-44:', nip44Error);
-        console.error('NIP-17: Decrypt parameters:', {
-          privateKeyLength: privateKey?.length,
-          senderPubkey: giftWrapEvent.pubkey,
-          contentLength: giftWrapEvent.content?.length,
-          contentPreview: giftWrapEvent.content?.substring(0, 50)
-        });
+        // console.error('NIP-17: Failed to decrypt gift wrap content with NIP-44:', nip44Error);
+        // console.error('NIP-17: Decrypt parameters:', {
+        //   privateKeyLength: privateKey?.length,
+        //   senderPubkey: giftWrapEvent.pubkey,
+        //   contentLength: giftWrapEvent.content?.length,
+        //   contentPreview: giftWrapEvent.content?.substring(0, 50)
+        // });
         return null;
       }
     }
@@ -225,7 +199,7 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
       return null;
     }
 
-    console.log('NIP-17: Successfully decrypted gift wrap content, length:', decryptedContent.length, 'method:', decryptionMethod);
+    // console.log('NIP-17: Successfully decrypted gift wrap content, length:', decryptedContent.length, 'method:', decryptionMethod);
 
     // Parse the decrypted content as JSON (it should contain the seal event)
     let sealEvent;
@@ -246,12 +220,12 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
     let actualMessage;
     let sealDecryptionMethod = '';
 
-    console.log('NIP-17: Seal event structure:', {
-      kind: sealEvent.kind,
-      pubkey: sealEvent.pubkey,
-      contentLength: sealEvent.content?.length,
-      tags: sealEvent.tags
-    });
+    // console.log('NIP-17: Seal event structure:', {
+    //   kind: sealEvent.kind,
+    //   pubkey: sealEvent.pubkey,
+    //   contentLength: sealEvent.content?.length,
+    //   tags: sealEvent.tags
+    // });
 
     // Method 1: Try old encryption method for seal event
     try {
@@ -267,9 +241,9 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
 
       actualMessage = v2.decrypt(sealEvent.content, conversationKey);
       sealDecryptionMethod = 'old_method';
-      console.log('NIP-17: Successfully decrypted seal event content using old method');
+      // console.log('NIP-17: Successfully decrypted seal event content using old method');
     } catch (oldSealMethodError) {
-      console.log('NIP-17: Old seal decryption method failed, trying NIP-44:', oldSealMethodError);
+      // console.log('NIP-17: Old seal decryption method failed, trying NIP-44:', oldSealMethodError);
     }
 
     // Method 2: Try NIP-44 decryption for seal event if old method failed
@@ -289,7 +263,7 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
         
         actualMessage = v2.decryptNip44(sealEvent.content, privateKey, otherPartyPubkey);
         sealDecryptionMethod = 'nip44';
-        console.log('NIP-17: Successfully decrypted seal event content using NIP-44');
+        // console.log('NIP-17: Successfully decrypted seal event content using NIP-44');
       } catch (nip44SealError) {
         console.error('NIP-17: Failed to decrypt seal event content with NIP-44:', nip44SealError);
         
@@ -297,7 +271,7 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
         try {
           actualMessage = v2.decryptNip44(sealEvent.content, privateKey, sealEvent.pubkey);
           sealDecryptionMethod = 'nip44_seal_pubkey';
-          console.log('NIP-17: Successfully decrypted seal event content using seal pubkey');
+          // console.log('NIP-17: Successfully decrypted seal event content using seal pubkey');
         } catch (finalError) {
           console.error('NIP-17: All seal decryption methods failed:', finalError);
           return null;
@@ -310,20 +284,20 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
       return null;
     }
 
-    console.log('NIP-17: Successfully decrypted seal event content, length:', actualMessage.length);
+    // console.log('NIP-17: Successfully decrypted seal event content, length:', actualMessage.length);
 
     // Extract the actual sender and receiver from the seal event
     const sealRecipientTag = sealEvent.tags?.find(tag => tag[0] === 'p');
     const actualSenderPubkey = sealEvent.pubkey;
     const actualReceiverPubkey = sealRecipientTag?.[1];
 
-    console.log('NIP-17: Seal event participants:', {
-      actualSenderPubkey,
-      actualReceiverPubkey,
-      currentUserPublicKey,
-      sealEventPubkey: sealEvent.pubkey,
-      sealEventTags: sealEvent.tags
-    });
+    // console.log('NIP-17: Seal event participants:', {
+    //   actualSenderPubkey,
+    //   actualReceiverPubkey,
+    //   currentUserPublicKey,
+    //   sealEventPubkey: sealEvent.pubkey,
+    //   sealEventTags: sealEvent.tags
+    // });
 
     // Validate that we have the required information
     if (!actualSenderPubkey || !actualReceiverPubkey) {
@@ -353,11 +327,11 @@ const createNip17Message = async (
   receiverPublicKey: string,
   message: string
 ) => {
-  console.log('NIP-17: Creating message:', {
-    senderPublicKey,
-    receiverPublicKey,
-    messageLength: message.length
-  });
+  // console.log('NIP-17: Creating message:', {
+  //   senderPublicKey,
+  //   receiverPublicKey,
+  //   messageLength: message.length
+  // });
 
   // Validate inputs
   if (!senderPrivateKey || !senderPublicKey || !receiverPublicKey || !message) {
@@ -376,12 +350,12 @@ const createNip17Message = async (
     created_at: Math.floor(Date.now() / 1000),
   };
 
-  console.log('NIP-17: Created seal event:', {
-    kind: sealEvent.kind,
-    pubkey: sealEvent.pubkey,
-    contentLength: sealEvent.content.length,
-    tags: sealEvent.tags
-  });
+  // console.log('NIP-17: Created seal event:', {
+  //   kind: sealEvent.kind,
+  //   pubkey: sealEvent.pubkey,
+  //   contentLength: sealEvent.content.length,
+  //   tags: sealEvent.tags
+  // });
 
   // Create two gift wrap events: one for sender, one for receiver
   const sealEventJson = JSON.stringify(sealEvent);
@@ -402,18 +376,18 @@ const createNip17Message = async (
   senderGiftWrapEvent.tags = [['p', senderPublicKey]]; // Tag with sender's pubkey
   senderGiftWrapEvent.created_at = Math.floor(Date.now() / 1000);
 
-  console.log('NIP-17: Created gift wrap events:', {
-    receiverEvent: {
-      kind: receiverGiftWrapEvent.kind,
-      tags: receiverGiftWrapEvent.tags,
-      contentLength: receiverGiftWrapEvent.content.length
-    },
-    senderEvent: {
-      kind: senderGiftWrapEvent.kind,
-      tags: senderGiftWrapEvent.tags,
-      contentLength: senderGiftWrapEvent.content.length
-    }
-  });
+  // console.log('NIP-17: Created gift wrap events:', {
+  //   receiverEvent: {
+  //     kind: receiverGiftWrapEvent.kind,
+  //     tags: receiverGiftWrapEvent.tags,
+  //     contentLength: receiverGiftWrapEvent.content.length
+  //   },
+  //   senderEvent: {
+  //     kind: senderGiftWrapEvent.kind,
+  //     tags: senderGiftWrapEvent.tags,
+  //     contentLength: senderGiftWrapEvent.content.length
+  //   }
+  // });
 
   // Sign and publish both gift wrap events
   await receiverGiftWrapEvent.sign();
@@ -644,16 +618,16 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
   return useInfiniteQuery({
     queryKey: ['nip17-messages-between', otherUserPublicKey, options.limit, ndk],
     queryFn: async ({ pageParam = 0 }) => {
-      console.log('useNip17MessagesBetweenUsers: Starting query with params:', {
-        otherUserPublicKey,
-        publicKey,
-        hasPrivateKey: !!privateKey,
-        hasNdk: !!ndk,
-        pageParam
-      });
+      // console.log('useNip17MessagesBetweenUsers: Starting query with params:', {
+      //   otherUserPublicKey,
+      //   publicKey,
+      //   hasPrivateKey: !!privateKey,
+      //   hasNdk: !!ndk,
+      //   pageParam
+      // });
 
       if (!ndk || !publicKey || !privateKey || !otherUserPublicKey) {
-        console.log('useNip17MessagesBetweenUsers: Missing required params');
+        // console.log('useNip17MessagesBetweenUsers: Missing required params');
         return { messages: [], nextCursor: undefined };
       }
 
@@ -688,21 +662,21 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
         ...(pageParam && { until: pageParam as number }),
       });
 
-      console.log('useNip17MessagesBetweenUsers: Fetched events:', {
-        sentEventsCount: sentEvents.size,
-        receivedEventsCount: receivedEvents.size,
-        allReceivedEventsCount: allReceivedEvents.size
-      });
+      // console.log('useNip17MessagesBetweenUsers: Fetched events:', {
+      //   sentEventsCount: sentEvents.size,
+      //   receivedEventsCount: receivedEvents.size,
+      //   allReceivedEventsCount: allReceivedEvents.size
+      // });
 
-      console.log('useNip17MessagesBetweenUsers: sentEvents:', Array.from(sentEvents).map(e => ({ id: e.id, pubkey: e.pubkey, kind: e.kind })));
-      console.log('useNip17MessagesBetweenUsers: receivedEvents:', Array.from(receivedEvents).map(e => ({ id: e.id, pubkey: e.pubkey, kind: e.kind })));
-      console.log('useNip17MessagesBetweenUsers: allReceivedEvents:', Array.from(allReceivedEvents).map(e => ({ id: e.id, pubkey: e.pubkey, kind: e.kind })));
+      // console.log('useNip17MessagesBetweenUsers: sentEvents:', Array.from(sentEvents).map(e => ({ id: e.id, pubkey: e.pubkey, kind: e.kind })));
+      // console.log('useNip17MessagesBetweenUsers: receivedEvents:', Array.from(receivedEvents).map(e => ({ id: e.id, pubkey: e.pubkey, kind: e.kind })));
+      // console.log('useNip17MessagesBetweenUsers: allReceivedEvents:', Array.from(allReceivedEvents).map(e => ({ id: e.id, pubkey: e.pubkey, kind: e.kind })));
 
       const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents), ...Array.from(allReceivedEvents)];
-      console.log('useNip17MessagesBetweenUsers: Total events:', allEvents.length);
+      // console.log('useNip17MessagesBetweenUsers: Total events:', allEvents.length);
 
       // Decrypt all events
-      console.log('useNip17MessagesBetweenUsers: Attempting to decrypt', allEvents.length, 'events');
+      // console.log('useNip17MessagesBetweenUsers: Attempting to decrypt', allEvents.length, 'events');
       const decryptedEvents = await Promise.all(
         allEvents.map(async (event) => {
           try {
@@ -719,36 +693,36 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
           }
         })
       );
-      console.log('useNip17MessagesBetweenUsers: Decrypted events:', decryptedEvents.map(e => e ? { 
-        id: e.id, 
-        actualSenderPubkey: e.actualSenderPubkey, 
-        actualReceiverPubkey: e.actualReceiverPubkey,
-        hasDecryptedContent: !!e.decryptedContent 
-      } : null));
+      // console.log('useNip17MessagesBetweenUsers: Decrypted events:', decryptedEvents.map(e => e ? { 
+      //   id: e.id, 
+      //   actualSenderPubkey: e.actualSenderPubkey, 
+      //   actualReceiverPubkey: e.actualReceiverPubkey,
+      //   hasDecryptedContent: !!e.decryptedContent 
+      // } : null));
 
-      // Filter messages to only include those between the two specific users
-      console.log('useNip17MessagesBetweenUsers: Filtering decrypted events...');
+      // // Filter messages to only include those between the two specific users
+      // console.log('useNip17MessagesBetweenUsers: Filtering decrypted events...');
       const validMessages = decryptedEvents
         .filter(event => {
           if (!event) {
-            console.log('useNip17MessagesBetweenUsers: Filtering out null event');
+            // console.log('useNip17MessagesBetweenUsers: Filtering out null event');
             return false;
           }
           
           // Use the validation function to check if this message belongs to the conversation
           const isValid = isValidConversationMessage(event, publicKey, otherUserPublicKey);
           
-          console.log('useNip17MessagesBetweenUsers: Event validation result:', {
-            eventId: event.id,
-            isValid,
-            reason: isValid ? 'Valid conversation message' : 'Not part of this conversation'
-          });
+          // console.log('useNip17MessagesBetweenUsers: Event validation result:', {
+          //   eventId: event.id,
+          //   isValid,
+          //   reason: isValid ? 'Valid conversation message' : 'Not part of this conversation'
+          // });
           
           return isValid;
         })
         .sort((a, b) => (a?.created_at || 0) - (b?.created_at || 0));
 
-      console.log('useNip17MessagesBetweenUsers: Valid messages:', validMessages.length);
+      // console.log('useNip17MessagesBetweenUsers: Valid messages:', validMessages.length);
 
       const nextCursor = allEvents.length === limit ? allEvents[allEvents.length - 1]?.created_at : undefined;
 
@@ -788,7 +762,7 @@ export const useNip17SavedMessages = (options: UseNip17MessagesOptions = {}): Us
         ...(pageParam && { until: pageParam as number }),
       });
 
-      console.log('useNip17SavedMessages: Fetched self-messages:', selfMessages.size);
+      // console.log('useNip17SavedMessages: Fetched self-messages:', selfMessages.size);
 
       // Decrypt all events
       const decryptedEvents = await Promise.all(
@@ -818,18 +792,18 @@ export const useNip17SavedMessages = (options: UseNip17MessagesOptions = {}): Us
           // Must be a self-message (sender and receiver are the same user)
           const isSelfMessage = actualSenderPubkey === publicKey && actualReceiverPubkey === publicKey;
           
-          console.log('useNip17SavedMessages: Checking self-message:', {
-            actualSenderPubkey,
-            actualReceiverPubkey,
-            publicKey,
-            isSelfMessage
-          });
+          // console.log('useNip17SavedMessages: Checking self-message:', {
+          //   actualSenderPubkey,
+          //   actualReceiverPubkey,
+          //   publicKey,
+          //   isSelfMessage
+          // });
           
           return isSelfMessage;
         })
         .sort((a, b) => (a?.created_at || 0) - (b?.created_at || 0));
 
-      console.log('useNip17SavedMessages: Valid self-messages:', validMessages.length);
+      // console.log('useNip17SavedMessages: Valid self-messages:', validMessages.length);
 
       const nextCursor = selfMessages.size === limit ? Array.from(selfMessages)[selfMessages.size - 1]?.created_at : undefined;
 
@@ -860,11 +834,11 @@ export const useSendNip17SavedMessage = () => {
       const { message, relayUrl, tags = [] } = data;
 
       await checkIsConnected(ndk);
-      console.log('NIP-17 Saved Message: Sending self-message', {
-        messageLength: message.length,
-        hasPrivateKey: !!privateKey,
-        hasPublicKey: !!publicKey
-      });
+      // console.log('NIP-17 Saved Message: Sending self-message', {
+      //   messageLength: message.length,
+      //   hasPrivateKey: !!privateKey,
+      //   hasPublicKey: !!publicKey
+      // });
 
       if (!privateKey || !publicKey) {
         throw new Error('Private key and public key are required for NIP-17 saved message');
@@ -883,20 +857,20 @@ export const useSendNip17SavedMessage = () => {
         message
       );
 
-      console.log('NIP-17 Saved Message: Published events:', {
-        receiverEvent: {
-          id: result.receiverGiftWrapEvent.id,
-          kind: result.receiverGiftWrapEvent.kind,
-          pubkey: result.receiverGiftWrapEvent.pubkey,
-          tags: result.receiverGiftWrapEvent.tags
-        },
-        senderEvent: {
-          id: result.senderGiftWrapEvent.id,
-          kind: result.senderGiftWrapEvent.kind,
-          pubkey: result.senderGiftWrapEvent.pubkey,
-          tags: result.senderGiftWrapEvent.tags
-        }
-      });
+      // console.log('NIP-17 Saved Message: Published events:', {
+      //   receiverEvent: {
+      //     id: result.receiverGiftWrapEvent.id,
+      //     kind: result.receiverGiftWrapEvent.kind,
+      //     pubkey: result.receiverGiftWrapEvent.pubkey,
+      //     tags: result.receiverGiftWrapEvent.tags
+      //   },
+      //   senderEvent: {
+      //     id: result.senderGiftWrapEvent.id,
+      //     kind: result.senderGiftWrapEvent.kind,
+      //     pubkey: result.senderGiftWrapEvent.pubkey,
+      //     tags: result.senderGiftWrapEvent.tags
+      //   }
+      // });
 
       return result;
     },
@@ -983,4 +957,32 @@ export const useNip17SavedMessageConversations = (options: UseNip17MessagesOptio
     getNextPageParam: (lastPage: any) => lastPage.nextCursor,
     initialPageParam: 0,
   }); 
+};
+
+
+// Helper function to validate if a message is a saved message (self-message)
+const isValidSavedMessage = (
+  message: any,
+  currentUserPublicKey: string
+): boolean => {
+  if (!message || !message.actualSenderPubkey || !message.actualReceiverPubkey) {
+    console.log('isValidSavedMessage: Missing required fields');
+    return false;
+  }
+
+  const { actualSenderPubkey, actualReceiverPubkey } = message;
+
+  // A saved message must be a self-message (sender = receiver = current user)
+  const isSelfMessage = actualSenderPubkey === currentUserPublicKey && 
+                       actualReceiverPubkey === currentUserPublicKey;
+
+  console.log('isValidSavedMessage:', {
+    actualSenderPubkey,
+    actualReceiverPubkey,
+    currentUserPublicKey,
+    isSelfMessage,
+    reason: isSelfMessage ? 'Valid saved message' : 'Not a saved message'
+  });
+
+  return isSelfMessage;
 };

@@ -43,54 +43,54 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const isLoadingMessages = false; // We're not loading since data is passed from parent
     const refetchMessages = () => { }; // No-op since parent handles refetching
 
-    console.log('ChatConversation: messagesSentParents length:', messagesSentParents?.length || 0);
-    console.log('ChatConversation: messagesData pages length:', messagesData?.pages?.length || 0);
-    console.log('ChatConversation: messagesData.pages[0] type:', typeof messagesData?.pages?.[0]);
+    // console.log('ChatConversation: messagesSentParents length:', messagesSentParents?.length || 0);
+    // console.log('ChatConversation: messagesData pages length:', messagesData?.pages?.length || 0);
+    // console.log('ChatConversation: messagesData.pages[0] type:', typeof messagesData?.pages?.[0]);
 
     // Process messages for NIP-17
     const processedMessages = useMemo(() => {
-        console.log('ChatConversation: messagesData:', messagesData);
-        console.log('ChatConversation: receiverPublicKey:', receiverPublicKey);
-        console.log('ChatConversation: publicKey:', publicKey);
+        // console.log('ChatConversation: messagesData:', messagesData);
+        // console.log('ChatConversation: receiverPublicKey:', receiverPublicKey);
+        // console.log('ChatConversation: publicKey:', publicKey);
 
         if (type === "NIP17" && messagesData?.pages) {
             // Extract messages from the pages structure
             const allMessages = messagesData.pages.flat().map(page => {
-                console.log('ChatConversation: Processing page type:', typeof page);
+                // console.log('ChatConversation: Processing page type:', typeof page);
                 // Handle the format where each page has a messages property (from useNip17MessagesBetweenUsers)
                 if (page && page.messages && Array.isArray(page.messages)) {
-                    console.log('ChatConversation: Found messages array in page, length:', page.messages.length);
+                    // console.log('ChatConversation: Found messages array in page, length:', page.messages.length);
                     return page.messages;
                 }
                 // Handle direct array format
                 if (page && Array.isArray(page)) {
-                    console.log('ChatConversation: Found direct array page, length:', page.length);
+                    // console.log('ChatConversation: Found direct array page, length:', page.length);
                     return page;
                 }
-                console.log('ChatConversation: No valid message structure found in page');
+                // console.log('ChatConversation: No valid message structure found in page');
                 return [];
             }).flat();
 
-            console.log('ChatConversation: allMessages:', allMessages);
-            console.log('ChatConversation: allMessages length:', allMessages.length);
+            // console.log('ChatConversation: allMessages:', allMessages);
+            // console.log('ChatConversation: allMessages length:', allMessages.length);
 
             // Debug: Log each message to understand the structure
             allMessages.forEach((msg, index) => {
-                console.log(`ChatConversation: Message ${index}:`, {
-                    id: msg?.id,
-                    actualSenderPubkey: msg?.actualSenderPubkey,
-                    actualReceiverPubkey: msg?.actualReceiverPubkey,
-                    pubkey: msg?.pubkey,
-                    hasDecryptedContent: !!msg?.decryptedContent,
-                    hasContent: !!msg?.content,
-                    contentLength: msg?.decryptedContent?.length || msg?.content?.length || 0
-                });
+                // console.log(`ChatConversation: Message ${index}:`, {
+                //     id: msg?.id,
+                //     actualSenderPubkey: msg?.actualSenderPubkey,
+                //     actualReceiverPubkey: msg?.actualReceiverPubkey,
+                //     pubkey: msg?.pubkey,
+                //     hasDecryptedContent: !!msg?.decryptedContent,
+                //     hasContent: !!msg?.content,
+                //     contentLength: msg?.decryptedContent?.length || msg?.content?.length || 0
+                // });
             });
 
             const filteredMessages = allMessages.filter((msg: any) => {
                 const hasContent = msg && (msg.decryptedContent || msg.content);
                 if (!hasContent) {
-                    console.log('ChatConversation: Filtering out message without content:', msg);
+                    // console.log('ChatConversation: Filtering out message without content:', msg);
                     return false;
                 }
 
@@ -106,33 +106,33 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 // Self-messages should only appear in the saved messages section
                 const isSelfMessage = actualSenderPubkey === actualReceiverPubkey;
                 if (isSelfMessage) {
-                    console.log('ChatConversation: Excluding self-message from regular conversation');
+                    // console.log('ChatConversation: Excluding self-message from regular conversation');
                     return false;
                 }
 
                 const isPartOfConversation = isFromUsToThem || isFromThemToUs;
 
-                console.log('ChatConversation: Message filtering check:', {
-                    actualSenderPubkey,
-                    actualReceiverPubkey,
-                    publicKey,
-                    receiverPublicKey,
-                    isFromUsToThem,
-                    isFromThemToUs,
-                    isSelfMessage,
-                    isPartOfConversation,
-                    reason: isPartOfConversation ? 'Valid conversation message' : 'Not part of conversation'
-                });
+                // console.log('ChatConversation: Message filtering check:', {
+                //     actualSenderPubkey,
+                //     actualReceiverPubkey,
+                //     publicKey,
+                //     receiverPublicKey,
+                //     isFromUsToThem,
+                //     isFromThemToUs,
+                //     isSelfMessage,
+                //     isPartOfConversation,
+                //     reason: isPartOfConversation ? 'Valid conversation message' : 'Not part of conversation'
+                // });
 
                 if (!isPartOfConversation) {
-                    console.log('ChatConversation: Filtering out message not part of conversation');
+                    //  console.log('ChatConversation: Filtering out message not part of conversation');
                     return false;
                 }
 
                 return true;
             });
 
-            console.log('ChatConversation: filteredMessages length:', filteredMessages.length);
+            // console.log('ChatConversation: filteredMessages length:', filteredMessages.length);
 
             return filteredMessages
                 .map((msg: any) => ({

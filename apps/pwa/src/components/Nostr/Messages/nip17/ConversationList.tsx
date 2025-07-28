@@ -56,13 +56,13 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     }
   );
 
-  console.log("conversations count:", conversations?.pages?.length || 0);
-  console.log("conversations first page:", conversations?.pages?.[0]?.conversations?.length || 0);
-  console.log("messagesBetweenUsers pages count:", messagesBetweenUsers?.pages?.length || 0);
-  console.log("messagesBetweenUsers first page:", messagesBetweenUsers?.pages?.[0]?.messages?.length || 0);
-  console.log("selectedConversation participant:", selectedConversation?.participant);
-  console.log("messagesBetweenUsers pages count:", messagesBetweenUsers?.pages?.length || 0);
-  console.log("messagesBetweenUsers first page type:", typeof messagesBetweenUsers?.pages?.[0]);
+  // console.log("conversations count:", conversations?.pages?.length || 0);
+  // console.log("conversations first page:", conversations?.pages?.[0]?.conversations?.length || 0);
+  // console.log("messagesBetweenUsers pages count:", messagesBetweenUsers?.pages?.length || 0);
+  // console.log("messagesBetweenUsers first page:", messagesBetweenUsers?.pages?.[0]?.messages?.length || 0);
+  // console.log("selectedConversation participant:", selectedConversation?.participant);
+  // console.log("messagesBetweenUsers pages count:", messagesBetweenUsers?.pages?.length || 0);
+  // console.log("messagesBetweenUsers first page type:", typeof messagesBetweenUsers?.pages?.[0]);
 
   // Handle refresh for NIP-17
   const handleRefresh = useCallback(async () => {
@@ -286,7 +286,9 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
       {activeTab === 'direct_messages' && (
         <div className="flex justify-center p-4">
-          <FormPrivateMessage onClose={() => setActiveTab('messages')} type="NIP17" />
+          <FormPrivateMessage onClose={() => setActiveTab('messages')} type={type}
+            setType={setType}
+          />
         </div>
       )}
     </div>

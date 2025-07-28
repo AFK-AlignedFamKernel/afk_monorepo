@@ -16,16 +16,18 @@ interface FormPrivateMessageProps {
   onMessageSent?: () => void;
   type: "NIP4" | "NIP17" | "NIP44";
   setType?: (type: "NIP4" | "NIP17" | "NIP44") => void;
+  recipientAddress?: string;
 }
 
 export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   onClose,
   onMessageSent,
   type,
-  setType
+  setType,
+  recipientAddress
 }) => {
   const { publicKey, privateKey } = useAuth();
-  const [recipient, setRecipient] = useState('');
+  const [recipient, setRecipient] = useState(recipientAddress);
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -256,7 +258,7 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
     setIsLoading(true);
 
     try {
-      if (!recipient.trim()) {
+      if (!recipient?.trim()) {
         throw new Error('Recipient is required');
       }
 
@@ -289,17 +291,19 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
         </button>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
-        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP4' ? 'border-b-2 border-blue-500' : ''}`} onClick={() => handleActiveType("NIP4")}>
+      {/* <div className="flex justify-between items-center mb-4">
+        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP4' ? 'border border-gray-500' : ''}`} onClick={() => handleActiveType("NIP4")}>
           NIP4
         </button>
-        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP17' ? 'border-b-2 border-blue-500' : ''}`} onClick={() => handleActiveType("NIP17")}>
+        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP17' ? 'border border-gray-500' : ''}`} onClick={() => handleActiveType("NIP17")}>
           NIP17
         </button>
-        <button className={`flex-1 py-2 px-4 ${activeTab === 'NIP44' ? 'border-b-2 border-blue-500' : ''}`} onClick={() => handleActiveType("NIP44")}>
-          NIP44
-        </button>
+    
       </div>
+
+      <div>
+        {type}
+      </div> */}
 
       <div
         //   onSubmit={handleSubmit} 

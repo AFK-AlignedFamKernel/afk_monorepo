@@ -21,7 +21,7 @@ export const NostrMessagesComponent: React.FC = () => {
 
   const contacts = useContacts();
   const { ndk } = useNostrContext();
-  
+
   // Use the new relay auth initialization
   const { isAuthenticated, isInitializing, hasError, errorMessage, initializeAuth } = useRelayAuthInit();
 
@@ -108,18 +108,6 @@ export const NostrMessagesComponent: React.FC = () => {
           Messages
         </button>
         <button
-          className={`flex-1 py-2 px-4 ${activeTab === 'contacts' ? 'border-b-2 border-blue-500' : ''}`}
-          onClick={() => setActiveTab('contacts')}
-        >
-          Contacts
-        </button>
-        <button
-          className={`flex-1 py-2 px-4 ${activeTab === 'followers' ? 'border-b-2 border-blue-500' : ''}`}
-          onClick={() => setActiveTab('followers')}
-        >
-          Followers
-        </button>
-        <button
           className={`flex-1 py-2 px-4 ${activeTab === 'direct_messages' ? 'border-b-2 border-blue-500' : ''}`}
           onClick={() => setActiveTab('direct_messages')}
         >
@@ -131,11 +119,28 @@ export const NostrMessagesComponent: React.FC = () => {
         >
           Saved Messages
         </button>
+        <button
+          className={`flex-1 py-2 px-4 ${activeTab === 'contacts' ? 'border-b-2 border-blue-500' : ''}`}
+          onClick={() => setActiveTab('contacts')}
+        >
+          Contacts
+        </button>
+        <button
+          className={`flex-1 py-2 px-4 ${activeTab === 'followers' ? 'border-b-2 border-blue-500' : ''}`}
+          onClick={() => setActiveTab('followers')}
+        >
+          Followers
+        </button>
+
+
       </div>
 
       {activeTab == "messages" && (
         <>
-          <NostrConversationList type={type} setType={setType} />
+          <NostrConversationList type={type}
+            setType={setType}
+            // recipientAddress={recipientAddress}
+          />
         </>
       )}
 
@@ -145,7 +150,10 @@ export const NostrMessagesComponent: React.FC = () => {
 
       {activeTab == "direct_messages" && (
         <div className="flex">
-          <FormPrivateMessage onClose={() => setActiveTab('messages')} type={type} />
+          <FormPrivateMessage onClose={() => setActiveTab('messages')} type={type}
+            // setType={setType}
+            // recipientAddress={recipientAddress}
+          />
         </div>
       )}
 

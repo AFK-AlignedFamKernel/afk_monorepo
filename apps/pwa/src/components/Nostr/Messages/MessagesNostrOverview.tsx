@@ -6,12 +6,12 @@ import { NostrMessagesComponentNip4 } from "@/components/Nostr/Messages/nip4";
 import { RelayAuthInitializer } from '@/components/Nostr/relay/RelayAuthInitializer';
 
 export default function MessagesNostrOverview() {
-    const [activeType, setActiveType] = useState<'NIP4' | 'NIP17'>('NIP4');
+    const [activeType, setActiveType] = useState<'NIP4' | 'NIP17'>('NIP17');
 
     return (
         <div className="h-full">
             <RelayAuthInitializer showStatus={false}>
-                <div className="flex border-b">
+                {/* <div className="flex border-b">
                     <button
                         className={`flex-1 py-2 px-4 ${activeType === 'NIP17' ? 'border-b-2 border-blue-500' : ''}`}
                         onClick={() => setActiveType('NIP17')}
@@ -25,7 +25,7 @@ export default function MessagesNostrOverview() {
                         NIP-04 Messages
                     </button>
 
-                </div>
+                </div> */}
 
                 {activeType === 'NIP4' ? (
                     <NostrMessagesComponentNip4 />
