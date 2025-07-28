@@ -232,8 +232,7 @@ export const NostrForm: React.FC<NostrFormProps> = ({
       </div>
 
       <div className={styles['nostr-form__field'] + ' flex flex-col gap-1'}>
-        {/* <label htmlFor="file" className="nostr-form__label font-semibold text-sm">File</label> */}
-        <label htmlFor="file" className={styles['nostr-form__label'] + ' inline-block w-full cursor-pointer bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-300 rounded px-4 py-2 text-center font-medium transition flex items-center justify-center gap-2'}>
+        <label htmlFor="file" className={styles['nostr-form__label'] + ' inline-block w-full cursor-pointer  ounded px-4 py-2 text-center font-medium transition flex items-center justify-center gap-2'}>
           {/* File icon */}
           <svg className="inline-block mr-2" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />

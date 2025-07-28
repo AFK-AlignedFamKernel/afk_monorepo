@@ -40,8 +40,22 @@ export const ChatConversation: React.FC<ChatProps> = ({
 
     // Use the messages passed from parent component instead of calling the hook again
     const messagesData = { pages: messagesSentParents };
-    const isLoadingMessages = false; // We're not loading since data is passed from parent
-    const refetchMessages = () => { }; // No-op since parent handles refetching
+    // const [isLoadingMessages, setIsLoadingMessages] = useState(false); // We're not loading since data is passed from parent
+    // const refetchMessages = () => { }; // No-op since parent handles refetching
+
+
+
+  const { 
+    data: messagesBetweenUsers, 
+    isLoading: isLoadingMessages,
+    refetch: refetchMessages 
+  } = useNip17MessagesBetweenUsers(
+    receiverPublicKey,
+    {
+      enabled: type === "NIP17" && !!receiverPublicKey && !!publicKey && !!privateKey,
+      limit: 50,
+    }
+  );
 
     // console.log('ChatConversation: messagesSentParents length:', messagesSentParents?.length || 0);
     // console.log('ChatConversation: messagesData pages length:', messagesData?.pages?.length || 0);
@@ -248,6 +262,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
                     <div className="text-center text-gray-500 py-8">
                         <div>No messages yet. Start the conversation!</div>
                         {/* Debug: Show raw message data */}
+                        {process.env.NODE_ENV === 'development' && (
                         <div className="mt-4 text-xs text-gray-400">
                             <div>Debug Info:</div>
                             <div>Messages data: {JSON.stringify(messagesData)}</div>
@@ -255,6 +270,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
                             <div>Public key: {publicKey}</div>
                             <div>Receiver public key: {receiverPublicKey}</div>
                         </div>
+                        )}
                     </div>
                 ) : (
                     processedMessages.map((msg: any) => (

@@ -200,7 +200,7 @@ export const SavedMessages: React.FC = () => {
           className="p-2 hover:bg-gray-100 rounded-full"
         >
           <Icon name="RefreshIcon" size={20} />
-          {isLoadingMessages && <CryptoLoading />}
+          {/* {isLoadingMessages && <CryptoLoading />} */}
         </button>
       </div>
 

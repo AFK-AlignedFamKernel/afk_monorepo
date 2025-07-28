@@ -10,6 +10,10 @@ export default function MessagesNostrOverview() {
 
     return (
         <div className="h-full">
+
+            <div className="justify-center items-center h-full">
+                <p className="text-2xl font-bold">Under development</p>
+            </div>
             <RelayAuthInitializer showStatus={false}>
                 {/* <div className="flex border-b">
                     <button
