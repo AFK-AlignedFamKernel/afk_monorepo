@@ -134,10 +134,15 @@ export const SavedMessages: React.FC = () => {
         content: msg?.content
       });
 
+      // Validate that we have the required fields
+      if (!msg?.actualSenderPubkey || !msg?.actualReceiverPubkey) {
+        console.log('SavedMessages: Missing sender or receiver pubkey');
+        return false;
+      }
+
       // Check if this is a self-message (sender and receiver are the same user)
-      const isSelfMessage = msg && 
-        msg.actualSenderPubkey === publicKey && 
-        msg.actualReceiverPubkey === publicKey;
+      const isSelfMessage = msg.actualSenderPubkey === publicKey && 
+                           msg.actualReceiverPubkey === publicKey;
 
       // Also check if the message has content
       const hasContent = msg && (msg.decryptedContent || msg.content);
@@ -145,7 +150,9 @@ export const SavedMessages: React.FC = () => {
       console.log('SavedMessages: Message filtering:', {
         isSelfMessage,
         hasContent,
-        willInclude: isSelfMessage && hasContent
+        willInclude: isSelfMessage && hasContent,
+        reason: isSelfMessage && hasContent ? 'Valid self-message' : 
+                !isSelfMessage ? 'Not a self-message' : 'No content'
       });
 
       return isSelfMessage && hasContent;

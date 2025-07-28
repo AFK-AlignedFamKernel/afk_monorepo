@@ -14,6 +14,42 @@ export type UseNip17MessagesOptions = {
   enabled?: boolean;
 };
 
+// Helper function to validate if a message belongs to a specific conversation
+const isValidConversationMessage = (
+  message: any,
+  currentUserPublicKey: string,
+  otherUserPublicKey: string
+): boolean => {
+  if (!message || !message.actualSenderPubkey || !message.actualReceiverPubkey) {
+    console.log('isValidConversationMessage: Missing required fields');
+    return false;
+  }
+
+  const { actualSenderPubkey, actualReceiverPubkey } = message;
+
+  // Check if this is a message between the two users
+  const isFromUsToThem = actualSenderPubkey === currentUserPublicKey && actualReceiverPubkey === otherUserPublicKey;
+  const isFromThemToUs = actualSenderPubkey === otherUserPublicKey && actualReceiverPubkey === currentUserPublicKey;
+  
+  // Check if this is a self-message (user talking to themselves)
+  const isSelfMessage = actualSenderPubkey === actualReceiverPubkey && actualSenderPubkey === currentUserPublicKey;
+
+  const isValid = isFromUsToThem || isFromThemToUs || isSelfMessage;
+
+  console.log('isValidConversationMessage:', {
+    actualSenderPubkey,
+    actualReceiverPubkey,
+    currentUserPublicKey,
+    otherUserPublicKey,
+    isFromUsToThem,
+    isFromThemToUs,
+    isSelfMessage,
+    isValid
+  });
+
+  return isValid;
+};
+
 // Helper function to decrypt gift wrap content and extract NIP-44 message
 const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, currentUserPublicKey: string) => {
   try {
@@ -56,6 +92,26 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
       console.log('NIP-17: Skipping event with tags:', giftWrapEvent.tags);
       return null;
     }
+
+    // Validate gift wrap event structure
+    if (!giftWrapEvent.tags || giftWrapEvent.tags.length === 0) {
+      console.warn('NIP-17: Gift wrap event has no tags');
+      return null;
+    }
+
+    const intendedRecipient = recipientTag?.[1];
+    if (!intendedRecipient) {
+      console.warn('NIP-17: No intended recipient found in gift wrap event tags');
+      return null;
+    }
+
+    console.log('NIP-17: Gift wrap event validation:', {
+      isRecipient,
+      isSender,
+      intendedRecipient,
+      currentUserPublicKey,
+      giftWrapPubkey: giftWrapEvent.pubkey
+    });
 
     console.log('NIP-17: Attempting to decrypt content with length:', giftWrapEvent.content.length);
 
@@ -226,8 +282,16 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
     console.log('NIP-17: Seal event participants:', {
       actualSenderPubkey,
       actualReceiverPubkey,
-      currentUserPublicKey
+      currentUserPublicKey,
+      sealEventPubkey: sealEvent.pubkey,
+      sealEventTags: sealEvent.tags
     });
+
+    // Validate that we have the required information
+    if (!actualSenderPubkey || !actualReceiverPubkey) {
+      console.error('NIP-17: Missing sender or receiver information from seal event');
+      return null;
+    }
 
     return {
       ...giftWrapEvent,
@@ -251,17 +315,35 @@ const createNip17Message = async (
   receiverPublicKey: string,
   message: string
 ) => {
+  console.log('NIP-17: Creating message:', {
+    senderPublicKey,
+    receiverPublicKey,
+    messageLength: message.length
+  });
+
+  // Validate inputs
+  if (!senderPrivateKey || !senderPublicKey || !receiverPublicKey || !message) {
+    throw new Error('Missing required parameters for NIP-17 message creation');
+  }
+
   // First, create the NIP-44 encrypted message (seal event content)
   const nip44EncryptedContent = v2.encryptNip44(message, senderPrivateKey, receiverPublicKey);
 
   // Create the seal event (kind 13)
   const sealEvent = {
     kind: 13,
-    pubkey: receiverPublicKey,
+    pubkey: senderPublicKey, // The sender of the seal event
     content: nip44EncryptedContent,
-    tags: [['p', receiverPublicKey]],
+    tags: [['p', receiverPublicKey]], // Tag the intended recipient
     created_at: Math.floor(Date.now() / 1000),
   };
+
+  console.log('NIP-17: Created seal event:', {
+    kind: sealEvent.kind,
+    pubkey: sealEvent.pubkey,
+    contentLength: sealEvent.content.length,
+    tags: sealEvent.tags
+  });
 
   // Create two gift wrap events: one for sender, one for receiver
   const sealEventJson = JSON.stringify(sealEvent);
@@ -281,6 +363,19 @@ const createNip17Message = async (
   senderGiftWrapEvent.content = senderGiftWrapContent;
   senderGiftWrapEvent.tags = [['p', senderPublicKey]]; // Tag with sender's pubkey
   senderGiftWrapEvent.created_at = Math.floor(Date.now() / 1000);
+
+  console.log('NIP-17: Created gift wrap events:', {
+    receiverEvent: {
+      kind: receiverGiftWrapEvent.kind,
+      tags: receiverGiftWrapEvent.tags,
+      contentLength: receiverGiftWrapEvent.content.length
+    },
+    senderEvent: {
+      kind: senderGiftWrapEvent.kind,
+      tags: senderGiftWrapEvent.tags,
+      contentLength: senderGiftWrapEvent.content.length
+    }
+  });
 
   // Sign and publish both gift wrap events
   await receiverGiftWrapEvent.sign();
@@ -597,40 +692,13 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
             return false;
           }
           
-          // Check if this message is between the two users
-          const actualSenderPubkey = event.actualSenderPubkey;
-          const actualReceiverPubkey = event.actualReceiverPubkey;
+          // Use the validation function to check if this message belongs to the conversation
+          const isValid = isValidConversationMessage(event, publicKey, otherUserPublicKey);
           
-          console.log('useNip17MessagesBetweenUsers: Checking event:', {
-            actualSenderPubkey,
-            actualReceiverPubkey,
-            publicKey,
-            otherUserPublicKey
-          });
-          
-          // Message is between the two users if:
-          // 1. We sent it to the other user, OR
-          // 2. The other user sent it to us
-          const isFromUsToThem = actualSenderPubkey === publicKey && actualReceiverPubkey === otherUserPublicKey;
-          const isFromThemToUs = actualSenderPubkey === otherUserPublicKey && actualReceiverPubkey === publicKey;
-          
-          console.log("isFromUsToThem", isFromUsToThem);
-          console.log("isFromThemToUs", isFromThemToUs);
-          // Also check if this is a self-message (user talking to themselves)
-          const isSelfMessage = actualSenderPubkey === actualReceiverPubkey && 
-            (actualSenderPubkey === publicKey || actualSenderPubkey === otherUserPublicKey);
-          
-          const isSelfMessage2 = actualSenderPubkey === actualReceiverPubkey && actualSenderPubkey === publicKey;
-
-          console.log("isSelfMessage", isSelfMessage);
-          console.log("isSelfMessage2", isSelfMessage2);
-
-          const isValid = isFromUsToThem || isFromThemToUs || isSelfMessage;
-          // const isValid = isFromUsToThem || isFromThemToUs;
-          console.log('useNip17MessagesBetweenUsers: Event valid:', isValid, { 
-            isFromUsToThem, 
-            isFromThemToUs, 
-            isSelfMessage
+          console.log('useNip17MessagesBetweenUsers: Event validation result:', {
+            eventId: event.id,
+            isValid,
+            reason: isValid ? 'Valid conversation message' : 'Not part of this conversation'
           });
           
           return isValid;
