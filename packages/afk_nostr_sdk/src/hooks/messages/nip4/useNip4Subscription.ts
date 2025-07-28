@@ -9,6 +9,7 @@ interface Nip4SubscriptionOptions {
   enabled?: boolean;
   onNewMessage?: (event: NDKEvent) => void;
   onError?: (error: Error) => void;
+  fallbackToUnauthenticated?: boolean; // New option to allow fallback
 }
 
 interface AuthenticatedRelay {
@@ -46,13 +47,24 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
       }));
   }, [ndk.pool, authStatus]);
 
-  // Fetch messages from authenticated relays only
-  const fetchMessagesFromAuthenticatedRelays = useCallback(async () => {
+  // Get all connected relays (for fallback)
+  const getAllConnectedRelays = useCallback(() => {
+    const connectedRelays = ndk.pool.connectedRelays();
+    
+    return connectedRelays.map(relay => ({
+      url: relay.url,
+      isAuthenticated: authStatus[relay.url] || false
+    }));
+  }, [ndk.pool, authStatus]);
+
+  // Fetch messages from relays (authenticated or all if fallback is enabled)
+  const fetchMessagesFromRelays = useCallback(async () => {
     if (!publicKey || !privateKey) {
       console.log('No keys available for fetching messages');
       return [];
     }
 
+    console.log("fetchMessagesFromRelays");
     const connectedRelays = ndk.pool.connectedRelays();
     const authRelays = connectedRelays
       .filter(relay => authStatus[relay.url])
@@ -61,12 +73,20 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
         isAuthenticated: authStatus[relay.url]
       }));
 
-    if (authRelays.length === 0) {
-      console.log('No authenticated relays available');
+    // If no authenticated relays and fallback is enabled, use all connected relays
+    const relaysToUse = authRelays.length > 0 ? authRelays : 
+      (options.fallbackToUnauthenticated ? getAllConnectedRelays() : []);
+
+    console.log("relaysToUse", relaysToUse);
+    if (relaysToUse.length === 0) {
+      console.log('No relays available for fetching messages');
+      if (!options.fallbackToUnauthenticated) {
+        console.log('Consider enabling fallbackToUnauthenticated option');
+      }
       return [];
     }
 
-    console.log('Fetching messages from authenticated relays:', authRelays.map(r => r.url));
+    console.log('Fetching messages from relays:', relaysToUse.map(r => `${r.url} (auth: ${r.isAuthenticated})`));
 
     try {
       setIsLoading(true);
@@ -88,9 +108,9 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
         limit: 50,
       };
 
-      console.log("sentFilter", sentFilter);
+      console.log("receivedFilter", receivedFilter);
 
-      // Fetch from authenticated relays only
+      // Fetch from relays
       const [sentEvents, receivedEvents] = await Promise.all([
         ndk.fetchEvents(sentFilter),
         ndk.fetchEvents(receivedFilter),
@@ -102,7 +122,7 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
       // Sort by creation time (newest first)
       allEvents.sort((a, b) => b.created_at - a.created_at);
 
-      console.log(`Fetched ${allEvents.length} NIP-4 messages from authenticated relays`);
+      console.log(`Fetched ${allEvents.length} NIP-4 messages from relays`);
       return allEvents;
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to fetch messages');
@@ -113,9 +133,9 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
     } finally {
       setIsLoading(false);
     }
-  }, [ndk, publicKey, privateKey, authStatus, options]);
+  }, [ndk, publicKey, privateKey, authStatus, options, getAllConnectedRelays]);
 
-  // Set up subscription to authenticated relays
+  // Set up subscription to relays (authenticated or all if fallback is enabled)
   const setupSubscription = useCallback(async () => {
     if (!publicKey || !privateKey || isSubscribedRef.current) {
       return;
@@ -129,13 +149,20 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
         isAuthenticated: authStatus[relay.url]
       }));
 
-    if (authRelays.length === 0) {
-      console.log('No authenticated relays available for subscription');
+    // If no authenticated relays and fallback is enabled, use all connected relays
+    const relaysToUse = authRelays.length > 0 ? authRelays : 
+      (options.fallbackToUnauthenticated ? getAllConnectedRelays() : []);
+
+    if (relaysToUse.length === 0) {
+      console.log('No relays available for subscription');
+      if (!options.fallbackToUnauthenticated) {
+        console.log('Consider enabling fallbackToUnauthenticated option');
+      }
       return;
     }
 
     try {
-      console.log('Setting up NIP-4 subscription on authenticated relays:', authRelays.map(r => r.url));
+      console.log('Setting up NIP-4 subscription on relays:', relaysToUse.map(r => `${r.url} (auth: ${r.isAuthenticated})`));
 
       // Create subscription filters
       const filters = [
@@ -193,7 +220,7 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
       setError(error);
       options.onError?.(error);
     }
-  }, [ndk, publicKey, privateKey, authStatus, options]);
+  }, [ndk, publicKey, privateKey, authStatus, options, getAllConnectedRelays]);
 
   // Clean up subscription
   const cleanupSubscription = useCallback(() => {
@@ -230,7 +257,11 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
         }));
       setAuthenticatedRelays(authRelays);
 
-      if (authRelays.length > 0) {
+      // Check if we have any relays to work with
+      const relaysToUse = authRelays.length > 0 ? authRelays : 
+        (options.fallbackToUnauthenticated ? getAllConnectedRelays() : []);
+
+      if (relaysToUse.length > 0) {
         // Fetch initial messages directly without using the callback
         try {
           setIsLoading(true);
@@ -252,9 +283,9 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
             limit: 50,
           };
 
-          console.log("sentFilter", sentFilter);
+          console.log("receivedFilter", receivedFilter);
 
-          // Fetch from authenticated relays only
+          // Fetch from relays
           const [sentEvents, receivedEvents] = await Promise.all([
             ndk.fetchEvents(sentFilter),
             ndk.fetchEvents(receivedFilter),
@@ -266,7 +297,7 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
           // Sort by creation time (newest first)
           allEvents.sort((a, b) => b.created_at - a.created_at);
 
-          console.log(`Fetched ${allEvents.length} NIP-4 messages from authenticated relays`);
+          console.log(`Fetched ${allEvents.length} NIP-4 messages from relays`);
           setMessages(allEvents);
         } catch (err) {
           const error = err instanceof Error ? err : new Error('Failed to fetch messages');
@@ -283,7 +314,7 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
         }
 
         try {
-          console.log('Setting up NIP-4 subscription on authenticated relays:', authRelays.map(r => r.url));
+          console.log('Setting up NIP-4 subscription on relays:', relaysToUse.map(r => `${r.url} (auth: ${r.isAuthenticated})`));
 
           // Create subscription filters
           const filters = [
@@ -342,7 +373,10 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
           options.onError?.(error);
         }
       } else {
-        console.log('No authenticated relays available');
+        console.log('No relays available');
+        if (!options.fallbackToUnauthenticated) {
+          console.log('Consider enabling fallbackToUnauthenticated option to use unauthenticated relays');
+        }
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to initialize NIP-4 subscription');
@@ -351,13 +385,13 @@ export const useNip4Subscription = (options: Nip4SubscriptionOptions = {}) => {
       options.onError?.(error);
       hasInitializedRef.current = false; // Reset on error so we can retry
     }
-  }, [options.enabled, publicKey, privateKey, ndk, authStatus, options]);
+  }, [options.enabled, publicKey, privateKey, ndk, authStatus, options, getAllConnectedRelays]);
 
   // Refresh messages manually
   const refreshMessages = useCallback(async () => {
-    const newMessages = await fetchMessagesFromAuthenticatedRelays();
+    const newMessages = await fetchMessagesFromRelays();
     setMessages(newMessages);
-  }, [fetchMessagesFromAuthenticatedRelays]);
+  }, [fetchMessagesFromRelays]);
 
   // Reset initialization state
   const reset = useCallback(() => {

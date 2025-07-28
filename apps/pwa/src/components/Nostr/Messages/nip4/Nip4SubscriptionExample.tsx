@@ -18,6 +18,7 @@ export const Nip4SubscriptionExample: React.FC = () => {
     cleanupSubscription,
   } = useNip4Subscription({
     enabled: isAuthenticated && !!publicKey && !!privateKey,
+    fallbackToUnauthenticated: true, // Enable fallback to unauthenticated relays
     onNewMessage: (event) => {
       console.log('New NIP-4 message received:', event.id);
       showToast({

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { checkIsConnected, deriveSharedKey, useAuth, useContacts, useGetAllMessages, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages, useSendPrivateMessage, v2, useRelayAuthInit } from 'afk_nostr_sdk';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { checkIsConnected, deriveSharedKey, useAuth, useContacts, useGetAllMessages, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages, useSendPrivateMessage, v2, useRelayAuthInit, useNip4Subscription } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
 import NDK, { NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
@@ -15,6 +15,7 @@ interface NostrConversationListProps {
   type: "NIP4" | "NIP17";
   setType?: (type: "NIP4" | "NIP17") => void;
 }
+
 export const NostrConversationList: React.FC<NostrConversationListProps> = ({ type, setType }) => {
   const { publicKey, privateKey, isNostrAuthed } = useAuth();
   const { handleCheckNostrAndSendConnectDialog } = useNostrAuth();
@@ -23,18 +24,15 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const [isProcessingMessages, setIsProcessingMessages] = useState(false);
   const [messagesData, setMessages] = useState<any>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Use the new relay auth initialization
   const { isAuthenticated, isInitializing, hasError, errorMessage, initializeAuth } = useRelayAuthInit();
+  
   const messagesMemo = useMemo(() => {
-
-    // console.log("messagesData", messagesData);
     const unique = new Map();
     messagesData.forEach((msg: any) => {
-
       let tagReceiver = msg.tags?.find((t: any) => t[0] === 'p' && t[1] === publicKey);
-      // console.log("tagReceiver", tagReceiver);
-      // console.log("msg", msg);
       if (
         msg.type === "NIP4" &&
         (tagReceiver || msg.pubkey === publicKey)
@@ -42,19 +40,16 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
         unique.set(msg.id, msg);
       }
     });
-    // Sort by created_at
-    // console.log("unique", unique);
     return Array.from(unique.values()).sort((a, b) => a.created_at - b.created_at);
+  }, [messagesData, publicKey]);
 
-  }, [messagesData]);
   const [isBack, setIsBack] = useState(false);
   const [showNewMessageForm, setShowNewMessageForm] = useState(false);
 
   const { data: incomingMessages, isPending, refetch } = useIncomingMessageUsers({
     limit: 100,
   });
-  // const { data: dataMessagesSent } = useMyMessagesSent();
-  // const giftMessages = useMyGiftWrapMessages();
+  
   const contacts = useContacts();
   const [message, setMessage] = useState<string | null>(null);
 
@@ -65,55 +60,76 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const roomIds = selectedConversation
     ? [selectedConversation?.senderPublicKey, selectedConversation?.receiverPublicKey]
     : [];
-  // const { data: messagesSentRoom, fetchNextPage, hasNextPage, isFetchingNextPage } = useMyMessagesSent({
-  //   authors: roomIds ?? [],
-  // });
-  // console.log('messagesSentRoom', messagesSentRoom?.pages?.flat()?.length);
+
   const { showToast } = useUIStore();
 
-  // const { data: allMessages, isLoading: isLoadingAllMessages } = useGetAllMessages();
-  // console.log('allMessages', allMessages);
-
-  const subscriptionEvent = () => {
-    console.log("subscriptionEvent");
-    const subscription = ndk.subscribe({
-      kinds: [4 as NDKKind],
-      authors: [publicKey],
-      limit: 10,
-    });
-
-    subscription.on("event:dup", (event) => {
-      console.log("event sent dup", event);
+  // Use NIP4 subscription hook for real-time messages
+  const {
+    messages: nip4Messages,
+    isLoading: isLoadingNip4,
+    error: nip4Error,
+    isSubscribed: isNip4Subscribed,
+    refreshMessages: refreshNip4Messages,
+    initialize: initializeNip4,
+    reset: resetNip4,
+  } = useNip4Subscription({
+    enabled: type === "NIP4" && !!publicKey && !!privateKey,
+    fallbackToUnauthenticated: true, // Enable fallback to unauthenticated relays
+    onNewMessage: (event) => {
+      console.log('New NIP4 message received:', event);
+      // Add to messages data
       setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
-    });
+    },
+    onError: (error) => {
+      console.error('NIP4 subscription error:', error);
+      showToast({ message: 'Error loading messages', type: 'error' });
+    },
+  });
 
+  // Initialize NIP4 subscription when component mounts or type changes
+  useEffect(() => {
+    if (type === "NIP4" && publicKey && privateKey) {
+      initializeNip4();
+    } else if (type !== "NIP4") {
+      resetNip4();
+    }
+  }, [type, publicKey, privateKey, initializeNip4, resetNip4]);
 
-    // subscription.on("event", (event) => {
-    //   console.log("event sent", event);
-    //   setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
-    // });
+  // Update messages data when NIP4 messages change
+  useEffect(() => {
+    if (type === "NIP4" && nip4Messages) {
+      const processedMessages = nip4Messages.map((event: any) => ({
+        ...event,
+        senderPublicKey: event.pubkey,
+        type: "NIP4"
+      }));
+      setMessages(processedMessages);
+    }
+  }, [nip4Messages, type]);
 
-    const subscriptionReceived = ndk.subscribe({
-      kinds: [4 as NDKKind],
-      '#p': [publicKey],
-      limit: 10,
-    });
+  // Handle refresh for both NIP4 and NIP17
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      if (type === "NIP4") {
+        await refreshNip4Messages();
+        showToast({ message: 'Messages refreshed', type: 'success' });
+      } else {
+        // For NIP17, refetch the queries
+        await refetch();
+        showToast({ message: 'Messages refreshed', type: 'success' });
+      }
+    } catch (error) {
+      console.error('Error refreshing messages:', error);
+      showToast({ message: 'Error refreshing messages', type: 'error' });
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [type, refreshNip4Messages, refetch, showToast]);
 
-    // subscriptionReceived.on("event", (event) => {
-    //   console.log("event received", event);
-    //   setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
-    // });
-
-    subscriptionReceived.on("event:dup", (event) => {
-      console.log("event received dup", event);
-      setMessages((prev: any) => [...prev, { ...event, senderPublicKey: event.pubkey, type: "NIP4" }]);
-    });
-  }
   const fetchMessagesSent = async (ndk: NDK, publicKey: string, limit: number): Promise<NDKEvent[]> => {
-
     try {
       await checkIsConnected(ndk);
-
       console.log("fetchMessagesSent");
 
       // Add timeout to fetchEvents
@@ -137,7 +153,6 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   };
 
   const fetchMessagesReceived = async (ndk: NDK, publicKey: string, limit: number): Promise<NDKEvent[]> => {
-
     try {
       console.log("fetchMessagesReceived");
       await checkIsConnected(ndk);
@@ -162,37 +177,40 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     }
   };
 
-
   const handleAllMessages = async () => {
+    if (type === "NIP4") {
+      // For NIP4, use the subscription system
+      await handleRefresh();
+      return;
+    }
+
+    // Legacy NIP17 handling
     try {
       setIsLoadingMessages(true);
       console.log("publicKey", publicKey);
       
-      // Add retry logic with exponential backoff
       const fetchWithRetry = async (fetchFn: () => Promise<NDKEvent[]>, maxRetries = 3): Promise<NDKEvent[]> => {
-        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        for (let i = 0; i < maxRetries; i++) {
           try {
             return await fetchFn();
           } catch (error) {
-            console.log(`Attempt ${attempt} failed:`, error);
-            if (attempt === maxRetries) {
-              throw error;
-            }
-            // Wait before retry (exponential backoff)
-            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+            console.log(`Attempt ${i + 1} failed:`, error);
+            if (i === maxRetries - 1) throw error;
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1))); // Exponential backoff
           }
         }
-        return []; // Fallback return
+        return [];
       };
 
-      const messages = await fetchWithRetry(() => fetchMessagesSent(ndk, publicKey, 10));
-      console.log("messages Sent", messages);
+      const [messages, messagesReceived] = await Promise.all([
+        fetchWithRetry(() => fetchMessagesSent(ndk, publicKey, 10)),
+        fetchWithRetry(() => fetchMessagesReceived(ndk, publicKey, 10))
+      ]);
 
-      const messagesReceived = await fetchWithRetry(() => fetchMessagesReceived(ndk, publicKey, 10));
+      console.log("messages Sent", messages);
       console.log("messagesReceived", messagesReceived);
       
       const allMessages = [...messages, ...messagesReceived];
-      console.log('allMessages', allMessages);
 
       let uniqueDm: any[] = [];
 
@@ -201,12 +219,12 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
         if (!acc[key]) {
           acc[key] = message;
         }
-
         uniqueDm.push(message);
         return acc;
       }, {});
 
-      // Only add Nostr event if its pubkey is not already included in the accumulator
+      console.log('allMessages', allMessages);
+
       const seenPubkeys = new Set();
       uniqueDm = uniqueDm.filter((item: any) => {
         if (!item?.pubkey) return false;
@@ -217,28 +235,32 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
         return true;
       });
 
-      console.log("Successfully fetched messages:", uniqueDm.length);
-      // setMessages((prev: any) => [...prev, Array.from(uniqueConversationsArray)]);
+      console.log("uniqueDm", uniqueDm);
+      const uniqueConversationsArray = Array.from(new Set(uniqueDm));
+      console.log("uniqueConversationsArray", uniqueConversationsArray);
+
+      setMessages(Array.from(uniqueConversationsArray));
     } catch (error) {
-      console.error("Error fetching NIP-04 messages:", error);
-      // You could show a toast or error message here
+      console.error('Error fetching messages:', error);
+      showToast({ message: 'Error loading messages', type: 'error' });
     } finally {
       setIsLoadingMessages(false);
     }
   };
 
   useEffect(() => {
-    console.log("isAuthenticated", isAuthenticated);
-    if (isAuthenticated && publicKey && privateKey) {
-      console.log("Starting message fetch and subscription");
-      subscriptionEvent();
-      handleAllMessages();
-    } else if (!isAuthenticated) {
-      console.log("Not authenticated, skipping message fetch");
+    if (type === "NIP4") {
+      // NIP4 uses subscription system, no need to call handleAllMessages
+      return;
     }
-  }, [isAuthenticated, publicKey, privateKey]);
+    handleAllMessages();
+  }, []);
 
   useEffect(() => {
+    if (type === "NIP4") {
+      // NIP4 uses subscription system, no need to call handleAllMessages
+      return;
+    }
     handleAllMessages();
   }, [activeTab]);
 
@@ -261,7 +283,6 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       refetch();
     }
   };
-
 
   const { data: messagesSent, isLoading: isLoadingMessagesSent } = useRoomMessages({
     roomParticipants: roomIds,
@@ -294,9 +315,9 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const handleConversationClick = (item: any) => {
     // Always set senderPublicKey and receiverPublicKey so that sender is always the current user
     let sender = item?.pubkey || item?.senderPublicKey;
-    // console.log('sender', sender);
+    console.log('sender', sender);
     let receiver = getOtherUserPublicKey(item, publicKey || '');
-    // console.log('item', item);
+    console.log('item', item);
     setSelectedConversation({
       ...item,
       senderPublicKey: sender,
@@ -304,8 +325,6 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     });
     setIsBack(false);
   };
-
-  // console.log("selectedConversation", selectedConversation);
 
   if (!publicKey) {
     return (
@@ -323,9 +342,8 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
   const handleSendMessage = async (message: string) => {
     if (!message) return;
-    // console.log('roomIds', roomIds);
+    console.log('roomIds', roomIds);
     let receiverPublicKey = roomIds.find((id) => id !== publicKey);
-
 
     // TODO auto saved message
     if (roomIds[0] === roomIds[1]) {
@@ -335,7 +353,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       showToast({ message: 'Invalid receiver', type: 'error' });
       return;
     }
-    // console.log('receiverPublicKey', receiverPublicKey);
+    console.log('receiverPublicKey', receiverPublicKey);
     await sendMessage(
       {
         content: message,
@@ -344,9 +362,6 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       {
         onSuccess: () => {
           showToast({ message: 'Message sent', type: 'success' });
-          //   queryClient.invalidateQueries({
-          //     queryKey: ['messagesSent'],
-          //   });
         },
         onError() {
           showToast({ message: 'Error sending message', type: 'error' });
@@ -362,15 +377,6 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     })
     .sort((a, b) => b.created_at - a.created_at); // Sort by timestamp, newest first
 
-  // const groupedMessages = messages.reduce((groups: any, message) => {
-  //   const date = new Date(message.created_at * 1000).toLocaleDateString();
-  //   if (!groups[date]) {
-  //     groups[date] = [];
-  //   }
-  //   groups[date].push(message);
-  //   return groups;
-  // }, {});
-  // console.log('messages', messages);
   const groupedMessages = (messages || [])
     .filter(msg => msg && typeof msg.created_at === 'number' && !isNaN(msg.created_at))
     .reduce((groups, message) => {
@@ -384,41 +390,18 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
       return groups;
     }, {});
 
-  // console.log('groupedMessages', groupedMessages);
-
-
   return (
     <div className="flex flex-col h-full">
 
       {activeTab == "messages" && (
-
         <>
-          {/* {giftMessages.data?.pages.flat().map((item: any) => (
-            <div key={item.id}>
-              <p>{item.content}</p>
-              <p>{ndkSigner?.decrypt(ndkUser, item?.content, "nip44")}</p>
-            </div>
-          ))}
-
-          {incomingMessages?.pages.flat().map((item: any) => (
-            <div key={item.id}>
-              {item.content}
-            </div>
-          ))}
-
-          {dataMessagesSent?.pages.flat().map((item: any) => (
-            <div key={item.id}>
-              {item.content}
-            </div>
-          ))} */}
         </>
       )}
+      
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {activeTab === 'messages' && (
           <div className="h-full">
-
-
             <div className="flex justify-between gap-8">
               {selectedConversation &&
                 <button
@@ -431,14 +414,12 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
               }
               <button
                 className="py-4"
-                onClick={() => {
-                  subscriptionEvent();
-                  handleAllMessages();
-                }}>
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
                 <Icon name="RefreshIcon" size={20} />
+                {isRefreshing && <CryptoLoading />}
               </button>
-
-
             </div>
 
             {selectedConversation && selectedConversation.receiverPublicKey && publicKey ? (
@@ -451,24 +432,6 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                   messagesSentParents={messagesSentState}
                   type={selectedConversation?.type || "NIP4"}
                 />
-                {/* <div className="flex">
-                  <input
-                    type="text"
-                    placeholder="Type a message..."
-                    className="flex-1 p-2 border rounded-l"
-                    onChange={(e) => setMessage(e.target.value)}
-                  />
-                  <button className="px-4 py-2 bg-blue-500 text-white rounded-r"
-                    onClick={() => {
-                      if (message) {
-                        handleSendMessage(message);
-                        logClickedEvent('send_message_nip17', 'messages_data');
-                      }
-                    }}
-                  >
-                    Send
-                  </button>
-                </div> */}
               </div>
             ) : (
               <div className="h-full">
