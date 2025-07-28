@@ -34,17 +34,21 @@ const decryptNip44Message = async (event: any, privateKey: string, currentUserPu
       return null;
     }
 
-    // Check if this event was sent by us (we can't decrypt our own sent messages)
-    if (event.pubkey === currentUserPublicKey) {
-      console.warn('NIP-44 event was sent by us, skipping decryption');
-      return null;
-    }
+    // Note: We now decrypt messages sent by us as well to show them in conversations
+    // This allows us to display the full conversation history including our own messages
 
     // Decrypt the content using NIP-44
     let decryptedContent;
     try {
-      decryptedContent = v2.decryptNip44(event.content, privateKey, event.pubkey);
-      console.log('NIP-44: Successfully decrypted message');
+      const isSender = event.pubkey === currentUserPublicKey;
+      const receiverPublicKey = event.tags?.find(tag => tag[0] === 'p')?.[1];
+      
+      // For messages we sent, we need to use the receiver's public key for decryption
+      // For messages we received, we use the sender's public key
+      const otherPartyPubkey = isSender ? receiverPublicKey : event.pubkey;
+      
+      decryptedContent = v2.decryptNip44(event.content, privateKey, otherPartyPubkey);
+      console.log('NIP-44: Successfully decrypted message', { isSender, otherPartyPubkey });
     } catch (decryptError) {
       console.error('NIP-44: Failed to decrypt message:', decryptError);
       return null;

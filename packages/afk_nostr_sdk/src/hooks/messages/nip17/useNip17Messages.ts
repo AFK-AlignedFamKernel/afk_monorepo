@@ -49,39 +49,83 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
     const recipientTag = giftWrapEvent.tags?.find(tag => tag[0] === 'p');
     if (!recipientTag || recipientTag[1] !== currentUserPublicKey) {
       console.warn('Gift wrap event is not meant for us:', recipientTag?.[1], 'vs', currentUserPublicKey);
+      console.log('NIP-17: Skipping event with tags:', giftWrapEvent.tags);
       return null;
     }
 
-    // Check if this event was sent by us (we can't decrypt our own sent messages)
-    if (giftWrapEvent.pubkey === currentUserPublicKey) {
-      console.warn('Gift wrap event was sent by us, skipping decryption');
-      return null;
-    }
+    // Note: We now decrypt messages sent by us as well to show them in conversations
+    // This allows us to display the full conversation history including our own messages
 
     console.log('NIP-17: Attempting to decrypt content with length:', giftWrapEvent.content.length);
 
-    // Decrypt the gift wrap content using NIP-44
-    let decryptedContent;
+    // Try both decryption methods: old method first, then NIP-44
+    let decryptedContent = null;
+    let decryptionMethod = '';
+
+    // Method 1: Try old encryption method (deriveSharedKey + v2.decrypt)
     try {
-      decryptedContent = v2.decryptNip44(giftWrapEvent.content, privateKey, giftWrapEvent.pubkey);
-      console.log("NIP-17: Successfully decrypted gift wrap content using NIP-44");
-    } catch (decryptError) {
-      console.error('NIP-17: Failed to decrypt gift wrap content with NIP-44:', decryptError);
-      console.error('NIP-17: Decrypt parameters:', {
-        privateKeyLength: privateKey?.length,
-        senderPubkey: giftWrapEvent.pubkey,
-        contentLength: giftWrapEvent.content?.length,
-        contentPreview: giftWrapEvent.content?.substring(0, 50)
-      });
-      return null;
+      const senderPublicKey = giftWrapEvent.pubkey;
+      const receiverPublicKey = giftWrapEvent.tags?.find(tag => tag[0] === 'p')?.[1];
+      
+      if (!receiverPublicKey) {
+        console.warn('No receiver public key found in tags');
+        return null;
+      }
+
+      const isSender = currentUserPublicKey === senderPublicKey;
+      const isRecipient = currentUserPublicKey === receiverPublicKey;
+
+      if (!isSender && !isRecipient) {
+        console.warn('User is neither sender nor recipient');
+        return null;
+      }
+
+      // For messages we sent, we need to use the receiver's public key to derive the conversation key
+      // For messages we received, we use the sender's public key
+      const conversationKey = isSender
+        ? deriveSharedKey(privateKey, fixPubKey(receiverPublicKey))
+        : deriveSharedKey(privateKey, fixPubKey(senderPublicKey));
+
+      if (conversationKey) {
+        decryptedContent = v2.decrypt(giftWrapEvent.content, conversationKey);
+        decryptionMethod = 'old_method';
+        console.log("NIP-17: Successfully decrypted gift wrap content using old method", { isSender, isRecipient });
+      }
+    } catch (oldMethodError) {
+      console.log('NIP-17: Old decryption method failed, trying NIP-44:', oldMethodError);
+    }
+
+    // Method 2: Try NIP-44 decryption if old method failed
+    if (!decryptedContent) {
+      try {
+        const senderPublicKey = giftWrapEvent.pubkey;
+        const receiverPublicKey = giftWrapEvent.tags?.find(tag => tag[0] === 'p')?.[1];
+        const isSender = currentUserPublicKey === senderPublicKey;
+        
+        // For NIP-44, we need to use the other party's public key for decryption
+        const otherPartyPubkey = isSender ? receiverPublicKey : senderPublicKey;
+        
+        decryptedContent = v2.decryptNip44(giftWrapEvent.content, privateKey, otherPartyPubkey);
+        decryptionMethod = 'nip44';
+        console.log("NIP-17: Successfully decrypted gift wrap content using NIP-44", { isSender, otherPartyPubkey });
+      } catch (nip44Error) {
+        console.error('NIP-17: Failed to decrypt gift wrap content with NIP-44:', nip44Error);
+        console.error('NIP-17: Decrypt parameters:', {
+          privateKeyLength: privateKey?.length,
+          senderPubkey: giftWrapEvent.pubkey,
+          contentLength: giftWrapEvent.content?.length,
+          contentPreview: giftWrapEvent.content?.substring(0, 50)
+        });
+        return null;
+      }
     }
 
     if (!decryptedContent) {
-      console.warn('Failed to decrypt gift wrap content');
+      console.warn('Failed to decrypt gift wrap content with both methods');
       return null;
     }
 
-    console.log('NIP-17: Successfully decrypted gift wrap content, length:', decryptedContent.length);
+    console.log('NIP-17: Successfully decrypted gift wrap content, length:', decryptedContent.length, 'method:', decryptionMethod);
 
     // Parse the decrypted content as JSON (it should contain the seal event)
     let sealEvent;
@@ -98,14 +142,62 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
       return null;
     }
 
-    // Decrypt the seal event content (the actual message)
+    // Decrypt the seal event content (the actual message) using both methods
     let actualMessage;
+    let sealDecryptionMethod = '';
+
+    console.log('NIP-17: Seal event structure:', {
+      kind: sealEvent.kind,
+      pubkey: sealEvent.pubkey,
+      contentLength: sealEvent.content?.length,
+      tags: sealEvent.tags
+    });
+
+    // Method 1: Try old encryption method for seal event
     try {
-      actualMessage = v2.decryptNip44(sealEvent.content, privateKey, sealEvent.pubkey);
-      console.log('NIP-17: Successfully decrypted seal event content');
-    } catch (sealDecryptError) {
-      console.error('NIP-17: Failed to decrypt seal event content:', sealDecryptError);
-      return null;
+      const senderPublicKey = giftWrapEvent.pubkey;
+      const receiverPublicKey = giftWrapEvent.tags?.find(tag => tag[0] === 'p')?.[1];
+      
+      const isSender = currentUserPublicKey === senderPublicKey;
+      const isRecipient = currentUserPublicKey === receiverPublicKey;
+
+      const conversationKey = isSender
+        ? deriveSharedKey(privateKey, fixPubKey(receiverPublicKey))
+        : deriveSharedKey(privateKey, fixPubKey(senderPublicKey));
+
+      actualMessage = v2.decrypt(sealEvent.content, conversationKey);
+      sealDecryptionMethod = 'old_method';
+      console.log('NIP-17: Successfully decrypted seal event content using old method');
+    } catch (oldSealMethodError) {
+      console.log('NIP-17: Old seal decryption method failed, trying NIP-44:', oldSealMethodError);
+    }
+
+    // Method 2: Try NIP-44 decryption for seal event if old method failed
+    if (!actualMessage) {
+      try {
+        const senderPublicKey = giftWrapEvent.pubkey;
+        const receiverPublicKey = giftWrapEvent.tags?.find(tag => tag[0] === 'p')?.[1];
+        const isSender = currentUserPublicKey === senderPublicKey;
+        
+        // For NIP-44 seal event decryption, use the other party's public key
+        const otherPartyPubkey = isSender ? receiverPublicKey : senderPublicKey;
+        
+        actualMessage = v2.decryptNip44(sealEvent.content, privateKey, otherPartyPubkey);
+        sealDecryptionMethod = 'nip44';
+        console.log('NIP-17: Successfully decrypted seal event content using NIP-44');
+      } catch (nip44SealError) {
+        console.error('NIP-17: Failed to decrypt seal event content with both methods:', nip44SealError);
+        
+        // Try one more approach: use the seal event's own pubkey for decryption
+        try {
+          actualMessage = v2.decryptNip44(sealEvent.content, privateKey, sealEvent.pubkey);
+          sealDecryptionMethod = 'nip44_seal_pubkey';
+          console.log('NIP-17: Successfully decrypted seal event content using seal pubkey');
+        } catch (finalError) {
+          console.error('NIP-17: All seal decryption methods failed:', finalError);
+          return null;
+        }
+      }
     }
 
     console.log('NIP-17: Successfully decrypted seal event content, length:', actualMessage.length);
@@ -128,6 +220,7 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
 const createNip17Message = async (
   ndk: any,
   senderPrivateKey: string,
+  senderPublicKey: string,
   receiverPublicKey: string,
   message: string
 ) => {
@@ -143,21 +236,33 @@ const createNip17Message = async (
     created_at: Math.floor(Date.now() / 1000),
   };
 
-  // Encrypt the seal event for the gift wrap using NIP-44
-  const giftWrapEncryptedContent = v2.encryptNip44(JSON.stringify(sealEvent), senderPrivateKey, receiverPublicKey);
+  // Create two gift wrap events: one for sender, one for receiver
+  const sealEventJson = JSON.stringify(sealEvent);
+  
+  // Gift wrap for receiver (encrypted with receiver's public key)
+  const receiverGiftWrapContent = v2.encryptNip44(sealEventJson, senderPrivateKey, receiverPublicKey);
+  const receiverGiftWrapEvent = new NDKEvent(ndk);
+  receiverGiftWrapEvent.kind = 1059;
+  receiverGiftWrapEvent.content = receiverGiftWrapContent;
+  receiverGiftWrapEvent.tags = [['p', receiverPublicKey]];
+  receiverGiftWrapEvent.created_at = Math.floor(Date.now() / 1000);
 
-  // Create the gift wrap event (kind 1059) using NDKEvent
-  const giftWrapEvent = new NDKEvent(ndk);
-  giftWrapEvent.kind = 1059;
-  giftWrapEvent.content = giftWrapEncryptedContent;
-  giftWrapEvent.tags = [['p', receiverPublicKey]];
-  giftWrapEvent.created_at = Math.floor(Date.now() / 1000);
+  // Gift wrap for sender (encrypted with sender's public key for their own decryption)
+  const senderGiftWrapContent = v2.encryptNip44(sealEventJson, senderPrivateKey, senderPublicKey);
+  const senderGiftWrapEvent = new NDKEvent(ndk);
+  senderGiftWrapEvent.kind = 1059;
+  senderGiftWrapEvent.content = senderGiftWrapContent;
+  senderGiftWrapEvent.tags = [['p', senderPublicKey]]; // Tag with sender's pubkey
+  senderGiftWrapEvent.created_at = Math.floor(Date.now() / 1000);
 
-  // Sign and publish the gift wrap event
-  await giftWrapEvent.sign();
-  await giftWrapEvent.publish();
+  // Sign and publish both gift wrap events
+  await receiverGiftWrapEvent.sign();
+  await senderGiftWrapEvent.sign();
+  
+  await receiverGiftWrapEvent.publish();
+  await senderGiftWrapEvent.publish();
 
-  return giftWrapEvent;
+  return { receiverGiftWrapEvent, senderGiftWrapEvent };
 };
 
 export const useSendNip17Message = () => {
@@ -173,7 +278,7 @@ export const useSendNip17Message = () => {
 
       await checkIsConnected(ndk);
 
-      return await createNip17Message(ndk, privateKey, receiverPublicKey, message);
+      return await createNip17Message(ndk, privateKey, publicKey, receiverPublicKey, message);
     },
     onSuccess: () => {
       // Invalidate and refetch NIP-17 related queries
