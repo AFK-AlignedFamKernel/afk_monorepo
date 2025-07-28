@@ -568,7 +568,20 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
       // Decrypt all events
       console.log('useNip17MessagesBetweenUsers: Attempting to decrypt', allEvents.length, 'events');
       const decryptedEvents = await Promise.all(
-        allEvents.map(event => decryptGiftWrapContent(event, privateKey, publicKey))
+        allEvents.map(async (event) => {
+          try {
+            return await decryptGiftWrapContent(event, privateKey, publicKey);
+          } catch (error) {
+            console.error('useNip17MessagesBetweenUsers: Failed to decrypt event:', error);
+            // Return a placeholder event for debugging
+            return {
+              ...event,
+              decryptedContent: '[Failed to decrypt]',
+              actualSenderPubkey: event.pubkey,
+              actualReceiverPubkey: event.tags?.find(tag => tag[0] === 'p')?.[1],
+            };
+          }
+        })
       );
       console.log('useNip17MessagesBetweenUsers: Decrypted events:', decryptedEvents);
 

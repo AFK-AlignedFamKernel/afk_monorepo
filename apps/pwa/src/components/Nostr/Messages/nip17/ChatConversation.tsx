@@ -76,9 +76,9 @@ export const ChatConversation: React.FC<ChatProps> = ({
             console.log('ChatConversation: allMessages length:', allMessages.length);
             
             const filteredMessages = allMessages.filter((msg: any) => {
-                const hasContent = msg && msg.decryptedContent;
+                const hasContent = msg && (msg.decryptedContent || msg.content);
                 if (!hasContent) {
-                    console.log('ChatConversation: Filtering out message without decryptedContent:', msg);
+                    console.log('ChatConversation: Filtering out message without content:', msg);
                 }
                 return hasContent;
             });
@@ -88,7 +88,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
             return filteredMessages
                 .map((msg: any) => ({
                     id: msg.id,
-                    content: msg.decryptedContent,
+                    content: msg.decryptedContent || msg.content || '[No content]',
                     created_at: msg.created_at,
                     pubkey: msg.actualSenderPubkey || msg.pubkey, // Use actual sender pubkey from seal event
                     isFromMe: (msg.actualSenderPubkey || msg.pubkey) === publicKey,
