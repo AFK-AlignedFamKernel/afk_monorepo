@@ -109,7 +109,7 @@ export const useRelayAuth = () => {
           ];
           await authEvent.sign();
           // Send AUTH event via direct WebSocket
-          sendRawAuthWs(relay.url, authEvent);
+          await sendRawAuthWs(relay.url, authEvent);
         } catch (err) {
           console.error("Failed to handle real AUTH challenge:", err);
         }
@@ -188,11 +188,13 @@ export const useRelayAuth = () => {
   /**
    * Send a raw AUTH message to a relay using direct WebSocket access (bypassing NDK)
    */
-  const sendRawAuthWs = (relayUrl: string, authEvent: any) => {
+  const sendRawAuthWs = async (relayUrl: string, authEvent: any) => {
     try {
       const ws = new (window.WebSocket || (global as any).WebSocket)(relayUrl);
-      ws.onopen = () => {
-        ws.send(JSON.stringify(["AUTH", authEvent]));
+      ws.onopen = async () => {
+        // Convert NDKEvent to proper Nostr event format
+        const nostrEvent = await authEvent.toNostrEvent();
+        ws.send(JSON.stringify(["AUTH", nostrEvent]));
         ws.close();
         console.log(`Sent AUTH event to ${relayUrl} via direct WebSocket.`);
       };
