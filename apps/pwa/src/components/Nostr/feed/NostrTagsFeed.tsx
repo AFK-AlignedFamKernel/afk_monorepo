@@ -91,7 +91,7 @@ export const NostrTagsFeed: React.FC<NostrTagsFeedProps> = ({
         // return;
       } else {
         console.log("connected");
-        console.log("connectedRelays", ndk.pool?.connectedRelays);
+        console.log("connectedRelays URLs:", ndk.pool?.connectedRelays().map(r => r.url));
       }
 
       const notes = await ndk.fetchEvents({

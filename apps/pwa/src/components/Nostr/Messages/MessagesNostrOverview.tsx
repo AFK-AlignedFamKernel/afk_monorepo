@@ -10,22 +10,23 @@ export default function MessagesNostrOverview() {
 
     return (
         <div className="h-full">
-            <RelayAuthInitializer showStatus={true}>
+            <RelayAuthInitializer showStatus={false}>
                 <div className="flex border-b">
-                    <button
-                        className={`flex-1 py-2 px-4 ${activeType === 'NIP4' ? 'border-b-2 border-blue-500' : ''}`}
-                        onClick={() => setActiveType('NIP4')}
-                    >
-                        NIP-04 Messages
-                    </button>
                     <button
                         className={`flex-1 py-2 px-4 ${activeType === 'NIP17' ? 'border-b-2 border-blue-500' : ''}`}
                         onClick={() => setActiveType('NIP17')}
                     >
                         NIP-17 Messages
                     </button>
+                    <button
+                        className={`flex-1 py-2 px-4 ${activeType === 'NIP4' ? 'border-b-2 border-blue-500' : ''}`}
+                        onClick={() => setActiveType('NIP4')}
+                    >
+                        NIP-04 Messages
+                    </button>
+
                 </div>
-                
+
                 {activeType === 'NIP4' ? (
                     <NostrMessagesComponentNip4 />
                 ) : (

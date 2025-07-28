@@ -14,7 +14,37 @@ export type UseNip17MessagesOptions = {
   enabled?: boolean;
 };
 
+// Helper function to validate if a message is a saved message (self-message)
+const isValidSavedMessage = (
+  message: any,
+  currentUserPublicKey: string
+): boolean => {
+  if (!message || !message.actualSenderPubkey || !message.actualReceiverPubkey) {
+    console.log('isValidSavedMessage: Missing required fields');
+    return false;
+  }
+
+  const { actualSenderPubkey, actualReceiverPubkey } = message;
+
+  // A saved message must be a self-message (sender = receiver = current user)
+  const isSelfMessage = actualSenderPubkey === currentUserPublicKey && 
+                       actualReceiverPubkey === currentUserPublicKey;
+
+  console.log('isValidSavedMessage:', {
+    actualSenderPubkey,
+    actualReceiverPubkey,
+    currentUserPublicKey,
+    isSelfMessage,
+    reason: isSelfMessage ? 'Valid saved message' : 'Not a saved message'
+  });
+
+  return isSelfMessage;
+};
+
 // Helper function to validate if a message belongs to a specific conversation
+// This function is used for regular conversations between two users
+// It explicitly EXCLUDES self-messages (saved messages) from regular conversations
+// Self-messages should only appear in the saved messages section using isValidSavedMessage()
 const isValidConversationMessage = (
   message: any,
   currentUserPublicKey: string,
@@ -27,14 +57,24 @@ const isValidConversationMessage = (
 
   const { actualSenderPubkey, actualReceiverPubkey } = message;
 
-  // Check if this is a message between the two users
+  // For a conversation between two users, we only want messages that are:
+  // 1. From current user TO the other user
+  // 2. From the other user TO the current user
+  // 
+  // We do NOT want self-messages (where sender = receiver) in regular conversations
+  // Self-messages should only appear in the saved messages section
+  
   const isFromUsToThem = actualSenderPubkey === currentUserPublicKey && actualReceiverPubkey === otherUserPublicKey;
   const isFromThemToUs = actualSenderPubkey === otherUserPublicKey && actualReceiverPubkey === currentUserPublicKey;
   
-  // Check if this is a self-message (user talking to themselves)
-  const isSelfMessage = actualSenderPubkey === actualReceiverPubkey && actualSenderPubkey === currentUserPublicKey;
+  // Explicitly exclude self-messages from regular conversations
+  const isSelfMessage = actualSenderPubkey === actualReceiverPubkey;
+  if (isSelfMessage) {
+    console.log('isValidConversationMessage: Excluding self-message from regular conversation');
+    return false;
+  }
 
-  const isValid = isFromUsToThem || isFromThemToUs || isSelfMessage;
+  const isValid = isFromUsToThem || isFromThemToUs;
 
   console.log('isValidConversationMessage:', {
     actualSenderPubkey,
@@ -44,7 +84,8 @@ const isValidConversationMessage = (
     isFromUsToThem,
     isFromThemToUs,
     isSelfMessage,
-    isValid
+    isValid,
+    reason: isValid ? 'Valid conversation message' : 'Not part of this conversation'
   });
 
   return isValid;
@@ -54,14 +95,11 @@ const isValidConversationMessage = (
 const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, currentUserPublicKey: string) => {
   try {
     console.log('NIP-17: Attempting to decrypt event:', {
-      id: giftWrapEvent?.id,
-      kind: giftWrapEvent?.kind,
-      pubkey: giftWrapEvent?.pubkey,
-      contentLength: giftWrapEvent?.content?.length,
-      contentType: typeof giftWrapEvent?.content,
-      hasContent: !!giftWrapEvent?.content,
-      content: giftWrapEvent?.content,
-      tags: giftWrapEvent?.tags
+      id: giftWrapEvent.id,
+      pubkey: giftWrapEvent.pubkey,
+      kind: giftWrapEvent.kind,
+      contentLength: giftWrapEvent.content?.length || 0,
+      tags: giftWrapEvent.tags
     });
 
     // Validate inputs
@@ -656,9 +694,9 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
         allReceivedEventsCount: allReceivedEvents.size
       });
 
-      console.log('useNip17MessagesBetweenUsers: sentEvents:', Array.from(sentEvents));
-      console.log('useNip17MessagesBetweenUsers: receivedEvents:', Array.from(receivedEvents));
-      console.log('useNip17MessagesBetweenUsers: allReceivedEvents:', Array.from(allReceivedEvents));
+      console.log('useNip17MessagesBetweenUsers: sentEvents:', Array.from(sentEvents).map(e => ({ id: e.id, pubkey: e.pubkey, kind: e.kind })));
+      console.log('useNip17MessagesBetweenUsers: receivedEvents:', Array.from(receivedEvents).map(e => ({ id: e.id, pubkey: e.pubkey, kind: e.kind })));
+      console.log('useNip17MessagesBetweenUsers: allReceivedEvents:', Array.from(allReceivedEvents).map(e => ({ id: e.id, pubkey: e.pubkey, kind: e.kind })));
 
       const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents), ...Array.from(allReceivedEvents)];
       console.log('useNip17MessagesBetweenUsers: Total events:', allEvents.length);
@@ -681,7 +719,12 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
           }
         })
       );
-      console.log('useNip17MessagesBetweenUsers: Decrypted events:', decryptedEvents);
+      console.log('useNip17MessagesBetweenUsers: Decrypted events:', decryptedEvents.map(e => e ? { 
+        id: e.id, 
+        actualSenderPubkey: e.actualSenderPubkey, 
+        actualReceiverPubkey: e.actualReceiverPubkey,
+        hasDecryptedContent: !!e.decryptedContent 
+      } : null));
 
       // Filter messages to only include those between the two specific users
       console.log('useNip17MessagesBetweenUsers: Filtering decrypted events...');
@@ -841,12 +884,18 @@ export const useSendNip17SavedMessage = () => {
       );
 
       console.log('NIP-17 Saved Message: Published events:', {
-        receiverEventId: result.receiverGiftWrapEvent.id,
-        senderEventId: result.senderGiftWrapEvent.id,
-        pubkey: result.receiverGiftWrapEvent.pubkey,
-        kind: result.receiverGiftWrapEvent.kind,
-        contentLength: result.receiverGiftWrapEvent.content.length,
-        tags: result.receiverGiftWrapEvent.tags,
+        receiverEvent: {
+          id: result.receiverGiftWrapEvent.id,
+          kind: result.receiverGiftWrapEvent.kind,
+          pubkey: result.receiverGiftWrapEvent.pubkey,
+          tags: result.receiverGiftWrapEvent.tags
+        },
+        senderEvent: {
+          id: result.senderGiftWrapEvent.id,
+          kind: result.senderGiftWrapEvent.kind,
+          pubkey: result.senderGiftWrapEvent.pubkey,
+          tags: result.senderGiftWrapEvent.tags
+        }
       });
 
       return result;

@@ -41,40 +41,39 @@ export const ChatConversation: React.FC<ChatProps> = ({
     // Use the messages passed from parent component instead of calling the hook again
     const messagesData = { pages: messagesSentParents };
     const isLoadingMessages = false; // We're not loading since data is passed from parent
-    const refetchMessages = () => {}; // No-op since parent handles refetching
+    const refetchMessages = () => { }; // No-op since parent handles refetching
 
-    console.log('ChatConversation: messagesSentParents:', messagesSentParents);
-    console.log('ChatConversation: messagesData:', messagesData);
-    console.log('ChatConversation: messagesData.pages:', messagesData.pages);
-    console.log('ChatConversation: messagesData.pages[0]:', messagesData.pages?.[0]);
+    console.log('ChatConversation: messagesSentParents length:', messagesSentParents?.length || 0);
+    console.log('ChatConversation: messagesData pages length:', messagesData?.pages?.length || 0);
+    console.log('ChatConversation: messagesData.pages[0] type:', typeof messagesData?.pages?.[0]);
 
     // Process messages for NIP-17
     const processedMessages = useMemo(() => {
         console.log('ChatConversation: messagesData:', messagesData);
         console.log('ChatConversation: receiverPublicKey:', receiverPublicKey);
         console.log('ChatConversation: publicKey:', publicKey);
-        
+
         if (type === "NIP17" && messagesData?.pages) {
             // Extract messages from the pages structure
             const allMessages = messagesData.pages.flat().map(page => {
-                console.log('ChatConversation: Processing page:', page);
+                console.log('ChatConversation: Processing page type:', typeof page);
                 // Handle the format where each page has a messages property (from useNip17MessagesBetweenUsers)
                 if (page && page.messages && Array.isArray(page.messages)) {
-                    console.log('ChatConversation: Found messages array in page:', page.messages);
+                    console.log('ChatConversation: Found messages array in page, length:', page.messages.length);
                     return page.messages;
                 }
                 // Handle direct array format
                 if (page && Array.isArray(page)) {
-                    console.log('ChatConversation: Found direct array page:', page);
+                    console.log('ChatConversation: Found direct array page, length:', page.length);
                     return page;
                 }
-                console.log('ChatConversation: No valid message structure found in page:', page);
+                console.log('ChatConversation: No valid message structure found in page');
                 return [];
             }).flat();
-            
+
             console.log('ChatConversation: allMessages:', allMessages);
             console.log('ChatConversation: allMessages length:', allMessages.length);
-            
+
             // Debug: Log each message to understand the structure
             allMessages.forEach((msg, index) => {
                 console.log(`ChatConversation: Message ${index}:`, {
@@ -84,30 +83,35 @@ export const ChatConversation: React.FC<ChatProps> = ({
                     pubkey: msg?.pubkey,
                     hasDecryptedContent: !!msg?.decryptedContent,
                     hasContent: !!msg?.content,
-                    decryptedContent: msg?.decryptedContent,
-                    content: msg?.content
+                    contentLength: msg?.decryptedContent?.length || msg?.content?.length || 0
                 });
             });
-            
+
             const filteredMessages = allMessages.filter((msg: any) => {
                 const hasContent = msg && (msg.decryptedContent || msg.content);
                 if (!hasContent) {
                     console.log('ChatConversation: Filtering out message without content:', msg);
                     return false;
                 }
-                
+
                 // Only include messages that are part of this conversation
                 const actualSenderPubkey = msg.actualSenderPubkey || msg.pubkey;
                 const actualReceiverPubkey = msg.actualReceiverPubkey;
-                
+
                 // Check if this message is between the current user and the conversation participant
                 const isFromUsToThem = actualSenderPubkey === publicKey && actualReceiverPubkey === receiverPublicKey;
                 const isFromThemToUs = actualSenderPubkey === receiverPublicKey && actualReceiverPubkey === publicKey;
-                const isSelfMessage = actualSenderPubkey === actualReceiverPubkey && 
-                    (actualSenderPubkey === publicKey || actualSenderPubkey === receiverPublicKey);
-                
-                const isPartOfConversation = isFromUsToThem || isFromThemToUs || isSelfMessage;
-                
+
+                // STRICT: Do NOT include self-messages in regular conversations
+                // Self-messages should only appear in the saved messages section
+                const isSelfMessage = actualSenderPubkey === actualReceiverPubkey;
+                if (isSelfMessage) {
+                    console.log('ChatConversation: Excluding self-message from regular conversation');
+                    return false;
+                }
+
+                const isPartOfConversation = isFromUsToThem || isFromThemToUs;
+
                 console.log('ChatConversation: Message filtering check:', {
                     actualSenderPubkey,
                     actualReceiverPubkey,
@@ -116,26 +120,28 @@ export const ChatConversation: React.FC<ChatProps> = ({
                     isFromUsToThem,
                     isFromThemToUs,
                     isSelfMessage,
-                    isPartOfConversation
+                    isPartOfConversation,
+                    reason: isPartOfConversation ? 'Valid conversation message' : 'Not part of conversation'
                 });
-                
+
                 if (!isPartOfConversation) {
                     console.log('ChatConversation: Filtering out message not part of conversation');
                     return false;
                 }
-                
+
                 return true;
             });
-            
-            console.log('ChatConversation: filteredMessages:', filteredMessages);
-            
+
+            console.log('ChatConversation: filteredMessages length:', filteredMessages.length);
+
             return filteredMessages
                 .map((msg: any) => ({
                     id: msg.id,
                     content: msg.decryptedContent || msg.content || '[Failed to decrypt]',
                     created_at: msg.created_at,
                     pubkey: msg.actualSenderPubkey || msg.pubkey, // Use actual sender pubkey from seal event
-                    isFromMe: (msg.actualSenderPubkey || msg.pubkey) === publicKey,
+                    // isFromMe: (msg.actualSenderPubkey || msg.pubkey) === publicKey,
+                    isFromMe: (msg.pubkey) === publicKey,
                     timestamp: new Date(msg.created_at * 1000),
                 }))
                 .sort((a: any, b: any) => a.created_at - b.created_at);
@@ -229,9 +235,16 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 </div>
             </div>
 
+
+            {isLoadingMessages && (
+                <div className="flex items-center justify-center h-64">
+                    <CryptoLoading />
+                    <span className="ml-2">Loading messages...</span>
+                </div>
+            )}
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {processedMessages.length === 0 ? (
+                {processedMessages.length === 0 && !isLoadingMessages ? (
                     <div className="text-center text-gray-500 py-8">
                         <div>No messages yet. Start the conversation!</div>
                         {/* Debug: Show raw message data */}
@@ -247,19 +260,20 @@ export const ChatConversation: React.FC<ChatProps> = ({
                     processedMessages.map((msg: any) => (
                         <div
                             key={msg.id}
-                            className={`flex ${msg.isFromMe ? 'justify-end' : 'justify-start'}`}
+                            className={`flex ${msg.pubkey === publicKey ? 'justify-start' : 'justify-end'}`}
                         >
                             <div
-                                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                                    msg.isFromMe
+                                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${msg.pubkey === publicKey
                                         ? 'justify-start bg-gray-500'
-                                        : 'justify-end bg-gray-500'
-                                }`}
+                                        : 'justify-end bg-gray-700'
+                                    }`}
                             >
+                                <div>
+                                    {/* <p className="text-sm">{msg.pubkey}</p> */}
+                                </div>
                                 <p className="text-sm">{msg.content}</p>
-                                <p className={`text-xs mt-1 ${
-                                    msg.isFromMe ? 'text-gray-500' : 'text-gray-500'
-                                }`}>
+                                <p className={`text-xs mt-1 ${msg.isFromMe ? 'text-gray-500' : 'text-gray-500'
+                                    }`}>
                                     {formatDistanceToNow(msg.timestamp, { addSuffix: true })}
                                 </p>
                             </div>

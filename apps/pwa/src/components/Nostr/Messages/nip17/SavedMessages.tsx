@@ -117,7 +117,12 @@ export const SavedMessages: React.FC = () => {
   console.log('SavedMessages: savedMessagesList length:', savedMessagesList.length);
   console.log('SavedMessages: allMessagesList length:', allMessagesList.length);
   console.log('SavedMessages: uniqueMessages length:', uniqueMessages.length);
-  console.log('SavedMessages: uniqueMessages:', uniqueMessages);
+  console.log('SavedMessages: uniqueMessages sample:', uniqueMessages.slice(0, 3).map(msg => ({
+    id: msg?.id,
+    actualSenderPubkey: msg?.actualSenderPubkey,
+    actualReceiverPubkey: msg?.actualReceiverPubkey,
+    hasContent: !!(msg?.decryptedContent || msg?.content)
+  })));
 
   // Filter to only show self-messages (where sender and receiver are the same)
   const processedMessages = uniqueMessages
@@ -140,22 +145,32 @@ export const SavedMessages: React.FC = () => {
         return false;
       }
 
-      // Check if this is a self-message (sender and receiver are the same user)
+      // STRICT validation: This must be a true self-message
+      // Both sender and receiver must be the current user
       const isSelfMessage = msg.actualSenderPubkey === publicKey && 
                            msg.actualReceiverPubkey === publicKey;
 
       // Also check if the message has content
       const hasContent = msg && (msg.decryptedContent || msg.content);
 
+      // Additional validation: ensure this is not a message between two different users
+      const isBetweenDifferentUsers = msg.actualSenderPubkey !== msg.actualReceiverPubkey;
+      if (isBetweenDifferentUsers) {
+        console.log('SavedMessages: Excluding message between different users');
+        return false;
+      }
+
       console.log('SavedMessages: Message filtering:', {
         isSelfMessage,
         hasContent,
-        willInclude: isSelfMessage && hasContent,
-        reason: isSelfMessage && hasContent ? 'Valid self-message' : 
-                !isSelfMessage ? 'Not a self-message' : 'No content'
+        isBetweenDifferentUsers,
+        willInclude: isSelfMessage && hasContent && !isBetweenDifferentUsers,
+        reason: isSelfMessage && hasContent && !isBetweenDifferentUsers ? 'Valid self-message' : 
+                !isSelfMessage ? 'Not a self-message' : 
+                !hasContent ? 'No content' : 'Between different users'
       });
 
-      return isSelfMessage && hasContent;
+      return isSelfMessage && hasContent && !isBetweenDifferentUsers;
     })
     .map((msg: any) => ({
       id: msg.id,
@@ -210,7 +225,7 @@ export const SavedMessages: React.FC = () => {
             >
               <div className="max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-blue-100 border border-blue-200">
                 <p className="text-sm">{msg.content}</p>
-                <p className="text-xs mt-1 text-gray-500">
+                <p className="text-xs mt-1">
                   {formatDistanceToNow(msg.timestamp, { addSuffix: true })}
                 </p>
               </div>

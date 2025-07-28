@@ -56,22 +56,13 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     }
   );
 
-  console.log("Hook enabled condition:", {
-    type,
-    hasParticipant: !!selectedConversation?.participant,
-    hasPublicKey: !!publicKey,
-    hasPrivateKey: !!privateKey,
-    enabled: type === "NIP17" && !!selectedConversation?.participant && !!publicKey && !!privateKey
-  });
-
-  console.log("conversations", conversations);
-  console.log("messagesBetweenUsers", messagesBetweenUsers);
-  console.log("selectedConversation", selectedConversation);
-  console.log("messagesBetweenUsers?.pages", messagesBetweenUsers?.pages);
-  console.log("Hook enabled:", type === "NIP17" && !!selectedConversation?.participant && !!publicKey && !!privateKey);
-  console.log("selectedConversation?.participant:", selectedConversation?.participant);
-  console.log("messagesBetweenUsers?.pages?.[0]", messagesBetweenUsers?.pages?.[0]);
-  console.log("Passing messagesSentParents:", messagesBetweenUsers?.pages || []);
+  console.log("conversations count:", conversations?.pages?.length || 0);
+  console.log("conversations first page:", conversations?.pages?.[0]?.conversations?.length || 0);
+  console.log("messagesBetweenUsers pages count:", messagesBetweenUsers?.pages?.length || 0);
+  console.log("messagesBetweenUsers first page:", messagesBetweenUsers?.pages?.[0]?.messages?.length || 0);
+  console.log("selectedConversation participant:", selectedConversation?.participant);
+  console.log("messagesBetweenUsers pages count:", messagesBetweenUsers?.pages?.length || 0);
+  console.log("messagesBetweenUsers first page type:", typeof messagesBetweenUsers?.pages?.[0]);
 
   // Handle refresh for NIP-17
   const handleRefresh = useCallback(async () => {

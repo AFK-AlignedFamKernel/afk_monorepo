@@ -278,7 +278,7 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
   };
 
   return (
-    <div className="p-4 card">
+    <div className="p-4 w-full">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">New Message</h2>
         <button
