@@ -9,6 +9,7 @@ import { NostrMessagesComponent } from "../Nostr/Messages/nip17";
 import { useUIStore } from "@/store/uiStore";
 import { ProfileManagement } from "./profile-management";
 import { logClickedEvent } from "@/lib/analytics";
+import MessagesNostrOverview from "../Nostr/Messages/MessagesNostrOverview";
 
 export default function ProfileAfk() {
 
@@ -90,7 +91,7 @@ export default function ProfileAfk() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
-              {/* 
+
               <button onClick={() => {
                 logClickedEvent("messages-selected")
                 handleTabChange("dm")
@@ -102,7 +103,7 @@ export default function ProfileAfk() {
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </button> */}
+              </button>
 
             </div>
           </div>
@@ -159,19 +160,19 @@ export default function ProfileAfk() {
 
       {activeTab && (
         <div className="mt-8">
-          <button 
-          className="btn w-full flex items-center justify-between p-2"
-          onClick={() => {
-            logClickedEvent("back-button-modal-profile-afk")
-            setActiveTab(undefined)
-          }}>
+          <button
+            className="btn w-full flex items-center justify-between p-2"
+            onClick={() => {
+              logClickedEvent("back-button-modal-profile-afk")
+              setActiveTab(undefined)
+            }}>
             <Icon name="BackIcon" size={24} />
           </button>
           {activeTab === "nostr" && <MyNostrProfileComponent />}
           {activeTab === "brand" && <ManageBrandProfile />}
           {activeTab === "content-creator" && <ManageCreatorProfile />}
           {activeTab === "rewards" && <RewardsCenter />}
-          {activeTab === "dm" && <NostrMessagesComponent />}
+          {activeTab === "dm" && <MessagesNostrOverview />}
         </div>
       )}
 

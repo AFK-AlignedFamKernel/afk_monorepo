@@ -6,6 +6,7 @@ import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
 import { NostrConversationList } from './ConversationList';
 import { NostrContactList } from '../NostrContactList';
+import { SavedMessages } from './SavedMessages';
 
 export const NostrMessagesComponent: React.FC = () => {
   const [type, setType] = useState<"NIP4" | "NIP17">('NIP17');
@@ -124,6 +125,12 @@ export const NostrMessagesComponent: React.FC = () => {
         >
           Direct Messages
         </button>
+        <button
+          className={`flex-1 py-2 px-4 ${activeTab === 'saved_messages' ? 'border-b-2 border-blue-500' : ''}`}
+          onClick={() => setActiveTab('saved_messages')}
+        >
+          Saved Messages
+        </button>
       </div>
 
       {activeTab == "messages" && (
@@ -140,6 +147,10 @@ export const NostrMessagesComponent: React.FC = () => {
         <div className="flex">
           <FormPrivateMessage onClose={() => setActiveTab('messages')} type={type} />
         </div>
+      )}
+
+      {activeTab == "saved_messages" && (
+        <SavedMessages />
       )}
 
     </div>

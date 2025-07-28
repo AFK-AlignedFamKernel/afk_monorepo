@@ -330,7 +330,7 @@ export const FormPrivateMessage: React.FC<FormPrivateMessageProps> = ({
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your message..."
             rows={4}
-            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
+            className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             disabled={isLoading}
           />
         </div>

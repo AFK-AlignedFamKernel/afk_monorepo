@@ -75,12 +75,56 @@ export const ChatConversation: React.FC<ChatProps> = ({
             console.log('ChatConversation: allMessages:', allMessages);
             console.log('ChatConversation: allMessages length:', allMessages.length);
             
+            // Debug: Log each message to understand the structure
+            allMessages.forEach((msg, index) => {
+                console.log(`ChatConversation: Message ${index}:`, {
+                    id: msg?.id,
+                    actualSenderPubkey: msg?.actualSenderPubkey,
+                    actualReceiverPubkey: msg?.actualReceiverPubkey,
+                    pubkey: msg?.pubkey,
+                    hasDecryptedContent: !!msg?.decryptedContent,
+                    hasContent: !!msg?.content,
+                    decryptedContent: msg?.decryptedContent,
+                    content: msg?.content
+                });
+            });
+            
             const filteredMessages = allMessages.filter((msg: any) => {
                 const hasContent = msg && (msg.decryptedContent || msg.content);
                 if (!hasContent) {
                     console.log('ChatConversation: Filtering out message without content:', msg);
+                    return false;
                 }
-                return hasContent;
+                
+                // Only include messages that are part of this conversation
+                const actualSenderPubkey = msg.actualSenderPubkey || msg.pubkey;
+                const actualReceiverPubkey = msg.actualReceiverPubkey;
+                
+                // Check if this message is between the current user and the conversation participant
+                const isFromUsToThem = actualSenderPubkey === publicKey && actualReceiverPubkey === receiverPublicKey;
+                const isFromThemToUs = actualSenderPubkey === receiverPublicKey && actualReceiverPubkey === publicKey;
+                const isSelfMessage = actualSenderPubkey === actualReceiverPubkey && 
+                    (actualSenderPubkey === publicKey || actualSenderPubkey === receiverPublicKey);
+                
+                const isPartOfConversation = isFromUsToThem || isFromThemToUs || isSelfMessage;
+                
+                console.log('ChatConversation: Message filtering check:', {
+                    actualSenderPubkey,
+                    actualReceiverPubkey,
+                    publicKey,
+                    receiverPublicKey,
+                    isFromUsToThem,
+                    isFromThemToUs,
+                    isSelfMessage,
+                    isPartOfConversation
+                });
+                
+                if (!isPartOfConversation) {
+                    console.log('ChatConversation: Filtering out message not part of conversation');
+                    return false;
+                }
+                
+                return true;
             });
             
             console.log('ChatConversation: filteredMessages:', filteredMessages);
@@ -88,7 +132,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
             return filteredMessages
                 .map((msg: any) => ({
                     id: msg.id,
-                    content: msg.decryptedContent || msg.content || '[No content]',
+                    content: msg.decryptedContent || msg.content || '[Failed to decrypt]',
                     created_at: msg.created_at,
                     pubkey: msg.actualSenderPubkey || msg.pubkey, // Use actual sender pubkey from seal event
                     isFromMe: (msg.actualSenderPubkey || msg.pubkey) === publicKey,
@@ -97,7 +141,7 @@ export const ChatConversation: React.FC<ChatProps> = ({
                 .sort((a: any, b: any) => a.created_at - b.created_at);
         }
         return [];
-    }, [messagesData, type, publicKey]);
+    }, [messagesData, type, publicKey, receiverPublicKey]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -189,7 +233,15 @@ export const ChatConversation: React.FC<ChatProps> = ({
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {processedMessages.length === 0 ? (
                     <div className="text-center text-gray-500 py-8">
-                        No messages yet. Start the conversation!
+                        <div>No messages yet. Start the conversation!</div>
+                        {/* Debug: Show raw message data */}
+                        <div className="mt-4 text-xs text-gray-400">
+                            <div>Debug Info:</div>
+                            <div>Messages data: {JSON.stringify(messagesData)}</div>
+                            <div>All messages length: {messagesData?.pages?.flat().length || 0}</div>
+                            <div>Public key: {publicKey}</div>
+                            <div>Receiver public key: {receiverPublicKey}</div>
+                        </div>
                     </div>
                 ) : (
                     processedMessages.map((msg: any) => (

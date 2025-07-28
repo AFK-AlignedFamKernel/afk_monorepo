@@ -6,6 +6,7 @@ import { NDKKind } from '@nostr-dev-kit/ndk';
 import { v2 } from "../../../utils/nip44";
 import { deriveSharedKey, fixPubKey } from '../../../utils/keypair';
 import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { useSettingsStore } from '../../../store/settings';
 
 export type UseNip17MessagesOptions = {
   authors?: string[];
@@ -311,6 +312,8 @@ export const useSendNip17Message = () => {
       queryClient.invalidateQueries({ queryKey: ['nip17-messages'] });
       queryClient.invalidateQueries({ queryKey: ['nip17-conversations'] });
       queryClient.invalidateQueries({ queryKey: ['nip17-messages-between'] });
+      queryClient.invalidateQueries({ queryKey: ['nip17-saved-messages'] });
+      queryClient.invalidateQueries({ queryKey: ['nip17-saved-message-conversations'] });
     },
   });
 };
@@ -611,22 +614,23 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
           const isFromUsToThem = actualSenderPubkey === publicKey && actualReceiverPubkey === otherUserPublicKey;
           const isFromThemToUs = actualSenderPubkey === otherUserPublicKey && actualReceiverPubkey === publicKey;
           
+          console.log("isFromUsToThem", isFromUsToThem);
+          console.log("isFromThemToUs", isFromThemToUs);
           // Also check if this is a self-message (user talking to themselves)
           const isSelfMessage = actualSenderPubkey === actualReceiverPubkey && 
             (actualSenderPubkey === publicKey || actualSenderPubkey === otherUserPublicKey);
           
-          // More permissive: if we can't determine the exact participants, but we have decrypted content,
-          // include it if it's from either user
-          const hasDecryptedContent = event.decryptedContent && event.decryptedContent.trim() !== '';
-          const isFromEitherUser = actualSenderPubkey === publicKey || actualSenderPubkey === otherUserPublicKey;
-          
-          const isValid = isFromUsToThem || isFromThemToUs || isSelfMessage || (hasDecryptedContent && isFromEitherUser);
+          const isSelfMessage2 = actualSenderPubkey === actualReceiverPubkey && actualSenderPubkey === publicKey;
+
+          console.log("isSelfMessage", isSelfMessage);
+          console.log("isSelfMessage2", isSelfMessage2);
+
+          const isValid = isFromUsToThem || isFromThemToUs || isSelfMessage;
+          // const isValid = isFromUsToThem || isFromThemToUs;
           console.log('useNip17MessagesBetweenUsers: Event valid:', isValid, { 
             isFromUsToThem, 
             isFromThemToUs, 
-            isSelfMessage,
-            hasDecryptedContent,
-            isFromEitherUser
+            isSelfMessage
           });
           
           return isValid;
@@ -647,3 +651,219 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
     initialPageParam: 0,
   });
 }; 
+
+// Hook for saved messages (self-messages) - messages sent to yourself
+export const useNip17SavedMessages = (options: UseNip17MessagesOptions = {}): UseInfiniteQueryResult<any, Error> => {
+  const { ndk } = useNostrContext();
+  const { publicKey, privateKey } = useAuth();
+
+  return useInfiniteQuery({
+    queryKey: ['nip17-saved-messages', options.limit, ndk],
+    queryFn: async ({ pageParam = 0 }) => {
+      if (!ndk || !publicKey || !privateKey) {
+        return { messages: [], nextCursor: undefined };
+      }
+
+      await checkIsConnected(ndk);
+
+      const limit = options.limit || 50;
+
+      // Fetch messages where the user is both sender and receiver (self-messages)
+      const selfMessages = await ndk.fetchEvents({
+        kinds: [1059 as NDKKind],
+        authors: [publicKey],
+        '#p': [publicKey], // User is tagged as recipient
+        limit: limit,
+        ...(pageParam && { until: pageParam as number }),
+      });
+
+      console.log('useNip17SavedMessages: Fetched self-messages:', selfMessages.size);
+
+      // Decrypt all events
+      const decryptedEvents = await Promise.all(
+        Array.from(selfMessages).map(async (event) => {
+          try {
+            return await decryptGiftWrapContent(event, privateKey, publicKey);
+          } catch (error) {
+            console.error('useNip17SavedMessages: Failed to decrypt event:', error);
+            return {
+              ...event,
+              decryptedContent: '[Failed to decrypt]',
+              actualSenderPubkey: event.pubkey,
+              actualReceiverPubkey: event.tags?.find(tag => tag[0] === 'p')?.[1],
+            };
+          }
+        })
+      );
+
+      // Filter to only include valid self-messages
+      const validMessages = decryptedEvents
+        .filter(event => {
+          if (!event) return false;
+          
+          const actualSenderPubkey = event.actualSenderPubkey;
+          const actualReceiverPubkey = event.actualReceiverPubkey;
+          
+          // Must be a self-message (sender and receiver are the same user)
+          const isSelfMessage = actualSenderPubkey === publicKey && actualReceiverPubkey === publicKey;
+          
+          console.log('useNip17SavedMessages: Checking self-message:', {
+            actualSenderPubkey,
+            actualReceiverPubkey,
+            publicKey,
+            isSelfMessage
+          });
+          
+          return isSelfMessage;
+        })
+        .sort((a, b) => (a?.created_at || 0) - (b?.created_at || 0));
+
+      console.log('useNip17SavedMessages: Valid self-messages:', validMessages.length);
+
+      const nextCursor = selfMessages.size === limit ? Array.from(selfMessages)[selfMessages.size - 1]?.created_at : undefined;
+
+      return {
+        messages: validMessages,
+        nextCursor,
+      };
+    },
+    enabled: options.enabled !== false && !!ndk && !!publicKey && !!privateKey,
+    getNextPageParam: (lastPage: any) => lastPage.nextCursor,
+    initialPageParam: 0,
+  });
+};
+
+// Hook for sending saved messages (self-messages)
+export const useSendNip17SavedMessage = () => {
+  const { ndk } = useNostrContext();
+  const { publicKey, privateKey } = useAuth();
+  const { relays } = useSettingsStore();
+
+  return useMutation({
+    mutationKey: ['sendNip17SavedMessage', ndk],
+    mutationFn: async (data: {
+      message: string;
+      relayUrl?: string;
+      tags?: string[][];
+    }) => {
+      const { message, relayUrl, tags = [] } = data;
+
+      await checkIsConnected(ndk);
+      console.log('NIP-17 Saved Message: Sending self-message', {
+        messageLength: message.length,
+        hasPrivateKey: !!privateKey,
+        hasPublicKey: !!publicKey
+      });
+
+      if (!privateKey || !publicKey) {
+        throw new Error('Private key and public key are required for NIP-17 saved message');
+      }
+
+      if (!message) {
+        throw new Error('Message content is required');
+      }
+
+      // Create NIP-17 message where sender and receiver are the same
+      const result = await createNip17Message(
+        ndk,
+        privateKey,
+        publicKey,
+        publicKey, // Send to yourself
+        message
+      );
+
+      console.log('NIP-17 Saved Message: Published events:', {
+        receiverEventId: result.receiverGiftWrapEvent.id,
+        senderEventId: result.senderGiftWrapEvent.id,
+        pubkey: result.receiverGiftWrapEvent.pubkey,
+        kind: result.receiverGiftWrapEvent.kind,
+        contentLength: result.receiverGiftWrapEvent.content.length,
+        tags: result.receiverGiftWrapEvent.tags,
+      });
+
+      return result;
+    },
+  });
+};
+
+// Hook for fetching saved message conversations (grouped by date or other criteria)
+export const useNip17SavedMessageConversations = (options: UseNip17MessagesOptions = {}): UseInfiniteQueryResult<any, Error> => {
+  const { ndk } = useNostrContext();
+  const { publicKey, privateKey } = useAuth();
+
+  return useInfiniteQuery({
+    queryKey: ['nip17-saved-conversations', options.limit, ndk],
+    queryFn: async ({ pageParam = 0 }) => {
+      if (!ndk || !publicKey || !privateKey) {
+        return { conversations: [], nextCursor: undefined };
+      }
+
+      await checkIsConnected(ndk);
+
+      const limit = options.limit || 50;
+
+      // Fetch all self-messages
+      const selfMessages = await ndk.fetchEvents({
+        kinds: [1059 as NDKKind],
+        authors: [publicKey],
+        '#p': [publicKey],
+        limit: limit,
+        ...(pageParam && { until: pageParam as number }),
+      });
+
+      // Decrypt all events
+      const decryptedEvents = await Promise.all(
+        Array.from(selfMessages).map(async (event) => {
+          try {
+            return await decryptGiftWrapContent(event, privateKey, publicKey);
+          } catch (error) {
+            console.error('useNip17SavedMessageConversations: Failed to decrypt event:', error);
+            return null;
+          }
+        })
+      );
+
+      const validMessages = decryptedEvents.filter(event => event !== null);
+
+      // Group messages by date (daily conversations)
+      const conversationsMap = new Map<string, any>();
+      
+      validMessages.forEach(message => {
+        const date = new Date(message.created_at * 1000);
+        const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+        
+        if (!conversationsMap.has(dateKey)) {
+          conversationsMap.set(dateKey, {
+            date: dateKey,
+            messages: [],
+            messageCount: 0,
+            lastMessageTime: message.created_at,
+            lastMessageContent: message.decryptedContent,
+          });
+        }
+        
+        const conversation = conversationsMap.get(dateKey);
+        conversation.messages.push(message);
+        conversation.messageCount++;
+        
+        if (message.created_at > conversation.lastMessageTime) {
+          conversation.lastMessageTime = message.created_at;
+          conversation.lastMessageContent = message.decryptedContent;
+        }
+      });
+
+      const conversations = Array.from(conversationsMap.values())
+        .sort((a, b) => b.lastMessageTime - a.lastMessageTime);
+
+      const nextCursor = selfMessages.size === limit ? Array.from(selfMessages)[selfMessages.size - 1]?.created_at : undefined;
+
+      return {
+        conversations,
+        nextCursor,
+      };
+    },
+    enabled: options.enabled !== false && !!ndk && !!publicKey && !!privateKey,
+    getNextPageParam: (lastPage: any) => lastPage.nextCursor,
+    initialPageParam: 0,
+  }); 
+};
