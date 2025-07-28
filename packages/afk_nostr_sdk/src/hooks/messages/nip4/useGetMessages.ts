@@ -20,24 +20,39 @@ interface UseMyMessagesSentOptions {
 export const fetchMessagesSent = async (ndk: NDK, publicKey: string, pageParam: number, limit: number): Promise<NDKEvent[]> => {
   console.log("fetchMessagesSent", ndk, publicKey, pageParam, limit);
   await checkIsConnected(ndk);
-  const directMessagesSent = await ndk.fetchEvents({
-    kinds: [NDKKind.EncryptedDirectMessage],
-    authors: [publicKey],
-    since: pageParam || undefined,
-    limit: limit || 30,
-  });
+  
+  // Add timeout to fetchEvents
+  const directMessagesSent = await Promise.race([
+    ndk.fetchEvents({
+      kinds: [NDKKind.EncryptedDirectMessage],
+      authors: [publicKey],
+      since: pageParam || undefined,
+      limit: limit || 30,
+    }),
+    new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+    )
+  ]);
+  
   console.log("directMessagesSent", directMessagesSent);
   return Array.from(directMessagesSent);
 };
 
 export const fetchMessagesReceived = async (ndk: NDK, publicKey: string, pageParam: number, limit: number): Promise<NDKEvent[]> => {
   await checkIsConnected(ndk);
-  const directMessagesReceived = await ndk.fetchEvents({
-    kinds: [NDKKind.EncryptedDirectMessage],
-    '#p': [publicKey],
-    since: pageParam || undefined,
-    limit: limit || 30,
-  });
+  
+  // Add timeout to fetchEvents
+  const directMessagesReceived = await Promise.race([
+    ndk.fetchEvents({
+      kinds: [NDKKind.EncryptedDirectMessage],
+      '#p': [publicKey],
+      since: pageParam || undefined,
+      limit: limit || 30,
+    }),
+    new Promise<never>((_, reject) => 
+      setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+    )
+  ]);
 
   console.log("directMessagesReceived", directMessagesReceived);
   return Array.from(directMessagesReceived);
@@ -63,9 +78,15 @@ export const useGetAllMessages = (options?: UseMyMessagesSentOptions):UseInfinit
       console.log("queryFn");
       await checkIsConnected(ndk);
       
-      const directMessagesAll = await Promise.all([
-        fetchMessagesSent(ndk, publicKey, pageParam, options?.limit || 30),
-        fetchMessagesReceived(ndk, publicKey, pageParam, options?.limit || 30),
+      // Add timeout to Promise.all
+      const directMessagesAll = await Promise.race([
+        Promise.all([
+          fetchMessagesSent(ndk, publicKey, pageParam, options?.limit || 30),
+          fetchMessagesReceived(ndk, publicKey, pageParam, options?.limit || 30),
+        ]),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Fetch timeout')), 20000)
+        )
       ]);
 
       console.log("directMessagesAll", directMessagesAll);
@@ -94,12 +115,19 @@ export const useGetMessagesSent = (options?: UseMyMessagesSentOptions):UseInfini
     },
     queryFn: async ({pageParam}) => {
       await checkIsConnected(ndk);
-      const directMessagesSent = await ndk.fetchEvents({
+      
+      // Add timeout to fetchEvents
+      const directMessagesSent = await Promise.race([
+        ndk.fetchEvents({
           kinds: [NDKKind.EncryptedDirectMessage],
           authors: [publicKey],
           // until: pageParam + 1 || undefined,
           limit: options?.limit || 30,
-        });
+        }),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+        )
+      ]);
 
       return directMessagesSent;
     },
@@ -123,13 +151,20 @@ export const useGetMessagesReceived = (options?: UseMyMessagesSentOptions):UseIn
     },
     queryFn: async ({pageParam}) => {
       await checkIsConnected(ndk);
-      const directMessagesReceived = await ndk.fetchEvents({
+      
+      // Add timeout to fetchEvents
+      const directMessagesReceived = await Promise.race([
+        ndk.fetchEvents({
           kinds: [NDKKind.EncryptedDirectMessage],
           '#p': [publicKey],
           since: pageParam || undefined,
           // until: pageParam + 1 || undefined,
           limit: options?.limit || 20,
-        });
+        }),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+        )
+      ]);
 
       return directMessagesReceived;
     },

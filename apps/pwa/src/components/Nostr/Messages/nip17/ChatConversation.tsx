@@ -6,7 +6,7 @@ import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 // importuseMyMessagesSent, useAuth, useProfile,  { NDKPrivateKeySigner } from '@nostr-dev-kit/ndk';
 // import { NDKUser } from '@nostr-dev-kit/ndk';
-import { useAuth, useSendPrivateMessage, useProfile, useMyMessagesSent, useIncomingMessageUsers, useNostrContext, checkIsConnected, useEncryptedMessage } from 'afk_nostr_sdk';
+import { useAuth, useSendPrivateMessage, useProfile, useMyMessagesSent, useIncomingMessageUsers, useNostrContext, checkIsConnected, useEncryptedMessage, useRelayAuthInit } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { logClickedEvent } from '@/lib/analytics';
@@ -42,6 +42,9 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const { showToast } = useUIStore();
     const [isSendingMessage, setIsSendingMessage] = useState(false);
     const { ndk } = useNostrContext();
+    
+    // Use the new relay auth initialization
+    const { isAuthenticated, isInitializing, hasError, errorMessage, initializeAuth } = useRelayAuthInit();
     // Use the old hooks for fetching conversation messages
     const roomIds = useMemo(() => [publicKey, receiverPublicKey], [publicKey, receiverPublicKey]);
     const { data: messagesSent, isLoading: isLoadingSent } = useMyMessagesSent({
@@ -75,12 +78,12 @@ export const ChatConversation: React.FC<ChatProps> = ({
     }, [allMessagesState]);
     useEffect(() => {
 
-        if(isNostrAuthed){
-            console.log("isNostrAuthed", isNostrAuthed);
+        if(isAuthenticated){
+            console.log("isAuthenticated", isAuthenticated);
             fetchAllMessages();
             fetchAllMessagesSubscription();
         }
-    }, [publicKey, receiverPublicKey, isNostrAuthed]);
+    }, [publicKey, receiverPublicKey, isAuthenticated]);
     // Combine and sort messages
     const allMessages = useMemo(() => {
         const sent = messagesSent?.pages?.flat() || [];

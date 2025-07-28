@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useAuth, useContacts, useGetAllMessages, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages } from 'afk_nostr_sdk';
+import { useAuth, useContacts, useGetAllMessages, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages, useRelayAuthInit } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
 import NDK, { NDKKind, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
@@ -23,6 +23,9 @@ export const NostrMessagesComponent: React.FC = () => {
   const { ndk } = useNostrContext();
   const [ndkSigner, setNdkSigner] = useState<NDKPrivateKeySigner | null>(null);
   const [ndkUser, setNdkUser] = useState<NDKUser | null>(null);
+  
+  // Use the new relay auth initialization
+  const { isAuthenticated, isInitializing, hasError, errorMessage, initializeAuth } = useRelayAuthInit();
 
   const handleGoBack = () => {
     setSelectedConversation(null);
@@ -50,6 +53,48 @@ export const NostrMessagesComponent: React.FC = () => {
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           Connect
+        </button>
+      </div>
+    );
+  }
+
+  // Show loading state while initializing authentication
+  if (isInitializing) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 space-y-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <p className="text-gray-600">Initializing relay authentication...</p>
+      </div>
+    );
+  }
+
+  // Show error state if authentication failed
+  if (hasError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 space-y-4">
+        <h2 className="text-xl font-semibold text-red-600">Authentication Failed</h2>
+        <p className="text-gray-600">{errorMessage}</p>
+        <button
+          onClick={() => initializeAuth()}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Retry Authentication
+        </button>
+      </div>
+    );
+  }
+
+  // Show message if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 space-y-4">
+        <h2 className="text-xl font-semibold">Authentication Required</h2>
+        <p className="text-gray-600">Please authenticate with relays to access messages</p>
+        <button
+          onClick={() => initializeAuth()}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Initialize Authentication
         </button>
       </div>
     );

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { useAuth, useGetAllMessages, useNostrContext, checkIsConnected } from 'afk_nostr_sdk';
+import { useAuth, useGetAllMessages, useNostrContext, checkIsConnected, useRelayAuthInit } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { useUIStore } from '@/store/uiStore';
 import { ChatConversation } from './ChatConversation';
@@ -21,9 +21,13 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
   const [showNewMessageForm, setShowNewMessageForm] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [subscription, setSubscription] = useState<any>(null);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
   const { ndk } = useNostrContext();
   const { showToast } = useUIStore();
+  
+  // Use the new relay auth initialization
+  const { isAuthenticated, isInitializing, hasError, errorMessage, initializeAuth } = useRelayAuthInit();
 
   // Group messages by conversation (sender-receiver pairs)
   const conversations = useMemo(() => {
@@ -66,6 +70,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
     }
     
     try {
+      setIsLoadingMessages(true);
       await checkIsConnected(ndk);
       
       // Test relay connection first
@@ -79,29 +84,29 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
         console.log('After connect - Connected relays:', newConnectedRelays.map(r => r.url));
       }
       
-      // Add timeout to prevent infinite loading
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Fetch timeout')), 10000); // 10 second timeout
-      });
-      
       console.log('Fetching NIP-04 messages...');
       // Fetch both sent and received messages with timeout
-      const fetchPromise = ndk.fetchEvents([
-        {
-          kinds: [4],
-          authors: [publicKey],
-          limit: 50,
-        },
-        {
-          kinds: [4],
-          '#p': [publicKey],
-          limit: 50,
-        }
+      const fetchPromise = Promise.race([
+        ndk.fetchEvents([
+          {
+            kinds: [4],
+            authors: [publicKey],
+            limit: 50,
+          },
+          {
+            kinds: [4],
+            '#p': [publicKey],
+            limit: 50,
+          }
+        ]),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+        )
       ]);
 
       console.log('Fetch promise:', fetchPromise);
 
-      const events = await Promise.race([fetchPromise, timeoutPromise]);
+      const events = await fetchPromise;
 
       console.log('Fetched NIP-04 messages:', events);
 
@@ -149,6 +154,8 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
       console.error('Error fetching NIP-04 messages:', error);
       // Don't throw error, just log it and continue
       setMessages([]);
+    } finally {
+      setIsLoadingMessages(false);
     }
   };
 
@@ -262,15 +269,17 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
   };
 
   useEffect(() => {
-    if (isNostrAuthed && publicKey && privateKey) {
+    if (isAuthenticated && publicKey && privateKey) {
       console.log('Initial NIP-04 messages fetch...');
       fetchAllMessages().catch(error => {
         console.error('Initial fetch failed:', error);
         // Don't show toast for initial fetch failures
       });
       setupMessageSubscription();
+    } else if (!isAuthenticated && publicKey && privateKey) {
+      console.log('NIP-04: Not authenticated, skipping message fetch');
     }
-  }, [publicKey, privateKey, isNostrAuthed]); // Remove fetchAllMessages from dependencies
+  }, [publicKey, privateKey, isAuthenticated]); // Remove fetchAllMessages from dependencies
 
   const handleConversationClick = (conversation: any) => {
     setSelectedConversation({
@@ -297,6 +306,48 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
     );
   }
 
+  // Show loading state while initializing
+  if (isInitializing) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 space-y-4">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <p className="text-gray-600">Initializing relay authentication...</p>
+      </div>
+    );
+  }
+
+  // Show error state if authentication failed
+  if (hasError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 space-y-4">
+        <h2 className="text-xl font-semibold text-red-600">Authentication Failed</h2>
+        <p className="text-gray-600">{errorMessage}</p>
+        <button
+          onClick={() => initializeAuth()}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Retry Authentication
+        </button>
+      </div>
+    );
+  }
+
+  // Show authentication required state
+  if (!isAuthenticated && publicKey && privateKey) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 space-y-4">
+        <h2 className="text-xl font-semibold">Authentication Required</h2>
+        <p className="text-gray-600">Please authenticate with relays to access messages</p>
+        <button
+          onClick={() => initializeAuth()}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Initialize Authentication
+        </button>
+      </div>
+    );
+  }
+
   if (!publicKey) {
     return (
       <div className="flex flex-col items-center justify-center p-4 space-y-4">
@@ -318,7 +369,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
         <div className="flex space-x-2">
           <button
             onClick={handleRefresh}
-            disabled={isRefreshing}
+            disabled={isRefreshing || isLoadingMessages}
             className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
           >
             {isRefreshing ? 'Refreshing...' : 'Refresh'}
@@ -333,7 +384,12 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = () =>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {conversations.length === 0 ? (
+        {isLoadingMessages ? (
+          <div className="flex flex-col items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <p className="mt-2 text-gray-600">Loading messages...</p>
+          </div>
+        ) : conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8 text-gray-500">
             <p>No conversations yet</p>
             <p className="text-sm">Start a conversation to see messages here</p>

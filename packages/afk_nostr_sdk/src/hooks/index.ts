@@ -97,4 +97,5 @@ export {useFetchEvents} from "./search/useFetchEvents"
 export {useGetAllMessages, useGetMessagesSent, useGetMessagesReceived, fetchMessagesSent, fetchMessagesReceived} from './messages/nip4/useGetMessages';
 export {useEncryptedMessage} from './messages/nip4/useEncryptedMessage';
 export {useConnect, checkIsConnected} from './connect';
+export {useRelayAuthInit} from './connect/useRelayAuthInit';
 export {useRelayAuth, useRelayAuthState} from './connect/auth';

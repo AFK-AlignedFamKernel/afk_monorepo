@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { checkIsConnected, deriveSharedKey, useAuth, useContacts, useGetAllMessages, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages, useSendPrivateMessage, v2 } from 'afk_nostr_sdk';
+import { checkIsConnected, deriveSharedKey, useAuth, useContacts, useGetAllMessages, useIncomingMessageUsers, useMyGiftWrapMessages, useMyMessagesSent, useNostrContext, useRoomMessages, useSendPrivateMessage, v2, useRelayAuthInit } from 'afk_nostr_sdk';
 import { useNostrAuth } from '@/hooks/useNostrAuth';
 import { FormPrivateMessage } from './FormPrivateMessage';
 import NDK, { NDKEvent, NDKKind, NDKPrivateKeySigner, NDKUser } from '@nostr-dev-kit/ndk';
@@ -22,6 +22,10 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
   const [activeTab, setActiveTab] = useState<"messages" | "contacts" | "followers" | "direct_messages">('messages');
   const [isProcessingMessages, setIsProcessingMessages] = useState(false);
   const [messagesData, setMessages] = useState<any>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  
+  // Use the new relay auth initialization
+  const { isAuthenticated, isInitializing, hasError, errorMessage, initializeAuth } = useRelayAuthInit();
   const messagesMemo = useMemo(() => {
 
     // console.log("messagesData", messagesData);
@@ -112,15 +116,22 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
       console.log("fetchMessagesSent");
 
-      const directMessagesSent = await ndk.fetchEvents({
-        kinds: [4 as NDKKind],
-        authors: [publicKey],
-        limit: limit || 10,
-      });
+      // Add timeout to fetchEvents
+      const directMessagesSent = await Promise.race([
+        ndk.fetchEvents({
+          kinds: [4 as NDKKind],
+          authors: [publicKey],
+          limit: limit || 10,
+        }),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+        )
+      ]);
+      
       console.log("directMessagesSent", directMessagesSent);
       return Array.from(directMessagesSent);
     } catch (error) {
-      console.log("error", error);
+      console.log("error fetchMessagesSent", error);
       return [];
     }
   };
@@ -130,11 +141,18 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     try {
       console.log("fetchMessagesReceived");
       await checkIsConnected(ndk);
-      const directMessagesReceived = await ndk.fetchEvents({
-        kinds: [4],
-        '#p': [publicKey],
-        limit: limit || 30,
-      });
+      
+      // Add timeout to fetchEvents
+      const directMessagesReceived = await Promise.race([
+        ndk.fetchEvents({
+          kinds: [4],
+          '#p': [publicKey],
+          limit: limit || 30,
+        }),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Fetch timeout')), 15000)
+        )
+      ]);
 
       console.log("directMessagesReceived", directMessagesReceived);
       return Array.from(directMessagesReceived);
@@ -146,54 +164,79 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
 
   const handleAllMessages = async () => {
-    console.log("publicKey", publicKey);
-    const messages = await fetchMessagesSent(ndk, publicKey, 10);
-    console.log("messages Sent", messages);
+    try {
+      setIsLoadingMessages(true);
+      console.log("publicKey", publicKey);
+      
+      // Add retry logic with exponential backoff
+      const fetchWithRetry = async (fetchFn: () => Promise<NDKEvent[]>, maxRetries = 3): Promise<NDKEvent[]> => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+          try {
+            return await fetchFn();
+          } catch (error) {
+            console.log(`Attempt ${attempt} failed:`, error);
+            if (attempt === maxRetries) {
+              throw error;
+            }
+            // Wait before retry (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+          }
+        }
+        return []; // Fallback return
+      };
 
-    const messagesReceived = await fetchMessagesReceived(ndk, publicKey, 10);
-    console.log("messagesReceived", messagesReceived);
-    const allMessages = [...messages, ...messagesReceived];
-    // console.log("allMessages", allMessages);
+      const messages = await fetchWithRetry(() => fetchMessagesSent(ndk, publicKey, 10));
+      console.log("messages Sent", messages);
 
-    let uniqueDm: any[] = [];
+      const messagesReceived = await fetchWithRetry(() => fetchMessagesReceived(ndk, publicKey, 10));
+      console.log("messagesReceived", messagesReceived);
+      
+      const allMessages = [...messages, ...messagesReceived];
+      console.log('allMessages', allMessages);
 
-    const uniqueConversations = allMessages.reduce((acc: any, message: any) => {
-      const key = `${message.pubkey}`;
-      if (!acc[key]) {
-        acc[key] = message;
-      }
+      let uniqueDm: any[] = [];
 
-      uniqueDm.push(message);
-      return acc;
-    }, {});
+      const uniqueConversations = allMessages.reduce((acc: any, message: any) => {
+        const key = `${message.pubkey}`;
+        if (!acc[key]) {
+          acc[key] = message;
+        }
 
-    console.log('allMessages', allMessages);
+        uniqueDm.push(message);
+        return acc;
+      }, {});
 
-    // Only add Nostr event if its pubkey is not already included in the accumulator
-    const seenPubkeys = new Set();
-    uniqueDm = uniqueDm.filter((item: any) => {
-      if (!item?.pubkey) return false;
-      if (seenPubkeys.has(item.pubkey)) {
-        return false;
-      }
-      seenPubkeys.add(item.pubkey);
-      return true;
-    });
+      // Only add Nostr event if its pubkey is not already included in the accumulator
+      const seenPubkeys = new Set();
+      uniqueDm = uniqueDm.filter((item: any) => {
+        if (!item?.pubkey) return false;
+        if (seenPubkeys.has(item.pubkey)) {
+          return false;
+        }
+        seenPubkeys.add(item.pubkey);
+        return true;
+      });
 
-    // console.log("uniqueDm", uniqueDm);
-    // const uniqueConversationsArray = Array.from(new Set(uniqueDm));
-    // console.log("uniqueConversationsArray", uniqueConversationsArray);
-
-    // setMessages((prev: any) => [...prev, Array.from(uniqueConversationsArray)]);
+      console.log("Successfully fetched messages:", uniqueDm.length);
+      // setMessages((prev: any) => [...prev, Array.from(uniqueConversationsArray)]);
+    } catch (error) {
+      console.error("Error fetching NIP-04 messages:", error);
+      // You could show a toast or error message here
+    } finally {
+      setIsLoadingMessages(false);
+    }
   };
 
   useEffect(() => {
-    console.log("isNostrAuthed", isNostrAuthed);
-    if (isNostrAuthed) {
+    console.log("isAuthenticated", isAuthenticated);
+    if (isAuthenticated && publicKey && privateKey) {
+      console.log("Starting message fetch and subscription");
       subscriptionEvent();
       handleAllMessages();
+    } else if (!isAuthenticated) {
+      console.log("Not authenticated, skipping message fetch");
     }
-  }, [isNostrAuthed]);
+  }, [isAuthenticated, publicKey, privateKey]);
 
   useEffect(() => {
     handleAllMessages();
@@ -429,8 +472,16 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
               </div>
             ) : (
               <div className="h-full">
-                {messagesMemo?.length === 0 && !incomingMessages?.pages?.flat()?.length && (
-                  <div className="flex items-center justify-center h-24"></div>
+                {isLoadingMessages && (
+                  <div className="flex items-center justify-center h-24">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <span className="ml-2 text-gray-600">Loading messages...</span>
+                  </div>
+                )}
+                {messagesMemo?.length === 0 && !incomingMessages?.pages?.flat()?.length && !isLoadingMessages && (
+                  <div className="flex items-center justify-center h-24">
+                    <span className="text-gray-500">No messages found</span>
+                  </div>
                 )}
                 <div className="overflow-y-auto h-full">
                   {messagesMemo?.map((item: any) => (
