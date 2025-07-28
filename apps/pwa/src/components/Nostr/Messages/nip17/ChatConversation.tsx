@@ -50,7 +50,17 @@ export const ChatConversation: React.FC<ChatProps> = ({
         console.log('ChatConversation: publicKey:', publicKey);
         
         if (type === "NIP17" && messagesData?.pages) {
-            const allMessages = messagesData.pages.flat();
+            // Extract messages from the pages structure
+            const allMessages = messagesData.pages.flat().map(page => {
+                // Handle both old format (direct array) and new format ({ messages: [] })
+                if (page && Array.isArray(page)) {
+                    return page;
+                } else if (page && page.messages) {
+                    return page.messages;
+                }
+                return [];
+            }).flat();
+            
             console.log('ChatConversation: allMessages:', allMessages);
             
             const filteredMessages = allMessages.filter((msg: any) => {

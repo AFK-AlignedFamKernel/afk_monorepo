@@ -45,9 +45,12 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
       return null;
     }
 
-    // Check if this event is meant for us (we should be tagged as recipient)
+    // Check if this event is meant for us (we should be tagged as recipient OR be the sender)
     const recipientTag = giftWrapEvent.tags?.find(tag => tag[0] === 'p');
-    if (!recipientTag || recipientTag[1] !== currentUserPublicKey) {
+    const isRecipient = recipientTag && recipientTag[1] === currentUserPublicKey;
+    const isSender = giftWrapEvent.pubkey === currentUserPublicKey;
+    
+    if (!isRecipient && !isSender) {
       console.warn('Gift wrap event is not meant for us:', recipientTag?.[1], 'vs', currentUserPublicKey);
       console.log('NIP-17: Skipping event with tags:', giftWrapEvent.tags);
       return null;
@@ -482,7 +485,16 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
   return useInfiniteQuery({
     queryKey: ['nip17-messages-between', otherUserPublicKey, options.limit, ndk],
     queryFn: async ({ pageParam = 0 }) => {
+      console.log('useNip17MessagesBetweenUsers: Starting query with params:', {
+        otherUserPublicKey,
+        publicKey,
+        hasPrivateKey: !!privateKey,
+        hasNdk: !!ndk,
+        pageParam
+      });
+
       if (!ndk || !publicKey || !privateKey || !otherUserPublicKey) {
+        console.log('useNip17MessagesBetweenUsers: Missing required params');
         return { messages: [], nextCursor: undefined };
       }
 
@@ -508,7 +520,13 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
         }),
       ]);
 
+      console.log('useNip17MessagesBetweenUsers: Fetched events:', {
+        sentEventsCount: sentEvents.size,
+        receivedEventsCount: receivedEvents.size
+      });
+
       const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents)];
+      console.log('useNip17MessagesBetweenUsers: Total events:', allEvents.length);
 
       // Decrypt all events
       const decryptedEvents = await Promise.all(
@@ -518,6 +536,8 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
       const validMessages = decryptedEvents
         .filter(event => event !== null)
         .sort((a, b) => (a?.created_at || 0) - (b?.created_at || 0));
+
+      console.log('useNip17MessagesBetweenUsers: Valid messages:', validMessages.length);
 
       const nextCursor = allEvents.length === limit ? allEvents[allEvents.length - 1]?.created_at : undefined;
 
