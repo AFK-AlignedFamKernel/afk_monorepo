@@ -39,9 +39,14 @@ export const ChatConversation: React.FC<ChatProps> = ({
     const queryClient = useQueryClient();
 
     // Use the messages passed from parent component instead of calling the hook again
-    const messagesData = { pages: [messagesSentParents] };
+    const messagesData = { pages: messagesSentParents };
     const isLoadingMessages = false; // We're not loading since data is passed from parent
     const refetchMessages = () => {}; // No-op since parent handles refetching
+
+    console.log('ChatConversation: messagesSentParents:', messagesSentParents);
+    console.log('ChatConversation: messagesData:', messagesData);
+    console.log('ChatConversation: messagesData.pages:', messagesData.pages);
+    console.log('ChatConversation: messagesData.pages[0]:', messagesData.pages?.[0]);
 
     // Process messages for NIP-17
     const processedMessages = useMemo(() => {
@@ -52,16 +57,23 @@ export const ChatConversation: React.FC<ChatProps> = ({
         if (type === "NIP17" && messagesData?.pages) {
             // Extract messages from the pages structure
             const allMessages = messagesData.pages.flat().map(page => {
-                // Handle both old format (direct array) and new format ({ messages: [] })
-                if (page && Array.isArray(page)) {
-                    return page;
-                } else if (page && page.messages) {
+                console.log('ChatConversation: Processing page:', page);
+                // Handle the format where each page has a messages property (from useNip17MessagesBetweenUsers)
+                if (page && page.messages && Array.isArray(page.messages)) {
+                    console.log('ChatConversation: Found messages array in page:', page.messages);
                     return page.messages;
                 }
+                // Handle direct array format
+                if (page && Array.isArray(page)) {
+                    console.log('ChatConversation: Found direct array page:', page);
+                    return page;
+                }
+                console.log('ChatConversation: No valid message structure found in page:', page);
                 return [];
             }).flat();
             
             console.log('ChatConversation: allMessages:', allMessages);
+            console.log('ChatConversation: allMessages length:', allMessages.length);
             
             const filteredMessages = allMessages.filter((msg: any) => {
                 const hasContent = msg && msg.decryptedContent;

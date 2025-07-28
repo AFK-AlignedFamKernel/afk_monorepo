@@ -56,9 +56,6 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
       return null;
     }
 
-    // Note: We now decrypt messages sent by us as well to show them in conversations
-    // This allows us to display the full conversation history including our own messages
-
     console.log('NIP-17: Attempting to decrypt content with length:', giftWrapEvent.content.length);
 
     // Try both decryption methods: old method first, then NIP-44
@@ -107,6 +104,11 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
         
         // For NIP-44, we need to use the other party's public key for decryption
         const otherPartyPubkey = isSender ? receiverPublicKey : senderPublicKey;
+        
+        if (!otherPartyPubkey) {
+          console.warn('No other party public key found for NIP-44 decryption');
+          return null;
+        }
         
         decryptedContent = v2.decryptNip44(giftWrapEvent.content, privateKey, otherPartyPubkey);
         decryptionMethod = 'nip44';
@@ -185,11 +187,16 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
         // For NIP-44 seal event decryption, use the other party's public key
         const otherPartyPubkey = isSender ? receiverPublicKey : senderPublicKey;
         
+        if (!otherPartyPubkey) {
+          console.warn('No other party public key found for NIP-44 seal decryption');
+          return null;
+        }
+        
         actualMessage = v2.decryptNip44(sealEvent.content, privateKey, otherPartyPubkey);
         sealDecryptionMethod = 'nip44';
         console.log('NIP-17: Successfully decrypted seal event content using NIP-44');
       } catch (nip44SealError) {
-        console.error('NIP-17: Failed to decrypt seal event content with both methods:', nip44SealError);
+        console.error('NIP-17: Failed to decrypt seal event content with NIP-44:', nip44SealError);
         
         // Try one more approach: use the seal event's own pubkey for decryption
         try {
@@ -203,15 +210,31 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
       }
     }
 
+    if (!actualMessage) {
+      console.error('NIP-17: Failed to decrypt seal event content with all methods');
+      return null;
+    }
+
     console.log('NIP-17: Successfully decrypted seal event content, length:', actualMessage.length);
+
+    // Extract the actual sender and receiver from the seal event
+    const sealRecipientTag = sealEvent.tags?.find(tag => tag[0] === 'p');
+    const actualSenderPubkey = sealEvent.pubkey;
+    const actualReceiverPubkey = sealRecipientTag?.[1];
+
+    console.log('NIP-17: Seal event participants:', {
+      actualSenderPubkey,
+      actualReceiverPubkey,
+      currentUserPublicKey
+    });
 
     return {
       ...giftWrapEvent,
       decryptedContent: actualMessage,
       sealEvent,
       // Add the actual sender pubkey from the seal event for proper conversation grouping
-      actualSenderPubkey: sealEvent.pubkey,
-      actualReceiverPubkey: sealEvent.tags?.find(tag => tag[0] === 'p')?.[1],
+      actualSenderPubkey,
+      actualReceiverPubkey,
     };
   } catch (error) {
     console.error('Error decrypting gift wrap content:', error);
@@ -535,22 +558,39 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
         allReceivedEventsCount: allReceivedEvents.size
       });
 
+      console.log('useNip17MessagesBetweenUsers: sentEvents:', Array.from(sentEvents));
+      console.log('useNip17MessagesBetweenUsers: receivedEvents:', Array.from(receivedEvents));
+      console.log('useNip17MessagesBetweenUsers: allReceivedEvents:', Array.from(allReceivedEvents));
+
       const allEvents = [...Array.from(sentEvents), ...Array.from(receivedEvents), ...Array.from(allReceivedEvents)];
       console.log('useNip17MessagesBetweenUsers: Total events:', allEvents.length);
 
       // Decrypt all events
+      console.log('useNip17MessagesBetweenUsers: Attempting to decrypt', allEvents.length, 'events');
       const decryptedEvents = await Promise.all(
         allEvents.map(event => decryptGiftWrapContent(event, privateKey, publicKey))
       );
+      console.log('useNip17MessagesBetweenUsers: Decrypted events:', decryptedEvents);
 
       // Filter messages to only include those between the two specific users
+      console.log('useNip17MessagesBetweenUsers: Filtering decrypted events...');
       const validMessages = decryptedEvents
         .filter(event => {
-          if (!event) return false;
+          if (!event) {
+            console.log('useNip17MessagesBetweenUsers: Filtering out null event');
+            return false;
+          }
           
           // Check if this message is between the two users
           const actualSenderPubkey = event.actualSenderPubkey;
           const actualReceiverPubkey = event.actualReceiverPubkey;
+          
+          console.log('useNip17MessagesBetweenUsers: Checking event:', {
+            actualSenderPubkey,
+            actualReceiverPubkey,
+            publicKey,
+            otherUserPublicKey
+          });
           
           // Message is between the two users if:
           // 1. We sent it to the other user, OR
@@ -558,7 +598,25 @@ export const useNip17MessagesBetweenUsers = (otherUserPublicKey: string, options
           const isFromUsToThem = actualSenderPubkey === publicKey && actualReceiverPubkey === otherUserPublicKey;
           const isFromThemToUs = actualSenderPubkey === otherUserPublicKey && actualReceiverPubkey === publicKey;
           
-          return isFromUsToThem || isFromThemToUs;
+          // Also check if this is a self-message (user talking to themselves)
+          const isSelfMessage = actualSenderPubkey === actualReceiverPubkey && 
+            (actualSenderPubkey === publicKey || actualSenderPubkey === otherUserPublicKey);
+          
+          // More permissive: if we can't determine the exact participants, but we have decrypted content,
+          // include it if it's from either user
+          const hasDecryptedContent = event.decryptedContent && event.decryptedContent.trim() !== '';
+          const isFromEitherUser = actualSenderPubkey === publicKey || actualSenderPubkey === otherUserPublicKey;
+          
+          const isValid = isFromUsToThem || isFromThemToUs || isSelfMessage || (hasDecryptedContent && isFromEitherUser);
+          console.log('useNip17MessagesBetweenUsers: Event valid:', isValid, { 
+            isFromUsToThem, 
+            isFromThemToUs, 
+            isSelfMessage,
+            hasDecryptedContent,
+            isFromEitherUser
+          });
+          
+          return isValid;
         })
         .sort((a, b) => (a?.created_at || 0) - (b?.created_at || 0));
 

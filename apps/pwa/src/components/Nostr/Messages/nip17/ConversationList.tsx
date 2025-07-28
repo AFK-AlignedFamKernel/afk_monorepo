@@ -52,12 +52,26 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
     selectedConversation?.participant || '',
     {
       enabled: type === "NIP17" && !!selectedConversation?.participant && !!publicKey && !!privateKey,
+      limit: 50,
     }
   );
+
+  console.log("Hook enabled condition:", {
+    type,
+    hasParticipant: !!selectedConversation?.participant,
+    hasPublicKey: !!publicKey,
+    hasPrivateKey: !!privateKey,
+    enabled: type === "NIP17" && !!selectedConversation?.participant && !!publicKey && !!privateKey
+  });
 
   console.log("conversations", conversations);
   console.log("messagesBetweenUsers", messagesBetweenUsers);
   console.log("selectedConversation", selectedConversation);
+  console.log("messagesBetweenUsers?.pages", messagesBetweenUsers?.pages);
+  console.log("Hook enabled:", type === "NIP17" && !!selectedConversation?.participant && !!publicKey && !!privateKey);
+  console.log("selectedConversation?.participant:", selectedConversation?.participant);
+  console.log("messagesBetweenUsers?.pages?.[0]", messagesBetweenUsers?.pages?.[0]);
+  console.log("Passing messagesSentParents:", messagesBetweenUsers?.pages || []);
 
   // Handle refresh for NIP-17
   const handleRefresh = useCallback(async () => {
@@ -101,11 +115,15 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
 
   const handleConversationClick = (conversation: any) => {
     console.log("conversation", conversation);
-    setSelectedConversation({
+    const selectedConv = {
       ...conversation,
       senderPublicKey: publicKey,
       receiverPublicKey: conversation.participant,
-    });
+      participant: conversation.participant, // Keep the participant property for the hook
+    };
+    console.log("selectedConv", selectedConv);
+    console.log("selectedConv.participant:", selectedConv.participant);
+    setSelectedConversation(selectedConv);
     setIsBack(false);
   };
 
@@ -199,7 +217,7 @@ export const NostrConversationList: React.FC<NostrConversationListProps> = ({ ty
                   publicKeyProps={publicKey || ''}
                   receiverPublicKey={selectedConversation.receiverPublicKey}
                   handleGoBack={handleGoBack}
-                  messagesSentParents={messagesBetweenUsers?.pages?.flat() || []}
+                  messagesSentParents={messagesBetweenUsers?.pages || []}
                   type="NIP17"
                 />
               </div>
