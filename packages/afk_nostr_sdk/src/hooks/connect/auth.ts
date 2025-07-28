@@ -56,6 +56,9 @@ interface AuthResponse {
   signature: string;
 }
 
+// Shared authentication state to avoid circular dependencies
+let globalRelayAuthState: { [relayUrl: string]: 'pending' | 'authenticated' | 'failed' } = {};
+
 /**
  * Hook for handling NIP-42 relay authentication
  * 
@@ -76,6 +79,11 @@ export const useRelayAuth = () => {
   // Track challenges we've already responded to to prevent infinite loops
   const respondedChallenges = useRef<Set<string>>(new Set());
   const challengeAttempts = useRef<Map<string, number>>(new Map());
+
+  // Update global state when local state changes
+  useEffect(() => {
+    globalRelayAuthState = relayAuthState;
+  }, [relayAuthState]);
 
   // 1. Set up the default auth policy for all relays (only once)
   useEffect(() => {
@@ -127,7 +135,7 @@ export const useRelayAuth = () => {
           authEvent.tags = [
             ["relay", relay.url],
             ["challenge", challenge],
-            ["origin", typeof window !== "undefined" ? window.location.origin : ""],
+            ["origin", typeof window !== "undefined" ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || ""],
           ];
           await authEvent.sign();
           
@@ -145,7 +153,7 @@ export const useRelayAuth = () => {
         }
       });
       ndk.pool.on("relay:authed", (relay) => {
-        console.log("relay:authed; auth with relay: ", relay.url);
+        console.log("✅ relay:authed; auth with relay: ", relay.url);
         setRelayAuthState(prev => ({ ...prev, [relay.url]: 'authenticated' }));
         setIsNostrAuthed(true);
         
@@ -253,16 +261,19 @@ export const useRelayAuthState = () => {
 
   /**
    * Get authentication status for all connected relays
-   * Note: This is a placeholder - in practice, you'd track auth state
    */
   const getAuthStatus = () => {
     const connectedRelays = ndk.pool.connectedRelays();
     const authStatus: Record<string, boolean> = {};
 
+    console.log('🔍 Checking auth status for relays:', connectedRelays.map(r => r.url));
+    console.log('🔍 Global auth state:', globalRelayAuthState);
+
     connectedRelays.forEach((relay) => {
-      // In practice, you'd track authentication state per relay
-      // For now, we'll assume relays are authenticated if connected
-      authStatus[relay.url] = true; // Placeholder
+      // Check actual authentication state from global relayAuthState
+      const authState = globalRelayAuthState[relay.url];
+      authStatus[relay.url] = authState === 'authenticated';
+      console.log(`🔍 Relay ${relay.url}: ${authState} -> ${authStatus[relay.url]}`);
     });
 
     return authStatus;
