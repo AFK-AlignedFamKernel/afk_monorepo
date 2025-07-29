@@ -143,7 +143,9 @@ func main() {
 	defer conn.Close()
 	db = conn
 	repository = NewNostrRepository(db)
-	scraper = NewNoteScraper(db)
+
+	backupAfkRelay := os.Getenv("BACKUP_AFK_RELAY")
+	scraper = NewNoteScraper(db, backupAfkRelay == "true")
 	wsManager = NewWebSocketManager()
 	InitWeights() // <-- call this after setting up the environment
 

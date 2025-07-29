@@ -53,12 +53,12 @@ type NoteScraper struct {
 	isBackupAfkRelay bool
 }
 
-func NewNoteScraper(db *sql.DB) *NoteScraper {
+func NewNoteScraper(db *sql.DB, isBackupAfkRelay bool) *NoteScraper {
 	return &NoteScraper{
 		db:               db,
 		pool:             nostr.NewSimplePool(context.Background()),
 		relays:           relays, // Use the global relays from main.go
-		isBackupAfkRelay: true,
+		isBackupAfkRelay: isBackupAfkRelay,
 	}
 }
 
