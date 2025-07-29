@@ -18,6 +18,7 @@ export const RELAYS_TEST = [
   // 'wss://relay.damus.io',
   // 'wss://relay.snort.social',
   'wss://relay.nostr.band',
+
 ];
 
 // export const RELAYS_TEST = ['wss://relay.n057r.club', 'wss://relay.nostr.net'];
@@ -35,5 +36,6 @@ export const AFK_RELAYS =
     ]
     : [
       // ...RELAYS_TEST,
-      'wss://nostr-relay-nestjs-production.up.railway.app',
+      'wss://nostr-relay-nestjs-staging.up.railway.app',
+      // 'wss://nostr-relay-nestjs-production.up.railway.app',
     ];

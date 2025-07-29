@@ -320,8 +320,10 @@ func main() {
 
 		// Always run initial article and video scraping on startup
 		log.Println("📰🎥 Running initial article and video scraping...")
-		scraper.ScrapeArticleVideoNotes()
-		log.Println("✅ Initial article and video scraping completed")
+		go func() {
+			scraper.ScrapeArticleVideoNotes()
+			log.Println("✅ Initial article and video scraping completed")
+		}()
 
 		// Wait a bit for other services to initialize
 		time.Sleep(5 * time.Second)
