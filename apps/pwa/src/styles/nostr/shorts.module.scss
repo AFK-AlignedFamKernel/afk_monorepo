@@ -56,9 +56,10 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     // width: calc(100% - $sidebar-width);
     width: 100%;
     height: 100vh;
-    overflow-y: scroll;
+    overflow-y: auto;
     scroll-snap-type: y mandatory;
     background-color: var(--background);
+    touch-action: pan-y; // Enable vertical touch scrolling
 
     // Hide scrollbar for Chrome, Safari and Opera
     &::-webkit-scrollbar {
@@ -77,6 +78,7 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     width: 100%;
     height: 100%;
     cursor: pointer;
+    touch-action: manipulation; // Optimize for touch interactions
   }
 
   &__video-wrapper {
@@ -86,6 +88,7 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
     display: flex;
     justify-content: center;
     align-items: center;
+    touch-action: manipulation; // Optimize for touch interactions
   }
 
   &__video {
@@ -261,14 +264,13 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
 
 @media (max-width: 768px) {
   .nostr-short-feed {
-
-
     // margin-bottom: calc($header-height + $bottom-height);
 
     &__container {
       height: 100vh;
+      -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
+      overscroll-behavior: contain; // Prevent overscroll
     }
-
 
     &__video-container {
       position: relative;
@@ -276,7 +278,7 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
       height: 100%;
       cursor: pointer;
       margin-bottom: calc($header-height + $bottom-height);
-
+      touch-action: manipulation;
     }
 
     &__video-wrapper {
@@ -287,13 +289,14 @@ $bottom-height: 56px !default; // Adjust to match your bottom nav/footer height
       justify-content: center;
       align-items: center;
       margin-bottom: calc($header-height + $bottom-height);
-
+      touch-action: manipulation;
     }
 
     &__video {
       width: 100%;
       height: 100%;
       object-fit: contain;
+      touch-action: manipulation;
     }
   }
 }
