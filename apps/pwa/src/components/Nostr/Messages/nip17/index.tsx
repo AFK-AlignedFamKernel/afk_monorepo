@@ -81,21 +81,21 @@ export const NostrMessagesComponent: React.FC = () => {
     );
   }
 
-  // Show message if not authenticated
-  if (!isAuthenticated) {
-    return (
-      <div className="flex flex-col items-center justify-center p-4 space-y-4">
-        <h2 className="text-xl font-semibold">Authentication Required</h2>
-        <p className="text-gray-600">Please authenticate with relays to access messages</p>
-        <button
-          onClick={() => initializeAuth()}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Initialize Authentication
-        </button>
-      </div>
-    );
-  }
+  // // Show message if not authenticated
+  // if (!isAuthenticated) {
+  //   return (
+  //     <div className="flex flex-col items-center justify-center p-4 space-y-4">
+  //       <h2 className="text-xl font-semibold">Authentication Required</h2>
+  //       <p className="text-gray-600">Please authenticate with relays to access messages</p>
+  //       <button
+  //         onClick={() => initializeAuth()}
+  //         className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+  //       >
+  //         Initialize Authentication
+  //       </button>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="flex flex-col h-full">
