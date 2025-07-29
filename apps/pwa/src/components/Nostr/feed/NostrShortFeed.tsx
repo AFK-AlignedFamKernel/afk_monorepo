@@ -5,7 +5,7 @@ import { NDKKind as NDK } from '@nostr-dev-kit/ndk';
 import { useSearch, useNostrContext, useFetchEvents } from 'afk_nostr_sdk';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { VideoPlayer } from '../EventCard/NostrVideoPlayer';
-import styles from '@/styles/nostr/feed.module.scss';
+import styles from '@/styles/nostr/shorts.module.scss';
 
 interface NostrFeedProps {
   kinds?: number[];
@@ -38,6 +38,11 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<(HTMLDivElement | null)[]>([]);
   const { ndk } = useNostrContext();
+
+  // Touch handling for mobile
+  const touchStartY = useRef<number>(0);
+  const touchStartTime = useRef<number>(0);
+  const isTouchScrolling = useRef<boolean>(false);
 
   // Set container height on client-side
   useEffect(() => {
@@ -155,6 +160,8 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
 
   // Handle smooth scrolling between videos
   const scrollToVideo = useCallback((index: number) => {
+    console.log('scrollToVideo called with index:', index, 'events length:', events.length);
+
     if (index >= 0 && index < events.length && videoRefs.current[index]) {
       // Pause all videos
       document.querySelectorAll('video').forEach((video) => {
@@ -164,16 +171,39 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
         }
       });
 
-      videoRefs.current[index]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
+      const targetElement = videoRefs.current[index];
+      if (targetElement) {
+        console.log('Scrolling to element:', targetElement);
 
-      setCurrentVideoIndex(index);
+        // Try scrollIntoView first
+        targetElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+
+        // Fallback: manually scroll the container
+        setTimeout(() => {
+          if (containerRef.current) {
+            const container = containerRef.current;
+            const targetRect = targetElement.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            const scrollTop = container.scrollTop + (targetRect.top - containerRect.top);
+
+            container.scrollTo({
+              top: scrollTop,
+              behavior: 'smooth'
+            });
+          }
+        }, 100);
+
+        setCurrentVideoIndex(index);
+      }
+    } else {
+      console.log('Invalid scroll target:', { index, eventsLength: events.length, hasRef: !!videoRefs.current[index] });
     }
   }, [events.length]);
 
-  // Handle wheel event for scrolling between videos
+  // Handle wheel event for scrolling between videos (desktop)
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
 
@@ -192,21 +222,74 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
     }
   }, [currentVideoIndex, events.length, scrollToVideo]);
 
-  // Set up wheel event listener
+  // Handle touch events for mobile scrolling
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+    touchStartTime.current = Date.now();
+    isTouchScrolling.current = false;
+    console.log('Touch start:', touchStartY.current);
+  }, []);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (e.touches.length > 1) return; // Ignore multi-touch
+
+    const touchY = e.touches[0].clientY;
+    const deltaY = touchStartY.current - touchY;
+    const timeDelta = Date.now() - touchStartTime.current;
+
+    console.log('Touch move:', { deltaY, timeDelta, currentIndex: currentVideoIndex });
+
+    // Only handle significant vertical swipes
+    if (Math.abs(deltaY) > 50 && timeDelta > 100) {
+      isTouchScrolling.current = true;
+
+      const now = Date.now();
+      const timeSinceLastScroll = now - lastScrollTimeRef.current;
+
+      if (timeSinceLastScroll < 500) return; // Debounce touch scrolling
+
+      const direction = deltaY > 0 ? 1 : -1;
+      const newIndex = currentVideoIndex + direction;
+
+      console.log('Attempting to scroll to video:', newIndex, 'from:', currentVideoIndex);
+
+      if (newIndex >= 0 && newIndex < events.length) {
+        lastScrollTimeRef.current = now;
+        scrollToVideo(newIndex);
+      }
+    }
+  }, [currentVideoIndex, events.length, scrollToVideo]);
+
+  const handleTouchEnd = useCallback((e: TouchEvent) => {
+    // Reset touch state
+    isTouchScrolling.current = false;
+    console.log('Touch end');
+  }, []);
+
+  // Set up wheel and touch event listeners
   useEffect(() => {
     const container = containerRef.current;
     if (container) {
+      // Desktop wheel events
       container.addEventListener('wheel', handleWheel, { passive: false });
+
+      // Mobile touch events
+      container.addEventListener('touchstart', handleTouchStart, { passive: true });
+      container.addEventListener('touchmove', handleTouchMove, { passive: false });
+      container.addEventListener('touchend', handleTouchEnd, { passive: true });
     }
     return () => {
       if (container) {
         container.removeEventListener('wheel', handleWheel);
+        container.removeEventListener('touchstart', handleTouchStart);
+        container.removeEventListener('touchmove', handleTouchMove);
+        container.removeEventListener('touchend', handleTouchEnd);
       }
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [handleWheel]);
+  }, [handleWheel, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   // Initialize video refs array when events change
   useEffect(() => {
@@ -250,6 +333,23 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
       className={`${styles['nostr-short-feed__container']} ${className}`}
       style={{ height: `${containerHeight}px`, overflow: 'hidden' }}
     >
+      {/* Debug indicator */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{
+          position: 'fixed',
+          top: '10px',
+          left: '10px',
+          background: 'rgba(0,0,0,0.7)',
+          color: 'white',
+          padding: '5px 10px',
+          borderRadius: '5px',
+          fontSize: '12px',
+          zIndex: 1000
+        }}>
+          Video {currentVideoIndex + 1} of {events.length}
+        </div>
+      )}
+
       {events.length === 0 && !isLoading && !isFetching ? (
         <div className={styles['nostr-feed__empty-state']}>
           <p>No videos found. Try following more users or changing filters.</p>
@@ -275,7 +375,7 @@ export const NostrShortFeed: React.FC<NostrFeedProps> = ({
             return (
               <div
                 key={index}
-                ref={(el) => { 
+                ref={(el) => {
                   videoRefs.current[index] = el;
                   if (isLastItem) {
                     loaderRef.current = el;

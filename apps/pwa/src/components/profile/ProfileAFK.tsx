@@ -28,15 +28,15 @@ export default function ProfileAfk() {
 
       {activeTab === undefined && (
 
-        <div className="flex flex-col md:grid md:grid-cols-2 gap-8 overflow-x-auto">
+        <div className="flex flex-col md:grid md:grid-cols-1 gap-8 overflow-x-auto">
 
-          <div className="bg-contrast-100 p-6 rounded-lg shadow-lg text-left">
-            <h2 className="text-sm font-semibold mb-4 italic">Decentralized Identities</h2>
+          <div className="bg-contrast-100 p-6 rounded-lg shadow-lg text-left border-2 border-contrast-200 m-2">
+            <h2 className="text-md font-semibold mb-4 italic">Decentralized Identities</h2>
             <div className="flex flex-row gap-2 py-4">
 
               <button 
               // className="btn btn-basic   p-4 flex items-center gap-2" 
-              className="btn btn-basic  w-full  rounded-md border-2 border-contrast-200  p-4 flex items-center gap-2"
+              className="btn btn-basic  w-full  rounded-md border-2 border-contrast-200  p-4 flex items-center gap-2 cursor-pointer"
 
               onClick={() => {
                 logClickedEvent("login-button-modal-profile-afk")
@@ -53,7 +53,7 @@ export default function ProfileAfk() {
                 logClickedEvent("nostr--edit-my-profile")
                 handleTabChange("nostr")
               }} 
-              className="btn btn-basic  w-full  rounded-md border-2 border-contrast-200  p-4 flex items-center gap-2"
+              className=" w-full  justify-between rounded-md border-2 border-contrast-200  p-2 text-left flex items-center gap-2"
               >
                 <div className={`${activeTab === "nostr" ? "text-contrast-500" : ""}`}>
                   <p className="font-semibold text-left">Nostr Profile</p>
@@ -67,7 +67,7 @@ export default function ProfileAfk() {
               <button onClick={() => {
                 logClickedEvent("messages-selected")
                 handleTabChange("dm")
-              }} className="btn w-full flex justify-between border-2 border-contrast-200 rounded-lg">
+              }} className="btn w-full flex justify-between border-2 rounded-lg text-left p-2">
                 <div>
                   <p className="font-semibold">Messages</p>
                   <p className="text-sm opacity-80">Manage your messages</p>
@@ -79,8 +79,8 @@ export default function ProfileAfk() {
             </div>
           </div>
 
-          <div className="bg-contrast-100 p-6 rounded-lg shadow-lg text-left">
-            <h2 className="text-sm font-semibold mb-4 italic">Connected Accounts</h2>
+          <div className="bg-contrast-100 p-6 rounded-lg shadow-lg text-left border-2 border-contrast-200 m-2">
+            <h2 className="text-md font-semibold mb-4 italic">Connected Accounts</h2>
             <div className="space-y-4">
 
 
@@ -92,8 +92,10 @@ export default function ProfileAfk() {
                   <p className="font-semibold">Brand Profile</p>
                   <p className="text-sm opacity-80">Manage your brand identity</p>
                 </div>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </button>
-
 
 
               <button onClick={() => {

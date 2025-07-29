@@ -24,7 +24,8 @@ export const CommentContainer: React.FC<CommentContainerProps> = (props) => {
   const displayContent = shouldTruncate ? `${content.substring(0, 280)}...` : content;
   const [comment, setComment] = useState('');
   const { data: note = event } = useNote({ noteId: event?.id ?? '' });
-  const comments = useReplyNotes({ noteId: note?.id });
+  const comments = useReplyNotes({ noteId: event?.id || note?.id });
+  console.log("comments", comments);
   const sendNote = useSendNote();
   const [isOpenComment, setIsOpenComment] = useState(false);
   const { showToast } = useUIStore();

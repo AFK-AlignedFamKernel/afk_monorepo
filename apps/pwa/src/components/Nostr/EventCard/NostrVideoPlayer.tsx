@@ -10,7 +10,7 @@ import { useUIStore } from '@/store/uiStore';
 import CommentContainer from './Comment/CommentContainer';
 import { useQueryClient } from '@tanstack/react-query';
 import { ProfileCardOverview } from './ProfileCardOverview';
-import styles from '@/styles/nostr/feed.module.scss';
+import styles from '@/styles/nostr/shorts.module.scss';
 import Image from 'next/image';
 
 export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean, className?: string }> = ({ event, isAutoPlay = false, className }) => {
@@ -226,7 +226,7 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean, clas
   }
 
   const displayName = profile?.displayName || profile?.name || event.pubkey.substring(0, 8);
-  const timestamp = new Date(event.created_at * 1000).toLocaleDateString();
+  const timestamp = new Date((event.created_at || 0) * 1000).toLocaleDateString();
   const toggleLike = async () => {
     if (!event?.id) return;
 
@@ -278,6 +278,10 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean, clas
             handleVideoPlay();
           }}
           onTouchStart={(e) => {
+            // Don't stop propagation on touch start to allow parent scroll
+            // Only handle video play on touch end to avoid conflicts
+          }}
+          onTouchEnd={(e) => {
             e.stopPropagation();
             handleVideoPlay();
           }}

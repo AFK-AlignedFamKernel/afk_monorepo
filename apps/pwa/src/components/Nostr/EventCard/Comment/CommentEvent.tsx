@@ -129,7 +129,7 @@ export const CommentEvent: React.FC<CommentContainerProps> = (props) => {
         transition: 'background 0.2s, border-color 0.2s',
       }}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 text-left">
         <div className="flex-shrink-0">
           <button
             className="rounded-full overflow-hidden border-2"
@@ -194,8 +194,24 @@ export const CommentEvent: React.FC<CommentContainerProps> = (props) => {
               {event?.created_at ? formatTimestamp(event?.created_at) : ''}
             </span>
           </div>
-          <div className="mt-2">
-            <div className="whitespace-pre-wrap break-words text-[15px]">
+          <div className="my-2">
+          <div className="whitespace-pre-wrap break-words text-[18px]">
+              {isExpandedContent || !shouldTruncate
+                ? <p>{content}</p>
+                : (
+                  <>
+                    <p>{displayContent}</p>
+                    <button
+                      className="ml-1 text-xs text-blue-500 hover:underline"
+                      onClick={() => setIsExpandedContent(true)}
+                    >
+                      Read more
+                    </button>
+                  </>
+                )
+              }
+            </div>
+            {/* <div className="whitespace-pre-wrap break-words text-[15px]">
               {isExpandedContent || !shouldTruncate
                 ? formatContent(content)
                 : (
@@ -210,7 +226,7 @@ export const CommentEvent: React.FC<CommentContainerProps> = (props) => {
                   </>
                 )
               }
-            </div>
+            </div> */}
           </div>
           <div className="mt-3 flex items-center gap-4 text-sm">
             <button

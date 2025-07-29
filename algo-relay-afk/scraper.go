@@ -46,17 +46,19 @@ type TrendingNote struct {
 }
 
 type NoteScraper struct {
-	db            *sql.DB
-	pool          *nostr.SimplePool
-	relays        []string
-	scrapingMutex sync.Mutex
+	db               *sql.DB
+	pool             *nostr.SimplePool
+	relays           []string
+	scrapingMutex    sync.Mutex
+	isBackupAfkRelay bool
 }
 
-func NewNoteScraper(db *sql.DB) *NoteScraper {
+func NewNoteScraper(db *sql.DB, isBackupAfkRelay bool) *NoteScraper {
 	return &NoteScraper{
-		db:     db,
-		pool:   nostr.NewSimplePool(context.Background()),
-		relays: relays, // Use the global relays from main.go
+		db:               db,
+		pool:             nostr.NewSimplePool(context.Background()),
+		relays:           relays, // Use the global relays from main.go
+		isBackupAfkRelay: isBackupAfkRelay,
 	}
 }
 
@@ -88,11 +90,13 @@ func (s *NoteScraper) StartArticleVideoScrapingCron() {
 	log.Println("📰🎥 Starting ArticleKind and Video scraping cron job (every 30 minutes)")
 
 	// Run initial scrape
+	log.Println("📰🎥 Running initial article and video scrape...")
 	s.ScrapeArticleVideoNotes()
 
 	for {
 		select {
 		case <-ticker.C:
+			log.Println("📰🎥 Cron ticker triggered - running article and video scrape...")
 			s.ScrapeArticleVideoNotes()
 		}
 	}
@@ -127,23 +131,49 @@ func (s *NoteScraper) ScrapeNotes() {
 		Since: &sinceTimestamp,
 	}}
 
-	events := s.pool.SubMany(context.Background(), s.relays, filters)
+	// Fetch events directly from all relays using QuerySync
+	var eventList []*nostr.Event
+
+	for _, relayURL := range s.relays {
+		relay, err := s.pool.EnsureRelay(relayURL)
+		if err != nil {
+			log.Printf("❌ Error ensuring relay %s: %v", relayURL, err)
+			continue
+		}
+
+		log.Printf("🔍 Querying relay %s for notes...", relayURL)
+		events, err := relay.QuerySync(context.Background(), filters[0])
+		if err != nil {
+			log.Printf("❌ Error querying relay %s: %v", relayURL, err)
+			continue
+		}
+
+		log.Printf("📊 Found %d events from relay %s", len(events), relayURL)
+		eventList = append(eventList, events...)
+	}
+
+	// Remove duplicates based on event ID
+	uniqueEvents := make(map[string]*nostr.Event)
+	for _, ev := range eventList {
+		uniqueEvents[ev.ID] = ev
+	}
+
+	// Convert back to slice
+	eventList = make([]*nostr.Event, 0, len(uniqueEvents))
+	for _, ev := range uniqueEvents {
+		eventList = append(eventList, ev)
+	}
+
+	log.Printf("📊 After deduplication: %d unique events", len(eventList))
+
+	// Sort events to handle dependencies (parent notes before comments)
+	eventList = s.sortEventsByDependencies(eventList)
+
+	log.Println("eventList sorted", len(eventList))
 
 	scrapedCount := 0
 	viralCount := 0
 	trendingCount := 0
-
-	// Collect all events first to handle dependencies
-	var eventList []*nostr.Event
-	for ev := range events {
-		if ev.Event == nil {
-			continue
-		}
-		eventList = append(eventList, ev.Event)
-	}
-
-	// Sort events to handle dependencies (parent notes before comments)
-	eventList = s.sortEventsByDependencies(eventList)
 
 	for _, ev := range eventList {
 		// Calculate scores
@@ -220,6 +250,43 @@ func (s *NoteScraper) ScrapeNotes() {
 	// Clean up expired viral and trending notes
 	s.cleanupExpiredNotes()
 
+	// Backup articles and videos to AFK relay if enabled
+	if s.isBackupAfkRelay {
+		log.Println("🔄 Backing up articles and videos from regular scraping to AFK relay...")
+		backupCount := 0
+
+		for _, ev := range eventList {
+			// Only backup articles and videos
+			if ev.Kind == nostr.KindArticle ||
+				ev.Kind == 1063 || // KindVideo
+				ev.Kind == 22 || // Short video
+				ev.Kind == 31000 || // VerticalVideo
+				ev.Kind == 31001 || // HorizontalVideo
+				ev.Kind == 34236 || // VerticalVideo
+				ev.Kind == 34235 { // HorizontalVideo
+
+				// Publish the event to each AFK relay
+				for _, relayURL := range afkRelays {
+					relay, err := s.pool.EnsureRelay(relayURL)
+					if err != nil {
+						log.Printf("❌ Error ensuring relay %s: %v", relayURL, err)
+						continue
+					}
+
+					err = relay.Publish(context.Background(), *ev)
+					if err != nil {
+						log.Printf("❌ Error backing up event %s to relay %s: %v", ev.ID, relayURL, err)
+					} else {
+						backupCount++
+						log.Printf("✅ Backed up event %s (kind: %d) to relay %s", ev.ID, ev.Kind, relayURL)
+					}
+				}
+			}
+		}
+
+		log.Printf("🔄 Backup completed: %d articles/videos backed up to AFK relays", backupCount)
+	}
+
 	log.Printf("✅ Scraping completed in %v: %d notes scraped, %d viral notes, %d trending notes",
 		time.Since(startTime), scrapedCount, viralCount, trendingCount)
 }
@@ -248,23 +315,54 @@ func (s *NoteScraper) ScrapeArticleVideoNotes() {
 		Since: &sinceTimestamp,
 	}}
 
-	events := s.pool.SubMany(context.Background(), s.relays, filters)
+	log.Printf("🔍 Searching for articles and videos with filters: %+v", filters)
+
+	// Fetch events directly from all relays using QuerySync
+	var eventList []*nostr.Event
+	allRelayURLs := append(s.relays, allRelays...)
+
+	for _, relayURL := range allRelayURLs {
+		relay, err := s.pool.EnsureRelay(relayURL)
+		if err != nil {
+			log.Printf("❌ Error ensuring relay %s: %v", relayURL, err)
+			continue
+		}
+
+		log.Printf("🔍 Querying relay %s for articles and videos...", relayURL)
+		events, err := relay.QuerySync(context.Background(), filters[0])
+		if err != nil {
+			log.Printf("❌ Error querying relay %s: %v", relayURL, err)
+			continue
+		}
+
+		log.Printf("📊 Found %d events from relay %s", len(events), relayURL)
+		eventList = append(eventList, events...)
+	}
+
+	log.Printf("📊 Found %d total events, processing articles and videos...", len(eventList))
+
+	// Remove duplicates based on event ID
+	uniqueEvents := make(map[string]*nostr.Event)
+	for _, ev := range eventList {
+		uniqueEvents[ev.ID] = ev
+	}
+
+	// Convert back to slice
+	eventList = make([]*nostr.Event, 0, len(uniqueEvents))
+	for _, ev := range uniqueEvents {
+		eventList = append(eventList, ev)
+	}
+
+	log.Printf("📊 After deduplication: %d unique events", len(eventList))
+
+	// Sort events to handle dependencies (parent notes before comments)
+	eventList = s.sortEventsByDependencies(eventList)
+
+	log.Println("eventList sorted", len(eventList))
 
 	scrapedCount := 0
 	viralCount := 0
 	trendingCount := 0
-
-	// Collect all events first to handle dependencies
-	var eventList []*nostr.Event
-	for ev := range events {
-		if ev.Event == nil {
-			continue
-		}
-		eventList = append(eventList, ev.Event)
-	}
-
-	// Sort events to handle dependencies (parent notes before comments)
-	eventList = s.sortEventsByDependencies(eventList)
 
 	for _, ev := range eventList {
 		// Calculate scores
@@ -336,6 +434,51 @@ func (s *NoteScraper) ScrapeArticleVideoNotes() {
 				trendingCount++
 			}
 		}
+	}
+
+	if s.isBackupAfkRelay {
+		log.Println("🔄 Backing up articles and videos to AFK relay...")
+		log.Printf("🔧 Backup enabled: %v, eventList length: %d", s.isBackupAfkRelay, len(eventList))
+		backupCount := 0
+
+		fmt.Println("eventList", len(eventList))
+
+		for _, ev := range eventList {
+			log.Printf("🔍 Checking event %s (kind: %d) for backup eligibility", ev.ID, ev.Kind)
+			// Only backup articles and videos
+			if ev.Kind == nostr.KindArticle ||
+				ev.Kind == 1063 || // KindVideo
+				ev.Kind == 22 || // Short video
+				ev.Kind == 31000 || // VerticalVideo
+				ev.Kind == 31001 || // HorizontalVideo
+				ev.Kind == 34236 || // VerticalVideo
+				ev.Kind == 34235 { // HorizontalVideo
+
+				log.Printf("✅ Event %s (kind: %d) is eligible for backup", ev.ID, ev.Kind)
+				// Publish the event to each AFK relay
+				for _, relayURL := range afkRelays {
+					relay, err := s.pool.EnsureRelay(relayURL)
+					if err != nil {
+						log.Printf("❌ Error ensuring relay %s: %v", relayURL, err)
+						continue
+					}
+
+					err = relay.Publish(context.Background(), *ev)
+					if err != nil {
+						log.Printf("❌ Error backing up event %s to relay %s: %v", ev.ID, relayURL, err)
+					} else {
+						backupCount++
+						log.Printf("✅ Backed up event %s (kind: %d) to relay %s", ev.ID, ev.Kind, relayURL)
+					}
+				}
+			} else {
+				log.Printf("❌ Event %s (kind: %d) is NOT eligible for backup", ev.ID, ev.Kind)
+			}
+		}
+
+		log.Printf("🔄 Backup completed: %d articles/videos backed up to AFK relays", backupCount)
+	} else {
+		log.Printf("⚠️ Backup disabled: isBackupAfkRelay = %v", s.isBackupAfkRelay)
 	}
 
 	log.Printf("📰🎥 ArticleKind and Video scraping completed in %v: %d scraped, %d viral, %d trending",
@@ -1228,16 +1371,40 @@ func (s *NoteScraper) importNotesByKind(kind int) {
 		Since: &sinceTimestamp,
 	}}
 
-	events := s.pool.SubMany(context.Background(), s.relays, filters)
-
-	// Collect all events first to handle dependencies
+	// Fetch events directly from all relays using QuerySync
 	var eventList []*nostr.Event
-	for ev := range events {
-		if ev.Event == nil {
+
+	for _, relayURL := range s.relays {
+		relay, err := s.pool.EnsureRelay(relayURL)
+		if err != nil {
+			log.Printf("❌ Error ensuring relay %s: %v", relayURL, err)
 			continue
 		}
-		eventList = append(eventList, ev.Event)
+
+		log.Printf("🔍 Querying relay %s for kind %d...", relayURL, kind)
+		events, err := relay.QuerySync(context.Background(), filters[0])
+		if err != nil {
+			log.Printf("❌ Error querying relay %s: %v", relayURL, err)
+			continue
+		}
+
+		log.Printf("📊 Found %d events of kind %d from relay %s", len(events), kind, relayURL)
+		eventList = append(eventList, events...)
 	}
+
+	// Remove duplicates based on event ID
+	uniqueEvents := make(map[string]*nostr.Event)
+	for _, ev := range eventList {
+		uniqueEvents[ev.ID] = ev
+	}
+
+	// Convert back to slice
+	eventList = make([]*nostr.Event, 0, len(uniqueEvents))
+	for _, ev := range uniqueEvents {
+		eventList = append(eventList, ev)
+	}
+
+	log.Printf("📊 After deduplication: %d unique events of kind %d", len(eventList), kind)
 
 	// Sort events to handle dependencies (parent notes before comments)
 	eventList = s.sortEventsByDependencies(eventList)
@@ -1303,33 +1470,34 @@ func (s *NoteScraper) importNotesByKind(kind int) {
 			s.saveTrendingNote(trendingNote)
 		}
 
-		// Broadcast to WebSocket clients if this is a new viral or trending note
-		if isViral || isTrending {
-			// Get the full note data for broadcasting
-			noteData := ScrapedNote{
-				ID:               ev.ID,
-				AuthorID:         ev.PubKey,
-				Kind:             ev.Kind,
-				Content:          ev.Content,
-				RawJSON:          ev.String(),
-				CreatedAt:        ev.CreatedAt.Time(),
-				ScrapedAt:        time.Now(),
-				InteractionScore: interactionScore,
-				ViralScore:       viralScore,
-				TrendingScore:    trendingScore,
-				IsViral:          isViral,
-				IsTrending:       isTrending,
-			}
+		importedCount++
+	}
 
-			if isViral {
-				broadcastViralNotes([]ScrapedNote{noteData})
-			}
-			if isTrending {
-				broadcastTrendingNotes([]ScrapedNote{noteData})
+	// Backup articles and videos to AFK relay if enabled
+	if s.isBackupAfkRelay && (kind == nostr.KindArticle || kind == 20 || kind == 1063 || kind == 22 || kind == 31000 || kind == 31001 || kind == 34236 || kind == 34235) {
+		log.Printf("🔄 Backing up imported notes of kind %d to AFK relay...", kind)
+		backupCount := 0
+
+		for _, ev := range eventList {
+			// Publish the event to each AFK relay
+			for _, relayURL := range afkRelays {
+				relay, err := s.pool.EnsureRelay(relayURL)
+				if err != nil {
+					log.Printf("❌ Error ensuring relay %s: %v", relayURL, err)
+					continue
+				}
+
+				err = relay.Publish(context.Background(), *ev)
+				if err != nil {
+					log.Printf("❌ Error backing up event %s to relay %s: %v", ev.ID, relayURL, err)
+				} else {
+					backupCount++
+					log.Printf("✅ Backed up event %s (kind: %d) to relay %s", ev.ID, ev.Kind, relayURL)
+				}
 			}
 		}
 
-		importedCount++
+		log.Printf("🔄 Backup completed: %d notes of kind %d backed up to AFK relays", backupCount, kind)
 	}
 
 	log.Printf("✅ Imported %d notes of kind %d", importedCount, kind)

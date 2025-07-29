@@ -265,7 +265,7 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
         sealDecryptionMethod = 'nip44';
         // console.log('NIP-17: Successfully decrypted seal event content using NIP-44');
       } catch (nip44SealError) {
-        console.error('NIP-17: Failed to decrypt seal event content with NIP-44:', nip44SealError);
+        // console.error('NIP-17: Failed to decrypt seal event content with NIP-44:', nip44SealError);
         
         // Try one more approach: use the seal event's own pubkey for decryption
         try {
@@ -273,7 +273,7 @@ const decryptGiftWrapContent = async (giftWrapEvent: any, privateKey: string, cu
           sealDecryptionMethod = 'nip44_seal_pubkey';
           // console.log('NIP-17: Successfully decrypted seal event content using seal pubkey');
         } catch (finalError) {
-          console.error('NIP-17: All seal decryption methods failed:', finalError);
+          // console.error('NIP-17: All seal decryption methods failed:', finalError);
           return null;
         }
       }
