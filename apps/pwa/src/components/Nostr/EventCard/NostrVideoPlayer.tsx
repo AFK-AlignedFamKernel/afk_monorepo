@@ -10,7 +10,7 @@ import { useUIStore } from '@/store/uiStore';
 import CommentContainer from './Comment/CommentContainer';
 import { useQueryClient } from '@tanstack/react-query';
 import { ProfileCardOverview } from './ProfileCardOverview';
-import styles from '@/styles/nostr/feed.module.scss';
+import styles from '@/styles/nostr/shorts.module.scss';
 import Image from 'next/image';
 
 export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean, className?: string }> = ({ event, isAutoPlay = false, className }) => {

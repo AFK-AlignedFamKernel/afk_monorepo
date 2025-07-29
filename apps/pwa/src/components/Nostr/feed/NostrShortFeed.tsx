@@ -5,7 +5,7 @@ import { NDKKind as NDK } from '@nostr-dev-kit/ndk';
 import { useSearch, useNostrContext, useFetchEvents } from 'afk_nostr_sdk';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { VideoPlayer } from '../EventCard/NostrVideoPlayer';
-import styles from '@/styles/nostr/feed.module.scss';
+import styles from '@/styles/nostr/shorts.module.scss';
 
 interface NostrFeedProps {
   kinds?: number[];
