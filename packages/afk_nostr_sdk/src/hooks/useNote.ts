@@ -18,7 +18,7 @@ export const useNote = (options: UseNoteOptions) => {
 
       await checkIsConnected(ndk);
 
-      if(!options.noteId) {
+      if (!options.noteId) {
         return null;
       }
 
@@ -38,7 +38,13 @@ export const useNote = (options: UseNoteOptions) => {
       }
 
       const note = await ndk.fetchEvent({
-        kinds: options.kinds ?? [NDKKind.Text, NDKKind.Article, NDKKind.ChannelMetadata, NDKKind.ChannelCreation, NDKKind.Metadata, NDKKind.ShortVideo, NDKKind.Video, NDKKind.VerticalVideo],
+        kinds: options.kinds ?? [NDKKind.Text, NDKKind.Article, NDKKind.ChannelMetadata, NDKKind.ChannelCreation, NDKKind.Metadata,
+        NDKKind.ShortVideo, NDKKind.Video, NDKKind.VerticalVideo, NDKKind.HorizontalVideo,
+        NDKKind.Image,
+        31000 as NDKKind, // VerticalVideo
+        31001 as NDKKind, // HorizontalVideo
+        34236 as NDKKind,
+        ],
         ids: [noteId],
       });
 
