@@ -70,7 +70,8 @@ var relays = []string{
 }
 
 var afkRelays = []string{
-	"wss://nostr-relay-nestjs-production.up.railway.app",
+	// "wss://nostr-relay-nestjs-production.up.railway.app",
+	"wss://nostr-relay-nestjs-staging.up.railway.app",
 }
 
 var allRelays = []string{
@@ -78,39 +79,39 @@ var allRelays = []string{
 	"wss://relay.snort.social",
 
 	"wss://relay.damus.io",
-	"wss://news.utxo.one",
-	"wss://relay.lexingtonbitcoin.org",
-	"wss://nostr.600.wtf",
-	"wss://nostr.hexhex.online",
-	"wss://wot.utxo.one",
-	"wss://nostrelites.org",
-	"wss://wot.nostr.party",
-	"wss://wot.puhcho.me",
-	"wss://wot.girino.org",
-	"wss://relay.beeola.me",
-	"wss://zap.watch",
-	"wss://wot.yeghro.site",
-	"wss://wot.innovativecerebrum.ai",
-	"wss://wot.swarmstr.com",
-	"wss://wot.azzamo.net",
-	"wss://satsage.xyz",
-	"wss://wot.sandwich.farm",
-	"wss://wons.calva.dev",
-	"wss://wot.shaving.kiwi",
-	"wss://wot.tealeaf.dev",
-	"wss://wot.dtonon.com",
-	"wss://wot.relay.vanderwarker.family",
-	"wss://wot.zacoos.com",
-	"wss://nostr.mom",
-	"wss://purplepag.es",
-	"wss://purplerelay.com",
+	// "wss://news.utxo.one",
+	// "wss://relay.lexingtonbitcoin.org",
+	// "wss://nostr.600.wtf",
+	// "wss://nostr.hexhex.online",
+	// "wss://wot.utxo.one",
+	// "wss://nostrelites.org",
+	// "wss://wot.nostr.party",
+	// "wss://wot.puhcho.me",
+	// "wss://wot.girino.org",
+	// "wss://relay.beeola.me",
+	// "wss://zap.watch",
+	// "wss://wot.yeghro.site",
+	// "wss://wot.innovativecerebrum.ai",
+	// "wss://wot.swarmstr.com",
+	// "wss://wot.azzamo.net",
+	// "wss://satsage.xyz",
+	// "wss://wot.sandwich.farm",
+	// "wss://wons.calva.dev",
+	// "wss://wot.shaving.kiwi",
+	// "wss://wot.tealeaf.dev",
+	// "wss://wot.dtonon.com",
+	// "wss://wot.relay.vanderwarker.family",
+	// "wss://wot.zacoos.com",
+	// "wss://nostr.mom",
+	// "wss://purplepag.es",
+	// "wss://purplerelay.com",
 
-	"wss://relayable.org",
-	"wss://relay.nostr.bg",
-	"wss://no.str.cr",
-	"wss://nostr21.com",
-	"wss://nostrue.com",
-	"wss://relay.siamstr.com",
+	// "wss://relayable.org",
+	// "wss://relay.nostr.bg",
+	// "wss://no.str.cr",
+	// "wss://nostr21.com",
+	// "wss://nostrue.com",
+	// "wss://relay.siamstr.com",
 }
 
 var db *sql.DB
@@ -167,44 +168,6 @@ func main() {
 		log.Println("📦 done importing notes. Please restart relay")
 		return
 	}
-
-	// Auto-trigger data setup on startup if database is empty
-	go func() {
-		// Check if auto data setup is enabled (default: true)
-		autoDataSetup := os.Getenv("AUTO_DATA_SETUP")
-		if autoDataSetup == "false" {
-			log.Println("⚠️  Auto data setup disabled by AUTO_DATA_SETUP=false")
-			return
-		}
-
-		// Wait a bit for other services to initialize
-		time.Sleep(5 * time.Second)
-
-		log.Println("🔍 Checking if database needs initial data setup...")
-
-		// Check if scraped_notes table is empty
-		var count int
-		err := scraper.db.QueryRow("SELECT COUNT(*) FROM scraped_notes").Scan(&count)
-		if err != nil {
-			log.Printf("❌ Error checking scraped_notes count: %v", err)
-			return
-		}
-
-		if count == 0 {
-			log.Println("📊 Database is empty - triggering initial data setup...")
-			scraper.RunDataSetup()
-			log.Println("✅ Initial data setup completed")
-		} else {
-			log.Printf("✅ Database already has %d scraped notes - skipping initial setup", count)
-		}
-
-		// Always run initial article and video scraping on startup
-		log.Println("📰🎥 Running initial article and video scraping...")
-		scraper.ScrapeArticleVideoNotes()
-		log.Println("✅ Initial article and video scraping completed")
-	}()
-
-	scraper.ScrapeArticleVideoNotes()
 
 	go subscribeAll()
 	go purgeData(purgeMonths)
@@ -344,6 +307,47 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Auto-trigger data setup on startup if database is empty
+	go func() {
+		// Check if auto data setup is enabled (default: true)
+		autoDataSetup := os.Getenv("AUTO_DATA_SETUP")
+
+		if autoDataSetup == "false" {
+			log.Println("⚠️  Auto data setup disabled by AUTO_DATA_SETUP=false")
+			return
+		}
+
+		// Always run initial article and video scraping on startup
+		log.Println("📰🎥 Running initial article and video scraping...")
+		scraper.ScrapeArticleVideoNotes()
+		log.Println("✅ Initial article and video scraping completed")
+
+		// Wait a bit for other services to initialize
+		time.Sleep(5 * time.Second)
+
+		log.Println("🔍 Checking if database needs initial data setup...")
+
+		// Check if scraped_notes table is empty
+		var count int
+		err := scraper.db.QueryRow("SELECT COUNT(*) FROM scraped_notes").Scan(&count)
+		if err != nil {
+			log.Printf("❌ Error checking scraped_notes count: %v", err)
+			return
+		}
+
+		if count == 0 {
+			log.Println("📊 Database is empty - triggering initial data setup...")
+			scraper.RunDataSetup()
+			log.Println("✅ Initial data setup completed")
+		} else {
+			log.Printf("✅ Database already has %d scraped notes - skipping initial setup", count)
+		}
+
+	}()
+
+	// scraper.ScrapeArticleVideoNotes()
+
 }
 
 // configureCORS sets up CORS middleware with environment-based configuration
