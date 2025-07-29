@@ -69,6 +69,50 @@ var relays = []string{
 	// "wss://relay.siamstr.com",
 }
 
+var afkRelays = []string{
+	"wss://nostr-relay-nestjs-production.up.railway.app",
+}
+
+var allRelays = []string{
+	"wss://relay.nostr.band",
+	"wss://relay.snort.social",
+
+	"wss://relay.damus.io",
+	"wss://news.utxo.one",
+	"wss://relay.lexingtonbitcoin.org",
+	"wss://nostr.600.wtf",
+	"wss://nostr.hexhex.online",
+	"wss://wot.utxo.one",
+	"wss://nostrelites.org",
+	"wss://wot.nostr.party",
+	"wss://wot.puhcho.me",
+	"wss://wot.girino.org",
+	"wss://relay.beeola.me",
+	"wss://zap.watch",
+	"wss://wot.yeghro.site",
+	"wss://wot.innovativecerebrum.ai",
+	"wss://wot.swarmstr.com",
+	"wss://wot.azzamo.net",
+	"wss://satsage.xyz",
+	"wss://wot.sandwich.farm",
+	"wss://wons.calva.dev",
+	"wss://wot.shaving.kiwi",
+	"wss://wot.tealeaf.dev",
+	"wss://wot.dtonon.com",
+	"wss://wot.relay.vanderwarker.family",
+	"wss://wot.zacoos.com",
+	"wss://nostr.mom",
+	"wss://purplepag.es",
+	"wss://purplerelay.com",
+
+	"wss://relayable.org",
+	"wss://relay.nostr.bg",
+	"wss://no.str.cr",
+	"wss://nostr21.com",
+	"wss://nostrue.com",
+	"wss://relay.siamstr.com",
+}
+
 var db *sql.DB
 var art = `
  █████╗ ██╗      ██████╗  ██████╗     ██████╗ ███████╗██╗      █████╗ ██╗   ██╗
@@ -153,7 +197,14 @@ func main() {
 		} else {
 			log.Printf("✅ Database already has %d scraped notes - skipping initial setup", count)
 		}
+
+		// Always run initial article and video scraping on startup
+		log.Println("📰🎥 Running initial article and video scraping...")
+		scraper.ScrapeArticleVideoNotes()
+		log.Println("✅ Initial article and video scraping completed")
 	}()
+
+	scraper.ScrapeArticleVideoNotes()
 
 	go subscribeAll()
 	go purgeData(purgeMonths)
@@ -273,6 +324,9 @@ func main() {
 	mux.HandleFunc("/api/scraped-notes", handleScrapedNotesAPI)
 	mux.HandleFunc("/api/trigger-data-setup", handleTriggerDataSetupAPI)
 	mux.HandleFunc("/api/sync-notes", handleSyncNotesAPI)
+	mux.HandleFunc("/api/trigger-article-video-scraping", handleTriggerArticleVideoScrapingAPI)
+	mux.HandleFunc("/api/trigger-note-scraping", handleTriggerNoteScrapingAPI)
+	mux.HandleFunc("/api/test-backup", handleTestBackupAPI)
 	mux.HandleFunc("/ws", handleWebSocket)
 
 	// New search endpoints

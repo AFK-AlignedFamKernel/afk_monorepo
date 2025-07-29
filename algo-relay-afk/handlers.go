@@ -859,6 +859,82 @@ func handleSyncNotesAPI(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// handleTriggerArticleVideoScrapingAPI triggers article and video scraping manually
+func handleTriggerArticleVideoScrapingAPI(w http.ResponseWriter, r *http.Request) {
+	// Only accept POST requests
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Start article and video scraping in a goroutine to avoid blocking
+	go func() {
+		log.Println("📰🎥 Manual article and video scraping triggered via API")
+		scraper.ScrapeArticleVideoNotes()
+	}()
+
+	// Return immediate response
+	w.Header().Set("Content-Type", "application/json")
+	response := map[string]string{
+		"status":  "success",
+		"message": "Article and video scraping triggered successfully",
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
+}
+
+// handleTestBackupAPI is a test endpoint to manually test the backup functionality
+func handleTestBackupAPI(w http.ResponseWriter, r *http.Request) {
+	// Only accept POST requests
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Return immediate response
+	w.Header().Set("Content-Type", "application/json")
+	response := map[string]interface{}{
+		"status":           "success",
+		"message":          "Backup test triggered",
+		"isBackupEnabled":  scraper.isBackupAfkRelay,
+		"afkRelays":        afkRelays,
+		"backupRelayCount": len(afkRelays),
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
+}
+
+// handleTriggerNoteScrapingAPI triggers regular note scraping manually
+func handleTriggerNoteScrapingAPI(w http.ResponseWriter, r *http.Request) {
+	// Only accept POST requests
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Start note scraping in a goroutine to avoid blocking
+	go func() {
+		log.Println("📝 Manual note scraping triggered via API")
+		scraper.ScrapeNotes()
+	}()
+
+	// Return immediate response
+	w.Header().Set("Content-Type", "application/json")
+	response := map[string]string{
+		"status":  "success",
+		"message": "Note scraping triggered successfully",
+	}
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Error encoding response: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func handleTrendingTopAuthorsAPI(w http.ResponseWriter, r *http.Request) {
 	log.Printf("📊 Trending top authors API called")
 
