@@ -139,3 +139,7 @@ next-env.d.ts
 
 /public/livestreams
 /public/livestreams/*
+
+
+/public/livestreams
+/public/livestreams/*

@@ -48,22 +48,12 @@ export const UNRUGGABLE_FACTORY_ADDRESS = {
 
 export const LAUNCHPAD_ADDRESS = {
   [constants.StarknetChainId.SN_MAIN]: '',
-  //  [constants.StarknetChainId.SN_SEPOLIA]:
-  //   "0x525d47343caa4c56cd28eeeff7d503f1b80872c5a7f4a9f8ac8130de3513f70",
-  //  [constants.StarknetChainId.SN_SEPOLIA]:
-  //   "0x6fbcf2a0df5716d83d9653985f9c9bde6fb73130f0804e18bb18ef6f6ae7ad2"
-  //  [constants.StarknetChainId.SN_SEPOLIA]:
-  //  "0x4cefb7ab4c3fda72df52f288e141ff1dc6956a497949bf7b0031f012f3d3afc",
-  //  [constants.StarknetChainId.SN_SEPOLIA]:
-  //  "0x4a5d414ec6085ef5d3779b6e72015076b1a1ecdb6065fe1123d794ff41aea4d",
-
   // old contract
-  // [constants.StarknetChainId.SN_SEPOLIA]: "0x7fbf067657772a454c302354a19e07ce0a920736e2e3b7ca605d813723db883"
-  // [constants.StarknetChainId.SN_SEPOLIA]: "0x2df96069550099b5e1f94c38848374e1b7ea1832d5ce17ec459bf5bbaef53ad",
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x34e73d4ff75f922484a9208f506e9aa8acfdb333a648ca68cde276d83678aa9",
   // new launchpad
-  // [constants.StarknetChainId.SN_SEPOLIA]: "0x57ccd649f0df9ca80debb4bd7946bb6267785c74998f4de94514f70a8f691a3",
-  [constants.StarknetChainId.SN_SEPOLIA]: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548",
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548",
+  // Last launchpad
+  [constants.StarknetChainId.SN_SEPOLIA]: "0x64d2deb12d8146d7600289addfb2ec258d8fbc5d51062f5bd3652b4d3b47ac0",
 
 };
 
@@ -123,19 +113,21 @@ export const TOKENS_ADDRESS = {
 export const CLASS_HASH = {
   TOKEN: {
     // [constants.StarknetChainId.SN_SEPOLIA]:
-    // "0x142180837a41ad06cc36fbc8c449ba4516397b1a82f260c206afd3411e9fe0d",
+    //   '0x43b100e1cd969dc45b1d59afcda47ee52444e5baba9ef511a16858d2067ecb7',
     [constants.StarknetChainId.SN_SEPOLIA]:
-      '0x43b100e1cd969dc45b1d59afcda47ee52444e5baba9ef511a16858d2067ecb7',
-
+      '0x28671919e16d473a5ef80cc1e6ae6315378ba5fe109e79fb0fab2aea362c89b',
     // "0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a",
     // "0x97341df71bdc18c3c1d9496a238f92b895c0c3d61725481641c851d3db0851",
     [constants.StarknetChainId.SN_MAIN]: '',
   },
   MEMECOIN: {
     // [constants.StarknetChainId.SN_SEPOLIA]:
+    //   '0x43b100e1cd969dc45b1d59afcda47ee52444e5baba9ef511a16858d2067ecb7',
+    // [constants.StarknetChainId.SN_SEPOLIA]:
     // "0x142180837a41ad06cc36fbc8c449ba4516397b1a82f260c206afd3411e9fe0d"
     [constants.StarknetChainId.SN_SEPOLIA]:
-      '0x43b100e1cd969dc45b1d59afcda47ee52444e5baba9ef511a16858d2067ecb7',
+      '0x28671919e16d473a5ef80cc1e6ae6315378ba5fe109e79fb0fab2aea362c89b',
+
     // "0x58daf8998746438d557781b7a9ec1fbda1252c47196f158dcce2df55682644a",
     // "0x97341df71bdc18c3c1d9496a238f92b895c0c3d61725481641c851d3db0851"
   },
@@ -243,8 +235,8 @@ export const MULTI_CANVAS_ADDRESS = {
   // [constants.StarknetChainId.SN_SEPOLIA]:
   // '0x3f842da2cb1dbc81cb9ddd88206007494cdc3cac1409d558217794a052e79cf',
   [constants.StarknetChainId.SN_SEPOLIA]:
-  '0x1fa80c2a03bb724e7b6cf7836a32ba5e300e10914c48a7109d6ff86045e1e70',
-  
+    '0x1fa80c2a03bb724e7b6cf7836a32ba5e300e10914c48a7109d6ff86045e1e70',
+
   [constants.StarknetChainId.SN_MAIN]: '0x',
 } as { [key in string]: `0x${string}` };
 
@@ -270,7 +262,7 @@ export const NOSTR_FI_SCORING_ADDRESS = {
   //   "0x22406b77c60ef86217236e56d0ce07bc761cf77f5b411e50dc0bd9fc8108756",
 
   [constants.StarknetChainId.SN_SEPOLIA]:
-  "0x1ac5004a5deb46fb23ca5a8821a9c156cad1b173ffd3c48e7a3151288d7c615",
+    "0x1ac5004a5deb46fb23ca5a8821a9c156cad1b173ffd3c48e7a3151288d7c615",
 
 };
 
@@ -282,7 +274,7 @@ export const CLASS_HASH_NOSTR_FI_SCORING = {
   //   "0x269464f9d4e946bf5405f4afd1901a27bc243bcea8a316c7c31be7463293590",
   [constants.StarknetChainId.SN_SEPOLIA]:
     "0x2915dec2316154ad2c6fe34b0a67a4cdfaad884193cef240ab6de6986f9effc",
-    
+
 };
 
 export const NAMESPACE_ADDRESS = {
@@ -309,7 +301,7 @@ export const NAMESPACE_ADDRESS = {
   [constants.StarknetChainId.SN_SEPOLIA]: "0x6690853be3b6156b181ad02cd6ca665fe9518f3d13d622731593a65bd51104",
 
 
-  
+
 
 };
 
@@ -320,7 +312,7 @@ export const FACTORY_SCORE_ADDRESS = {
   [constants.StarknetChainId.SN_SEPOLIA]:
     '0x14a4fd9449345aa472b4b4ab69e2547c73bb11b35679f2f3cf38c7a89a6b272',
 
-    
+
   [constants.StarknetChainId.SN_MAIN]: '',
 }
 

@@ -4,6 +4,10 @@ import { feltToAddress } from 'common';
 import { WalletConnectButton } from '../account/WalletConnectButton';
 import { useBuyCoin } from '@/hooks/launchpad/useBuyCoin';
 import { useSellCoin } from '@/hooks/launchpad/useSellCoin';
+import { ButtonSecondary } from '../button/Buttons';
+import { useClaimAndDistribute } from '@/hooks/launchpad/useClaimAndDistribute';
+import { useUIStore } from '@/store/uiStore';
+import { Icon } from '../small/icon-component';
 
 interface LaunchActionsFormProps {
   launch: any;
@@ -12,6 +16,7 @@ interface LaunchActionsFormProps {
   userShare?: any;
   loading?: boolean;
   memecoinAddress?: string;
+  onRefresh?: () => void;
 }
 
 export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
@@ -21,12 +26,32 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
   userShare,
   loading = false,
   memecoinAddress,
+  onRefresh,
 }) => {
   const [amount, setAmount] = useState<string>('');
   const [typeAction, setTypeAction] = useState<'BUY' | 'SELL'>('BUY');
   const { account } = useAccount();
   const { handleBuyCoins } = useBuyCoin();
   const { handleSellCoins } = useSellCoin();
+  const { handleClaim, handleClaimForFriend } = useClaimAndDistribute();
+  const { showToast } = useUIStore();
+
+  const handleClaimToken = async () => {
+    console.log('Claiming...');
+
+    const tx = await handleClaim(account?.address, launch?.memecoin_address, 0, undefined);
+    if (tx) {
+      showToast({
+        message: 'Claimed',
+        type: "success"
+      });
+    } else {
+      showToast({
+        message: 'Error when claiming',
+        type: "error"
+      });
+    }
+  }
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -73,7 +98,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
   };
 
   return (
-    <div className="rounded-lg p-6 shadow-sm">
+    <div className="rounded-lg p-6 shadow-sm border border-gray-200 card">
       <div className="flex space-x-4 mb-6">
         <button
           onClick={() => setTypeAction('BUY')}
@@ -158,13 +183,19 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
           </>
         }
 
-        {!account && (
-          <WalletConnectButton></WalletConnectButton>
-        )}
-        
+        <div className="flex justify-end gap-4">
+          {!account && (
+            <WalletConnectButton></WalletConnectButton>
+          )}
+          {onRefresh && (
+            <button onClick={onRefresh}>
+              <Icon name="RefreshIcon" size={16} className="ml-1" />
+            </button>
+          )}
+
+        </div>
+
       </div>
-
-
 
     </div>
   );

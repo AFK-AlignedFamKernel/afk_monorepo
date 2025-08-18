@@ -6,11 +6,11 @@ dotenv.config();
 
 export default defineConfig({
   runtimeConfig: {
-    streamUrl: 'https://starknet-sepolia.preview.apibara.org',
-    startingBlock: process.env.STARTING_BLOCK ? parseInt(process.env.STARTING_BLOCK) : 1000000,
+    streamUrl: process.env.STREAM_URL || 'https://starknet-sepolia.preview.apibara.org',
+    startingBlock: process.env.STARTING_BLOCK ? parseInt(process.env.STARTING_BLOCK) : 1962305,
     startingCursor: {
       // orderKey: 1095000,
-      orderKey: process.env.ORDER_KEY ? parseInt(process.env.ORDER_KEY) : 1000000,
+      orderKey: process.env.ORDER_KEY ? parseInt(process.env.ORDER_KEY) : 1962305,
       // orderKey: 500000,
       // orderKey: 533390,
     },

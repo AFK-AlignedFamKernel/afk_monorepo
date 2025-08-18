@@ -716,7 +716,7 @@ mod edge_cases_tests {
     #[test]
     #[fork("Mainnet")]
     fn test_one_position_with_swap() {
-        println!("test_buy_coin_with_different_supply_linear");
+        println!("test_one_position_with_swap");
         let (sender, erc20, launchpad, router) = request_fixture();
         let quote_token = IERC20Dispatcher { contract_address: erc20.contract_address };
 
@@ -728,7 +728,7 @@ mod edge_cases_tests {
 
         start_cheat_caller_address(launchpad.contract_address, OWNER());
         println!(
-            "linear init_supply in loop test_buy_coin_with_different_supply {:?}",
+            "linear init_supply in loop test_one_position_with_swap {:?}",
             init_supplies.at(i).clone(),
         );
         // println!("i {:?}", i.clone());
@@ -796,7 +796,7 @@ mod edge_cases_tests {
         );
         println!("Position ID {:?}", position);
         println!(
-            "linear check LP init_supply in loop test_buy_coin_with_different_supply {:?}",
+            "linear check LP init_supply in loop test_one_position_with_swap {:?}",
             init_supplies.at(i).clone(),
         );
 
@@ -811,7 +811,7 @@ mod edge_cases_tests {
         println!("test_ekubo_lp_end");
 
         println!(
-            "linear latest init_supply in loop test_buy_coin_with_different_supply {:?}",
+            "linear latest init_supply in loop test_one_position_with_swap {:?}",
             init_supplies.at(i).clone(),
         );
 

@@ -42,20 +42,18 @@ export const formatBigIntToFloat = (total_amount_float?: BigInt, decimals = 18) 
         // Convert BigInt to string first to avoid precision loss
         const amountStr = total_amount_float.toString();
         
-        // Handle very large numbers by using string manipulation
+        // Handle very small numbers by using string manipulation
         if (amountStr.length <= decimals) {
             // Number is smaller than 1, add leading zeros
-            const padded = amountStr.padStart(decimals + 1, '0');
-            const integerPart = padded.slice(0, -decimals);
-            const decimalPart = padded.slice(-decimals);
+            const padded = amountStr.padStart(decimals, '0');
             
             // Remove trailing zeros from decimal part
-            const trimmedDecimal = decimalPart.replace(/0+$/, '');
+            const trimmedDecimal = padded.replace(/0+$/, '');
             
             if (trimmedDecimal === '') {
-                return integerPart;
+                return "0";
             } else {
-                return `${integerPart}.${trimmedDecimal}`;
+                return `0.${trimmedDecimal}`;
             }
         } else {
             // Number is >= 1, use normal division

@@ -5,7 +5,7 @@ pub mod ERC20Mintable {
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::introspection::src5::SRC5Component;
-    use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl};
+    use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl, DefaultConfig};
     use starknet::ContractAddress;
 
     const MINTER_ROLE: felt252 = selector!("MINTER_ROLE");
