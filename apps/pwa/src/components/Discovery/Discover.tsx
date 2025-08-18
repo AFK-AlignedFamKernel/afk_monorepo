@@ -19,7 +19,7 @@ export default function DiscoverComponent() {
   // const searchParams = useSearchParams()
   // const query = searchParams.get("query")
 
-  const [activeTab, setActiveTab] = useState<"brand" | "chat" | "creator" | "topic" | "feed" | "launchpad" | "communities" | "channels">("feed");
+  const [activeTab, setActiveTab] = useState<"brand" | "chat" | "creator" | "topic" | "feed" | "launchpad" | "communities" | "channels">("brand");
 
   return (
     <div className="flex flex-col gap-1">
@@ -30,11 +30,11 @@ export default function DiscoverComponent() {
           {[
             { key: "brand", label: "Brands" },
             { key: "creator", label: "Creators" },
-            { key: "feed", label: "Feed" },
-            { key: "chat", label: "Chat" },
-            { key: "launchpad", label: "Tokens" },
             { key: "channels", label: "Channels" },
+            { key: "launchpad", label: "Tokens" },
+            { key: "chat", label: "Chat" },
             { key: "communities", label: "Communities" },
+            { key: "feed", label: "Feed" },
             // { key: "topic", label: "Topics" },
           ].map(tab => (
             <button
