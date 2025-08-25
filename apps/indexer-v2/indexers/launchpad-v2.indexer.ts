@@ -343,37 +343,58 @@ export default function (config: ApibaraRuntimeConfig & {
 
       try {
         // Try using raw SQL insert to avoid schema mismatch issues
+        console.log('Attempting to insert token deploy record...');
         try {
-          await db.execute(sql`
-            INSERT INTO token_deploy (
-              transaction_hash,
-              network,
-              block_timestamp,
-              memecoin_address,
-              owner_address,
-              name,
-              symbol,
-              initial_supply,
-              total_supply,
-              created_at,
-              is_launched
-            ) VALUES (
-              ${transactionHash},
-              ${'starknet-sepolia'},
-              ${blockTimestamp},
-              ${tokenAddress},
-              ${ownerAddress},
-              ${name},
-              ${symbol},
-              ${initialSupply},
-              ${totalSupply},
-              ${new Date()},
-              ${false}
-            )
-          `);
-          console.log('Token Deploy Record Created');
+     
+          await db.insert(tokenDeploy).values({
+            transaction_hash: transactionHash,
+            network: 'starknet-sepolia',
+            block_timestamp: blockTimestamp,
+            memecoin_address: tokenAddress,
+            owner_address: ownerAddress,
+            name: name,
+            symbol: symbol,
+            initial_supply: initialSupply,
+            total_supply: totalSupply,
+            created_at: new Date(),
+            is_launched: false,
+          });
+          // await db.transaction(async (tx) => {
+          //   console.log("tx", tx);
+          //   await tx.execute(sql`
+          //     INSERT INTO token_deploy (
+          //       transaction_hash,
+          //       network,
+          //       block_timestamp,
+          //       memecoin_address,
+          //       owner_address,
+          //       name,
+          //       symbol,
+          //       initial_supply,
+          //       total_supply,
+          //       created_at,
+          //       is_launched
+          //     ) VALUES (
+          //       ${transactionHash},
+          //       ${'starknet-sepolia'},
+          //       ${blockTimestamp},
+          //       ${tokenAddress},
+          //       ${ownerAddress},
+          //       ${name},
+          //       ${symbol},
+          //       ${initialSupply},
+          //       ${totalSupply},
+          //       ${new Date()},
+          //       ${false}
+          //     )
+          //   `);
+           
+          // });
+
+          console.log('Token Deploy Record Created via raw SQL');
         } catch (sqlError: any) {
           console.error('Raw SQL insert failed:', sqlError);
+          console.log('Attempting fallback drizzle insert...');
           // Fallback to drizzle insert without id
           await db.insert(tokenDeploy).values({
             transaction_hash: transactionHash,
@@ -388,10 +409,8 @@ export default function (config: ApibaraRuntimeConfig & {
             created_at: new Date(),
             is_launched: false,
           });
-          console.log('Token Deploy Record Created (fallback)');
+          console.log('Token Deploy Record Created via drizzle fallback');
         }
-
-        console.log('Token Deploy Record Created');
       } catch (dbError: any) {
         if (dbError.code === '23505') {
           console.log('Token already exists (unique constraint violation):', {
@@ -518,11 +537,28 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
+
+      console.log("event?.args?", event?.args);
+      console.log("rawEvent?.keys?", rawEvent?.keys);
+      // If no decoded event, try to extract basic info from raw event
+      let tokenAddress = null;
+      if (event?.args?.token_address) {
+        tokenAddress = event.args.token_address;
+      } else if (rawEvent.keys && rawEvent.keys.length > 1) {
+        // Fallback: extract from raw event keys
+        tokenAddress = encode.sanitizeHex(`0x${BigInt(rawEvent.keys[1]).toString(16)}`);
+      }
+
+      if (!tokenAddress) {
+        console.log('No token address found in metadata event, skipping');
+        return;
+      }
+
       try {
         const existingMetadata = await db.query.tokenMetadata.findFirst({
           where: or(
             eq(tokenMetadata.transaction_hash, transactionHash),
-            eq(tokenMetadata.memecoin_address, event?.args?.token_address)
+            eq(tokenMetadata.memecoin_address, tokenAddress)
           )
         });
 
@@ -538,7 +574,7 @@ export default function (config: ApibaraRuntimeConfig & {
           transaction_hash: transactionHash,
           network: 'starknet-sepolia',
           block_timestamp: blockTimestamp,
-          memecoin_address: event?.args?.token_address || null,
+          memecoin_address: tokenAddress,
           url: event?.args?.url || null,
           nostr_id: event?.args?.nostr_id || null,
           nostr_event_id: event?.args?.nostr_event_id || null,
@@ -555,7 +591,7 @@ export default function (config: ApibaraRuntimeConfig & {
         console.log('Token Metadata Record Created');
 
         const existingDeploy = await db.query.tokenDeploy.findFirst({
-          where: eq(tokenDeploy.memecoin_address, metadataData.memecoin_address)
+          where: eq(tokenDeploy.memecoin_address, tokenAddress)
         });
 
         if (existingDeploy) {
@@ -564,27 +600,21 @@ export default function (config: ApibaraRuntimeConfig & {
               name: event?.args?.name || existingDeploy.name,
               symbol: event?.args?.symbol || existingDeploy.symbol,
             })
-            .where(eq(tokenDeploy.memecoin_address, metadataData.memecoin_address));
+            .where(eq(tokenDeploy.memecoin_address, tokenAddress));
           console.log('Token Deploy Record Updated with Metadata');
         }
 
         const existingLaunch = await db.query.tokenLaunch.findFirst({
-          where: eq(tokenLaunch.memecoin_address, metadataData.memecoin_address)
+          where: eq(tokenLaunch.memecoin_address, tokenAddress)
         });
 
         if (existingLaunch) {
-          await db.update(tokenLaunch)
-            .set({
-              name: event?.args?.name || existingLaunch.name,
-              symbol: event?.args?.symbol || existingLaunch.symbol,
-            })
-            .where(eq(tokenLaunch.memecoin_address, metadataData.memecoin_address));
           console.log('Token Launch Record Updated with Metadata');
         }
       } catch (dbError: any) {
         if (dbError.code === '23505') {
           console.log('Metadata already exists (unique constraint violation):', {
-            memecoin_address: event?.args?.token_address,
+            memecoin_address: tokenAddress,
             transaction_hash: transactionHash
           });
         } else {
