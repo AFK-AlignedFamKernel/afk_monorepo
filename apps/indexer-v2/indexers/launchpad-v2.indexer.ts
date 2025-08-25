@@ -495,16 +495,94 @@ export default function (config: ApibaraRuntimeConfig & {
       console.log("rawEvent?.keys?", rawEvent?.keys);
       // If no decoded event, try to extract basic info from raw event
       let tokenAddress = null;
+      console.log('Extracting token address from metadata event...');
+      
       if (event?.args?.token_address) {
         tokenAddress = event.args.token_address;
+        console.log('Found token address in event args:', tokenAddress);
       } else if (rawEvent.keys && rawEvent.keys.length > 1) {
         // Fallback: extract from raw event keys
+        console.log('Extracting token address from raw event keys...');
         tokenAddress = encode.sanitizeHex(`0x${BigInt(rawEvent.keys[1]).toString(16)}`);
+        console.log('Extracted token address from keys:', tokenAddress);
       }
 
       if (!tokenAddress) {
         console.log('No token address found in metadata event, skipping');
         return;
+      }
+      
+      console.log('Using token address for metadata:', tokenAddress);
+      
+      // Extract metadata from raw event data since event.args is undefined
+      let extractedMetadata: {
+        url: string | null;
+        nostr_id: string | null;
+        nostr_event_id: string | null;
+        twitter: string | null;
+        telegram: string | null;
+        github: string | null;
+        website: string | null;
+      } = {
+        url: null,
+        nostr_id: null,
+        nostr_event_id: null,
+        twitter: null,
+        telegram: null,
+        github: null,
+        website: null
+      };
+      
+      if (rawEvent.data && rawEvent.data.length > 0) {
+        console.log('Extracting metadata from raw event data...');
+        console.log('Raw event data:', rawEvent.data);
+        
+        try {
+          // Parse the data array to extract metadata
+          // Based on the ABI structure, data[1] might be URL, data[2] might be nostr_id, etc.
+          if (rawEvent.data[1] && rawEvent.data[1] !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
+            // Convert hex to string for URL
+            const urlHex = rawEvent.data[1].slice(2); // Remove '0x' prefix
+            const urlBytes = [];
+            for (let i = 0; i < urlHex.length; i += 2) {
+              urlBytes.push(BigInt('0x' + urlHex.slice(i, i + 2)));
+            }
+            try {
+              extractedMetadata.url = byteArray.stringFromByteArray({
+                data: urlBytes,
+                pending_word: 0n,
+                pending_word_len: urlBytes.length
+              });
+              console.log('Extracted URL:', extractedMetadata.url);
+            } catch (e) {
+              console.log('Failed to decode URL:', e);
+            }
+          }
+          
+          if (rawEvent.data[2] && rawEvent.data[2] !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
+            // Convert hex to string for nostr_id
+            const nostrHex = rawEvent.data[2].slice(2);
+            const nostrBytes = [];
+            for (let i = 0; i < nostrHex.length; i += 2) {
+              nostrBytes.push(BigInt('0x' + nostrHex.slice(i, i + 2)));
+            }
+            try {
+              extractedMetadata.nostr_id = byteArray.stringFromByteArray({
+                data: nostrBytes,
+                pending_word: 0n,
+                pending_word_len: nostrBytes.length
+              });
+              console.log('Extracted nostr_id:', extractedMetadata.nostr_id);
+            } catch (e) {
+              console.log('Failed to decode nostr_id:', e);
+            }
+          }
+          
+          // Add more metadata extraction as needed based on the ABI structure
+          console.log('Extracted metadata:', extractedMetadata);
+        } catch (extractError) {
+          console.error('Error extracting metadata from raw data:', extractError);
+        }
       }
 
       try {
@@ -526,26 +604,31 @@ export default function (config: ApibaraRuntimeConfig & {
 
 
         console.log("event?.args", event?.args);
+        console.log('Constructing metadata data object...');
         const metadataData = {
           transaction_hash: transactionHash,
           network: 'starknet-sepolia',
           block_timestamp: blockTimestamp,
           memecoin_address: tokenAddress,
-          url: event?.args?.url || null,
-          nostr_id: event?.args?.nostr_id || null,
-          nostr_event_id: event?.args?.nostr_event_id || null,
-          twitter: event?.args?.twitter || null,
-          telegram: event?.args?.telegram || null,
-          github: event?.args?.github || null,
-          website: event?.args?.website || null,
+          url: extractedMetadata.url,
+          nostr_id: extractedMetadata.nostr_id,
+          nostr_event_id: extractedMetadata.nostr_event_id,
+          twitter: extractedMetadata.twitter,
+          telegram: extractedMetadata.telegram,
+          github: extractedMetadata.github,
+          website: extractedMetadata.website,
           created_at: new Date(),
         };
+        console.log('Metadata data object constructed successfully');
 
         console.log('Processed Metadata:', metadataData);
+        console.log('About to start database operations...');
         console.log('Using raw SQL to insert metadata record...');
 
         // Use raw SQL directly since drizzle is having schema issues
+        console.log('Starting raw SQL insert...');
         try {
+          console.log('Executing INSERT statement...');
           await db.execute(sql`
             INSERT INTO token_metadata (
               transaction_hash,
