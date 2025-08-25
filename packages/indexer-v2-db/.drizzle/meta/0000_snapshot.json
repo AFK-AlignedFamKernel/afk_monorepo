@@ -1,5 +1,5 @@
 {
-  "id": "ddd44743-6879-4644-88a8-da68383a010f",
+  "id": "63447707-c6cd-4885-9b8c-25bd4366934d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -778,18 +778,11 @@
       "name": "token_deploy",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
         "transaction_hash": {
           "name": "transaction_hash",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": true
         },
         "network": {
           "name": "network",
@@ -858,13 +851,6 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "token_deploy_transaction_hash_unique": {
-          "name": "token_deploy_transaction_hash_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "transaction_hash"
-          ]
-        },
         "token_deploy_memecoin_address_unique": {
           "name": "token_deploy_memecoin_address_unique",
           "nullsNotDistinct": false,
@@ -1045,18 +1031,11 @@
       "name": "token_metadata",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
         "transaction_hash": {
           "name": "transaction_hash",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": true
         },
         "network": {
           "name": "network",
@@ -1130,13 +1109,6 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
-        "token_metadata_transaction_hash_unique": {
-          "name": "token_metadata_transaction_hash_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "transaction_hash"
-          ]
-        },
         "token_metadata_memecoin_address_unique": {
           "name": "token_metadata_memecoin_address_unique",
           "nullsNotDistinct": false,
@@ -1153,18 +1125,11 @@
       "name": "token_transactions",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
         "transfer_id": {
           "name": "transfer_id",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "primaryKey": true,
+          "notNull": true
         },
         "network": {
           "name": "network",
@@ -1249,15 +1214,7 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "token_transactions_transfer_id_unique": {
-          "name": "token_transactions_transfer_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "transfer_id"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

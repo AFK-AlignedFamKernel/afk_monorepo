@@ -109,6 +109,7 @@ export default function (config: ApibaraRuntimeConfig & {
         token_deploy: 'transaction_hash',
         token_launch: 'id',
         token_metadata: 'transaction_hash',
+        token_transactions: 'transfer_id',
         shares_token_user: 'owner'
       }
     })],

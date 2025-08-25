@@ -206,8 +206,7 @@ export const tokenMetadata = pgTable('token_metadata', {
 });
 
 export const tokenTransactions = pgTable('token_transactions', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  transfer_id: text('transfer_id').unique(),
+  transfer_id: text('transfer_id').primaryKey(),
   network: text('network'),
   block_timestamp: timestamp('block_timestamp'),
   transaction_hash: text('transaction_hash'),
