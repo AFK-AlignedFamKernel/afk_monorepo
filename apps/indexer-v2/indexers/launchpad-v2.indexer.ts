@@ -125,7 +125,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
       console.log("timestamp", header.timestamp);
 
-      console.log("events", events?.length);
+      console.log("events length", events?.length);
       for (const event of events) {
         if (event.transactionHash) {
           logger.log(`Found event ${event.keys[0]}`);
@@ -239,63 +239,15 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      // Parse from raw event data since decoded event doesn't have the expected structure
-      // The data array contains: [caller_low, caller_high, token_address_low, token_address_high, 
-      // symbol_low, symbol_high, symbol_len, name_low, name_high, name_len, initial_supply_low, 
-      // initial_supply_high, total_supply_low, total_supply_high, owner]
-      
-      const data = rawEvent.data;
-      
-      // Extract addresses from keys (keys[1] and keys[2] are the addresses)
-      const ownerAddress = encode.sanitizeHex(`0x${BigInt(rawEvent.keys[1]).toString(16)}`);
-      const tokenAddress = encode.sanitizeHex(`0x${BigInt(rawEvent.keys[2]).toString(16)}`);
-      
-      // Extract symbol and name from data array
-      let symbol = '';
-      let name = '';
-      
-      try {
-        // Symbol is in data[4] and data[5] with length in data[6]
-        if (data[4] && data[5] && data[6]) {
-          const symbolLow = BigInt(data[4]);
-          const symbolHigh = BigInt(data[5]);
-          const symbolLen = Number(data[6]);
-          
-          if (symbolLen > 0) {
-            const symbolBytes = [symbolLow, symbolHigh];
-            symbol = byteArray.stringFromByteArray({
-              data: symbolBytes,
-              pending_word: 0n,
-              pending_word_len: symbolLen
-            });
-          }
-        }
-        
-        // Name is in data[7] and data[8] with length in data[9]
-        if (data[7] && data[8] && data[9]) {
-          const nameLow = BigInt(data[7]);
-          const nameHigh = BigInt(data[8]);
-          const nameLen = Number(data[9]);
-          
-          if (nameLen > 0) {
-            const nameBytes = [nameLow, nameHigh];
-            name = byteArray.stringFromByteArray({
-              data: nameBytes,
-              pending_word: 0n,
-              pending_word_len: nameLen
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error parsing symbol/name:', error);
-        // Fallback to hex representation
-        symbol = `0x${BigInt(data[4] || 0).toString(16)}`;
-        name = `0x${BigInt(data[7] || 0).toString(16)}`;
-      }
-      
-      // Extract supply values from data array
-      const initialSupply = formatTokenAmount(data[10] || '0');
-      const totalSupply = formatTokenAmount(data[12] || '0');
+      const tokenAddress = event?.args?.token_address;
+      const ownerAddress = event?.args?.caller;
+      const initialSupply = formatTokenAmount(event?.args?.initial_supply?.toString() || '0');
+      const totalSupply = formatTokenAmount(event?.args?.total_supply?.toString() || '0');
+
+
+      console.log("event args", event?.args);
+      const symbol = byteArray.stringFromByteArray(event?.args?.symbol || "0x");
+      const name = byteArray.stringFromByteArray(event?.args?.name || "0x");
 
       console.log('Processed Values:', {
         tokenAddress,
