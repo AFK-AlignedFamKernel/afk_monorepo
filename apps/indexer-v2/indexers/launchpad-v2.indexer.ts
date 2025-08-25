@@ -2,7 +2,7 @@ import { defineIndexer } from '@apibara/indexer';
 import { useLogger } from '@apibara/indexer/plugins';
 import { drizzleStorage, useDrizzleStorage } from '@apibara/plugin-drizzle';
 import { Abi, decodeEvent, StarknetStream } from '@apibara/starknet';
-import { byteArray, constants, encode, hash } from 'starknet';
+import { ByteArray, byteArray, constants, encode, hash } from 'starknet';
 import { ApibaraRuntimeConfig } from 'apibara/types';
 import { db } from 'indexer-v2-db';
 import { ABI as launchpadABI } from './abi/launchpad.abi';
@@ -241,13 +241,54 @@ export default function (config: ApibaraRuntimeConfig & {
 
       const tokenAddress = event?.args?.token_address;
       const ownerAddress = event?.args?.caller;
-      const initialSupply = formatTokenAmount(event?.args?.initial_supply?.toString() || '0');
-      const totalSupply = formatTokenAmount(event?.args?.total_supply?.toString() || '0');
 
+      // Defensive: handle both BigInt and string, and undefined
+      function safeToString(val: any): string {
+        if (val === undefined || val === null) return '0';
+        try {
+          // If already string, return as is
+          if (typeof val === 'string') return val;
+          // If BigInt, convert to string
+          if (typeof val === 'bigint') return val.toString();
+          // If number, convert to string
+          if (typeof val === 'number') return val.toString();
+          // If object with toString, use it
+          if (typeof val.toString === 'function') return val.toString();
+        } catch (e) {
+          return '0';
+        }
+        return '0';
+      }
+
+      const initialSupply = formatTokenAmount(safeToString(event?.args?.initial_supply));
+      const totalSupply = formatTokenAmount(safeToString(event?.args?.total_supply));
 
       console.log("event args", event?.args);
-      const symbol = byteArray.stringFromByteArray(event?.args?.symbol || "0x");
-      const name = byteArray.stringFromByteArray(event?.args?.name || "0x");
+
+      // Defensive: ensure input is a hex string, fallback to empty string if not
+      function safeHexString(val: string | ByteArray): string {
+        if (typeof val === 'string' && val.startsWith('0x')) return val;
+        return '0x';
+      }
+
+      let symbol = '';
+      let name = '';
+      try {
+        console.log("event?.args?.symbol", event?.args?.symbol);
+        // symbol = byteArray.stringFromByteArray(byteArray.byteArrayFromString(safeHexString(event?.args?.symbol)));
+        symbol = byteArray.stringFromByteArray(event?.args?.symbol);
+      } catch (e) {
+        symbol = '';
+        console.error('Error decoding symbol from byte array:', e, event?.args?.symbol);
+      }
+      try {
+        console.log("event?.args?.name", event?.args?.name);
+        // name = byteArray.stringFromByteArray(byteArray.byteArrayFromString(safeHexString(event?.args?.name)));
+        name = byteArray.stringFromByteArray((event?.args?.name));
+      } catch (e) {
+        name = '';
+        console.error('Error decoding name from byte array:', e, event?.args?.name);
+      }
 
       console.log('Processed Values:', {
         tokenAddress,
