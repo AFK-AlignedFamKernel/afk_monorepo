@@ -108,7 +108,7 @@ export default function (config: ApibaraRuntimeConfig & {
       idColumn: {
         token_deploy: 'transaction_hash',
         token_launch: 'id',
-        token_metadata: 'id',
+        token_metadata: 'transaction_hash',
         shares_token_user: 'owner'
       }
     })],
@@ -538,9 +538,50 @@ export default function (config: ApibaraRuntimeConfig & {
         };
 
         console.log('Processed Metadata:', metadataData);
+        console.log('About to insert metadata record...');
 
-        await db.insert(tokenMetadata).values(metadataData);
-        console.log('Token Metadata Record Created');
+        try {
+          await db.insert(tokenMetadata).values(metadataData);
+          console.log('Token Metadata Record Created');
+        } catch (insertError: any) {
+          console.error('Failed to insert metadata:', insertError);
+          // Try raw SQL as fallback
+          try {
+            await db.execute(sql`
+              INSERT INTO token_metadata (
+                transaction_hash,
+                network,
+                block_timestamp,
+                memecoin_address,
+                url,
+                nostr_id,
+                nostr_event_id,
+                twitter,
+                telegram,
+                github,
+                website,
+                created_at
+              ) VALUES (
+                ${transactionHash},
+                ${'starknet-sepolia'},
+                ${blockTimestamp},
+                ${tokenAddress},
+                ${event?.args?.url || null},
+                ${event?.args?.nostr_id || null},
+                ${event?.args?.nostr_event_id || null},
+                ${event?.args?.twitter || null},
+                ${event?.args?.telegram || null},
+                ${event?.args?.github || null},
+                ${event?.args?.website || null},
+                ${new Date()}
+              )
+            `);
+            console.log('Token Metadata Record Created via raw SQL fallback');
+          } catch (sqlError: any) {
+            console.error('Raw SQL fallback also failed:', sqlError);
+            throw sqlError;
+          }
+        }
 
         const existingDeploy = await db.query.tokenDeploy.findFirst({
           where: eq(tokenDeploy.memecoin_address, tokenAddress)
