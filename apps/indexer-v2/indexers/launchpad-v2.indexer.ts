@@ -263,7 +263,9 @@ export default function (config: ApibaraRuntimeConfig & {
       const initialSupply = formatTokenAmount(safeToString(event?.args?.initial_supply));
       const totalSupply = formatTokenAmount(safeToString(event?.args?.total_supply));
 
-      console.log("event args", event?.args);
+             console.log("event args", event?.args);
+       console.log("Decoded values - tokenAddress:", tokenAddress, "ownerAddress:", ownerAddress);
+       console.log("Decoded values - initialSupply:", initialSupply, "totalSupply:", totalSupply);
 
       // Defensive: ensure input is a hex string, fallback to empty string if not
       function safeHexString(val: string | ByteArray): string {
@@ -273,32 +275,64 @@ export default function (config: ApibaraRuntimeConfig & {
 
       let symbol = '';
       let name = '';
-      try {
-        console.log("event?.args?.symbol", event?.args?.symbol);
-        // symbol = byteArray.stringFromByteArray(byteArray.byteArrayFromString(safeHexString(event?.args?.symbol)));
-        symbol = byteArray.stringFromByteArray(event?.args?.symbol);
-      } catch (e) {
-        symbol = '';
-        console.error('Error decoding symbol from byte array:', e, event?.args?.symbol);
-      }
-      try {
-        console.log("event?.args?.name", event?.args?.name);
-        // name = byteArray.stringFromByteArray(byteArray.byteArrayFromString(safeHexString(event?.args?.name)));
-        name = byteArray.stringFromByteArray((event?.args?.name));
-      } catch (e) {
-        name = '';
-        console.error('Error decoding name from byte array:', e, event?.args?.name);
-      }
+             try {
+         console.log("event?.args?.symbol", event?.args?.symbol);
+         // Convert hex string to byte array first
+         if (typeof event?.args?.symbol === 'string' && event?.args?.symbol.startsWith('0x')) {
+           const symbolHex = event.args.symbol.slice(2); // Remove '0x' prefix
+           const symbolBytes = [];
+           for (let i = 0; i < symbolHex.length; i += 2) {
+             symbolBytes.push(BigInt('0x' + symbolHex.slice(i, i + 2)));
+           }
+           symbol = byteArray.stringFromByteArray({
+             data: symbolBytes,
+             pending_word: 0n,
+             pending_word_len: symbolBytes.length
+           });
+         } else {
+           symbol = '';
+         }
+       } catch (e) {
+         symbol = '';
+         console.error('Error decoding symbol from byte array:', e, event?.args?.symbol);
+       }
+       try {
+         console.log("event?.args?.name", event?.args?.name);
+         // Convert hex string to byte array first
+         if (typeof event?.args?.name === 'string' && event?.args?.name.startsWith('0x')) {
+           const nameHex = event.args.name.slice(2); // Remove '0x' prefix
+           const nameBytes = [];
+           for (let i = 0; i < nameHex.length; i += 2) {
+             nameBytes.push(BigInt('0x' + nameHex.slice(i, i + 2)));
+           }
+           name = byteArray.stringFromByteArray({
+             data: nameBytes,
+             pending_word: 0n,
+             pending_word_len: nameBytes.length
+           });
+         } else {
+           name = '';
+         }
+              } catch (e) {
+         name = '';
+         console.error('Error decoding name from byte array:', e, event?.args?.name);
+       }
 
-      console.log('Processed Values:', {
-        tokenAddress,
-        ownerAddress,
-        initialSupply,
-        totalSupply,
-        transactionHash,
-        name,
-        symbol
-      });
+       // Validate addresses
+       if (!tokenAddress || !ownerAddress) {
+         console.error('Invalid addresses:', { tokenAddress, ownerAddress });
+         return;
+       }
+
+       console.log('Processed Values:', {
+         tokenAddress,
+         ownerAddress,
+         initialSupply,
+         totalSupply,
+         transactionHash,
+         name,
+         symbol
+       });
 
       try {
         await db.insert(tokenDeploy).values({
