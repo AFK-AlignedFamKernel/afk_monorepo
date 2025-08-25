@@ -342,75 +342,26 @@ export default function (config: ApibaraRuntimeConfig & {
        });
 
       try {
-        // Try using raw SQL insert to avoid schema mismatch issues
+                // Insert token deploy record using drizzle
         console.log('Attempting to insert token deploy record...');
         try {
-                  // Add timeout protection for the database operation
-        console.log('Attempting drizzle insert with timeout protection...');
-        console.log('About to execute db.insert...');
-        
-        const insertPromise = db.insert(tokenDeploy).values({
-          transaction_hash: transactionHash,
-          network: 'starknet-sepolia',
-          block_timestamp: blockTimestamp,
-          memecoin_address: tokenAddress,
-          owner_address: ownerAddress,
-          name: name,
-          symbol: symbol,
-          initial_supply: initialSupply,
-          total_supply: totalSupply,
-          created_at: new Date(),
-          is_launched: false,
-        });
-
-        console.log('Insert promise created, about to await...');
-        
-        // Add a timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Database insert timeout after 10 seconds')), 10000);
-        });
-
-        console.log('Timeout promise created, racing promises...');
-        await Promise.race([insertPromise, timeoutPromise]);
-        console.log('Token Deploy Record Created successfully via drizzle');
+          await db.insert(tokenDeploy).values({
+            transaction_hash: transactionHash,
+            network: 'starknet-sepolia',
+            block_timestamp: blockTimestamp,
+            memecoin_address: tokenAddress,
+            owner_address: ownerAddress,
+            name: name,
+            symbol: symbol,
+            initial_supply: initialSupply,
+            total_supply: totalSupply,
+            created_at: new Date(),
+            is_launched: false,
+          });
+          console.log('Token Deploy Record Created successfully');
         } catch (insertError: any) {
           console.error('Drizzle insert failed:', insertError);
-          
-          // Try raw SQL as fallback
-          console.log('Attempting raw SQL fallback...');
-          try {
-            await db.execute(sql`
-              INSERT INTO token_deploy (
-                transaction_hash,
-                network,
-                block_timestamp,
-                memecoin_address,
-                owner_address,
-                name,
-                symbol,
-                initial_supply,
-                total_supply,
-                created_at,
-                is_launched
-              ) VALUES (
-                ${transactionHash},
-                ${'starknet-sepolia'},
-                ${blockTimestamp},
-                ${tokenAddress},
-                ${ownerAddress},
-                ${name},
-                ${symbol},
-                ${initialSupply},
-                ${totalSupply},
-                ${new Date()},
-                ${false}
-              )
-            `);
-            console.log('Token Deploy Record Created via raw SQL fallback');
-          } catch (sqlError: any) {
-            console.error('Raw SQL fallback also failed:', sqlError);
-            throw sqlError; // Re-throw to be caught by outer catch
-          }
+          throw insertError; // Re-throw to be caught by outer catch
         }
       } catch (dbError: any) {
         if (dbError.code === '23505') {
