@@ -153,8 +153,7 @@ export const indexerCursor = pgTable('indexer_cursor', {
 });
 
 export const tokenDeploy = pgTable('token_deploy', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  transaction_hash: text('transaction_hash').unique(),
+  transaction_hash: text('transaction_hash').primaryKey(),
   network: text('network'),
   block_timestamp: timestamp('block_timestamp'),
   memecoin_address: text('memecoin_address').unique(),
