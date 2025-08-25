@@ -105,12 +105,12 @@ export default function (config: ApibaraRuntimeConfig & {
     },
     plugins: [drizzleStorage({
       db,
-      idColumn: {
-        token_deploy: 'id',
-        token_launch: 'id',
-        token_metadata: 'id',
-        shares_token_user: 'owner'
-      }
+      // idColumn: {
+      //   token_deploy: 'id',
+      //   token_launch: 'id',
+      //   token_metadata: 'id',
+      //   shares_token_user: 'owner'
+      // }
     })],
     async transform({ endCursor, block, context, finality, }) {
       const logger = useLogger();
@@ -154,11 +154,18 @@ export default function (config: ApibaraRuntimeConfig & {
             if (event?.keys[0] == encode.sanitizeHex(METADATA_COIN_ADDED)) {
               console.log("event Metadata");
               try {
-                const decodedEvent = decodeEvent({
-                  abi: launchpadABI as Abi,
-                  event,
-                  eventName: 'afk_launchpad::types::launchpad_types::MetadataCoinAdded',
-                });
+                // Try to decode the event, but handle failures gracefully
+                let decodedEvent = null;
+                try {
+                  decodedEvent = decodeEvent({
+                    abi: launchpadABI as Abi,
+                    event,
+                    eventName: 'afk_launchpad::types::launchpad_types::MetadataCoinAdded',
+                  });
+                } catch (decodeError) {
+                  console.log("Failed to decode metadata event, using raw data:", decodeError);
+                  decodedEvent = null;
+                }
                 await handleMetadataEvent(decodedEvent, header, event);
               } catch (error) {
                 console.error("Error processing metadata event:", error);
@@ -335,20 +342,54 @@ export default function (config: ApibaraRuntimeConfig & {
        });
 
       try {
-        await db.insert(tokenDeploy).values({
-          id: randomUUID(),
-          transaction_hash: transactionHash,
-          network: 'starknet-sepolia',
-          block_timestamp: blockTimestamp,
-          memecoin_address: tokenAddress,
-          owner_address: ownerAddress,
-          name: name,
-          symbol: symbol,
-          initial_supply: initialSupply,
-          total_supply: totalSupply,
-          created_at: new Date(),
-          is_launched: false,
-        });
+        // Try using raw SQL insert to avoid schema mismatch issues
+        try {
+          await db.execute(sql`
+            INSERT INTO token_deploy (
+              transaction_hash,
+              network,
+              block_timestamp,
+              memecoin_address,
+              owner_address,
+              name,
+              symbol,
+              initial_supply,
+              total_supply,
+              created_at,
+              is_launched
+            ) VALUES (
+              ${transactionHash},
+              ${'starknet-sepolia'},
+              ${blockTimestamp},
+              ${tokenAddress},
+              ${ownerAddress},
+              ${name},
+              ${symbol},
+              ${initialSupply},
+              ${totalSupply},
+              ${new Date()},
+              ${false}
+            )
+          `);
+          console.log('Token Deploy Record Created');
+        } catch (sqlError: any) {
+          console.error('Raw SQL insert failed:', sqlError);
+          // Fallback to drizzle insert without id
+          await db.insert(tokenDeploy).values({
+            transaction_hash: transactionHash,
+            network: 'starknet-sepolia',
+            block_timestamp: blockTimestamp,
+            memecoin_address: tokenAddress,
+            owner_address: ownerAddress,
+            name: name,
+            symbol: symbol,
+            initial_supply: initialSupply,
+            total_supply: totalSupply,
+            created_at: new Date(),
+            is_launched: false,
+          });
+          console.log('Token Deploy Record Created (fallback)');
+        }
 
         console.log('Token Deploy Record Created');
       } catch (dbError: any) {
