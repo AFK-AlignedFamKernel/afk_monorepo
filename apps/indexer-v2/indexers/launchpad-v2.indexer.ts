@@ -508,14 +508,15 @@ export default function (config: ApibaraRuntimeConfig & {
       }
 
       try {
-        const existingMetadata = await db.query.tokenMetadata.findFirst({
-          where: or(
-            eq(tokenMetadata.transaction_hash, transactionHash),
-            eq(tokenMetadata.memecoin_address, tokenAddress)
-          )
-        });
+        // Check if metadata already exists using raw SQL
+        const existingMetadataResult = await db.execute(sql`
+          SELECT memecoin_address, transaction_hash FROM token_metadata 
+          WHERE transaction_hash = ${transactionHash} OR memecoin_address = ${tokenAddress}
+          LIMIT 1
+        `);
 
-        if (existingMetadata) {
+        if (existingMetadataResult.rows.length > 0) {
+          const existingMetadata = existingMetadataResult.rows[0];
           console.log('Metadata already exists, skipping creation:', {
             memecoin_address: existingMetadata.memecoin_address,
             transaction_hash: existingMetadata.transaction_hash
@@ -523,6 +524,8 @@ export default function (config: ApibaraRuntimeConfig & {
           return;
         }
 
+
+        console.log("event?.args", event?.args);
         const metadataData = {
           transaction_hash: transactionHash,
           network: 'starknet-sepolia',
@@ -539,71 +542,89 @@ export default function (config: ApibaraRuntimeConfig & {
         };
 
         console.log('Processed Metadata:', metadataData);
-        console.log('About to insert metadata record...');
+        console.log('Using raw SQL to insert metadata record...');
 
+        // Use raw SQL directly since drizzle is having schema issues
         try {
-          await db.insert(tokenMetadata).values(metadataData);
-          console.log('Token Metadata Record Created');
-        } catch (insertError: any) {
-          console.error('Failed to insert metadata:', insertError);
-          // Try raw SQL as fallback
-          try {
+          await db.execute(sql`
+            INSERT INTO token_metadata (
+              transaction_hash,
+              network,
+              block_timestamp,
+              memecoin_address,
+              url,
+              nostr_id,
+              nostr_event_id,
+              twitter,
+              telegram,
+              github,
+              website,
+              created_at
+            ) VALUES (
+              ${transactionHash},
+              ${'starknet-sepolia'},
+              ${blockTimestamp},
+              ${tokenAddress},
+              ${event?.args?.url || null},
+              ${event?.args?.nostr_id || null},
+              ${event?.args?.nostr_event_id || null},
+              ${event?.args?.twitter || null},
+              ${event?.args?.telegram || null},
+              ${event?.args?.github || null},
+              ${event?.args?.website || null},
+              ${new Date()}
+            )
+          `);
+          console.log('Token Metadata Record Created via raw SQL');
+        } catch (sqlError: any) {
+          console.error('Raw SQL insert failed:', sqlError);
+          throw sqlError;
+        }
+
+        // Check if token deploy exists and update it
+        try {
+          const existingDeployResult = await db.execute(sql`
+            SELECT name, symbol FROM token_deploy 
+            WHERE memecoin_address = ${tokenAddress}
+            LIMIT 1
+          `);
+          
+          if (existingDeployResult.rows.length > 0) {
+            const existingDeploy = existingDeployResult.rows[0];
             await db.execute(sql`
-              INSERT INTO token_metadata (
-                transaction_hash,
-                network,
-                block_timestamp,
-                memecoin_address,
-                url,
-                nostr_id,
-                nostr_event_id,
-                twitter,
-                telegram,
-                github,
-                website,
-                created_at
-              ) VALUES (
-                ${transactionHash},
-                ${'starknet-sepolia'},
-                ${blockTimestamp},
-                ${tokenAddress},
-                ${event?.args?.url || null},
-                ${event?.args?.nostr_id || null},
-                ${event?.args?.nostr_event_id || null},
-                ${event?.args?.twitter || null},
-                ${event?.args?.telegram || null},
-                ${event?.args?.github || null},
-                ${event?.args?.website || null},
-                ${new Date()}
-              )
+              UPDATE token_deploy 
+              SET 
+                name = ${event?.args?.name || existingDeploy.name},
+                symbol = ${event?.args?.symbol || existingDeploy.symbol}
+              WHERE memecoin_address = ${tokenAddress}
             `);
-            console.log('Token Metadata Record Created via raw SQL fallback');
-          } catch (sqlError: any) {
-            console.error('Raw SQL fallback also failed:', sqlError);
-            throw sqlError;
+            console.log('Token Deploy Record Updated with Metadata');
           }
+        } catch (updateError) {
+          console.error('Failed to update token deploy:', updateError);
         }
 
-        const existingDeploy = await db.query.tokenDeploy.findFirst({
-          where: eq(tokenDeploy.memecoin_address, tokenAddress)
-        });
-
-        if (existingDeploy) {
-          await db.update(tokenDeploy)
-            .set({
-              name: event?.args?.name || existingDeploy.name,
-              symbol: event?.args?.symbol || existingDeploy.symbol,
-            })
-            .where(eq(tokenDeploy.memecoin_address, tokenAddress));
-          console.log('Token Deploy Record Updated with Metadata');
-        }
-
-        const existingLaunch = await db.query.tokenLaunch.findFirst({
-          where: eq(tokenLaunch.memecoin_address, tokenAddress)
-        });
-
-        if (existingLaunch) {
-          console.log('Token Launch Record Updated with Metadata');
+        // Check if token launch exists
+        try {
+          const existingLaunchResult = await db.execute(sql`
+            SELECT name, symbol FROM token_launch 
+            WHERE memecoin_address = ${tokenAddress}
+            LIMIT 1
+          `);
+          
+          if (existingLaunchResult.rows.length > 0) {
+            const existingLaunch = existingLaunchResult.rows[0];
+            await db.execute(sql`
+              UPDATE token_launch 
+              SET 
+                name = ${event?.args?.name || existingLaunch.name},
+                symbol = ${event?.args?.symbol || existingLaunch.symbol}
+              WHERE memecoin_address = ${tokenAddress}
+            `);
+            console.log('Token Launch Record Updated with Metadata');
+          }
+        } catch (updateError) {
+          console.error('Failed to update token launch:', updateError);
         }
       } catch (dbError: any) {
         if (dbError.code === '23505') {
