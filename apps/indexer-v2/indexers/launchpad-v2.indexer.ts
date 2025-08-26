@@ -143,6 +143,15 @@ export default function (config: ApibaraRuntimeConfig & {
               });
               await handleCreateTokenEvent(decodedEvent, event.address, header, event);
             }
+            if (event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)) {
+              console.log("event BuyToken");
+              const decodedEvent = decodeEvent({
+                abi: launchpadABI as Abi,
+                event,
+                eventName: 'afk_launchpad::types::launchpad_types::BuyToken',
+              });
+              await handleBuyTokenEvent(decodedEvent, header, event);
+            }
             if (event?.keys[0] == encode.sanitizeHex(CREATE_LAUNCH)) {
               console.log("event CreateLaunch");
               const decodedEvent = decodeEvent({
