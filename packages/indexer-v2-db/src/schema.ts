@@ -164,6 +164,7 @@ export const tokenDeploy = pgTable('token_deploy', {
   total_supply: text('total_supply'),
   created_at: timestamp('created_at').defaultNow(),
   is_launched: boolean('is_launched').default(false),
+  url: text('url'),
 });
 
 export const tokenLaunch = pgTable('token_launch', {
@@ -187,6 +188,7 @@ export const tokenLaunch = pgTable('token_launch', {
   initial_pool_supply_dex: text('initial_pool_supply_dex'),
   market_cap: text('market_cap'),
   created_at: timestamp('created_at').defaultNow(),
+  url: text('url'),
   token_deploy_tx_hash: text('token_deploy_tx_hash').unique(),
 });
 

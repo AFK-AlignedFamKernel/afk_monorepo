@@ -75,7 +75,7 @@ export default function (config: ApibaraRuntimeConfig & {
         },
         {
           address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
-          keys: [BUY_TOKEN],
+          keys: [BUY_TOKEN], // 0x00cb205b7506d21e6fe528cd4ae2ce69ae63eb6fc10a2d0234dd39ef3d349797
         },
         {
           address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
@@ -966,7 +966,6 @@ export default function (config: ApibaraRuntimeConfig & {
 
         try {
           await db.insert(tokenTransactions).values({
-            id: randomUUID(),
             transfer_id: transferId,
             network: 'starknet-sepolia',
             block_timestamp: blockTimestamp,
@@ -987,7 +986,6 @@ export default function (config: ApibaraRuntimeConfig & {
         } catch (insertError: any) {
           if (insertError.code === '42703') {
             await db.insert(tokenTransactions).values({
-              id: randomUUID(),
               transfer_id: transferId,
               network: 'starknet-sepolia',
               block_timestamp: blockTimestamp,

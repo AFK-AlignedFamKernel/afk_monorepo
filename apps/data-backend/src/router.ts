@@ -30,6 +30,7 @@ import brandRoutes from './routes/brand';
 import communityRoutes from './routes/communities';
 import messageRoutes from './routes/messages';
 import subScoreFactoryRoute from './routes/indexer/infofi/score-factory.routes';
+import launchpadRoute from './routes/indexer/launchpad';
 // import daoServiceRoute from './routes/indexer/dao';
 // import subScoreFactoryRoute from './routes/indexer/infofi/score-factory.routes';
 // import getOtp from "./routes/otp/getOtp";
@@ -73,8 +74,8 @@ function declareRoutes(
   fastify.register(communityRoutes);
   fastify.register(messageRoutes);  
   fastify.register(subScoreFactoryRoute);
-  // fastify.register(profileRoutes, { prefix: '/api' });
-
+  // fastify.register(launchpadRoute, { prefix: '/launchpad' });
+  fastify.register(launchpadRoute);
   // fastify.register(daoServiceRoute);
   // fastify.register(subScoreFactoryRoute);
   // fastify.register(getOtp, twilio_services?.verifications);
