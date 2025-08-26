@@ -3,9 +3,9 @@
 
 export default {
   DECIMALS: 18,
-  STARTING_BLOCK: 900_000,
-  STARTING_BLOCK_UNRUG: 615_556,
-  STARTING_BLOCK_MAINNET: 615_556,
+  STARTING_BLOCK: 1_000_000,
+  STARTING_BLOCK_UNRUG: 1_000_000,
+  STARTING_BLOCK_MAINNET: 1_000_000,
   networks: {
     mainnet: {
       name: 'mainnet',

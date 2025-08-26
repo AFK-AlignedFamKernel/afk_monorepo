@@ -108,8 +108,7 @@ CREATE TABLE IF NOT EXISTS "shares_token_user" (
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "token_deploy" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"transaction_hash" text,
+	"transaction_hash" text PRIMARY KEY NOT NULL,
 	"network" text,
 	"block_timestamp" timestamp,
 	"memecoin_address" text,
@@ -120,13 +119,12 @@ CREATE TABLE IF NOT EXISTS "token_deploy" (
 	"total_supply" text,
 	"created_at" timestamp DEFAULT now(),
 	"is_launched" boolean DEFAULT false,
-	CONSTRAINT "token_deploy_transaction_hash_unique" UNIQUE("transaction_hash"),
+	"url" text,
 	CONSTRAINT "token_deploy_memecoin_address_unique" UNIQUE("memecoin_address")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "token_launch" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"transaction_hash" text,
+	"transaction_hash" text PRIMARY KEY NOT NULL,
 	"network" text,
 	"block_timestamp" timestamp,
 	"memecoin_address" text,
@@ -145,15 +143,14 @@ CREATE TABLE IF NOT EXISTS "token_launch" (
 	"initial_pool_supply_dex" text,
 	"market_cap" text,
 	"created_at" timestamp DEFAULT now(),
+	"url" text,
 	"token_deploy_tx_hash" text,
-	CONSTRAINT "token_launch_transaction_hash_unique" UNIQUE("transaction_hash"),
 	CONSTRAINT "token_launch_memecoin_address_unique" UNIQUE("memecoin_address"),
 	CONSTRAINT "token_launch_token_deploy_tx_hash_unique" UNIQUE("token_deploy_tx_hash")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "token_metadata" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"transaction_hash" text,
+	"transaction_hash" text PRIMARY KEY NOT NULL,
 	"network" text,
 	"block_timestamp" timestamp,
 	"memecoin_address" text,
@@ -165,13 +162,11 @@ CREATE TABLE IF NOT EXISTS "token_metadata" (
 	"github" text,
 	"website" text,
 	"created_at" timestamp DEFAULT now(),
-	CONSTRAINT "token_metadata_transaction_hash_unique" UNIQUE("transaction_hash"),
 	CONSTRAINT "token_metadata_memecoin_address_unique" UNIQUE("memecoin_address")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "token_transactions" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"transfer_id" text,
+	"transfer_id" text PRIMARY KEY NOT NULL,
 	"network" text,
 	"block_timestamp" timestamp,
 	"transaction_hash" text,
@@ -184,8 +179,7 @@ CREATE TABLE IF NOT EXISTS "token_transactions" (
 	"amount" text,
 	"transaction_type" text,
 	"time_stamp" timestamp,
-	"created_at" timestamp DEFAULT now(),
-	CONSTRAINT "token_transactions_transfer_id_unique" UNIQUE("transfer_id")
+	"created_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "user_epoch_state" (

@@ -330,55 +330,40 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
       )}
 
 
-      {notesData.length === 0 && !isLoadingMore ? (
-        <div className={styles['nostr-feed__empty-state']}>
-          <p>No events found. Try following more users or changing filters.</p>
-          <div className="mt-4 text-sm text-gray-500">
-            <p>Debug info:</p>
-            <p>- Connected to {ndk.pool?.relays?.size || 0} relays</p>
-            <p>- Kinds: {kinds?.join(', ')}</p>
-            <button
-              className="mt-2 px-4 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={() => fetchEvents()}
-            >
-              Refresh Feed
-            </button>
-          </div>
-        </div>
-      ) : (
+      {notesData.length > 0 && (
         <div className={styles['nostr-feed__content']}>
-          {notesData.map((event, index) => {
-            if (!event?.id) return null;
-            const isLastItem = index === notesData.length - 1;
+        {notesData.map((event, index) => {
+          if (!event?.id) return null;
+          const isLastItem = index === notesData.length - 1;
 
-            return (
+          return (
 
-              <div
-                // className="nostr-feed__card"
-                key={index}
-                onClick={() => handleEventClick(event.id)}
-                ref={isLastItem ? loaderRef : null}
-              >
-                <NostrEventCard
-                  event={event}
-                  isClickableHashtags={true}
-                />
-              </div>
-            );
-          })}
-
-          {isLoadingMore && (
-            <div className="flex justify-center items-center py-4">
-              <CryptoLoading />
+            <div
+              // className="nostr-feed__card"
+              key={index}
+              onClick={() => handleEventClick(event.id)}
+              ref={isLastItem ? loaderRef : null}
+            >
+              <NostrEventCard
+                event={event}
+                isClickableHashtags={true}
+              />
             </div>
-          )}
+          );
+        })}
 
-          {!hasMoreContent && notesData.length > 0 && (
-            <div className="py-4 text-center text-gray-500">
-              No more content to load
-            </div>
-          )}
-        </div>
+        {isLoadingMore && (
+          <div className="flex justify-center items-center py-4">
+            <CryptoLoading />
+          </div>
+        )}
+
+        {!hasMoreContent && notesData.length > 0 && (
+          <div className="py-4 text-center text-gray-500">
+            No more content to load
+          </div>
+        )}
+      </div>
       )}
 
       {isInitialLoading && isLoadingMore && (
