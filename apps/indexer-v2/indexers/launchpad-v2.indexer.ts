@@ -131,6 +131,9 @@ export default function (config: ApibaraRuntimeConfig & {
         if (event.transactionHash) {
           logger.log(`Found event ${event.keys[0]}`);
 
+          logger.log("event sanitized", encode.sanitizeHex(event.keys[0]));
+          logger.log("BUY_TOKEN", encode.sanitizeHex(BUY_TOKEN));
+          logger.log("CREATE_LAUNCH", encode.sanitizeHex(CREATE_LAUNCH));
           try {
             let sanitizedEventKey = encode.sanitizeHex(event.keys[0]);
 
@@ -143,16 +146,12 @@ export default function (config: ApibaraRuntimeConfig & {
               });
               await handleCreateTokenEvent(decodedEvent, event.address, header, event);
             }
-            if (event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)) {
-              console.log("event BuyToken");
-              const decodedEvent = decodeEvent({
-                abi: launchpadABI as Abi,
-                event,
-                eventName: 'afk_launchpad::types::launchpad_types::BuyToken',
-              });
-              await handleBuyTokenEvent(decodedEvent, header, event);
-            }
-            if (event?.keys[0] == encode.sanitizeHex(CREATE_LAUNCH)) {
+
+            if (event?.keys[0] == encode.sanitizeHex(CREATE_LAUNCH)
+              || encode.sanitizeHex(event?.keys[0]) == encode.sanitizeHex(CREATE_LAUNCH)
+              || encode.sanitizeHex(event?.keys[0].slice(4)) == encode.sanitizeHex(CREATE_LAUNCH)
+              || encode.sanitizeHex(event?.keys[0].slice(4)) == encode.sanitizeHex(CREATE_LAUNCH).slice(4)
+            ) {
               console.log("event CreateLaunch");
               const decodedEvent = decodeEvent({
                 abi: launchpadABI as Abi,
@@ -181,8 +180,12 @@ export default function (config: ApibaraRuntimeConfig & {
                 console.error("Error processing metadata event:", error);
               }
             }
-            if (event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)) {
-              console.log("event Buy");
+            if (event?.keys[0] == encode.sanitizeHex(BUY_TOKEN)
+              || encode.sanitizeHex(event?.keys[0]) == encode.sanitizeHex(BUY_TOKEN)
+              || encode.sanitizeHex(event?.keys[0].slice(4)) == encode.sanitizeHex(BUY_TOKEN)
+              || encode.sanitizeHex(event?.keys[0].slice(4)) == encode.sanitizeHex(BUY_TOKEN).slice(4)
+            ) {
+              console.log("event BuyToken");
               const decodedEvent = decodeEvent({
                 abi: launchpadABI as Abi,
                 event,
