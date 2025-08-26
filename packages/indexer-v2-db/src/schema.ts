@@ -153,8 +153,7 @@ export const indexerCursor = pgTable('indexer_cursor', {
 });
 
 export const tokenDeploy = pgTable('token_deploy', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  transaction_hash: text('transaction_hash').unique(),
+  transaction_hash: text('transaction_hash').primaryKey(),
   network: text('network'),
   block_timestamp: timestamp('block_timestamp'),
   memecoin_address: text('memecoin_address').unique(),
@@ -165,11 +164,11 @@ export const tokenDeploy = pgTable('token_deploy', {
   total_supply: text('total_supply'),
   created_at: timestamp('created_at').defaultNow(),
   is_launched: boolean('is_launched').default(false),
+  url: text('url'),
 });
 
 export const tokenLaunch = pgTable('token_launch', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  transaction_hash: text('transaction_hash').unique(),
+  transaction_hash: text('transaction_hash').primaryKey(),
   network: text('network'),
   block_timestamp: timestamp('block_timestamp'),
   memecoin_address: text('memecoin_address').unique(),
@@ -188,12 +187,12 @@ export const tokenLaunch = pgTable('token_launch', {
   initial_pool_supply_dex: text('initial_pool_supply_dex'),
   market_cap: text('market_cap'),
   created_at: timestamp('created_at').defaultNow(),
+  url: text('url'),
   token_deploy_tx_hash: text('token_deploy_tx_hash').unique(),
 });
 
 export const tokenMetadata = pgTable('token_metadata', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  transaction_hash: text('transaction_hash').unique(),
+  transaction_hash: text('transaction_hash').primaryKey(),
   network: text('network'),
   block_timestamp: timestamp('block_timestamp'),
   memecoin_address: text('memecoin_address').unique(),
@@ -208,8 +207,7 @@ export const tokenMetadata = pgTable('token_metadata', {
 });
 
 export const tokenTransactions = pgTable('token_transactions', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  transfer_id: text('transfer_id').unique(),
+  transfer_id: text('transfer_id').primaryKey(),
   network: text('network'),
   block_timestamp: timestamp('block_timestamp'),
   transaction_hash: text('transaction_hash'),

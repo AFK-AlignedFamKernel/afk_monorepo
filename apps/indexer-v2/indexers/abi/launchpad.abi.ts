@@ -1519,36 +1519,6 @@ export const ABI = [
         "name": "url",
         "type": "core::byte_array::ByteArray",
         "kind": "data"
-      },
-      {
-        "name": "ipfs_hash",
-        "type": "core::byte_array::ByteArray",
-        "kind": "data"
-      },
-      {
-        "name": "nostr_event_id",
-        "type": "core::integer::u256",
-        "kind": "data"
-      },
-      {
-        "name": "twitter",
-        "type": "core::byte_array::ByteArray",
-        "kind": "data"
-      },
-      {
-        "name": "website",
-        "type": "core::byte_array::ByteArray",
-        "kind": "data"
-      },
-      {
-        "name": "telegram",
-        "type": "core::byte_array::ByteArray",
-        "kind": "data"
-      },
-      {
-        "name": "github",
-        "type": "core::byte_array::ByteArray",
-        "kind": "data"
       }
     ]
   },
