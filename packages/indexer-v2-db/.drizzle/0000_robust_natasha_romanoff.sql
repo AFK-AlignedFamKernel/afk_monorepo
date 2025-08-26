@@ -119,12 +119,12 @@ CREATE TABLE IF NOT EXISTS "token_deploy" (
 	"total_supply" text,
 	"created_at" timestamp DEFAULT now(),
 	"is_launched" boolean DEFAULT false,
+	"url" text,
 	CONSTRAINT "token_deploy_memecoin_address_unique" UNIQUE("memecoin_address")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "token_launch" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"transaction_hash" text,
+	"transaction_hash" text PRIMARY KEY NOT NULL,
 	"network" text,
 	"block_timestamp" timestamp,
 	"memecoin_address" text,
@@ -143,8 +143,8 @@ CREATE TABLE IF NOT EXISTS "token_launch" (
 	"initial_pool_supply_dex" text,
 	"market_cap" text,
 	"created_at" timestamp DEFAULT now(),
+	"url" text,
 	"token_deploy_tx_hash" text,
-	CONSTRAINT "token_launch_transaction_hash_unique" UNIQUE("transaction_hash"),
 	CONSTRAINT "token_launch_memecoin_address_unique" UNIQUE("memecoin_address"),
 	CONSTRAINT "token_launch_token_deploy_tx_hash_unique" UNIQUE("token_deploy_tx_hash")
 );

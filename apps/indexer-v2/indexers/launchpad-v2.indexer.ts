@@ -107,7 +107,7 @@ export default function (config: ApibaraRuntimeConfig & {
       db,
       idColumn: {
         token_deploy: 'transaction_hash',
-        token_launch: 'id',
+        token_launch: 'transaction_hash',
         token_metadata: 'transaction_hash',
         token_transactions: 'transfer_id',
         shares_token_user: 'owner'
@@ -976,48 +976,42 @@ export default function (config: ApibaraRuntimeConfig & {
 
         console.log('Shareholder Record Updated');
 
-        try {
-          await db.insert(tokenTransactions).values({
-            transfer_id: transferId,
-            network: 'starknet-sepolia',
-            block_timestamp: blockTimestamp,
-            transaction_hash: transactionHash,
-            memecoin_address: tokenAddress,
-            owner_address: ownerAddress,
-            last_price: lastPrice,
-            quote_amount: quoteAmount,
-            price: price,
-            amount: amount,
-            protocol_fee: protocolFee,
-            time_stamp: timestamp,
-            transaction_type: 'buy',
-            created_at: new Date(),
-          });
+        // Use raw SQL to avoid schema mismatch issues
+        await db.execute(sql`
+          INSERT INTO token_transactions (
+            transfer_id,
+            network,
+            block_timestamp,
+            transaction_hash,
+            memecoin_address,
+            owner_address,
+            last_price,
+            quote_amount,
+            price,
+            amount,
+            protocol_fee,
+            time_stamp,
+            transaction_type,
+            created_at
+          ) VALUES (
+            ${transferId},
+            ${'starknet-sepolia'},
+            ${blockTimestamp},
+            ${transactionHash},
+            ${tokenAddress},
+            ${ownerAddress},
+            ${lastPrice},
+            ${quoteAmount},
+            ${price},
+            ${amount},
+            ${protocolFee},
+            ${timestamp},
+            ${'buy'},
+            ${new Date()}
+          )
+        `);
 
-          console.log('Transaction Record Created');
-        } catch (insertError: any) {
-          if (insertError.code === '42703') {
-            await db.insert(tokenTransactions).values({
-              transfer_id: transferId,
-              network: 'starknet-sepolia',
-              block_timestamp: blockTimestamp,
-              transaction_hash: transactionHash,
-              memecoin_address: tokenAddress,
-              owner_address: ownerAddress,
-              last_price: lastPrice,
-              quote_amount: quoteAmount,
-              price: price,
-              amount: amount,
-              protocol_fee: protocolFee,
-              time_stamp: timestamp,
-              transaction_type: 'buy',
-              created_at: new Date(),
-            });
-            console.log('Transaction Record Created (without id)');
-          } else {
-            throw insertError;
-          }
-        }
+        console.log('Transaction Record Created');
       } catch (dbError: any) {
         if (dbError.code === '23505') {
           console.log('Transaction already exists (unique constraint violation):', {
@@ -1079,6 +1073,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
         const currentLaunch = launchRecord[0];
 
+        console.log("currentLaunch", currentLaunch);
         const newSupply = (BigInt(currentLaunch.current_supply || '0') + BigInt(amount)).toString();
         const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') - BigInt(quoteAmount)).toString();
         const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') - BigInt(amount)).toString();
@@ -1116,6 +1111,7 @@ export default function (config: ApibaraRuntimeConfig & {
             eq(sharesTokenUser.token_address, tokenAddress)
           )
         });
+        console.log("existingShareholder", existingShareholder);
 
         if (existingShareholder) {
           const updatedAmountOwned = (BigInt(existingShareholder.amount_owned || '0') - BigInt(amount)).toString();
@@ -1137,22 +1133,40 @@ export default function (config: ApibaraRuntimeConfig & {
           console.log('Shareholder Record Updated');
         }
 
-        await db.insert(tokenTransactions).values({
-          transfer_id: transferId,
-          network: 'starknet-sepolia',
-          block_timestamp: blockTimestamp,
-          transaction_hash: transactionHash,
-          memecoin_address: tokenAddress,
-          owner_address: ownerAddress,
-          last_price: lastPrice,
-          quote_amount: quoteAmount,
-          price: price,
-          amount: amount,
-          protocol_fee: protocolFee,
-          time_stamp: timestamp,
-          transaction_type: 'sell',
-          created_at: new Date(),
-        });
+        // Use raw SQL to avoid schema mismatch issues
+        await db.execute(sql`
+          INSERT INTO token_transactions (
+            transfer_id,
+            network,
+            block_timestamp,
+            transaction_hash,
+            memecoin_address,
+            owner_address,
+            last_price,
+            quote_amount,
+            price,
+            amount,
+            protocol_fee,
+            time_stamp,
+            transaction_type,
+            created_at
+          ) VALUES (
+            ${transferId},
+            ${'starknet-sepolia'},
+            ${blockTimestamp},
+            ${transactionHash},
+            ${tokenAddress},
+            ${ownerAddress},
+            ${lastPrice},
+            ${quoteAmount},
+            ${price},
+            ${amount},
+            ${protocolFee},
+            ${timestamp},
+            ${'sell'},
+            ${new Date()}
+          )
+        `);
 
         console.log('Transaction Record Created');
       } catch (dbError) {
@@ -1206,17 +1220,30 @@ export default function (config: ApibaraRuntimeConfig & {
 
         const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
-        await db.insert(tokenTransactions).values({
-          transfer_id: transferId,
-          network: 'starknet-sepolia',
-          block_timestamp: blockTimestamp,
-          transaction_hash: transactionHash,
-          memecoin_address: tokenAddress,
-          owner_address: ownerAddress,
-          amount: amount,
-          transaction_type: 'claim',
-          created_at: new Date(),
-        });
+        // Use raw SQL to avoid schema mismatch issues
+        await db.execute(sql`
+          INSERT INTO token_transactions (
+            transfer_id,
+            network,
+            block_timestamp,
+            transaction_hash,
+            memecoin_address,
+            owner_address,
+            amount,
+            transaction_type,
+            created_at
+          ) VALUES (
+            ${transferId},
+            ${'starknet-sepolia'},
+            ${blockTimestamp},
+            ${transactionHash},
+            ${tokenAddress},
+            ${ownerAddress},
+            ${amount},
+            ${'claim'},
+            ${new Date()}
+          )
+        `);
 
         console.log('Claim Transaction Record Created');
       } catch (dbError: any) {
