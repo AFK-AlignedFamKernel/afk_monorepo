@@ -894,44 +894,73 @@ export default function (config: ApibaraRuntimeConfig & {
             marketCap
           });
 
-          try {
-            const updateResult = await db.execute(sql`
-              UPDATE token_launch 
-              SET 
-                current_supply = ${newSupply},
-                liquidity_raised = ${newLiquidityRaised},
-                total_token_holded = ${newTotalTokenHolded},
-                price = ${priceBuy},
-                market_cap = ${marketCap}
-              WHERE memecoin_address = ${tokenAddress}
-              RETURNING *
-            `);
+          // Don't block here, run the update in the background with a 10s timeout
+          (async () => {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10_000); // 10 seconds
 
-            if (!updateResult || updateResult.rows.length === 0) {
-              console.error('Update operation returned no result:', {
-                tokenAddress,
-                newSupply,
-                newLiquidityRaised,
-                newTotalTokenHolded,
-                priceBuy,
-                marketCap
-              });
-              return;
+            try {
+              const updateResult = await db.execute(sql`
+                UPDATE token_launch 
+                SET 
+                  current_supply = ${newSupply},
+                  liquidity_raised = ${newLiquidityRaised},
+                  total_token_holded = ${newTotalTokenHolded},
+                  price = ${priceBuy},
+                  market_cap = ${marketCap}
+                WHERE memecoin_address = ${tokenAddress}
+                RETURNING *
+              `);
+
+              if (!updateResult || updateResult.rows.length === 0) {
+                console.error('Update operation returned no result:', {
+                  tokenAddress,
+                  newSupply,
+                  newLiquidityRaised,
+                  newTotalTokenHolded,
+                  priceBuy,
+                  marketCap
+                });
+              } else {
+                console.log('Launch Record Updated');
+              }
+            } catch (updateError: any) {
+
+              db.execute(sql`
+                UPDATE token_launch 
+                SET 
+                  current_supply = ${newSupply},
+                  liquidity_raised = ${newLiquidityRaised},
+                  total_token_holded = ${newTotalTokenHolded},
+                  price = ${priceBuy},
+                  market_cap = ${marketCap}
+                WHERE memecoin_address = ${tokenAddress}
+                RETURNING *
+              `);
+              if (updateError.name === 'AbortError') {
+                console.error('Update launch record timed out after 10s:', {
+                  tokenAddress,
+                  newSupply,
+                  newLiquidityRaised,
+                  newTotalTokenHolded,
+                  priceBuy,
+                  marketCap
+                });
+              } else {
+                console.error('Failed to update launch record:', {
+                  error: updateError,
+                  tokenAddress,
+                  newSupply,
+                  newLiquidityRaised,
+                  newTotalTokenHolded,
+                  priceBuy,
+                  marketCap
+                });
+              }
+            } finally {
+              clearTimeout(timeout);
             }
-          } catch (updateError) {
-            console.error('Failed to update launch record:', {
-              error: updateError,
-              tokenAddress,
-              newSupply,
-              newLiquidityRaised,
-              newTotalTokenHolded,
-              priceBuy,
-              marketCap
-            });
-            return;
-          }
-
-          console.log('Launch Record Updated');
+          })();
         } catch (launchError: any) {
           console.error('Error fetching/updating launch record:', {
             error: launchError,
@@ -950,30 +979,105 @@ export default function (config: ApibaraRuntimeConfig & {
           )
         });
 
+        console.log("existingShareholder", existingShareholder);
+
         const newAmountOwned = existingShareholder ? (BigInt(existingShareholder.amount_owned || '0') + BigInt(amount)).toString() : amount;
         const newAmountBuy = existingShareholder ? (BigInt(existingShareholder.amount_buy || '0') + BigInt(amount)).toString() : amount;
         const newTotalPaid = existingShareholder ? (BigInt(existingShareholder.total_paid || '0') + BigInt(quoteAmount)).toString() : quoteAmount;
 
-        await db.insert(sharesTokenUser)
-          .values({
-            id: randomUUID(),
-            owner: ownerAddress,
-            token_address: tokenAddress,
-            amount_owned: newAmountOwned,
-            amount_buy: newAmountBuy,
-            total_paid: newTotalPaid,
-            is_claimable: true,
-          })
-          .onConflictDoUpdate({
-            target: [sharesTokenUser.owner, sharesTokenUser.token_address],
-            set: {
-              amount_owned: newAmountOwned,
-              amount_buy: newAmountBuy,
-              total_paid: newTotalPaid,
-              is_claimable: true,
-            },
-          });
 
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 10_000); // 10 seconds
+
+
+          if (existingShareholder) {
+
+
+            try {
+
+              console.log("existingShareholder found to update");
+
+                const executePromise =  db.execute(sql`
+                UPDATE shares_token_user 
+                SET 
+                  amount_owned = ${newAmountOwned},
+                  amount_buy = ${newAmountBuy},
+                  total_paid = ${newTotalPaid},
+                  is_claimable = true
+                WHERE owner = ${ownerAddress} AND token_address = ${tokenAddress}
+              `);
+
+              console.log("Shareholder Record Updated");
+
+              const updatePromise = db.update(sharesTokenUser)
+                .set({
+                  amount_owned: newAmountOwned,
+                  amount_buy: newAmountBuy,
+                  total_paid: newTotalPaid,
+                  is_claimable: true,
+                })
+                .where(and(
+                  eq(sharesTokenUser.owner, ownerAddress),
+                  eq(sharesTokenUser.token_address, tokenAddress)
+                ));
+
+              // Enforce a 10s timeout: if exceeded, throw and crash
+              const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Update shareholder timed out after 10s')), 10_000)
+              );
+
+              // If timeout occurs, this will throw and crash the process
+              await Promise.race([updatePromise, timeoutPromise]);
+            } catch (error: any) {
+              console.error('Failed to update shareholder:', {
+                error: error,
+                code: error.code,
+                message: error.message,
+                detail: error.detail
+              });
+
+            } finally {
+              clearTimeout(timeout);
+            }
+          } else {
+
+            await db.insert(sharesTokenUser)
+              .values({
+                id: randomUUID(),
+                owner: ownerAddress,
+                token_address: tokenAddress,
+                amount_owned: newAmountOwned,
+                amount_buy: newAmountBuy,
+                total_paid: newTotalPaid,
+                is_claimable: true,
+              })
+              .onConflictDoUpdate({
+                target: [sharesTokenUser.owner, sharesTokenUser.token_address],
+                set: {
+                  amount_owned: newAmountOwned,
+                  amount_buy: newAmountBuy,
+                  total_paid: newTotalPaid,
+                  is_claimable: true,
+                },
+              });
+            clearTimeout(timeout);
+          }
+        } catch (error: any) {
+          if (error.code === '23505') {
+            console.log('Shareholder already exists (unique constraint violation):', {
+              owner: ownerAddress,
+              token_address: tokenAddress
+            });
+          } else {
+            console.error('Database error in handleBuyTokenEvent:', {
+              error: error,
+              code: error.code,
+              message: error.message,
+              detail: error.detail
+            });
+          }
+        }
         console.log('Shareholder Record Updated');
 
         // Use raw SQL to avoid schema mismatch issues
@@ -1131,6 +1235,18 @@ export default function (config: ApibaraRuntimeConfig & {
             ));
 
           console.log('Shareholder Record Updated');
+        } else {
+          console.log("Shareholder not found");
+          await db.insert(sharesTokenUser).values({
+            id: randomUUID(),
+            owner: ownerAddress,
+            token_address: tokenAddress,
+            amount_owned: amount,
+            amount_sell: amount,
+            total_paid: quoteAmount,
+            is_claimable: false,
+          });
+          console.log("Shareholder Record Created");
         }
 
         // Use raw SQL to avoid schema mismatch issues
