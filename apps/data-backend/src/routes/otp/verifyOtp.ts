@@ -89,15 +89,6 @@ async function verifyOtp(
 
         const contractAddress = addAddressPadding(computeAddress(phone_number));
 
-        fastify.log.info(
-          'Deploying account: ',
-          contractAddress,
-          ' for: ',
-          phone_number,
-          ' with tx hash: ',
-          transaction_hash,
-        );
-
         if (!transaction_hash) {
           return reply.code(500).send({
             message: 'Error in deploying smart contract. Please try again later',
