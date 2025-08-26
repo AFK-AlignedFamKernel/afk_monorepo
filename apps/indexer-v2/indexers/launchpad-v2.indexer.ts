@@ -1197,7 +1197,9 @@ export default function (config: ApibaraRuntimeConfig & {
           marketCap
         });
 
-        await db.update(tokenLaunch)
+
+        try {
+          const updatePromise = db.update(tokenLaunch)
           .set({
             current_supply: newSupply,
             liquidity_raised: newLiquidityRaised,
@@ -1206,6 +1208,21 @@ export default function (config: ApibaraRuntimeConfig & {
             market_cap: marketCap,
           })
           .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+
+          const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Update launch record timed out after 10s')), 10_000)
+          );
+
+          await Promise.race([updatePromise, timeoutPromise]);
+        } catch (error: any) {
+          console.error('Failed to update launch record:', {
+            error: error,
+            code: error.code,
+            message: error.message,
+            detail: error.detail
+          });
+        }
+
 
         console.log('Launch Record Updated');
 
@@ -1217,38 +1234,54 @@ export default function (config: ApibaraRuntimeConfig & {
         });
         console.log("existingShareholder", existingShareholder);
 
-        if (existingShareholder) {
-          const updatedAmountOwned = (BigInt(existingShareholder.amount_owned || '0') - BigInt(amount)).toString();
-          const updatedAmountSell = (BigInt(existingShareholder.amount_sell || '0') + BigInt(amount)).toString();
-          const updatedTotalPaid = (BigInt(existingShareholder.total_paid || '0') - BigInt(quoteAmount)).toString();
+   
+        try {
+          if (existingShareholder) {
+            const updatedAmountOwned = (BigInt(existingShareholder.amount_owned || '0') - BigInt(amount)).toString();
+            const updatedAmountSell = (BigInt(existingShareholder.amount_sell || '0') + BigInt(amount)).toString();
+            const updatedTotalPaid = (BigInt(existingShareholder.total_paid || '0') - BigInt(quoteAmount)).toString();
+  
+            const updatePromise = await db.update(sharesTokenUser)
+              .set({
+                amount_owned: updatedAmountOwned,
+                amount_sell: updatedAmountSell,
+                total_paid: updatedTotalPaid,
+                is_claimable: updatedAmountOwned !== '0',
+              })
+              .where(and(
+                eq(sharesTokenUser.owner, ownerAddress),
+                eq(sharesTokenUser.token_address, tokenAddress)
+              ));
 
-          await db.update(sharesTokenUser)
-            .set({
-              amount_owned: updatedAmountOwned,
-              amount_sell: updatedAmountSell,
-              total_paid: updatedTotalPaid,
-              is_claimable: updatedAmountOwned !== '0',
-            })
-            .where(and(
-              eq(sharesTokenUser.owner, ownerAddress),
-              eq(sharesTokenUser.token_address, tokenAddress)
-            ));
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Update shareholder timed out after 10s')), 10_000)
+            );
 
-          console.log('Shareholder Record Updated');
-        } else {
-          console.log("Shareholder not found");
-          await db.insert(sharesTokenUser).values({
-            id: randomUUID(),
-            owner: ownerAddress,
-            token_address: tokenAddress,
-            amount_owned: amount,
-            amount_sell: amount,
-            total_paid: quoteAmount,
-            is_claimable: false,
+            await Promise.race([updatePromise, timeoutPromise]);
+  
+            console.log('Shareholder Record Updated');
+          } else {
+            console.log("Shareholder not found");
+            await db.insert(sharesTokenUser).values({
+              id: randomUUID(),
+              owner: ownerAddress,
+              token_address: tokenAddress,
+              amount_owned: amount,
+              amount_sell: amount,
+              total_paid: quoteAmount,
+              is_claimable: false,
+            });
+            console.log("Shareholder Record Created");
+          }
+  
+        } catch (error: any) {
+          console.error('Failed to update shareholder:', {
+            error: error,
+            code: error.code,
+            message: error.message,
+            detail: error.detail
           });
-          console.log("Shareholder Record Created");
         }
-
         // Use raw SQL to avoid schema mismatch issues
         await db.execute(sql`
           INSERT INTO token_transactions (
