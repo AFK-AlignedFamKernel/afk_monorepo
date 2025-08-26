@@ -66,7 +66,9 @@ export default function CommentContainer({ message, parent_id, classname, isView
                 {messagesState && messagesState.length > 0 ? (
                     messagesState.map((message: any, index: number) => (
                         <div key={index} className="ml-2 pl-2 border-l-2 border-gray-200">
-                            <CommentCard message={message} parent_id={parent_id} />
+                            <CommentCard
+                                key={index}
+                                message={message} parent_id={parent_id} />
                         </div>
                     ))
                 ) : (
