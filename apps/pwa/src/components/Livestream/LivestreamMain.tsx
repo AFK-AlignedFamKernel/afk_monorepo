@@ -14,7 +14,7 @@ interface LivestreamMainProps {
 }
 
 export const LivestreamMain: React.FC<LivestreamMainProps> = ({
-  streamId,
+  streamId: initialStreamId,
   isStreamer = false,
   className,
 }) => {
@@ -22,16 +22,17 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   const [isChatVisible, setIsChatVisible] = useState(true);
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentView, setCurrentView] = useState<'studio' | 'stream' | 'chat' | 'host-studio'>('studio');
+  const [currentStreamId, setCurrentStreamId] = useState<string>(initialStreamId || '');
 
   const { data: event } = useGetSingleEvent({
-    eventId: streamId || '',
+    eventId: currentStreamId || '',
   });
 
   useEffect(() => {
-    if (streamId) {
+    if (currentStreamId) {
       setCurrentView('stream');
     }
-  }, [streamId]);
+  }, [currentStreamId]);
 
   const handleNavigateToStream = (id: string) => {
     setCurrentView('stream');
@@ -132,7 +133,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
         {isChatVisible && (
           <div className={styles.chatSection}>
             <LiveChat
-              streamId={streamId || ''}
+              streamId={currentStreamId || ''}
               isVisible={true}
               onToggle={toggleChat}
               className={styles.sideChat}
@@ -167,7 +168,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
         <h2 className={styles.chatViewTitle}>Live Chat</h2>
       </div>
       <LiveChat
-        streamId={streamId || ''}
+        streamId={currentStreamId || ''}
         isVisible={true}
         className={styles.fullScreenChat}
       />
@@ -176,7 +177,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
 
   const renderHostStudioView = () => (
     <HostStudio
-      streamId={streamId || ''}
+      streamId={currentStreamId || ''}
       onGoLive={() => {
         setCurrentView('stream');
         setIsStreaming(true);

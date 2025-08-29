@@ -37,6 +37,11 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   const { showToast } = useUIStore();
   const queryClient = useQueryClient();
 
+  // Debug logging for props
+  useEffect(() => {
+    console.log('HostStudio props:', { streamId, onBack, onGoLive, className });
+  }, [streamId, onBack, onGoLive, className]);
+
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -62,11 +67,21 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   const [availableDevices, setAvailableDevices] = useState<MediaDevice[]>([]);
   const [selectedCamera, setSelectedCamera] = useState<string>('');
   const [selectedMicrophone, setSelectedMicrophone] = useState<string>('');
+  const [isGoingLive, setIsGoingLive] = useState(false);
 
   const updateEvent = useEditEvent();
-  const { data: event } = useGetSingleEvent({
+  const { data: event, isLoading: eventLoading, error: eventError } = useGetSingleEvent({
     eventId: streamId,
   });
+
+  // Debug logging for event data
+  useEffect(() => {
+    console.log('Event data:', event);
+    console.log('Event loading:', eventLoading);
+    console.log('Event error:', eventError);
+    console.log('Stream ID:', streamId);
+    console.log('Public key:', publicKey);
+  }, [event, eventLoading, eventError, streamId, publicKey]);
 
   // Get available media devices
   const getMediaDevices = useCallback(async () => {
@@ -272,29 +287,63 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       return;
     }
 
+    if (!streamId) {
+      showToast({ message: 'No event ID available', type: 'error' });
+      return;
+    }
+
+    if (!event) {
+      showToast({ message: 'Event data not loaded', type: 'error' });
+      return;
+    }
+
+    // Use a fallback URL if environment variable is not set
+    const baseUrl = process.env.NEXT_PUBLIC_CLOUDFARE_BUCKET_URL || 'https://your-streaming-domain.com';
+    const streamingUrl = `${baseUrl}/livestream/${streamId}/stream.m3u8`;
+
+    console.log('Attempting to go live with:', {
+      eventId: streamId,
+      status: 'live',
+      streamingUrl,
+      shouldMarkDelete: false,
+    });
+
+    setIsGoingLive(true);
+    
     updateEvent.mutate(
       {
         eventId: streamId,
         status: 'live',
-        streamingUrl: `${process.env.NEXT_PUBLIC_CLOUDFARE_BUCKET_URL}/livestream/${streamId}/stream.m3u8`,
+        streamingUrl,
         shouldMarkDelete: false,
       },
       {
         onSuccess() {
+          console.log('Successfully went live!');
           setIsLive(true);
           setIsStreaming(true);
+          setIsGoingLive(false);
           showToast({ message: 'You are now live!', type: 'success' });
           onGoLive?.();
         },
-        onError() {
-          showToast({ message: 'Failed to go live', type: 'error' });
+        onError(error) {
+          console.error('Failed to go live:', error);
+          setIsGoingLive(false);
+          showToast({ message: `Failed to go live: ${error?.message || 'Unknown error'}`, type: 'error' });
         },
       }
     );
-  }, [streamId, updateEvent, showToast, onGoLive]);
+  }, [streamId, event, updateEvent, showToast, onGoLive]);
 
   // Stop streaming
   const stopStreaming = useCallback(() => {
+    if (!streamId) {
+      showToast({ message: 'No event ID available', type: 'error' });
+      return;
+    }
+
+    console.log('Attempting to stop streaming for event:', streamId);
+    
     updateEvent.mutate(
       {
         eventId: streamId,
@@ -303,12 +352,14 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       },
       {
         onSuccess() {
+          console.log('Successfully stopped streaming');
           setIsLive(false);
           setIsStreaming(false);
           showToast({ message: 'Stream ended', type: 'info' });
         },
-        onError() {
-          showToast({ message: 'Failed to stop stream', type: 'error' });
+        onError(error) {
+          console.error('Failed to stop stream:', error);
+          showToast({ message: `Failed to stop stream: ${error?.message || 'Unknown error'}`, type: 'error' });
         },
       }
     );
@@ -440,10 +491,19 @@ export const HostStudio: React.FC<HostStudioProps> = ({
               <button
                 className={`${styles.streamButton} ${styles.goLiveButton}`}
                 onClick={handleGoLive}
-                disabled={!settings.cameraEnabled && !settings.screenSharing}
+                disabled={(!settings.cameraEnabled && !settings.screenSharing) || isGoingLive || !streamId || !event}
               >
-                <Icon name="PlayIcon" size={20} />
-                <span>Go Live</span>
+                {isGoingLive ? (
+                  <>
+                    <div className={styles.spinner}></div>
+                    <span>Going Live...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon name="PlayIcon" size={20} />
+                    <span>Go Live</span>
+                  </>
+                )}
               </button>
             ) : (
               <button
