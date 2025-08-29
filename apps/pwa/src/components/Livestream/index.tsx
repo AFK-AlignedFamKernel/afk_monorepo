@@ -9,6 +9,7 @@ export { StudioModule } from './StudioModule';
 export { LiveChat } from './LiveChat';
 export { StreamVideoPlayer } from './StreamVideoPlayer';
 export { LivestreamMain } from './LivestreamMain';
+export { HostStudio } from './HostStudio';
 
 interface LivestreamProps {
   streamKey: string;

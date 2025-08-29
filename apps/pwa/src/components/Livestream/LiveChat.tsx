@@ -34,20 +34,20 @@ export const LiveChat: React.FC<LiveChatProps> = ({
   // Mock messages for demonstration - replace with actual WebSocket/API integration
   useEffect(() => {
     const mockMessages: ChatMessage[] = [
-      {
-        id: '1',
-        pubkey: 'mock-pubkey-1',
-        content: 'Welcome to the stream!',
-        timestamp: new Date(Date.now() - 60000),
-        username: 'Streamer',
-      },
-      {
-        id: '2',
-        pubkey: 'mock-pubkey-2',
-        content: 'Great content so far!',
-        timestamp: new Date(Date.now() - 30000),
-        username: 'Viewer1',
-      },
+    //   {
+    //     id: '1',
+    //     pubkey: 'mock-pubkey-1',
+    //     content: 'Welcome to the stream!',
+    //     timestamp: new Date(Date.now() - 60000),
+    //     username: 'Streamer',
+    //   },
+    //   {
+    //     id: '2',
+    //     pubkey: 'mock-pubkey-2',
+    //     content: 'Great content so far!',
+    //     timestamp: new Date(Date.now() - 30000),
+    //     username: 'Viewer1',
+    //   },
     ];
     setMessages(mockMessages);
     setIsConnected(true);

@@ -975,54 +975,431 @@
   transform: scale(1.1);
 }
 
+/* Host Studio Styles */
+.hostStudio {
+  width: 100%;
+  height: 100vh;
+  background-color: var(--background-color, #0f0f0f);
+  color: var(--text-color, #ffffff);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Studio Header */
+.studioHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background-color: var(--surface-color, #1f2937);
+  border-bottom: 1px solid var(--border-color, #374151);
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.streamInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  margin: 0 24px;
+}
+
+.streamTitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-color, #ffffff);
+  text-align: center;
+}
+
+.statusIndicators {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.liveIndicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--error-color, #dc2626);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: pulse 2s infinite;
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  background-color: #fff;
+  border-radius: 50%;
+}
+
+.recordingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--error-color, #dc2626);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.7; }
+}
+
+.viewerCount {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--surface-secondary-color, #374151);
+  color: var(--text-secondary-color, #9ca3af);
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.settingsButton {
+  background: none;
+  border: none;
+  color: var(--text-color, #fff);
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settingsButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Studio Content */
+.studioContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Preview Section */
+.previewSection {
+  flex: 1;
+  position: relative;
+  background-color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.videoContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.previewVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: #000;
+}
+
+.noVideo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-secondary-color, #9ca3af);
+  text-align: center;
+  z-index: 10;
+}
+
+.noVideo p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* Controls Section */
+.controlsSection {
+  padding: 24px;
+  background-color: var(--surface-color, #1f2937);
+  border-top: 1px solid var(--border-color, #374151);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Media Controls */
+.mediaControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mediaButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--surface-secondary-color, #374151);
+  border: 2px solid var(--border-color, #4b5563);
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  color: var(--text-color, #fff);
+}
+
+.mediaButton:hover:not(:disabled) {
+  background-color: var(--surface-hover-color, #4b5563);
+  border-color: var(--primary-color, #3b82f6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.mediaButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.mediaButton.active {
+  background-color: var(--primary-color, #3b82f6);
+  border-color: var(--primary-hover-color, #2563eb);
+  color: #fff;
+}
+
+.mediaButton.recording {
+  background-color: var(--error-color, #dc2626);
+  border-color: var(--error-hover-color, #b91c1c);
+  animation: pulse 1s infinite;
+}
+
+.mediaButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mediaButton span {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Stream Controls */
+.streamControls {
+  display: flex;
+  justify-content: center;
+}
+
+.streamButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 32px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 180px;
+  justify-content: center;
+}
+
+.goLiveButton {
+  background-color: var(--success-color, #16a34a);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(22, 163, 74, 0.3);
+}
+
+.goLiveButton:hover:not(:disabled) {
+  background-color: var(--success-hover-color, #15803d);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
+}
+
+.endStreamButton {
+  background-color: var(--error-color, #dc2626);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
+}
+
+.endStreamButton:hover {
+  background-color: var(--error-hover-color, #b91c1c);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+}
+
+.streamButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Settings Panel */
+.settingsPanel {
+  background-color: var(--surface-secondary-color, #111827);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 16px;
+}
+
+.settingsPanel h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-color, #fff);
+}
+
+.settingGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.settingGroup label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary-color, #9ca3af);
+}
+
+.select {
+  padding: 10px 12px;
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 8px;
+  background-color: var(--input-background, #1f2937);
+  color: var(--text-color, #fff);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.select option {
+  background-color: var(--surface-color, #1f2937);
+  color: var(--text-color, #fff);
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .streamContent {
     flex-direction: column;
   }
-  
+
   .chatSection {
     width: 100%;
     height: 300px;
     border-left: none;
     border-top: 1px solid var(--border-color, #374151);
   }
-  
+
   .modalView {
     width: 95%;
     padding: 24px;
   }
-  
+
   .controls {
     padding: 12px;
     gap: 8px;
   }
-  
+
   .streamButton {
     padding: 6px 12px;
     font-size: 12px;
   }
-  
+
   .eventCard {
     padding: 16px;
   }
-  
+
   .eventHeader {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .statusContainer {
     align-self: flex-end;
   }
-  
+
   .streamHeader {
     padding: 12px 16px;
   }
-  
+
   .streamTitle {
     font-size: 16px;
+  }
+
+  /* Host Studio Mobile */
+  .studioHeader {
+    padding: 12px 16px;
+  }
+
+  .streamTitle {
+    font-size: 18px;
+  }
+
+  .statusIndicators {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mediaControls {
+    gap: 12px;
+  }
+
+  .mediaButton {
+    padding: 12px 16px;
+    min-width: 70px;
+  }
+
+  .controlsSection {
+    padding: 16px;
+  }
+
+  .settingsPanel {
+    padding: 16px;
   }
 }
 
@@ -1030,28 +1407,61 @@
   .scrollContent {
     padding: 16px;
   }
-  
+
   .headerText {
     font-size: 20px;
   }
-  
+
   .modalView {
     padding: 20px;
   }
-  
+
   .modalButtons {
     flex-direction: column;
   }
-  
+
   .streamHeader {
     padding: 12px;
   }
-  
+
   .streamInfo {
     margin: 0 12px;
   }
-  
+
   .streamTitle {
     font-size: 14px;
+  }
+
+  /* Host Studio Mobile Small */
+  .studioHeader {
+    padding: 8px 12px;
+  }
+
+  .streamTitle {
+    font-size: 16px;
+  }
+
+  .mediaControls {
+    gap: 8px;
+  }
+
+  .mediaButton {
+    padding: 10px 12px;
+    min-width: 60px;
+  }
+
+  .mediaButton span {
+    font-size: 10px;
+  }
+
+  .streamButton {
+    padding: 12px 20px;
+    font-size: 14px;
+    min-width: 140px;
+  }
+
+  .controlsSection {
+    padding: 12px;
+    gap: 16px;
   }
 } 

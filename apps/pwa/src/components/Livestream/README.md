@@ -4,7 +4,43 @@ This directory contains React TypeScript components for building a comprehensive
 
 ## Components Overview
 
-### 1. LivestreamMain
+### 1. HostStudio
+A comprehensive streaming studio for event hosts and administrators. Provides professional-grade controls for camera, microphone, screen sharing, recording, and live streaming.
+
+**Features:**
+- Camera and microphone controls
+- Screen sharing capabilities
+- Local recording with timer
+- Device selection (camera/microphone)
+- Quality settings (resolution, bitrate)
+- Go live functionality
+- Real-time status indicators
+- Professional studio interface
+
+**Usage:**
+```tsx
+import { HostStudio } from './components/Livestream';
+
+function HostPage() {
+  const handleGoLive = () => {
+    console.log('Stream went live!');
+  };
+
+  const handleBack = () => {
+    // Navigate back to studio
+  };
+
+  return (
+    <HostStudio
+      streamId="event-123"
+      onGoLive={handleGoLive}
+      onBack={handleBack}
+    />
+  );
+}
+```
+
+### 2. LivestreamMain
 The main component that orchestrates the entire livestream experience. It manages different views (studio, stream, chat) and provides navigation between them.
 
 **Features:**
@@ -27,7 +63,7 @@ function App() {
 }
 ```
 
-### 2. StudioModule
+### 3. StudioModule
 Manages the studio interface where users can create, view, and manage livestream events.
 
 **Features:**
@@ -55,7 +91,7 @@ function StudioPage() {
 }
 ```
 
-### 3. StreamVideoPlayer
+### 4. StreamVideoPlayer
 A comprehensive video player component for livestreams and recordings.
 
 **Features:**
@@ -84,7 +120,7 @@ function StreamPage() {
 }
 ```
 
-### 4. LiveChat
+### 5. LiveChat
 Real-time chat functionality for livestreams.
 
 **Features:**
@@ -180,14 +216,22 @@ The components use modern web APIs:
 
 2. **Import Components**
    ```tsx
-   import { LivestreamMain, StudioModule, LiveChat, StreamVideoPlayer } from './components/Livestream';
+   import {
+     HostStudio,
+     LivestreamMain,
+     StudioModule,
+     LiveChat,
+     StreamVideoPlayer
+   } from './components/Livestream';
    ```
 
 3. **Set Up CSS Variables**
    Add the CSS variables to your global styles for theming.
 
 4. **Use Components**
-   Start with `LivestreamMain` for a complete experience, or use individual components as needed.
+    - Start with `LivestreamMain` for a complete experience
+    - Use `HostStudio` for professional streaming capabilities
+    - Use individual components as needed for specific functionality
 
 ## Customization
 
@@ -232,8 +276,12 @@ Components provide callback props for integration:
 ### Common Issues
 
 1. **Video not playing**: Check browser permissions for camera/microphone
-2. **Chat not working**: Ensure WebSocket connection is established
-3. **Styling issues**: Verify CSS variables are properly set
+2. **Screen sharing not working**: Ensure HTTPS is enabled (required by browsers)
+3. **Recording not saving**: Check browser storage permissions and available disk space
+4. **Go live failing**: Verify stream ID and backend connectivity
+5. **Device selection not working**: Check browser compatibility with MediaDevices API
+6. **Chat not working**: Ensure WebSocket connection is established
+7. **Styling issues**: Verify CSS variables are properly set
 
 ### Debug Mode
 Enable console logging for debugging:
