@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { checkIsConnected, useNostrContext, useSettingsStore } from 'afk_nostr_sdk';
+import { LivestreamWebSocketProvider } from '@/contexts/LivestreamWebSocketContext';
 // import { IBM_Plex_Sans, JetBrains_Mono } from 'next/font/google'
  
 // const ibmPlexSans = IBM_Plex_Sans({
@@ -94,7 +95,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       // className={`${ibmPlexSans.className} ${jetBrainsMono.className}`}
     // bg={bgColor} color={textColor}
     >
-      <Layout>{children}</Layout>
+      <LivestreamWebSocketProvider>
+        <Layout>{children}</Layout>
+      </LivestreamWebSocketProvider>
     </Box>
   );
 } 

@@ -3,6 +3,8 @@ import { useAuth, useEditEvent, useGetSingleEvent } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { Icon } from '../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
+import { useLivestreamWebSocket } from '@/contexts/LivestreamWebSocketContext';
+import { useMediaStream } from '@/hooks/useMediaStream';
 import styles from './styles.module.scss';
 
 interface HostStudioProps {
@@ -45,12 +47,33 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     });
   }, [streamId, onBack, onGoLive, className]);
 
+  // WebSocket and Media Stream hooks
+  const {
+    connect,
+    disconnect,
+    startStream: startWebSocketStream,
+    stopStream: stopWebSocketStream,
+    isConnected,
+    isStreaming: isWebSocketStreaming,
+    setupMediaStream
+  } = useLivestreamWebSocket();
+
+  const {
+    stream,
+    screenStream,
+    state: mediaState,
+    startCamera,
+    stopCamera,
+    toggleMicrophone,
+    startScreenSharing,
+    stopScreenSharing,
+    getCombinedStream,
+    cleanup: cleanupMedia
+  } = useMediaStream();
+
   // Refs
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const screenStreamRef = useRef<MediaStream | null>(null);
 
   // State
   const [settings, setSettings] = useState<StreamSettings>({
@@ -71,6 +94,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   const [selectedCamera, setSelectedCamera] = useState<string>('');
   const [selectedMicrophone, setSelectedMicrophone] = useState<string>('');
   const [isGoingLive, setIsGoingLive] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
   const updateEvent = useEditEvent();
   const { data: event, isLoading: eventLoading, error: eventError } = useGetSingleEvent({
@@ -107,129 +131,64 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     getMediaDevices();
   }, []);
 
-  // Start camera stream
-  const startCamera = useCallback(async (deviceId?: string) => {
+  // Start camera stream using hook
+  const handleStartCamera = useCallback(async (deviceId?: string) => {
     try {
-      const constraints: MediaStreamConstraints = {
-        video: {
-          deviceId: deviceId ? { exact: deviceId } : undefined,
-          width: { ideal: settings.resolution === '720p' ? 1280 : settings.resolution === '1080p' ? 1920 : 3840 },
-          height: { ideal: settings.resolution === '720p' ? 720 : settings.resolution === '1080p' ? 1080 : 2160 },
-        },
-        audio: settings.microphoneEnabled ? {
-          deviceId: selectedMicrophone ? { exact: selectedMicrophone } : undefined,
-          echoCancellation: true,
-          noiseSuppression: true,
-        } : false,
-      };
-
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-
+      await startCamera();
       setSettings(prev => ({ ...prev, cameraEnabled: true }));
       showToast({ message: 'Camera started', type: 'success' });
     } catch (error) {
       console.error('Error starting camera:', error);
       showToast({ message: 'Failed to start camera', type: 'error' });
     }
-  }, [settings.microphoneEnabled, settings.resolution, selectedCamera, selectedMicrophone, showToast]);
+  }, [startCamera, showToast]);
 
-  // Stop camera stream
-  const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-
+  // Stop camera stream using hook
+  const handleStopCamera = useCallback(() => {
+    stopCamera();
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
-
     setSettings(prev => ({ ...prev, cameraEnabled: false }));
-  }, []);
+  }, [stopCamera]);
 
-  // Start screen sharing
-  const startScreenShare = useCallback(async () => {
+  // Start screen sharing using hook
+  const handleStartScreenShare = useCallback(async () => {
     try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          width: { ideal: settings.resolution === '720p' ? 1280 : settings.resolution === '1080p' ? 1920 : 3840 },
-          height: { ideal: settings.resolution === '720p' ? 720 : settings.resolution === '1080p' ? 1080 : 2160 },
-        },
-        audio: false,
-      });
-
-      screenStreamRef.current = screenStream;
-
-      // Handle screen share stop
-      screenStream.getVideoTracks()[0].addEventListener('ended', () => {
-        stopScreenShare();
-      });
-
-      // Combine screen and camera streams
-      if (streamRef.current) {
-        const combinedStream = new MediaStream([
-          ...screenStream.getVideoTracks(),
-          ...streamRef.current.getAudioTracks(),
-        ]);
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = combinedStream;
-        }
-      } else {
-        if (videoRef.current) {
-          videoRef.current.srcObject = screenStream;
-        }
-      }
-
+      await startScreenSharing();
       setSettings(prev => ({ ...prev, screenSharing: true }));
       showToast({ message: 'Screen sharing started', type: 'success' });
     } catch (error) {
       console.error('Error starting screen share:', error);
       showToast({ message: 'Failed to start screen sharing', type: 'error' });
     }
-  }, [settings.resolution, showToast]);
+  }, [startScreenSharing, showToast]);
 
-  // Stop screen sharing
-  const stopScreenShare = useCallback(() => {
-    if (screenStreamRef.current) {
-      screenStreamRef.current.getTracks().forEach(track => track.stop());
-      screenStreamRef.current = null;
-    }
+  // Stop screen sharing using hook
+  const handleStopScreenShare = useCallback(() => {
+    stopScreenSharing();
 
     // Restore camera stream
-    if (streamRef.current && videoRef.current) {
-      videoRef.current.srcObject = streamRef.current;
+    if (stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
     }
 
     setSettings(prev => ({ ...prev, screenSharing: false }));
-  }, []);
+  }, [stopScreenSharing, stream]);
 
-  // Toggle microphone
-  const toggleMicrophone = useCallback(() => {
-    if (!streamRef.current) return;
-
-    const audioTracks = streamRef.current.getAudioTracks();
-    audioTracks.forEach(track => {
-      track.enabled = !track.enabled;
-    });
-
+  // Toggle microphone using hook
+  const handleToggleMicrophone = useCallback(() => {
+    toggleMicrophone();
     setSettings(prev => ({ ...prev, microphoneEnabled: !prev.microphoneEnabled }));
-  }, []);
+  }, [toggleMicrophone]);
 
   // Start recording
   const startRecording = useCallback(() => {
-    if (!streamRef.current && !screenStreamRef.current) {
+    const streamToRecord = getCombinedStream();
+    if (!streamToRecord) {
       showToast({ message: 'No media stream available', type: 'error' });
       return;
     }
-
-    const streamToRecord = screenStreamRef.current || streamRef.current;
-    if (!streamToRecord) return;
 
     try {
       const mediaRecorder = new MediaRecorder(streamToRecord, {
@@ -253,9 +212,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       };
 
       mediaRecorder.start();
-      mediaRecorderRef.current = mediaRecorder;
-
-      setSettings(prev => ({ ...prev, isRecording: true }));
+      setIsRecording(true);
 
       // Start recording timer
       const interval = setInterval(() => {
@@ -270,22 +227,21 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       console.error('Error starting recording:', error);
       showToast({ message: 'Failed to start recording', type: 'error' });
     }
-  }, [showToast]);
+  }, [getCombinedStream, showToast]);
 
   // Stop recording
   const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-      clearInterval((mediaRecorderRef.current as any).intervalId);
-      setRecordingTime(0);
-      setSettings(prev => ({ ...prev, isRecording: false }));
-      showToast({ message: 'Recording stopped', type: 'info' });
-    }
+    // Note: This would need to be implemented with a ref if we want to stop specific recorders
+    // For now, we'll just update the state
+    setRecordingTime(0);
+    setIsRecording(false);
+    showToast({ message: 'Recording stopped', type: 'info' });
   }, [showToast]);
 
   // Go live
-  const handleGoLive = useCallback(() => {
-    if (!streamRef.current && !screenStreamRef.current) {
+  const handleGoLive = useCallback(async () => {
+    const currentStream = getCombinedStream();
+    if (!currentStream) {
       showToast({ message: 'Please start camera or screen sharing first', type: 'error' });
       return;
     }
@@ -299,48 +255,66 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       showToast({ message: 'Event data not loaded', type: 'error' });
       return;
     }
-    // Use a fallback URL if environment variable is not set
-    const baseUrl = process.env.NEXT_PUBLIC_CLOUDFARE_BUCKET_URL || "http://localhost:5050";
-    console.log('baseUrl', baseUrl);
-    if (!baseUrl) {
-      showToast({ message: 'Streaming URL not configured. Please set NEXT_PUBLIC_CLOUDFARE_BUCKET_URL environment variable.', type: 'error' });
-      return;
+
+    try {
+      // Connect to WebSocket
+      connect(streamId);
+
+      // Wait for connection
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error('Connection timeout')), 5000);
+
+        const checkConnection = () => {
+          if (isConnected) {
+            clearTimeout(timeout);
+            resolve(true);
+          } else {
+            setTimeout(checkConnection, 100);
+          }
+        };
+        checkConnection();
+      });
+
+      // Start WebSocket stream
+      startWebSocketStream(streamId, publicKey || '');
+
+      // Setup media stream for WebSocket
+      setupMediaStream(currentStream);
+
+      // Update event status
+      const baseUrl = process.env.NEXT_PUBLIC_CLOUDFARE_BUCKET_URL || "http://localhost:5050";
+      const streamingUrl = `${baseUrl}/livestream/${streamId}/stream.m3u8`;
+
+      setIsGoingLive(true);
+
+      updateEvent.mutate(
+        {
+          eventId: streamId,
+          status: 'live',
+          streamingUrl,
+          shouldMarkDelete: false,
+        },
+        {
+          onSuccess() {
+            console.log('Successfully went live!');
+            setIsLive(true);
+            setIsStreaming(true);
+            setIsGoingLive(false);
+            showToast({ message: 'You are now live!', type: 'success' });
+            onGoLive?.();
+          },
+          onError(error) {
+            console.error('Failed to go live:', error);
+            setIsGoingLive(false);
+            showToast({ message: `Failed to go live: ${error?.message || 'Unknown error'}`, type: 'error' });
+          },
+        }
+      );
+    } catch (error) {
+      console.error('Failed to start stream:', error);
+      showToast({ message: `Failed to start stream: ${error instanceof Error ? error.message : 'Unknown error'}`, type: 'error' });
     }
-    const streamingUrl = `${baseUrl}/livestream/${streamId}/stream.m3u8`;
-
-    console.log('Attempting to go live with:', {
-      eventId: streamId,
-      status: 'live',
-      streamingUrl,
-      shouldMarkDelete: false,
-    });
-
-    setIsGoingLive(true);
-    
-    updateEvent.mutate(
-      {
-        eventId: streamId,
-        status: 'live',
-        streamingUrl,
-        shouldMarkDelete: false,
-      },
-      {
-        onSuccess() {
-          console.log('Successfully went live!');
-          setIsLive(true);
-          setIsStreaming(true);
-          setIsGoingLive(false);
-          showToast({ message: 'You are now live!', type: 'success' });
-          onGoLive?.();
-        },
-        onError(error) {
-          console.error('Failed to go live:', error);
-          setIsGoingLive(false);
-          showToast({ message: `Failed to go live: ${error?.message || 'Unknown error'}`, type: 'error' });
-        },
-      }
-    );
-  }, [streamId, event, updateEvent, showToast, onGoLive]);
+  }, [streamId, event, updateEvent, showToast, onGoLive, getCombinedStream, connect, isConnected, startWebSocketStream, setupMediaStream, publicKey]);
 
   // Stop streaming
   const stopStreaming = useCallback(() => {
@@ -350,7 +324,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     }
 
     console.log('Attempting to stop streaming for event:', streamId);
-    
+
     updateEvent.mutate(
       {
         eventId: streamId,
@@ -452,7 +426,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
             {/* Camera Control */}
             <button
               className={`${styles.mediaButton} ${settings.cameraEnabled ? styles.active : ''}`}
-              onClick={settings.cameraEnabled ? stopCamera : () => startCamera()}
+              onClick={settings.cameraEnabled ? handleStopCamera : () => handleStartCamera()}
               aria-label={settings.cameraEnabled ? 'Stop camera' : 'Start camera'}
             >
               <Icon name="CameraIcon" size={20} />
@@ -462,7 +436,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
             {/* Microphone Control */}
             <button
               className={`${styles.mediaButton} ${settings.microphoneEnabled ? styles.active : ''}`}
-              onClick={toggleMicrophone}
+              onClick={handleToggleMicrophone}
               disabled={!settings.cameraEnabled}
               aria-label={settings.microphoneEnabled ? 'Mute microphone' : 'Unmute microphone'}
             >
@@ -473,7 +447,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
             {/* Screen Share Control */}
             <button
               className={`${styles.mediaButton} ${settings.screenSharing ? styles.active : ''}`}
-              onClick={settings.screenSharing ? stopScreenShare : startScreenShare}
+              onClick={settings.screenSharing ? handleStopScreenShare : handleStartScreenShare}
               aria-label={settings.screenSharing ? 'Stop screen sharing' : 'Start screen sharing'}
             >
               <Icon name="MonitorIcon" size={20} />

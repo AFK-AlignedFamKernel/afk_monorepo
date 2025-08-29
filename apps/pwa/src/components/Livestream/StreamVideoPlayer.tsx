@@ -1,5 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Icon } from '../small/icon-component';
+import { useVideoElement } from '@/hooks/useVideoElement';
+import { useLivestreamWebSocket } from '@/contexts/LivestreamWebSocketContext';
 import styles from './styles.module.scss';
 
 interface StreamVideoPlayerProps {
@@ -19,8 +21,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
   onStreamStop,
   className,
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { isStreaming, streamKey } = useLivestreamWebSocket();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -29,6 +30,19 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
   const [volume, setVolume] = useState(1);
   const [showControls, setShowControls] = useState(true);
   const [isLive, setIsLive] = useState(false);
+
+  // Use video element hook for stream management
+  const {
+    videoRef,
+    play,
+    pause,
+    togglePlayPause,
+    setVolume: setVideoVolume,
+    toggleMute,
+    getCurrentTime,
+    getDuration,
+    seekTo,
+  } = useVideoElement({});
 
   useEffect(() => {
     const video = videoRef.current;
@@ -81,21 +95,15 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     }
   }, [streamingUrl, recordingUrl]);
 
-  const togglePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-    }
+  // Use the hook's togglePlayPause function
+  const handleTogglePlayPause = () => {
+    togglePlayPause();
   };
 
-  const toggleMute = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
+  // Use the hook's toggleMute function
+  const handleToggleMute = () => {
+    toggleMute();
+    setIsMuted(!isMuted);
   };
 
   const toggleFullscreen = () => {
@@ -150,7 +158,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         onContextMenu={(e) => e.preventDefault()}
       />
       
-      <canvas ref={canvasRef} className={styles.canvas} />
+              {/* Canvas removed - not needed for basic video player */}
 
       {/* Live indicator */}
       {isLive && (
@@ -167,7 +175,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         <div className={styles.controls}>
           {/* Play/Pause button */}
           <button
-            onClick={togglePlayPause}
+            onClick={handleTogglePlayPause}
             className={styles.controlButton}
             aria-label={isPlaying ? 'Pause' : 'Play'}
           >
@@ -200,7 +208,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           {/* Volume control */}
           <div className={styles.volumeContainer}>
             <button
-              onClick={toggleMute}
+              onClick={handleToggleMute}
               className={styles.controlButton}
               aria-label={isMuted ? 'Unmute' : 'Mute'}
             >
