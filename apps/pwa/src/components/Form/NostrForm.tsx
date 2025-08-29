@@ -128,32 +128,32 @@ export const NostrForm: React.FC<NostrFormProps> = ({
       // const html = converter.convert();
       // const turndownService = new TurndownService();
 
-      sendNote.mutate(
-        {
-          content: formData.content || '',
-          tags: [
-            ...(file && imageUrl ? [['image', imageUrl], ['media', imageUrl], ["type", file.type]] : []),
-            ...(formData.tags?.map((tag) => ['tag', tag]) || []),
-          ],
-        },
-        {
-          onSuccess() {
-            showToast({ type: 'success', message: 'Note sent successfully' });
-            queryClient.invalidateQueries({ queryKey: ['rootNotes'] });
-            logClickedEvent('publish_note_success', 'nostr', 'publish_note_success', 1)
-          },
-          onError(e) {
-            console.log('error', e);
-            showToast({
-              type: 'error',
-              message: 'Error! Note could not be sent. Please try again later.',
-            });
-            logClickedEvent('publish_note_error_hook', 'nostr', 'publish_note_error', 1)
-          },
-        },
-      );
+      // sendNote.mutate(
+      //   {
+      //     content: formData.content || '',
+      //     tags: [
+      //       ...(file && imageUrl ? [['image', imageUrl], ['media', imageUrl], ["type", file.type]] : []),
+      //       ...(formData.tags?.map((tag) => ['tag', tag]) || []),
+      //     ],
+      //   },
+      //   {
+      //     onSuccess() {
+      //       showToast({ type: 'success', message: 'Note sent successfully' });
+      //       queryClient.invalidateQueries({ queryKey: ['rootNotes'] });
+      //       logClickedEvent('publish_note_success', 'nostr', 'publish_note_success', 1)
+      //     },
+      //     onError(e) {
+      //       console.log('error', e);
+      //       showToast({
+      //         type: 'error',
+      //         message: 'Error! Note could not be sent. Please try again later.',
+      //       });
+      //       logClickedEvent('publish_note_error_hook', 'nostr', 'publish_note_error', 1)
+      //     },
+      //   },
+      // );
 
-      if (file?.type.includes("mp4")) {
+      if (file?.type.includes("mp4") && imageUrl) {
         console.log('sending video short');
         sendVideoShort.mutate({
           content: formData.content || '',
