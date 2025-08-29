@@ -36,57 +36,65 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
 
   // Debug: Log the event data to see what we have
   useEffect(() => {
-    console.log('Event data in LivestreamMain:', {
+    console.log('🔍 Event data in LivestreamMain:', {
       event,
       eventId: currentStreamId,
       isWebSocketStreaming,
-      streamKey
+      streamKey,
+      eventKeys: event ? Object.keys(event) : 'NO_EVENT',
+      eventContent: event?.content,
+      eventTags: event?.tags
     });
   }, [event, currentStreamId, isWebSocketStreaming, streamKey]);
 
   // Compute streaming URL - prioritize WebSocket context over event data
   const streamingUrl = React.useMemo(() => {
-    console.log('Computing streaming URL with:', {
+    console.log('🔗 Computing streaming URL with:', {
       isWebSocketStreaming,
       streamKey,
       eventStreamingUrl: event?.streamingUrl,
       eventContent: event?.content,
-      eventTags: event?.tags
+      eventTags: event?.tags,
+      backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050"
     });
 
     if (isWebSocketStreaming && streamKey) {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
       const computedUrl = `${backendUrl}/livestream/${streamKey}/stream.m3u8`;
-      console.log('Computed streaming URL from WebSocket context:', computedUrl);
+      console.log('✅ Computed streaming URL from WebSocket context:', computedUrl);
       return computedUrl;
     }
 
     // Try to get streaming URL from event data
     let eventStreamingUrl = event?.streamingUrl;
+    console.log('📋 Event streaming URL:', eventStreamingUrl);
     
     // If not in streamingUrl field, check content and tags
     if (!eventStreamingUrl && event?.content) {
       try {
         const content = JSON.parse(event.content);
         eventStreamingUrl = content.streamingUrl || content.stream_url || content.url;
-        console.log('Extracted streaming URL from event content:', eventStreamingUrl);
+        console.log('📄 Extracted streaming URL from event content:', eventStreamingUrl);
       } catch (e) {
-        console.log('Event content is not JSON:', event.content);
+        console.log('⚠️ Event content is not JSON:', event.content);
       }
     }
 
     // Check tags for streaming URL
     if (!eventStreamingUrl && event?.tags) {
+      console.log('🏷️ Checking event tags for streaming URL...');
       const streamingTag = event.tags.find(tag => 
         tag[0] === 'streaming_url' || tag[0] === 'stream_url' || tag[0] === 'url'
       );
       if (streamingTag) {
         eventStreamingUrl = streamingTag[1];
-        console.log('Extracted streaming URL from event tags:', eventStreamingUrl);
+        console.log('🏷️ Extracted streaming URL from event tags:', eventStreamingUrl);
+      } else {
+        console.log('🏷️ No streaming URL found in tags');
       }
     }
 
-    console.log('Final streaming URL:', eventStreamingUrl);
+    console.log('🎯 Final streaming URL result:', eventStreamingUrl);
     return eventStreamingUrl;
   }, [isWebSocketStreaming, streamKey, event]);
 

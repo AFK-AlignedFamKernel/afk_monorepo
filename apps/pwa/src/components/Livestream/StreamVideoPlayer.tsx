@@ -31,6 +31,18 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [isLive, setIsLive] = useState(false);
 
+  // Debug: Log the props received
+  useEffect(() => {
+    console.log('🎥 StreamVideoPlayer received props:', {
+      streamingUrl,
+      recordingUrl,
+      isStreamer,
+      className,
+      isStreaming,
+      streamKey
+    });
+  }, [streamingUrl, recordingUrl, isStreamer, className, isStreaming, streamKey]);
+
   console.log("streamingUrl", streamingUrl);
   console.log("recordingUrl", recordingUrl);
   console.log("isStreamer", isStreamer);
