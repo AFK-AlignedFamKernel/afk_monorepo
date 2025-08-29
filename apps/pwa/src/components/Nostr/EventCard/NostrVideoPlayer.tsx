@@ -36,54 +36,56 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean, clas
       userReaction.data[0]?.content !== '-',
     [userReaction.data],
   );
+  const extractVideoUrl = () => {
+    // Method 1: Try to parse JSON content
+    try {
+      const content = JSON.parse(event.content);
+      if (content.media || content.url) {
+        return content.media || content.url;
+      }
+    } catch (e) {
+      // Not JSON, continue to other methods
+    }
+    console.log("event.tags", event.tags);
+    // Method 2: Check media/video tags
+    const mediaTags = event.tags.filter(tag =>
+      tag[0] === 'media' ||
+      tag[0] === 'video' ||
+      tag[0] === 'image'
+    );
+    console.log("mediaTags", mediaTags);
+    if (mediaTags.length > 0) {
+      return mediaTags[0][1];
+    }
+
+    // Method 3: Check url/imeta tags
+    const urlTag = event.tags.find(tag => tag[0] === 'url' || tag[0] === 'imeta');
+    console.log("urlTag", urlTag);
+    if (urlTag?.[1]) {
+      const url = urlTag[1];
+      if (url.includes('url:')) {
+        return url.split('url:')[1].trim();
+      }
+      if (url.includes('etc:')) {
+        return url.split('etc:')[1].trim();
+      }
+      // Check if the tag itself is a video URL
+      const urlMatch = url.match(/(https?:\/\/[^\s]+\.(mp4|mov|avi|mkv|webm|gif))/i);
+      if (urlMatch) {
+        return urlMatch[0];
+      }
+      return url;
+    }
+
+    // Method 4: Check if content is a direct video URL
+    if (event.content.match(/^https?:\/\/.*\.(mp4|mov|avi|webm|mkv|gif)/i)) {
+      return event.content;
+    }
+
+    return null;
+  };
 
   useEffect(() => {
-    const extractVideoUrl = () => {
-      // Method 1: Try to parse JSON content
-      try {
-        const content = JSON.parse(event.content);
-        if (content.media || content.url) {
-          return content.media || content.url;
-        }
-      } catch (e) {
-        // Not JSON, continue to other methods
-      }
-
-      // Method 2: Check media/video tags
-      const mediaTags = event.tags.filter(tag =>
-        tag[0] === 'media' ||
-        tag[0] === 'video' ||
-        tag[0] === 'image'
-      );
-      if (mediaTags.length > 0) {
-        return mediaTags[0][1];
-      }
-
-      // Method 3: Check url/imeta tags
-      const urlTag = event.tags.find(tag => tag[0] === 'url' || tag[0] === 'imeta');
-      if (urlTag?.[1]) {
-        const url = urlTag[1];
-        if (url.includes('url:')) {
-          return url.split('url:')[1].trim();
-        }
-        if (url.includes('etc:')) {
-          return url.split('etc:')[1].trim();
-        }
-        // Check if the tag itself is a video URL
-        const urlMatch = url.match(/(https?:\/\/[^\s]+\.(mp4|mov|avi|mkv|webm|gif))/i);
-        if (urlMatch) {
-          return urlMatch[0];
-        }
-        return url;
-      }
-
-      // Method 4: Check if content is a direct video URL
-      if (event.content.match(/^https?:\/\/.*\.(mp4|mov|avi|webm|mkv|gif)/i)) {
-        return event.content;
-      }
-
-      return null;
-    };
 
     const url = extractVideoUrl();
     if (url) {
@@ -91,7 +93,11 @@ export const VideoPlayer: React.FC<{ event: NDKEvent, isAutoPlay?: boolean, clas
       if (isVideo) {
         setMediaUrl(url);
       } else {
-        setError('URL is not a valid video format');
+        if (url.includes("ipfs")) {
+          setMediaUrl(url);
+        } else {
+          setError('URL is not a valid video format');
+        }
       }
     } else {
       setError('No video URL found');

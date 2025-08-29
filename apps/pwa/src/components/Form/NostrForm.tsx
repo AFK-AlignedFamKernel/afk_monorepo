@@ -96,6 +96,7 @@ export const NostrForm: React.FC<NostrFormProps> = ({
 
 
     let imageUrl: string | undefined;
+    let mediaUrl: string | undefined;
 
     if (file) {
       try {
@@ -112,6 +113,7 @@ export const NostrForm: React.FC<NostrFormProps> = ({
         }
         if (url) {
           imageUrl = url;
+          mediaUrl = url;
           logClickedEvent('upload_image_to_ipfs_success', 'nostr', 'upload_image_to_ipfs_success', 1);
         }
       }
@@ -128,48 +130,114 @@ export const NostrForm: React.FC<NostrFormProps> = ({
       // const html = converter.convert();
       // const turndownService = new TurndownService();
 
-      // sendNote.mutate(
-      //   {
-      //     content: formData.content || '',
-      //     tags: [
-      //       ...(file && imageUrl ? [['image', imageUrl], ['media', imageUrl], ["type", file.type]] : []),
-      //       ...(formData.tags?.map((tag) => ['tag', tag]) || []),
-      //     ],
-      //   },
-      //   {
-      //     onSuccess() {
-      //       showToast({ type: 'success', message: 'Note sent successfully' });
-      //       queryClient.invalidateQueries({ queryKey: ['rootNotes'] });
-      //       logClickedEvent('publish_note_success', 'nostr', 'publish_note_success', 1)
-      //     },
-      //     onError(e) {
-      //       console.log('error', e);
-      //       showToast({
-      //         type: 'error',
-      //         message: 'Error! Note could not be sent. Please try again later.',
-      //       });
-      //       logClickedEvent('publish_note_error_hook', 'nostr', 'publish_note_error', 1)
-      //     },
-      //   },
-      // );
 
-      if (file?.type.includes("mp4") && imageUrl) {
+      if (!file || !file?.type.includes("mp4")) {
+        sendNote.mutate(
+          {
+            content: formData.content || '',
+            tags: [
+              ...(file && imageUrl ? [['image', imageUrl], ['media', imageUrl], ["type", file.type]] : []),
+              ...(formData.tags?.map((tag) => ['tag', tag]) || []),
+            ],
+          },
+          {
+            onSuccess() {
+              showToast({ type: 'success', message: 'Note sent successfully' });
+              queryClient.invalidateQueries({ queryKey: ['rootNotes'] });
+              logClickedEvent('publish_note_success', 'nostr', 'publish_note_success', 1)
+            },
+            onError(e) {
+              console.log('error', e);
+              showToast({
+                type: 'error',
+                message: 'Error! Note could not be sent. Please try again later.',
+              });
+              logClickedEvent('publish_note_error_hook', 'nostr', 'publish_note_error', 1)
+            },
+          },
+        );
+      }
+      else if (file?.type.includes("mp4") && imageUrl) {
         console.log('sending video short');
+
+        sendNote.mutate(
+          {
+            content: formData.content || '',
+            tags: [
+              ...(file && imageUrl ? [['video', imageUrl], ['media', imageUrl], ["type", file.type]] : []),
+              ...(formData.tags?.map((tag) => ['tag', tag]) || []),
+            ],
+          },
+          {
+            onSuccess() {
+              showToast({ type: 'success', message: 'Note sent successfully' });
+              queryClient.invalidateQueries({ queryKey: ['rootNotes'] });
+              logClickedEvent('publish_note_success', 'nostr', 'publish_note_success', 1)
+            },
+            onError(e) {
+              console.log('error', e);
+              showToast({
+                type: 'error',
+                message: 'Error! Note could not be sent. Please try again later.',
+              });
+              logClickedEvent('publish_note_error_hook', 'nostr', 'publish_note_error', 1)
+            },
+          },
+        );
+        // Build imeta tag according to NIP-92
+        // Example: ["imeta", "url https://nostr.build/i/my-image.jpg", "m image/jpeg", "dim 1920x1080", ...]
+        const imetaTag = [
+          "imeta",
+          `url ${imageUrl}`,
+          ...(file?.type ? [`m ${file.type}`] : []),
+          "dim 1920x1080",
+          "x 1920",
+          `fallback ${imageUrl}`,
+        ];
         sendVideoShort.mutate({
           content: formData.content || '',
           title: formData.title || '',
           videoUrl: imageUrl,
           ndkKind: NDKKind.ShortVideo,
-          publishedAt: new Date().getTime(),
+          publishedAt: Math.round(Date.now() / 1000),
           isVertical: false,
           videoMetadata: [],
           tags: [
             ...(file && imageUrl ? [['image', imageUrl], ['media', imageUrl], ["type", file.type]] : []),
             ...(formData.tags?.map((tag) => ['tag', tag]) || []),
+            ...(file && imageUrl ? [imetaTag] : []),
           ],
         }, {
           onSuccess() {
             showToast({ type: 'success', message: 'Video sent successfully' });
+            queryClient.invalidateQueries({ queryKey: ['rootVideos'] });
+            logClickedEvent('publish_video_success', 'nostr', 'publish_video_success', 1)
+          },
+          onError(e) {
+            console.log('error', e);
+            showToast({
+              type: 'error',
+              message: 'Error! Video could not be sent. Please try again later.',
+            });
+            logClickedEvent('publish_video_error', 'nostr', 'publish_video_error', 1)
+          }
+        });
+
+        sendVideoShort.mutate({
+          content: formData.content || '',
+          title: formData.title || '',
+          videoUrl: imageUrl,
+          ndkKind: NDKKind.VerticalVideo,
+          publishedAt: Math.round(Date.now() / 1000),
+          isVertical: true,
+          videoMetadata: [],
+          tags: [
+            ...(file && imageUrl ? [['image', imageUrl], ['media', imageUrl], ["type", file.type]] : []),
+            ...(formData.tags?.map((tag) => ['tag', tag]) || []),
+            ...(file && imageUrl ? [imetaTag] : []),
+          ],
+        }, {
+          onSuccess() {
             queryClient.invalidateQueries({ queryKey: ['rootVideos'] });
             logClickedEvent('publish_video_success', 'nostr', 'publish_video_success', 1)
           },
