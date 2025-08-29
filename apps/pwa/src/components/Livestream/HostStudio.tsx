@@ -251,67 +251,109 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       return;
     }
 
+    // Check if event data is available, but don't fail if it's not
     if (!event) {
-      showToast({ message: 'Event data not loaded', type: 'error' });
-      return;
+      console.warn('Event data not loaded, proceeding with stream setup...');
     }
 
     try {
+      console.log('Starting livestream setup...');
+      
       // Connect to WebSocket
       connect(streamId);
-
-      // Wait for connection
+      console.log('WebSocket connection initiated...');
+      
+      // Wait for connection with better error handling
       await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Connection timeout')), 5000);
-
+        const timeout = setTimeout(() => {
+          console.error('WebSocket connection timeout');
+          reject(new Error('WebSocket connection timeout after 10 seconds'));
+        }, 10000);
+        
+        let attempts = 0;
+        const maxAttempts = 100; // 10 seconds with 100ms intervals
+        
         const checkConnection = () => {
+          attempts++;
+          console.log(`Connection check attempt ${attempts}/${maxAttempts}, isConnected:`, isConnected);
+          
           if (isConnected) {
+            console.log('WebSocket connected successfully!');
             clearTimeout(timeout);
             resolve(true);
+          } else if (attempts >= maxAttempts) {
+            console.error('Max connection attempts reached');
+            clearTimeout(timeout);
+            reject(new Error('Max connection attempts reached'));
           } else {
             setTimeout(checkConnection, 100);
           }
         };
+        
+        // Start checking immediately
         checkConnection();
       });
 
+      console.log('WebSocket connected, starting stream...');
+
       // Start WebSocket stream
       startWebSocketStream(streamId, publicKey || '');
-
+      console.log('WebSocket stream started');
+      
       // Setup media stream for WebSocket
       setupMediaStream(currentStream);
+      console.log('Media stream setup complete');
 
-      // Update event status
-      const baseUrl = process.env.NEXT_PUBLIC_CLOUDFARE_BUCKET_URL || "http://localhost:5050";
-      const streamingUrl = `${baseUrl}/livestream/${streamId}/stream.m3u8`;
+      // Update event status - use backend URL directly for streaming
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      const streamingUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
+      console.log('Streaming URL:', streamingUrl);
 
       setIsGoingLive(true);
-
-      updateEvent.mutate(
-        {
-          eventId: streamId,
-          status: 'live',
-          streamingUrl,
-          shouldMarkDelete: false,
-        },
-        {
-          onSuccess() {
-            console.log('Successfully went live!');
-            setIsLive(true);
-            setIsStreaming(true);
-            setIsGoingLive(false);
-            showToast({ message: 'You are now live!', type: 'success' });
-            onGoLive?.();
+      
+      // Only try to update event if we have event data
+      if (event) {
+        console.log('Updating event status...');
+        updateEvent.mutate(
+          {
+            eventId: streamId,
+            status: 'live',
+            streamingUrl,
+            shouldMarkDelete: false,
           },
-          onError(error) {
-            console.error('Failed to go live:', error);
-            setIsGoingLive(false);
-            showToast({ message: `Failed to go live: ${error?.message || 'Unknown error'}`, type: 'error' });
-          },
-        }
-      );
+          {
+            onSuccess() {
+              console.log('Successfully went live!');
+              setIsLive(true);
+              setIsStreaming(true);
+              setIsGoingLive(false);
+              showToast({ message: 'You are now live!', type: 'success' });
+              onGoLive?.();
+            },
+            onError(error) {
+              console.error('Failed to update event:', error);
+              // Don't fail the stream if event update fails
+              console.log('Stream is live despite event update failure');
+              setIsLive(true);
+              setIsStreaming(true);
+              setIsGoingLive(false);
+              showToast({ message: 'You are now live! (Event update failed)', type: 'warning' });
+              onGoLive?.();
+            },
+          }
+        );
+      } else {
+        // Stream is live even without event update
+        console.log('Stream is live (no event update needed)');
+        setIsLive(true);
+        setIsStreaming(true);
+        setIsGoingLive(false);
+        showToast({ message: 'You are now live!', type: 'success' });
+        onGoLive?.();
+      }
     } catch (error) {
       console.error('Failed to start stream:', error);
+      setIsGoingLive(false);
       showToast({ message: `Failed to start stream: ${error instanceof Error ? error.message : 'Unknown error'}`, type: 'error' });
     }
   }, [streamId, event, updateEvent, showToast, onGoLive, getCombinedStream, connect, isConnected, startWebSocketStream, setupMediaStream, publicKey]);

@@ -26,7 +26,7 @@ interface LivestreamWebSocketProviderProps {
 
 export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderProps> = ({
   children,
-  backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001'
+  backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050'
 }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -44,23 +44,36 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       socketRef.current.disconnect();
     }
 
+    console.log('Attempting to connect to WebSocket at:', backendUrl);
+    console.log('Stream key:', streamKey);
+
     const newSocket = io(backendUrl, {
       transports: ['websocket', 'polling'],
-      query: { streamKey }
+      query: { streamKey },
+      timeout: 20000,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      forceNew: true
     });
 
     newSocket.on('connect', () => {
-      console.log('WebSocket connected');
+      console.log('WebSocket connected successfully');
       setIsConnected(true);
       setStreamKey(streamKey);
     });
 
-    newSocket.on('disconnect', () => {
-      console.log('WebSocket disconnected');
+    newSocket.on('disconnect', (reason) => {
+      console.log('WebSocket disconnected:', reason);
       setIsConnected(false);
       setIsStreaming(false);
       setStreamKey(null);
       setViewerCount(0);
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('WebSocket connection error:', error);
+      setIsConnected(false);
     });
 
     newSocket.on('stream-started', (data) => {

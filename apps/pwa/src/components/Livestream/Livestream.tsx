@@ -32,6 +32,13 @@ export function Livestream({
     eventId: streamKey,
   });
 
+  console.log("streamKey", streamKey);
+  console.log("isStreamer", isStreamer);
+  console.log("streamerUserId", streamerUserId);
+  console.log("socketRef", socketRef);
+  console.log("streamingUrl", streamingUrl);
+  console.log("recordingUrl", recordingUrl);
+
   useEffect(() => {
     if (!isStreamer || !videoRef.current) return;
 

@@ -51,7 +51,8 @@ The backend needs to:
 - Handle `start-stream` events
 - Process incoming video chunks
 - Generate HLS manifest and segments
-- Serve the stream via HTTP
+- Serve the stream via HTTP endpoints (e.g., `/livestream/{streamId}/stream.m3u8`)
+- Handle both WebSocket streaming and HTTP HLS serving from the same server
 
 ## Usage Example
 
@@ -87,11 +88,11 @@ function MyLivestreamComponent() {
 
 ### Environment Variables
 ```bash
-# Backend WebSocket URL
+# Backend URL (handles both WebSocket and HLS streaming)
 NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
 
-# Streaming CDN URL (for HLS)
-NEXT_PUBLIC_CLOUDFARE_BUCKET_URL=https://your-cdn.com
+# Optional: CDN URL if you want to serve streams from a CDN later
+# NEXT_PUBLIC_CLOUDFARE_BUCKET_URL=https://your-cdn.com
 ```
 
 ## Integration Steps
