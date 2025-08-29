@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth, useGetSingleEvent } from 'afk_nostr_sdk';
-import { StudioModule } from './StudioModule';
+import { CreateEventModal, StudioModule } from './StudioModule';
 import { LiveChat } from './LiveChat';
 import { StreamVideoPlayer } from './StreamVideoPlayer';
 import { HostStudio } from './HostStudio';
 import styles from './styles.module.scss';
 import { Icon } from '../small/icon-component';
+import { useUIStore } from '@/store/uiStore';
 
 interface LivestreamMainProps {
   streamId?: string;
@@ -24,15 +25,16 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   const [currentView, setCurrentView] = useState<'studio' | 'stream' | 'chat' | 'host-studio'>('studio');
   const [currentStreamId, setCurrentStreamId] = useState<string>(initialStreamId || '');
 
+  const { showModal } = useUIStore();
   const { data: event } = useGetSingleEvent({
     eventId: currentStreamId || '',
   });
 
-//   useEffect(() => {
-//     if (currentStreamId) {
-//     //   setCurrentView('stream');
-//     }
-//   }, [currentStreamId]);
+  //   useEffect(() => {
+  //     if (currentStreamId) {
+  //     //   setCurrentView('stream');
+  //     }
+  //   }, [currentStreamId]);
 
   const handleNavigateToStream = (id: string) => {
     setCurrentView('stream');
@@ -76,6 +78,15 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
 
   const renderStudioView = () => (
     <div className={styles.studioView}>
+      <button className={styles.createButton} onClick={() => {
+        // handleModalOpen();
+        showModal(<CreateEventModal handleModal={() => {
+          console.log('handleModal')
+         }} />)
+      }}>
+        <Icon name="CreateIcon" size={20} />
+        <span>Create Event</span>
+      </button>
       <StudioModule
         onNavigateToStream={handleNavigateToStream}
         onNavigateToStreamView={handleNavigateToStreamView}

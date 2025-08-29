@@ -259,7 +259,7 @@ const RenderEmptyState: React.FC<{
   );
 };
 
-const CreateEventModal: React.FC<{ handleModal: () => void }> = ({ handleModal }) => {
+export const CreateEventModal: React.FC<{ handleModal: () => void }> = ({ handleModal }) => {
   const queryClient = useQueryClient();
   const { publicKey } = useAuth();
   const { createEvent } = useLiveActivity();
