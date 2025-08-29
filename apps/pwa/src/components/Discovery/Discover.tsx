@@ -13,13 +13,15 @@ import ChatScreen from "../Bitchat/ChatScreen";
 import AlgoFeed from "../Nostr/feed/AlgoFeed";
 import AdvancedAlgoFeed from "../Nostr/feed/AdvancedAlgoFeed";
 import MainNostrFeed from "../Nostr/feed/main/MainNostrFeed";
+import { StudioModule } from "../Livestream/StudioModule";
+import { LivestreamMain } from "../Livestream/LivestreamMain";
 
 export default function DiscoverComponent() {
 
   // const searchParams = useSearchParams()
   // const query = searchParams.get("query")
 
-  const [activeTab, setActiveTab] = useState<"brand" | "chat" | "creator" | "topic" | "feed" | "launchpad" | "communities" | "channels">("brand");
+  const [activeTab, setActiveTab] = useState<"brand" | "chat" | "creator" | "topic" | "feed" | "launchpad" | "communities" | "channels" | "livestream">("brand");
 
   return (
     <div className="flex flex-col gap-1">
@@ -35,6 +37,7 @@ export default function DiscoverComponent() {
             { key: "chat", label: "Chat" },
             { key: "communities", label: "Communities" },
             { key: "feed", label: "Feed" },
+            { key: "livestream", label: "Livestream" },
             // { key: "topic", label: "Topics" },
           ].map(tab => (
             <button
@@ -114,6 +117,12 @@ export default function DiscoverComponent() {
         {activeTab === "communities" && (
           <div className="px-4">
             <CommunitiesList />
+          </div>
+        )}
+
+        {activeTab === "livestream" && (
+          <div className="px-4">
+            <LivestreamMain />
           </div>
         )}
 

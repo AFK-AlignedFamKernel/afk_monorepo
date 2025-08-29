@@ -4,12 +4,6 @@ import { useEditEvent, useGetSingleEvent } from 'afk_nostr_sdk';
 import { Socket } from 'socket.io-client';
 import styles from './styles.module.scss';
 
-// Export all components
-export { StudioModule } from './StudioModule';
-export { LiveChat } from './LiveChat';
-export { StreamVideoPlayer } from './StreamVideoPlayer';
-export { LivestreamMain } from './LivestreamMain';
-
 interface LivestreamProps {
   streamKey: string;
   isStreamer: boolean;
