@@ -29,6 +29,7 @@ type VideoEventData = {
   hashtags?: string[];
   participants?: Array<{pubkey: string; relayUrl?: string}>;
   references?: string[];
+  tags?: string[][];
 };
 
 export const useSendVideoShortEvent = () => {
@@ -45,6 +46,7 @@ export const useSendVideoShortEvent = () => {
         ['d', crypto.randomUUID()],
         ['title', data.title],
         ['published_at', data.publishedAt.toString()],
+        ...(data.tags || []),
       ];
 
       if (data.videoUrl) event.tags.push(['video', data.videoUrl]);

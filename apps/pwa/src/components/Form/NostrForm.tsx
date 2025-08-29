@@ -132,7 +132,7 @@ export const NostrForm: React.FC<NostrFormProps> = ({
         {
           content: formData.content || '',
           tags: [
-            ...(file && imageUrl ? [['image', imageUrl]] : []),
+            ...(file && imageUrl ? [['image', imageUrl], ['media', imageUrl], ["type", file.type]] : []),
             ...(formData.tags?.map((tag) => ['tag', tag]) || []),
           ],
         },
@@ -163,6 +163,10 @@ export const NostrForm: React.FC<NostrFormProps> = ({
           publishedAt: new Date().getTime(),
           isVertical: false,
           videoMetadata: [],
+          tags: [
+            ...(file && imageUrl ? [['image', imageUrl], ['media', imageUrl], ["type", file.type]] : []),
+            ...(formData.tags?.map((tag) => ['tag', tag]) || []),
+          ],
         }, {
           onSuccess() {
             showToast({ type: 'success', message: 'Video sent successfully' });
