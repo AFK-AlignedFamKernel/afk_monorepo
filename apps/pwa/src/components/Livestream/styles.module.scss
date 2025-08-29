@@ -1270,6 +1270,20 @@
   box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
 }
 
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .endStreamButton {
   background-color: var(--error-color, #dc2626);
   color: #fff;

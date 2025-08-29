@@ -40,6 +40,9 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   // Debug logging for props
   useEffect(() => {
     console.log('HostStudio props:', { streamId, onBack, onGoLive, className });
+    console.log('Environment variables:', {
+      NEXT_PUBLIC_CLOUDFARE_BUCKET_URL: process.env.NEXT_PUBLIC_CLOUDFARE_BUCKET_URL,
+    });
   }, [streamId, onBack, onGoLive, className]);
 
   // Refs
@@ -298,7 +301,11 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     }
 
     // Use a fallback URL if environment variable is not set
-    const baseUrl = process.env.NEXT_PUBLIC_CLOUDFARE_BUCKET_URL || 'https://your-streaming-domain.com';
+    const baseUrl = process.env.NEXT_PUBLIC_CLOUDFARE_BUCKET_URL;
+    if (!baseUrl) {
+      showToast({ message: 'Streaming URL not configured. Please set NEXT_PUBLIC_CLOUDFARE_BUCKET_URL environment variable.', type: 'error' });
+      return;
+    }
     const streamingUrl = `${baseUrl}/livestream/${streamId}/stream.m3u8`;
 
     console.log('Attempting to go live with:', {

@@ -28,11 +28,11 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     eventId: currentStreamId || '',
   });
 
-  useEffect(() => {
-    if (currentStreamId) {
-      setCurrentView('stream');
-    }
-  }, [currentStreamId]);
+//   useEffect(() => {
+//     if (currentStreamId) {
+//     //   setCurrentView('stream');
+//     }
+//   }, [currentStreamId]);
 
   const handleNavigateToStream = (id: string) => {
     setCurrentView('stream');
@@ -53,6 +53,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   };
 
   const handleNavigateToHostStudio = (id: string) => {
+    setCurrentStreamId(id);
     setCurrentView('host-studio');
     console.log('Navigating to host studio:', id);
   };
