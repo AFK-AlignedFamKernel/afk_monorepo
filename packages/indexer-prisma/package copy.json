@@ -1,0 +1,30 @@
+{
+  "name": "indexer-prisma",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx prisma generate && npx prisma db push && tsc",
+    "build:push": "npx prisma generate && npx prisma db push && tsc",
+    "build:pull": "npx prisma generate && npx prisma db pull && tsc",
+    "generate": "npx prisma generate",
+    "pull": "npx prisma db pull",
+    "push": "npx prisma db push",
+    "migrate": "npx prisma migrate dev",
+    "migrate:prod": "npx prisma migrate deploy",
+    "diff": "npx prisma migrate diff"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0",
+    "starknet": "^6.6.6",
+    "tsup": "^8.0.2",
+    "typescript": "~5.3.3"
+  }
+}
