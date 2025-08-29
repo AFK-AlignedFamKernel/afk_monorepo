@@ -345,12 +345,12 @@ export const HostStudio: React.FC<HostStudioProps> = ({
             )}
             {settings.isRecording && (
               <span className={styles.recordingIndicator}>
-                {/* <Icon name="PlayIcon" size={16} /> */}
+                <Icon name="RecordIcon" size={16} />
                 {formatTime(recordingTime)}
               </span>
             )}
             <span className={styles.viewerCount}>
-              {/* <Icon name="EyeIcon" size={16} /> */}
+              <Icon name="EyeIcon" size={16} />
               {viewerCount}
             </span>
           </div>
