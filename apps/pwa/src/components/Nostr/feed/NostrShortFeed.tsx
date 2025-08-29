@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { NDKKind as NDK } from '@nostr-dev-kit/ndk';
+import { NDKKind as NDK, NDKKind } from '@nostr-dev-kit/ndk';
 import { useSearch, useNostrContext, useFetchEvents } from 'afk_nostr_sdk';
 import CryptoLoading from '@/components/small/crypto-loading';
 import { VideoPlayer } from '../EventCard/NostrVideoPlayer';
@@ -18,7 +18,7 @@ interface NostrFeedProps {
 }
 
 export const NostrShortFeed: React.FC<NostrFeedProps> = ({
-  kinds = [1, 30023],
+  kinds = [1, NDKKind.ShortVideo, 30023],
   limit = 10,
   className = '',
   authors,

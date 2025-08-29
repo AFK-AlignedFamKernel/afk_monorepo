@@ -15,8 +15,12 @@ async function uploadFile(fastify: FastifyInstance) {
       const data = await request.file();
       const fileBuffer = await data?.toBuffer();
       const fileName = data?.filename ?? '';
-      const fileType = data?.mimetype ?? "jpg"
+      const fileType = data?.mimetype ?? data?.type ?? "jpg"
 
+      console.log("fileBuffer", fileBuffer);
+      console.log("fileName", fileName);
+      console.log("fileType", fileType);
+      
       if( !fileBuffer ) {
         return reply.code(400).send({ message: 'No file uploaded' });
       }
@@ -28,11 +32,19 @@ async function uploadFile(fastify: FastifyInstance) {
         },
       });
 
+      console.log("IpfsHash", IpfsHash);
+
       const gatewayUrl = process.env.IPFS_GATEWAY || 'https://ipfs.io';
+
+      console.log("gatewayUrl", gatewayUrl);
+
+      const url = `${gatewayUrl}/ipfs/${IpfsHash}`;
+
+      console.log("url", url);
 
       return reply.code(200).send({
         hash: IpfsHash,
-        url: `${gatewayUrl}/ipfs/${IpfsHash}`,
+        url: url,
       });
     } catch (error) {
       fastify.log.error(error);

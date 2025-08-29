@@ -62,6 +62,7 @@ export const useFileUpload = () => {
                     headers: {
                         'Content-Type': 'multipart/form-data',
                     },
+                    timeout: 1000000,
                 });
             } catch (error) {
                 console.log("error", error)
