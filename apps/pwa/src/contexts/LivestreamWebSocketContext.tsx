@@ -41,11 +41,13 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
   // Initialize socket connection
   const connect = useCallback((streamKey: string) => {
     if (socketRef.current?.connected) {
+      console.log('Disconnecting existing socket...');
       socketRef.current.disconnect();
     }
 
     console.log('Attempting to connect to WebSocket at:', backendUrl);
     console.log('Stream key:', streamKey);
+    console.log('Current connection state:', { isConnected, isStreaming, streamKey: streamKey });
 
     const newSocket = io(backendUrl, {
       transports: ['websocket', 'polling'],
@@ -112,16 +114,25 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
   }, []);
 
   const startStream = useCallback((streamKey: string, userId: string) => {
+    console.log('startStream called with:', { streamKey, userId });
+    console.log('Socket state:', { 
+      socket: socketRef.current, 
+      connected: socketRef.current?.connected,
+      isConnected 
+    });
+
     if (!socketRef.current?.connected) {
       console.error('Socket not connected');
       return;
     }
 
+    console.log('Emitting start-stream event...');
     socketRef.current.emit('start-stream', {
       userId,
       streamKey
     });
-  }, []);
+    console.log('start-stream event emitted');
+  }, [isConnected]);
 
   const stopStream = useCallback(() => {
     if (!socketRef.current?.connected) {

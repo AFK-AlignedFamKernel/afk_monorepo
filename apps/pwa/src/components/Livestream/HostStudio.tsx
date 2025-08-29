@@ -97,9 +97,20 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   const [isRecording, setIsRecording] = useState(false);
 
   const updateEvent = useEditEvent();
-  const { data: event, isLoading: eventLoading, error: eventError } = useGetSingleEvent({
+  const { data: event, isLoading: eventLoading, error: eventError, refetch: refetchEvent } = useGetSingleEvent({
     eventId: streamId,
   });
+
+  // Debug: Log the updateEvent mutation state
+  useEffect(() => {
+    console.log('updateEvent mutation state:', {
+      isPending: updateEvent.isPending,
+      isSuccess: updateEvent.isSuccess,
+      isError: updateEvent.isError,
+      error: updateEvent.error,
+      data: updateEvent.data
+    });
+  }, [updateEvent.isPending, updateEvent.isSuccess, updateEvent.isError, updateEvent.error, updateEvent.data]);
 
   // Debug logging for event data
   useEffect(() => {
@@ -311,46 +322,45 @@ export const HostStudio: React.FC<HostStudioProps> = ({
 
       setIsGoingLive(true);
       
-      // Only try to update event if we have event data
-      if (event) {
-        console.log('Updating event status...');
-        updateEvent.mutate(
-          {
-            eventId: streamId,
-            status: 'live',
-            streamingUrl,
-            shouldMarkDelete: false,
+      // Always try to update event status, even if event data is missing
+      console.log('Updating event status with:', {
+        eventId: streamId,
+        status: 'live',
+        streamingUrl,
+        shouldMarkDelete: false
+      });
+
+      updateEvent.mutate(
+        {
+          eventId: streamId,
+          status: 'live',
+          streamingUrl,
+          shouldMarkDelete: false,
+        },
+        {
+          onSuccess() {
+            console.log('Successfully went live!');
+            setIsLive(true);
+            setIsStreaming(true);
+            setIsGoingLive(false);
+            showToast({ message: 'You are now live!', type: 'success' });
+            // Refresh event data to get updated streaming URL
+            console.log('Refreshing event data...');
+            refetchEvent();
+            onGoLive?.();
           },
-          {
-            onSuccess() {
-              console.log('Successfully went live!');
-              setIsLive(true);
-              setIsStreaming(true);
-              setIsGoingLive(false);
-              showToast({ message: 'You are now live!', type: 'success' });
-              onGoLive?.();
-            },
-            onError(error) {
-              console.error('Failed to update event:', error);
-              // Don't fail the stream if event update fails
-              console.log('Stream is live despite event update failure');
-              setIsLive(true);
-              setIsStreaming(true);
-              setIsGoingLive(false);
-              showToast({ message: 'You are now live! (Event update failed)', type: 'warning' });
-              onGoLive?.();
-            },
-          }
-        );
-      } else {
-        // Stream is live even without event update
-        console.log('Stream is live (no event update needed)');
-        setIsLive(true);
-        setIsStreaming(true);
-        setIsGoingLive(false);
-        showToast({ message: 'You are now live!', type: 'success' });
-        onGoLive?.();
-      }
+          onError(error) {
+            console.error('Failed to update event:', error);
+            // Don't fail the stream if event update fails
+            console.log('Stream is live despite event update failure');
+            setIsLive(true);
+            setIsStreaming(true);
+            setIsGoingLive(false);
+            showToast({ message: 'You are now live! (Event update failed)', type: 'warning' });
+            onGoLive?.();
+          },
+        }
+      );
     } catch (error) {
       console.error('Failed to start stream:', error);
       setIsGoingLive(false);

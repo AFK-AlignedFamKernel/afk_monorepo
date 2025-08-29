@@ -4,6 +4,7 @@ import { CreateEventModal, StudioModule } from './StudioModule';
 import { LiveChat } from './LiveChat';
 import { StreamVideoPlayer } from './StreamVideoPlayer';
 import { HostStudio } from './HostStudio';
+import { useLivestreamWebSocket } from '@/contexts/LivestreamWebSocketContext';
 import styles from './styles.module.scss';
 import { Icon } from '../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
@@ -29,6 +30,70 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   const { data: event } = useGetSingleEvent({
     eventId: currentStreamId || '',
   });
+
+  // Get WebSocket context for streaming info
+  const { isStreaming: isWebSocketStreaming, streamKey } = useLivestreamWebSocket();
+
+  // Debug: Log the event data to see what we have
+  useEffect(() => {
+    console.log('Event data in LivestreamMain:', {
+      event,
+      eventId: currentStreamId,
+      isWebSocketStreaming,
+      streamKey
+    });
+  }, [event, currentStreamId, isWebSocketStreaming, streamKey]);
+
+  // Compute streaming URL - prioritize WebSocket context over event data
+  const streamingUrl = React.useMemo(() => {
+    console.log('Computing streaming URL with:', {
+      isWebSocketStreaming,
+      streamKey,
+      eventStreamingUrl: event?.streamingUrl,
+      eventContent: event?.content,
+      eventTags: event?.tags
+    });
+
+    if (isWebSocketStreaming && streamKey) {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      const computedUrl = `${backendUrl}/livestream/${streamKey}/stream.m3u8`;
+      console.log('Computed streaming URL from WebSocket context:', computedUrl);
+      return computedUrl;
+    }
+
+    // Try to get streaming URL from event data
+    let eventStreamingUrl = event?.streamingUrl;
+    
+    // If not in streamingUrl field, check content and tags
+    if (!eventStreamingUrl && event?.content) {
+      try {
+        const content = JSON.parse(event.content);
+        eventStreamingUrl = content.streamingUrl || content.stream_url || content.url;
+        console.log('Extracted streaming URL from event content:', eventStreamingUrl);
+      } catch (e) {
+        console.log('Event content is not JSON:', event.content);
+      }
+    }
+
+    // Check tags for streaming URL
+    if (!eventStreamingUrl && event?.tags) {
+      const streamingTag = event.tags.find(tag => 
+        tag[0] === 'streaming_url' || tag[0] === 'stream_url' || tag[0] === 'url'
+      );
+      if (streamingTag) {
+        eventStreamingUrl = streamingTag[1];
+        console.log('Extracted streaming URL from event tags:', eventStreamingUrl);
+      }
+    }
+
+    console.log('Final streaming URL:', eventStreamingUrl);
+    return eventStreamingUrl;
+  }, [isWebSocketStreaming, streamKey, event]);
+
+  // Update streaming state when WebSocket streaming changes
+  useEffect(() => {
+    setIsStreaming(isWebSocketStreaming);
+  }, [isWebSocketStreaming]);
 
   //   useEffect(() => {
   //     if (currentStreamId) {
@@ -133,7 +198,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       <div className={styles.streamContent}>
         <div className={styles.videoSection}>
           <StreamVideoPlayer
-            streamingUrl={event?.streamingUrl}
+            streamingUrl={streamingUrl}
             recordingUrl={event?.recordingUrl}
             isStreamer={isStreamer}
             onStreamStart={handleStreamStart}

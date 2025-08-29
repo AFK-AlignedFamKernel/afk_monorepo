@@ -52,6 +52,7 @@ export async function handleStartStream(
         inputStream,
         viewers: new Set(),
         broadcasterSocketId: socket.id,
+        startedAt: new Date(),
       };
       activeStreams.set(data.streamKey, streamData);
     }
