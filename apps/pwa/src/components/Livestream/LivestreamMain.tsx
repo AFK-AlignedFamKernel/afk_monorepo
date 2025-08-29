@@ -191,10 +191,13 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     <HostStudio
       streamId={currentStreamId || ''}
       onGoLive={() => {
-        setCurrentView('stream');
+        // setCurrentView('stream');
         setIsStreaming(true);
       }}
-      onBack={() => setCurrentView('studio')}
+      onBack={() => {
+        // setCurrentView('studio');
+        // setCurrentStreamId('');
+      }}
     />
   );
 
