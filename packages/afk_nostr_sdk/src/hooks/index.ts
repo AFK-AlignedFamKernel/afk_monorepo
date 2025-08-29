@@ -102,3 +102,4 @@ export {useNip44Message, useNip44Decrypt, useNip44Conversations, useNip44Message
 export {useConnect, checkIsConnected} from './connect';
 export {useRelayAuthInit} from './connect/useRelayAuthInit';
 export {useRelayAuth, useRelayAuthState} from './connect/auth';
+export {useSendVideoShortEvent} from './useSendVideoShort';

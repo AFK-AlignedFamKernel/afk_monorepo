@@ -5,9 +5,10 @@ import { logClickedEvent } from '@/lib/analytics';
 import { Icon } from '../small/icon-component';
 import styles from '@/styles/components/_nostr-form.module.scss';
 import { ButtonPrimary } from '../button/Buttons';
-import { useAuth, useNostrContext, useSendNote } from 'afk_nostr_sdk';
+import { useAuth, useNostrContext, useSendNote, useSendVideoShortEvent } from 'afk_nostr_sdk';
 import { useUIStore } from '@/store/uiStore';
 import { useQueryClient } from '@tanstack/react-query';
+import { NDKKind } from '@nostr-dev-kit/ndk';
 
 export type NostrEventType = 'note' | 'article';
 
@@ -44,11 +45,12 @@ export const NostrForm: React.FC<NostrFormProps> = ({
     type: type,
   });
 
-  const {publicKey} = useAuth()
+  const { publicKey } = useAuth()
 
   const { ndk } = useNostrContext()
   const { showToast } = useUIStore();
   const sendNote = useSendNote();
+  const sendVideoShort = useSendVideoShortEvent();
   const [file, setFile] = useState<File | null>(null);
   const fileUpload = useFileUpload();
 
@@ -120,7 +122,7 @@ export const NostrForm: React.FC<NostrFormProps> = ({
     }
     try {
 
-  
+
       // Convert Quill delta to markdown string
       // const converter = new Markdow(noteDelta?.ops || [], {});
       // const html = converter.convert();
@@ -150,6 +152,33 @@ export const NostrForm: React.FC<NostrFormProps> = ({
           },
         },
       );
+
+      if (file?.type.includes("mp4")) {
+        console.log('sending video short');
+        sendVideoShort.mutate({
+          content: formData.content || '',
+          title: formData.title || '',
+          videoUrl: imageUrl,
+          ndkKind: NDKKind.ShortVideo,
+          publishedAt: new Date().getTime(),
+          isVertical: false,
+          videoMetadata: [],
+        }, {
+          onSuccess() {
+            showToast({ type: 'success', message: 'Video sent successfully' });
+            queryClient.invalidateQueries({ queryKey: ['rootVideos'] });
+            logClickedEvent('publish_video_success', 'nostr', 'publish_video_success', 1)
+          },
+          onError(e) {
+            console.log('error', e);
+            showToast({
+              type: 'error',
+              message: 'Error! Video could not be sent. Please try again later.',
+            });
+            logClickedEvent('publish_video_error', 'nostr', 'publish_video_error', 1)
+          }
+        });
+      }
     } catch (error) {
       console.log('sendArticle error', error);
       logClickedEvent('publish_note_error', 'nostr', 'publish_note_error', 1)
@@ -242,49 +271,49 @@ export const NostrForm: React.FC<NostrFormProps> = ({
           <input
 
             type="file" id="file" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)}
-            
-            />
+
+          />
         </label>
       </div>
 
       <div className={styles['nostr-form__field'] + ' flex flex-col gap-1'}>
         <label htmlFor="tags" className={styles['nostr-form__label'] + ' font-semibold text-sm'}>Tags</label>
-          <div className={styles['nostr-form__tags'] + ' flex flex-wrap gap-2 items-center'}>
-            {formData?.tags?.map((tag) => (
-              <span key={tag} className={styles['nostr-form__tag'] + ' inline-flex items-center bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-xs font-medium'}>
-                #{tag}
-                <button
-                  type="button"
-                  className={styles['nostr-form__tag-remove'] + ' ml-2 text-blue-500 hover:text-red-500 focus:outline-none'}
+        <div className={styles['nostr-form__tags'] + ' flex flex-wrap gap-2 items-center'}>
+          {formData?.tags?.map((tag) => (
+            <span key={tag} className={styles['nostr-form__tag'] + ' inline-flex items-center bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-xs font-medium'}>
+              #{tag}
+              <button
+                type="button"
+                className={styles['nostr-form__tag-remove'] + ' ml-2 text-blue-500 hover:text-red-500 focus:outline-none'}
                 onClick={() => removeTag(tag)}
                 aria-label={`Remove tag ${tag}`}
               >
                 ×
               </button>
-              </span>
-            ))}
-          </div>
+            </span>
+          ))}
+        </div>
 
-          <div className={styles['nostr-form__tags'] + ' flex flex-wrap gap-2 items-center'}>
-            <input
-              type="text"
-              id="tags"
-              className={styles['nostr-form__tag-input'] + ' flex-1 min-w-[175px] px-2 py-1 rounded border border-gray-300 focus:border-blue-400 focus:outline-none text-xs'}
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleTagAdd}
-              placeholder="Add tags (press Enter)"
-              aria-label="Add tag"
-            />
+        <div className={styles['nostr-form__tags'] + ' flex flex-wrap gap-2 items-center'}>
+          <input
+            type="text"
+            id="tags"
+            className={styles['nostr-form__tag-input'] + ' flex-1 min-w-[175px] px-2 py-1 rounded border border-gray-300 focus:border-blue-400 focus:outline-none text-xs'}
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={handleTagAdd}
+            placeholder="Add tags (press Enter)"
+            aria-label="Add tag"
+          />
 
-                <div className={styles['nostr-form__tags-hint'] + ' flex flex-row gap-2 items-center justify-center'}>
-              <p className={styles['nostr-form__tags-hint-text'] + ' text-xs text-contrast'}>
-                Press enter to add tag
-              </p>
-              {/* <button className='btn btn-basic border border-afk-accent-cyan' onClick={() => handleTagAdd}>
+          <div className={styles['nostr-form__tags-hint'] + ' flex flex-row gap-2 items-center justify-center'}>
+            <p className={styles['nostr-form__tags-hint-text'] + ' text-xs text-contrast'}>
+              Press enter to add tag
+            </p>
+            {/* <button className='btn btn-basic border border-afk-accent-cyan' onClick={() => handleTagAdd}>
                 Click to add tag <Icon name="AddIcon" size={16} />
               </button> */}
-            </div>
+          </div>
 
 
         </div>
