@@ -299,9 +299,9 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       showToast({ message: 'Event data not loaded', type: 'error' });
       return;
     }
-
     // Use a fallback URL if environment variable is not set
-    const baseUrl = process.env.NEXT_PUBLIC_CLOUDFARE_BUCKET_URL;
+    const baseUrl = process.env.NEXT_PUBLIC_CLOUDFARE_BUCKET_URL || "http://localhost:5050";
+    console.log('baseUrl', baseUrl);
     if (!baseUrl) {
       showToast({ message: 'Streaming URL not configured. Please set NEXT_PUBLIC_CLOUDFARE_BUCKET_URL environment variable.', type: 'error' });
       return;
