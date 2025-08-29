@@ -63,6 +63,40 @@ function App() {
 }
 ```
 
+### Host Studio Integration
+
+For hosts to access their streaming studio, use the `onNavigateToHostStudio` prop in StudioModule:
+
+```tsx
+import { StudioModule } from './components/Livestream';
+
+function StudioPage() {
+  const handleNavigateToHostStudio = (eventId: string) => {
+    // Navigate to host studio for this event
+    navigate(`/host-studio/${eventId}`);
+  };
+
+  return (
+    <StudioModule
+      onNavigateToHostStudio={handleNavigateToHostStudio}
+      // ... other props
+    />
+  );
+}
+```
+
+This will show hosts a "🎬 Start Studio" button in addition to their regular "View Event" button.
+
+### Complete Host Workflow
+
+1. **Host creates an event** using StudioModule
+2. **Host clicks "🎬 Start Studio"** on their event card
+3. **HostStudio loads** with professional streaming controls
+4. **Host configures settings**: camera, microphone, resolution, bitrate
+5. **Host starts recording or goes live** using the control buttons
+6. **Host manages stream** with real-time feedback and controls
+7. **Host ends stream** when finished
+
 ### 3. StudioModule
 Manages the studio interface where users can create, view, and manage livestream events.
 

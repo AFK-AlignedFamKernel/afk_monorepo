@@ -6,10 +6,10 @@ import { HostStudio, StudioModule, LivestreamMain } from './index';
  * in a real application with proper navigation and state management
  */
 export const HostStudioExample: React.FC = () => {
-  const [currentView, setCurrentView] = useState<'studio' | 'host-studio' | 'stream'>('studio');
+  const [currentView, setCurrentView] = useState<'studio' | 'host-studio' | 'stream' | 'chat'>('studio');
   const [selectedEventId, setSelectedEventId] = useState<string>('');
 
-  // Handle navigation from studio to host studio
+  // Handle navigation to host studio (for hosts only)
   const handleNavigateToHostStudio = (eventId: string) => {
     setSelectedEventId(eventId);
     setCurrentView('host-studio');
@@ -40,20 +40,23 @@ export const HostStudioExample: React.FC = () => {
       return (
         <div style={{ height: '100vh', overflow: 'hidden' }}>
           <StudioModule
-            onNavigateToStream={handleNavigateToHostStudio}
+            onNavigateToStream={handleNavigateToStream}
             onNavigateToStreamView={handleNavigateToStream}
             onNavigateToRecordView={handleNavigateToStream}
+            onNavigateToHostStudio={handleNavigateToHostStudio}
           />
         </div>
       );
 
     case 'host-studio':
       return (
-        <HostStudio
-          streamId={selectedEventId}
-          onGoLive={handleGoLive}
-          onBack={handleBack}
-        />
+        <div style={{ height: '100vh', overflow: 'hidden' }}>
+          <HostStudio
+            streamId={selectedEventId}
+            onGoLive={handleGoLive}
+            onBack={handleBack}
+          />
+        </div>
       );
 
     case 'stream':

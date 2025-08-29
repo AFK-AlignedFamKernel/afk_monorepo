@@ -558,6 +558,25 @@
   gap: 12px;
 }
 
+.hostActionButtons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.startStudioButton {
+  background-color: var(--success-color, #16a34a);
+  color: #fff;
+  border: 2px solid var(--success-color, #16a34a);
+}
+
+.startStudioButton:hover {
+  background-color: var(--success-hover-color, #15803d);
+  border-color: var(--success-hover-color, #15803d);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
 .viewButton {
   background-color: var(--primary-color, #3b82f6);
   color: #fff;

@@ -3,6 +3,7 @@ import { useAuth, useGetSingleEvent } from 'afk_nostr_sdk';
 import { StudioModule } from './StudioModule';
 import { LiveChat } from './LiveChat';
 import { StreamVideoPlayer } from './StreamVideoPlayer';
+import { HostStudio } from './HostStudio';
 import styles from './styles.module.scss';
 import { Icon } from '../small/icon-component';
 
@@ -20,7 +21,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   const { publicKey } = useAuth();
   const [isChatVisible, setIsChatVisible] = useState(true);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [currentView, setCurrentView] = useState<'studio' | 'stream' | 'chat'>('studio');
+  const [currentView, setCurrentView] = useState<'studio' | 'stream' | 'chat' | 'host-studio'>('studio');
 
   const { data: event } = useGetSingleEvent({
     eventId: streamId || '',
@@ -50,6 +51,11 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     console.log('Navigating to record view:', id);
   };
 
+  const handleNavigateToHostStudio = (id: string) => {
+    setCurrentView('host-studio');
+    console.log('Navigating to host studio:', id);
+  };
+
   const handleStreamStart = () => {
     setIsStreaming(true);
     // Add your stream start logic here
@@ -72,6 +78,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
         onNavigateToStream={handleNavigateToStream}
         onNavigateToStreamView={handleNavigateToStreamView}
         onNavigateToRecordView={handleNavigateToRecordView}
+        onNavigateToHostStudio={handleNavigateToHostStudio}
       />
     </div>
   );
@@ -167,10 +174,23 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     </div>
   );
 
+  const renderHostStudioView = () => (
+    <HostStudio
+      streamId={streamId || ''}
+      onGoLive={() => {
+        setCurrentView('stream');
+        setIsStreaming(true);
+      }}
+      onBack={() => setCurrentView('studio')}
+    />
+  );
+
   const renderContent = () => {
     switch (currentView) {
       case 'studio':
         return renderStudioView();
+      case 'host-studio':
+        return renderHostStudioView();
       case 'stream':
         return renderStreamView();
       case 'chat':

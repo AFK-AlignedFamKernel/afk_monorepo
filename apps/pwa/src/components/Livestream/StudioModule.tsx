@@ -26,12 +26,14 @@ interface StudioModuleProps {
   onNavigateToStream?: (streamId: string) => void;
   onNavigateToStreamView?: (streamId: string, recordingUrl?: string) => void;
   onNavigateToRecordView?: (streamId: string) => void;
+  onNavigateToHostStudio?: (streamId: string) => void;
 }
 
 export const StudioModule: React.FC<StudioModuleProps> = ({
   onNavigateToStream,
   onNavigateToStreamView,
   onNavigateToRecordView,
+  onNavigateToHostStudio,
 }) => {
   const { publicKey } = useAuth();
   const {showToast, showModal} = useUIStore();
@@ -112,6 +114,7 @@ export const StudioModule: React.FC<StudioModuleProps> = ({
               pubKey={publicKey}
               recordingUrl={item.recordingUrl}
               event={item}
+              onNavigateToHostStudio={onNavigateToHostStudio}
             />
           ))}
         </div>
@@ -143,13 +146,20 @@ const RenderEventCard: React.FC<{
   handleNavigateToStreamView: () => void;
   streamKey: string;
   recordingUrl?: string;
-}> = ({ event, pubKey, handleNavigation, handleNavigateToStreamView, streamKey, recordingUrl }) => {
+  onNavigateToHostStudio?: (streamId: string) => void;
+}> = ({ event, pubKey, handleNavigation, handleNavigateToStreamView, streamKey, recordingUrl, onNavigateToHostStudio }) => {
   const isStreamer = false;
   const isOwner = event?.participants.findIndex(
     (item) => item.pubkey === pubKey && item.role === 'Host'
   ) !== -1;
 
   const { addParticipant } = useLiveActivity();
+
+  const handleStartStudio = () => {
+    if (onNavigateToHostStudio) {
+      onNavigateToHostStudio(event.identifier);
+    }
+  };
 
   const handleJoinEvent = async () => {
     if (!pubKey) {
@@ -210,9 +220,14 @@ const RenderEventCard: React.FC<{
 
       <div className={styles.actionButtons}>
         {isOwner ? (
-          <button className={styles.viewButton} onClick={handleNavigation}>
-            View Event
-          </button>
+          <div className={styles.hostActionButtons}>
+            <button className={styles.viewButton} onClick={handleNavigation}>
+              View Event
+            </button>
+            <button className={`${styles.viewButton} ${styles.startStudioButton}`} onClick={handleStartStudio}>
+              🎬 Start Studio
+            </button>
+          </div>
         ) : (
           <button className={styles.viewButton} onClick={handleJoinEvent}>
             Join Event
