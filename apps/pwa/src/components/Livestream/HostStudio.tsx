@@ -316,10 +316,30 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       setupMediaStream(currentStream);
       console.log('Media stream setup complete');
 
-      // Update event status - use backend URL directly for streaming
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
-      const streamingUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
-      console.log('Streaming URL:', streamingUrl);
+             // Update event status - use backend URL directly for streaming
+       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+       const streamingUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
+       console.log('Streaming URL:', streamingUrl);
+       
+       // Also check if there's an existing streaming URL in the event (NIP-53 compliance)
+       let existingStreamingUrl = null;
+       if (event?.tags) {
+         const streamingTag = event.tags.find(tag => tag[0] === 'streaming');
+         if (streamingTag) {
+           existingStreamingUrl = streamingTag[1];
+           console.log('Found existing NIP-53 streaming URL:', existingStreamingUrl);
+         }
+       }
+       
+       // Log the event structure for NIP-53 debugging
+       console.log('🔍 NIP-53 Event structure:', {
+         eventId: streamId,
+         eventTags: event?.tags,
+         eventContent: event?.content,
+         streamingTag: event?.tags?.find((tag: any) => tag[0] === 'streaming'),
+         statusTag: event?.tags?.find((tag: any) => tag[0] === 'status'),
+         eventKind: (event as any)?.kind
+       });
 
       setIsGoingLive(true);
       

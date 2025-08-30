@@ -9,6 +9,64 @@ import styles from './styles.module.scss';
 import { Icon } from '../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
 
+// Helper function to extract streaming URL from NIP-53 events
+const extractStreamingUrlFromEvent = (event: any): string | null => {
+  if (!event) return null;
+  
+  console.log('🔍 Extracting streaming URL from event:', {
+    eventKeys: Object.keys(event || {}),
+    hasTags: !!event?.tags,
+    hasContent: !!event?.content,
+    streamingUrlField: event?.streamingUrl
+  });
+  
+  // First check the streamingUrl field (if it exists)
+  if (event.streamingUrl) {
+    console.log('✅ Found streaming URL in streamingUrl field:', event.streamingUrl);
+    return event.streamingUrl;
+  }
+  
+  // Check NIP-53 streaming tag
+  if (event.tags) {
+    console.log('🏷️ Checking event tags:', event.tags);
+    
+    const streamingTag = event.tags.find((tag: any) => tag[0] === 'streaming');
+    if (streamingTag) {
+      console.log('✅ Found NIP-53 streaming tag:', streamingTag);
+      return streamingTag[1];
+    }
+    
+    // Fallback to other common streaming tags
+    const fallbackTags = ['streaming_url', 'stream_url', 'url', 'rtmp', 'hls'];
+    for (const tagName of fallbackTags) {
+      const tag = event.tags.find((tag: any) => tag[0] === tagName);
+      if (tag) {
+        console.log(`🔄 Found streaming URL in fallback tag ${tagName}:`, tag);
+        return tag[1];
+      }
+    }
+    
+    console.log('⚠️ No streaming tags found in event');
+  }
+  
+  // Check content as last resort
+  if (event.content) {
+    try {
+      const content = JSON.parse(event.content);
+      const contentUrl = content.streamingUrl || content.stream_url || content.url || content.streaming;
+      if (contentUrl) {
+        console.log('📄 Found streaming URL in event content:', contentUrl);
+        return contentUrl;
+      }
+    } catch (e) {
+      console.log('⚠️ Event content is not JSON:', event.content);
+    }
+  }
+  
+  console.log('❌ No streaming URL found in event');
+  return null;
+};
+
 interface LivestreamMainProps {
   streamId?: string;
   isStreamer?: boolean;
@@ -27,9 +85,21 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   const [currentStreamId, setCurrentStreamId] = useState<string>(initialStreamId || '');
 
   const { showModal } = useUIStore();
-  const { data: event } = useGetSingleEvent({
+  const { data: event, isLoading: eventLoading, isError: eventError } = useGetSingleEvent({
     eventId: currentStreamId || '',
   });
+
+  // Debug: Log the event query state
+  useEffect(() => {
+    console.log('🔍 Event query state:', {
+      currentStreamId,
+      eventId: currentStreamId || '',
+      eventLoading,
+      eventError,
+      hasEvent: !!event,
+      eventData: event
+    });
+  }, [currentStreamId, eventLoading, eventError, event]);
 
   // Get WebSocket context for streaming info
   const { isStreaming: isWebSocketStreaming, streamKey } = useLivestreamWebSocket();
@@ -39,25 +109,40 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     console.log('🔍 Event data in LivestreamMain:', {
       event,
       eventId: currentStreamId,
+      eventLoading,
+      eventError,
       isWebSocketStreaming,
       streamKey,
       eventKeys: event ? Object.keys(event) : 'NO_EVENT',
       eventContent: event?.content,
-      eventTags: event?.tags
+      eventTags: event?.tags,
+      // NIP-53 specific debugging
+      nip53StreamingTag: event?.tags?.find((tag: any) => tag[0] === 'streaming'),
+      nip53Status: event?.tags?.find((tag: any) => tag[0] === 'status'),
+      nip53Kind: (event as any)?.kind,
+      extractedStreamingUrl: extractStreamingUrlFromEvent(event),
+      // Raw event data for debugging
+      rawEvent: event,
+      // Event structure debugging
+      eventIdentifier: event?.identifier,
+      eventEventId: event?.eventId,
+      eventStatus: event?.status
     });
-  }, [event, currentStreamId, isWebSocketStreaming, streamKey]);
+  }, [event, currentStreamId, eventLoading, eventError, isWebSocketStreaming, streamKey]);
 
   // Compute streaming URL - prioritize WebSocket context over event data
   const streamingUrl = React.useMemo(() => {
     console.log('🔗 Computing streaming URL with:', {
       isWebSocketStreaming,
       streamKey,
-      eventStreamingUrl: event?.streamingUrl,
-      eventContent: event?.content,
-      eventTags: event?.tags,
+      currentStreamId,
+      event,
+      eventLoading: eventLoading,
+      eventError: eventError,
       backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050"
     });
 
+    // Priority 1: WebSocket streaming context
     if (isWebSocketStreaming && streamKey) {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
       const computedUrl = `${backendUrl}/livestream/${streamKey}/stream.m3u8`;
@@ -65,43 +150,57 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       return computedUrl;
     }
 
-    // Try to get streaming URL from event data
-    let eventStreamingUrl = event?.streamingUrl;
-    console.log('📋 Event streaming URL:', eventStreamingUrl);
-    
-    // If not in streamingUrl field, check content and tags
-    if (!eventStreamingUrl && event?.content) {
-      try {
-        const content = JSON.parse(event.content);
-        eventStreamingUrl = content.streamingUrl || content.stream_url || content.url;
-        console.log('📄 Extracted streaming URL from event content:', eventStreamingUrl);
-      } catch (e) {
-        console.log('⚠️ Event content is not JSON:', event.content);
+    // Priority 2: Extract from NIP-53 event
+    if (event) {
+      const eventStreamingUrl = extractStreamingUrlFromEvent(event);
+      if (eventStreamingUrl) {
+        console.log('✅ Found streaming URL in event:', eventStreamingUrl);
+        return eventStreamingUrl;
       }
     }
 
-    // Check tags for streaming URL
-    if (!eventStreamingUrl && event?.tags) {
-      console.log('🏷️ Checking event tags for streaming URL...');
-      const streamingTag = event.tags.find(tag => 
-        tag[0] === 'streaming_url' || tag[0] === 'stream_url' || tag[0] === 'url'
-      );
-      if (streamingTag) {
-        eventStreamingUrl = streamingTag[1];
-        console.log('🏷️ Extracted streaming URL from event tags:', eventStreamingUrl);
-      } else {
-        console.log('🏷️ No streaming URL found in tags');
-      }
+    // Priority 3: If we have a stream ID but no event data, construct a fallback URL
+    if (currentStreamId && !eventLoading && !eventError) {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      const fallbackUrl = `${backendUrl}/livestream/${currentStreamId}/stream.m3u8`;
+      console.log('🔄 Using fallback streaming URL:', fallbackUrl);
+      return fallbackUrl;
     }
 
-    console.log('🎯 Final streaming URL result:', eventStreamingUrl);
-    return eventStreamingUrl;
-  }, [isWebSocketStreaming, streamKey, event]);
+    // Priority 4: If event is still loading but we have a stream ID, show loading state
+    if (currentStreamId && eventLoading) {
+      console.log('⏳ Event is still loading, will show loading state');
+      return null;
+    }
+
+    console.log('⚠️ No streaming URL found in event or WebSocket context');
+    return null;
+  }, [isWebSocketStreaming, streamKey, event, currentStreamId, eventLoading, eventError]);
 
   // Update streaming state when WebSocket streaming changes
   useEffect(() => {
     setIsStreaming(isWebSocketStreaming);
   }, [isWebSocketStreaming]);
+
+  // Debug: Log streaming URL changes
+  useEffect(() => {
+    console.log('🎯 Streaming URL changed:', {
+      streamingUrl,
+      currentStreamId,
+      eventLoading,
+      eventError,
+      hasEvent: !!event
+    });
+  }, [streamingUrl, currentStreamId, eventLoading, eventError, event]);
+
+  // Debug: Log currentStreamId changes
+  useEffect(() => {
+    console.log('🔄 currentStreamId changed:', {
+      currentStreamId,
+      previousStreamId: initialStreamId,
+      willTriggerEventQuery: !!currentStreamId
+    });
+  }, [currentStreamId, initialStreamId]);
 
   //   useEffect(() => {
   //     if (currentStreamId) {
@@ -110,20 +209,21 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   //   }, [currentStreamId]);
 
   const handleNavigateToStream = (id: string) => {
+    setCurrentStreamId(id);
     setCurrentView('stream');
-    // You would typically navigate to the stream view here
     console.log('Navigating to stream:', id);
   };
 
   const handleNavigateToStreamView = (id: string, recordingUrl?: string) => {
+    console.log('🚀 handleNavigateToStreamView called with:', { id, recordingUrl });
+    setCurrentStreamId(id);
     setCurrentView('stream');
-    // You would typically navigate to the stream view here
-    console.log('Navigating to stream view:', id, recordingUrl);
+    console.log('✅ Navigation state updated:', { currentStreamId: id, view: 'stream' });
   };
 
   const handleNavigateToRecordView = (id: string) => {
+    setCurrentStreamId(id);
     setCurrentView('stream');
-    // You would typically navigate to the recorded stream view here
     console.log('Navigating to record view:', id);
   };
 
@@ -205,14 +305,26 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
 
       <div className={styles.streamContent}>
         <div className={styles.videoSection}>
-          <StreamVideoPlayer
-            streamingUrl={streamingUrl}
-            recordingUrl={event?.recordingUrl}
-            isStreamer={isStreamer}
-            onStreamStart={handleStreamStart}
-            onStreamStop={handleStreamStop}
-            className={styles.mainVideoPlayer}
-          />
+          {eventLoading ? (
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner}></div>
+              <p>Loading event data...</p>
+            </div>
+          ) : eventError ? (
+            <div className={styles.errorContainer}>
+              <p>Failed to load event data</p>
+              <button onClick={() => window.location.reload()}>Retry</button>
+            </div>
+          ) : (
+            <StreamVideoPlayer
+              streamingUrl={streamingUrl || undefined}
+              recordingUrl={event?.recordingUrl}
+              isStreamer={isStreamer}
+              onStreamStart={handleStreamStart}
+              onStreamStop={handleStreamStop}
+              className={styles.mainVideoPlayer}
+            />
+          )}
         </div>
 
         {isChatVisible && (

@@ -1350,10 +1350,58 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.select option {
-  background-color: var(--surface-color, #1f2937);
-  color: var(--text-color, #fff);
-}
+  .select option {
+    background-color: var(--surface-color, #1f2937);
+    color: var(--text-color, #fff);
+  }
+
+  /* Loading states */
+  .loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    background-color: var(--surface-secondary-color, #111827);
+    border-radius: 12px;
+    color: var(--text-secondary-color, #9ca3af);
+  }
+
+  .loadingSpinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color, #374151);
+    border-top: 3px solid var(--primary-color, #3b82f6);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  .errorContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    background-color: var(--surface-secondary-color, #111827);
+    border-radius: 12px;
+    color: var(--error-color, #ef4444);
+    gap: 16px;
+  }
+
+  .errorContainer button {
+    padding: 8px 16px;
+    background-color: var(--primary-color, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .errorContainer button:hover {
+    background-color: var(--primary-hover-color, #2563eb);
+  }
 
 /* Responsive design */
 @media (max-width: 768px) {
