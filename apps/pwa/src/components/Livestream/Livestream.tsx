@@ -4,13 +4,6 @@ import { useEditEvent, useGetSingleEvent } from 'afk_nostr_sdk';
 import { Socket } from 'socket.io-client';
 import styles from './styles.module.scss';
 
-// Export all components
-export { StudioModule } from './StudioModule';
-export { LiveChat } from './LiveChat';
-export { StreamVideoPlayer } from './StreamVideoPlayer';
-export { LivestreamMain } from './LivestreamMain';
-export { HostStudio } from './HostStudio';
-
 interface LivestreamProps {
   streamKey: string;
   isStreamer: boolean;
@@ -38,6 +31,13 @@ export function Livestream({
   const { data: event } = useGetSingleEvent({
     eventId: streamKey,
   });
+
+  console.log("streamKey", streamKey);
+  console.log("isStreamer", isStreamer);
+  console.log("streamerUserId", streamerUserId);
+  console.log("socketRef", socketRef);
+  console.log("streamingUrl", streamingUrl);
+  console.log("recordingUrl", recordingUrl);
 
   useEffect(() => {
     if (!isStreamer || !videoRef.current) return;
