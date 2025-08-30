@@ -4,8 +4,10 @@ import {
   serveHLSSegment,
   getStreamStatus,
   listActiveStreams,
-  healthCheck
+  healthCheck,
+  startStream
 } from './fastifyEndpoints';
+import { cloudinaryLivestreamService } from './cloudinaryService';
 
 /**
  * Register Fastify routes for livestream HTTP endpoints
@@ -19,6 +21,28 @@ export async function registerLivestreamRoutes(fastify: FastifyInstance) {
 
   // Stream status
   fastify.get('/livestream/:streamId/status', getStreamStatus);
+
+  // Start stream
+  fastify.post('/livestream/:streamId/start', startStream);
+
+  // Get Cloudinary playback URL
+  fastify.get('/livestream/:streamId/playback', async (request, reply) => {
+    const { streamId } = request.params as { streamId: string };
+    try {
+      const stream = await cloudinaryLivestreamService.getStream(streamId);
+      if (!stream) {
+        return reply.status(404).send({ error: 'Stream not found' });
+      }
+      return reply.send({
+        streamId,
+        playbackUrl: stream.playbackUrl,
+        ingestUrl: stream.streamUrl,
+        status: stream.status
+      });
+    } catch (error) {
+      return reply.status(500).send({ error: 'Failed to get stream' });
+    }
+  });
 
   // HLS manifest file
   fastify.get('/livestream/:streamId/stream.m3u8', serveHLSManifest);

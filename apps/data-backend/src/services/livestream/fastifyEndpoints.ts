@@ -2,6 +2,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import * as fs from 'fs';
 import path from 'path';
 import { activeStreams } from './streamHandler';
+import { cloudinaryLivestreamService } from './cloudinaryService';
 
 /**
  * Fastify HTTP endpoints for serving HLS streams and stream information
@@ -33,8 +34,21 @@ export async function serveHLSManifest(
       return reply.status(404).send({ error: 'Stream not found or not started' });
     }
 
-    // Check if stream is active
-    const isActive = activeStreams.has(streamId);
+    // Check if stream is active or initialized
+    const streamData = activeStreams.get(streamId);
+    const isActive = !!streamData;
+    const isInitialized = streamData?.isInitialized;
+
+    // Check if stream is initialized but not broadcasting
+    if (streamData?.isInitialized && !streamData.command) {
+      console.log(`Stream ${streamId} is initialized but waiting for broadcaster`);
+      // Return a special status indicating the stream is ready but not broadcasting
+      return reply.status(200).send({
+        status: 'waiting_for_broadcaster',
+        message: 'Stream is ready but broadcaster has not connected yet',
+        streamId
+      });
+    }
     
     // Set appropriate headers for HLS
     reply.header('Content-Type', 'application/vnd.apple.mpegurl');
@@ -46,9 +60,13 @@ export async function serveHLSManifest(
     // Read and serve the manifest file
     const manifestContent = fs.readFileSync(manifestPath, 'utf8');
     
-    // If stream is not active, add a message to the manifest
+    // If stream is not active but initialized, it's waiting for broadcaster
     if (!isActive) {
       console.log(`Stream ${streamId} is not active, serving static manifest`);
+    } else if (isInitialized && !streamData.command) {
+      console.log(`Stream ${streamId} is initialized but waiting for broadcaster`);
+    } else {
+      console.log(`Stream ${streamId} is active and broadcasting`);
     }
 
     console.log(`Serving HLS manifest for stream: ${streamId}`);
@@ -101,7 +119,7 @@ export async function serveHLSSegment(
 }
 
 /**
- * Get stream status and information
+ * Get stream status and information from Cloudinary
  * GET /livestream/:streamId/status
  */
 export async function getStreamStatus(
@@ -115,29 +133,22 @@ export async function getStreamStatus(
       return reply.status(400).send({ error: 'Stream ID is required' });
     }
 
-    const streamData = activeStreams.get(streamId);
-    const manifestPath = path.join(STREAMS_BASE_DIR, streamId, 'stream.m3u8');
-    
-    const status = {
-      streamId,
-      isActive: !!streamData,
-      hasManifest: fs.existsSync(manifestPath),
-      viewerCount: streamData ? streamData.viewers.size : 0,
-      startedAt: streamData ? streamData.startedAt : null,
-      userId: streamData ? streamData.userId : null
-    };
+    console.log(`📊 Getting Cloudinary stream status for: ${streamId}`);
 
-    console.log(`Stream status for ${streamId}:`, status);
+    // Get status from Cloudinary service
+    const status = await cloudinaryLivestreamService.getStreamStatus(streamId);
+    
+    console.log(`✅ Stream status for ${streamId}:`, status);
     return reply.send(status);
     
   } catch (error) {
-    console.error('Error getting stream status:', error);
+    console.error('❌ Error getting Cloudinary stream status:', error);
     return reply.status(500).send({ error: 'Internal server error' });
   }
 }
 
 /**
- * List all active streams
+ * List all active streams from Cloudinary
  * GET /livestream/active
  */
 export async function listActiveStreams(
@@ -145,23 +156,102 @@ export async function listActiveStreams(
   reply: FastifyReply
 ) {
   try {
-    const activeStreamsList = Array.from(activeStreams.entries()).map(([streamKey, streamData]) => ({
-      streamId: streamKey,
-      userId: streamData.userId,
-      viewerCount: streamData.viewers.size,
-      startedAt: streamData.startedAt,
-      isActive: true
+    console.log('📋 Listing active Cloudinary streams');
+
+    // Get active streams from Cloudinary service
+    const activeStreamsList = await cloudinaryLivestreamService.listActiveStreams();
+    
+    const streams = activeStreamsList.map(stream => ({
+      streamId: stream.streamId,
+      userId: stream.userId,
+      status: stream.status,
+      startedAt: stream.createdAt,
+      isActive: stream.status === 'active',
+      playbackUrl: stream.playbackUrl,
+      ingestUrl: stream.streamUrl
     }));
 
-    console.log(`Active streams: ${activeStreamsList.length}`);
+    console.log(`✅ Found ${streams.length} active Cloudinary streams`);
     return reply.send({
-      count: activeStreamsList.length,
-      streams: activeStreamsList
+      count: streams.length,
+      streams: streams
     });
     
   } catch (error) {
-    console.error('Error listing active streams:', error);
+    console.error('❌ Error listing active Cloudinary streams:', error);
     return reply.status(500).send({ error: 'Internal server error' });
+  }
+}
+
+/**
+ * Start a new stream using Cloudinary
+ * POST /livestream/:streamId/start
+ */
+export async function startStream(
+  request: FastifyRequest<{ Params: { streamId: string }; Body: { userId?: string; action: string; timestamp: number; title?: string; description?: string } }>,
+  reply: FastifyReply
+) {
+  try {
+    const { streamId } = request.params;
+    const { userId, action, timestamp, title, description } = request.body;
+    
+    if (!streamId) {
+      return reply.status(400).send({ error: 'Stream ID is required' });
+    }
+
+    if (action !== 'start') {
+      return reply.status(400).send({ error: 'Invalid action. Use "start"' });
+    }
+
+    console.log(`🎬 Starting Cloudinary stream: ${streamId} for user: ${userId || 'anonymous'}`);
+
+    // Check if stream already exists in Cloudinary
+    const existingStream = await cloudinaryLivestreamService.getStream(streamId);
+    if (existingStream) {
+      console.log(`✅ Stream ${streamId} already exists in Cloudinary`);
+      
+      // Mark as active
+      const updatedStream = await cloudinaryLivestreamService.startStream(streamId);
+      
+      return reply.send({
+        status: 'already_exists',
+        streamId,
+        message: 'Stream already exists and is now active',
+        playbackUrl: updatedStream?.playbackUrl,
+        ingestUrl: updatedStream?.streamUrl,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Create new stream in Cloudinary
+    const stream = await cloudinaryLivestreamService.createStream({
+      streamId,
+      userId: userId || 'anonymous',
+      title: title || `Live Stream ${streamId}`,
+      description: description || 'Live stream created via API',
+      tags: ['livestream', 'live', 'nostr']
+    });
+
+    // Mark as active
+    await cloudinaryLivestreamService.startStream(streamId);
+
+    console.log(`✅ Cloudinary stream ${streamId} created and started successfully`);
+    
+    return reply.send({
+      status: 'created_and_started',
+      streamId,
+      message: 'Stream created and started successfully in Cloudinary',
+      playbackUrl: stream.playbackUrl,
+      ingestUrl: stream.streamUrl,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ Error starting Cloudinary stream:', error);
+    return reply.status(500).send({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
   }
 }
 

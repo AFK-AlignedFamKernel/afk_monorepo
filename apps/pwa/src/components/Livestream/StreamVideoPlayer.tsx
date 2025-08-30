@@ -10,6 +10,7 @@ interface StreamVideoPlayerProps {
   isStreamer?: boolean;
   onStreamStart?: () => void;
   onStreamStop?: () => void;
+  onStreamError?: (error: string) => void;
   className?: string;
 }
 
@@ -63,6 +64,36 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     seekTo,
   } = useVideoElement({});
 
+  // Error handling function
+  const handleVideoError = (event: Event) => {
+    const videoElement = event.target as HTMLVideoElement;
+    const error = videoElement.error;
+    console.error('🚨 Video error:', error);
+    
+    if (onStreamError) {
+      let errorMessage = 'Unknown video error';
+      if (error) {
+        switch (error.code) {
+          case MediaError.MEDIA_ERR_ABORTED:
+            errorMessage = 'Video playback aborted';
+            break;
+          case MediaError.MEDIA_ERR_NETWORK:
+            errorMessage = 'Network error - stream may not be started';
+            break;
+          case MediaError.MEDIA_ERR_DECODE:
+            errorMessage = 'Video decode error';
+            break;
+          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+            errorMessage = 'Stream not found or not started';
+            break;
+          default:
+            errorMessage = `Video error: ${error.message}`;
+        }
+      }
+      onStreamError(errorMessage);
+    }
+  };
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -78,6 +109,8 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     video.addEventListener('play', handlePlay);
     video.addEventListener('pause', handlePause);
     video.addEventListener('volumechange', handleVolumeChange);
+    
+    video.addEventListener('error', handleVideoError);
 
     // Auto-hide controls after 3 seconds
     let controlsTimeout: NodeJS.Timeout;
@@ -95,6 +128,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       video.removeEventListener('play', handlePlay);
       video.removeEventListener('pause', handlePause);
       video.removeEventListener('volumechange', handleVolumeChange);
+      video.removeEventListener('error', handleVideoError);
       document.removeEventListener('mousemove', handleMouseMove);
       clearTimeout(controlsTimeout);
     };

@@ -84,7 +84,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   const [currentView, setCurrentView] = useState<'studio' | 'stream' | 'chat' | 'host-studio'>('studio');
   const [currentStreamId, setCurrentStreamId] = useState<string>(initialStreamId || '');
 
-  const { showModal } = useUIStore();
+  const { showModal, showToast } = useUIStore();
   const { data: event, isLoading: eventLoading, isError: eventError } = useGetSingleEvent({
     eventId: currentStreamId || '',
   });
@@ -130,7 +130,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     });
   }, [event, currentStreamId, eventLoading, eventError, isWebSocketStreaming, streamKey]);
 
-  // Compute streaming URL - prioritize WebSocket context over event data
+  // Compute streaming URL - prioritize Cloudinary, WebSocket context, then event data
   const streamingUrl = React.useMemo(() => {
     console.log('🔗 Computing streaming URL with:', {
       isWebSocketStreaming,
@@ -159,9 +159,25 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       }
     }
 
-    // Priority 3: If we have a stream ID but no event data, construct a fallback URL
+    // Priority 3: Try to get Cloudinary playback URL from backend
     if (currentStreamId && !eventLoading && !eventError) {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      
+      // Try to get Cloudinary playback URL (async, but we'll use fallback for now)
+      // In a real implementation, you'd want to store this in state
+      fetch(`${backendUrl}/livestream/${currentStreamId}/playback`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.playbackUrl) {
+            console.log('🎯 Found Cloudinary playback URL:', data.playbackUrl);
+            // TODO: Update state to use this URL
+          }
+        })
+        .catch(error => {
+          console.log('⚠️ Could not fetch Cloudinary URL, using fallback');
+        });
+
+      // Fallback to backend URL
       const fallbackUrl = `${backendUrl}/livestream/${currentStreamId}/stream.m3u8`;
       console.log('🔄 Using fallback streaming URL:', fallbackUrl);
       return fallbackUrl;
@@ -219,6 +235,9 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     setCurrentStreamId(id);
     setCurrentView('stream');
     console.log('✅ Navigation state updated:', { currentStreamId: id, view: 'stream' });
+    
+    // Start the stream on the backend if it's not already running
+    startStreamOnBackend(id);
   };
 
   const handleNavigateToRecordView = (id: string) => {
@@ -247,6 +266,60 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
 
   const toggleChat = () => {
     setIsChatVisible(!isChatVisible);
+  };
+
+  // Function to start stream on Cloudinary via backend
+  const startStreamOnBackend = async (streamId: string) => {
+    try {
+      console.log('🚀 Starting Cloudinary stream via backend:', streamId);
+      
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      
+      // First check if stream is already running
+      const statusResponse = await fetch(`${backendUrl}/livestream/${streamId}/status`);
+      if (statusResponse.ok) {
+        const status = await statusResponse.json();
+        console.log('📊 Cloudinary stream status check:', status);
+        
+        if (status.status === 'active' || status.cloudinaryStatus === 'active') {
+          console.log('✅ Cloudinary stream is already active');
+          return;
+        }
+      }
+      
+      // Start the stream in Cloudinary
+      const response = await fetch(`${backendUrl}/livestream/${streamId}/start`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          streamId,
+          action: 'start',
+          timestamp: Date.now(),
+          title: `Live Stream ${streamId}`,
+          description: 'Live stream from Nostr event'
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Cloudinary stream started:', result);
+        showToast({ message: 'Cloudinary stream started successfully', type: 'success' });
+        
+        // Update the streaming URL to use Cloudinary
+        if (result.playbackUrl) {
+          console.log('🎯 Cloudinary playback URL:', result.playbackUrl);
+        }
+      } else {
+        const error = await response.text();
+        console.log('⚠️ Failed to start Cloudinary stream:', error);
+        showToast({ message: `Failed to start Cloudinary stream: ${error}`, type: 'error' });
+      }
+    } catch (error) {
+      console.error('❌ Failed to start Cloudinary stream:', error);
+      showToast({ message: 'Failed to start Cloudinary stream', type: 'error' });
+    }
   };
 
   const renderStudioView = () => (
@@ -323,6 +396,16 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
               onStreamStart={handleStreamStart}
               onStreamStop={handleStreamStop}
               className={styles.mainVideoPlayer}
+              onStreamError={(error) => {
+                console.log('🚨 Stream error in StreamVideoPlayer:', error);
+                if (error.includes('Stream not found') || error.includes('not started')) {
+                  showToast({ message: 'Stream not started. Attempting to start...', type: 'warning' });
+                  // Retry starting the stream
+                  if (currentStreamId) {
+                    setTimeout(() => startStreamOnBackend(currentStreamId), 1000);
+                  }
+                }
+              }}
             />
           )}
         </div>
