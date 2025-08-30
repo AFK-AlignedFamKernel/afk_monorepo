@@ -42,7 +42,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background-color: var(--surface-color, #1f2937);
+  // background-color: var(--surface-color, #1f2937);
   border-bottom: 1px solid var(--border-color, #374151);
   z-index: 100;
 }
@@ -51,6 +51,7 @@
   background: none;
   border: none;
   color: var(--text-color, #fff);
+  background-color: var(--surface-color, #1f2937);
   padding: 8px;
   border-radius: 8px;
   cursor: pointer;

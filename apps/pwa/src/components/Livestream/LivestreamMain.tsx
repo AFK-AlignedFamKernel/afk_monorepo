@@ -177,7 +177,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
           onClick={() => setCurrentView('studio')}
           aria-label="Back to studio"
         >
-          {/* <Icon name="ArrowLeftIcon" size={24} /> */}
+          <Icon name="BackIcon" size={24} />
         </button>
         <div className={styles.streamInfo}>
           <h2 className={styles.streamTitle}>

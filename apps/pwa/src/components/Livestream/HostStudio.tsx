@@ -274,36 +274,37 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       connect(streamId);
       console.log('WebSocket connection initiated...');
       
-      // Wait for connection with better error handling
-      await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          console.error('WebSocket connection timeout');
-          reject(new Error('WebSocket connection timeout after 10 seconds'));
-        }, 10000);
+      // // Wait for connection with better error handling
+      // await new Promise((resolve, reject) => {
+      //   const timeout = setTimeout(() => {
+      //     console.error('WebSocket connection timeout');
+      //     reject(new Error('WebSocket connection timeout after 10 seconds'));
+      //   }, 10000);
         
-        let attempts = 0;
-        const maxAttempts = 100; // 10 seconds with 100ms intervals
+      //   let attempts = 0;
+      //   const maxAttempts = 100; // 10 seconds with 100ms intervals
         
-        const checkConnection = () => {
-          attempts++;
-          console.log(`Connection check attempt ${attempts}/${maxAttempts}, isConnected:`, isConnected);
+      //   const checkConnection = () => {
+      //     attempts++;
+      //     console.log(`Connection check attempt ${attempts}/${maxAttempts}, isConnected:`, isConnected);
           
-          if (isConnected) {
-            console.log('WebSocket connected successfully!');
-            clearTimeout(timeout);
-            resolve(true);
-          } else if (attempts >= maxAttempts) {
-            console.error('Max connection attempts reached');
-            clearTimeout(timeout);
-            reject(new Error('Max connection attempts reached'));
-          } else {
-            setTimeout(checkConnection, 100);
-          }
-        };
+      //     if (isConnected) {
+      //       console.log('WebSocket connected successfully!');
+      //       clearTimeout(timeout);
+      //       resolve(true);
+      //     } else if (attempts >= maxAttempts) {
+      //       console.error('Max connection attempts reached');
+      //       clearTimeout(timeout);
+      //       reject(new Error('Max connection attempts reached'));
+      //     } else {
+      //       setTimeout(checkConnection, 100);
+      //     }
+      //   };
         
-        // Start checking immediately
-        checkConnection();
-      });
+      //   // Start checking immediately
+      //   checkConnection();
+      // });
+      // checkConnection();
 
       console.log('WebSocket connected, starting stream...');
 
