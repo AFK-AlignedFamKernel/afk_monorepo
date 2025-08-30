@@ -256,6 +256,60 @@ export async function startStream(
 }
 
 /**
+ * Stop a stream using Cloudinary
+ * POST /livestream/:streamId/stop
+ */
+export async function stopStream(
+  request: FastifyRequest<{ Params: { streamId: string }; Body: { userId?: string; action: string; timestamp: number } }>,
+  reply: FastifyReply
+) {
+  try {
+    const { streamId } = request.params;
+    const { userId, action, timestamp } = request.body;
+    
+    if (!streamId) {
+      return reply.status(400).send({ error: 'Stream ID is required' });
+    }
+
+    if (action !== 'stop') {
+      return reply.status(400).send({ error: 'Invalid action. Use "stop"' });
+    }
+
+    console.log(`⏹️ Stopping Cloudinary stream: ${streamId} for user: ${userId || 'anonymous'}`);
+
+    // Stop the stream in Cloudinary
+    const result = await cloudinaryLivestreamService.stopStream(streamId);
+    
+    if (result) {
+      console.log(`✅ Cloudinary stream ${streamId} stopped successfully`);
+      
+      return reply.send({
+        status: 'stopped',
+        streamId,
+        message: 'Stream stopped successfully in Cloudinary',
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      console.log(`⚠️ Stream ${streamId} was not active or already stopped`);
+      
+      return reply.send({
+        status: 'already_stopped',
+        streamId,
+        message: 'Stream was not active or already stopped',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ Error stopping Cloudinary stream:', error);
+    return reply.status(500).send({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
+  }
+}
+
+/**
  * Health check endpoint
  * GET /livestream/health
  */

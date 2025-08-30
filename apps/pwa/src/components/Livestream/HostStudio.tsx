@@ -95,11 +95,42 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   const [selectedMicrophone, setSelectedMicrophone] = useState<string>('');
   const [isGoingLive, setIsGoingLive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [cloudinaryUrls, setCloudinaryUrls] = useState<{
+    playbackUrl?: string;
+    ingestUrl?: string;
+  }>({});
 
-  const updateEvent = useEditEvent();
+    const updateEvent = useEditEvent();
   const { data: event, isLoading: eventLoading, error: eventError, refetch: refetchEvent } = useGetSingleEvent({
     eventId: streamId,
   });
+
+  // Fetch Cloudinary URLs when streamId changes
+  useEffect(() => {
+    if (streamId) {
+      fetchCloudinaryUrls(streamId);
+    }
+  }, [streamId]);
+
+  const fetchCloudinaryUrls = async (streamId: string) => {
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      const response = await fetch(`${backendUrl}/livestream/${streamId}/playback`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCloudinaryUrls({
+          playbackUrl: data.playbackUrl,
+          ingestUrl: data.ingestUrl
+        });
+        console.log('🎯 Cloudinary URLs fetched:', data);
+      } else {
+        console.log('⚠️ No Cloudinary stream found yet for:', streamId);
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch Cloudinary URLs:', error);
+    }
+  };
 
   // Debug: Log the updateEvent mutation state
   useEffect(() => {
@@ -389,35 +420,84 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     }
   }, [streamId, event, updateEvent, showToast, onGoLive, getCombinedStream, connect, isConnected, startWebSocketStream, setupMediaStream, publicKey]);
 
-  // Stop streaming
-  const stopStreaming = useCallback(() => {
+  // Stop streaming with Cloudinary integration
+  const stopStreaming = useCallback(async () => {
     if (!streamId) {
       showToast({ message: 'No event ID available', type: 'error' });
       return;
     }
 
-    console.log('Attempting to stop streaming for event:', streamId);
+    console.log('🛑 Attempting to stop Cloudinary streaming for event:', streamId);
 
-    updateEvent.mutate(
-      {
-        eventId: streamId,
-        status: 'ended',
-        shouldMarkDelete: false,
-      },
-      {
-        onSuccess() {
-          console.log('Successfully stopped streaming');
-          setIsLive(false);
-          setIsStreaming(false);
-          showToast({ message: 'Stream ended', type: 'info' });
-        },
-        onError(error) {
-          console.error('Failed to stop stream:', error);
-          showToast({ message: `Failed to stop stream: ${error?.message || 'Unknown error'}`, type: 'error' });
-        },
+    try {
+      // Step 1: Stop WebSocket stream
+      if (isWebSocketStreaming) {
+        console.log('🔌 Stopping WebSocket stream...');
+        stopWebSocketStream();
       }
-    );
-  }, [streamId, updateEvent, showToast]);
+
+      // Step 2: Disconnect WebSocket
+      if (isConnected) {
+        console.log('🔌 Disconnecting WebSocket...');
+        disconnect();
+      }
+
+      // Step 3: Stop Cloudinary stream via backend
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      console.log('⏹️ Stopping Cloudinary stream via backend...');
+
+      const stopResponse = await fetch(`${backendUrl}/livestream/${streamId}/stop`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          streamId,
+          action: 'stop',
+          userId: publicKey || 'anonymous',
+          timestamp: Date.now()
+        })
+      });
+
+      if (stopResponse.ok) {
+        const stopResult = await stopResponse.json();
+        console.log('✅ Cloudinary stream stopped:', stopResult);
+      } else {
+        console.warn('⚠️ Failed to stop Cloudinary stream via API, continuing with cleanup...');
+      }
+
+      // Step 4: Update Nostr event status
+      updateEvent.mutate(
+        {
+          eventId: streamId,
+          status: 'ended',
+          shouldMarkDelete: false,
+        },
+        {
+          onSuccess() {
+            console.log('✅ Successfully stopped streaming');
+            setIsLive(false);
+            setIsStreaming(false);
+            showToast({ message: 'Stream ended successfully', type: 'info' });
+          },
+          onError(error) {
+            console.error('❌ Failed to update event status:', error);
+            // Still mark as stopped locally
+            setIsLive(false);
+            setIsStreaming(false);
+            showToast({ message: 'Stream ended (status update failed)', type: 'warning' });
+          },
+        }
+      );
+
+    } catch (error) {
+      console.error('❌ Error stopping stream:', error);
+      // Force stop locally even if API calls fail
+      setIsLive(false);
+      setIsStreaming(false);
+      showToast({ message: 'Stream stopped with errors', type: 'warning' });
+    }
+  }, [streamId, updateEvent, showToast, isWebSocketStreaming, stopWebSocketStream, isConnected, disconnect, publicKey]);
 
   // Format recording time
   const formatTime = useCallback((seconds: number) => {
@@ -569,6 +649,45 @@ export const HostStudio: React.FC<HostStudioProps> = ({
               </button>
             )}
           </div>
+
+          {/* Cloudinary Stream Info */}
+          {cloudinaryUrls.playbackUrl && (
+            <div className={styles.cloudinaryInfo}>
+              <h4>🎬 Cloudinary Stream Info</h4>
+              <div className={styles.urlInfo}>
+                <div className={styles.urlItem}>
+                  <label>📺 Playback URL:</label>
+                  <input
+                    type="text"
+                    value={cloudinaryUrls.playbackUrl}
+                    readOnly
+                    className={styles.urlInput}
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                  />
+                </div>
+                {cloudinaryUrls.ingestUrl && (
+                  <div className={styles.urlItem}>
+                    <label>📡 Ingest URL (for broadcasting):</label>
+                    <input
+                      type="text"
+                      value={cloudinaryUrls.ingestUrl}
+                      readOnly
+                      className={styles.urlInput}
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className={styles.streamStatus}>
+                <span className={styles.statusBadge}>
+                  {isLive ? '🟢 LIVE' : '🔴 OFFLINE'}
+                </span>
+                <span className={styles.statusText}>
+                  {isLive ? 'Streaming to Cloudinary' : 'Ready to go live'}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Settings Panel */}

@@ -5,7 +5,8 @@ import {
   getStreamStatus,
   listActiveStreams,
   healthCheck,
-  startStream
+  startStream,
+  stopStream
 } from './fastifyEndpoints';
 import { cloudinaryLivestreamService } from './cloudinaryService';
 
@@ -24,6 +25,9 @@ export async function registerLivestreamRoutes(fastify: FastifyInstance) {
 
   // Start stream
   fastify.post('/livestream/:streamId/start', startStream);
+
+  // Stop stream
+  fastify.post('/livestream/:streamId/stop', stopStream);
 
   // Get Cloudinary playback URL
   fastify.get('/livestream/:streamId/playback', async (request, reply) => {
