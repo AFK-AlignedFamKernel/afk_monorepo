@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAuth, useEditEvent, useGetSingleEvent } from 'afk_nostr_sdk';
 import { useQueryClient } from '@tanstack/react-query';
@@ -572,7 +573,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       console.log('📡 WebSocket stream started');
 
       // Setup media stream for WebSocket
-      setupMediaStream(currentStream);
+      setupMediaStream(currentStream, streamId);
       console.log('🎥 Media stream setup complete');
 
       // Update event status - use backend URL directly for streaming

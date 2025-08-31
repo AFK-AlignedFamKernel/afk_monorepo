@@ -1,3 +1,4 @@
+'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEditEvent, useGetSingleEvent } from 'afk_nostr_sdk';

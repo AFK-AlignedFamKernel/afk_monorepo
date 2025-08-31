@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import { Icon } from '../small/icon-component';
 import { useVideoElement } from '@/hooks/useVideoElement';

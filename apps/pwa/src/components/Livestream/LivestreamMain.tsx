@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import { useAuth, useGetSingleEvent } from 'afk_nostr_sdk';
 import { CreateEventModal, StudioModule } from './StudioModule';
