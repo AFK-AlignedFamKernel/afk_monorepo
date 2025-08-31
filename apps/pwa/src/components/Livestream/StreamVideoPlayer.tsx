@@ -274,12 +274,6 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     };
   }, [streamId, isStreamer, leaveStream]);
 
-  console.log("streamingUrl", streamingUrl);
-  console.log("recordingUrl", recordingUrl);
-  console.log("isStreamer", isStreamer);
-  console.log("onStreamStart", onStreamStart);
-  console.log("onStreamStop", onStreamStop);
-  console.log("className", className);
 
   // Use video element hook for stream management
   const {

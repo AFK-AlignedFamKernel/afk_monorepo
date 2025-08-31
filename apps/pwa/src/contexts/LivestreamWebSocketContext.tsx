@@ -400,6 +400,14 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       });
 
       mediaRecorder.ondataavailable = (event) => {
+        console.log('📡 MediaRecorder ondataavailable triggered:', {
+          hasData: !!event.data,
+          dataSize: event.data?.size || 0,
+          dataType: event.data?.type || 'none',
+          streamId: currentStreamKey,
+          timestamp: Date.now()
+        });
+        
         if (event.data.size > 0) {
           console.log('📡 MediaRecorder data available:', {
             size: event.data.size,
@@ -407,21 +415,51 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
             streamId: currentStreamKey
           });
           sendStreamData(event.data);
+        } else {
+          console.log('⚠️ MediaRecorder data available but size is 0');
         }
       };
 
       mediaRecorder.onstart = () => {
         console.log('🎬 MediaRecorder started successfully');
+        console.log('🎬 MediaRecorder state after start:', {
+          state: mediaRecorder.state,
+          streamId: currentStreamKey,
+          timestamp: Date.now()
+        });
       };
 
       mediaRecorder.onerror = (event) => {
         console.error('❌ MediaRecorder error:', event);
+        console.error('❌ MediaRecorder error details:', {
+          error: event.error,
+          streamId: currentStreamKey,
+          timestamp: Date.now()
+        });
+      };
+
+      mediaRecorder.onstop = () => {
+        console.log('🛑 MediaRecorder stopped');
+      };
+
+      mediaRecorder.onpause = () => {
+        console.log('⏸️ MediaRecorder paused');
+      };
+
+      mediaRecorder.onresume = () => {
+        console.log('▶️ MediaRecorder resumed');
       };
 
       mediaRecorder.start(1000); // Send data every second
       mediaRecorderRef.current = mediaRecorder;
       
       console.log('✅ MediaRecorder setup complete');
+      console.log('✅ MediaRecorder start() called with 1000ms interval');
+      console.log('✅ MediaRecorder state after start() call:', {
+        state: mediaRecorder.state,
+        streamId: currentStreamKey,
+        timestamp: Date.now()
+      });
     } catch (error) {
       console.error('❌ Failed to setup media recorder:', error);
     }
