@@ -423,6 +423,53 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     }
   };
 
+  // Function to check the actual HLS manifest content
+  const handleCheckManifestContent = async () => {
+    if (!currentStreamId) return;
+    
+    console.log('📋 Checking HLS manifest content for:', currentStreamId);
+    
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      const manifestUrl = `${backendUrl}/livestream/${currentStreamId}/stream.m3u8`;
+      
+      console.log('🔗 Fetching manifest from:', manifestUrl);
+      
+      const response = await fetch(manifestUrl);
+      if (response.ok) {
+        const manifestContent = await response.text();
+        console.log('📋 HLS Manifest Content:', manifestContent);
+        
+        // Analyze the manifest
+        const hasEndList = manifestContent.includes('#EXT-X-ENDLIST');
+        const hasSegments = manifestContent.includes('.ts');
+        const lineCount = manifestContent.split('\n').length;
+        
+        console.log('📊 Manifest Analysis:', {
+          hasEndList,
+          hasSegments,
+          lineCount,
+          isEmpty: lineCount <= 5, // Basic HLS manifest has ~5 lines
+          isReady: !hasEndList && hasSegments
+        });
+        
+        if (hasEndList) {
+          console.log('❌ Manifest has ENDLIST - stream is finished/empty');
+        }
+        if (!hasSegments) {
+          console.log('❌ Manifest has no video segments (.ts files)');
+        }
+        if (!hasEndList && hasSegments) {
+          console.log('✅ Manifest is ready for playback!');
+        }
+      } else {
+        console.log('❌ Failed to fetch manifest:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Error checking manifest content:', error);
+    }
+  };
+
   const toggleChat = () => {
     setIsChatVisible(!isChatVisible);
   };
@@ -525,7 +572,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
               <span className={styles.offlineStatus}>OFFLINE</span>
             )}
           </div>
-          {/* Temporary test button for debugging */}
+          {/* Temporary test buttons for debugging */}
           <button
             onClick={handleTestActualStream}
             style={{
@@ -541,6 +588,22 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
             title="Test with actual stream ID (c71e86b68f9acf510d4d9bc982c76ca8)"
           >
             🧪 Test Actual Stream
+          </button>
+          <button
+            onClick={handleCheckManifestContent}
+            style={{
+              marginLeft: '10px',
+              padding: '4px 8px',
+              fontSize: '12px',
+              backgroundColor: '#2196F3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+            title="Check HLS manifest content"
+          >
+            📋 Check Manifest
           </button>
         </div>
         <button
