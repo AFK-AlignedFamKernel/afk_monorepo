@@ -111,7 +111,7 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
   const stream = activeStreams.get(data.streamKey);
 
   if (!stream?.inputStream) {
-    console.log('Stream not found or no input stream:', data.streamKey);
+    console.log('❌ Stream not found or no input stream:', data.streamKey);
     return;
   }
 
@@ -120,14 +120,23 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
     stream.inputStream.push(chunk);
     
     // Broadcast stream data to all viewers in the same stream room
+    const viewersInRoom = stream.viewers.size;
     socket.to(data.streamKey).emit('stream-data', {
       streamKey: data.streamKey,
-      chunk: chunk
+      chunk: chunk,
+      timestamp: Date.now()
     });
     
-    console.log(`Stream data sent to ${stream.viewers.size} viewers for stream: ${data.streamKey}`);
+    console.log(`📡 Stream data sent to ${viewersInRoom} viewers for stream: ${data.streamKey}`);
+    
+    // Also emit to the broadcaster for confirmation
+    socket.emit('stream-data-sent', {
+      streamKey: data.streamKey,
+      viewersCount: viewersInRoom,
+      timestamp: Date.now()
+    });
   } catch (error) {
-    console.error('Error handling stream data:', error);
+    console.error('❌ Error handling stream data:', error);
     streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
       error: error.message,
       streamKey: data.streamKey,
@@ -279,6 +288,19 @@ export function handleDisconnect(socket: Socket) {
     // Check if the disconnected socket was a viewer
     if (stream.viewers.has(socket.id)) {
       stream.viewers.delete(socket.id);
+
+      console.log('👋 Viewer disconnected from stream:', {
+        streamKey: streamKey,
+        viewerId: socket.id,
+        remainingViewers: stream.viewers.size
+      });
+
+      // Notify the broadcaster that a viewer left
+      socket.to(stream.broadcasterSocketId).emit('viewer-left', {
+        streamKey: streamKey,
+        viewerId: socket.id,
+        viewerCount: stream.viewers.size
+      });
 
       streamEvents.emit(STREAM_EVENTS.VIEWER_COUNT, {
         streamKey: streamKey,

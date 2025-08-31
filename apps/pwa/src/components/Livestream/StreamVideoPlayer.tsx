@@ -12,6 +12,7 @@ interface StreamVideoPlayerProps {
   onStreamStop?: () => void;
   onStreamError?: (error: string) => void;
   className?: string;
+  streamId?: string;
 }
 
 export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
@@ -20,9 +21,11 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
   isStreamer = false,
   onStreamStart,
   onStreamStop,
+  onStreamError,
   className,
+  streamId,
 }) => {
-  const { isStreaming, streamKey } = useLivestreamWebSocket();
+  const { isStreaming, streamKey, joinStream, leaveStream } = useLivestreamWebSocket();
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -31,6 +34,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
   const [volume, setVolume] = useState(1);
   const [showControls, setShowControls] = useState(true);
   const [isLive, setIsLive] = useState(false);
+  const [viewerCount, setViewerCount] = useState(0);
 
   // Debug: Log the props received
   useEffect(() => {
@@ -40,9 +44,46 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       isStreamer,
       className,
       isStreaming,
-      streamKey
+      streamKey,
+      streamId
     });
-  }, [streamingUrl, recordingUrl, isStreamer, className, isStreaming, streamKey]);
+  }, [streamingUrl, recordingUrl, isStreamer, className, isStreaming, streamKey, streamId]);
+
+  // Auto-join stream for viewers when streamId is available
+  useEffect(() => {
+    if (streamId && !isStreamer && !isStreaming) {
+      console.log('👥 Auto-joining stream as viewer:', streamId);
+      joinStream(streamId, 'viewer');
+    }
+  }, [streamId, isStreamer, isStreaming, joinStream]);
+
+  // Listen for stream events
+  useEffect(() => {
+    const handleStreamJoined = (event: CustomEvent) => {
+      console.log('✅ Stream joined successfully:', event.detail);
+      setViewerCount(event.detail.viewerCount || 0);
+    };
+
+    const handleStreamData = (event: CustomEvent) => {
+      console.log('📺 Received stream data:', event.detail);
+      // Handle incoming stream data if needed
+    };
+
+    const handleViewerCountUpdate = (event: CustomEvent) => {
+      console.log('👥 Viewer count updated:', event.detail);
+      setViewerCount(event.detail.count || 0);
+    };
+
+    window.addEventListener('stream-joined', handleStreamJoined as EventListener);
+    window.addEventListener('stream-data-received', handleStreamData as EventListener);
+    window.addEventListener('viewer-count-update', handleViewerCountUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('stream-joined', handleStreamJoined as EventListener);
+      window.removeEventListener('stream-data-received', handleStreamData as EventListener);
+      window.removeEventListener('viewer-count-update', handleViewerCountUpdate as EventListener);
+    };
+  }, []);
 
   console.log("streamingUrl", streamingUrl);
   console.log("recordingUrl", recordingUrl);
