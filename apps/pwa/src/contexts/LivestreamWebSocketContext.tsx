@@ -81,6 +81,10 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     newSocket.on('stream-started', (data) => {
       console.log('Stream started:', data);
       setIsStreaming(true);
+      setStreamKey(data.streamKey);
+      
+      // Emit a custom event to notify the HostStudio component
+      window.dispatchEvent(new CustomEvent('stream-started', { detail: data }));
     });
 
     newSocket.on('stream-stopped', () => {
@@ -95,6 +99,12 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     newSocket.on('stream-error', (error) => {
       console.error('Stream error:', error);
       setIsStreaming(false);
+    });
+
+    newSocket.on('stream-data', (data) => {
+      console.log('Received stream data:', data);
+      // This will be handled by the video player component
+      window.dispatchEvent(new CustomEvent('stream-data-received', { detail: data }));
     });
 
     socketRef.current = newSocket;

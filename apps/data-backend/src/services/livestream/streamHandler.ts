@@ -79,6 +79,18 @@ export async function handleStartStream(
 
     ffmpegCommand.output(outputPath).run();
 
+    // Emit stream started confirmation to the broadcaster
+    socket.emit('stream-started', {
+      streamKey: data.streamKey,
+      streamingUrl: `${streamingUrl(data.streamKey, 'stream.m3u8')}`
+    });
+
+    // Notify all viewers that stream has started
+    socket.to(data.streamKey).emit('stream-started', {
+      streamKey: data.streamKey,
+      streamingUrl: `${streamingUrl(data.streamKey, 'stream.m3u8')}`
+    });
+
     streamEvents.emit(STREAM_EVENTS.STREAMING_URL, {
       streamingUrl: `${streamingUrl(data.streamKey, 'stream.m3u8')}`,
     });
@@ -98,12 +110,24 @@ export async function handleStartStream(
 export function handleStreamData(socket: Socket, data: { streamKey: string; chunk: Buffer }) {
   const stream = activeStreams.get(data.streamKey);
 
-  if (!stream?.inputStream) return;
+  if (!stream?.inputStream) {
+    console.log('Stream not found or no input stream:', data.streamKey);
+    return;
+  }
 
   try {
     const chunk = Buffer.isBuffer(data.chunk) ? data.chunk : Buffer.from(data.chunk);
     stream.inputStream.push(chunk);
+    
+    // Broadcast stream data to all viewers in the same stream room
+    socket.to(data.streamKey).emit('stream-data', {
+      streamKey: data.streamKey,
+      chunk: chunk
+    });
+    
+    console.log(`Stream data sent to ${stream.viewers.size} viewers for stream: ${data.streamKey}`);
   } catch (error) {
+    console.error('Error handling stream data:', error);
     streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
       error: error.message,
       streamKey: data.streamKey,
