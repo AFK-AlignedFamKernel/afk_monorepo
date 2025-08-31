@@ -113,9 +113,31 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
   useEffect(() => {
     if (streamId && !isStreamer && !isStreaming) {
       console.log('👥 Auto-joining stream as viewer:', streamId);
+      console.log('🎯 Current streaming URL:', streamingUrl);
+      
+      // Join the WebSocket stream room
       joinStream(streamId, 'viewer');
+      
+      // If we have a streaming URL, set it as the video source
+      if (streamingUrl && videoRef.current) {
+        console.log('🎥 Setting HLS stream source for viewer:', streamingUrl);
+        const video = videoRef.current;
+        
+        // Set proper HLS attributes
+        video.setAttribute('data-stream-id', streamId);
+        video.setAttribute('data-stream-type', 'hls');
+        
+        // Set the source
+        video.src = streamingUrl;
+        video.load();
+        
+        // Try to play
+        video.play().catch(error => {
+          console.warn('🎥 Auto-play failed for viewer:', error);
+        });
+      }
     }
-  }, [streamId, isStreamer, isStreaming, joinStream]);
+  }, [streamId, isStreamer, isStreaming, joinStream, streamingUrl]);
 
   // Listen for stream events
   useEffect(() => {
