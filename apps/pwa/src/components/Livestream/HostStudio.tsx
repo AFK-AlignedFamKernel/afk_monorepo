@@ -667,7 +667,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       // Step 2: Disconnect WebSocket
       if (isConnected) {
         console.log('🔌 Disconnecting WebSocket...');
-        disconnect();
+        // disconnect();
       }
 
       // Step 3: Stop Cloudinary stream via backend
