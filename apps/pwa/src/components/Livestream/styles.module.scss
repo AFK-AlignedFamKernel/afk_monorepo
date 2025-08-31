@@ -276,6 +276,29 @@
   letter-spacing: 0.5px;
 }
 
+.viewerCount {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.viewerIcon {
+  font-size: 14px;
+}
+
+.viewerText {
+  color: #fff;
+}
+
 /* Video controls */
 .controls {
   position: absolute;

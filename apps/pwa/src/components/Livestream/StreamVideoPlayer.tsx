@@ -85,6 +85,16 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     };
   }, []);
 
+  // Cleanup when component unmounts
+  useEffect(() => {
+    return () => {
+      if (streamId && !isStreamer) {
+        console.log('👋 Leaving stream as viewer:', streamId);
+        leaveStream();
+      }
+    };
+  }, [streamId, isStreamer, leaveStream]);
+
   console.log("streamingUrl", streamingUrl);
   console.log("recordingUrl", recordingUrl);
   console.log("isStreamer", isStreamer);
@@ -261,6 +271,12 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             <span className={styles.liveDot}></span>
             <span className={styles.liveText}>LIVE</span>
           </div>
+          {!isStreamer && viewerCount > 0 && (
+            <div className={styles.viewerCount}>
+              <span className={styles.viewerIcon}>👥</span>
+              <span className={styles.viewerText}>{viewerCount}</span>
+            </div>
+          )}
         </div>
       )}
 

@@ -396,6 +396,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
               onStreamStart={handleStreamStart}
               onStreamStop={handleStreamStop}
               className={styles.mainVideoPlayer}
+              streamId={currentStreamId}
               onStreamError={(error) => {
                 console.log('🚨 Stream error in StreamVideoPlayer:', error);
                 if (error.includes('Stream not found') || error.includes('not started')) {

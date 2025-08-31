@@ -73,12 +73,28 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       console.log('📺 Stream data received:', event.detail);
     };
 
+    const handleViewerJoined = (event: CustomEvent) => {
+      console.log('👥 Viewer joined:', event.detail);
+      setViewerCount(event.detail.viewerCount || 0);
+      showToast({ message: `Viewer joined! Total: ${event.detail.viewerCount}`, type: 'info' });
+    };
+
+    const handleViewerLeft = (event: CustomEvent) => {
+      console.log('👋 Viewer left:', event.detail);
+      setViewerCount(event.detail.viewerCount || 0);
+      showToast({ message: `Viewer left. Total: ${event.detail.viewerCount}`, type: 'info' });
+    };
+
     window.addEventListener('stream-started', handleStreamStarted as EventListener);
     window.addEventListener('stream-data-received', handleStreamDataReceived as EventListener);
+    window.addEventListener('viewer-joined', handleViewerJoined as EventListener);
+    window.addEventListener('viewer-left', handleViewerLeft as EventListener);
 
     return () => {
       window.removeEventListener('stream-started', handleStreamStarted as EventListener);
       window.removeEventListener('stream-data-received', handleStreamDataReceived as EventListener);
+      window.removeEventListener('viewer-joined', handleViewerJoined as EventListener);
+      window.removeEventListener('viewer-left', handleViewerLeft as EventListener);
     };
   }, [onGoLive, showToast]);
 
@@ -741,6 +757,9 @@ export const HostStudio: React.FC<HostStudioProps> = ({
               <p>Screen: {settings.screenSharing ? '✅' : '❌'}</p>
               <p>Stream: {stream ? '✅' : '❌'}</p>
               <p>Screen Stream: {screenStream ? '✅' : '❌'}</p>
+              <p>WebSocket: {isConnected ? '✅' : '❌'}</p>
+              <p>Streaming: {isWebSocketStreaming ? '✅' : '❌'}</p>
+              <p>Viewers: {viewerCount}</p>
             </div>
           </div>
         </div>
