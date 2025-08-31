@@ -240,27 +240,30 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
         return;
       }
 
-      console.log('📡 Emitting start-stream event...');
-      socketRef.current.emit('start-stream', {
-        userId,
-        streamKey,
-        timestamp: Date.now()
-      });
-      console.log('✅ start-stream event emitted');
-      
-      // Set the stream key and streaming state immediately for this session
-      setStreamKey(streamKey);
-      setIsStreaming(true);
-      
-      // Also update refs for immediate access
-      streamKeyRef.current = streamKey;
-      isStreamingRef.current = true;
-      
-      console.log('✅ Stream state set locally:', { streamKey, isStreaming: true });
-      console.log('✅ Refs updated:', { 
-        streamKeyRef: streamKeyRef.current, 
-        isStreamingRef: isStreamingRef.current 
-      });
+      // Wait a bit for the socket to be fully ready
+      setTimeout(() => {
+        console.log('📡 Emitting start-stream event...');
+        socketRef.current?.emit('start-stream', {
+          userId,
+          streamKey,
+          timestamp: Date.now()
+        });
+        console.log('✅ start-stream event emitted');
+        
+        // Set the stream key and streaming state immediately for this session
+        setStreamKey(streamKey);
+        setIsStreaming(true);
+        
+        // Also update refs for immediate access
+        streamKeyRef.current = streamKey;
+        isStreamingRef.current = true;
+        
+        console.log('✅ Stream state set locally:', { streamKey, isStreaming: true });
+        console.log('✅ Refs updated:', { 
+          streamKeyRef: streamKeyRef.current, 
+          isStreamingRef: isStreamingRef.current 
+        });
+      }, 500); // Wait 500ms for socket to be fully ready
     } catch (error) {
       console.error('❌ Error in startStream:', error);
     }
@@ -336,8 +339,24 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
         timestamp: Date.now()
       };
       
+      console.log('📡 About to emit stream-data event with:', {
+        streamKey: data.streamKey,
+        chunkSize: data.chunk.length,
+        socketId: socketRef.current?.id,
+        timestamp: data.timestamp
+      });
+      
       socketRef.current?.emit('stream-data', data);
       console.log('✅ Stream data sent via WebSocket');
+      
+      // Verify the data was actually sent
+      setTimeout(() => {
+        console.log('🔍 Post-send verification:', {
+          socketConnected: socketRef.current?.connected,
+          socketId: socketRef.current?.id,
+          streamKey: currentStreamKey
+        });
+      }, 100);
     }).catch(error => {
       console.error('❌ Failed to send stream data:', error);
     });
@@ -532,6 +551,26 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
         timestamp: Date.now()
       });
 
+      // Verify MediaRecorder is actually recording
+      if (mediaRecorder.state !== 'recording') {
+        console.error('❌ MediaRecorder failed to start recording!');
+        console.error('❌ Expected state: recording, Actual state:', mediaRecorder.state);
+        
+        // Try to restart with a different approach
+        try {
+          console.log('🔧 Attempting to restart MediaRecorder...');
+          mediaRecorder.stop();
+          setTimeout(() => {
+            mediaRecorder.start(1000);
+            console.log('🔧 MediaRecorder restarted, new state:', mediaRecorder.state);
+          }, 100);
+        } catch (restartError) {
+          console.error('❌ Failed to restart MediaRecorder:', restartError);
+        }
+      } else {
+        console.log('✅ MediaRecorder is recording successfully');
+      }
+
       // Test if MediaRecorder is actually generating data
       let dataReceived = false;
       const testTimeout = setTimeout(() => {
@@ -549,6 +588,16 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
               muted: t.muted
             }))
           });
+          
+          // Try to force data generation by requesting data
+          if (mediaRecorder.state === 'recording') {
+            console.log('🔧 Attempting to force MediaRecorder data generation...');
+            try {
+              mediaRecorder.requestData();
+            } catch (e) {
+              console.log('⚠️ requestData() not supported, trying alternative approach');
+            }
+          }
         }
       }, 3000);
 

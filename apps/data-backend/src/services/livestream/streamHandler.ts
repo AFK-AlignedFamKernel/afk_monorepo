@@ -38,6 +38,11 @@ export async function handleStartStream(
 ) {
   try {
     console.log('🎬 Starting stream setup for:', data.streamKey);
+    console.log('🎬 Socket info:', {
+      socketId: socket.id,
+      connected: socket.connected,
+      userId: data.userId
+    });
     
     const { ffmpegCommand, outputPath, inputStream } = await setupStream({
       streamKey: data.streamKey,
@@ -48,7 +53,10 @@ export async function handleStartStream(
       streamKey: data.streamKey,
       outputPath,
       hasInputStream: !!inputStream,
-      hasFfmpegCommand: !!ffmpegCommand
+      hasFfmpegCommand: !!ffmpegCommand,
+      inputStreamType: typeof inputStream,
+      inputStreamDestroyed: inputStream?.destroyed,
+      inputStreamReadable: inputStream?.readable
     });
 
     let streamData = activeStreams.get(data.streamKey);
@@ -67,6 +75,8 @@ export async function handleStartStream(
       };
       activeStreams.set(data.streamKey, streamData);
       console.log('✅ Stream data added to active streams');
+      console.log('✅ Active streams count:', activeStreams.size);
+      console.log('✅ Active stream keys:', Array.from(activeStreams.keys()));
     } else {
       // Update existing stream data
       streamData.command = ffmpegCommand;
@@ -76,6 +86,15 @@ export async function handleStartStream(
       streamData.status = 'initializing';
       console.log('✅ Existing stream data updated');
     }
+    
+    // Verify the stream is properly stored
+    const storedStream = activeStreams.get(data.streamKey);
+    console.log('🔍 Verification - stored stream:', {
+      exists: !!storedStream,
+      hasInputStream: !!storedStream?.inputStream,
+      inputStreamDestroyed: storedStream?.inputStream?.destroyed,
+      streamKey: storedStream?.streamKey
+    });
 
     socket.join(data.streamKey);
     console.log('🔌 Socket joined stream room:', data.streamKey);
@@ -115,10 +134,22 @@ export async function handleStartStream(
           status: 'active',
           message: 'Stream is now broadcasting'
         });
+        
+        console.log('✅ FFmpeg stream is now active and ready to receive data');
+        console.log('✅ Stream status updated to active');
       })
 
       .on('progress', (progress) => {
         console.log('📊 FFmpeg progress for stream:', data.streamKey, progress);
+        console.log('📊 Progress details:', {
+          streamKey: data.streamKey,
+          frames: progress.frames,
+          currentFps: progress.currentFps,
+          currentKbps: progress.currentKbps,
+          targetSize: progress.targetSize,
+          timemark: progress.timemark,
+          percent: progress.percent
+        });
       })
 
       .on('end', (res) => {
@@ -257,10 +288,21 @@ export async function handleStartStream(
  * Todo: Ideally we will want to process stream to a CDN.
  */
 export function handleStreamData(socket: Socket, data: { streamKey: string; chunk: Buffer }) {
+  console.log('🔍 handleStreamData called with:', {
+    streamKey: data.streamKey,
+    chunkType: typeof data.chunk,
+    chunkIsBuffer: Buffer.isBuffer(data.chunk),
+    chunkLength: data.chunk?.length || 'unknown',
+    socketId: socket.id,
+    timestamp: Date.now()
+  });
+
   const stream = activeStreams.get(data.streamKey);
 
   if (!stream?.inputStream) {
     console.log('❌ Stream not found or no input stream:', data.streamKey);
+    console.log('❌ Available streams:', Array.from(activeStreams.keys()));
+    console.log('❌ Stream data if exists:', stream);
     return;
   }
 
@@ -269,11 +311,33 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
     
     console.log(`📡 Processing stream chunk: ${chunk.length} bytes, stream: ${data.streamKey}`);
     console.log(`📡 Chunk type: ${typeof data.chunk}, isBuffer: ${Buffer.isBuffer(data.chunk)}`);
+    console.log(`📡 Stream input stream state:`, {
+      hasInputStream: !!stream.inputStream,
+      isDestroyed: stream.inputStream?.destroyed,
+      readable: stream.inputStream?.readable,
+      flowing: stream.inputStream?.flowing
+    });
     
     // Push the chunk to the FFmpeg input stream
     if (stream.inputStream && !stream.inputStream.destroyed) {
       stream.inputStream.push(chunk);
       console.log(`✅ Stream data pushed to FFmpeg: ${chunk.length} bytes, stream: ${data.streamKey}`);
+      
+      // Check if the chunk was actually processed
+      console.log(`🔍 Post-push verification:`, {
+        inputStreamDestroyed: stream.inputStream.destroyed,
+        inputStreamReadable: stream.inputStream.readable,
+        inputStreamFlowing: stream.inputStream.flowing
+      });
+      
+      // Check if FFmpeg is actually processing the data
+      if (stream.command) {
+        console.log(`🔍 FFmpeg command state:`, {
+          streamKey: data.streamKey,
+          hasCommand: !!stream.command,
+          commandState: stream.command._currentOutput?.ffmpegProc?.killed || 'unknown'
+        });
+      }
     } else {
       console.log('⚠️ Input stream is destroyed or unavailable');
     }
@@ -332,6 +396,15 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
             latestSegment: segmentFiles[segmentFiles.length - 1],
             timestamp: Date.now()
           });
+          
+          console.log('🎯 Stream segments found and viewers notified:', {
+            streamKey: data.streamKey,
+            segmentCount: segmentFiles.length,
+            latestSegment: segmentFiles[segmentFiles.length - 1]
+          });
+        } else {
+          console.log('⚠️ No stream segments found yet for:', data.streamKey);
+          console.log('⚠️ This may indicate FFmpeg is not processing the input stream');
         }
       }
     } catch (fileCheckError) {
