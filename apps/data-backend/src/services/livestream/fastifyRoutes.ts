@@ -28,7 +28,7 @@ export async function registerLivestreamRoutes(fastify: FastifyInstance) {
   fastify.post('/livestream/:streamId/start', startStream);
 
   // Start local stream (for debugging)
-  fastify.post('/livestream/:streamId/start-local', startLocalStream);
+  // fastify.post('/livestream/:streamId/start-local', startLocalStream);
 
   // Stop stream
   fastify.post('/livestream/:streamId/stop', stopStream);

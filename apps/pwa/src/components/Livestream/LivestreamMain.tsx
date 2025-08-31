@@ -83,6 +83,10 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   const [isStreaming, setIsStreaming] = useState(false);
   const [currentView, setCurrentView] = useState<'studio' | 'stream' | 'chat' | 'host-studio'>('studio');
   const [currentStreamId, setCurrentStreamId] = useState<string>(initialStreamId || '');
+  
+  // Check if stream is actually available and handle initialization
+  const [streamStatus, setStreamStatus] = useState<'loading' | 'available' | 'not_started' | 'error'>('loading');
+  const [streamStatusData, setStreamStatusData] = useState<any>(null);
 
   const { showModal, showToast } = useUIStore();
   const { data: event, isLoading: eventLoading, isError: eventError } = useGetSingleEvent({
@@ -130,12 +134,13 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     });
   }, [event, currentStreamId, eventLoading, eventError, isWebSocketStreaming, streamKey]);
 
-  // Compute streaming URL - prioritize Cloudinary, WebSocket context, then event data
+  // Compute streaming URL - prioritize WebSocket context, then stream status, then event data
   const streamingUrl = React.useMemo(() => {
     console.log('🔗 Computing streaming URL with:', {
       isWebSocketStreaming,
       streamKey,
       currentStreamId,
+      streamStatus,
       event,
       eventLoading: eventLoading,
       eventError: eventError,
@@ -150,7 +155,15 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       return computedUrl;
     }
 
-    // Priority 2: Extract from NIP-53 event
+    // Priority 2: Check if stream is available via status check
+    if (currentStreamId && streamStatus === 'available') {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      const computedUrl = `${backendUrl}/livestream/${currentStreamId}/stream.m3u8`;
+      console.log('✅ Computed streaming URL from stream status:', computedUrl);
+      return computedUrl;
+    }
+
+    // Priority 3: Extract from NIP-53 event
     if (event) {
       const eventStreamingUrl = extractStreamingUrlFromEvent(event);
       if (eventStreamingUrl) {
@@ -159,31 +172,13 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       }
     }
 
-    // Priority 3: Try to get Cloudinary playback URL from backend
-    if (currentStreamId && !eventLoading && !eventError) {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
-      
-      // Try to get Cloudinary playback URL (async, but we'll use fallback for now)
-      // In a real implementation, you'd want to store this in state
-      fetch(`${backendUrl}/livestream/${currentStreamId}/playback`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.playbackUrl) {
-            console.log('🎯 Found Cloudinary playback URL:', data.playbackUrl);
-            // TODO: Update state to use this URL
-          }
-        })
-        .catch(error => {
-          console.log('⚠️ Could not fetch Cloudinary URL, using fallback');
-        });
-
-      // Fallback to backend URL
-      const fallbackUrl = `${backendUrl}/livestream/${currentStreamId}/stream.m3u8`;
-      console.log('🔄 Using fallback streaming URL:', fallbackUrl);
-      return fallbackUrl;
+    // Priority 4: If stream is not started yet, return null to show appropriate UI
+    if (currentStreamId && streamStatus === 'not_started') {
+      console.log('⏳ Stream not started yet, will show waiting UI');
+      return null;
     }
 
-    // Priority 4: If event is still loading but we have a stream ID, show loading state
+    // Priority 5: If event is still loading but we have a stream ID, show loading state
     if (currentStreamId && eventLoading) {
       console.log('⏳ Event is still loading, will show loading state');
       return null;
@@ -191,7 +186,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
 
     console.log('⚠️ No streaming URL found in event or WebSocket context');
     return null;
-  }, [isWebSocketStreaming, streamKey, event, currentStreamId, eventLoading, eventError]);
+  }, [isWebSocketStreaming, streamKey, streamStatus, event, currentStreamId, eventLoading, eventError]);
 
   // Update streaming state when WebSocket streaming changes
   useEffect(() => {
@@ -217,6 +212,60 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       willTriggerEventQuery: !!currentStreamId
     });
   }, [currentStreamId, initialStreamId]);
+
+  // Check stream status when streamId changes
+  useEffect(() => {
+    if (!currentStreamId) {
+      setStreamStatus('loading');
+      return;
+    }
+
+    const checkStreamStatus = async () => {
+      try {
+        setStreamStatus('loading');
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+        const response = await fetch(`${backendUrl}/livestream/${currentStreamId}/status`);
+        
+        if (response.ok) {
+          const statusData = await response.json();
+          setStreamStatusData(statusData);
+          
+          if (statusData.overall?.isActive || statusData.overall?.hasManifest) {
+            setStreamStatus('available');
+            console.log('✅ Stream is available:', statusData);
+          } else {
+            setStreamStatus('not_started');
+            console.log('⏳ Stream not started yet:', statusData);
+          }
+        } else {
+          setStreamStatus('error');
+          console.log('❌ Stream status check failed:', response.status);
+        }
+      } catch (error) {
+        console.error('❌ Error checking stream status:', error);
+        setStreamStatus('error');
+      }
+    };
+
+    checkStreamStatus();
+
+    // Set up periodic status checking for streams that aren't started yet
+    let statusInterval: NodeJS.Timeout | null = null;
+    if (currentStreamId) {
+      statusInterval = setInterval(() => {
+        // Only check if we're not already in a loading state
+        if (streamStatus !== 'loading') {
+          checkStreamStatus();
+        }
+      }, 10000); // Check every 10 seconds
+    }
+
+    return () => {
+      if (statusInterval) {
+        clearInterval(statusInterval);
+      }
+    };
+  }, [currentStreamId, streamStatus]);
 
   //   useEffect(() => {
   //     if (currentStreamId) {
@@ -397,6 +446,14 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
               onStreamStop={handleStreamStop}
               className={styles.mainVideoPlayer}
               streamId={currentStreamId}
+              streamStatus={streamStatus}
+              onRefreshStatus={() => {
+                // Trigger a manual status check
+                if (currentStreamId) {
+                  setStreamStatus('loading');
+                  // The useEffect will automatically check the status again
+                }
+              }}
               onStreamError={(error) => {
                 console.log('🚨 Stream error in StreamVideoPlayer:', error);
                 if (error.includes('Stream not found') || error.includes('not started')) {

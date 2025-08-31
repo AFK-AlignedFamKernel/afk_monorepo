@@ -13,6 +13,8 @@ interface StreamVideoPlayerProps {
   onStreamError?: (error: string) => void;
   className?: string;
   streamId?: string;
+  streamStatus?: 'loading' | 'available' | 'not_started' | 'error';
+  onRefreshStatus?: () => void;
 }
 
 export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
@@ -24,6 +26,8 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
   onStreamError,
   className,
   streamId,
+  streamStatus,
+  onRefreshStatus,
 }) => {
   const { isStreaming, streamKey, joinStream, leaveStream } = useLivestreamWebSocket();
   const [isPlaying, setIsPlaying] = useState(false);
@@ -37,6 +41,59 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
   const [viewerCount, setViewerCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Handle different stream statuses
+  const renderStreamStatus = () => {
+    if (streamStatus === 'loading') {
+      return (
+        <div className={styles.statusOverlay}>
+          <div className={styles.statusContent}>
+            <div className={styles.loadingSpinner}></div>
+            <p>Checking stream status...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (streamStatus === 'not_started') {
+      return (
+        <div className={styles.statusOverlay}>
+          <div className={styles.statusContent}>
+            <div className={styles.statusIcon}>📺</div>
+            <h3>Stream Not Started</h3>
+            <p>The host hasn't started broadcasting yet.</p>
+            <p>Check back later or contact the host.</p>
+            <button 
+              className={styles.retryButton}
+              onClick={onRefreshStatus || (() => window.location.reload())}
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (streamStatus === 'error') {
+      return (
+        <div className={styles.statusOverlay}>
+          <div className={styles.statusContent}>
+            <div className={styles.statusIcon}>❌</div>
+            <h3>Stream Error</h3>
+            <p>Unable to connect to the stream.</p>
+            <button 
+              className={styles.retryButton}
+              onClick={onRefreshStatus || (() => window.location.reload())}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   // Debug: Log the props received
   useEffect(() => {
@@ -357,7 +414,10 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         onContextMenu={(e) => e.preventDefault()}
       />
       
-              {/* Canvas removed - not needed for basic video player */}
+      {/* Stream status overlay */}
+      {renderStreamStatus()}
+      
+      {/* Canvas removed - not needed for basic video player */}
 
       {/* Live indicator */}
       {isLive && (
