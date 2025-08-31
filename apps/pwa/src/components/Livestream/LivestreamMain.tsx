@@ -100,6 +100,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   useEffect(() => {
     console.log('🔍 Event query state:', {
       currentStreamId,
+      initialStreamId,
       eventId: currentStreamId || '',
       eventLoading,
       eventError,
@@ -107,8 +108,11 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       eventData: event,
       isWebSocketStreaming,
       isConnected,
+      // Check if this matches the actual stream file
+      actualStreamFileExists: currentStreamId === 'c71e86b68f9acf510d4d9bc982c76ca8',
+      actualStreamFile: 'c71e86b68f9acf510d4d9bc982c76ca8'
     });
-  }, [currentStreamId, eventLoading, eventError, event, isWebSocketStreaming, isConnected]);
+  }, [currentStreamId, initialStreamId, eventLoading, eventError, event, isWebSocketStreaming, isConnected]);
 
   // Get WebSocket context for streaming info
 
@@ -242,7 +246,16 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       try {
         setStreamStatus('loading');
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
-        const response = await fetch(`${backendUrl}/livestream/${currentStreamId}/status`);
+        const statusUrl = `${backendUrl}/livestream/${currentStreamId}/status`;
+        
+        console.log('🔍 Checking stream status for:', {
+          currentStreamId,
+          statusUrl,
+          actualStreamFile: 'c71e86b68f9acf510d4d9bc982c76ca8',
+          matches: currentStreamId === 'c71e86b68f9acf510d4d9bc982c76ca8'
+        });
+        
+        const response = await fetch(statusUrl);
         
         if (response.ok) {
           const statusData = await response.json();
@@ -380,6 +393,36 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     }
   };
 
+  // Temporary test function to check the actual stream ID
+  const handleTestActualStream = async () => {
+    const actualStreamId = 'c71e86b68f9acf510d4d9bc982c76ca8';
+    console.log('🧪 Testing with actual stream ID:', actualStreamId);
+    
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      const response = await fetch(`${backendUrl}/livestream/${actualStreamId}/status`);
+      
+      if (response.ok) {
+        const statusData = await response.json();
+        console.log('🧪 Actual stream status response:', statusData);
+        
+        // Check if this stream is actually available
+        if (statusData.overall?.hasVideoContent || statusData.overall?.isActive) {
+          console.log('✅ Actual stream IS available!');
+          // Update the current stream ID to the correct one
+          setCurrentStreamId(actualStreamId);
+          setStreamStatus('available');
+        } else {
+          console.log('⏳ Actual stream not available either');
+        }
+      } else {
+        console.log('❌ Actual stream status check failed:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Error checking actual stream status:', error);
+    }
+  };
+
   const toggleChat = () => {
     setIsChatVisible(!isChatVisible);
   };
@@ -482,6 +525,23 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
               <span className={styles.offlineStatus}>OFFLINE</span>
             )}
           </div>
+          {/* Temporary test button for debugging */}
+          <button
+            onClick={handleTestActualStream}
+            style={{
+              marginLeft: '10px',
+              padding: '4px 8px',
+              fontSize: '12px',
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+            title="Test with actual stream ID (c71e86b68f9acf510d4d9bc982c76ca8)"
+          >
+            🧪 Test Actual Stream
+          </button>
         </div>
         <button
           className={styles.chatToggleButton}
