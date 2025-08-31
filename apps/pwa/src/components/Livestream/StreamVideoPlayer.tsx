@@ -220,6 +220,26 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     window.addEventListener('stream-data-received', handleStreamData as EventListener);
     window.addEventListener('viewer-joined', handleViewerJoined as EventListener);
     window.addEventListener('viewer-left', handleViewerLeft as EventListener);
+    
+    // Add missing event listeners for backend events
+    const handleStreamReady = (event: CustomEvent) => {
+      console.log('🎬 Stream ready event received:', event.detail);
+      if (event.detail.streamKey === streamId) {
+        setIsLive(true);
+        console.log('✅ Stream is ready for viewing');
+      }
+    };
+    
+    const handleStreamError = (event: CustomEvent) => {
+      console.error('❌ Stream error event received:', event.detail);
+      if (event.detail.streamKey === streamId) {
+        setLoadError(event.detail.error || 'Stream error occurred');
+        setIsLive(false);
+      }
+    };
+    
+    window.addEventListener('stream-ready', handleStreamReady as EventListener);
+    window.addEventListener('stream-error', handleStreamError as EventListener);
 
     return () => {
       window.removeEventListener('stream-joined', handleStreamJoined as EventListener);
@@ -228,6 +248,8 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       window.removeEventListener('stream-data-received', handleStreamData as EventListener);
       window.removeEventListener('viewer-joined', handleViewerJoined as EventListener);
       window.removeEventListener('viewer-left', handleViewerLeft as EventListener);
+      window.removeEventListener('stream-ready', handleStreamReady as EventListener);
+      window.removeEventListener('stream-error', handleStreamError as EventListener);
     };
   }, []);
 
@@ -339,6 +361,11 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         // Add event listeners for better debugging
         const video = videoRef.current;
         
+        // Set proper HLS attributes for better compatibility
+        video.setAttribute('data-stream-type', 'hls');
+        video.setAttribute('data-stream-id', streamId || 'unknown');
+        video.setAttribute('crossorigin', 'anonymous');
+        
         const handleLoadStart = () => {
           console.log('🎥 Video load started');
           setIsLoading(true);
@@ -391,6 +418,9 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         video.src = streamingUrl;
         console.log('✅ Video source set to:', streamingUrl);
         
+        // Load the video
+        video.load();
+        
         // Try to play
         video.play().catch(error => {
           console.warn('🎥 Auto-play failed:', error);
@@ -411,7 +441,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         videoRef.current.src = recordingUrl;
       }
     }
-  }, [streamingUrl, recordingUrl]);
+  }, [streamingUrl, recordingUrl, streamId]);
 
   // Use the hook's togglePlayPause function
   const handleTogglePlayPause = () => {
