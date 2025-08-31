@@ -210,6 +210,16 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     });
   }, [streamingUrl, currentStreamId, eventLoading, eventError, event]);
 
+  // Debug: Log stream status changes
+  useEffect(() => {
+    console.log('🔄 Stream status changed:', {
+      streamStatus,
+      currentStreamId,
+      streamingUrl,
+      willShowLive: streamStatus === 'available'
+    });
+  }, [streamStatus, currentStreamId, streamingUrl]);
+
   // // Debug: Log currentStreamId changes
   // useEffect(() => {
   //   console.log('🔄 currentStreamId changed:', {
@@ -239,22 +249,22 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
           console.log('📊 Stream status response:', statusData);
           setStreamStatusData(statusData);
           
-          console.log('📊 Stream status response:', statusData);
-          
           // Check if stream is available for viewing
-          // A stream is available if it has a manifest file, regardless of active status
-          if (statusData.overall?.hasManifest || statusData.overall?.isActive) {
+          // A stream is available if it has actual video content, not just an empty manifest
+          if (statusData.overall?.hasVideoContent || statusData.overall?.isActive) {
             setStreamStatus('available');
             console.log('✅ Stream is available for viewing:', {
-              hasManifest: statusData.overall?.hasManifest,
+              hasVideoContent: statusData.overall?.hasVideoContent,
               isActive: statusData.overall?.isActive,
+              hasManifest: statusData.overall?.hasManifest,
               hasStreamDir: statusData.overall?.hasStreamDir
             });
           } else {
             setStreamStatus('not_started');
             console.log('⏳ Stream not started yet:', {
-              hasManifest: statusData.overall?.hasManifest,
+              hasVideoContent: statusData.overall?.hasVideoContent,
               isActive: statusData.overall?.isActive,
+              hasManifest: statusData.overall?.hasManifest,
               hasStreamDir: statusData.overall?.hasStreamDir
             });
           }
@@ -353,7 +363,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
         
         console.log('📊 Manual refresh - Stream status response:', statusData);
         
-        if (statusData.overall?.hasManifest || statusData.overall?.isActive) {
+        if (statusData.overall?.hasVideoContent || statusData.overall?.isActive) {
           setStreamStatus('available');
           console.log('✅ Manual refresh - Stream is available for viewing');
         } else {
@@ -463,7 +473,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
             {event?.title || 'Live Stream'}
           </h2>
           <div className={styles.streamStatus}>
-            {isStreaming ? (
+            {(isStreaming || streamStatus === 'available') ? (
               <span className={styles.liveStatus}>
                 <span className={styles.liveDot}></span>
                 LIVE

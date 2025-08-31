@@ -178,9 +178,15 @@ export async function getStreamStatus(
       local: localStatus,
       cloudinary: cloudinaryStatus,
       overall: {
-        isActive: localStatus.isActive || (cloudinaryStatus?.isActive || false),
+        isActive: localStatus.isActive,
         hasManifest: localStatus.manifestExists,
-        hasStreamDir: localStatus.streamDirExists
+        hasStreamDir: localStatus.streamDirExists,
+        // Check if stream actually has video content (not just an empty manifest)
+        hasVideoContent: localStatus.manifestExists && 
+          localStatus.manifestContent && 
+          !localStatus.manifestContent.includes('#EXT-X-ENDLIST') &&
+          localStatus.files && 
+          localStatus.files.some(file => file.endsWith('.ts'))
       }
     };
     
