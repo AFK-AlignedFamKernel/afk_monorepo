@@ -394,6 +394,44 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
         streamId: currentStreamKey
       });
 
+      // Debug: Check MediaStream details
+      console.log('🎥 MediaStream details:', {
+        id: mediaStream.id,
+        active: mediaStream.active,
+        trackCount: mediaStream.getTracks().length,
+        videoTracks: mediaStream.getVideoTracks().length,
+        audioTracks: mediaStream.getAudioTracks().length,
+        streamId: currentStreamKey
+      });
+
+      // Debug: Check each track individually
+      mediaStream.getTracks().forEach((track, index) => {
+        console.log(`🎥 Track ${index}:`, {
+          kind: track.kind,
+          id: track.id,
+          enabled: track.enabled,
+          readyState: track.readyState,
+          muted: track.muted,
+          contentHint: track.contentHint
+        });
+      });
+
+      // Check if we actually have video content
+      const videoTracks = mediaStream.getVideoTracks();
+      const hasVideoContent = videoTracks.length > 0 && videoTracks.some(track => track.enabled);
+      
+      console.log('🎥 Video content check:', {
+        hasVideoTracks: videoTracks.length > 0,
+        hasEnabledVideoTracks: videoTracks.some(track => track.enabled),
+        hasVideoContent,
+        willRecord: hasVideoContent
+      });
+
+      if (!hasVideoContent) {
+        console.warn('⚠️ No video content available in MediaStream!');
+        console.warn('⚠️ This will result in MediaRecorder generating 0-byte chunks');
+      }
+
       const mediaRecorder = new MediaRecorder(mediaStream, {
         mimeType: 'video/webm;codecs=vp9',
         videoBitsPerSecond: 2500000 // 2.5 Mbps
@@ -460,6 +498,22 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
         streamId: currentStreamKey,
         timestamp: Date.now()
       });
+
+      // Debug: Check if MediaRecorder is actually recording
+      setTimeout(() => {
+        console.log('🔍 MediaRecorder status check after 2 seconds:', {
+          state: mediaRecorder.state,
+          streamId: currentStreamKey,
+          timestamp: Date.now()
+        });
+        
+        // Check if we've received any data
+        if (mediaRecorder.state === 'recording') {
+          console.log('✅ MediaRecorder is in recording state');
+        } else {
+          console.warn('⚠️ MediaRecorder is not in recording state:', mediaRecorder.state);
+        }
+      }, 2000);
     } catch (error) {
       console.error('❌ Failed to setup media recorder:', error);
     }
