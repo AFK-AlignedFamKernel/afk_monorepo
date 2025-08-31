@@ -58,8 +58,15 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     setupMediaStream
   } = useLivestreamWebSocket();
 
+  // State declarations (moved up to fix linter errors)
+  const [streamStatus, setStreamStatus] = useState<'idle' | 'connecting' | 'initializing' | 'ready' | 'broadcasting' | 'error'>('idle');
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [screenSharing, setScreenSharing] = useState(false);
+
   // Listen for stream started events
   useEffect(() => {
+
+ 
     const handleStreamStarted = (event: CustomEvent) => {
       console.log('🎬 Stream started event received:', event.detail);
       setIsLive(true);
@@ -141,6 +148,20 @@ export const HostStudio: React.FC<HostStudioProps> = ({
 
 
 
+  // Monitor WebSocket connection state changes
+  useEffect(() => {
+    console.log('🔌 WebSocket connection state changed:', { isConnected, isWebSocketStreaming });
+    
+    if (isConnected && streamStatus === 'connecting') {
+      console.log('✅ WebSocket connected, updating status to initializing');
+      setStreamStatus('initializing');
+    } else if (!isConnected && streamStatus !== 'error') {
+     connect(streamId);
+      console.log('❌ WebSocket disconnected, updating status to error');
+      setStreamStatus('error');
+    }
+  }, [isConnected, isWebSocketStreaming, streamStatus]);
+
   const {
     stream,
     screenStream,
@@ -178,9 +199,6 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   const [selectedMicrophone, setSelectedMicrophone] = useState<string>('');
   const [isGoingLive, setIsGoingLive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [streamStatus, setStreamStatus] = useState<'idle' | 'connecting' | 'initializing' | 'ready' | 'broadcasting' | 'error'>('idle');
-  const [cameraEnabled, setCameraEnabled] = useState(false);
-  const [screenSharing, setScreenSharing] = useState(false);
   const [cloudinaryUrls, setCloudinaryUrls] = useState<{
     playbackUrl?: string;
     ingestUrl?: string;
@@ -190,18 +208,6 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   const { data: event, isLoading: eventLoading, error: eventError, refetch: refetchEvent } = useGetSingleEvent({
     eventId: streamId,
   });
-  // Monitor WebSocket connection state changes
-  useEffect(() => {
-    console.log('🔌 WebSocket connection state changed:', { isConnected, isWebSocketStreaming });
-
-    if (isConnected && streamStatus === 'connecting') {
-      console.log('✅ WebSocket connected, updating status to initializing');
-      setStreamStatus('initializing');
-    } else if (!isConnected && streamStatus !== 'error') {
-      console.log('❌ WebSocket disconnected, updating status to error');
-      setStreamStatus('error');
-    }
-  }, [isConnected, isWebSocketStreaming, streamStatus]);
   // Fetch Cloudinary URLs when streamId changes
   useEffect(() => {
     if (streamId) {
@@ -553,6 +559,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
           console.log('✅ WebSocket already connected!');
           clearTimeout(timeout);
           setStreamStatus('initializing');
+          showToast({ message: 'WebSocket connected successfully!', type: 'success' });
           resolve(true);
           window.removeEventListener('websocket-connected', handleWebSocketConnected);
         }

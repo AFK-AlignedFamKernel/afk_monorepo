@@ -93,6 +93,8 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     eventId: currentStreamId || '',
   });
 
+  const { isStreaming: isWebSocketStreaming, streamKey , isConnected } = useLivestreamWebSocket();
+
   // Debug: Log the event query state
   useEffect(() => {
     console.log('🔍 Event query state:', {
@@ -101,17 +103,20 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       eventLoading,
       eventError,
       hasEvent: !!event,
-      eventData: event
+      eventData: event,
+      isWebSocketStreaming,
+      isConnected,
     });
-  }, [currentStreamId, eventLoading, eventError, event]);
+  }, [currentStreamId, eventLoading, eventError, event, isWebSocketStreaming, isConnected]);
 
   // Get WebSocket context for streaming info
-  const { isStreaming: isWebSocketStreaming, streamKey } = useLivestreamWebSocket();
 
   // Debug: Log the event data to see what we have
   useEffect(() => {
     console.log('🔍 Event data in LivestreamMain:', {
       event,
+      isConnected,
+
       eventId: currentStreamId,
       eventLoading,
       eventError,
@@ -204,14 +209,14 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     });
   }, [streamingUrl, currentStreamId, eventLoading, eventError, event]);
 
-  // Debug: Log currentStreamId changes
-  useEffect(() => {
-    console.log('🔄 currentStreamId changed:', {
-      currentStreamId,
-      previousStreamId: initialStreamId,
-      willTriggerEventQuery: !!currentStreamId
-    });
-  }, [currentStreamId, initialStreamId]);
+  // // Debug: Log currentStreamId changes
+  // useEffect(() => {
+  //   console.log('🔄 currentStreamId changed:', {
+  //     currentStreamId,
+  //     previousStreamId: initialStreamId,
+  //     willTriggerEventQuery: !!currentStreamId
+  //   });
+  // }, [currentStreamId, initialStreamId]);
 
   // Check stream status when streamId changes
   useEffect(() => {
@@ -283,7 +288,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     console.log('🚀 handleNavigateToStreamView called with:', { id, recordingUrl });
     setCurrentStreamId(id);
     setCurrentView('stream');
-    console.log('✅ Navigation state updated:', { currentStreamId: id, view: 'stream' });
+    // console.log('✅ Navigation state updated:', { currentStreamId: id, view: 'stream' });
     
     // Start the stream on the backend if it's not already running
     startStreamOnBackend(id);

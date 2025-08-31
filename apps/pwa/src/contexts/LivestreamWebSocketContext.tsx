@@ -1,3 +1,4 @@
+import { useUIStore } from '@/store/uiStore';
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 
@@ -34,6 +35,7 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamKey, setStreamKey] = useState<string | null>(null);
   const [viewerCount, setViewerCount] = useState(0);
+  const {showToast} = useUIStore();
   
   const socketRef = useRef<Socket | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -61,6 +63,7 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     });
 
     newSocket.on('connect', () => {
+      showToast({ message: 'WebSocket connected successfully', type: 'success' });
       console.log('WebSocket connected successfully');
       setIsConnected(true);
       setStreamKey(streamKey);
@@ -76,6 +79,7 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     });
 
     newSocket.on('disconnect', (reason) => {
+      showToast({ message: 'WebSocket disconnected', type: 'error' });
       console.log('WebSocket disconnected:', reason);
       setIsConnected(false);
       setIsStreaming(false);
