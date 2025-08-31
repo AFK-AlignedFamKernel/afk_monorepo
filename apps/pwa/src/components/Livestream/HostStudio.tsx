@@ -530,41 +530,58 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       setIsGoingLive(true);
       setStreamStatus('connecting');
 
-      // Connect to WebSocket
-      connect(streamId);
-      console.log('🔌 WebSocket connection initiated...');
+      // Check if already connected to avoid duplicate connections
+      if (isConnected) {
+        console.log('✅ WebSocket already connected, proceeding with stream setup...');
+        setStreamStatus('initializing');
+      } else {
+        // Connect to WebSocket only if not already connected
+        console.log('🔌 Initiating new WebSocket connection...');
+        connect(streamId);
+        
+        // Wait for connection using WebSocket context events
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            console.error('WebSocket connection timeout');
+            setStreamStatus('error');
+            setIsGoingLive(false);
+            reject(new Error('WebSocket connection timeout after 10 seconds'));
+          }, 10000);
 
-      // Wait for connection using WebSocket context events instead of manual polling
-      await new Promise((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          console.error('WebSocket connection timeout');
-          setStreamStatus('error');
-          reject(new Error('WebSocket connection timeout after 10 seconds'));
-        }, 10000);
+          // Listen for the WebSocket connection event
+          const handleWebSocketConnected = (event: CustomEvent) => {
+            // Only handle events for this specific stream
+            if (event.detail?.streamKey === streamId) {
+              console.log('✅ WebSocket connected successfully for stream:', streamId);
+              clearTimeout(timeout);
+              setStreamStatus('initializing');
+              window.removeEventListener('websocket-connected', handleWebSocketConnected);
+              resolve(true);
+            }
+          };
 
-        // Listen for the WebSocket connection event
-        const handleWebSocketConnected = () => {
-          console.log('✅ WebSocket connected successfully!');
-          clearTimeout(timeout);
-          setStreamStatus('initializing');
-          resolve(true);
-          // Clean up the event listener
-          window.removeEventListener('websocket-connected', handleWebSocketConnected);
-        };
+          // Add event listener for WebSocket connection
+          window.addEventListener('websocket-connected', handleWebSocketConnected);
 
-        // Add event listener for WebSocket connection
-        window.addEventListener('websocket-connected', handleWebSocketConnected);
+          // Also check if connection happens very quickly
+          const checkConnection = setInterval(() => {
+            if (isConnected) {
+              console.log('✅ WebSocket connected via state check');
+              clearTimeout(timeout);
+              clearInterval(checkConnection);
+              setStreamStatus('initializing');
+              window.removeEventListener('websocket-connected', handleWebSocketConnected);
+              resolve(true);
+            }
+          }, 100);
 
-        // Also check if already connected (in case connection was very fast)
-        if (isConnected) {
-          console.log('✅ WebSocket already connected!');
-          clearTimeout(timeout);
-          setStreamStatus('initializing');
-          showToast({ message: 'WebSocket connected successfully!', type: 'success' });
-          resolve(true);
-          window.removeEventListener('websocket-connected', handleWebSocketConnected);
-        }
-      });
+          // Clean up interval when timeout occurs
+          const originalTimeout = timeout;
+          setTimeout(() => {
+            clearInterval(checkConnection);
+          }, 10000);
+        });
+      }
 
       console.log('✅ WebSocket connected, starting stream...');
 

@@ -48,14 +48,34 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
 
   // Initialize socket connection
   const connect = useCallback((streamKey: string) => {
-    if (socketRef.current?.connected) {
-      console.log('Disconnecting existing socket...');
-      socketRef.current.disconnect();
+    // Prevent multiple connection attempts for the same stream
+    if (socketRef.current?.connected && streamKeyRef.current === streamKey) {
+      console.log('✅ Already connected to the same stream, skipping connection');
+      return;
     }
 
-    console.log('Attempting to connect to WebSocket at:', backendUrl);
-    console.log('Stream key:', streamKey);
-    console.log('Current connection state:', { isConnected, isStreaming, streamKey: streamKey });
+    // If we have a different stream, disconnect first
+    if (socketRef.current?.connected && streamKeyRef.current !== streamKey) {
+      console.log('🔄 Disconnecting from different stream before connecting to new one...');
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+
+    // Prevent connection if already in progress
+    if (socketRef.current && !socketRef.current.connected && !socketRef.current.disconnected) {
+      console.log('⚠️ Connection already in progress, skipping duplicate connection attempt');
+      return;
+    }
+
+    console.log('🔌 Attempting to connect to WebSocket at:', backendUrl);
+    console.log('🔌 Stream key:', streamKey);
+    console.log('🔌 Current connection state:', { 
+      isConnected, 
+      isStreaming, 
+      streamKey: streamKey,
+      existingSocketRef: !!socketRef.current,
+      existingSocketState: socketRef.current?.connected ? 'connected' : 'disconnected'
+    });
 
     const newSocket = io(backendUrl, {
       transports: ['websocket', 'polling'],
@@ -230,6 +250,12 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
         socketState: socketRef.current?.io?._readyState
       });
 
+      // Prevent multiple start stream attempts for the same stream
+      if (isStreamingRef.current && streamKeyRef.current === streamKey) {
+        console.log('⚠️ Stream already started for this stream key, skipping duplicate start');
+        return;
+      }
+
       if (!isConnected) {
         console.error('❌ Socket not connected (using isConnected state)');
         return;
@@ -402,6 +428,12 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
 
   // Setup media stream for broadcasting
   const setupMediaStream = useCallback((mediaStream: MediaStream, streamKeyParam?: string) => {
+    // Prevent multiple setup attempts for the same stream
+    if (mediaRecorderRef.current && streamKeyRef.current === streamKeyParam) {
+      console.log('⚠️ MediaRecorder already set up for this stream, skipping duplicate setup');
+      return;
+    }
+
     streamRef.current = mediaStream;
     
     // Use the passed streamKey parameter or fall back to state
