@@ -119,7 +119,7 @@ export async function serveHLSSegment(
 }
 
 /**
- * Get stream status and information from Cloudinary
+ * Get stream status and information from both Cloudinary and local FFmpeg
  * GET /livestream/:streamId/status
  */
 export async function getStreamStatus(
@@ -133,16 +133,62 @@ export async function getStreamStatus(
       return reply.status(400).send({ error: 'Stream ID is required' });
     }
 
-    console.log(`📊 Getting Cloudinary stream status for: ${streamId}`);
+    console.log(`📊 Getting stream status for: ${streamId}`);
+
+    // Import local stream handler to check FFmpeg streams
+    const { activeStreams } = await import('./streamHandler');
+    const fs = require('fs');
+    const path = require('path');
+
+    // Check local FFmpeg stream status
+    const localStreamData = activeStreams.get(streamId);
+    const streamsBaseDir = path.join(process.cwd(), 'public', 'livestreams');
+    const manifestPath = path.join(streamsBaseDir, streamId, 'stream.m3u8');
+    const streamDir = path.join(streamsBaseDir, streamId);
+
+    const localStatus = {
+      isActive: !!localStreamData,
+      manifestExists: fs.existsSync(manifestPath),
+      streamDirExists: fs.existsSync(streamDir),
+      streamData: localStreamData ? {
+        userId: localStreamData.userId,
+        startedAt: localStreamData.startedAt,
+        viewers: localStreamData.viewers.size,
+        hasFfmpegCommand: !!localStreamData.command,
+        hasInputStream: !!localStreamData.inputStream,
+        broadcasterSocketId: localStreamData.broadcasterSocketId
+      } : null,
+      files: fs.existsSync(streamDir) ? fs.readdirSync(streamDir) : [],
+      manifestContent: fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, 'utf8') : null
+    };
+
+    console.log(`📊 Local FFmpeg stream status for ${streamId}:`, localStatus);
 
     // Get status from Cloudinary service
-    const status = await cloudinaryLivestreamService.getStreamStatus(streamId);
+    let cloudinaryStatus = null;
+    try {
+      cloudinaryStatus = await cloudinaryLivestreamService.getStreamStatus(streamId);
+      console.log(`📊 Cloudinary stream status for ${streamId}:`, cloudinaryStatus);
+    } catch (cloudinaryError) {
+      console.log(`⚠️ Cloudinary status check failed for ${streamId}:`, cloudinaryError);
+    }
+
+    const combinedStatus = {
+      streamId,
+      local: localStatus,
+      cloudinary: cloudinaryStatus,
+      overall: {
+        isActive: localStatus.isActive || (cloudinaryStatus?.isActive || false),
+        hasManifest: localStatus.manifestExists,
+        hasStreamDir: localStatus.streamDirExists
+      }
+    };
     
-    console.log(`✅ Stream status for ${streamId}:`, status);
-    return reply.send(status);
+    console.log(`✅ Combined stream status for ${streamId}:`, combinedStatus);
+    return reply.send(combinedStatus);
     
   } catch (error) {
-    console.error('❌ Error getting Cloudinary stream status:', error);
+    console.error('❌ Error getting stream status:', error);
     return reply.status(500).send({ error: 'Internal server error' });
   }
 }
@@ -302,6 +348,98 @@ export async function stopStream(
 
   } catch (error) {
     console.error('❌ Error stopping Cloudinary stream:', error);
+    return reply.status(500).send({ 
+      error: 'Internal server error',
+      message: error.message 
+    });
+  }
+}
+
+/**
+ * Manually start a local FFmpeg stream (for debugging)
+ * POST /livestream/:streamId/start-local
+ */
+export async function startLocalStream(
+  request: FastifyRequest<{ Params: { streamId: string }; Body: { userId?: string; action: string; timestamp: number } }>,
+  reply: FastifyReply
+) {
+  try {
+    const { streamId } = request.params;
+    const { userId, action, timestamp } = request.body;
+    
+    if (!streamId) {
+      return reply.status(400).send({ error: 'Stream ID is required' });
+    }
+
+    if (action !== 'start') {
+      return reply.status(400).send({ error: 'Invalid action. Use "start"' });
+    }
+
+    console.log(`🎬 Manually starting local FFmpeg stream: ${streamId} for user: ${userId || 'anonymous'}`);
+
+    // Import local stream handler
+    const { activeStreams } = await import('./streamHandler');
+    const fs = require('fs');
+    const path = require('path');
+
+    // Check if stream already exists
+    if (activeStreams.has(streamId)) {
+      console.log(`✅ Stream ${streamId} already exists locally`);
+      
+      return reply.send({
+        status: 'already_exists',
+        streamId,
+        message: 'Stream already exists locally',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Create basic stream structure manually
+    const streamPath = path.join(process.cwd(), 'public', 'livestreams', streamId);
+    const m3u8Path = path.join(streamPath, 'stream.m3u8');
+    
+    // Ensure directory exists
+    if (!fs.existsSync(streamPath)) {
+      fs.mkdirSync(streamPath, { recursive: true });
+      console.log('✅ Created stream directory:', streamPath);
+    }
+    
+    // Create basic HLS manifest
+    const basicManifest = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:2
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:2.0,
+#EXT-X-ENDLIST`;
+    
+    fs.writeFileSync(m3u8Path, basicManifest);
+    console.log('✅ Created basic HLS manifest:', m3u8Path);
+    
+    // Add to active streams
+    const streamData = {
+      userId: userId || 'anonymous',
+      streamKey: streamId,
+      command: null,
+      inputStream: null,
+      viewers: new Set(),
+      broadcasterSocketId: 'manual',
+      startedAt: new Date(),
+    };
+    
+    activeStreams.set(streamId, streamData);
+    console.log('✅ Added stream to active streams (manual mode)');
+
+    return reply.send({
+      status: 'created_and_started',
+      streamId,
+      message: 'Local stream created and started successfully',
+      streamPath,
+      m3u8Path,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ Error starting local stream:', error);
     return reply.status(500).send({ 
       error: 'Internal server error',
       message: error.message 

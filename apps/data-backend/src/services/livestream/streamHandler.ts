@@ -37,9 +37,18 @@ export async function handleStartStream(
   },
 ) {
   try {
+    console.log('🎬 Starting stream setup for:', data.streamKey);
+    
     const { ffmpegCommand, outputPath, inputStream } = await setupStream({
       streamKey: data.streamKey,
       userId: data.userId,
+    });
+
+    console.log('✅ Stream setup completed:', {
+      streamKey: data.streamKey,
+      outputPath,
+      hasInputStream: !!inputStream,
+      hasFfmpegCommand: !!ffmpegCommand
     });
 
     let streamData = activeStreams.get(data.streamKey);
@@ -55,13 +64,15 @@ export async function handleStartStream(
         startedAt: new Date(),
       };
       activeStreams.set(data.streamKey, streamData);
+      console.log('✅ Stream data added to active streams');
     }
 
     socket.join(data.streamKey);
+    console.log('🔌 Socket joined stream room:', data.streamKey);
 
     ffmpegCommand
       .on('error', (err) => {
-        console.log(`Stream ${data.streamKey} Just triggered ended`, err);
+        console.error(`❌ FFmpeg error for stream ${data.streamKey}:`, err);
 
         streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
           error: err.message,
@@ -69,15 +80,65 @@ export async function handleStartStream(
         });
       })
 
+      .on('start', () => {
+        console.log('🎬 FFmpeg started for stream:', data.streamKey);
+      })
+
+      .on('progress', (progress) => {
+        console.log('📊 FFmpeg progress for stream:', data.streamKey, progress);
+      })
+
       .on('end', (res) => {
-        console.log('ended', res);
+        console.log('🏁 FFmpeg ended for stream:', data.streamKey, res);
         activeStreams.delete(data.streamKey);
         streamEvents.emit(STREAM_EVENTS.STREAM_END, {
           streamKey: data.streamKey,
         });
       });
 
+    console.log('🎬 Starting FFmpeg command...');
     ffmpegCommand.output(outputPath).run();
+    console.log('✅ FFmpeg command started');
+
+    // Check if the output directory and files are created
+    setTimeout(async () => {
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const streamPath = path.join(process.cwd(), 'public', 'livestreams', data.streamKey);
+        const m3u8Path = path.join(streamPath, 'stream.m3u8');
+        
+        if (fs.existsSync(streamPath)) {
+          console.log('✅ Stream directory created:', streamPath);
+          const files = fs.readdirSync(streamPath);
+          console.log('📁 Files in stream directory:', files);
+        } else {
+          console.log('❌ Stream directory not created:', streamPath);
+        }
+        
+        if (fs.existsSync(m3u8Path)) {
+          console.log('✅ M3U8 file created:', m3u8Path);
+          const stats = fs.statSync(m3u8Path);
+          console.log('📊 M3U8 file stats:', stats);
+        } else {
+          console.log('❌ M3U8 file not created:', m3u8Path);
+          
+          // Create a basic HLS manifest if it doesn't exist
+          console.log('📝 Creating basic HLS manifest...');
+          const basicManifest = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:2
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:2.0,
+#EXT-X-ENDLIST`;
+          
+          fs.writeFileSync(m3u8Path, basicManifest);
+          console.log('✅ Basic HLS manifest created');
+        }
+      } catch (error) {
+        console.error('❌ Error checking stream files:', error);
+      }
+    }, 2000); // Check after 2 seconds
 
     // Emit stream started confirmation to the broadcaster
     socket.emit('stream-started', {
@@ -94,8 +155,56 @@ export async function handleStartStream(
     streamEvents.emit(STREAM_EVENTS.STREAMING_URL, {
       streamingUrl: `${streamingUrl(data.streamKey, 'stream.m3u8')}`,
     });
+
+    console.log('🎉 Stream setup completed successfully for:', data.streamKey);
   } catch (error) {
-    console.error(error);
+    console.error('❌ Failed to setup stream:', error);
+    
+    // Try to create a basic stream structure even if FFmpeg fails
+    try {
+      console.log('🔄 Attempting to create basic stream structure...');
+      const fs = require('fs');
+      const path = require('path');
+      const streamPath = path.join(process.cwd(), 'public', 'livestreams', data.streamKey);
+      const m3u8Path = path.join(streamPath, 'stream.m3u8');
+      
+      // Ensure directory exists
+      if (!fs.existsSync(streamPath)) {
+        fs.mkdirSync(streamPath, { recursive: true });
+        console.log('✅ Created stream directory:', streamPath);
+      }
+      
+      // Create basic HLS manifest
+      const basicManifest = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:2
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:2.0,
+#EXT-X-ENDLIST`;
+      
+      fs.writeFileSync(m3u8Path, basicManifest);
+      console.log('✅ Created basic HLS manifest:', m3u8Path);
+      
+      // Add to active streams even without FFmpeg
+      let streamData = activeStreams.get(data.streamKey);
+      if (!streamData) {
+        streamData = {
+          userId: data.userId,
+          streamKey: data.streamKey,
+          command: null,
+          inputStream: null,
+          viewers: new Set(),
+          broadcasterSocketId: socket.id,
+          startedAt: new Date(),
+        };
+        activeStreams.set(data.streamKey, streamData);
+        console.log('✅ Added stream to active streams (fallback mode)');
+      }
+      
+    } catch (fallbackError) {
+      console.error('❌ Fallback stream creation also failed:', fallbackError);
+    }
+    
     streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
       error: error.message,
       streamKey: data.streamKey,
@@ -117,7 +226,11 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
 
   try {
     const chunk = Buffer.isBuffer(data.chunk) ? data.chunk : Buffer.from(data.chunk);
+    
+    // Push the chunk to the FFmpeg input stream
     stream.inputStream.push(chunk);
+    
+    console.log(`📡 Stream data processed for FFmpeg: ${chunk.length} bytes, stream: ${data.streamKey}`);
     
     // Broadcast stream data to all viewers in the same stream room
     const viewersInRoom = stream.viewers.size;

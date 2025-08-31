@@ -63,10 +63,70 @@ export async function serveHLSManifest(
     }
 
     console.log(`Serving HLS manifest for stream: ${streamId}`);
+    
+    // Log additional debug info
+    const streamData = activeStreams.get(streamId);
+    if (streamData) {
+      console.log(`Stream ${streamId} is active:`, {
+        userId: streamData.userId,
+        startedAt: streamData.startedAt,
+        viewers: streamData.viewers.size,
+        hasFfmpegCommand: !!streamData.command,
+        hasInputStream: !!streamData.inputStream
+      });
+    } else {
+      console.log(`Stream ${streamId} is not in active streams`);
+    }
+    
     return reply.send(manifestContent);
     
   } catch (error) {
     console.error('Error serving HLS manifest:', error);
+    return reply.status(500).send({ error: 'Internal server error' });
+  }
+}
+
+/**
+ * Get stream status and debug information
+ * GET /livestream/:streamId/status
+ */
+export async function getStreamStatus(
+  request: FastifyRequest<{ Params: { streamId: string } }>,
+  reply: FastifyReply
+) {
+  try {
+    const { streamId } = request.params;
+    
+    if (!streamId) {
+      return reply.status(400).send({ error: 'Stream ID is required' });
+    }
+
+    const streamData = activeStreams.get(streamId);
+    const manifestPath = path.join(STREAMS_BASE_DIR, streamId, 'stream.m3u8');
+    const streamDir = path.join(STREAMS_BASE_DIR, streamId);
+
+    const status = {
+      streamId,
+      isActive: !!streamData,
+      manifestExists: fs.existsSync(manifestPath),
+      streamDirExists: fs.existsSync(streamDir),
+      streamData: streamData ? {
+        userId: streamData.userId,
+        startedAt: streamData.startedAt,
+        viewers: streamData.viewers.size,
+        hasFfmpegCommand: !!streamData.command,
+        hasInputStream: !!streamData.inputStream,
+        broadcasterSocketId: streamData.broadcasterSocketId
+      } : null,
+      files: fs.existsSync(streamDir) ? fs.readdirSync(streamDir) : [],
+      manifestContent: fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, 'utf8') : null
+    };
+
+    console.log(`Stream status for ${streamId}:`, status);
+    return reply.send(status);
+    
+  } catch (error) {
+    console.error('Error getting stream status:', error);
     return reply.status(500).send({ error: 'Internal server error' });
   }
 }
@@ -111,41 +171,6 @@ export async function serveHLSSegment(
   }
 }
 
-/**
- * Get stream status and information
- * GET /livestream/:streamId/status
- */
-export async function getStreamStatus(
-  request: FastifyRequest<{ Params: { streamId: string } }>,
-  reply: FastifyReply
-) {
-  try {
-    const { streamId } = request.params;
-    
-    if (!streamId) {
-      return reply.status(400).send({ error: 'Stream ID is required' });
-    }
-
-    const streamData = activeStreams.get(streamId);
-    const manifestPath = path.join(STREAMS_BASE_DIR, streamId, 'stream.m3u8');
-    
-    const status = {
-      streamId,
-      isActive: !!streamData,
-      hasManifest: fs.existsSync(manifestPath),
-      viewerCount: streamData ? streamData.viewers.size : 0,
-      startedAt: streamData ? streamData.startedAt : null,
-      userId: streamData ? streamData.userId : null
-    };
-
-    console.log(`Stream status for ${streamId}:`, status);
-    return reply.send(status);
-    
-  } catch (error) {
-    console.error('Error getting stream status:', error);
-    return reply.status(500).send({ error: 'Internal server error' });
-  }
-}
 
 /**
  * List all active streams

@@ -274,6 +274,13 @@ export async function setupStream(data: { userId: string; streamKey: string }) {
   const outputPath = join(streamPath, 'stream.m3u8');
   const inputStream = createInputStream();
 
+  console.log('🎬 Setting up FFmpeg for stream:', {
+    streamKey: data.streamKey,
+    streamPath,
+    outputPath,
+    hasInputStream: !!inputStream
+  });
+
   const ffmpegCommand = ffmpeg()
     .input(inputStream)
     .inputFormat('webm')
@@ -314,9 +321,38 @@ export async function setupStream(data: { userId: string; streamKey: string }) {
       '0',
       '-movflags',
       '+faststart',
+
+      // Force keyframe generation
+      '-force_key_frames',
+      'expr:gte(t,n_forced*2)',
+
+      // Better compatibility
+      '-profile:v',
+      'baseline',
+      '-level',
+      '3.0'
     ]);
 
+  // Add event listeners for better debugging
+  ffmpegCommand.on('start', (commandLine) => {
+    console.log('🎬 FFmpeg started with command:', commandLine);
+  });
+
+  ffmpegCommand.on('progress', (progress) => {
+    console.log('📊 FFmpeg progress:', progress);
+  });
+
+  ffmpegCommand.on('error', (err) => {
+    console.error('❌ FFmpeg error:', err);
+  });
+
+  ffmpegCommand.on('end', () => {
+    console.log('✅ FFmpeg finished successfully');
+  });
+
   watcherFn(streamPath, data, outputPath);
+
+  console.log('✅ FFmpeg setup completed for stream:', data.streamKey);
 
   return { ffmpegCommand, outputPath, inputStream };
 }
