@@ -185,12 +185,11 @@ export async function handleStartStream(
           const basicManifest = `#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:2
-#EXT-X-MEDIA-SEQUENCE:0
-#EXT-X-ENDLIST`;
+#EXT-X-MEDIA-SEQUENCE:0`;
           
           try {
             await fs.promises.writeFile(m3u8Path, basicManifest, 'utf8');
-            console.log('✅ Basic HLS manifest created');
+            console.log('✅ Basic HLS manifest created (ready for segments)');
           } catch (writeError) {
             console.error('❌ Failed to create basic HLS manifest:', writeError);
           }

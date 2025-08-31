@@ -141,6 +141,10 @@ export async function getStreamStatus(
     const manifestPath = path.join(STREAMS_BASE_DIR, streamId, 'stream.m3u8');
     const streamDir = path.join(STREAMS_BASE_DIR, streamId);
 
+    // Read manifest content once to avoid multiple file reads
+    const manifestContent = fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, 'utf8') : null;
+    const files = fs.existsSync(streamDir) ? fs.readdirSync(streamDir) : [];
+    
     const status = {
       streamId,
       isActive: !!streamData,
@@ -154,11 +158,21 @@ export async function getStreamStatus(
         hasInputStream: !!streamData.inputStream,
         broadcasterSocketId: streamData.broadcasterSocketId
       } : null,
-      files: fs.existsSync(streamDir) ? fs.readdirSync(streamDir) : [],
-      manifestContent: fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, 'utf8') : null
+      files,
+      manifestContent,
+      overall: {
+        isActive: !!streamData,
+        hasManifest: fs.existsSync(manifestPath),
+        hasStreamDir: fs.existsSync(streamDir),
+        // Check if stream actually has video content (not just an empty manifest)
+        hasVideoContent: manifestContent && 
+          !manifestContent.includes('#EXT-X-ENDLIST') &&
+          files.some(file => file.endsWith('.ts'))
+      }
     };
 
     console.log(`Stream status for ${streamId}:`, status);
+    console.log(`Overall status for ${streamId}:`, status.overall);
     return reply.send(status);
     
   } catch (error) {
