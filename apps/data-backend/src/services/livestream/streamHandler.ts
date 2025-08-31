@@ -535,6 +535,37 @@ export async function initializeStreamForHttp(
       };
       activeStreams.set(streamKey, streamData);
       console.log('✅ Stream data initialized for HTTP endpoint');
+      
+      // Create the stream directory and basic manifest
+      try {
+        const fs = require('fs');
+        const path = require('path');
+        const streamPath = path.join(process.cwd(), 'public', 'livestreams', streamKey);
+        const m3u8Path = path.join(streamPath, 'stream.m3u8');
+        
+        // Ensure directory exists
+        if (!fs.existsSync(streamPath)) {
+          fs.mkdirSync(streamPath, { recursive: true });
+          console.log('✅ Stream directory created:', streamPath);
+        }
+        
+        // Create a basic HLS manifest that's ready for segments
+        const basicManifest = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:2
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:EVENT`;
+        
+        fs.writeFileSync(m3u8Path, basicManifest, 'utf8');
+        console.log('✅ Basic HLS manifest created (ready for segments):', m3u8Path);
+        
+        // Log the created files
+        const files = fs.readdirSync(streamPath);
+        console.log('📁 Files in stream directory:', files);
+        
+      } catch (fileError) {
+        console.error('❌ Error creating stream files:', fileError);
+      }
     } else {
       // Update existing stream data
       streamData.isInitialized = true;

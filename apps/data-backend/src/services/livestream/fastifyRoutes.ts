@@ -21,6 +21,45 @@ export async function registerLivestreamRoutes(fastify: FastifyInstance) {
   // List active streams
   fastify.get('/livestream/active', listStreams);
 
+  // Debug endpoint to check active streams and their state
+  fastify.get('/livestream/debug/streams', async (request, reply) => {
+    try {
+      const { activeStreams } = await import('./streamHandler');
+      const streams = Array.from(activeStreams.entries()).map(([key, value]) => ({
+        streamKey: key,
+        userId: value.userId,
+        startedAt: value.startedAt,
+        viewers: value.viewers.size,
+        hasFfmpegCommand: !!value.command,
+        hasInputStream: !!value.inputStream,
+        broadcasterSocketId: value.broadcasterSocketId,
+        isInitialized: value.isInitialized,
+        status: value.status
+      }));
+      
+      return reply.send({
+        count: streams.length,
+        streams,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      return reply.status(500).send({ error: 'Failed to get debug info' });
+    }
+  });
+
+  // Test endpoint to verify WebSocket connection
+  fastify.get('/livestream/test/websocket', async (request, reply) => {
+    try {
+      return reply.send({
+        message: 'WebSocket test endpoint working',
+        timestamp: new Date().toISOString(),
+        note: 'This endpoint is working, but WebSocket connections happen via Socket.IO, not HTTP'
+      });
+    } catch (error) {
+      return reply.status(500).send({ error: 'Test endpoint failed' });
+    }
+  });
+
   // Stream status
   fastify.get('/livestream/:streamId/status', getStreamStatus);
 
