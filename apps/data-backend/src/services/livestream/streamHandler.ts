@@ -97,7 +97,8 @@ export async function handleStartStream(
       });
 
     console.log('🎬 Starting FFmpeg command...');
-    ffmpegCommand.output(outputPath).run();
+    // FFmpeg is already started in streamService.ts with .save(outputPath)
+    // No need to call .run() again
     console.log('✅ FFmpeg command started');
 
     // Check if the output directory and files are created
@@ -227,10 +228,13 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
   try {
     const chunk = Buffer.isBuffer(data.chunk) ? data.chunk : Buffer.from(data.chunk);
     
+    console.log(`📡 Processing stream chunk: ${chunk.length} bytes, stream: ${data.streamKey}`);
+    console.log(`📡 Chunk type: ${typeof data.chunk}, isBuffer: ${Buffer.isBuffer(data.chunk)}`);
+    
     // Push the chunk to the FFmpeg input stream
     stream.inputStream.push(chunk);
     
-    console.log(`📡 Stream data processed for FFmpeg: ${chunk.length} bytes, stream: ${data.streamKey}`);
+    console.log(`✅ Stream data pushed to FFmpeg: ${chunk.length} bytes, stream: ${data.streamKey}`);
     
     // Broadcast stream data to all viewers in the same stream room
     const viewersInRoom = stream.viewers.size;

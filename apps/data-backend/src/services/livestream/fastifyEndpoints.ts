@@ -377,8 +377,9 @@ export async function startLocalStream(
 
     console.log(`🎬 Manually starting local FFmpeg stream: ${streamId} for user: ${userId || 'anonymous'}`);
 
-    // Import local stream handler
+    // Import local stream handler and stream service
     const { activeStreams } = await import('./streamHandler');
+    const { setupStream } = await import('./streamService');
     const fs = require('fs');
     const path = require('path');
 
@@ -394,49 +395,85 @@ export async function startLocalStream(
       });
     }
 
-    // Create basic stream structure manually
-    const streamPath = path.join(process.cwd(), 'public', 'livestreams', streamId);
-    const m3u8Path = path.join(streamPath, 'stream.m3u8');
-    
-    // Ensure directory exists
-    if (!fs.existsSync(streamPath)) {
-      fs.mkdirSync(streamPath, { recursive: true });
-      console.log('✅ Created stream directory:', streamPath);
-    }
-    
-    // Create basic HLS manifest
-    const basicManifest = `#EXTM3U
+    try {
+      // Try to set up a real FFmpeg stream
+      console.log('🎬 Attempting to set up real FFmpeg stream...');
+      const { ffmpegCommand, outputPath, inputStream } = await setupStream({
+        streamKey: streamId,
+        userId: userId || 'anonymous'
+      });
+
+      // Add to active streams with real FFmpeg
+      const streamData = {
+        userId: userId || 'anonymous',
+        streamKey: streamId,
+        command: ffmpegCommand,
+        inputStream: inputStream,
+        viewers: new Set(),
+        broadcasterSocketId: 'manual',
+        startedAt: new Date(),
+      };
+      
+      activeStreams.set(streamId, streamData);
+      console.log('✅ Real FFmpeg stream added to active streams');
+
+      return reply.send({
+        status: 'ffmpeg_started',
+        streamId,
+        message: 'Real FFmpeg stream created and started successfully',
+        outputPath,
+        hasInputStream: !!inputStream,
+        hasFfmpegCommand: !!ffmpegCommand,
+        timestamp: new Date().toISOString()
+      });
+
+    } catch (ffmpegError) {
+      console.log('⚠️ FFmpeg setup failed, falling back to basic stream:', ffmpegError);
+      
+      // Create basic stream structure manually as fallback
+      const streamPath = path.join(process.cwd(), 'public', 'livestreams', streamId);
+      const m3u8Path = path.join(streamPath, 'stream.m3u8');
+      
+      // Ensure directory exists
+      if (!fs.existsSync(streamPath)) {
+        fs.mkdirSync(streamPath, { recursive: true });
+        console.log('✅ Created stream directory:', streamPath);
+      }
+      
+      // Create basic HLS manifest
+      const basicManifest = `#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:2
 #EXT-X-MEDIA-SEQUENCE:0
 #EXTINF:2.0,
 #EXT-X-ENDLIST`;
-    
-    fs.writeFileSync(m3u8Path, basicManifest);
-    console.log('✅ Created basic HLS manifest:', m3u8Path);
-    
-    // Add to active streams
-    const streamData = {
-      userId: userId || 'anonymous',
-      streamKey: streamId,
-      command: null,
-      inputStream: null,
-      viewers: new Set(),
-      broadcasterSocketId: 'manual',
-      startedAt: new Date(),
-    };
-    
-    activeStreams.set(streamId, streamData);
-    console.log('✅ Added stream to active streams (manual mode)');
+      
+      fs.writeFileSync(m3u8Path, basicManifest);
+      console.log('✅ Created basic HLS manifest:', m3u8Path);
+      
+      // Add to active streams
+      const streamData = {
+        userId: userId || 'anonymous',
+        streamKey: streamId,
+        command: null,
+        inputStream: null,
+        viewers: new Set(),
+        broadcasterSocketId: 'manual',
+        startedAt: new Date(),
+      };
+      
+      activeStreams.set(streamId, streamData);
+      console.log('✅ Added stream to active streams (fallback mode)');
 
-    return reply.send({
-      status: 'created_and_started',
-      streamId,
-      message: 'Local stream created and started successfully',
-      streamPath,
-      m3u8Path,
-      timestamp: new Date().toISOString()
-    });
+      return reply.send({
+        status: 'fallback_created',
+        streamId,
+        message: 'Basic stream created (FFmpeg failed)',
+        streamPath,
+        m3u8Path,
+        timestamp: new Date().toISOString()
+      });
+    }
 
   } catch (error) {
     console.error('❌ Error starting local stream:', error);
