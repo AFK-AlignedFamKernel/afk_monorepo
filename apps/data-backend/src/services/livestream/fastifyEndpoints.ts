@@ -496,6 +496,9 @@ export async function healthCheck(
     const streamsDir = STREAMS_BASE_DIR;
     const dirExists = fs.existsSync(streamsDir);
     
+    // Import activeStreams to get current state
+    const { activeStreams } = await import('./streamHandler');
+    
     const health = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -503,7 +506,17 @@ export async function healthCheck(
         exists: dirExists,
         path: streamsDir
       },
-      activeStreams: activeStreams.size,
+      activeStreams: {
+        count: activeStreams.size,
+        streams: Array.from(activeStreams.entries()).map(([key, value]) => ({
+          streamKey: key,
+          userId: value.userId,
+          startedAt: value.startedAt,
+          viewers: value.viewers.size,
+          hasFfmpegCommand: !!value.command,
+          hasInputStream: !!value.inputStream
+        }))
+      },
       memoryUsage: process.memoryUsage()
     };
 

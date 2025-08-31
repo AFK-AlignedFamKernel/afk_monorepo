@@ -41,7 +41,43 @@ export async function serveHLSManifest(
     // Check if manifest file exists
     if (!fs.existsSync(manifestPath)) {
       console.log(`Manifest not found for stream: ${streamId}`);
-      return reply.status(404).send({ error: 'Stream not found or not started' });
+      
+      // Check if stream is in active streams but files don't exist
+      const streamData = activeStreams.get(streamId);
+      if (streamData) {
+        console.log(`⚠️ Stream ${streamId} is active but no manifest file exists`);
+        console.log('Stream data:', {
+          userId: streamData.userId,
+          startedAt: streamData.startedAt,
+          hasFfmpegCommand: !!streamData.command,
+          hasInputStream: !!streamData.inputStream
+        });
+        
+        // Try to create a basic manifest file
+        try {
+          const streamDir = path.dirname(manifestPath);
+          if (!fs.existsSync(streamDir)) {
+            fs.mkdirSync(streamDir, { recursive: true });
+            console.log(`✅ Created stream directory: ${streamDir}`);
+          }
+          
+          const basicManifest = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:2
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:2.0,
+#EXT-X-ENDLIST`;
+          
+          fs.writeFileSync(manifestPath, basicManifest);
+          console.log(`✅ Created basic HLS manifest: ${manifestPath}`);
+        } catch (createError) {
+          console.error('❌ Failed to create basic manifest:', createError);
+          return reply.status(404).send({ error: 'Stream not found or not started' });
+        }
+      } else {
+        console.log(`❌ Stream ${streamId} is not in active streams`);
+        return reply.status(404).send({ error: 'Stream not found or not started' });
+      }
     }
 
     // Check if stream is active
