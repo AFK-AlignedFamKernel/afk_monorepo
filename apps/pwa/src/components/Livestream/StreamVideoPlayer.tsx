@@ -145,6 +145,17 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       console.log('✅ Stream joined successfully:', event.detail);
       setViewerCount(event.detail.viewerCount || 0);
       setIsLive(event.detail.isLive || false);
+      
+      // If we're a viewer and have a streaming URL, ensure video is loaded
+      if (!isStreamer && streamingUrl && videoRef.current) {
+        console.log('🎥 Ensuring HLS stream is loaded after joining:', streamingUrl);
+        const video = videoRef.current;
+        video.src = streamingUrl;
+        video.load();
+        video.play().catch(error => {
+          console.warn('🎥 Failed to play after joining stream:', error);
+        });
+      }
     };
 
     const handleStreamInitialized = (event: CustomEvent) => {
@@ -158,6 +169,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         const fullUrl = `${backendUrl}${event.detail.manifestUrl}`;
         console.log('🎥 Updating video source to HLS manifest:', fullUrl);
         videoRef.current.src = fullUrl;
+        videoRef.current.load();
       }
     };
 
@@ -165,30 +177,57 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       console.log('📺 Stream segments updated:', event.detail);
       // This indicates new content is available
       setIsLive(true);
+      
+      // For HLS streams, we might need to reload the video to get new segments
+      if (videoRef.current && event.detail.streamKey === streamId) {
+        console.log('🔄 HLS segments updated, ensuring video is playing');
+        if (videoRef.current.paused) {
+          videoRef.current.play().catch(error => {
+            console.warn('🎥 Failed to resume playback after segment update:', error);
+          });
+        }
+      }
     };
 
     const handleStreamData = (event: CustomEvent) => {
       console.log('📺 Received stream data:', event.detail);
-      // Handle incoming stream data if needed
+      // For viewers, this indicates the stream is active
+      if (event.detail.streamKey === streamId) {
+        setIsLive(true);
+        console.log('✅ Stream is active and broadcasting data');
+      }
     };
 
-    const handleViewerCountUpdate = (event: CustomEvent) => {
-      console.log('👥 Viewer count updated:', event.detail);
-      setViewerCount(event.detail.count || 0);
+    const handleViewerJoined = (event: CustomEvent) => {
+      console.log('👥 Viewer joined stream:', event.detail);
+      if (event.detail.streamKey === streamId) {
+        setViewerCount(event.detail.viewerCount || 0);
+        console.log('👥 Viewer count updated:', event.detail.viewerCount);
+      }
+    };
+
+    const handleViewerLeft = (event: CustomEvent) => {
+      console.log('👥 Viewer left stream:', event.detail);
+      if (event.detail.streamKey === streamId) {
+        setViewerCount(event.detail.viewerCount || 0);
+        console.log('👥 Viewer count updated:', event.detail.viewerCount);
+      }
     };
 
     window.addEventListener('stream-joined', handleStreamJoined as EventListener);
     window.addEventListener('stream-initialized', handleStreamInitialized as EventListener);
     window.addEventListener('stream-segments-updated', handleStreamSegmentsUpdated as EventListener);
     window.addEventListener('stream-data-received', handleStreamData as EventListener);
-    window.addEventListener('viewer-count-update', handleViewerCountUpdate as EventListener);
+    window.addEventListener('viewer-joined', handleViewerJoined as EventListener);
+    window.addEventListener('viewer-left', handleViewerLeft as EventListener);
 
     return () => {
       window.removeEventListener('stream-joined', handleStreamJoined as EventListener);
       window.removeEventListener('stream-initialized', handleStreamInitialized as EventListener);
       window.removeEventListener('stream-segments-updated', handleStreamSegmentsUpdated as EventListener);
       window.removeEventListener('stream-data-received', handleStreamData as EventListener);
-      window.removeEventListener('viewer-count-update', handleViewerCountUpdate as EventListener);
+      window.removeEventListener('viewer-joined', handleViewerJoined as EventListener);
+      window.removeEventListener('viewer-left', handleViewerLeft as EventListener);
     };
   }, []);
 
