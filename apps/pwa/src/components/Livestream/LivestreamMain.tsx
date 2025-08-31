@@ -226,6 +226,8 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       return;
     }
 
+    console.log('🔄 Stream ID changed, checking status for:', currentStreamId);
+
     const checkStreamStatus = async () => {
       try {
         setStreamStatus('loading');
@@ -234,14 +236,27 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
         
         if (response.ok) {
           const statusData = await response.json();
+          console.log('📊 Stream status response:', statusData);
           setStreamStatusData(statusData);
           
-          if (statusData.overall?.isActive || statusData.overall?.hasManifest) {
+          console.log('📊 Stream status response:', statusData);
+          
+          // Check if stream is available for viewing
+          // A stream is available if it has a manifest file, regardless of active status
+          if (statusData.overall?.hasManifest || statusData.overall?.isActive) {
             setStreamStatus('available');
-            console.log('✅ Stream is available:', statusData);
+            console.log('✅ Stream is available for viewing:', {
+              hasManifest: statusData.overall?.hasManifest,
+              isActive: statusData.overall?.isActive,
+              hasStreamDir: statusData.overall?.hasStreamDir
+            });
           } else {
             setStreamStatus('not_started');
-            console.log('⏳ Stream not started yet:', statusData);
+            console.log('⏳ Stream not started yet:', {
+              hasManifest: statusData.overall?.hasManifest,
+              isActive: statusData.overall?.isActive,
+              hasStreamDir: statusData.overall?.hasStreamDir
+            });
           }
         } else {
           setStreamStatus('error');
@@ -253,6 +268,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       }
     };
 
+    // Check immediately
     checkStreamStatus();
 
     // Set up periodic status checking for streams that aren't started yet
@@ -261,9 +277,10 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       statusInterval = setInterval(() => {
         // Only check if we're not already in a loading state
         if (streamStatus !== 'loading') {
+          console.log('🔄 Periodic status check for:', currentStreamId);
           checkStreamStatus();
         }
-      }, 10000); // Check every 10 seconds
+      }, 5000); // Check every 5 seconds for faster response
     }
 
     return () => {
@@ -317,6 +334,40 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     setIsStreaming(false);
     // Add your stream stop logic here
     console.log('Stopping stream...');
+  };
+
+  // Manual refresh function for viewers
+  const handleRefreshStreamStatus = async () => {
+    if (!currentStreamId) return;
+    
+    console.log('🔄 Manual refresh requested for stream:', currentStreamId);
+    setStreamStatus('loading');
+    
+    try {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      const response = await fetch(`${backendUrl}/livestream/${currentStreamId}/status`);
+      
+      if (response.ok) {
+        const statusData = await response.json();
+        setStreamStatusData(statusData);
+        
+        console.log('📊 Manual refresh - Stream status response:', statusData);
+        
+        if (statusData.overall?.hasManifest || statusData.overall?.isActive) {
+          setStreamStatus('available');
+          console.log('✅ Manual refresh - Stream is available for viewing');
+        } else {
+          setStreamStatus('not_started');
+          console.log('⏳ Manual refresh - Stream not started yet');
+        }
+      } else {
+        setStreamStatus('error');
+        console.log('❌ Manual refresh - Stream status check failed:', response.status);
+      }
+    } catch (error) {
+      console.error('❌ Manual refresh - Error checking stream status:', error);
+      setStreamStatus('error');
+    }
   };
 
   const toggleChat = () => {
@@ -453,13 +504,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
               className={styles.mainVideoPlayer}
               streamId={currentStreamId}
               streamStatus={streamStatus}
-              onRefreshStatus={() => {
-                // Trigger a manual status check
-                if (currentStreamId) {
-                  setStreamStatus('loading');
-                  // The useEffect will automatically check the status again
-                }
-              }}
+              onRefreshStatus={handleRefreshStreamStatus}
               onStreamError={(error) => {
                 console.log('🚨 Stream error in StreamVideoPlayer:', error);
                 if (error.includes('Stream not found') || error.includes('not started')) {
