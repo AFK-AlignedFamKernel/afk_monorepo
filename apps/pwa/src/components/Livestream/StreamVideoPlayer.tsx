@@ -105,9 +105,20 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       className,
       isStreaming,
       streamKey,
-      streamId
+      streamId,
+      streamStatus
     });
-  }, [streamingUrl, recordingUrl, isStreamer, className, isStreaming, streamKey, streamId]);
+    
+    // If we have a streaming URL, log what it points to
+    if (streamingUrl) {
+      console.log('🎯 Streaming URL details:', {
+        url: streamingUrl,
+        isLocalhost: streamingUrl.includes('localhost'),
+        hasStreamId: streamingUrl.includes(streamId || ''),
+        willAttemptToLoad: true
+      });
+    }
+  }, [streamingUrl, recordingUrl, isStreamer, className, isStreaming, streamKey, streamId, streamStatus]);
 
   // Auto-join stream for viewers when streamId is available
   useEffect(() => {
@@ -417,6 +428,15 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         // Set the source
         video.src = streamingUrl;
         console.log('✅ Video source set to:', streamingUrl);
+        
+        // Log the video element state
+        console.log('🎥 Video element state after setting source:', {
+          src: video.src,
+          readyState: video.readyState,
+          networkState: video.networkState,
+          error: video.error,
+          currentSrc: video.currentSrc
+        });
         
         // Load the video
         video.load();
