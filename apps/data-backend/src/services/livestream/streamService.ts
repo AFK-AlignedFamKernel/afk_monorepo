@@ -79,9 +79,9 @@ export async function setupStream(data: StreamSetup) {
     .outputOptions([
       // Video quality and encoding
       "-preset",
-      "medium",
+      "ultrafast", // Changed from medium for faster encoding
       "-crf",
-      "23",
+      "28", // Changed from 23 for faster encoding
       "-maxrate",
       "2500k",
       "-bufsize",
@@ -101,9 +101,9 @@ export async function setupStream(data: StreamSetup) {
       "-hls_segment_filename",
       join(streamPath, "segment_%d.ts"),
 
-      // Keyframe interval
+      // Keyframe interval - reduced for faster segment generation
       "-g",
-      "60",
+      "30", // Changed from 60 for faster keyframe generation
 
       // Additional optimization
       "-sc_threshold",
@@ -113,13 +113,21 @@ export async function setupStream(data: StreamSetup) {
 
       // Force keyframe generation
       "-force_key_frames",
-      "expr:gte(t,n_forced*2)",
+      "expr:gte(t,n_forced*1)", // Changed from 2 for more frequent keyframes
 
       // Better compatibility
       "-profile:v",
       "baseline",
       "-level",
-      "3.0"
+      "3.0",
+
+      // Additional settings for better live streaming
+      "-tune",
+      "zerolatency",
+      "-probesize",
+      "32",
+      "-analyzeduration",
+      "0"
     ]);
 
   // Add event listeners for better debugging
@@ -144,6 +152,20 @@ export async function setupStream(data: StreamSetup) {
 
   // Set up file watcher for HLS segments
   watcherFn(streamPath, data, outputPath);
+
+  // Create initial manifest that's ready for segments (without ENDLIST)
+  const initialManifest = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:2
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:EVENT`;
+  
+  try {
+    await writeFile(outputPath, initialManifest, 'utf8');
+    console.log('✅ Initial HLS manifest created (ready for segments)');
+  } catch (writeError) {
+    console.error('❌ Failed to create initial HLS manifest:', writeError);
+  }
 
   console.log('✅ FFmpeg setup completed for stream:', data.streamKey);
 
@@ -245,6 +267,9 @@ async function updateAndUploadM3u8(localM3u8Path: string, streamKey: string) {
     if (!content.includes("#EXTM3U")) {
       content = "#EXTM3U\n#EXT-X-VERSION:3\n" + content;
     }
+
+    // Remove any existing ENDLIST tag - we don't want to end the stream prematurely
+    content = content.replace(/#EXT-X-ENDLIST[\r\n]*/g, '');
 
     await writeFile(localM3u8Path, content, "utf8");
     await uploadFileToR2(config.cloudfare.r2BucketName, localM3u8Path, streamKey, "m3u8");

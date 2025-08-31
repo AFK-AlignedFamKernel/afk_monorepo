@@ -185,7 +185,8 @@ export async function handleStartStream(
           const basicManifest = `#EXTM3U
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:2
-#EXT-X-MEDIA-SEQUENCE:0`;
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:EVENT`;
           
           try {
             await fs.promises.writeFile(m3u8Path, basicManifest, 'utf8');
@@ -194,6 +195,39 @@ export async function handleStartStream(
             console.error('❌ Failed to create basic HLS manifest:', writeError);
           }
         }
+        
+        // Set up periodic manifest health check
+        const manifestHealthCheck = setInterval(async () => {
+          try {
+            if (fs.existsSync(m3u8Path)) {
+              let manifestContent = fs.readFileSync(m3u8Path, 'utf8');
+              const segmentFiles = fs.readdirSync(streamPath).filter(file => file.endsWith('.ts'));
+              
+              // If we have segments but manifest has ENDLIST, fix it
+              if (segmentFiles.length > 0 && manifestContent.includes('#EXT-X-ENDLIST')) {
+                console.log('🔧 Periodic health check: fixing manifest with ENDLIST');
+                
+                manifestContent = manifestContent.replace(/#EXT-X-ENDLIST[\r\n]*/g, '');
+                
+                if (!manifestContent.includes('#EXT-X-PLAYLIST-TYPE:EVENT')) {
+                  manifestContent = manifestContent.replace(
+                    '#EXT-X-MEDIA-SEQUENCE:0',
+                    '#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-PLAYLIST-TYPE:EVENT'
+                  );
+                }
+                
+                fs.writeFileSync(m3u8Path, manifestContent, 'utf8');
+                console.log('✅ Manifest health check: fixed ENDLIST issue');
+              }
+            }
+          } catch (healthCheckError) {
+            console.error('❌ Manifest health check error:', healthCheckError);
+          }
+        }, 5000); // Check every 5 seconds
+        
+        // Store the interval reference for cleanup
+        streamData.manifestHealthCheck = manifestHealthCheck;
+        
       } catch (checkError) {
         console.error('❌ Error checking stream files:', checkError);
       }
@@ -263,6 +297,33 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
           files: files
         });
         
+        // Check and fix manifest if it has ENDLIST (which means stream ended prematurely)
+        if (hasManifest && segmentFiles.length > 0) {
+          try {
+            let manifestContent = fs.readFileSync(m3u8Path, 'utf8');
+            
+            if (manifestContent.includes('#EXT-X-ENDLIST')) {
+              console.log('⚠️ Manifest has ENDLIST but stream is active, fixing...');
+              
+              // Remove ENDLIST and ensure proper format
+              manifestContent = manifestContent.replace(/#EXT-X-ENDLIST[\r\n]*/g, '');
+              
+              // Ensure we have the proper headers
+              if (!manifestContent.includes('#EXT-X-PLAYLIST-TYPE:EVENT')) {
+                manifestContent = manifestContent.replace(
+                  '#EXT-X-MEDIA-SEQUENCE:0',
+                  '#EXT-X-MEDIA-SEQUENCE:0\n#EXT-X-PLAYLIST-TYPE:EVENT'
+                );
+              }
+              
+              fs.writeFileSync(m3u8Path, manifestContent, 'utf8');
+              console.log('✅ Manifest fixed - removed ENDLIST and added EVENT type');
+            }
+          } catch (manifestFixError) {
+            console.error('❌ Error fixing manifest:', manifestFixError);
+          }
+        }
+        
         // If we have segments, notify viewers that new content is available
         if (segmentFiles.length > 0) {
           socket.to(data.streamKey).emit('stream-segments-updated', {
@@ -326,6 +387,33 @@ export async function handleEndStream(
     // Kill FFmpeg process if it exists
     if (stream.command) {
       stream.command.kill('SIGKILL');
+    }
+
+    // Clean up manifest health check interval
+    if (stream.manifestHealthCheck) {
+      clearInterval(stream.manifestHealthCheck);
+      console.log('✅ Manifest health check interval cleared');
+    }
+
+    // Properly end the HLS manifest with ENDLIST
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const streamPath = path.join(process.cwd(), 'public', 'livestreams', data.streamKey);
+      const m3u8Path = path.join(streamPath, 'stream.m3u8');
+      
+      if (fs.existsSync(m3u8Path)) {
+        let manifestContent = fs.readFileSync(m3u8Path, 'utf8');
+        
+        // Add ENDLIST tag to properly close the stream
+        if (!manifestContent.includes('#EXT-X-ENDLIST')) {
+          manifestContent += '\n#EXT-X-ENDLIST';
+          fs.writeFileSync(m3u8Path, manifestContent, 'utf8');
+          console.log('✅ HLS manifest properly ended with #EXT-X-ENDLIST');
+        }
+      }
+    } catch (manifestError) {
+      console.error('❌ Error ending HLS manifest:', manifestError);
     }
 
     activeStreams.delete(data.streamKey);
@@ -521,6 +609,33 @@ export function handleDisconnect(socket: Socket) {
         // Kill FFmpeg process if it exists
         if (stream.command) {
           stream.command.kill('SIGKILL');
+        }
+
+        // Clean up manifest health check interval
+        if (stream.manifestHealthCheck) {
+          clearInterval(stream.manifestHealthCheck);
+          console.log('✅ Manifest health check interval cleared on disconnect');
+        }
+
+        // Properly end the HLS manifest with ENDLIST
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const streamPath = path.join(process.cwd(), 'public', 'livestreams', streamKey);
+          const m3u8Path = path.join(streamPath, 'stream.m3u8');
+          
+          if (fs.existsSync(m3u8Path)) {
+            let manifestContent = fs.readFileSync(m3u8Path, 'utf8');
+            
+            // Add ENDLIST tag to properly close the stream
+            if (!manifestContent.includes('#EXT-X-ENDLIST')) {
+              manifestContent += '\n#EXT-X-ENDLIST';
+              fs.writeFileSync(m3u8Path, manifestContent, 'utf8');
+              console.log('✅ HLS manifest properly ended with #EXT-X-ENDLIST on disconnect');
+            }
+          }
+        } catch (manifestError) {
+          console.error('❌ Error ending HLS manifest on disconnect:', manifestError);
         }
 
         activeStreams.delete(streamKey);

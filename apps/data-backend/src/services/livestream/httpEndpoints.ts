@@ -65,8 +65,7 @@ export async function serveHLSManifest(
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:2
 #EXT-X-MEDIA-SEQUENCE:0
-#EXTINF:2.0,
-#EXT-X-ENDLIST`;
+#EXT-X-PLAYLIST-TYPE:EVENT`;
           
           fs.writeFileSync(manifestPath, basicManifest);
           console.log(`✅ Created basic HLS manifest: ${manifestPath}`);

@@ -432,8 +432,36 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
         console.warn('⚠️ This will result in MediaRecorder generating 0-byte chunks');
       }
 
+      // Check supported MIME types
+      const supportedTypes = [
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8',
+        'video/webm',
+        'video/mp4'
+      ];
+      
+      let selectedMimeType: string | null = null;
+      for (const type of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          selectedMimeType = type;
+          console.log('✅ Supported MIME type found:', type);
+          break;
+        }
+      }
+      
+      if (!selectedMimeType) {
+        console.error('❌ No supported MIME type found for MediaRecorder');
+        throw new Error('No supported video format found');
+      }
+      
+      console.log('🎥 Creating MediaRecorder with:', {
+        mimeType: selectedMimeType,
+        videoBitsPerSecond: 2500000,
+        streamTracks: mediaStream.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled }))
+      });
+      
       const mediaRecorder = new MediaRecorder(mediaStream, {
-        mimeType: 'video/webm;codecs=vp9',
+        mimeType: selectedMimeType,
         videoBitsPerSecond: 2500000 // 2.5 Mbps
       });
 
@@ -446,7 +474,7 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
           timestamp: Date.now()
         });
         
-        if (event.data.size > 0) {
+        if (event.data && event.data.size > 0) {
           console.log('📡 MediaRecorder data available:', {
             size: event.data.size,
             type: event.data.type,
@@ -454,7 +482,12 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
           });
           sendStreamData(event.data);
         } else {
-          console.log('⚠️ MediaRecorder data available but size is 0');
+          console.log('⚠️ MediaRecorder data available but size is 0 or no data');
+          console.log('⚠️ Event data details:', {
+            eventData: event.data,
+            eventDataType: typeof event.data,
+            eventDataKeys: event.data ? Object.keys(event.data) : 'NO_DATA'
+          });
         }
       };
 
@@ -498,6 +531,40 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
         streamId: currentStreamKey,
         timestamp: Date.now()
       });
+
+      // Test if MediaRecorder is actually generating data
+      let dataReceived = false;
+      const testTimeout = setTimeout(() => {
+        if (!dataReceived) {
+          console.warn('⚠️ MediaRecorder not generating data after 3 seconds');
+          console.warn('⚠️ This may indicate an issue with the media stream or encoding');
+          
+          // Check media stream status
+          console.log('🔍 Media stream status check:', {
+            active: mediaStream.active,
+            tracks: mediaStream.getTracks().map(t => ({
+              kind: t.kind,
+              enabled: t.enabled,
+              readyState: t.readyState,
+              muted: t.muted
+            }))
+          });
+        }
+      }, 3000);
+
+      // Override ondataavailable to track data generation
+      const originalOndataavailable = mediaRecorder.ondataavailable;
+      mediaRecorder.ondataavailable = (event) => {
+        if (!dataReceived) {
+          dataReceived = true;
+          clearTimeout(testTimeout);
+          console.log('✅ MediaRecorder started generating data');
+        }
+        
+        if (originalOndataavailable) {
+          originalOndataavailable.call(mediaRecorder, event);
+        }
+      };
 
       // Debug: Check if MediaRecorder is actually recording
       setTimeout(() => {
