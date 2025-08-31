@@ -3,7 +3,7 @@ import {
   serveHLSManifest,
   serveHLSSegment,
   getStreamStatus,
-  listActiveStreams,
+  listStreams,
   healthCheck,
   startStream,
   startLocalStream,
@@ -19,7 +19,7 @@ export async function registerLivestreamRoutes(fastify: FastifyInstance) {
   fastify.get('/livestream/health', healthCheck);
 
   // List active streams
-  fastify.get('/livestream/active', listActiveStreams);
+  fastify.get('/livestream/active', listStreams);
 
   // Stream status
   fastify.get('/livestream/:streamId/status', getStreamStatus);

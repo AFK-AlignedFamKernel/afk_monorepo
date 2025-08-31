@@ -203,7 +203,7 @@ export async function getStreamStatus(
  * List all active streams from Cloudinary
  * GET /livestream/active
  */
-export async function listActiveStreams(
+export async function listStreams(
   request: FastifyRequest,
   reply: FastifyReply
 ) {
@@ -211,7 +211,7 @@ export async function listActiveStreams(
     console.log('📋 Listing active Cloudinary streams');
 
     // Get active streams from Cloudinary service
-    const activeStreamsList = await cloudinaryLivestreamService.listActiveStreams();
+    const activeStreamsList = await cloudinaryLivestreamService.listStreams();
     
     const streams = activeStreamsList.map(stream => ({
       streamId: stream.streamId,

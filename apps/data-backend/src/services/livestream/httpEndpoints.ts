@@ -226,7 +226,7 @@ export async function serveHLSSegment(
  * List all active streams
  * GET /livestream/active
  */
-export async function listActiveStreams(
+export async function listStreams(
   request: FastifyRequest,
   reply: FastifyReply
 ) {

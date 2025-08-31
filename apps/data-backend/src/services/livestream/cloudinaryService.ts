@@ -3,9 +3,9 @@ import { config } from '../../config';
 
 // Configure Cloudinary
 cloudinary.config({
-  cloud_name: config.cloudinary?.cloudName || process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: config.cloudinary?.apiKey || process.env.CLOUDINARY_API_KEY,
-  api_secret: config.cloudinary?.apiSecret || process.env.CLOUDINARY_API_SECRET,
+  cloud_name: config.cloudinary?.cloud_name || process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: config.cloudinary?.api_key || process.env.CLOUDINARY_API_KEY,
+  api_secret: config.cloudinary?.api_secret || process.env.CLOUDINARY_API_SECRET,
 });
 
 export interface CloudinaryStream {
@@ -29,6 +29,10 @@ export interface CreateStreamOptions {
 /**
  * Cloudinary Livestream Service
  * Handles creation, management, and monitoring of live streams
+ * 
+ * Note: Cloudinary v2 doesn't have built-in livestream API methods.
+ * This service simulates livestream functionality using local state management
+ * and provides endpoints for testing purposes.
  */
 export class CloudinaryLivestreamService {
   private static instance: CloudinaryLivestreamService;
@@ -42,32 +46,24 @@ export class CloudinaryLivestreamService {
   }
 
   /**
-   * Create a new livestream
+   * Create a new livestream (simulated)
+   * Since Cloudinary v2 doesn't support livestreams, we create a mock stream
    */
   async createStream(options: CreateStreamOptions): Promise<CloudinaryStream> {
     try {
-      console.log(`🎬 Creating Cloudinary stream: ${options.streamId}`);
+      console.log(`🎬 Creating simulated Cloudinary stream: ${options.streamId}`);
 
-      // Create stream using Cloudinary API
-      const result = await cloudinary.api.create_stream({
-        name: options.streamId,
-        title: options.title || `Live Stream ${options.streamId}`,
-        description: options.description || 'Live stream created via API',
-        tags: options.tags || ['livestream', 'live'],
-        mode: 'live',
-        notification_url: `${process.env.BACKEND_URL || 'http://localhost:5050'}/livestream/webhook`,
-        auto_record: true,
-        recording_notification_url: `${process.env.BACKEND_URL || 'http://localhost:5050'}/livestream/recording-webhook`,
-      });
-
-      console.log('✅ Cloudinary stream created:', result);
+      // Generate mock URLs for testing
+      const backendUrl = process.env.BACKEND_URL || 'http://localhost:5050';
+      const streamUrl = `${backendUrl}/livestream/${options.streamId}/ingest`;
+      const playbackUrl = `${backendUrl}/livestream/${options.streamId}/stream.m3u8`;
 
       // Create stream object
       const stream: CloudinaryStream = {
         streamId: options.streamId,
         userId: options.userId,
-        playbackUrl: result.playback_url,
-        streamUrl: result.ingest_url,
+        playbackUrl,
+        streamUrl,
         status: 'created',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -76,14 +72,15 @@ export class CloudinaryLivestreamService {
       // Store in memory
       this.activeStreams.set(options.streamId, stream);
 
-      console.log(`🎯 Stream ${options.streamId} ready for broadcasting`);
+      console.log(`🎯 Simulated stream ${options.streamId} ready for broadcasting`);
       console.log(`📡 Ingest URL: ${stream.streamUrl}`);
       console.log(`📺 Playback URL: ${stream.playbackUrl}`);
+      console.log(`⚠️ Note: This is a simulated stream for testing purposes`);
 
       return stream;
 
     } catch (error) {
-      console.error('❌ Failed to create Cloudinary stream:', error);
+      console.error('❌ Failed to create simulated Cloudinary stream:', error);
       throw new Error(`Failed to create stream: ${error.message}`);
     }
   }
@@ -99,122 +96,94 @@ export class CloudinaryLivestreamService {
         return localStream;
       }
 
-      // Fetch from Cloudinary API
-      const result = await cloudinary.api.get_stream(streamId);
-      
-      if (result) {
-        const stream: CloudinaryStream = {
-          streamId: streamId,
-          userId: result.user_id || 'unknown',
-          playbackUrl: result.playback_url,
-          streamUrl: result.ingest_url,
-          status: result.status || 'inactive',
-          createdAt: new Date(result.created_at),
-          updatedAt: new Date(result.updated_at || result.created_at),
-        };
-
-        // Cache locally
-        this.activeStreams.set(streamId, stream);
-        return stream;
-      }
-
+      console.log(`🔍 Stream ${streamId} not found in local cache`);
       return null;
 
     } catch (error) {
-      console.error(`❌ Failed to get stream ${streamId}:`, error);
+      console.error('❌ Failed to get stream:', error);
       return null;
     }
   }
 
   /**
-   * Start a stream (mark as active)
+   * Start a stream (simulated)
    */
   async startStream(streamId: string): Promise<CloudinaryStream | null> {
     try {
-      console.log(`🚀 Starting Cloudinary stream: ${streamId}`);
+      console.log(`🎬 Starting simulated stream: ${streamId}`);
 
-      const stream = await this.getStream(streamId);
+      const stream = this.activeStreams.get(streamId);
       if (!stream) {
-        throw new Error('Stream not found');
+        console.warn(`⚠️ Stream ${streamId} not found, cannot start`);
+        return null;
       }
 
       // Update status to active
       stream.status = 'active';
       stream.updatedAt = new Date();
-      this.activeStreams.set(streamId, stream);
 
-      console.log(`✅ Stream ${streamId} marked as active`);
+      console.log(`✅ Stream ${streamId} started successfully`);
       return stream;
 
     } catch (error) {
-      console.error(`❌ Failed to start stream ${streamId}:`, error);
+      console.error('❌ Failed to start stream:', error);
       return null;
     }
   }
 
   /**
-   * Stop a stream
+   * Stop a stream (simulated)
    */
   async stopStream(streamId: string): Promise<boolean> {
     try {
-      console.log(`⏹️ Stopping Cloudinary stream: ${streamId}`);
+      console.log(`⏹️ Stopping simulated stream: ${streamId}`);
 
       const stream = this.activeStreams.get(streamId);
-      if (stream) {
-        stream.status = 'inactive';
-        stream.updatedAt = new Date();
-        this.activeStreams.set(streamId, stream);
+      if (!stream) {
+        console.warn(`⚠️ Stream ${streamId} not found, cannot stop`);
+        return false;
       }
 
-      // Optionally delete from Cloudinary (uncomment if you want to remove completely)
-      // await cloudinary.api.delete_stream(streamId);
+      // Update status to inactive
+      stream.status = 'inactive';
+      stream.updatedAt = new Date();
 
-      console.log(`✅ Stream ${streamId} stopped`);
+      console.log(`✅ Stream ${streamId} stopped successfully`);
       return true;
 
     } catch (error) {
-      console.error(`❌ Failed to stop stream ${streamId}:`, error);
+      console.error('❌ Failed to stop stream:', error);
       return false;
     }
   }
 
   /**
-   * Get stream status
+   * Get stream status (simulated)
    */
   async getStreamStatus(streamId: string): Promise<any> {
     try {
-      const stream = await this.getStream(streamId);
-      
+      const stream = this.activeStreams.get(streamId);
       if (!stream) {
         return {
-          streamId,
-          exists: false,
-          status: 'not_found'
+          status: 'not_found',
+          message: 'Stream not found'
         };
       }
 
-      // Get real-time status from Cloudinary
-      const cloudinaryStatus = await cloudinary.api.get_stream_status(streamId);
-      
       return {
-        streamId,
-        exists: true,
         status: stream.status,
-        cloudinaryStatus: cloudinaryStatus?.status || 'unknown',
-        playbackUrl: stream.playbackUrl,
-        streamUrl: stream.streamUrl,
+        streamId: stream.streamId,
+        userId: stream.userId,
         createdAt: stream.createdAt,
         updatedAt: stream.updatedAt,
-        userId: stream.userId
+        isActive: stream.status === 'active'
       };
 
     } catch (error) {
-      console.error(`❌ Failed to get stream status for ${streamId}:`, error);
+      console.error('❌ Failed to get stream status:', error);
       return {
-        streamId,
-        exists: false,
         status: 'error',
-        error: error.message
+        message: 'Failed to get stream status'
       };
     }
   }
@@ -222,52 +191,80 @@ export class CloudinaryLivestreamService {
   /**
    * List all active streams
    */
-  async listActiveStreams(): Promise<CloudinaryStream[]> {
+  async listStreams(): Promise<CloudinaryStream[]> {
     try {
       const streams = Array.from(this.activeStreams.values());
-      return streams.filter(stream => stream.status === 'active');
+      console.log(`📋 Found ${streams.length} streams`);
+      return streams;
     } catch (error) {
-      console.error('❌ Failed to list active streams:', error);
+      console.error('❌ Failed to list streams:', error);
       return [];
     }
   }
 
   /**
-   * Delete a stream
+   * Delete a stream (simulated)
    */
   async deleteStream(streamId: string): Promise<boolean> {
     try {
-      console.log(`🗑️ Deleting Cloudinary stream: ${streamId}`);
+      console.log(`🗑️ Deleting simulated stream: ${streamId}`);
 
-      // Remove from local cache
-      this.activeStreams.delete(streamId);
-
-      // Delete from Cloudinary
-      await cloudinary.api.delete_stream(streamId);
-
-      console.log(`✅ Stream ${streamId} deleted`);
-      return true;
+      const deleted = this.activeStreams.delete(streamId);
+      if (deleted) {
+        console.log(`✅ Stream ${streamId} deleted successfully`);
+        return true;
+      } else {
+        console.warn(`⚠️ Stream ${streamId} not found, cannot delete`);
+        return false;
+      }
 
     } catch (error) {
-      console.error(`❌ Failed to delete stream ${streamId}:`, error);
+      console.error('❌ Failed to delete stream:', error);
       return false;
     }
   }
 
   /**
-   * Get playback URL for a stream
+   * Get all streams for a user
    */
-  getPlaybackUrl(streamId: string): string | null {
-    const stream = this.activeStreams.get(streamId);
-    return stream?.playbackUrl || null;
+  async getUserStreams(userId: string): Promise<CloudinaryStream[]> {
+    try {
+      const userStreams = Array.from(this.activeStreams.values())
+        .filter(stream => stream.userId === userId);
+      
+      console.log(`👤 Found ${userStreams.length} streams for user ${userId}`);
+      return userStreams;
+
+    } catch (error) {
+      console.error('❌ Failed to get user streams:', error);
+      return [];
+    }
   }
 
   /**
-   * Get ingest URL for broadcasting
+   * Update stream metadata
    */
-  getIngestUrl(streamId: string): string | null {
-    const stream = this.activeStreams.get(streamId);
-    return stream?.streamUrl || null;
+  async updateStream(streamId: string, updates: Partial<CloudinaryStream>): Promise<CloudinaryStream | null> {
+    try {
+      console.log(`✏️ Updating stream: ${streamId}`);
+
+      const stream = this.activeStreams.get(streamId);
+      if (!stream) {
+        console.warn(`⚠️ Stream ${streamId} not found, cannot update`);
+        return null;
+      }
+
+      // Update fields
+      Object.assign(stream, updates);
+      stream.updatedAt = new Date();
+
+      console.log(`✅ Stream ${streamId} updated successfully`);
+      return stream;
+
+    } catch (error) {
+      console.error('❌ Failed to update stream:', error);
+      return null;
+    }
   }
 }
 

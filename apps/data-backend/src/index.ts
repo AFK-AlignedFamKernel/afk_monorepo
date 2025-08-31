@@ -6,7 +6,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import path from 'path';
 import { config } from './config';
 import { setupWebSocket } from './services/livestream/socket';
-import { registerLivestreamRoutes } from './services/livestream/registerRoutes';
+import { registerLivestreamRoutes } from './services/livestream/fastifyRoutes';
 import authPlugin from './plugins/auth';
 import jwt from 'jsonwebtoken';
 import prismaPlugin from './plugins/prisma';
