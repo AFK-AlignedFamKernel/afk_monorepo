@@ -543,6 +543,47 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Error states */
+.errorOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.9);
+  z-index: 10;
+}
+
+.errorContent {
+  text-align: center;
+  color: #fff;
+  padding: 20px;
+}
+
+.errorMessage {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: #ff6b6b;
+}
+
+.retryButton {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s ease;
+  
+  &:hover {
+    background: #45a049;
+  }
+}
+
 /* Header and text styles */
 .headerText {
   font-size: 24px;

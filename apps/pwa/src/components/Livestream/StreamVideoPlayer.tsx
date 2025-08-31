@@ -35,6 +35,8 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [isLive, setIsLive] = useState(false);
   const [viewerCount, setViewerCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Debug: Log the props received
   useEffect(() => {
@@ -212,11 +214,79 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
 
   useEffect(() => {
     if (streamingUrl) {
+      console.log('🎥 Setting streaming URL:', streamingUrl);
       setIsLive(true);
       if (videoRef.current) {
-        videoRef.current.src = streamingUrl;
+        // Add event listeners for better debugging
+        const video = videoRef.current;
+        
+        const handleLoadStart = () => {
+          console.log('🎥 Video load started');
+          setIsLoading(true);
+          setLoadError(null);
+        };
+        
+        const handleLoadedMetadata = () => {
+          console.log('🎥 Video metadata loaded');
+        };
+        
+        const handleCanPlay = () => {
+          console.log('🎥 Video can play');
+          setIsLoading(false);
+          setLoadError(null);
+        };
+        
+        const handleError = (e: Event) => {
+          console.error('🎥 Video error:', e);
+          setIsLoading(false);
+          const target = e.target as HTMLVideoElement;
+          if (target.error) {
+            const errorDetails = {
+              code: target.error.code,
+              message: target.error.message
+            };
+            console.error('Video error details:', errorDetails);
+            
+            // Set user-friendly error message
+            let errorMessage = 'Failed to load stream';
+            switch (target.error.code) {
+              case MediaError.MEDIA_ERR_NETWORK:
+                errorMessage = 'Network error - stream may not be started';
+                break;
+              case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                errorMessage = 'Stream not found or not started';
+                break;
+              default:
+                errorMessage = `Stream error: ${target.error.message}`;
+            }
+            setLoadError(errorMessage);
+          }
+        };
+        
+        video.addEventListener('loadstart', handleLoadStart);
+        video.addEventListener('loadedmetadata', handleLoadedMetadata);
+        video.addEventListener('canplay', handleCanPlay);
+        video.addEventListener('error', handleError);
+        
+        // Set the source
+        video.src = streamingUrl;
+        console.log('✅ Video source set to:', streamingUrl);
+        
+        // Try to play
+        video.play().catch(error => {
+          console.warn('🎥 Auto-play failed:', error);
+        });
+        
+        // Cleanup function
+        return () => {
+          video.removeEventListener('loadstart', handleLoadStart);
+          video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+          video.removeEventListener('canplay', handleCanPlay);
+          video.removeEventListener('error', handleError);
+        };
       }
     } else if (recordingUrl) {
+      console.log('🎥 Setting recording URL:', recordingUrl);
       setIsLive(false);
       if (videoRef.current) {
         videoRef.current.src = recordingUrl;
@@ -399,10 +469,31 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       )}
 
       {/* Loading spinner */}
-      {!isPlaying && !isLive && (
+      {isLoading && (
         <div className={styles.loadingOverlay}>
           <div className={styles.loadingSpinner}></div>
-          <p>Loading...</p>
+          <p>Loading stream...</p>
+        </div>
+      )}
+
+      {/* Error display */}
+      {loadError && (
+        <div className={styles.errorOverlay}>
+          <div className={styles.errorContent}>
+            <p className={styles.errorMessage}>{loadError}</p>
+            <button 
+              className={styles.retryButton}
+              onClick={() => {
+                setLoadError(null);
+                if (streamingUrl && videoRef.current) {
+                  videoRef.current.src = streamingUrl;
+                  videoRef.current.load();
+                }
+              }}
+            >
+              Retry
+            </button>
+          </div>
         </div>
       )}
     </div>
