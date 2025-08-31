@@ -65,6 +65,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       setIsLive(true);
       setIsStreaming(true);
       setIsGoingLive(false);
+      setStreamStatus('broadcasting');
       showToast({ message: 'You are now live!', type: 'success' });
       onGoLive?.();
     };
@@ -85,18 +86,60 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       showToast({ message: `Viewer left. Total: ${event.detail.viewerCount}`, type: 'info' });
     };
 
+    const handleStreamReady = (event: CustomEvent) => {
+      console.log('🎬 Stream ready for broadcasting:', event.detail);
+      setStreamStatus('ready');
+      showToast({ message: 'Stream is ready for broadcasting!', type: 'success' });
+    };
+
+    const handleStreamInitialized = (event: CustomEvent) => {
+      console.log('🎬 Stream initialized:', event.detail);
+      setStreamStatus('initializing');
+      showToast({ message: 'Stream initialization complete!', type: 'info' });
+    };
+
+    const handleWebSocketConnected = (event: CustomEvent) => {
+      console.log('🔌 WebSocket connected event received:', event.detail);
+      setStreamStatus('initializing');
+      showToast({ message: 'WebSocket connected successfully!', type: 'success' });
+    };
+
+    const handleWebSocketDisconnected = (event: CustomEvent) => {
+      console.log('🔌 WebSocket disconnected event received:', event.detail);
+      setStreamStatus('error');
+      showToast({ message: `WebSocket disconnected: ${event.detail.reason}`, type: 'error' });
+    };
+
+    const handleWebSocketConnectionError = (event: CustomEvent) => {
+      console.log('🔌 WebSocket connection error event received:', event.detail);
+      setStreamStatus('error');
+      showToast({ message: `WebSocket connection failed: ${event.detail.error}`, type: 'error' });
+    };
+
     window.addEventListener('stream-started', handleStreamStarted as EventListener);
     window.addEventListener('stream-data-received', handleStreamDataReceived as EventListener);
     window.addEventListener('viewer-joined', handleViewerJoined as EventListener);
     window.addEventListener('viewer-left', handleViewerLeft as EventListener);
+    window.addEventListener('stream-ready', handleStreamReady as EventListener);
+    window.addEventListener('stream-initialized', handleStreamInitialized as EventListener);
+    window.addEventListener('websocket-connected', handleWebSocketConnected as EventListener);
+    window.addEventListener('websocket-disconnected', handleWebSocketDisconnected as EventListener);
+    window.addEventListener('websocket-connection-error', handleWebSocketConnectionError as EventListener);
 
     return () => {
       window.removeEventListener('stream-started', handleStreamStarted as EventListener);
       window.removeEventListener('stream-data-received', handleStreamDataReceived as EventListener);
       window.removeEventListener('viewer-joined', handleViewerJoined as EventListener);
       window.removeEventListener('viewer-left', handleViewerLeft as EventListener);
+      window.removeEventListener('stream-ready', handleStreamReady as EventListener);
+      window.removeEventListener('stream-initialized', handleStreamInitialized as EventListener);
+      window.removeEventListener('websocket-connected', handleWebSocketConnected as EventListener);
+      window.removeEventListener('websocket-disconnected', handleWebSocketDisconnected as EventListener);
+      window.removeEventListener('websocket-connection-error', handleWebSocketConnectionError as EventListener);
     };
   }, [onGoLive, showToast]);
+
+
 
   const {
     stream,
@@ -135,16 +178,30 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   const [selectedMicrophone, setSelectedMicrophone] = useState<string>('');
   const [isGoingLive, setIsGoingLive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [streamStatus, setStreamStatus] = useState<'idle' | 'connecting' | 'initializing' | 'ready' | 'broadcasting' | 'error'>('idle');
+  const [cameraEnabled, setCameraEnabled] = useState(false);
+  const [screenSharing, setScreenSharing] = useState(false);
   const [cloudinaryUrls, setCloudinaryUrls] = useState<{
     playbackUrl?: string;
     ingestUrl?: string;
   }>({});
 
-    const updateEvent = useEditEvent();
+  const updateEvent = useEditEvent();
   const { data: event, isLoading: eventLoading, error: eventError, refetch: refetchEvent } = useGetSingleEvent({
     eventId: streamId,
   });
+  // Monitor WebSocket connection state changes
+  useEffect(() => {
+    console.log('🔌 WebSocket connection state changed:', { isConnected, isWebSocketStreaming });
 
+    if (isConnected && streamStatus === 'connecting') {
+      console.log('✅ WebSocket connected, updating status to initializing');
+      setStreamStatus('initializing');
+    } else if (!isConnected && streamStatus !== 'error') {
+      console.log('❌ WebSocket disconnected, updating status to error');
+      setStreamStatus('error');
+    }
+  }, [isConnected, isWebSocketStreaming, streamStatus]);
   // Fetch Cloudinary URLs when streamId changes
   useEffect(() => {
     if (streamId) {
@@ -156,7 +213,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     try {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
       const response = await fetch(`${backendUrl}/livestream/${streamId}/playback`);
-      
+
       if (response.ok) {
         const data = await response.json();
         setCloudinaryUrls({
@@ -222,19 +279,19 @@ export const HostStudio: React.FC<HostStudioProps> = ({
         screenStreamTracks: screenStream?.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })),
         cameraStreamTracks: stream?.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled }))
       });
-      
+
       // Screen sharing takes priority over camera
       if (screenStream && screenStream.active) {
         videoRef.current.srcObject = screenStream;
         console.log('📺 Set video to screen stream');
-        
+
         // Force video to load and play
         videoRef.current.load();
         videoRef.current.play().catch(e => console.log('Auto-play prevented:', e));
       } else if (stream && stream.active) {
         videoRef.current.srcObject = stream;
         console.log('📷 Set video to camera stream');
-        
+
         // Force video to load and play
         videoRef.current.load();
         videoRef.current.play().catch(e => console.log('Auto-play prevented:', e));
@@ -249,7 +306,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   useEffect(() => {
     console.log('🎬 HostStudio mounted, initializing video element');
     console.log('🎬 Initial stream state:', { stream, screenStream });
-    
+
     // Set initial stream if available
     if (videoRef.current) {
       if (screenStream) {
@@ -277,20 +334,20 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   // Update video element when settings change
   useEffect(() => {
     console.log('⚙️ Settings changed:', settings);
-    
+
     if (videoRef.current) {
       // Ensure video element shows the correct stream based on current settings
       if (settings.screenSharing && screenStream && screenStream.active) {
         videoRef.current.srcObject = screenStream;
         console.log('📺 Settings update: Set video to screen stream');
-        
+
         // Force video to load and play
         videoRef.current.load();
         videoRef.current.play().catch(e => console.log('Settings update auto-play prevented:', e));
       } else if (settings.cameraEnabled && stream && stream.active) {
         videoRef.current.srcObject = stream;
         console.log('📷 Settings update: Set video to camera stream');
-        
+
         // Force video to load and play
         videoRef.current.load();
         videoRef.current.play().catch(e => console.log('Settings update auto-play prevented:', e));
@@ -304,12 +361,13 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       console.log('🎬 Starting camera...');
       await startCamera();
       setSettings(prev => ({ ...prev, cameraEnabled: true }));
-      
+      setCameraEnabled(true);
+
       // Small delay to ensure state updates are processed
       setTimeout(() => {
         console.log('📷 Camera started, current stream:', stream);
         console.log('📷 Video ref current:', videoRef.current);
-        
+
         // Update video element to show camera stream
         if (stream && videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -318,10 +376,11 @@ export const HostStudio: React.FC<HostStudioProps> = ({
           console.log('⚠️ No stream or video ref available');
         }
       }, 100);
-      
+
       showToast({ message: 'Camera started', type: 'success' });
     } catch (error) {
       console.error('Error starting camera:', error);
+      setCameraEnabled(false);
       showToast({ message: 'Failed to start camera', type: 'error' });
     }
   }, [startCamera, stream, showToast]);
@@ -333,6 +392,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       videoRef.current.srcObject = null;
     }
     setSettings(prev => ({ ...prev, cameraEnabled: false }));
+    setCameraEnabled(false);
   }, [stopCamera]);
 
   // Start screen sharing using hook
@@ -341,12 +401,13 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       console.log('🖥️ Starting screen sharing...');
       await startScreenSharing();
       setSettings(prev => ({ ...prev, screenSharing: true }));
-      
+      setScreenSharing(true);
+
       // Small delay to ensure state updates are processed
       setTimeout(() => {
         console.log('🖥️ Screen sharing started, current screen stream:', screenStream);
         console.log('🖥️ Video ref current:', videoRef.current);
-        
+
         // Update video element to show screen share
         if (screenStream && videoRef.current) {
           videoRef.current.srcObject = screenStream;
@@ -355,10 +416,11 @@ export const HostStudio: React.FC<HostStudioProps> = ({
           console.log('⚠️ No screen stream or video ref available');
         }
       }, 100);
-      
+
       showToast({ message: 'Screen sharing started', type: 'success' });
     } catch (error) {
       console.error('Error starting screen share:', error);
+      setScreenSharing(false);
       showToast({ message: 'Failed to start screen sharing', type: 'error' });
     }
   }, [startScreenSharing, screenStream, showToast]);
@@ -373,6 +435,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     }
 
     setSettings(prev => ({ ...prev, screenSharing: false }));
+    setScreenSharing(false);
   }, [stopScreenSharing, stream]);
 
   // Toggle microphone using hook
@@ -457,80 +520,79 @@ export const HostStudio: React.FC<HostStudioProps> = ({
 
     try {
       console.log('🎬 Starting livestream setup...');
-      
+      setIsGoingLive(true);
+      setStreamStatus('connecting');
+
       // Connect to WebSocket
       connect(streamId);
       console.log('🔌 WebSocket connection initiated...');
-      
-      // // Wait for connection with better error handling
-      // await new Promise((resolve, reject) => {
-      //   const timeout = setTimeout(() => {
-      //     console.error('WebSocket connection timeout');
-      //     reject(new Error('WebSocket connection timeout after 10 seconds'));
-      //   }, 10000);
-        
-      //   let attempts = 0;
-      //   const maxAttempts = 100; // 10 seconds with 100ms intervals
-        
-      //   const checkConnection = () => {
-      //     attempts++;
-      //     console.log(`Connection check attempt ${attempts}/${maxAttempts}, isConnected:`, isConnected);
-          
-      //     if (isConnected) {
-      //       console.log('WebSocket connected successfully!');
-      //       clearTimeout(timeout);
-      //       resolve(true);
-      //     } else if (attempts >= maxAttempts) {
-      //       console.error('Max connection attempts reached');
-      //       clearTimeout(timeout);
-      //       reject(new Error('Max connection attempts reached'));
-      //     } else {
-      //       setTimeout(checkConnection, 100);
-      //     }
-      //   };
-        
-      //   // Start checking immediately
-      //   checkConnection();
-      // });
-      // checkConnection();
+
+      // Wait for connection using WebSocket context events instead of manual polling
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          console.error('WebSocket connection timeout');
+          setStreamStatus('error');
+          reject(new Error('WebSocket connection timeout after 10 seconds'));
+        }, 10000);
+
+        // Listen for the WebSocket connection event
+        const handleWebSocketConnected = () => {
+          console.log('✅ WebSocket connected successfully!');
+          clearTimeout(timeout);
+          setStreamStatus('initializing');
+          resolve(true);
+          // Clean up the event listener
+          window.removeEventListener('websocket-connected', handleWebSocketConnected);
+        };
+
+        // Add event listener for WebSocket connection
+        window.addEventListener('websocket-connected', handleWebSocketConnected);
+
+        // Also check if already connected (in case connection was very fast)
+        if (isConnected) {
+          console.log('✅ WebSocket already connected!');
+          clearTimeout(timeout);
+          setStreamStatus('initializing');
+          resolve(true);
+          window.removeEventListener('websocket-connected', handleWebSocketConnected);
+        }
+      });
 
       console.log('✅ WebSocket connected, starting stream...');
 
       // Start WebSocket stream
       startWebSocketStream(streamId, publicKey || '');
       console.log('📡 WebSocket stream started');
-      
+
       // Setup media stream for WebSocket
       setupMediaStream(currentStream);
       console.log('🎥 Media stream setup complete');
 
-             // Update event status - use backend URL directly for streaming
-       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
-       const streamingUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
-       console.log('🔗 Streaming URL:', streamingUrl);
-       
-       // Also check if there's an existing streaming URL in the event (NIP-53 compliance)
-       let existingStreamingUrl = null;
-       if (event?.tags) {
-         const streamingTag = event.tags.find(tag => tag[0] === 'streaming');
-         if (streamingTag) {
-           existingStreamingUrl = streamingTag[1];
-           console.log('Found existing NIP-53 streaming URL:', existingStreamingUrl);
-         }
-       }
-       
-       // Log the event structure for NIP-53 debugging
-       console.log('🔍 NIP-53 Event structure:', {
-         eventId: streamId,
-         eventTags: event?.tags,
-         eventContent: event?.content,
-         streamingTag: event?.tags?.find((tag: any) => tag[0] === 'streaming'),
-         statusTag: event?.tags?.find((tag: any) => tag[0] === 'status'),
-         eventKind: (event as any)?.kind
-       });
+      // Update event status - use backend URL directly for streaming
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      const streamingUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
+      console.log('🔗 Streaming URL:', streamingUrl);
 
-      setIsGoingLive(true);
-      
+      // Also check if there's an existing streaming URL in the event (NIP-53 compliance)
+      let existingStreamingUrl = null;
+      if (event?.tags) {
+        const streamingTag = event.tags.find(tag => tag[0] === 'streaming');
+        if (streamingTag) {
+          existingStreamingUrl = streamingTag[1];
+          console.log('Found existing NIP-53 streaming URL:', existingStreamingUrl);
+        }
+      }
+
+      // Log the event structure for NIP-53 debugging
+      console.log('🔍 NIP-53 Event structure:', {
+        eventId: streamId,
+        eventTags: event?.tags,
+        eventContent: event?.content,
+        streamingTag: event?.tags?.find((tag: any) => tag[0] === 'streaming'),
+        statusTag: event?.tags?.find((tag: any) => tag[0] === 'status'),
+        eventKind: (event as any)?.kind
+      });
+
       // Always try to update event status, even if event data is missing
       console.log('📝 Updating event status with:', {
         eventId: streamId,
@@ -548,7 +610,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
         },
         {
           onSuccess() {
-            console.log('Successfully went live!');
+            console.log('✅ Successfully went live!');
             setIsLive(true);
             setIsStreaming(true);
             setIsGoingLive(false);
@@ -559,7 +621,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
             onGoLive?.();
           },
           onError(error) {
-            console.error('Failed to update event:', error);
+            console.error('❌ Failed to update event:', error);
             // Don't fail the stream if event update fails
             console.log('Stream is live despite event update failure');
             setIsLive(true);
@@ -571,7 +633,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
         }
       );
     } catch (error) {
-      console.error('Failed to start stream:', error);
+      console.error('❌ Failed to start stream:', error);
       setIsGoingLive(false);
       showToast({ message: `Failed to start stream: ${error instanceof Error ? error.message : 'Unknown error'}`, type: 'error' });
     }
@@ -664,6 +726,82 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }, []);
 
+  // Status display component
+  const renderStatusDisplay = () => {
+    const getStatusIcon = (status: string) => {
+      switch (status) {
+        case 'idle': return '⏸️';
+        case 'connecting': return '🔌';
+        case 'initializing': return '⚙️';
+        case 'ready': return '✅';
+        case 'broadcasting': return '📡';
+        case 'error': return '❌';
+        default: return '❓';
+      }
+    };
+
+    const getStatusColor = (status: string) => {
+      switch (status) {
+        case 'idle': return '#6b7280';
+        case 'connecting': return '#f59e0b';
+        case 'initializing': return '#3b82f6';
+        case 'ready': return '#10b981';
+        case 'broadcasting': return '#ef4444';
+        case 'error': return '#dc2626';
+        default: return '#6b7280';
+      }
+    };
+
+    return (
+      <div className={styles.statusDisplay}>
+        <div className={styles.statusHeader}>
+          <span className={styles.statusIcon} style={{ color: getStatusColor(streamStatus) }}>
+            {getStatusIcon(streamStatus)}
+          </span>
+          <span className={styles.statusText}>Stream Status</span>
+        </div>
+        <div className={styles.statusDetails}>
+          <div className={styles.statusItem}>
+            <span className={styles.statusLabel}>Camera:</span>
+            <span className={styles.statusValue}>
+              {cameraEnabled ? '✅' : '❌'}
+            </span>
+          </div>
+          <div className={styles.statusItem}>
+            <span className={styles.statusLabel}>Screen:</span>
+            <span className={styles.statusValue}>
+              {screenSharing ? '✅' : '❌'}
+            </span>
+          </div>
+          <div className={styles.statusItem}>
+            <span className={styles.statusLabel}>Stream:</span>
+            <span className={styles.statusValue}>
+              {streamStatus === 'broadcasting' ? '✅' : '❌'}
+            </span>
+          </div>
+          <div className={styles.statusItem}>
+            <span className={styles.statusLabel}>WebSocket:</span>
+            <span className={styles.statusValue}>
+              {isConnected ? '✅' : '❌'}
+            </span>
+          </div>
+          <div className={styles.statusItem}>
+            <span className={styles.statusLabel}>Streaming:</span>
+            <span className={styles.statusValue}>
+              {isStreaming ? '✅' : '❌'}
+            </span>
+          </div>
+          <div className={styles.statusItem}>
+            <span className={styles.statusLabel}>Viewers:</span>
+            <span className={styles.statusValue}>
+              {viewerCount}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={`${styles.hostStudio} ${className || ''}`}>
       {/* Header */}
@@ -706,6 +844,9 @@ export const HostStudio: React.FC<HostStudioProps> = ({
           <Icon name="SettingsIcon" size={24} />
         </button>
       </div>
+
+      {/* Status Display */}
+      {/* {renderStatusDisplay()} */}
 
       {/* Main Content */}
       <div className={styles.studioContent}>
@@ -750,7 +891,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
                 <p>Start camera or screen sharing to begin</p>
               </div>
             )}
-            
+
             {/* Debug info */}
             <div className={styles.debugInfo}>
               <p>Camera: {settings.cameraEnabled ? '✅' : '❌'}</p>

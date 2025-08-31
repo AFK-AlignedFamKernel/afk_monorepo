@@ -64,6 +64,15 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       console.log('WebSocket connected successfully');
       setIsConnected(true);
       setStreamKey(streamKey);
+      
+      // Emit a custom event to notify components that WebSocket is connected
+      window.dispatchEvent(new CustomEvent('websocket-connected', { 
+        detail: { 
+          streamKey,
+          socketId: newSocket.id,
+          timestamp: Date.now()
+        } 
+      }));
     });
 
     newSocket.on('disconnect', (reason) => {
@@ -72,11 +81,29 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       setIsStreaming(false);
       setStreamKey(null);
       setViewerCount(0);
+      
+      // Emit a custom event to notify components that WebSocket is disconnected
+      window.dispatchEvent(new CustomEvent('websocket-disconnected', { 
+        detail: { 
+          reason,
+          streamKey,
+          timestamp: Date.now()
+        } 
+      }));
     });
 
     newSocket.on('connect_error', (error) => {
       console.error('WebSocket connection error:', error);
       setIsConnected(false);
+      
+      // Emit a custom event to notify components that WebSocket connection failed
+      window.dispatchEvent(new CustomEvent('websocket-connection-error', { 
+        detail: { 
+          error: error.message || 'Connection failed',
+          streamKey,
+          timestamp: Date.now()
+        } 
+      }));
     });
 
     newSocket.on('stream-started', (data) => {
@@ -146,6 +173,17 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       
       // Emit custom event for components to listen to
       window.dispatchEvent(new CustomEvent('viewer-joined', { detail: data }));
+    });
+
+    // New stream status events
+    newSocket.on('stream-ready', (data) => {
+      console.log('Stream ready for broadcasting:', data);
+      window.dispatchEvent(new CustomEvent('stream-ready', { detail: data }));
+    });
+
+    newSocket.on('stream-initialized', (data) => {
+      console.log('Stream initialized:', data);
+      window.dispatchEvent(new CustomEvent('stream-initialized', { detail: data }));
     });
 
     socketRef.current = newSocket;

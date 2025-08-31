@@ -62,18 +62,36 @@ export async function handleStartStream(
         viewers: new Set(),
         broadcasterSocketId: socket.id,
         startedAt: new Date(),
+        isInitialized: true, // Mark as initialized
+        status: 'initializing'
       };
       activeStreams.set(data.streamKey, streamData);
       console.log('✅ Stream data added to active streams');
+    } else {
+      // Update existing stream data
+      streamData.command = ffmpegCommand;
+      streamData.inputStream = inputStream;
+      streamData.broadcasterSocketId = socket.id;
+      streamData.isInitialized = true;
+      streamData.status = 'initializing';
+      console.log('✅ Existing stream data updated');
     }
 
     socket.join(data.streamKey);
     console.log('🔌 Socket joined stream room:', data.streamKey);
 
+    // Emit stream initialization event
+    streamEvents.emit(STREAM_EVENTS.STREAM_INITIALIZED, {
+      streamKey: data.streamKey,
+      userId: data.userId,
+      status: 'initializing'
+    });
+
     ffmpegCommand
       .on('error', (err) => {
         console.error(`❌ FFmpeg error for stream ${data.streamKey}:`, err);
-
+        streamData.status = 'error';
+        
         streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
           error: err.message,
           streamKey: data.streamKey,
@@ -82,6 +100,21 @@ export async function handleStartStream(
 
       .on('start', () => {
         console.log('🎬 FFmpeg started for stream:', data.streamKey);
+        streamData.status = 'active';
+        
+        // Emit stream started event
+        streamEvents.emit(STREAM_EVENTS.STREAM_STARTED, {
+          streamKey: data.streamKey,
+          userId: data.userId,
+          status: 'active'
+        });
+        
+        // Notify the broadcaster that stream is ready
+        socket.emit('stream-started', {
+          streamKey: data.streamKey,
+          status: 'active',
+          message: 'Stream is now broadcasting'
+        });
       })
 
       .on('progress', (progress) => {
@@ -90,7 +123,9 @@ export async function handleStartStream(
 
       .on('end', (res) => {
         console.log('🏁 FFmpeg ended for stream:', data.streamKey, res);
+        streamData.status = 'ended';
         activeStreams.delete(data.streamKey);
+        
         streamEvents.emit(STREAM_EVENTS.STREAM_END, {
           streamKey: data.streamKey,
         });
@@ -113,8 +148,29 @@ export async function handleStartStream(
           console.log('✅ Stream directory created:', streamPath);
           const files = fs.readdirSync(streamPath);
           console.log('📁 Files in stream directory:', files);
+          
+          // Update stream status to ready
+          streamData.status = 'ready';
+          streamData.isInitialized = true;
+          
+          // Emit stream ready event
+          streamEvents.emit(STREAM_EVENTS.STREAM_READY, {
+            streamKey: data.streamKey,
+            userId: data.userId,
+            status: 'ready',
+            files: files
+          });
+          
+          // Notify broadcaster that stream is ready
+          socket.emit('stream-ready', {
+            streamKey: data.streamKey,
+            status: 'ready',
+            files: files,
+            message: 'Stream files are ready for broadcasting'
+          });
         } else {
           console.log('❌ Stream directory not created:', streamPath);
+          streamData.status = 'error';
         }
         
         if (fs.existsSync(m3u8Path)) {
@@ -130,86 +186,36 @@ export async function handleStartStream(
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:2
 #EXT-X-MEDIA-SEQUENCE:0
-#EXTINF:2.0,
 #EXT-X-ENDLIST`;
           
-          fs.writeFileSync(m3u8Path, basicManifest);
-          console.log('✅ Basic HLS manifest created');
+          try {
+            await fs.promises.writeFile(m3u8Path, basicManifest, 'utf8');
+            console.log('✅ Basic HLS manifest created');
+          } catch (writeError) {
+            console.error('❌ Failed to create basic HLS manifest:', writeError);
+          }
         }
-      } catch (error) {
-        console.error('❌ Error checking stream files:', error);
+      } catch (checkError) {
+        console.error('❌ Error checking stream files:', checkError);
       }
     }, 2000); // Check after 2 seconds
 
-    // Emit stream started confirmation to the broadcaster
-    socket.emit('stream-started', {
-      streamKey: data.streamKey,
-      streamingUrl: `${streamingUrl(data.streamKey, 'stream.m3u8')}`
-    });
-
-    // Notify all viewers that stream has started
-    socket.to(data.streamKey).emit('stream-started', {
-      streamKey: data.streamKey,
-      streamingUrl: `${streamingUrl(data.streamKey, 'stream.m3u8')}`
-    });
-
-    streamEvents.emit(STREAM_EVENTS.STREAMING_URL, {
-      streamingUrl: `${streamingUrl(data.streamKey, 'stream.m3u8')}`,
-    });
-
-    console.log('🎉 Stream setup completed successfully for:', data.streamKey);
   } catch (error) {
-    console.error('❌ Failed to setup stream:', error);
+    console.error('❌ Error in handleStartStream:', error);
     
-    // Try to create a basic stream structure even if FFmpeg fails
-    try {
-      console.log('🔄 Attempting to create basic stream structure...');
-      const fs = require('fs');
-      const path = require('path');
-      const streamPath = path.join(process.cwd(), 'public', 'livestreams', data.streamKey);
-      const m3u8Path = path.join(streamPath, 'stream.m3u8');
-      
-      // Ensure directory exists
-      if (!fs.existsSync(streamPath)) {
-        fs.mkdirSync(streamPath, { recursive: true });
-        console.log('✅ Created stream directory:', streamPath);
-      }
-      
-      // Create basic HLS manifest
-      const basicManifest = `#EXTM3U
-#EXT-X-VERSION:3
-#EXT-X-TARGETDURATION:2
-#EXT-X-MEDIA-SEQUENCE:0
-#EXTINF:2.0,
-#EXT-X-ENDLIST`;
-      
-      fs.writeFileSync(m3u8Path, basicManifest);
-      console.log('✅ Created basic HLS manifest:', m3u8Path);
-      
-      // Add to active streams even without FFmpeg
-      let streamData = activeStreams.get(data.streamKey);
-      if (!streamData) {
-        streamData = {
-          userId: data.userId,
-          streamKey: data.streamKey,
-          command: null,
-          inputStream: null,
-          viewers: new Set(),
-          broadcasterSocketId: socket.id,
-          startedAt: new Date(),
-        };
-        activeStreams.set(data.streamKey, streamData);
-        console.log('✅ Added stream to active streams (fallback mode)');
-      }
-      
-    } catch (fallbackError) {
-      console.error('❌ Fallback stream creation also failed:', fallbackError);
-    }
-    
+    // Emit error event
     streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       streamKey: data.streamKey,
     });
+    
+    // Notify broadcaster of error
+    socket.emit('stream-error', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      streamKey: data.streamKey,
+    });
+    
+    throw error;
   }
 }
 
