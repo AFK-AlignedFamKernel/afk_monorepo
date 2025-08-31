@@ -305,7 +305,14 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             errorMessage = 'Network error - stream may not be started';
             break;
           case MediaError.MEDIA_ERR_DECODE:
-            errorMessage = 'Video decode error';
+            // Check for HLS-specific errors
+            if (error.message.includes('DEMUXER_ERROR_DETECTED_HLS')) {
+              errorMessage = 'HLS manifest error - stream is waiting for broadcaster';
+            } else if (error.message.includes('DEMUXER_ERROR')) {
+              errorMessage = 'Video decode error - stream format issue';
+            } else {
+              errorMessage = 'Video decode error';
+            }
             break;
           case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
             errorMessage = 'Stream not found or not started';
@@ -362,6 +369,14 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     if (streamingUrl) {
       console.log('🎥 Setting streaming URL:', streamingUrl);
       setIsLive(true);
+      
+      // Check if we should wait for the stream to be ready
+      if (streamStatus === 'not_started' || streamStatus === 'loading') {
+        console.log('⏳ Stream not ready yet, waiting for broadcaster...');
+        setLoadError('Stream is waiting for broadcaster to connect...');
+        return;
+      }
+      
       if (videoRef.current) {
         // Add event listeners for better debugging
         const video = videoRef.current;
@@ -406,6 +421,13 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
                 break;
               case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
                 errorMessage = 'Stream not found or not started';
+                break;
+              case MediaError.MEDIA_ERR_DECODE:
+                if (target.error.message.includes('DEMUXER_ERROR_DETECTED_HLS')) {
+                  errorMessage = 'HLS manifest error - stream is waiting for broadcaster';
+                } else {
+                  errorMessage = 'Video decode error - stream format issue';
+                }
                 break;
               default:
                 errorMessage = `Stream error: ${target.error.message}`;
@@ -455,7 +477,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         videoRef.current.src = recordingUrl;
       }
     }
-  }, [streamingUrl, recordingUrl, streamId]);
+  }, [streamingUrl, recordingUrl, streamId, streamStatus]);
 
   // Use the hook's togglePlayPause function
   const handleTogglePlayPause = () => {
@@ -647,18 +669,25 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         <div className={styles.errorOverlay}>
           <div className={styles.errorContent}>
             <p className={styles.errorMessage}>{loadError}</p>
-            <button 
-              className={styles.retryButton}
-              onClick={() => {
-                setLoadError(null);
-                if (streamingUrl && videoRef.current) {
-                  videoRef.current.src = streamingUrl;
-                  videoRef.current.load();
-                }
-              }}
-            >
-              Retry
-            </button>
+            {loadError.includes('waiting for broadcaster') ? (
+              <div className={styles.waitingMessage}>
+                <p>⏳ The stream is ready but waiting for the broadcaster to go live...</p>
+                <p>Please wait for the host to start streaming.</p>
+              </div>
+            ) : (
+              <button 
+                className={styles.retryButton}
+                onClick={() => {
+                  setLoadError(null);
+                  if (streamingUrl && videoRef.current) {
+                    videoRef.current.src = streamingUrl;
+                    videoRef.current.load();
+                  }
+                }}
+              >
+                Retry
+              </button>
+            )}
           </div>
         </div>
       )}
