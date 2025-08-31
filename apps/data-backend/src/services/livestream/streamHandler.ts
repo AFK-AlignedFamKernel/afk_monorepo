@@ -196,18 +196,48 @@ export function handleJoinStream(socket: Socket, data: { streamKey: string }) {
   const stream = activeStreams.get(data.streamKey);
 
   if (!stream) {
-    streamEvents.emit(STREAM_EVENTS.STREAM_ERROR, {
+    console.log('❌ Stream not found for join request:', data.streamKey);
+    socket.emit('stream-error', {
       error: 'Stream not found',
+      streamKey: data.streamKey
     });
     return;
   }
 
+  console.log('👥 Viewer joining stream:', {
+    streamKey: data.streamKey,
+    viewerId: socket.id,
+    currentViewers: stream.viewers.size,
+    broadcasterId: stream.broadcasterSocketId
+  });
+
   socket.join(data.streamKey);
   stream.viewers.add(socket.id);
 
+  // Notify the broadcaster that a new viewer joined
+  socket.to(stream.broadcasterSocketId).emit('viewer-joined', {
+    streamKey: data.streamKey,
+    viewerId: socket.id,
+    viewerCount: stream.viewers.size
+  });
+
+  // Notify the viewer that they successfully joined
+  socket.emit('stream-joined', {
+    streamKey: data.streamKey,
+    viewerCount: stream.viewers.size,
+    isLive: true
+  });
+
+  // Update viewer count for all
   streamEvents.emit(STREAM_EVENTS.VIEWER_COUNT, {
     streamKey: data.streamKey,
     count: stream.viewers.size,
+  });
+
+  console.log('✅ Viewer joined stream successfully:', {
+    streamKey: data.streamKey,
+    viewerId: socket.id,
+    totalViewers: stream.viewers.size
   });
 }
 

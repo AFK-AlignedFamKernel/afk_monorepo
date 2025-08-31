@@ -58,6 +58,30 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     setupMediaStream
   } = useLivestreamWebSocket();
 
+  // Listen for stream started events
+  useEffect(() => {
+    const handleStreamStarted = (event: CustomEvent) => {
+      console.log('🎬 Stream started event received:', event.detail);
+      setIsLive(true);
+      setIsStreaming(true);
+      setIsGoingLive(false);
+      showToast({ message: 'You are now live!', type: 'success' });
+      onGoLive?.();
+    };
+
+    const handleStreamDataReceived = (event: CustomEvent) => {
+      console.log('📺 Stream data received:', event.detail);
+    };
+
+    window.addEventListener('stream-started', handleStreamStarted as EventListener);
+    window.addEventListener('stream-data-received', handleStreamDataReceived as EventListener);
+
+    return () => {
+      window.removeEventListener('stream-started', handleStreamStarted as EventListener);
+      window.removeEventListener('stream-data-received', handleStreamDataReceived as EventListener);
+    };
+  }, [onGoLive, showToast]);
+
   const {
     stream,
     screenStream,
@@ -416,11 +440,11 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     }
 
     try {
-      console.log('Starting livestream setup...');
+      console.log('🎬 Starting livestream setup...');
       
       // Connect to WebSocket
       connect(streamId);
-      console.log('WebSocket connection initiated...');
+      console.log('🔌 WebSocket connection initiated...');
       
       // // Wait for connection with better error handling
       // await new Promise((resolve, reject) => {
@@ -454,20 +478,20 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       // });
       // checkConnection();
 
-      console.log('WebSocket connected, starting stream...');
+      console.log('✅ WebSocket connected, starting stream...');
 
       // Start WebSocket stream
       startWebSocketStream(streamId, publicKey || '');
-      console.log('WebSocket stream started');
+      console.log('📡 WebSocket stream started');
       
       // Setup media stream for WebSocket
       setupMediaStream(currentStream);
-      console.log('Media stream setup complete');
+      console.log('🎥 Media stream setup complete');
 
              // Update event status - use backend URL directly for streaming
        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
        const streamingUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
-       console.log('Streaming URL:', streamingUrl);
+       console.log('🔗 Streaming URL:', streamingUrl);
        
        // Also check if there's an existing streaming URL in the event (NIP-53 compliance)
        let existingStreamingUrl = null;
@@ -492,7 +516,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       setIsGoingLive(true);
       
       // Always try to update event status, even if event data is missing
-      console.log('Updating event status with:', {
+      console.log('📝 Updating event status with:', {
         eventId: streamId,
         status: 'live',
         streamingUrl,
@@ -535,7 +559,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       setIsGoingLive(false);
       showToast({ message: `Failed to start stream: ${error instanceof Error ? error.message : 'Unknown error'}`, type: 'error' });
     }
-  }, [streamId, event, updateEvent, showToast, onGoLive, getCombinedStream, connect, isConnected, startWebSocketStream, setupMediaStream, publicKey]);
+  }, [streamId, event, updateEvent, showToast, onGoLive, getCombinedStream, connect, isConnected, startWebSocketStream, setupMediaStream, publicKey, refetchEvent]);
 
   // Stop streaming with Cloudinary integration
   const stopStreaming = useCallback(async () => {
