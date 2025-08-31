@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import * as fs from 'fs';
 import path from 'path';
-import { activeStreams } from './streamHandler';
+import { activeStreams, initializeStreamForHttp } from './streamHandler';
 import { cloudinaryLivestreamService } from './cloudinaryService';
 
 /**
@@ -264,6 +264,9 @@ export async function startStream(
       
       // Mark as active
       const updatedStream = await cloudinaryLivestreamService.startStream(streamId);
+
+      // Initialize the stream handler for this stream
+      await initializeStreamForHttp(streamId, userId || 'anonymous');
       
       return reply.send({
         status: 'already_exists',
@@ -286,6 +289,9 @@ export async function startStream(
 
     // Mark as active
     await cloudinaryLivestreamService.startStream(streamId);
+
+    // Initialize the stream handler for this stream
+    await initializeStreamForHttp(streamId, userId || 'anonymous');
 
     console.log(`✅ Cloudinary stream ${streamId} created and started successfully`);
     

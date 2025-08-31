@@ -345,6 +345,59 @@ export async function handleEndStream(
   }
 }
 
+/**
+ * Initialize stream data for HTTP endpoints (without socket)
+ * This is used when the /start endpoint is called to prepare the stream
+ */
+export async function initializeStreamForHttp(
+  streamKey: string,
+  userId: string
+) {
+  try {
+    console.log('🎬 Initializing stream data for HTTP endpoint:', streamKey);
+    
+    // Check if stream already exists
+    let streamData = activeStreams.get(streamKey);
+    
+    if (!streamData) {
+      // Create basic stream data structure
+      streamData = {
+        userId: userId,
+        streamKey: streamKey,
+        command: null, // Will be set when broadcaster connects
+        inputStream: null, // Will be set when broadcaster connects
+        viewers: new Set(),
+        broadcasterSocketId: null, // Will be set when broadcaster connects
+        startedAt: new Date(),
+        isInitialized: true, // Mark as initialized
+        status: 'waiting_for_broadcaster' // Waiting for broadcaster to connect
+      };
+      activeStreams.set(streamKey, streamData);
+      console.log('✅ Stream data initialized for HTTP endpoint');
+    } else {
+      // Update existing stream data
+      streamData.isInitialized = true;
+      streamData.status = 'waiting_for_broadcaster';
+      streamData.startedAt = new Date();
+      console.log('✅ Existing stream data updated for HTTP endpoint');
+    }
+
+    // Emit stream initialization event
+    streamEvents.emit(STREAM_EVENTS.STREAM_INITIALIZED, {
+      streamKey: streamKey,
+      userId: userId,
+      status: 'waiting_for_broadcaster'
+    });
+
+    console.log(`🎯 Stream ${streamKey} is now waiting for broadcaster to connect`);
+    return streamData;
+
+  } catch (error) {
+    console.error('❌ Failed to initialize stream for HTTP endpoint:', error);
+    throw error;
+  }
+}
+
 const cleanupStreamDirectory = async (streamKey: string): Promise<void> => {
   try {
     const streamPath = path.join(process.cwd(), 'public', 'livestreams', streamKey);
