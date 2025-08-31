@@ -16,7 +16,7 @@ interface LivestreamWebSocketContextType {
   sendStreamData: (chunk: Blob) => void;
   joinStream: (streamKey: string, userId: string) => void;
   leaveStream: () => void;
-  setupMediaStream: (mediaStream: MediaStream) => void;
+  setupMediaStream: (mediaStream: MediaStream, streamKeyParam?: string) => void;
   cleanup: () => void;
 }
 
@@ -195,7 +195,13 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       window.dispatchEvent(new CustomEvent('stream-initialized', { detail: data }));
     });
 
+    // Store the socket reference for later use
     socketRef.current = newSocket;
+    console.log('🔌 Socket reference set:', { 
+      socketRef: !!socketRef.current, 
+      socketId: newSocket.id,
+      connected: newSocket.connected 
+    });
     setSocket(newSocket);
   }, [backendUrl]);
 
@@ -212,36 +218,52 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
   }, []);
 
   const startStream = useCallback((streamKey: string, userId: string) => {
-    console.log('🎬 startStream called with:', { streamKey, userId });
-    console.log('Socket state:', { 
-      socket: socketRef.current, 
-      connected: socketRef.current?.connected,
-      isConnected,
-      socketId: socketRef.current?.id
-    });
+    try {
+      console.log('🎬 startStream called with:', { streamKey, userId });
+      console.log('Socket state:', { 
+        socket: socketRef.current, 
+        connected: socketRef.current?.connected,
+        isConnected,
+        socketId: socketRef.current?.id,
+        socketRefExists: !!socketRef.current,
+        socketConnectedProperty: socketRef.current?.connected,
+        socketState: socketRef.current?.io?._readyState
+      });
 
-    if (!socketRef.current?.connected) {
-      console.error('❌ Socket not connected');
-      return;
+      if (!isConnected) {
+        console.error('❌ Socket not connected (using isConnected state)');
+        return;
+      }
+
+      if (!socketRef.current) {
+        console.error('❌ Socket reference is null');
+        return;
+      }
+
+      console.log('📡 Emitting start-stream event...');
+      socketRef.current.emit('start-stream', {
+        userId,
+        streamKey,
+        timestamp: Date.now()
+      });
+      console.log('✅ start-stream event emitted');
+      
+      // Set the stream key and streaming state immediately for this session
+      setStreamKey(streamKey);
+      setIsStreaming(true);
+      
+      // Also update refs for immediate access
+      streamKeyRef.current = streamKey;
+      isStreamingRef.current = true;
+      
+      console.log('✅ Stream state set locally:', { streamKey, isStreaming: true });
+      console.log('✅ Refs updated:', { 
+        streamKeyRef: streamKeyRef.current, 
+        isStreamingRef: isStreamingRef.current 
+      });
+    } catch (error) {
+      console.error('❌ Error in startStream:', error);
     }
-
-    console.log('📡 Emitting start-stream event...');
-    socketRef.current.emit('start-stream', {
-      userId,
-      streamKey,
-      timestamp: Date.now()
-    });
-    console.log('✅ start-stream event emitted');
-    
-    // Set the stream key and streaming state immediately for this session
-    setStreamKey(streamKey);
-    setIsStreaming(true);
-    
-    // Also update refs for immediate access
-    streamKeyRef.current = streamKey;
-    isStreamingRef.current = true;
-    
-    console.log('✅ Stream state set locally:', { streamKey, isStreaming: true });
   }, [isConnected]);
 
   const stopStream = useCallback(() => {
@@ -283,6 +305,12 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     // Use refs for current values to avoid closure issues
     const currentStreamKey = streamKeyRef.current;
     const currentIsStreaming = isStreamingRef.current;
+    
+    console.log('🔍 sendStreamData called with refs:', {
+      currentStreamKey,
+      currentIsStreaming,
+      socketConnected: socketRef.current?.connected
+    });
     
     if (!socketRef.current?.connected || !currentIsStreaming) {
       console.log('⚠️ Cannot send stream data:', {
@@ -354,13 +382,16 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
   }, [streamKey]);
 
   // Setup media stream for broadcasting
-  const setupMediaStream = useCallback((mediaStream: MediaStream) => {
+  const setupMediaStream = useCallback((mediaStream: MediaStream, streamKeyParam?: string) => {
     streamRef.current = mediaStream;
+    
+    // Use the passed streamKey parameter or fall back to state
+    const currentStreamKey = streamKeyParam || streamKey;
     
     try {
       console.log('🎥 Setting up MediaRecorder for stream:', {
         tracks: mediaStream.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })),
-        streamId: streamKey
+        streamId: currentStreamKey
       });
 
       const mediaRecorder = new MediaRecorder(mediaStream, {
@@ -373,7 +404,7 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
           console.log('📡 MediaRecorder data available:', {
             size: event.data.size,
             type: event.data.type,
-            streamId: streamKey
+            streamId: currentStreamKey
           });
           sendStreamData(event.data);
         }

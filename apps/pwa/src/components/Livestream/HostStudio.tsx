@@ -569,6 +569,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       console.log('✅ WebSocket connected, starting stream...');
 
       // Start WebSocket stream
+      console.log('🎬 About to call startWebSocketStream with:', { streamId, publicKey });
       startWebSocketStream(streamId, publicKey || '');
       console.log('📡 WebSocket stream started');
 
