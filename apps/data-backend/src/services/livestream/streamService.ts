@@ -45,8 +45,6 @@ export async function ensureDir(dir: string) {
 export function createInputStream() {
   return new Readable({
     read() {},
-    // Enable object mode to handle Buffer chunks properly
-    objectMode: false,
     // Set high water mark for better performance
     highWaterMark: 1024 * 1024 // 1MB
   });

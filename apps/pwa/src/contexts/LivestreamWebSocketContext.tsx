@@ -113,6 +113,16 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       window.dispatchEvent(new CustomEvent('stream-joined', { detail: data }));
     });
 
+    newSocket.on('stream-initialized', (data) => {
+      console.log('Stream initialized with HLS data:', data);
+      window.dispatchEvent(new CustomEvent('stream-initialized', { detail: data }));
+    });
+
+    newSocket.on('stream-segments-updated', (data) => {
+      console.log('Stream segments updated:', data);
+      window.dispatchEvent(new CustomEvent('stream-segments-updated', { detail: data }));
+    });
+
     newSocket.on('viewer-joined', (data) => {
       console.log('Viewer joined:', data);
       setViewerCount(data.viewerCount);

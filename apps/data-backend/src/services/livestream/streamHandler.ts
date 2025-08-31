@@ -232,9 +232,45 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
     console.log(`📡 Chunk type: ${typeof data.chunk}, isBuffer: ${Buffer.isBuffer(data.chunk)}`);
     
     // Push the chunk to the FFmpeg input stream
-    stream.inputStream.push(chunk);
+    if (stream.inputStream && !stream.inputStream.destroyed) {
+      stream.inputStream.push(chunk);
+      console.log(`✅ Stream data pushed to FFmpeg: ${chunk.length} bytes, stream: ${data.streamKey}`);
+    } else {
+      console.log('⚠️ Input stream is destroyed or unavailable');
+    }
     
-    console.log(`✅ Stream data pushed to FFmpeg: ${chunk.length} bytes, stream: ${data.streamKey}`);
+    // Check if HLS files are being created
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const streamPath = path.join(process.cwd(), 'public', 'livestreams', data.streamKey);
+      const m3u8Path = path.join(streamPath, 'stream.m3u8');
+      
+      if (fs.existsSync(streamPath)) {
+        const files = fs.readdirSync(streamPath);
+        const segmentFiles = files.filter(file => file.endsWith('.ts'));
+        const hasManifest = fs.existsSync(m3u8Path);
+        
+        console.log('📁 Stream directory status:', {
+          streamKey: data.streamKey,
+          hasManifest,
+          segmentCount: segmentFiles.length,
+          files: files
+        });
+        
+        // If we have segments, notify viewers that new content is available
+        if (segmentFiles.length > 0) {
+          socket.to(data.streamKey).emit('stream-segments-updated', {
+            streamKey: data.streamKey,
+            segmentCount: segmentFiles.length,
+            latestSegment: segmentFiles[segmentFiles.length - 1],
+            timestamp: Date.now()
+          });
+        }
+      }
+    } catch (fileCheckError) {
+      console.log('⚠️ Could not check stream files:', fileCheckError);
+    }
     
     // Broadcast stream data to all viewers in the same stream room
     const viewersInRoom = stream.viewers.size;
@@ -340,18 +376,60 @@ export function handleJoinStream(socket: Socket, data: { streamKey: string }) {
   socket.join(data.streamKey);
   stream.viewers.add(socket.id);
 
+  // Check if HLS stream files exist and provide them to the viewer
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const streamPath = path.join(process.cwd(), 'public', 'livestreams', data.streamKey);
+    const m3u8Path = path.join(streamPath, 'stream.m3u8');
+    
+    if (fs.existsSync(m3u8Path)) {
+      const manifestContent = fs.readFileSync(m3u8Path, 'utf8');
+      const segmentFiles = fs.readdirSync(streamPath).filter(file => file.endsWith('.ts'));
+      
+      console.log('📁 Found existing HLS files for viewer:', {
+        streamKey: data.streamKey,
+        manifestExists: !!manifestContent,
+        segmentCount: segmentFiles.length,
+        segments: segmentFiles
+      });
+
+      // Send existing stream data to the viewer
+      socket.emit('stream-initialized', {
+        streamKey: data.streamKey,
+        manifestUrl: `/livestream/${data.streamKey}/stream.m3u8`,
+        segmentCount: segmentFiles.length,
+        isLive: true,
+        message: 'Stream initialized with existing HLS data'
+      });
+    } else {
+      console.log('⚠️ No HLS files found for viewer, stream may not be started yet');
+      
+      // Send stream joined without HLS data
+      socket.emit('stream-joined', {
+        streamKey: data.streamKey,
+        viewerCount: stream.viewers.size,
+        isLive: false,
+        message: 'Stream joined but not yet started'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error checking HLS files for viewer:', error);
+    
+    // Fallback to basic stream joined
+    socket.emit('stream-joined', {
+      streamKey: data.streamKey,
+      viewerCount: stream.viewers.size,
+      isLive: false,
+      message: 'Stream joined (HLS check failed)'
+    });
+  }
+
   // Notify the broadcaster that a new viewer joined
   socket.to(stream.broadcasterSocketId).emit('viewer-joined', {
     streamKey: data.streamKey,
     viewerId: socket.id,
     viewerCount: stream.viewers.size
-  });
-
-  // Notify the viewer that they successfully joined
-  socket.emit('stream-joined', {
-    streamKey: data.streamKey,
-    viewerCount: stream.viewers.size,
-    isLive: true
   });
 
   // Update viewer count for all

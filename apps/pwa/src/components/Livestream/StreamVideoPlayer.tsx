@@ -62,6 +62,27 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     const handleStreamJoined = (event: CustomEvent) => {
       console.log('✅ Stream joined successfully:', event.detail);
       setViewerCount(event.detail.viewerCount || 0);
+      setIsLive(event.detail.isLive || false);
+    };
+
+    const handleStreamInitialized = (event: CustomEvent) => {
+      console.log('🎬 Stream initialized with HLS data:', event.detail);
+      setIsLive(true);
+      setViewerCount(event.detail.viewerCount || 0);
+      
+      // If we have a manifest URL, update the video source
+      if (event.detail.manifestUrl && videoRef.current) {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+        const fullUrl = `${backendUrl}${event.detail.manifestUrl}`;
+        console.log('🎥 Updating video source to HLS manifest:', fullUrl);
+        videoRef.current.src = fullUrl;
+      }
+    };
+
+    const handleStreamSegmentsUpdated = (event: CustomEvent) => {
+      console.log('📺 Stream segments updated:', event.detail);
+      // This indicates new content is available
+      setIsLive(true);
     };
 
     const handleStreamData = (event: CustomEvent) => {
@@ -75,11 +96,15 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     };
 
     window.addEventListener('stream-joined', handleStreamJoined as EventListener);
+    window.addEventListener('stream-initialized', handleStreamInitialized as EventListener);
+    window.addEventListener('stream-segments-updated', handleStreamSegmentsUpdated as EventListener);
     window.addEventListener('stream-data-received', handleStreamData as EventListener);
     window.addEventListener('viewer-count-update', handleViewerCountUpdate as EventListener);
 
     return () => {
       window.removeEventListener('stream-joined', handleStreamJoined as EventListener);
+      window.removeEventListener('stream-initialized', handleStreamInitialized as EventListener);
+      window.removeEventListener('stream-segments-updated', handleStreamSegmentsUpdated as EventListener);
       window.removeEventListener('stream-data-received', handleStreamData as EventListener);
       window.removeEventListener('viewer-count-update', handleViewerCountUpdate as EventListener);
     };
