@@ -42,12 +42,22 @@ export async function serveHLSManifest(
     // Check if stream is initialized but not broadcasting
     if (streamData?.isInitialized && !streamData.command) {
       console.log(`Stream ${streamId} is initialized but waiting for broadcaster`);
-      // Return a special status indicating the stream is ready but not broadcasting
-      return reply.status(200).send({
-        status: 'waiting_for_broadcaster',
-        message: 'Stream is ready but broadcaster has not connected yet',
-        streamId
-      });
+      // Return a basic HLS manifest that indicates waiting state
+      const waitingManifest = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:2
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:EVENT
+#EXTINF:2.0,
+#EXT-X-ENDLIST`;
+      
+      reply.header('Content-Type', 'application/vnd.apple.mpegurl');
+      reply.header('Cache-Control', 'no-cache');
+      reply.header('Access-Control-Allow-Origin', '*');
+      reply.header('Access-Control-Allow-Methods', 'GET, HEAD');
+      reply.header('Access-Control-Allow-Headers', '*');
+      
+      return reply.send(waitingManifest);
     }
     
     // Set appropriate headers for HLS

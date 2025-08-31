@@ -52,6 +52,29 @@ export async function registerLivestreamRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // Ingest endpoint for RTMP/WebRTC input
+  fastify.get('/livestream/:streamId/ingest', async (request, reply) => {
+    const { streamId } = request.params as { streamId: string };
+    try {
+      // Check if stream exists and is active
+      const stream = await cloudinaryLivestreamService.getStream(streamId);
+      if (!stream) {
+        return reply.status(404).send({ error: 'Stream not found' });
+      }
+      
+      // Return ingest information
+      return reply.send({
+        streamId,
+        ingestUrl: stream.streamUrl,
+        status: stream.status,
+        message: 'Stream ingest endpoint ready',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      return reply.status(500).send({ error: 'Failed to get ingest information' });
+    }
+  });
+
   // HLS manifest file
   fastify.get('/livestream/:streamId/stream.m3u8', serveHLSManifest);
 
