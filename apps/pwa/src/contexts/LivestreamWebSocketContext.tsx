@@ -111,6 +111,10 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       setStreamKey(null);
       setViewerCount(0);
       
+      // Reset refs on disconnect
+      streamKeyRef.current = null;
+      isStreamingRef.current = false;
+      
       // Emit a custom event to notify components that WebSocket is disconnected
       window.dispatchEvent(new CustomEvent('websocket-disconnected', { 
         detail: { 
@@ -124,6 +128,10 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     newSocket.on('connect_error', (error) => {
       console.error('WebSocket connection error:', error);
       setIsConnected(false);
+      
+      // Reset refs on connection error
+      streamKeyRef.current = null;
+      isStreamingRef.current = false;
       
       // Emit a custom event to notify components that WebSocket connection failed
       window.dispatchEvent(new CustomEvent('websocket-connection-error', { 
@@ -223,18 +231,52 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       connected: newSocket.connected 
     });
     setSocket(newSocket);
+    
+    // Add connection timeout to prevent infinite connection attempts
+    const connectionTimeout = setTimeout(() => {
+      if (!newSocket.connected) {
+        console.error('❌ WebSocket connection timeout after 20 seconds');
+        newSocket.disconnect();
+        setIsConnected(false);
+        streamKeyRef.current = null;
+        isStreamingRef.current = false;
+        
+        // Emit timeout event
+        window.dispatchEvent(new CustomEvent('websocket-connection-timeout', { 
+          detail: { 
+            streamKey,
+            timestamp: Date.now()
+          } 
+        }));
+      }
+    }, 20000);
+    
+    // Clear timeout on successful connection
+    newSocket.on('connect', () => {
+      clearTimeout(connectionTimeout);
+    });
   }, [backendUrl]);
 
   const disconnect = useCallback(() => {
+    console.log('🔌 Disconnecting WebSocket...');
+    
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
       setSocket(null);
     }
+    
+    // Reset all state
     setIsConnected(false);
     setIsStreaming(false);
     setStreamKey(null);
     setViewerCount(0);
+    
+    // Reset refs
+    streamKeyRef.current = null;
+    isStreamingRef.current = false;
+    
+    console.log('✅ WebSocket disconnected and state reset');
   }, []);
 
   const startStream = useCallback((streamKey: string, userId: string) => {
@@ -676,6 +718,21 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       console.log('🛑 Cleaning up active WebSocket stream:', streamKey);
       stopStream();
     }
+    
+    // Clean up MediaRecorder
+    if (mediaRecorderRef.current) {
+      console.log('🎬 Cleaning up MediaRecorder');
+      if (mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
+      }
+      mediaRecorderRef.current = null;
+    }
+    
+    // Reset refs
+    streamKeyRef.current = null;
+    isStreamingRef.current = false;
+    
+    console.log('✅ All streams cleaned up');
   }, [isStreaming, streamKey, stopStream]);
 
   // Cleanup on unmount

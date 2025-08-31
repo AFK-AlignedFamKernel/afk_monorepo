@@ -509,6 +509,12 @@ export const HostStudio: React.FC<HostStudioProps> = ({
 
   // Go live
   const handleGoLive = useCallback(async () => {
+    // Prevent multiple go-live attempts
+    if (isGoingLive) {
+      console.log('⚠️ Go-live already in progress, skipping duplicate attempt');
+      return;
+    }
+
     const currentStream = getCombinedStream();
     if (!currentStream) {
       showToast({ message: 'Please start camera or screen sharing first', type: 'error' });
@@ -658,12 +664,20 @@ export const HostStudio: React.FC<HostStudioProps> = ({
           },
         }
       );
-    } catch (error) {
-      console.error('❌ Failed to start stream:', error);
-      setIsGoingLive(false);
-      showToast({ message: `Failed to start stream: ${error instanceof Error ? error.message : 'Unknown error'}`, type: 'error' });
-    }
-  }, [streamId, event, updateEvent, showToast, onGoLive, getCombinedStream, connect, isConnected, startWebSocketStream, setupMediaStream, publicKey, refetchEvent]);
+          } catch (error) {
+        console.error('❌ Failed to start stream:', error);
+        setIsGoingLive(false);
+        setStreamStatus('error');
+        showToast({ message: `Failed to start stream: ${error instanceof Error ? error.message : 'Unknown error'}`, type: 'error' });
+        
+        // Reset connection state on error
+        if (isConnected) {
+          console.log('🔄 Resetting connection state due to error...');
+          // Note: Don't call disconnect() here as it might cause infinite loops
+          // Just reset the local state
+        }
+      }
+    }, [streamId, event, updateEvent, showToast, onGoLive, getCombinedStream, connect, isConnected, startWebSocketStream, setupMediaStream, publicKey, refetchEvent]);
 
   // Stop streaming with Cloudinary integration
   const stopStreaming = useCallback(async () => {
