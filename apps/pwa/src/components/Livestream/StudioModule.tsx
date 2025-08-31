@@ -40,6 +40,7 @@ export const StudioModule: React.FC<StudioModuleProps> = ({
   const { data, isFetching, refetch, isPending, isLoading } = useGetLiveEvents({
     limit: 10,
   });
+  console.log('data livestream events', data);
   const queryClient = useQueryClient();
   const [isModalVisible, setModalVisible] = useState(false);
 

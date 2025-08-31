@@ -36,6 +36,7 @@ export const useMediaStream = (): MediaStreamHook => {
   // Start camera stream
   const startCamera = useCallback(async () => {
     try {
+      console.log('🎬 Starting camera in hook...');
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
@@ -49,6 +50,7 @@ export const useMediaStream = (): MediaStreamHook => {
         }
       });
 
+      console.log('🎬 Camera stream obtained, setting state...');
       streamRef.current = mediaStream;
       setStream(mediaStream);
       setState(prev => ({
@@ -58,7 +60,8 @@ export const useMediaStream = (): MediaStreamHook => {
         isStreaming: true
       }));
 
-      console.log('Camera stream started');
+      console.log('Camera stream started, stream tracks:', mediaStream.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })));
+      console.log('🎬 Camera state updated, stream ref:', streamRef.current);
     } catch (error) {
       console.error('Failed to start camera:', error);
       throw error;
@@ -98,6 +101,7 @@ export const useMediaStream = (): MediaStreamHook => {
   // Start screen sharing
   const startScreenSharing = useCallback(async () => {
     try {
+      console.log('🖥️ Starting screen sharing in hook...');
       const mediaStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
           cursor: 'always',
@@ -106,6 +110,7 @@ export const useMediaStream = (): MediaStreamHook => {
         audio: false
       });
 
+      console.log('🖥️ Screen stream obtained, setting state...');
       screenStreamRef.current = mediaStream;
       setScreenStream(mediaStream);
       setState(prev => ({
@@ -113,12 +118,24 @@ export const useMediaStream = (): MediaStreamHook => {
         screenSharing: true
       }));
 
-      // Handle screen share stop
-      mediaStream.getVideoTracks()[0].onended = () => {
-        stopScreenSharing();
+      // Handle screen share stop - use a local function to avoid circular dependency
+      const handleScreenShareEnd = () => {
+        console.log('🖥️ Screen share ended by user or system');
+        if (screenStreamRef.current === mediaStream) {
+          screenStreamRef.current = null;
+          setScreenStream(null);
+          setState(prev => ({
+            ...prev,
+            screenSharing: false
+          }));
+          console.log('Screen sharing stopped by system');
+        }
       };
 
-      console.log('Screen sharing started');
+      mediaStream.getVideoTracks()[0].onended = handleScreenShareEnd;
+
+      console.log('Screen sharing started, stream tracks:', mediaStream.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })));
+      console.log('🖥️ Screen state updated, screen stream ref:', screenStreamRef.current);
     } catch (error) {
       console.error('Failed to start screen sharing:', error);
       throw error;
@@ -136,8 +153,9 @@ export const useMediaStream = (): MediaStreamHook => {
       ...prev,
       screenSharing: false
     }));
-    console.log('Screen sharing stopped');
+    console.log('Screen sharing stopped manually');
   }, []);
+
 
   // Get combined stream (screen sharing takes priority over camera)
   const getCombinedStream = useCallback(() => {

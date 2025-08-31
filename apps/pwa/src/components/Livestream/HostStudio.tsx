@@ -173,17 +173,118 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     getMediaDevices();
   }, []);
 
+  // Auto-update video element when streams change
+  useEffect(() => {
+    if (videoRef.current) {
+      console.log('🔄 Streams changed - updating video element:', {
+        hasScreenStream: !!screenStream,
+        hasCameraStream: !!stream,
+        screenStreamTracks: screenStream?.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })),
+        cameraStreamTracks: stream?.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled }))
+      });
+      
+      // Screen sharing takes priority over camera
+      if (screenStream && screenStream.active) {
+        videoRef.current.srcObject = screenStream;
+        console.log('📺 Set video to screen stream');
+        
+        // Force video to load and play
+        videoRef.current.load();
+        videoRef.current.play().catch(e => console.log('Auto-play prevented:', e));
+      } else if (stream && stream.active) {
+        videoRef.current.srcObject = stream;
+        console.log('📷 Set video to camera stream');
+        
+        // Force video to load and play
+        videoRef.current.load();
+        videoRef.current.play().catch(e => console.log('Auto-play prevented:', e));
+      } else {
+        videoRef.current.srcObject = null;
+        console.log('❌ No active stream available');
+      }
+    }
+  }, [stream, screenStream]);
+
+  // Initialize video element on mount
+  useEffect(() => {
+    console.log('🎬 HostStudio mounted, initializing video element');
+    console.log('🎬 Initial stream state:', { stream, screenStream });
+    
+    // Set initial stream if available
+    if (videoRef.current) {
+      if (screenStream) {
+        videoRef.current.srcObject = screenStream;
+        console.log('📺 Initial screen stream set');
+      } else if (stream) {
+        videoRef.current.srcObject = stream;
+        console.log('📷 Initial camera stream set');
+      }
+    }
+  }, []); // Only run on mount
+
+  // Ensure video element is properly initialized
+  useEffect(() => {
+    if (videoRef.current) {
+      console.log('🎬 Video element ready, dimensions:', {
+        width: videoRef.current.offsetWidth,
+        height: videoRef.current.offsetHeight,
+        videoWidth: videoRef.current.videoWidth,
+        videoHeight: videoRef.current.videoHeight
+      });
+    }
+  }, []);
+
+  // Update video element when settings change
+  useEffect(() => {
+    console.log('⚙️ Settings changed:', settings);
+    
+    if (videoRef.current) {
+      // Ensure video element shows the correct stream based on current settings
+      if (settings.screenSharing && screenStream && screenStream.active) {
+        videoRef.current.srcObject = screenStream;
+        console.log('📺 Settings update: Set video to screen stream');
+        
+        // Force video to load and play
+        videoRef.current.load();
+        videoRef.current.play().catch(e => console.log('Settings update auto-play prevented:', e));
+      } else if (settings.cameraEnabled && stream && stream.active) {
+        videoRef.current.srcObject = stream;
+        console.log('📷 Settings update: Set video to camera stream');
+        
+        // Force video to load and play
+        videoRef.current.load();
+        videoRef.current.play().catch(e => console.log('Settings update auto-play prevented:', e));
+      }
+    }
+  }, [settings, stream, screenStream]);
+
   // Start camera stream using hook
   const handleStartCamera = useCallback(async (deviceId?: string) => {
     try {
+      console.log('🎬 Starting camera...');
       await startCamera();
       setSettings(prev => ({ ...prev, cameraEnabled: true }));
+      
+      // Small delay to ensure state updates are processed
+      setTimeout(() => {
+        console.log('📷 Camera started, current stream:', stream);
+        console.log('📷 Video ref current:', videoRef.current);
+        
+        // Update video element to show camera stream
+        if (stream && videoRef.current) {
+          videoRef.current.srcObject = stream;
+          console.log('✅ Camera stream set to video element');
+        } else {
+          console.log('⚠️ No stream or video ref available');
+        }
+      }, 100);
+      
       showToast({ message: 'Camera started', type: 'success' });
     } catch (error) {
       console.error('Error starting camera:', error);
       showToast({ message: 'Failed to start camera', type: 'error' });
     }
-  }, [startCamera, showToast]);
+  }, [startCamera, stream, showToast]);
 
   // Stop camera stream using hook
   const handleStopCamera = useCallback(() => {
@@ -197,14 +298,30 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   // Start screen sharing using hook
   const handleStartScreenShare = useCallback(async () => {
     try {
+      console.log('🖥️ Starting screen sharing...');
       await startScreenSharing();
       setSettings(prev => ({ ...prev, screenSharing: true }));
+      
+      // Small delay to ensure state updates are processed
+      setTimeout(() => {
+        console.log('🖥️ Screen sharing started, current screen stream:', screenStream);
+        console.log('🖥️ Video ref current:', videoRef.current);
+        
+        // Update video element to show screen share
+        if (screenStream && videoRef.current) {
+          videoRef.current.srcObject = screenStream;
+          console.log('✅ Screen stream set to video element');
+        } else {
+          console.log('⚠️ No screen stream or video ref available');
+        }
+      }, 100);
+      
       showToast({ message: 'Screen sharing started', type: 'success' });
     } catch (error) {
       console.error('Error starting screen share:', error);
       showToast({ message: 'Failed to start screen sharing', type: 'error' });
     }
-  }, [startScreenSharing, showToast]);
+  }, [startScreenSharing, screenStream, showToast]);
 
   // Stop screen sharing using hook
   const handleStopScreenShare = useCallback(() => {
@@ -561,6 +678,29 @@ export const HostStudio: React.FC<HostStudioProps> = ({
               autoPlay
               muted
               playsInline
+              onLoadedMetadata={() => {
+                console.log('Video metadata loaded:', {
+                  videoWidth: videoRef.current?.videoWidth,
+                  videoHeight: videoRef.current?.videoHeight,
+                  srcObject: videoRef.current?.srcObject
+                });
+              }}
+              onCanPlay={() => {
+                console.log('Video can play:', {
+                  videoWidth: videoRef.current?.videoWidth,
+                  videoHeight: videoRef.current?.videoHeight,
+                  srcObject: videoRef.current?.srcObject
+                });
+              }}
+              onLoadStart={() => {
+                console.log('Video load started');
+              }}
+              onWaiting={() => {
+                console.log('Video waiting for data');
+              }}
+              onError={(e) => {
+                console.error('Video error:', e);
+              }}
             />
             <canvas ref={canvasRef} className={styles.canvas} />
 
@@ -570,6 +710,14 @@ export const HostStudio: React.FC<HostStudioProps> = ({
                 <p>Start camera or screen sharing to begin</p>
               </div>
             )}
+            
+            {/* Debug info */}
+            <div className={styles.debugInfo}>
+              <p>Camera: {settings.cameraEnabled ? '✅' : '❌'}</p>
+              <p>Screen: {settings.screenSharing ? '✅' : '❌'}</p>
+              <p>Stream: {stream ? '✅' : '❌'}</p>
+              <p>Screen Stream: {screenStream ? '✅' : '❌'}</p>
+            </div>
           </div>
         </div>
 
