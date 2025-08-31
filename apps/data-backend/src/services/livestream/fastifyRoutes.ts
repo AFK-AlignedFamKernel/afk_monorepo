@@ -55,16 +55,17 @@ export async function registerLivestreamRoutes(fastify: FastifyInstance) {
   // HLS manifest file
   fastify.get('/livestream/:streamId/stream.m3u8', serveHLSManifest);
 
-  // HLS segment files - using regex patterns
-  fastify.get('/livestream/:streamId/segment_:segmentNumber.ts', serveHLSSegment);
-
-  // Alternative segment pattern for some HLS implementations
-  fastify.get('/livestream/:streamId/segment_:segmentNumber([0-9]+).ts', serveHLSSegment);
-
-  // Catch-all for other segment patterns
-  fastify.get('/livestream/:streamId/*.ts', async (request, reply) => {
-    const segmentFile = (request.params as any)['*'];
-    (request.params as any).segmentFile = segmentFile;
+  // HLS segment files - single catch-all route for all .ts files
+  fastify.get('/livestream/:streamId/:filename', async (request, reply) => {
+    const { filename } = request.params as { streamId: string; filename: string };
+    
+    // Only handle .ts files
+    if (!filename.endsWith('.ts')) {
+      return reply.status(404).send({ error: 'Not found' });
+    }
+    
+    // Set the segmentFile parameter for the handler
+    (request.params as any).segmentFile = filename;
     return serveHLSSegment(request as any, reply);
   });
 
