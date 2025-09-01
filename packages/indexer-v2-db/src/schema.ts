@@ -165,6 +165,8 @@ export const tokenDeploy = pgTable('token_deploy', {
   created_at: timestamp('created_at').defaultNow(),
   is_launched: boolean('is_launched').default(false),
   url: text('url'),
+  nostr_id: text('nostr_id'),
+  nostr_event_id: text('nostr_event_id'),
 });
 
 export const tokenLaunch = pgTable('token_launch', {

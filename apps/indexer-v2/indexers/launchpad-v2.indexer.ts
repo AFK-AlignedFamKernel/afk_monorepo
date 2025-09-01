@@ -370,6 +370,7 @@ export default function (config: ApibaraRuntimeConfig & {
             total_supply: totalSupply,
             created_at: new Date(),
             is_launched: false,
+            nostr_id:event?.args?.nostr_id,
           });
           console.log('Token Deploy Record Created successfully');
         } catch (insertError: any) {
