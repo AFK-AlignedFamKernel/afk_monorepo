@@ -899,11 +899,8 @@ export default function (config: ApibaraRuntimeConfig & {
             marketCap
           });
 
-          // Don't block here, run the update in the background with a 10s timeout
+          // Update launch record in background without blocking
           (async () => {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 10_000); // 10 seconds
-
             try {
               const updateResult = await db.execute(sql`
                 UPDATE token_launch 
@@ -930,40 +927,18 @@ export default function (config: ApibaraRuntimeConfig & {
                 console.log('Launch Record Updated');
               }
             } catch (updateError: any) {
-
-              db.execute(sql`
-                UPDATE token_launch 
-                SET 
-                  current_supply = ${newSupply},
-                  liquidity_raised = ${newLiquidityRaised},
-                  total_token_holded = ${newTotalTokenHolded},
-                  price = ${priceBuy},
-                  market_cap = ${marketCap}
-                WHERE memecoin_address = ${tokenAddress}
-                RETURNING *
-              `);
-              if (updateError.name === 'AbortError') {
-                console.error('Update launch record timed out after 10s:', {
-                  tokenAddress,
-                  newSupply,
-                  newLiquidityRaised,
-                  newTotalTokenHolded,
-                  priceBuy,
-                  marketCap
-                });
-              } else {
-                console.error('Failed to update launch record:', {
-                  error: updateError,
-                  tokenAddress,
-                  newSupply,
-                  newLiquidityRaised,
-                  newTotalTokenHolded,
-                  priceBuy,
-                  marketCap
-                });
-              }
-            } finally {
-              clearTimeout(timeout);
+              console.error('Failed to update launch record:', {
+                error: updateError,
+                code: updateError.code,
+                message: updateError.message,
+                detail: updateError.detail,
+                tokenAddress,
+                newSupply,
+                newLiquidityRaised,
+                newTotalTokenHolded,
+                priceBuy,
+                marketCap
+              });
             }
           })();
         } catch (launchError: any) {
@@ -992,18 +967,12 @@ export default function (config: ApibaraRuntimeConfig & {
 
 
         try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 10_000); // 10 seconds
-
-
           if (existingShareholder) {
+            console.log("existingShareholder found to update");
 
-
+            // Use raw SQL for better performance and avoid schema issues
             try {
-
-              console.log("existingShareholder found to update");
-
-                const executePromise =  db.execute(sql`
+              await db.execute(sql`
                 UPDATE shares_token_user 
                 SET 
                   amount_owned = ${newAmountOwned},
@@ -1012,61 +981,68 @@ export default function (config: ApibaraRuntimeConfig & {
                   is_claimable = true
                 WHERE owner = ${ownerAddress} AND token_address = ${tokenAddress}
               `);
-
-              console.log("Shareholder Record Updated");
-
-              const updatePromise = db.update(sharesTokenUser)
-                .set({
+              console.log("Shareholder Record Updated via raw SQL");
+            } catch (updateError: any) {
+              console.error('Failed to update shareholder via raw SQL:', {
+                error: updateError,
+                code: updateError.code,
+                message: updateError.message,
+                detail: updateError.detail
+              });
+              
+              // Fallback to drizzle update
+              try {
+                await db.update(sharesTokenUser)
+                  .set({
+                    amount_owned: newAmountOwned,
+                    amount_buy: newAmountBuy,
+                    total_paid: newTotalPaid,
+                    is_claimable: true,
+                  })
+                  .where(and(
+                    eq(sharesTokenUser.owner, ownerAddress),
+                    eq(sharesTokenUser.token_address, tokenAddress)
+                  ));
+                console.log("Shareholder Record Updated via drizzle fallback");
+              } catch (drizzleError: any) {
+                console.error('Failed to update shareholder via drizzle fallback:', {
+                  error: drizzleError,
+                  code: drizzleError.code,
+                  message: drizzleError.message,
+                  detail: drizzleError.detail
+                });
+              }
+            }
+          } else {
+            try {
+              await db.insert(sharesTokenUser)
+                .values({
+                  id: randomUUID(),
+                  owner: ownerAddress,
+                  token_address: tokenAddress,
                   amount_owned: newAmountOwned,
                   amount_buy: newAmountBuy,
                   total_paid: newTotalPaid,
                   is_claimable: true,
                 })
-                .where(and(
-                  eq(sharesTokenUser.owner, ownerAddress),
-                  eq(sharesTokenUser.token_address, tokenAddress)
-                ));
-
-              // Enforce a 10s timeout: if exceeded, throw and crash
-              const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Update shareholder timed out after 10s')), 10_000)
-              );
-
-              // If timeout occurs, this will throw and crash the process
-              await Promise.race([updatePromise, timeoutPromise]);
-            } catch (error: any) {
-              console.error('Failed to update shareholder:', {
-                error: error,
-                code: error.code,
-                message: error.message,
-                detail: error.detail
+                .onConflictDoUpdate({
+                  target: [sharesTokenUser.owner, sharesTokenUser.token_address],
+                  set: {
+                    amount_owned: newAmountOwned,
+                    amount_buy: newAmountBuy,
+                    total_paid: newTotalPaid,
+                    is_claimable: true,
+                  },
+                });
+              console.log("Shareholder Record Created");
+            } catch (insertError: any) {
+              console.error('Failed to create shareholder:', {
+                error: insertError,
+                code: insertError.code,
+                message: insertError.message,
+                detail: insertError.detail
               });
-
-            } finally {
-              clearTimeout(timeout);
             }
-          } else {
-
-            await db.insert(sharesTokenUser)
-              .values({
-                id: randomUUID(),
-                owner: ownerAddress,
-                token_address: tokenAddress,
-                amount_owned: newAmountOwned,
-                amount_buy: newAmountBuy,
-                total_paid: newTotalPaid,
-                is_claimable: true,
-              })
-              .onConflictDoUpdate({
-                target: [sharesTokenUser.owner, sharesTokenUser.token_address],
-                set: {
-                  amount_owned: newAmountOwned,
-                  amount_buy: newAmountBuy,
-                  total_paid: newTotalPaid,
-                  is_claimable: true,
-                },
-              });
-            clearTimeout(timeout);
           }
         } catch (error: any) {
           if (error.code === '23505') {
