@@ -11,14 +11,15 @@ import { Icon } from '../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
 
 // Helper function to extract streaming URL from NIP-53 events
-const extractStreamingUrlFromEvent = (event: any): string | null => {
+const extractStreamingUrlFromEvent = (event: any, streamId?: string): string | null => {
   if (!event) return null;
   
   console.log('🔍 Extracting streaming URL from event:', {
     eventKeys: Object.keys(event || {}),
     hasTags: !!event?.tags,
     hasContent: !!event?.content,
-    streamingUrlField: event?.streamingUrl
+    streamingUrlField: event?.streamingUrl,
+    streamId
   });
   
   // First check the streamingUrl field (if it exists)
@@ -64,7 +65,15 @@ const extractStreamingUrlFromEvent = (event: any): string | null => {
     }
   }
   
-  console.log('❌ No streaming URL found in event');
+  // If no streaming URL found in event but we have a streamId, construct one
+  if (streamId) {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+    const constructedUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
+    console.log('🔧 Constructing streaming URL from stream ID:', constructedUrl);
+    return constructedUrl;
+  }
+  
+  console.log('❌ No streaming URL found in event and no stream ID provided');
   return null;
 };
 
@@ -134,7 +143,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       nip53StreamingTag: event?.tags?.find((tag: any) => tag[0] === 'streaming'),
       nip53Status: event?.tags?.find((tag: any) => tag[0] === 'status'),
       nip53Kind: (event as any)?.kind,
-      extractedStreamingUrl: extractStreamingUrlFromEvent(event),
+      extractedStreamingUrl: extractStreamingUrlFromEvent(event, currentStreamId),
       // Raw event data for debugging
       rawEvent: event,
       // Event structure debugging
@@ -165,17 +174,17 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       return computedUrl;
     }
 
-    // Priority 2: Check if stream is available via status check
-    if (currentStreamId && streamStatus === 'available') {
+    // Priority 2: If we have a stream ID and it's active (even without video content), construct URL
+    if (currentStreamId && (streamStatus === 'available' || streamStatus === 'loading')) {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
       const computedUrl = `${backendUrl}/livestream/${currentStreamId}/stream.m3u8`;
       console.log('✅ Computed streaming URL from stream status:', computedUrl);
       return computedUrl;
     }
 
-    // Priority 3: Extract from NIP-53 event
+    // Priority 3: Extract from NIP-53 event (with stream ID fallback)
     if (event) {
-      const eventStreamingUrl = extractStreamingUrlFromEvent(event);
+      const eventStreamingUrl = extractStreamingUrlFromEvent(event, currentStreamId);
       if (eventStreamingUrl) {
         console.log('✅ Found streaming URL in event:', eventStreamingUrl);
         return eventStreamingUrl;
@@ -263,10 +272,20 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
           setStreamStatusData(statusData);
           
           // Check if stream is available for viewing
-          // A stream is available if it has actual video content, not just an empty manifest
-          if (statusData.overall?.hasVideoContent || statusData.overall?.isActive) {
+          // A stream is available if it's active and has a manifest, even without video content
+          // This allows viewers to connect to streams that are waiting for broadcasters
+          if (statusData.overall?.isActive && statusData.overall?.hasManifest) {
             setStreamStatus('available');
-            console.log('✅ Stream is available for viewing:', {
+            console.log('✅ Stream is available for viewing (active with manifest):', {
+              hasVideoContent: statusData.overall?.hasVideoContent,
+              isActive: statusData.overall?.isActive,
+              hasManifest: statusData.overall?.hasManifest,
+              hasStreamDir: statusData.overall?.hasStreamDir
+            });
+          } else if (statusData.overall?.hasVideoContent) {
+            // Stream has actual video content (broadcaster is live)
+            setStreamStatus('available');
+            console.log('✅ Stream has video content and is live:', {
               hasVideoContent: statusData.overall?.hasVideoContent,
               isActive: statusData.overall?.isActive,
               hasManifest: statusData.overall?.hasManifest,
@@ -329,10 +348,22 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     console.log('🚀 handleNavigateToStreamView called with:', { id, recordingUrl });
     setCurrentStreamId(id);
     setCurrentView('stream');
-    // console.log('✅ Navigation state updated:', { currentStreamId: id, view: 'stream' });
     
-    // Start the stream on the backend if it's not already running
-    startStreamOnBackend(id);
+    // For viewers, we need to connect to the existing stream, not start a new one
+    // The stream should already be running if it's marked as "LIVE"
+    console.log('🎯 Viewer navigating to stream view - connecting to existing stream');
+    
+    // Check if this is a live stream that should be accessible
+    if (id) {
+      // Trigger a status check to see if the stream is actually live
+      console.log('🔍 Checking if stream is live and accessible:', id);
+      
+      // Set loading state while we check
+      setStreamStatus('loading');
+      
+      // The useEffect will automatically check the stream status
+      // and update the streamingUrl when the status changes
+    }
   };
 
   const handleNavigateToRecordView = (id: string) => {
