@@ -9,6 +9,8 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { FeedComponent } from '@/modules/Feed';
+import { StudioModuleView } from '@/modules/Studio';
+import { StudioModule } from '@/modules/Studio/StudioModule';
 
 export default function TabTwoScreen() {
   return (
@@ -94,6 +96,7 @@ export default function TabTwoScreen() {
           ),
         })}
       </Collapsible>
+      <StudioModule />
       <FeedComponent />
     </ParallaxScrollView>
   );

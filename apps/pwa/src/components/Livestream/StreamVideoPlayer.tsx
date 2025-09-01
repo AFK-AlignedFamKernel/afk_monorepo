@@ -75,6 +75,25 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       );
     }
 
+    if (streamStatus === 'available' && !isLive) {
+      return (
+        <div className={styles.statusOverlay}>
+          <div className={styles.statusContent}>
+            <div className={styles.statusIcon}>⏳</div>
+            <h3>Stream Ready</h3>
+            <p>The stream is ready but waiting for the host to go live.</p>
+            <p>Video will appear automatically when broadcasting starts.</p>
+            <button 
+              className={styles.retryButton}
+              onClick={onRefreshStatus || (() => window.location.reload())}
+            >
+              Check Status
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     if (streamStatus === 'error') {
       return (
         <div className={styles.statusOverlay}>
@@ -288,89 +307,66 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     seekTo,
   } = useVideoElement({});
 
-  // Error handling function
-  const handleVideoError = (event: Event) => {
-    const videoElement = event.target as HTMLVideoElement;
-    const error = videoElement.error;
-    console.error('🚨 Video error:', error);
-    
-    if (onStreamError) {
-      let errorMessage = 'Unknown video error';
-      if (error) {
-        switch (error.code) {
-          case MediaError.MEDIA_ERR_ABORTED:
-            errorMessage = 'Video playback aborted';
-            break;
-          case MediaError.MEDIA_ERR_NETWORK:
-            errorMessage = 'Network error - stream may not be started';
-            break;
-          case MediaError.MEDIA_ERR_DECODE:
-            // Check for HLS-specific errors
-            if (error.message.includes('DEMUXER_ERROR_DETECTED_HLS')) {
-              errorMessage = 'HLS manifest error - stream is waiting for broadcaster';
-            } else if (error.message.includes('DEMUXER_ERROR')) {
-              errorMessage = 'Video decode error - stream format issue';
-            } else {
-              errorMessage = 'Video decode error';
-            }
-            break;
-          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-            errorMessage = 'Stream not found or not started';
-            break;
-          default:
-            errorMessage = `Video error: ${error.message}`;
-        }
-      }
-      onStreamError(errorMessage);
-    }
-  };
-
+  // Enhanced stream monitoring for viewers
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+    if (!streamId || isStreamer) return;
 
-    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
-    const handleLoadedMetadata = () => setDuration(video.duration);
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-    const handleVolumeChange = () => setVolume(video.volume);
-
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    video.addEventListener('play', handlePlay);
-    video.addEventListener('pause', handlePause);
-    video.addEventListener('volumechange', handleVolumeChange);
+    console.log('👥 Viewer mode: Setting up stream monitoring for:', streamId);
     
-    video.addEventListener('error', handleVideoError);
-
-    // Auto-hide controls after 3 seconds
-    let controlsTimeout: NodeJS.Timeout;
-    const handleMouseMove = () => {
-      setShowControls(true);
-      clearTimeout(controlsTimeout);
-      controlsTimeout = setTimeout(() => setShowControls(false), 3000);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
+    // Join the stream as a viewer
+    joinStream(streamId, 'viewer-' + Date.now());
+    
+    // Set up periodic stream status checking
+    const statusCheckInterval = setInterval(async () => {
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050';
+        const response = await fetch(`${backendUrl}/livestream/${streamId}/status`);
+        
+        if (response.ok) {
+          const status = await response.json();
+          console.log('📊 Stream status check for viewer:', status);
+          
+          // Check if stream now has video content
+          if (status.overall?.hasVideoContent) {
+            console.log('🎬 Stream now has video content!');
+            setIsLive(true);
+            setLoadError(null);
+            
+            // If video is not playing, try to load it
+            if (videoRef.current && !videoRef.current.src) {
+              console.log('🎥 Loading video now that content is available');
+              const videoUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
+              videoRef.current.src = videoUrl;
+              videoRef.current.load();
+            }
+          } else if (status.overall?.isActive && status.overall?.hasManifest) {
+            console.log('⏳ Stream is active but waiting for video content');
+            setIsLive(false);
+            setLoadError('Stream is active - waiting for host to start broadcasting...');
+          } else {
+            console.log('❌ Stream is not active');
+            setIsLive(false);
+            setLoadError('Stream is not active or has ended');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error checking stream status:', error);
+      }
+    }, 3000); // Check every 3 seconds
 
     return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      video.removeEventListener('play', handlePlay);
-      video.removeEventListener('pause', handlePause);
-      video.removeEventListener('volumechange', handleVolumeChange);
-      video.removeEventListener('error', handleVideoError);
-      document.removeEventListener('mousemove', handleMouseMove);
-      clearTimeout(controlsTimeout);
+      clearInterval(statusCheckInterval);
+      console.log('👋 Viewer leaving stream:', streamId);
+      leaveStream();
     };
-  }, []);
+  }, [streamId, isStreamer, joinStream, leaveStream]);
 
+  // Enhanced video loading with better error handling
   useEffect(() => {
     if (streamingUrl) {
       console.log('🎥 Setting streaming URL:', streamingUrl);
-      setIsLive(true);
       
-      // Check if we should wait for the stream to be ready
+      // Don't set isLive immediately - wait for actual content
       if (streamStatus === 'not_started' || streamStatus === 'loading') {
         console.log('⏳ Stream not ready yet, waiting for broadcaster...');
         setLoadError('Stream is waiting for broadcaster to connect...');
@@ -400,6 +396,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           console.log('🎥 Video can play');
           setIsLoading(false);
           setLoadError(null);
+          setIsLive(true); // Only set live when we can actually play
         };
         
         const handleError = (e: Event) => {
@@ -478,6 +475,83 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       }
     }
   }, [streamingUrl, recordingUrl, streamId, streamStatus]);
+
+  // Error handling function
+  const handleVideoError = (event: Event) => {
+    const videoElement = event.target as HTMLVideoElement;
+    const error = videoElement.error;
+    console.error('🚨 Video error:', error);
+    
+    if (onStreamError) {
+      let errorMessage = 'Unknown video error';
+      if (error) {
+        switch (error.code) {
+          case MediaError.MEDIA_ERR_ABORTED:
+            errorMessage = 'Video playback aborted';
+            break;
+          case MediaError.MEDIA_ERR_NETWORK:
+            errorMessage = 'Network error - stream may not be started';
+            break;
+          case MediaError.MEDIA_ERR_DECODE:
+            // Check for HLS-specific errors
+            if (error.message.includes('DEMUXER_ERROR_DETECTED_HLS')) {
+              errorMessage = 'HLS manifest error - stream is waiting for broadcaster';
+            } else if (error.message.includes('DEMUXER_ERROR')) {
+              errorMessage = 'Video decode error - stream format issue';
+            } else {
+              errorMessage = 'Video decode error';
+            }
+            break;
+          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+            errorMessage = 'Stream not found or not started';
+            break;
+          default:
+            errorMessage = `Video error: ${error.message}`;
+        }
+      }
+      onStreamError(errorMessage);
+    }
+  };
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleTimeUpdate = () => setCurrentTime(video.currentTime);
+    const handleLoadedMetadata = () => setDuration(video.duration);
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleVolumeChange = () => setVolume(video.volume);
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+    video.addEventListener('volumechange', handleVolumeChange);
+    
+    video.addEventListener('error', handleVideoError);
+
+    // Auto-hide controls after 3 seconds
+    let controlsTimeout: NodeJS.Timeout;
+    const handleMouseMove = () => {
+      setShowControls(true);
+      clearTimeout(controlsTimeout);
+      controlsTimeout = setTimeout(() => setShowControls(false), 3000);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+      video.removeEventListener('volumechange', handleVolumeChange);
+      video.removeEventListener('error', handleVideoError);
+      document.removeEventListener('mousemove', handleMouseMove);
+      clearTimeout(controlsTimeout);
+    };
+  }, []);
 
   // Use the hook's togglePlayPause function
   const handleTogglePlayPause = () => {

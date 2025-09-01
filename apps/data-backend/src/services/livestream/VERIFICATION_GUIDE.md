@@ -37,7 +37,26 @@ node test-stream-initialization.js
 - Automatic stream setup when accessed via NIP-53
 - Stream directory and manifest creation
 
-#### Step 2: Test Complete Streaming Pipeline
+#### Step 2: Test VIEW EVENT Flow (NEW!)
+```bash
+cd apps/data-backend/src/services/livestream
+node test-view-event-flow.js
+```
+
+**Expected Output:**
+- ✅ Nostr event data prepared
+- ✅ Stream initialization working
+- ✅ Video manifest accessible
+- ✅ Stream status monitoring working
+- ✅ Multiple streams can be initialized independently
+
+**What This Tests:**
+- Complete flow from Nostr event to video streaming
+- VIEW EVENT button functionality
+- Stream initialization for viewers
+- Video player readiness
+
+#### Step 3: Test Complete Streaming Pipeline
 ```bash
 cd apps/data-backend/src/services/livestream
 node test-complete-streaming.js

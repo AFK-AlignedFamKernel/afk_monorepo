@@ -505,6 +505,72 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     setIsChatVisible(!isChatVisible);
   };
 
+  // Enhanced function to handle VIEW EVENT from Nostr
+  const handleViewEventFromNostr = async (streamId: string) => {
+    console.log('🎬 VIEW EVENT clicked from Nostr for stream:', streamId);
+    
+    try {
+      // Set the stream ID and view
+      setCurrentStreamId(streamId);
+      setCurrentView('stream');
+      
+      // Initialize the stream for viewing
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+      
+      // First, check if stream exists and initialize it if needed
+      const statusResponse = await fetch(`${backendUrl}/livestream/${streamId}/status`);
+      
+      if (statusResponse.ok) {
+        const statusData = await statusResponse.json();
+        console.log('📊 Stream status for VIEW EVENT:', statusData);
+        
+        if (statusData.overall?.isActive) {
+          setStreamStatus('available');
+          console.log('✅ Stream is active and ready for viewing');
+          
+          // If stream has video content, it's live
+          if (statusData.overall?.hasVideoContent) {
+            console.log('🎬 Stream is LIVE with video content!');
+            showToast({ message: 'Live stream loaded successfully!', type: 'success' });
+          } else {
+            console.log('⏳ Stream is active but waiting for host to go live');
+            showToast({ message: 'Stream is ready - waiting for host to start broadcasting', type: 'info' });
+          }
+        } else {
+          setStreamStatus('not_started');
+          console.log('⏳ Stream not started yet');
+          showToast({ message: 'Stream not started yet', type: 'warning' });
+        }
+      } else {
+        // Stream doesn't exist, try to initialize it
+        console.log('🔄 Stream not found, attempting to initialize...');
+        setStreamStatus('loading');
+        
+        try {
+          const manifestResponse = await fetch(`${backendUrl}/livestream/${streamId}/stream.m3u8`);
+          if (manifestResponse.ok) {
+            console.log('✅ Stream initialized successfully');
+            setStreamStatus('available');
+            showToast({ message: 'Stream initialized and ready for viewing', type: 'success' });
+          } else {
+            console.log('❌ Failed to initialize stream');
+            setStreamStatus('error');
+            showToast({ message: 'Failed to initialize stream', type: 'error' });
+          }
+        } catch (initError) {
+          console.error('❌ Error initializing stream:', initError);
+          setStreamStatus('error');
+          showToast({ message: 'Failed to initialize stream', type: 'error' });
+        }
+      }
+      
+    } catch (error) {
+      console.error('❌ Error handling VIEW EVENT:', error);
+      setStreamStatus('error');
+      showToast({ message: 'Failed to load stream', type: 'error' });
+    }
+  };
+
   // Function to start stream on Cloudinary via backend
   const startStreamOnBackend = async (streamId: string) => {
     try {
@@ -575,6 +641,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
         onNavigateToStreamView={handleNavigateToStreamView}
         onNavigateToRecordView={handleNavigateToRecordView}
         onNavigateToHostStudio={handleNavigateToHostStudio}
+        onViewEventFromNostr={handleViewEventFromNostr}
       />
     </div>
   );

@@ -28,6 +28,7 @@ interface StudioModuleProps {
   onNavigateToStreamView?: (streamId: string, recordingUrl?: string) => void;
   onNavigateToRecordView?: (streamId: string) => void;
   onNavigateToHostStudio?: (streamId: string) => void;
+  onViewEventFromNostr?: (streamId: string) => void;
 }
 
 export const StudioModule: React.FC<StudioModuleProps> = ({
@@ -35,6 +36,7 @@ export const StudioModule: React.FC<StudioModuleProps> = ({
   onNavigateToStreamView,
   onNavigateToRecordView,
   onNavigateToHostStudio,
+  onViewEventFromNostr,
 }) => {
   const { publicKey } = useAuth();
   const {showToast, showModal} = useUIStore();
@@ -169,6 +171,7 @@ const RenderEventCard: React.FC<{
       return;
     }
 
+    // First join as participant
     addParticipant.mutate(
       {
         pubkey: pubKey,
@@ -177,7 +180,13 @@ const RenderEventCard: React.FC<{
       },
       {
         onSuccess() {
-          handleNavigateToStreamView();
+          // Then use the enhanced VIEW EVENT handler
+          if (onViewEventFromNostr) {
+            onViewEventFromNostr(event.identifier);
+          } else {
+            // Fallback to old behavior
+            handleNavigateToStreamView();
+          }
         },
         onError(error) {
           // Show error toast
