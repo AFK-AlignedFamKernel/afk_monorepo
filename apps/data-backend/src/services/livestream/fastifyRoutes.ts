@@ -60,6 +60,55 @@ export async function registerLivestreamRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // Test endpoint to send a test video chunk via WebSocket
+  fastify.post('/livestream/test/send-chunk/:streamId', async (request, reply) => {
+    try {
+      const { streamId } = request.params as { streamId: string };
+      
+      // Import the active streams to check if the stream exists
+      const { activeStreams } = await import('./streamHandler');
+      const stream = activeStreams.get(streamId);
+      
+      if (!stream) {
+        return reply.status(404).send({ error: 'Stream not found' });
+      }
+      
+      // Create a test video chunk (1KB of random data)
+      const testChunk = Buffer.alloc(1024);
+      for (let i = 0; i < testChunk.length; i++) {
+        testChunk[i] = Math.floor(Math.random() * 256);
+      }
+      
+      // Simulate receiving stream data
+      const { handleStreamData } = await import('./streamHandler');
+      
+      // Create a mock socket object for testing
+      const mockSocket = {
+        id: 'test-socket',
+        to: (room: string) => ({
+          emit: (event: string, data: any) => {
+            console.log(`Test: Emitting ${event} to ${room}:`, data);
+          }
+        })
+      } as any;
+      
+      // Call handleStreamData with test data
+      handleStreamData(mockSocket, {
+        streamKey: streamId,
+        chunk: testChunk
+      });
+      
+      return reply.send({
+        message: 'Test chunk sent successfully',
+        streamId,
+        chunkSize: testChunk.length,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      return reply.status(500).send({ error: 'Failed to send test chunk' });
+    }
+  });
+
   // Stream status
   fastify.get('/livestream/:streamId/status', getStreamStatus);
 

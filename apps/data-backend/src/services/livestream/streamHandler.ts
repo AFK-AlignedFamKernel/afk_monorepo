@@ -297,6 +297,18 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
     timestamp: Date.now()
   });
 
+  // Log the actual data being received
+  console.log('📡 Raw data received:', {
+    streamKey: data.streamKey,
+    dataType: typeof data,
+    dataKeys: Object.keys(data),
+    chunkType: typeof data.chunk,
+    chunkLength: data.chunk?.length || 'unknown',
+    chunkIsBuffer: Buffer.isBuffer(data.chunk),
+    chunkIsArrayBuffer: data.chunk instanceof ArrayBuffer,
+    chunkIsUint8Array: data.chunk instanceof Uint8Array
+  });
+
   const stream = activeStreams.get(data.streamKey);
 
   if (!stream?.inputStream) {
@@ -330,14 +342,25 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
         inputStreamFlowing: stream.inputStream.flowing
       });
       
-      // Check if FFmpeg is actually processing the data
-      if (stream.command) {
-        console.log(`🔍 FFmpeg command state:`, {
-          streamKey: data.streamKey,
-          hasCommand: !!stream.command,
-          commandState: stream.command._currentOutput?.ffmpegProc?.killed || 'unknown'
-        });
-      }
+              // Check if FFmpeg is actually processing the data
+        if (stream.command) {
+          console.log(`🔍 FFmpeg command state:`, {
+            streamKey: data.streamKey,
+            hasCommand: !!stream.command,
+            commandState: stream.command._currentOutput?.ffmpegProc?.killed || 'unknown'
+          });
+          
+          // Check if FFmpeg is receiving input data
+          if (stream.inputStream) {
+            console.log(`🔍 Input stream state:`, {
+              streamKey: data.streamKey,
+              destroyed: stream.inputStream.destroyed,
+              readable: stream.inputStream.readable,
+              flowing: stream.inputStream.flowing,
+              chunkReceived: data.chunk?.length || 0
+            });
+          }
+        }
     } else {
       console.log('⚠️ Input stream is destroyed or unavailable');
     }
@@ -405,6 +428,16 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
         } else {
           console.log('⚠️ No stream segments found yet for:', data.streamKey);
           console.log('⚠️ This may indicate FFmpeg is not processing the input stream');
+          
+          // Check if we're actually receiving data
+          console.log('🔍 Data flow check:', {
+            streamKey: data.streamKey,
+            hasInputStream: !!stream.inputStream,
+            inputStreamDestroyed: stream.inputStream?.destroyed,
+            inputStreamReadable: stream.inputStream?.readable,
+            inputStreamFlowing: stream.inputStream?.flowing,
+            chunkSize: data.chunk?.length || 'unknown'
+          });
         }
       }
     } catch (fileCheckError) {
