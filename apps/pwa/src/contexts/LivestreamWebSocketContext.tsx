@@ -202,7 +202,7 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     try {
       // Find supported MIME type
       const supportedTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
-      let selectedMimeType = null;
+      let selectedMimeType: string | null = null;
       
       for (const type of supportedTypes) {
         if (MediaRecorder.isTypeSupported(type)) {
