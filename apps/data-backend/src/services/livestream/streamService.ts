@@ -79,6 +79,8 @@ export async function setupStream(data: StreamSetup) {
     hasInputStream: !!inputStream
   });
 
+  console.log('🎬 Creating FFmpeg command with options...');
+  
   const ffmpegCommand = ffmpeg()
     .input(inputStream)
     .inputFormat("webm")
@@ -142,22 +144,37 @@ export async function setupStream(data: StreamSetup) {
   // Add event listeners for better debugging
   ffmpegCommand.on('start', (commandLine) => {
     console.log('🎬 FFmpeg started with command:', commandLine);
+    console.log('📡 FFmpeg is now processing video input stream');
   });
 
   ffmpegCommand.on('progress', (progress) => {
-    console.log('📊 FFmpeg progress:', progress);
+    console.log('📊 FFmpeg progress:', {
+      frames: progress.frames,
+      currentFps: progress.currentFps,
+      currentKbps: progress.currentKbps,
+      targetSize: progress.targetSize,
+      timemark: progress.timemark,
+      percent: progress.percent
+    });
   });
 
   ffmpegCommand.on('error', (err) => {
     console.error('❌ FFmpeg error:', err);
+    console.error('❌ FFmpeg error details:', err.message);
   });
 
   ffmpegCommand.on('end', () => {
     console.log('✅ FFmpeg finished successfully');
   });
 
+  ffmpegCommand.on('stderr', (stderrLine) => {
+    console.log('🔍 FFmpeg stderr:', stderrLine);
+  });
+
   // Start FFmpeg processing
-  ffmpegCommand.save(outputPath);
+  console.log('🎬 Starting FFmpeg processing...');
+  console.log('📁 Output path:', outputPath);
+  ffmpegCommand.output(outputPath).run();
 
   // Set up file watcher for HLS segments
   watcherFn(streamPath, data, outputPath);
@@ -213,8 +230,13 @@ async function uploadFileToR2(
   try {
     const fileStream = createReadStream(filePath);
 
+    if (!s3Client) {
+      console.log('⚠️ S3 client not available, skipping R2 upload');
+      return `local://${filePath}`;
+    }
+
     const upload = new Upload({
-      client: s3Client!,
+      client: s3Client,
       params: {
         Bucket: bucketName,
         Key: key,
