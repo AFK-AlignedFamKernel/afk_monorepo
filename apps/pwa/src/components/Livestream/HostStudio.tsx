@@ -1,1143 +1,311 @@
 'use client';
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useAuth, useEditEvent, useGetSingleEvent } from 'afk_nostr_sdk';
-import { useQueryClient } from '@tanstack/react-query';
-import { Icon } from '../small/icon-component';
-import { useUIStore } from '@/store/uiStore';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLivestreamWebSocket } from '@/contexts/LivestreamWebSocketContext';
-import { useMediaStream } from '@/hooks/useMediaStream';
+import { useAuth } from 'afk_nostr_sdk';
 import styles from './styles.module.scss';
+import { Icon } from '../small/icon-component';
 
 interface HostStudioProps {
   streamId: string;
-  onBack?: () => void;
   onGoLive?: () => void;
-  className?: string;
-}
-
-interface StreamSettings {
-  cameraEnabled: boolean;
-  microphoneEnabled: boolean;
-  screenSharing: boolean;
-  resolution: '720p' | '1080p' | '4k';
-  bitrate: 'low' | 'medium' | 'high';
-  isRecording: boolean;
-}
-
-interface MediaDevice {
-  deviceId: string;
-  label: string;
-  kind: 'audioinput' | 'audiooutput' | 'videoinput';
+  onBack?: () => void;
 }
 
 export const HostStudio: React.FC<HostStudioProps> = ({
   streamId,
-  onBack,
   onGoLive,
-  className,
+  onBack
 }) => {
   const { publicKey } = useAuth();
-  const { showToast } = useUIStore();
-  const queryClient = useQueryClient();
-
-  // Debug logging for props
-  useEffect(() => {
-    console.log('HostStudio props:', { streamId, onBack, onGoLive, className });
-    console.log('Environment variables:', {
-      NEXT_PUBLIC_CLOUDFARE_BUCKET_URL: process.env.NEXT_PUBLIC_CLOUDFARE_BUCKET_URL,
-    });
-  }, [streamId, onBack, onGoLive, className]);
-
-  // WebSocket and Media Stream hooks
   const {
     connect,
     disconnect,
-    startStream: startWebSocketStream,
-    stopStream: stopWebSocketStream,
+    startStream,
+    stopStream,
+    setupMediaStream,
     isConnected,
-    isStreaming: isWebSocketStreaming,
-    setupMediaStream
+    isStreaming,
+    cleanup
   } = useLivestreamWebSocket();
 
-  // State declarations (moved up to fix linter errors)
-  const [streamStatus, setStreamStatus] = useState<'idle' | 'connecting' | 'initializing' | 'ready' | 'broadcasting' | 'error'>('idle');
-  const [cameraEnabled, setCameraEnabled] = useState(false);
-  const [screenSharing, setScreenSharing] = useState(false);
-
-  // Listen for stream started events
-  useEffect(() => {
-
- 
-    const handleStreamStarted = (event: CustomEvent) => {
-      console.log('🎬 Stream started event received:', event.detail);
-      setIsLive(true);
-      setIsStreaming(true);
-      setIsGoingLive(false);
-      setStreamStatus('broadcasting');
-      showToast({ message: 'You are now live!', type: 'success' });
-      onGoLive?.();
-    };
-
-    const handleStreamDataReceived = (event: CustomEvent) => {
-      console.log('📺 Stream data received:', event.detail);
-    };
-
-    const handleViewerJoined = (event: CustomEvent) => {
-      console.log('👥 Viewer joined:', event.detail);
-      setViewerCount(event.detail.viewerCount || 0);
-      showToast({ message: `Viewer joined! Total: ${event.detail.viewerCount}`, type: 'info' });
-    };
-
-    const handleViewerLeft = (event: CustomEvent) => {
-      console.log('👋 Viewer left:', event.detail);
-      setViewerCount(event.detail.viewerCount || 0);
-      showToast({ message: `Viewer left. Total: ${event.detail.viewerCount}`, type: 'info' });
-    };
-
-    const handleStreamReady = (event: CustomEvent) => {
-      console.log('🎬 Stream ready for broadcasting:', event.detail);
-      setStreamStatus('ready');
-      showToast({ message: 'Stream is ready for broadcasting!', type: 'success' });
-    };
-
-    const handleStreamInitialized = (event: CustomEvent) => {
-      console.log('🎬 Stream initialized:', event.detail);
-      setStreamStatus('initializing');
-      showToast({ message: 'Stream initialization complete!', type: 'info' });
-    };
-
-    const handleWebSocketConnected = (event: CustomEvent) => {
-      console.log('🔌 WebSocket connected event received:', event.detail);
-      setStreamStatus('initializing');
-      showToast({ message: 'WebSocket connected successfully!', type: 'success' });
-    };
-
-    const handleWebSocketDisconnected = (event: CustomEvent) => {
-      console.log('🔌 WebSocket disconnected event received:', event.detail);
-      setStreamStatus('error');
-      showToast({ message: `WebSocket disconnected: ${event.detail.reason}`, type: 'error' });
-    };
-
-    const handleWebSocketConnectionError = (event: CustomEvent) => {
-      console.log('🔌 WebSocket connection error event received:', event.detail);
-      setStreamStatus('error');
-      showToast({ message: `WebSocket connection failed: ${event.detail.error}`, type: 'error' });
-    };
-
-    window.addEventListener('stream-started', handleStreamStarted as EventListener);
-    window.addEventListener('stream-data-received', handleStreamDataReceived as EventListener);
-    window.addEventListener('viewer-joined', handleViewerJoined as EventListener);
-    window.addEventListener('viewer-left', handleViewerLeft as EventListener);
-    window.addEventListener('stream-ready', handleStreamReady as EventListener);
-    window.addEventListener('stream-initialized', handleStreamInitialized as EventListener);
-    window.addEventListener('websocket-connected', handleWebSocketConnected as EventListener);
-    window.addEventListener('websocket-disconnected', handleWebSocketDisconnected as EventListener);
-    window.addEventListener('websocket-connection-error', handleWebSocketConnectionError as EventListener);
-
-    return () => {
-      window.removeEventListener('stream-started', handleStreamStarted as EventListener);
-      window.removeEventListener('stream-data-received', handleStreamDataReceived as EventListener);
-      window.removeEventListener('viewer-joined', handleViewerJoined as EventListener);
-      window.removeEventListener('viewer-left', handleViewerLeft as EventListener);
-      window.removeEventListener('stream-ready', handleStreamReady as EventListener);
-      window.removeEventListener('stream-initialized', handleStreamInitialized as EventListener);
-      window.removeEventListener('websocket-connected', handleWebSocketConnected as EventListener);
-      window.removeEventListener('websocket-disconnected', handleWebSocketDisconnected as EventListener);
-      window.removeEventListener('websocket-connection-error', handleWebSocketConnectionError as EventListener);
-    };
-  }, [onGoLive, showToast]);
-
-
-
-  // Monitor WebSocket connection state changes
-  useEffect(() => {
-    console.log('🔌 WebSocket connection state changed:', { isConnected, isWebSocketStreaming });
-    
-    if (isConnected && streamStatus === 'connecting') {
-      console.log('✅ WebSocket connected, updating status to initializing');
-      setStreamStatus('initializing');
-    } else if (!isConnected && streamStatus !== 'error') {
-     connect(streamId);
-      console.log('❌ WebSocket disconnected, updating status to error');
-      setStreamStatus('error');
-    }
-  }, [isConnected, isWebSocketStreaming, streamStatus]);
-
-  const {
-    stream,
-    screenStream,
-    state: mediaState,
-    startCamera,
-    stopCamera,
-    toggleMicrophone,
-    startScreenSharing,
-    stopScreenSharing,
-    getCombinedStream,
-    cleanup: cleanupMedia
-  } = useMediaStream();
-
-  // Refs
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  // State
-  const [settings, setSettings] = useState<StreamSettings>({
-    cameraEnabled: false,
-    microphoneEnabled: false,
-    screenSharing: false,
-    resolution: '720p',
-    bitrate: 'medium',
-    isRecording: false,
-  });
-
-  const [isLive, setIsLive] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const [viewerCount, setViewerCount] = useState(0);
-  const [showSettings, setShowSettings] = useState(false);
-  const [availableDevices, setAvailableDevices] = useState<MediaDevice[]>([]);
-  const [selectedCamera, setSelectedCamera] = useState<string>('');
-  const [selectedMicrophone, setSelectedMicrophone] = useState<string>('');
   const [isGoingLive, setIsGoingLive] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [cloudinaryUrls, setCloudinaryUrls] = useState<{
-    playbackUrl?: string;
-    ingestUrl?: string;
-  }>({});
+  const [streamStatus, setStreamStatus] = useState<'idle' | 'connecting' | 'connected' | 'streaming' | 'error'>('idle');
+  const [error, setError] = useState<string | null>(null);
 
-  const updateEvent = useEditEvent();
-  const { data: event, isLoading: eventLoading, error: eventError, refetch: refetchEvent } = useGetSingleEvent({
-    eventId: streamId,
-  });
-  // Fetch Cloudinary URLs when streamId changes
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+
+  // Connect to WebSocket when component mounts
   useEffect(() => {
     if (streamId) {
-      fetchCloudinaryUrls(streamId);
+      console.log('🔌 Connecting to stream:', streamId);
+      setStreamStatus('connecting');
+      connect(streamId);
     }
-  }, [streamId]);
 
-  const fetchCloudinaryUrls = async (streamId: string) => {
+    return () => {
+      cleanup();
+    };
+  }, [streamId, connect, cleanup]);
+
+  // Update stream status based on WebSocket state
+  useEffect(() => {
+    if (isConnected && !isStreaming) {
+      setStreamStatus('connected');
+      setError(null);
+    } else if (isStreaming) {
+      setStreamStatus('streaming');
+      setError(null);
+    } else if (!isConnected && streamStatus !== 'idle') {
+      setStreamStatus('error');
+      setError('WebSocket connection failed');
+    }
+  }, [isConnected, isStreaming, streamStatus]);
+
+  // Handle going live
+  const handleGoLive = async () => {
+    if (isGoingLive || !publicKey) return;
+
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
-      const response = await fetch(`${backendUrl}/livestream/${streamId}/playback`);
+      setIsGoingLive(true);
+      setError(null);
+      console.log('🎬 Going live...');
 
-      if (response.ok) {
-        const data = await response.json();
-        setCloudinaryUrls({
-          playbackUrl: data.playbackUrl,
-          ingestUrl: data.ingestUrl
-        });
-        console.log('🎯 Cloudinary URLs fetched:', data);
-      } else {
-        console.log('⚠️ No Cloudinary stream found yet for:', streamId);
+      // Step 1: Start the stream on the backend
+      startStream(streamId, publicKey);
+      console.log('✅ Stream started on backend');
+
+      // Step 2: Setup camera/screen capture
+      const mediaStream = await setupCameraCapture();
+      if (!mediaStream) {
+        throw new Error('Failed to setup camera capture');
       }
-    } catch (error) {
-      console.error('❌ Failed to fetch Cloudinary URLs:', error);
+
+      // Step 3: Setup MediaRecorder for streaming
+      setupMediaStream(mediaStream, streamId);
+      console.log('✅ MediaRecorder setup complete');
+
+      // Step 4: Start recording
+      setStreamStatus('streaming');
+      console.log('🎥 Live streaming started!');
+
+      if (onGoLive) {
+        onGoLive();
+      }
+
+    } catch (err) {
+      console.error('❌ Failed to go live:', err);
+      setError(err instanceof Error ? err.message : 'Failed to go live');
+      setStreamStatus('error');
+    } finally {
+      setIsGoingLive(false);
     }
   };
 
-  // Debug: Log the updateEvent mutation state
-  useEffect(() => {
-    console.log('updateEvent mutation state:', {
-      isPending: updateEvent.isPending,
-      isSuccess: updateEvent.isSuccess,
-      isError: updateEvent.isError,
-      error: updateEvent.error,
-      data: updateEvent.data
-    });
-  }, [updateEvent.isPending, updateEvent.isSuccess, updateEvent.isError, updateEvent.error, updateEvent.data]);
-
-  // Debug logging for event data
-  useEffect(() => {
-    console.log('Event data:', event);
-    console.log('Event loading:', eventLoading);
-    console.log('Event error:', eventError);
-    console.log('Stream ID:', streamId);
-    console.log('Public key:', publicKey);
-  }, [event, eventLoading, eventError, streamId, publicKey]);
-
-  // Get available media devices
-  const getMediaDevices = useCallback(async () => {
+  // Setup camera capture
+  const setupCameraCapture = async (): Promise<MediaStream | null> => {
     try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const mediaDevices: MediaDevice[] = devices
-        .filter(device => device.kind !== 'audiooutput')
-        .map(device => ({
-          deviceId: device.deviceId,
-          label: device.label || `${device.kind} ${device.deviceId.slice(0, 8)}`,
-          kind: device.kind as 'audioinput' | 'audiooutput' | 'videoinput',
-        }));
-      setAvailableDevices(mediaDevices);
-    } catch (error) {
-      console.error('Error getting media devices:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    getMediaDevices();
-  }, []);
-
-  // Auto-update video element when streams change
-  useEffect(() => {
-    if (videoRef.current) {
-      console.log('🔄 Streams changed - updating video element:', {
-        hasScreenStream: !!screenStream,
-        hasCameraStream: !!stream,
-        screenStreamTracks: screenStream?.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })),
-        cameraStreamTracks: stream?.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled }))
-      });
-
-      // Screen sharing takes priority over camera
-      if (screenStream && screenStream.active) {
-        videoRef.current.srcObject = screenStream;
-        console.log('📺 Set video to screen stream');
-
-        // Force video to load and play
-        videoRef.current.load();
-        videoRef.current.play().catch(e => console.log('Auto-play prevented:', e));
-      } else if (stream && stream.active) {
-        videoRef.current.srcObject = stream;
-        console.log('📷 Set video to camera stream');
-
-        // Force video to load and play
-        videoRef.current.load();
-        videoRef.current.play().catch(e => console.log('Auto-play prevented:', e));
-      } else {
-        videoRef.current.srcObject = null;
-        console.log('❌ No active stream available');
-      }
-    }
-  }, [stream, screenStream]);
-
-  // Initialize video element on mount
-  useEffect(() => {
-    console.log('🎬 HostStudio mounted, initializing video element');
-    console.log('🎬 Initial stream state:', { stream, screenStream });
-
-    // Set initial stream if available
-    if (videoRef.current) {
-      if (screenStream) {
-        videoRef.current.srcObject = screenStream;
-        console.log('📺 Initial screen stream set');
-      } else if (stream) {
-        videoRef.current.srcObject = stream;
-        console.log('📷 Initial camera stream set');
-      }
-    }
-  }, []); // Only run on mount
-
-  // Ensure video element is properly initialized
-  useEffect(() => {
-    if (videoRef.current) {
-      console.log('🎬 Video element ready, dimensions:', {
-        width: videoRef.current.offsetWidth,
-        height: videoRef.current.offsetHeight,
-        videoWidth: videoRef.current.videoWidth,
-        videoHeight: videoRef.current.videoHeight
-      });
-    }
-  }, []);
-
-  // Update video element when settings change
-  useEffect(() => {
-    console.log('⚙️ Settings changed:', settings);
-
-    if (videoRef.current) {
-      // Ensure video element shows the correct stream based on current settings
-      if (settings.screenSharing && screenStream && screenStream.active) {
-        videoRef.current.srcObject = screenStream;
-        console.log('📺 Settings update: Set video to screen stream');
-
-        // Force video to load and play
-        videoRef.current.load();
-        videoRef.current.play().catch(e => console.log('Settings update auto-play prevented:', e));
-      } else if (settings.cameraEnabled && stream && stream.active) {
-        videoRef.current.srcObject = stream;
-        console.log('📷 Settings update: Set video to camera stream');
-
-        // Force video to load and play
-        videoRef.current.load();
-        videoRef.current.play().catch(e => console.log('Settings update auto-play prevented:', e));
-      }
-    }
-  }, [settings, stream, screenStream]);
-
-  // Start camera stream using hook
-  const handleStartCamera = useCallback(async (deviceId?: string) => {
-    try {
-      console.log('🎬 Starting camera...');
-      await startCamera();
-      setSettings(prev => ({ ...prev, cameraEnabled: true }));
-      setCameraEnabled(true);
-
-      // Small delay to ensure state updates are processed
-      setTimeout(() => {
-        console.log('📷 Camera started, current stream:', stream);
-        console.log('📷 Video ref current:', videoRef.current);
-
-        // Update video element to show camera stream
-        if (stream && videoRef.current) {
-          videoRef.current.srcObject = stream;
-          console.log('✅ Camera stream set to video element');
-        } else {
-          console.log('⚠️ No stream or video ref available');
+      console.log('📹 Setting up camera capture...');
+      
+      const constraints = {
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 }
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          sampleRate: 44100
         }
-      }, 100);
+      };
 
-      showToast({ message: 'Camera started', type: 'success' });
-    } catch (error) {
-      console.error('Error starting camera:', error);
-      setCameraEnabled(false);
-      showToast({ message: 'Failed to start camera', type: 'error' });
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+
+      mediaStreamRef.current = stream;
+      console.log('✅ Camera capture setup complete');
+      
+      return stream;
+    } catch (err) {
+      console.error('❌ Camera setup failed:', err);
+      throw new Error('Camera access denied or not available');
     }
-  }, [startCamera, stream, showToast]);
+  };
 
-  // Stop camera stream using hook
-  const handleStopCamera = useCallback(() => {
-    stopCamera();
+  // Handle stop streaming
+  const handleStopStream = () => {
+    console.log('🛑 Stopping stream...');
+    stopStream();
+    setStreamStatus('connected');
+    
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      mediaStreamRef.current = null;
+    }
+    
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
-    setSettings(prev => ({ ...prev, cameraEnabled: false }));
-    setCameraEnabled(false);
-  }, [stopCamera]);
+  };
 
-  // Start screen sharing using hook
-  const handleStartScreenShare = useCallback(async () => {
-    try {
-      console.log('🖥️ Starting screen sharing...');
-      await startScreenSharing();
-      setSettings(prev => ({ ...prev, screenSharing: true }));
-      setScreenSharing(true);
-
-      // Small delay to ensure state updates are processed
-      setTimeout(() => {
-        console.log('🖥️ Screen sharing started, current screen stream:', screenStream);
-        console.log('🖥️ Video ref current:', videoRef.current);
-
-        // Update video element to show screen share
-        if (screenStream && videoRef.current) {
-          videoRef.current.srcObject = screenStream;
-          console.log('✅ Screen stream set to video element');
-        } else {
-          console.log('⚠️ No screen stream or video ref available');
-        }
-      }, 100);
-
-      showToast({ message: 'Screen sharing started', type: 'success' });
-    } catch (error) {
-      console.error('Error starting screen share:', error);
-      setScreenSharing(false);
-      showToast({ message: 'Failed to start screen sharing', type: 'error' });
+  // Handle back button
+  const handleBack = () => {
+    if (isStreaming) {
+      handleStopStream();
     }
-  }, [startScreenSharing, screenStream, showToast]);
-
-  // Stop screen sharing using hook
-  const handleStopScreenShare = useCallback(() => {
-    stopScreenSharing();
-
-    // Restore camera stream
-    if (stream && videoRef.current) {
-      videoRef.current.srcObject = stream;
+    disconnect();
+    if (onBack) {
+      onBack();
     }
+  };
 
-    setSettings(prev => ({ ...prev, screenSharing: false }));
-    setScreenSharing(false);
-  }, [stopScreenSharing, stream]);
-
-  // Toggle microphone using hook
-  const handleToggleMicrophone = useCallback(() => {
-    toggleMicrophone();
-    setSettings(prev => ({ ...prev, microphoneEnabled: !prev.microphoneEnabled }));
-  }, [toggleMicrophone]);
-
-  // Start recording
-  const startRecording = useCallback(() => {
-    const streamToRecord = getCombinedStream();
-    if (!streamToRecord) {
-      showToast({ message: 'No media stream available', type: 'error' });
-      return;
+  // Get status display text
+  const getStatusText = () => {
+    switch (streamStatus) {
+      case 'idle': return 'Ready to connect';
+      case 'connecting': return 'Connecting...';
+      case 'connected': return 'Connected - Ready to go live';
+      case 'streaming': return 'LIVE - Broadcasting';
+      case 'error': return 'Error - Check connection';
+      default: return 'Unknown status';
     }
+  };
 
-    try {
-      const mediaRecorder = new MediaRecorder(streamToRecord, {
-        mimeType: 'video/webm;codecs=vp9',
-      });
-
-      const chunks: Blob[] = [];
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunks.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-
-        // Here you would typically upload the blob to your server
-        console.log('Recording completed:', url);
-        showToast({ message: 'Recording saved', type: 'success' });
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-
-      // Start recording timer
-      const interval = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-
-      // Store interval ID for cleanup
-      (mediaRecorder as any).intervalId = interval;
-
-      showToast({ message: 'Recording started', type: 'success' });
-    } catch (error) {
-      console.error('Error starting recording:', error);
-      showToast({ message: 'Failed to start recording', type: 'error' });
+  // Get status color
+  const getStatusColor = () => {
+    switch (streamStatus) {
+      case 'streaming': return styles.liveStatus;
+      case 'connected': return styles.readyStatus;
+      case 'error': return styles.errorStatus;
+      default: return styles.idleStatus;
     }
-  }, [getCombinedStream, showToast]);
-
-  // Stop recording
-  const stopRecording = useCallback(() => {
-    // Note: This would need to be implemented with a ref if we want to stop specific recorders
-    // For now, we'll just update the state
-    setRecordingTime(0);
-    setIsRecording(false);
-    showToast({ message: 'Recording stopped', type: 'info' });
-  }, [showToast]);
-
-  // Go live
-  const handleGoLive = useCallback(async () => {
-    // Prevent multiple go-live attempts
-    if (isGoingLive) {
-      console.log('⚠️ Go-live already in progress, skipping duplicate attempt');
-      return;
-    }
-
-    const currentStream = getCombinedStream();
-    if (!currentStream) {
-      showToast({ message: 'Please start camera or screen sharing first', type: 'error' });
-      return;
-    }
-
-    if (!streamId) {
-      showToast({ message: 'No event ID available', type: 'error' });
-      return;
-    }
-
-    // Check if event data is available, but don't fail if it's not
-    if (!event) {
-      console.warn('Event data not loaded, proceeding with stream setup...');
-    }
-
-    try {
-      console.log('🎬 Starting livestream setup...');
-      setIsGoingLive(true);
-      setStreamStatus('connecting');
-
-      // Check if already connected to avoid duplicate connections
-      if (isConnected) {
-        console.log('✅ WebSocket already connected, proceeding with stream setup...');
-        setStreamStatus('initializing');
-      } else {
-        // Connect to WebSocket only if not already connected
-        console.log('🔌 Initiating new WebSocket connection...');
-        connect(streamId);
-        
-        // Wait for connection using WebSocket context events
-        await new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            console.error('WebSocket connection timeout');
-            setStreamStatus('error');
-            setIsGoingLive(false);
-            reject(new Error('WebSocket connection timeout after 10 seconds'));
-          }, 10000);
-
-          // Listen for the WebSocket connection event
-          const handleWebSocketConnected = (event: CustomEvent) => {
-            // Only handle events for this specific stream
-            if (event.detail?.streamKey === streamId) {
-              console.log('✅ WebSocket connected successfully for stream:', streamId);
-              clearTimeout(timeout);
-              setStreamStatus('initializing');
-              window.removeEventListener('websocket-connected', handleWebSocketConnected);
-              resolve(true);
-            }
-          };
-
-          // Add event listener for WebSocket connection
-          window.addEventListener('websocket-connected', handleWebSocketConnected);
-
-          // Also check if connection happens very quickly
-          const checkConnection = setInterval(() => {
-            if (isConnected) {
-              console.log('✅ WebSocket connected via state check');
-              clearTimeout(timeout);
-              clearInterval(checkConnection);
-              setStreamStatus('initializing');
-              window.removeEventListener('websocket-connected', handleWebSocketConnected);
-              resolve(true);
-            }
-          }, 100);
-
-          // Clean up interval when timeout occurs
-          const originalTimeout = timeout;
-          setTimeout(() => {
-            clearInterval(checkConnection);
-          }, 10000);
-        });
-      }
-
-      console.log('✅ WebSocket connected, starting stream...');
-
-      // Start WebSocket stream
-      console.log('🎬 About to call startWebSocketStream with:', { streamId, publicKey });
-      startWebSocketStream(streamId, publicKey || '');
-      console.log('📡 WebSocket stream started');
-
-      // Setup media stream for WebSocket
-      setupMediaStream(currentStream, streamId);
-      console.log('🎥 Media stream setup complete');
-
-      // Update event status - use backend URL directly for streaming
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
-      const streamingUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
-      console.log('🔗 Streaming URL:', streamingUrl);
-
-      // Also check if there's an existing streaming URL in the event (NIP-53 compliance)
-      let existingStreamingUrl = null;
-      if (event?.tags) {
-        const streamingTag = event.tags.find(tag => tag[0] === 'streaming');
-        if (streamingTag) {
-          existingStreamingUrl = streamingTag[1];
-          console.log('Found existing NIP-53 streaming URL:', existingStreamingUrl);
-        }
-      }
-
-      // Log the event structure for NIP-53 debugging
-      console.log('🔍 NIP-53 Event structure:', {
-        eventId: streamId,
-        eventTags: event?.tags,
-        eventContent: event?.content,
-        streamingTag: event?.tags?.find((tag: any) => tag[0] === 'streaming'),
-        statusTag: event?.tags?.find((tag: any) => tag[0] === 'status'),
-        eventKind: (event as any)?.kind
-      });
-
-      // Always try to update event status, even if event data is missing
-      console.log('📝 Updating event status with:', {
-        eventId: streamId,
-        status: 'live',
-        streamingUrl,
-        shouldMarkDelete: false
-      });
-
-      updateEvent.mutate(
-        {
-          eventId: streamId,
-          status: 'live',
-          streamingUrl,
-          shouldMarkDelete: false,
-        },
-        {
-          onSuccess() {
-            console.log('✅ Successfully went live!');
-            setIsLive(true);
-            setIsStreaming(true);
-            setIsGoingLive(false);
-            showToast({ message: 'You are now live!', type: 'success' });
-            // Refresh event data to get updated streaming URL
-            console.log('Refreshing event data...');
-            refetchEvent();
-            onGoLive?.();
-          },
-          onError(error) {
-            console.error('❌ Failed to update event:', error);
-            // Don't fail the stream if event update fails
-            console.log('Stream is live despite event update failure');
-            setIsLive(true);
-            setIsStreaming(true);
-            setIsGoingLive(false);
-            showToast({ message: 'You are now live! (Event update failed)', type: 'warning' });
-            onGoLive?.();
-          },
-        }
-      );
-          } catch (error) {
-        console.error('❌ Failed to start stream:', error);
-        setIsGoingLive(false);
-        setStreamStatus('error');
-        showToast({ message: `Failed to start stream: ${error instanceof Error ? error.message : 'Unknown error'}`, type: 'error' });
-        
-        // Reset connection state on error
-        if (isConnected) {
-          console.log('🔄 Resetting connection state due to error...');
-          // Note: Don't call disconnect() here as it might cause infinite loops
-          // Just reset the local state
-        }
-      }
-    }, [streamId, event, updateEvent, showToast, onGoLive, getCombinedStream, connect, isConnected, startWebSocketStream, setupMediaStream, publicKey, refetchEvent]);
-
-  // Stop streaming with Cloudinary integration
-  const stopStreaming = useCallback(async () => {
-    if (!streamId) {
-      showToast({ message: 'No event ID available', type: 'error' });
-      return;
-    }
-
-    console.log('🛑 Attempting to stop Cloudinary streaming for event:', streamId);
-
-    try {
-      // Step 1: Stop WebSocket stream
-      if (isWebSocketStreaming) {
-        console.log('🔌 Stopping WebSocket stream...');
-        stopWebSocketStream();
-      }
-
-      // Step 2: Disconnect WebSocket
-      if (isConnected) {
-        console.log('🔌 Disconnecting WebSocket...');
-        // disconnect();
-      }
-
-      // Step 3: Stop Cloudinary stream via backend
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
-      console.log('⏹️ Stopping Cloudinary stream via backend...');
-
-      const stopResponse = await fetch(`${backendUrl}/livestream/${streamId}/stop`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          streamId,
-          action: 'stop',
-          userId: publicKey || 'anonymous',
-          timestamp: Date.now()
-        })
-      });
-
-      if (stopResponse.ok) {
-        const stopResult = await stopResponse.json();
-        console.log('✅ Cloudinary stream stopped:', stopResult);
-      } else {
-        console.warn('⚠️ Failed to stop Cloudinary stream via API, continuing with cleanup...');
-      }
-
-      // Step 4: Update Nostr event status
-      updateEvent.mutate(
-        {
-          eventId: streamId,
-          status: 'ended',
-          shouldMarkDelete: false,
-        },
-        {
-          onSuccess() {
-            console.log('✅ Successfully stopped streaming');
-            setIsLive(false);
-            setIsStreaming(false);
-            showToast({ message: 'Stream ended successfully', type: 'info' });
-          },
-          onError(error) {
-            console.error('❌ Failed to update event status:', error);
-            // Still mark as stopped locally
-            setIsLive(false);
-            setIsStreaming(false);
-            showToast({ message: 'Stream ended (status update failed)', type: 'warning' });
-          },
-        }
-      );
-
-    } catch (error) {
-      console.error('❌ Error stopping stream:', error);
-      // Force stop locally even if API calls fail
-      setIsLive(false);
-      setIsStreaming(false);
-      showToast({ message: 'Stream stopped with errors', type: 'warning' });
-    }
-  }, [streamId, updateEvent, showToast, isWebSocketStreaming, stopWebSocketStream, isConnected, disconnect, publicKey]);
-
-  // Format recording time
-  const formatTime = useCallback((seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }, []);
-
-  // Status display component
-  const renderStatusDisplay = () => {
-    const getStatusIcon = (status: string) => {
-      switch (status) {
-        case 'idle': return '⏸️';
-        case 'connecting': return '🔌';
-        case 'initializing': return '⚙️';
-        case 'ready': return '✅';
-        case 'broadcasting': return '📡';
-        case 'error': return '❌';
-        default: return '❓';
-      }
-    };
-
-    const getStatusColor = (status: string) => {
-      switch (status) {
-        case 'idle': return '#6b7280';
-        case 'connecting': return '#f59e0b';
-        case 'initializing': return '#3b82f6';
-        case 'ready': return '#10b981';
-        case 'broadcasting': return '#ef4444';
-        case 'error': return '#dc2626';
-        default: return '#6b7280';
-      }
-    };
-
-    return (
-      <div className={styles.statusDisplay}>
-        <div className={styles.statusHeader}>
-          <span className={styles.statusIcon} style={{ color: getStatusColor(streamStatus) }}>
-            {getStatusIcon(streamStatus)}
-          </span>
-          <span className={styles.statusText}>Stream Status</span>
-        </div>
-        <div className={styles.statusDetails}>
-          <div className={styles.statusItem}>
-            <span className={styles.statusLabel}>Camera:</span>
-            <span className={styles.statusValue}>
-              {cameraEnabled ? '✅' : '❌'}
-            </span>
-          </div>
-          <div className={styles.statusItem}>
-            <span className={styles.statusLabel}>Screen:</span>
-            <span className={styles.statusValue}>
-              {screenSharing ? '✅' : '❌'}
-            </span>
-          </div>
-          <div className={styles.statusItem}>
-            <span className={styles.statusLabel}>Stream:</span>
-            <span className={styles.statusValue}>
-              {streamStatus === 'broadcasting' ? '✅' : '❌'}
-            </span>
-          </div>
-          <div className={styles.statusItem}>
-            <span className={styles.statusLabel}>WebSocket:</span>
-            <span className={styles.statusValue}>
-              {isConnected ? '✅' : '❌'}
-            </span>
-          </div>
-          <div className={styles.statusItem}>
-            <span className={styles.statusLabel}>Streaming:</span>
-            <span className={styles.statusValue}>
-              {isStreaming ? '✅' : '❌'}
-            </span>
-          </div>
-          <div className={styles.statusItem}>
-            <span className={styles.statusLabel}>Viewers:</span>
-            <span className={styles.statusValue}>
-              {viewerCount}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
-    <div className={`${styles.hostStudio} ${className || ''}`}>
+    <div className={styles.hostStudio}>
       {/* Header */}
-      <div className={styles.studioHeader}>
-        <button
-          className={styles.backButton}
-          onClick={onBack}
-          aria-label="Back"
-        >
+      <div className={styles.header}>
+        <button className={styles.backButton} onClick={handleBack}>
           <Icon name="BackIcon" size={24} />
+          Back
         </button>
-
+        <h1 className={styles.title}>Host Studio</h1>
         <div className={styles.streamInfo}>
-          <h1 className={styles.streamTitle}>{event?.title || 'Host Studio'}</h1>
-          <div className={styles.statusIndicators}>
-            {isLive && (
-              <span className={styles.liveIndicator}>
-                <span className={styles.liveDot}></span>
-                LIVE
-              </span>
-            )}
-            {settings.isRecording && (
-              <span className={styles.recordingIndicator}>
-                <Icon name="RecordIcon" size={16} />
-                {formatTime(recordingTime)}
-              </span>
-            )}
-            <span className={styles.viewerCount}>
-              <Icon name="EyeIcon" size={16} />
-              {viewerCount}
-            </span>
-          </div>
+          <span className={styles.streamId}>Stream ID: {streamId}</span>
         </div>
-
-        <button
-          className={styles.settingsButton}
-          onClick={() => setShowSettings(!showSettings)}
-          aria-label="Settings"
-        >
-          <Icon name="SettingsIcon" size={24} />
-        </button>
       </div>
 
-      {/* Status Display */}
-      {/* {renderStatusDisplay()} */}
-
       {/* Main Content */}
-      <div className={styles.studioContent}>
+      <div className={styles.content}>
         {/* Video Preview */}
-        <div className={styles.previewSection}>
+        <div className={styles.videoSection}>
           <div className={styles.videoContainer}>
             <video
               ref={videoRef}
-              className={styles.previewVideo}
+              className={styles.videoPreview}
               autoPlay
               muted
               playsInline
-              onLoadedMetadata={() => {
-                console.log('Video metadata loaded:', {
-                  videoWidth: videoRef.current?.videoWidth,
-                  videoHeight: videoRef.current?.videoHeight,
-                  srcObject: videoRef.current?.srcObject
-                });
-              }}
-              onCanPlay={() => {
-                console.log('Video can play:', {
-                  videoWidth: videoRef.current?.videoWidth,
-                  videoHeight: videoRef.current?.videoHeight,
-                  srcObject: videoRef.current?.srcObject
-                });
-              }}
-              onLoadStart={() => {
-                console.log('Video load started');
-              }}
-              onWaiting={() => {
-                console.log('Video waiting for data');
-              }}
-              onError={(e) => {
-                console.error('Video error:', e);
-              }}
             />
-            <canvas ref={canvasRef} className={styles.canvas} />
-
-            {!settings.cameraEnabled && !settings.screenSharing && (
+            {!mediaStreamRef.current && (
               <div className={styles.noVideo}>
                 <Icon name="CameraIcon" size={48} />
-                <p>Start camera or screen sharing to begin</p>
+                <p>Camera preview will appear here</p>
               </div>
             )}
-
-            {/* Debug info */}
-            <div className={styles.debugInfo}>
-              <p>Camera: {settings.cameraEnabled ? '✅' : '❌'}</p>
-              <p>Screen: {settings.screenSharing ? '✅' : '❌'}</p>
-              <p>Stream: {stream ? '✅' : '❌'}</p>
-              <p>Screen Stream: {screenStream ? '✅' : '❌'}</p>
-              <p>WebSocket: {isConnected ? '✅' : '❌'}</p>
-              <p>Streaming: {isWebSocketStreaming ? '✅' : '❌'}</p>
-              <p>Viewers: {viewerCount}</p>
-            </div>
           </div>
         </div>
 
         {/* Controls */}
-        <div className={styles.controlsSection}>
-          <div className={styles.mediaControls}>
-            {/* Camera Control */}
-            <button
-              className={`${styles.mediaButton} ${settings.cameraEnabled ? styles.active : ''}`}
-              onClick={settings.cameraEnabled ? handleStopCamera : () => handleStartCamera()}
-              aria-label={settings.cameraEnabled ? 'Stop camera' : 'Start camera'}
-            >
-              <Icon name="CameraIcon" size={20} />
-              <span>Camera</span>
-            </button>
-
-            {/* Microphone Control */}
-            <button
-              className={`${styles.mediaButton} ${settings.microphoneEnabled ? styles.active : ''}`}
-              onClick={handleToggleMicrophone}
-              disabled={!settings.cameraEnabled}
-              aria-label={settings.microphoneEnabled ? 'Mute microphone' : 'Unmute microphone'}
-            >
-              <Icon name={settings.microphoneEnabled ? 'MicIcon' : 'MicOffIcon'} size={20} />
-              <span>Mic</span>
-            </button>
-
-            {/* Screen Share Control */}
-            <button
-              className={`${styles.mediaButton} ${settings.screenSharing ? styles.active : ''}`}
-              onClick={settings.screenSharing ? handleStopScreenShare : handleStartScreenShare}
-              aria-label={settings.screenSharing ? 'Stop screen sharing' : 'Start screen sharing'}
-            >
-              <Icon name="MonitorIcon" size={20} />
-              <span>Screen</span>
-            </button>
-
-            {/* Recording Control */}
-            <button
-              className={`${styles.mediaButton} ${settings.isRecording ? styles.recording : ''}`}
-              onClick={settings.isRecording ? stopRecording : startRecording}
-              disabled={!settings.cameraEnabled && !settings.screenSharing}
-              aria-label={settings.isRecording ? 'Stop recording' : 'Start recording'}
-            >
-              <Icon name="RecordIcon" size={20} />
-              <span>Record</span>
-            </button>
+        <div className={styles.controls}>
+          {/* Status Display */}
+          <div className={styles.statusSection}>
+            <h3>Stream Status</h3>
+            <div className={`${styles.status} ${getStatusColor()}`}>
+              {getStatusText()}
+            </div>
+                         {error && (
+               <div className={styles.error}>
+                 <Icon name="WalletIcon" size={16} />
+                 {error}
+               </div>
+             )}
           </div>
 
-          {/* Stream Controls */}
-          <div className={styles.streamControls}>
-            {!isLive ? (
+          {/* Action Buttons */}
+          <div className={styles.actionButtons}>
+            {streamStatus === 'connected' && (
               <button
-                className={`${styles.streamButton} ${styles.goLiveButton}`}
+                className={styles.goLiveButton}
                 onClick={handleGoLive}
-                disabled={(!settings.cameraEnabled && !settings.screenSharing) || isGoingLive || !streamId || !event}
+                disabled={isGoingLive}
               >
-                {isGoingLive ? (
-                  <>
-                    <div className={styles.spinner}></div>
-                    <span>Going Live...</span>
-                  </>
-                ) : (
-                  <>
-                    <Icon name="PlayIcon" size={20} />
-                    <span>Go Live</span>
-                  </>
-                )}
+                                  {isGoingLive ? (
+                    <>
+                      <Icon name="LoginIcon" size={20} />
+                      Going Live...
+                    </>
+                  ) : (
+                    <>
+                      <Icon name="LikeIcon" size={20} />
+                      Go Live
+                    </>
+                  )}
               </button>
-            ) : (
+            )}
+
+            {streamStatus === 'streaming' && (
               <button
-                className={`${styles.streamButton} ${styles.endStreamButton}`}
-                onClick={stopStreaming}
+                className={styles.stopButton}
+                onClick={handleStopStream}
               >
                 <Icon name="StopIcon" size={20} />
-                <span>End Stream</span>
+                Stop Stream
               </button>
             )}
           </div>
 
-          {/* Cloudinary Stream Info */}
-          {cloudinaryUrls.playbackUrl && (
-            <div className={styles.cloudinaryInfo}>
-              <h4>🎬 Cloudinary Stream Info</h4>
-              <div className={styles.urlInfo}>
-                <div className={styles.urlItem}>
-                  <label>📺 Playback URL:</label>
-                  <input
-                    type="text"
-                    value={cloudinaryUrls.playbackUrl}
-                    readOnly
-                    className={styles.urlInput}
-                    onClick={(e) => (e.target as HTMLInputElement).select()}
-                  />
-                </div>
-                {cloudinaryUrls.ingestUrl && (
-                  <div className={styles.urlItem}>
-                    <label>📡 Ingest URL (for broadcasting):</label>
-                    <input
-                      type="text"
-                      value={cloudinaryUrls.ingestUrl}
-                      readOnly
-                      className={styles.urlInput}
-                      onClick={(e) => (e.target as HTMLInputElement).select()}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className={styles.streamStatus}>
-                <span className={styles.statusBadge}>
-                  {isLive ? '🟢 LIVE' : '🔴 OFFLINE'}
-                </span>
-                <span className={styles.statusText}>
-                  {isLive ? 'Streaming to Cloudinary' : 'Ready to go live'}
+          {/* Connection Info */}
+          <div className={styles.connectionInfo}>
+            <h4>Connection Details</h4>
+            <div className={styles.infoGrid}>
+              <div className={styles.infoItem}>
+                <span className={styles.label}>WebSocket:</span>
+                <span className={isConnected ? styles.connected : styles.disconnected}>
+                  {isConnected ? 'Connected' : 'Disconnected'}
                 </span>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Settings Panel */}
-        {showSettings && (
-          <div className={styles.settingsPanel}>
-            <h3>Stream Settings</h3>
-
-            {/* Device Selection */}
-            <div className={styles.settingGroup}>
-              <label>Camera</label>
-              <select
-                value={selectedCamera}
-                onChange={(e) => setSelectedCamera(e.target.value)}
-                className={styles.select}
-              >
-                <option value="">Default Camera</option>
-                {availableDevices
-                  .filter(device => device.kind === 'videoinput')
-                  .map(device => (
-                    <option key={device.deviceId} value={device.deviceId}>
-                      {device.label}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div className={styles.settingGroup}>
-              <label>Microphone</label>
-              <select
-                value={selectedMicrophone}
-                onChange={(e) => setSelectedMicrophone(e.target.value)}
-                className={styles.select}
-              >
-                <option value="">Default Microphone</option>
-                {availableDevices
-                  .filter(device => device.kind === 'audioinput')
-                  .map(device => (
-                    <option key={device.deviceId} value={device.deviceId}>
-                      {device.label}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            {/* Quality Settings */}
-            <div className={styles.settingGroup}>
-              <label>Resolution</label>
-              <select
-                value={settings.resolution}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  resolution: e.target.value as '720p' | '1080p' | '4k'
-                }))}
-                className={styles.select}
-              >
-                <option value="720p">720p</option>
-                <option value="1080p">1080p</option>
-                <option value="4k">4K</option>
-              </select>
-            </div>
-
-            <div className={styles.settingGroup}>
-              <label>Bitrate</label>
-              <select
-                value={settings.bitrate}
-                onChange={(e) => setSettings(prev => ({
-                  ...prev,
-                  bitrate: e.target.value as 'low' | 'medium' | 'high'
-                }))}
-                className={styles.select}
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+              <div className={styles.infoItem}>
+                <span className={styles.label}>Stream:</span>
+                <span className={isStreaming ? styles.streaming : styles.notStreaming}>
+                  {isStreaming ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.label}>Camera:</span>
+                <span className={mediaStreamRef.current ? styles.connected : styles.disconnected}>
+                  {mediaStreamRef.current ? 'Active' : 'Inactive'}
+                </span>
+              </div>
             </div>
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* Instructions */}
+      <div className={styles.instructions}>
+        <h3>How to Stream</h3>
+        <ol>
+          <li>Allow camera access when prompted</li>
+          <li>Wait for WebSocket connection (green status)</li>
+          <li>Click "Go Live" to start broadcasting</li>
+          <li>Your stream will be available at: <code>/livestream/{streamId}/stream.m3u8</code></li>
+        </ol>
       </div>
     </div>
   );

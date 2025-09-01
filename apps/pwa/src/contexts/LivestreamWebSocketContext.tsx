@@ -1,7 +1,7 @@
 "use client";
-import { useUIStore } from '@/store/uiStore';
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { useUIStore } from '@/store/uiStore';
 
 interface LivestreamWebSocketContextType {
   socket: Socket | null;
@@ -36,715 +36,231 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamKey, setStreamKey] = useState<string | null>(null);
   const [viewerCount, setViewerCount] = useState(0);
-  const {showToast} = useUIStore();
+  const { showToast } = useUIStore();
   
   const socketRef = useRef<Socket | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  
-  // Add refs to track current values for sendStreamData
-  const streamKeyRef = useRef<string | null>(null);
-  const isStreamingRef = useRef<boolean>(false);
 
-  // Initialize socket connection
+  // Connect to WebSocket
   const connect = useCallback((streamKey: string) => {
-    // Prevent multiple connection attempts for the same stream
-    if (socketRef.current?.connected && streamKeyRef.current === streamKey) {
-      console.log('✅ Already connected to the same stream, skipping connection');
-      return;
-    }
-
-    // If we have a different stream, disconnect first
-    if (socketRef.current?.connected && streamKeyRef.current !== streamKey) {
-      console.log('🔄 Disconnecting from different stream before connecting to new one...');
+    console.log('🔌 Connecting to WebSocket:', backendUrl);
+    
+    // Disconnect existing socket if any
+    if (socketRef.current?.connected) {
       socketRef.current.disconnect();
-      socketRef.current = null;
     }
-
-    // Prevent connection if already in progress
-    if (socketRef.current && !socketRef.current.connected && !socketRef.current.disconnected) {
-      console.log('⚠️ Connection already in progress, skipping duplicate connection attempt');
-      return;
-    }
-
-    console.log('🔌 Attempting to connect to WebSocket at:', backendUrl);
-    console.log('🔌 Stream key:', streamKey);
-    console.log('🔌 Current connection state:', { 
-      isConnected, 
-      isStreaming, 
-      streamKey: streamKey,
-      existingSocketRef: !!socketRef.current,
-      existingSocketState: socketRef.current?.connected ? 'connected' : 'disconnected'
-    });
 
     const newSocket = io(backendUrl, {
-      transports: ['websocket', 'polling'],
-      query: { streamKey },
-      timeout: 20000,
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-      forceNew: true
+      transports: ['websocket'],
+      query: { streamKey }
     });
 
     newSocket.on('connect', () => {
-      showToast({ message: 'WebSocket connected successfully', type: 'success' });
-      console.log('WebSocket connected successfully');
+      console.log('✅ WebSocket connected');
       setIsConnected(true);
       setStreamKey(streamKey);
-      
-      // Emit a custom event to notify components that WebSocket is connected
-      window.dispatchEvent(new CustomEvent('websocket-connected', { 
-        detail: { 
-          streamKey,
-          socketId: newSocket.id,
-          timestamp: Date.now()
-        } 
-      }));
+      socketRef.current = newSocket;
+      setSocket(newSocket);
+      showToast({ message: 'WebSocket connected', type: 'success' });
     });
 
-    newSocket.on('disconnect', (reason) => {
-      showToast({ message: 'WebSocket disconnected', type: 'error' });
-      console.log('WebSocket disconnected:', reason);
+    newSocket.on('disconnect', () => {
+      console.log('❌ WebSocket disconnected');
       setIsConnected(false);
       setIsStreaming(false);
       setStreamKey(null);
       setViewerCount(0);
-      
-      // Reset refs on disconnect
-      streamKeyRef.current = null;
-      isStreamingRef.current = false;
-      
-      // Emit a custom event to notify components that WebSocket is disconnected
-      window.dispatchEvent(new CustomEvent('websocket-disconnected', { 
-        detail: { 
-          reason,
-          streamKey,
-          timestamp: Date.now()
-        } 
-      }));
     });
 
     newSocket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
+      console.error('❌ WebSocket connection error:', error);
       setIsConnected(false);
-      
-      // Reset refs on connection error
-      streamKeyRef.current = null;
-      isStreamingRef.current = false;
-      
-      // Emit a custom event to notify components that WebSocket connection failed
-      window.dispatchEvent(new CustomEvent('websocket-connection-error', { 
-        detail: { 
-          error: error.message || 'Connection failed',
-          streamKey,
-          timestamp: Date.now()
-        } 
-      }));
+      showToast({ message: 'WebSocket connection failed', type: 'error' });
     });
 
-    newSocket.on('stream-started', (data) => {
-      console.log('Stream started:', data);
+    // Stream events
+    newSocket.on('stream-started', () => {
+      console.log('🎬 Stream started');
       setIsStreaming(true);
-      setStreamKey(data.streamKey);
-      
-      // Emit a custom event to notify the HostStudio component
-      window.dispatchEvent(new CustomEvent('stream-started', { detail: data }));
     });
 
-    newSocket.on('stream-stopped', () => {
-      console.log('Stream stopped');
+    newSocket.on('stream-ended', () => {
+      console.log('🛑 Stream ended');
       setIsStreaming(false);
-    });
-
-    newSocket.on('viewer-count-update', (data) => {
-      setViewerCount(data.count);
     });
 
     newSocket.on('stream-error', (error) => {
-      console.error('Stream error:', error);
+      console.error('❌ Stream error:', error);
       setIsStreaming(false);
-    });
-
-    newSocket.on('stream-data', (data) => {
-      console.log('Received stream data:', data);
-      // This will be handled by the video player component
-      window.dispatchEvent(new CustomEvent('stream-data-received', { detail: data }));
-    });
-
-    newSocket.on('stream-joined', (data) => {
-      console.log('Stream joined:', data);
-      window.dispatchEvent(new CustomEvent('stream-joined', { detail: data }));
-    });
-
-    newSocket.on('stream-initialized', (data) => {
-      console.log('Stream initialized with HLS data:', data);
-      window.dispatchEvent(new CustomEvent('stream-initialized', { detail: data }));
-    });
-
-    newSocket.on('stream-segments-updated', (data) => {
-      console.log('Stream segments updated:', data);
-      window.dispatchEvent(new CustomEvent('stream-segments-updated', { detail: data }));
+      showToast({ message: `Stream error: ${error.error}`, type: 'error' });
     });
 
     newSocket.on('viewer-joined', (data) => {
-      console.log('Viewer joined:', data);
+      console.log('👥 Viewer joined:', data);
       setViewerCount(data.viewerCount);
     });
 
     newSocket.on('viewer-left', (data) => {
-      console.log('Viewer left:', data);
+      console.log('👋 Viewer left:', data);
       setViewerCount(data.viewerCount);
-      
-      // Emit custom event for components to listen to
-      window.dispatchEvent(new CustomEvent('viewer-left', { detail: data }));
     });
 
-    newSocket.on('stream-data-sent', (data) => {
-      console.log('Stream data sent to viewers:', data);
+    newSocket.on('stream-segments-updated', (data) => {
+      console.log('🎯 Stream segments updated:', data);
     });
 
-    newSocket.on('viewer-joined', (data) => {
-      console.log('Viewer joined:', data);
-      setViewerCount(data.viewerCount);
-      
-      // Emit custom event for components to listen to
-      window.dispatchEvent(new CustomEvent('viewer-joined', { detail: data }));
-    });
+  }, [backendUrl, showToast]);
 
-    // New stream status events
-    newSocket.on('stream-ready', (data) => {
-      console.log('Stream ready for broadcasting:', data);
-      window.dispatchEvent(new CustomEvent('stream-ready', { detail: data }));
-    });
-
-    newSocket.on('stream-initialized', (data) => {
-      console.log('Stream initialized:', data);
-      window.dispatchEvent(new CustomEvent('stream-initialized', { detail: data }));
-    });
-
-    // Store the socket reference for later use
-    socketRef.current = newSocket;
-    console.log('🔌 Socket reference set:', { 
-      socketRef: !!socketRef.current, 
-      socketId: newSocket.id,
-      connected: newSocket.connected 
-    });
-    setSocket(newSocket);
-    
-    // Add connection timeout to prevent infinite connection attempts
-    const connectionTimeout = setTimeout(() => {
-      if (!newSocket.connected) {
-        console.error('❌ WebSocket connection timeout after 20 seconds');
-        newSocket.disconnect();
-        setIsConnected(false);
-        streamKeyRef.current = null;
-        isStreamingRef.current = false;
-        
-        // Emit timeout event
-        window.dispatchEvent(new CustomEvent('websocket-connection-timeout', { 
-          detail: { 
-            streamKey,
-            timestamp: Date.now()
-          } 
-        }));
-      }
-    }, 20000);
-    
-    // Clear timeout on successful connection
-    newSocket.on('connect', () => {
-      clearTimeout(connectionTimeout);
-    });
-  }, [backendUrl]);
-
+  // Disconnect WebSocket
   const disconnect = useCallback(() => {
-    console.log('🔌 Disconnecting WebSocket...');
-    
     if (socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
-      setSocket(null);
     }
-    
-    // Reset all state
     setIsConnected(false);
     setIsStreaming(false);
     setStreamKey(null);
     setViewerCount(0);
-    
-    // Reset refs
-    streamKeyRef.current = null;
-    isStreamingRef.current = false;
-    
-    console.log('✅ WebSocket disconnected and state reset');
   }, []);
 
+  // Start streaming
   const startStream = useCallback((streamKey: string, userId: string) => {
-    try {
-      console.log('🎬 startStream called with:', { streamKey, userId });
-      console.log('Socket state:', { 
-        socket: socketRef.current, 
-        connected: socketRef.current?.connected,
-        isConnected,
-        socketId: socketRef.current?.id,
-        socketRefExists: !!socketRef.current,
-        socketConnectedProperty: socketRef.current?.connected,
-        socketState: socketRef.current?.io?._readyState
-      });
-
-      // Prevent multiple start stream attempts for the same stream
-      if (isStreamingRef.current && streamKeyRef.current === streamKey) {
-        console.log('⚠️ Stream already started for this stream key, skipping duplicate start');
-        return;
-      }
-
-      if (!isConnected) {
-        console.error('❌ Socket not connected (using isConnected state)');
-        return;
-      }
-
-      if (!socketRef.current) {
-        console.error('❌ Socket reference is null');
-        return;
-      }
-
-      // Wait a bit for the socket to be fully ready
-      setTimeout(() => {
-        console.log('📡 Emitting start-stream event...');
-        socketRef.current?.emit('start-stream', {
-          userId,
-          streamKey,
-          timestamp: Date.now()
-        });
-        console.log('✅ start-stream event emitted');
-        
-        // Set the stream key and streaming state immediately for this session
-        setStreamKey(streamKey);
-        setIsStreaming(true);
-        
-        // Also update refs for immediate access
-        streamKeyRef.current = streamKey;
-        isStreamingRef.current = true;
-        
-        console.log('✅ Stream state set locally:', { streamKey, isStreaming: true });
-        console.log('✅ Refs updated:', { 
-          streamKeyRef: streamKeyRef.current, 
-          isStreamingRef: isStreamingRef.current 
-        });
-      }, 500); // Wait 500ms for socket to be fully ready
-    } catch (error) {
-      console.error('❌ Error in startStream:', error);
-    }
-  }, [isConnected]);
-
-  const stopStream = useCallback(() => {
     if (!socketRef.current?.connected) {
-      console.log('⚠️ Socket not connected for stop-stream');
+      console.error('❌ WebSocket not connected');
       return;
     }
 
-    if (!streamKey) {
-      console.log('⚠️ No stream key to stop');
+    console.log('🎬 Starting stream:', streamKey);
+    socketRef.current.emit('start-stream', { userId, streamKey });
+  }, []);
+
+  // Stop streaming
+  const stopStream = useCallback(() => {
+    if (!socketRef.current?.connected || !streamKey) {
       return;
     }
 
-    console.log('🛑 Stopping stream:', { streamKey, socketId: socketRef.current.id });
-
-    socketRef.current.emit('stop-stream', { 
-      streamKey,
-      timestamp: Date.now()
-    });
+    console.log('🛑 Stopping stream:', streamKey);
+    socketRef.current.emit('end-stream', { streamKey });
     
-    // Stop media recorder
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      console.log('🎬 Stopping MediaRecorder');
+    if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current = null;
     }
-
+    
     setIsStreaming(false);
     setStreamKey(null);
-    
-    // Also update refs
-    streamKeyRef.current = null;
-    isStreamingRef.current = false;
-    
-    console.log('✅ Stream stopped successfully');
   }, [streamKey]);
 
+  // Send video data
   const sendStreamData = useCallback((chunk: Blob) => {
-    // Use refs for current values to avoid closure issues
-    const currentStreamKey = streamKeyRef.current;
-    const currentIsStreaming = isStreamingRef.current;
-    
-    console.log('🔍 sendStreamData called with refs:', {
-      currentStreamKey,
-      currentIsStreaming,
-      socketConnected: socketRef.current?.connected
-    });
-    
-    if (!socketRef.current?.connected || !currentIsStreaming) {
-      console.log('⚠️ Cannot send stream data:', {
-        socketConnected: socketRef.current?.connected,
-        isStreaming: currentIsStreaming,
-        streamKey: currentStreamKey
-      });
+    if (!socketRef.current?.connected || !isStreaming || !streamKey) {
       return;
     }
 
-    console.log('📡 Sending stream data:', {
-      chunkSize: chunk.size,
-      chunkType: chunk.type,
-      streamKey: currentStreamKey,
-      socketId: socketRef.current.id
-    });
-
-    // Convert blob to buffer for WebSocket transmission
+    console.log('📡 Sending video chunk:', chunk.size, 'bytes');
+    
     chunk.arrayBuffer().then(buffer => {
-      const data = {
-        streamKey: currentStreamKey,
-        chunk: Buffer.from(buffer),
-        timestamp: Date.now()
-      };
-      
-      console.log('📡 About to emit stream-data event with:', {
-        streamKey: data.streamKey,
-        chunkSize: data.chunk.length,
-        socketId: socketRef.current?.id,
-        timestamp: data.timestamp
+      socketRef.current?.emit('stream-data', {
+        streamKey,
+        chunk: Buffer.from(buffer)
       });
-      
-      socketRef.current?.emit('stream-data', data);
-      console.log('✅ Stream data sent via WebSocket');
-      
-      // Verify the data was actually sent
-      setTimeout(() => {
-        console.log('🔍 Post-send verification:', {
-          socketConnected: socketRef.current?.connected,
-          socketId: socketRef.current?.id,
-          streamKey: currentStreamKey
-        });
-      }, 100);
-    }).catch(error => {
-      console.error('❌ Failed to send stream data:', error);
     });
-  }, []); // Remove dependencies since we're using refs
+  }, [isStreaming, streamKey]);
 
+  // Join stream as viewer
   const joinStream = useCallback((streamKey: string, userId: string) => {
     if (!socketRef.current?.connected) {
-      console.error('❌ Socket not connected for join-stream');
       return;
     }
 
-    console.log('👥 Joining stream:', { streamKey, userId, socketId: socketRef.current.id });
-
-    socketRef.current.emit('join-stream', {
-      userId,
-      streamKey,
-      timestamp: Date.now()
-    });
-    
-    console.log('✅ join-stream event emitted');
+    console.log('👥 Joining stream:', streamKey);
+    socketRef.current.emit('join-stream', { userId, streamKey });
   }, []);
 
+  // Leave stream
   const leaveStream = useCallback(() => {
-    if (!socketRef.current?.connected) {
-      console.log('⚠️ Socket not connected for leave-stream');
+    if (!socketRef.current?.connected || !streamKey) {
       return;
     }
 
-    if (!streamKey) {
-      console.log('⚠️ No stream key to leave');
-      return;
-    }
-
-    console.log('👋 Leaving stream:', { streamKey, socketId: socketRef.current.id });
-
-    socketRef.current.emit('leave-stream', { 
-      streamKey,
-      timestamp: Date.now()
-    });
-    
-    console.log('✅ leave-stream event emitted');
+    console.log('👋 Leaving stream:', streamKey);
+    socketRef.current.emit('leave-stream', { streamKey });
   }, [streamKey]);
 
-  // Setup media stream for broadcasting
+  // Setup MediaRecorder for streaming
   const setupMediaStream = useCallback((mediaStream: MediaStream, streamKeyParam?: string) => {
-    // Prevent multiple setup attempts for the same stream
-    if (mediaRecorderRef.current && streamKeyRef.current === streamKeyParam) {
-      console.log('⚠️ MediaRecorder already set up for this stream, skipping duplicate setup');
+    const currentStreamKey = streamKeyParam || streamKey;
+    if (!currentStreamKey) {
+      console.error('❌ No stream key for MediaRecorder setup');
       return;
     }
 
-    streamRef.current = mediaStream;
-    
-    // Use the passed streamKey parameter or fall back to state
-    const currentStreamKey = streamKeyParam || streamKey;
+    console.log('🎥 Setting up MediaRecorder for stream:', currentStreamKey);
     
     try {
-      console.log('🎥 Setting up MediaRecorder for stream:', {
-        tracks: mediaStream.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })),
-        streamId: currentStreamKey
-      });
-
-      // Debug: Check MediaStream details
-      console.log('🎥 MediaStream details:', {
-        id: mediaStream.id,
-        active: mediaStream.active,
-        trackCount: mediaStream.getTracks().length,
-        videoTracks: mediaStream.getVideoTracks().length,
-        audioTracks: mediaStream.getAudioTracks().length,
-        streamId: currentStreamKey
-      });
-
-      // Debug: Check each track individually
-      mediaStream.getTracks().forEach((track, index) => {
-        console.log(`🎥 Track ${index}:`, {
-          kind: track.kind,
-          id: track.id,
-          enabled: track.enabled,
-          readyState: track.readyState,
-          muted: track.muted,
-          contentHint: track.contentHint
-        });
-      });
-
-      // Check if we actually have video content
-      const videoTracks = mediaStream.getVideoTracks();
-      const hasVideoContent = videoTracks.length > 0 && videoTracks.some(track => track.enabled);
+      // Find supported MIME type
+      const supportedTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+      let selectedMimeType = null;
       
-      console.log('🎥 Video content check:', {
-        hasVideoTracks: videoTracks.length > 0,
-        hasEnabledVideoTracks: videoTracks.some(track => track.enabled),
-        hasVideoContent,
-        willRecord: hasVideoContent
-      });
-
-      if (!hasVideoContent) {
-        console.warn('⚠️ No video content available in MediaStream!');
-        console.warn('⚠️ This will result in MediaRecorder generating 0-byte chunks');
-      }
-
-      // Check supported MIME types
-      const supportedTypes = [
-        'video/webm;codecs=vp9',
-        'video/webm;codecs=vp8',
-        'video/webm',
-        'video/mp4'
-      ];
-      
-      let selectedMimeType: string | null = null;
       for (const type of supportedTypes) {
         if (MediaRecorder.isTypeSupported(type)) {
           selectedMimeType = type;
-          console.log('✅ Supported MIME type found:', type);
           break;
         }
       }
       
       if (!selectedMimeType) {
-        console.error('❌ No supported MIME type found for MediaRecorder');
         throw new Error('No supported video format found');
       }
-      
-      console.log('🎥 Creating MediaRecorder with:', {
-        mimeType: selectedMimeType,
-        videoBitsPerSecond: 2500000,
-        streamTracks: mediaStream.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled }))
-      });
-      
+
       const mediaRecorder = new MediaRecorder(mediaStream, {
         mimeType: selectedMimeType,
-        videoBitsPerSecond: 2500000 // 2.5 Mbps
+        videoBitsPerSecond: 2500000
       });
 
       mediaRecorder.ondataavailable = (event) => {
-        console.log('📡 MediaRecorder ondataavailable triggered:', {
-          hasData: !!event.data,
-          dataSize: event.data?.size || 0,
-          dataType: event.data?.type || 'none',
-          streamId: currentStreamKey,
-          timestamp: Date.now()
-        });
-        
         if (event.data && event.data.size > 0) {
-          console.log('📡 MediaRecorder data available:', {
-            size: event.data.size,
-            type: event.data.type,
-            streamId: currentStreamKey
-          });
+          console.log('📡 MediaRecorder data available:', event.data.size, 'bytes');
           sendStreamData(event.data);
-        } else {
-          console.log('⚠️ MediaRecorder data available but size is 0 or no data');
-          console.log('⚠️ Event data details:', {
-            eventData: event.data,
-            eventDataType: typeof event.data,
-            eventDataKeys: event.data ? Object.keys(event.data) : 'NO_DATA'
-          });
         }
       };
 
       mediaRecorder.onstart = () => {
-        console.log('🎬 MediaRecorder started successfully');
-        console.log('🎬 MediaRecorder state after start:', {
-          state: mediaRecorder.state,
-          streamId: currentStreamKey,
-          timestamp: Date.now()
-        });
+        console.log('🎬 MediaRecorder started');
       };
 
       mediaRecorder.onerror = (event) => {
         console.error('❌ MediaRecorder error:', event);
-        console.error('❌ MediaRecorder error details:', {
-          error: event.error,
-          streamId: currentStreamKey,
-          timestamp: Date.now()
-        });
       };
 
       mediaRecorder.onstop = () => {
         console.log('🛑 MediaRecorder stopped');
       };
 
-      mediaRecorder.onpause = () => {
-        console.log('⏸️ MediaRecorder paused');
-      };
-
-      mediaRecorder.onresume = () => {
-        console.log('▶️ MediaRecorder resumed');
-      };
-
       mediaRecorder.start(1000); // Send data every second
       mediaRecorderRef.current = mediaRecorder;
+      streamRef.current = mediaStream;
       
       console.log('✅ MediaRecorder setup complete');
-      console.log('✅ MediaRecorder start() called with 1000ms interval');
-      console.log('✅ MediaRecorder state after start() call:', {
-        state: mediaRecorder.state,
-        streamId: currentStreamKey,
-        timestamp: Date.now()
-      });
-
-      // Verify MediaRecorder is actually recording
-      if (mediaRecorder.state !== 'recording') {
-        console.error('❌ MediaRecorder failed to start recording!');
-        console.error('❌ Expected state: recording, Actual state:', mediaRecorder.state);
-        
-        // Try to restart with a different approach
-        try {
-          console.log('🔧 Attempting to restart MediaRecorder...');
-          mediaRecorder.stop();
-          setTimeout(() => {
-            mediaRecorder.start(1000);
-            console.log('🔧 MediaRecorder restarted, new state:', mediaRecorder.state);
-          }, 100);
-        } catch (restartError) {
-          console.error('❌ Failed to restart MediaRecorder:', restartError);
-        }
-      } else {
-        console.log('✅ MediaRecorder is recording successfully');
-      }
-
-      // Test if MediaRecorder is actually generating data
-      let dataReceived = false;
-      const testTimeout = setTimeout(() => {
-        if (!dataReceived) {
-          console.warn('⚠️ MediaRecorder not generating data after 3 seconds');
-          console.warn('⚠️ This may indicate an issue with the media stream or encoding');
-          
-          // Check media stream status
-          console.log('🔍 Media stream status check:', {
-            active: mediaStream.active,
-            tracks: mediaStream.getTracks().map(t => ({
-              kind: t.kind,
-              enabled: t.enabled,
-              readyState: t.readyState,
-              muted: t.muted
-            }))
-          });
-          
-          // Try to force data generation by requesting data
-          if (mediaRecorder.state === 'recording') {
-            console.log('🔧 Attempting to force MediaRecorder data generation...');
-            try {
-              mediaRecorder.requestData();
-            } catch (e) {
-              console.log('⚠️ requestData() not supported, trying alternative approach');
-            }
-          }
-        }
-      }, 3000);
-
-      // Override ondataavailable to track data generation
-      const originalOndataavailable = mediaRecorder.ondataavailable;
-      mediaRecorder.ondataavailable = (event) => {
-        if (!dataReceived) {
-          dataReceived = true;
-          clearTimeout(testTimeout);
-          console.log('✅ MediaRecorder started generating data');
-        }
-        
-        if (originalOndataavailable) {
-          originalOndataavailable.call(mediaRecorder, event);
-        }
-      };
-
-      // Debug: Check if MediaRecorder is actually recording
-      setTimeout(() => {
-        console.log('🔍 MediaRecorder status check after 2 seconds:', {
-          state: mediaRecorder.state,
-          streamId: currentStreamKey,
-          timestamp: Date.now()
-        });
-        
-        // Check if we've received any data
-        if (mediaRecorder.state === 'recording') {
-          console.log('✅ MediaRecorder is in recording state');
-        } else {
-          console.warn('⚠️ MediaRecorder is not in recording state:', mediaRecorder.state);
-        }
-      }, 2000);
+      
     } catch (error) {
-      console.error('❌ Failed to setup media recorder:', error);
+      console.error('❌ MediaRecorder setup failed:', error);
     }
-  }, [sendStreamData, streamKey]);
+  }, [streamKey, sendStreamData]);
 
-  // Cleanup all streams
+  // Cleanup
   const cleanup = useCallback(() => {
-    console.log('🧹 Cleaning up all streams');
-    
-    // Stop any active WebSocket stream
     if (isStreaming && streamKey) {
-      console.log('🛑 Cleaning up active WebSocket stream:', streamKey);
       stopStream();
     }
-    
-    // Clean up MediaRecorder
-    if (mediaRecorderRef.current) {
-      console.log('🎬 Cleaning up MediaRecorder');
-      if (mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop();
-      }
-      mediaRecorderRef.current = null;
-    }
-    
-    // Reset refs
-    streamKeyRef.current = null;
-    isStreamingRef.current = false;
-    
-    console.log('✅ All streams cleaned up');
-  }, [isStreaming, streamKey, stopStream]);
+    disconnect();
+  }, [isStreaming, streamKey, stopStream, disconnect]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      console.log('🧹 Component unmounting, cleaning up...');
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
-      if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.stop();
-      }
       cleanup();
     };
   }, [cleanup]);
@@ -762,7 +278,7 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     sendStreamData,
     joinStream,
     leaveStream,
-    setupMediaStream: setupMediaStream,
+    setupMediaStream,
     cleanup
   };
 
