@@ -50,6 +50,8 @@ const formatTokenAmount = (amount: string, decimals: number = 18): string => {
   }
 };
 
+
+
 export default function (config: ApibaraRuntimeConfig & {
   startingBlock: number,
   startingCursor: { orderKey: string }
@@ -153,12 +155,23 @@ export default function (config: ApibaraRuntimeConfig & {
               || encode.sanitizeHex(event?.keys[0].slice(4)) == encode.sanitizeHex(CREATE_LAUNCH).slice(4)
             ) {
               console.log("event CreateLaunch");
-              const decodedEvent = decodeEvent({
-                abi: launchpadABI as Abi,
-                event,
-                eventName: 'afk_launchpad::types::launchpad_types::CreateLaunch',
-              });
-              await handleCreateLaunch(decodedEvent, header, event);
+              try {
+                const decodedEvent = decodeEvent({
+                  abi: launchpadABI as Abi,
+                  event,
+                  eventName: 'afk_launchpad::types::launchpad_types::CreateLaunch',
+                });
+                await handleCreateLaunch(decodedEvent, header, event);
+              } catch (decodeError) {
+                console.error("Failed to decode CreateLaunch event:", decodeError);
+                // Try to handle with raw event data by creating a mock decoded event
+                const mockEvent = { args: {} };
+                try {
+                  await handleCreateLaunch(mockEvent, header, event);
+                } catch (rawError) {
+                  console.error("Failed to handle CreateLaunch event with raw data:", rawError);
+                }
+              }
             }
             if (event?.keys[0] == encode.sanitizeHex(METADATA_COIN_ADDED)) {
               console.log("event Metadata");
@@ -493,6 +506,8 @@ export default function (config: ApibaraRuntimeConfig & {
       console.error("Error in handleCreateLaunch:", error);
     }
   }
+
+
 
   async function handleMetadataEvent(event: any, header: any, rawEvent: any) {
     try {
@@ -1180,7 +1195,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
 
         try {
-          const updatePromise = db.update(tokenLaunch)
+          await db.update(tokenLaunch)
           .set({
             current_supply: newSupply,
             liquidity_raised: newLiquidityRaised,
@@ -1189,12 +1204,7 @@ export default function (config: ApibaraRuntimeConfig & {
             market_cap: marketCap,
           })
           .where(eq(tokenLaunch.memecoin_address, tokenAddress));
-
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Update launch record timed out after 10s')), 10_000)
-          );
-
-          await Promise.race([updatePromise, timeoutPromise]);
+          console.log('Launch Record Updated');
         } catch (error: any) {
           console.error('Failed to update launch record:', {
             error: error,
@@ -1222,25 +1232,27 @@ export default function (config: ApibaraRuntimeConfig & {
             const updatedAmountSell = (BigInt(existingShareholder.amount_sell || '0') + BigInt(amount)).toString();
             const updatedTotalPaid = (BigInt(existingShareholder.total_paid || '0') - BigInt(quoteAmount)).toString();
   
-            const updatePromise = await db.update(sharesTokenUser)
-              .set({
-                amount_owned: updatedAmountOwned,
-                amount_sell: updatedAmountSell,
-                total_paid: updatedTotalPaid,
-                is_claimable: updatedAmountOwned !== '0',
-              })
-              .where(and(
-                eq(sharesTokenUser.owner, ownerAddress),
-                eq(sharesTokenUser.token_address, tokenAddress)
-              ));
-
-            const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('Update shareholder timed out after 10s')), 10_000)
-            );
-
-            await Promise.race([updatePromise, timeoutPromise]);
-  
-            console.log('Shareholder Record Updated');
+            try {
+              await db.update(sharesTokenUser)
+                .set({
+                  amount_owned: updatedAmountOwned,
+                  amount_sell: updatedAmountSell,
+                  total_paid: updatedTotalPaid,
+                  is_claimable: updatedAmountOwned !== '0',
+                })
+                .where(and(
+                  eq(sharesTokenUser.owner, ownerAddress),
+                  eq(sharesTokenUser.token_address, tokenAddress)
+                ));
+              console.log('Shareholder Record Updated');
+            } catch (updateError: any) {
+              console.error('Failed to update shareholder:', {
+                error: updateError,
+                code: updateError.code,
+                message: updateError.message,
+                detail: updateError.detail
+              });
+            }
           } else {
             console.log("Shareholder not found");
             await db.insert(sharesTokenUser).values({
