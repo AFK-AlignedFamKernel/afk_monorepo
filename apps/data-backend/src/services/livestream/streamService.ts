@@ -214,7 +214,7 @@ async function uploadFileToR2(
     const fileStream = createReadStream(filePath);
 
     const upload = new Upload({
-      client: s3Client,
+      client: s3Client!,
       params: {
         Bucket: bucketName,
         Key: key,
