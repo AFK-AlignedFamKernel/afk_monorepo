@@ -383,7 +383,7 @@ export default function (config: ApibaraRuntimeConfig & {
             total_supply: totalSupply,
             created_at: new Date(),
             is_launched: false,
-            nostr_id:event?.args?.nostr_id,
+            nostr_id: event?.args?.nostr_id,
           });
           console.log('Token Deploy Record Created successfully');
         } catch (insertError: any) {
@@ -987,15 +987,33 @@ export default function (config: ApibaraRuntimeConfig & {
 
             // Use raw SQL for better performance and avoid schema issues
             try {
-              await db.execute(sql`
-                UPDATE shares_token_user 
-                SET 
-                  amount_owned = ${newAmountOwned},
-                  amount_buy = ${newAmountBuy},
-                  total_paid = ${newTotalPaid},
-                  is_claimable = true
-                WHERE owner = ${ownerAddress} AND token_address = ${tokenAddress}
-              `);
+              await db.update(sharesTokenUser)
+                .set({
+                  amount_owned: newAmountOwned,
+                  amount_buy: newAmountBuy,
+                  total_paid: newTotalPaid,
+                  is_claimable: false,
+                })
+                .where(and(
+                  eq(sharesTokenUser.owner, ownerAddress),
+                  eq(sharesTokenUser.token_address, tokenAddress)
+                ));
+              console.log("Shareholder Record Updated via drizzle fallback");
+              // await db.execute(sql`
+              //   UPDATE shares_token_user 
+              //   SET 
+              //     amount_owned = ${newAmountOwned},
+              //     amount_buy = ${newAmountBuy},
+              //     total_paid = ${newTotalPaid},
+              //     is_claimable = true
+              //   WHERE owner = ${ownerAddress} AND token_address = ${tokenAddress}
+              // `).execute().then(() => {
+              //   console.log("Shareholder Record Updated via raw SQL");
+              // }).catch((error: any) => {
+              //   console.error('Failed to update shareholder via raw SQL:', {
+              //     error: error,
+              //   });
+              // });
               console.log("Shareholder Record Updated via raw SQL");
             } catch (updateError: any) {
               console.error('Failed to update shareholder via raw SQL:', {
@@ -1004,7 +1022,7 @@ export default function (config: ApibaraRuntimeConfig & {
                 message: updateError.message,
                 detail: updateError.detail
               });
-              
+
               // Fallback to drizzle update
               try {
                 await db.update(sharesTokenUser)
@@ -1196,14 +1214,14 @@ export default function (config: ApibaraRuntimeConfig & {
 
         try {
           await db.update(tokenLaunch)
-          .set({
-            current_supply: newSupply,
-            liquidity_raised: newLiquidityRaised,
-            total_token_holded: newTotalTokenHolded,
-            price: priceSell,
-            market_cap: marketCap,
-          })
-          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+            .set({
+              current_supply: newSupply,
+              liquidity_raised: newLiquidityRaised,
+              total_token_holded: newTotalTokenHolded,
+              price: priceSell,
+              market_cap: marketCap,
+            })
+            .where(eq(tokenLaunch.memecoin_address, tokenAddress));
           console.log('Launch Record Updated');
         } catch (error: any) {
           console.error('Failed to update launch record:', {
@@ -1225,13 +1243,13 @@ export default function (config: ApibaraRuntimeConfig & {
         });
         console.log("existingShareholder", existingShareholder);
 
-   
+
         try {
           if (existingShareholder) {
             const updatedAmountOwned = (BigInt(existingShareholder.amount_owned || '0') - BigInt(amount)).toString();
             const updatedAmountSell = (BigInt(existingShareholder.amount_sell || '0') + BigInt(amount)).toString();
             const updatedTotalPaid = (BigInt(existingShareholder.total_paid || '0') - BigInt(quoteAmount)).toString();
-  
+
             try {
               await db.update(sharesTokenUser)
                 .set({
@@ -1266,7 +1284,7 @@ export default function (config: ApibaraRuntimeConfig & {
             });
             console.log("Shareholder Record Created");
           }
-  
+
         } catch (error: any) {
           console.error('Failed to update shareholder:', {
             error: error,
