@@ -20,7 +20,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
     "ts:check": "tsc --noEmit",
-    "db:init": "pnpm run supabase init"
+    "db:init": "pnpm run supabase init",
+    "test:complete-streaming": "node src/services/livestream/test-complete-streaming.js"
   },
   "keywords": [],
   "author": "",

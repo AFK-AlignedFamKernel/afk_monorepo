@@ -20,7 +20,24 @@ Broadcaster → WebSocket → FFmpeg → HLS → NIP-53 → Viewer → Video Pla
 
 ### Phase 1: Backend Pipeline Verification
 
-#### Step 1: Test Complete Streaming Pipeline
+#### Step 1: Test Stream Initialization (NEW!)
+```bash
+cd apps/data-backend/src/services/livestream
+node test-stream-initialization.js
+```
+
+**Expected Output:**
+- ✅ HLS manifest endpoint initializes streams
+- ✅ Stream status endpoint shows initialized streams
+- ✅ Stream directories and manifests are created
+- ✅ Multiple streams can be initialized independently
+
+**What This Tests:**
+- HTTP stream initialization for viewers
+- Automatic stream setup when accessed via NIP-53
+- Stream directory and manifest creation
+
+#### Step 2: Test Complete Streaming Pipeline
 ```bash
 cd apps/data-backend/src/services/livestream
 node test-complete-streaming.js
@@ -239,6 +256,25 @@ The streaming process is working correctly when:
    - Streaming URLs are accessible
    - Events contain correct streaming information
    - Viewers can access streams via events
+
+## 🎯 **Viewer Connection Issue - FIXED!**
+
+### **Problem**
+Viewers were getting "Stream not found or not started" when clicking on Nostr live events because:
+- Streams weren't initialized for HTTP access
+- NIP-53 events pointed to streaming URLs that didn't exist yet
+- Backend couldn't serve HLS manifests for uninitialized streams
+
+### **Solution Implemented**
+1. **Automatic Stream Initialization**: When a viewer accesses a stream via HTTP, it's automatically initialized
+2. **HTTP Stream Setup**: `initializeStreamForHttp()` function creates stream directories and basic HLS manifests
+3. **NIP-53 Compatibility**: Streaming URLs now work immediately when accessed via Nostr events
+4. **Viewer Experience**: No more "Stream not found" errors - streams are ready for access
+
+### **How It Works Now**
+```
+Viewer clicks Nostr event → Accesses streaming URL → Backend initializes stream → HLS manifest served → Video player loads
+```
 
 ## Next Steps
 

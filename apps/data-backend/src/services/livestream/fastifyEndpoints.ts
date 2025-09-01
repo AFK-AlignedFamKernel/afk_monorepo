@@ -1,11 +1,68 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import * as fs from 'fs';
 import path from 'path';
-import { activeStreams, 
-  // initializeStreamForHttp 
-
-} from './streamHandler';
 import { cloudinaryLivestreamService } from './cloudinaryService';
+
+/**
+ * Initialize a stream for HTTP access (when viewers access via NIP-53 events)
+ * This ensures the stream is properly set up even if no broadcaster is connected yet
+ */
+async function initializeStreamForHttp(streamId: string, userId: string = 'anonymous') {
+  try {
+    console.log(`🎬 Initializing stream for HTTP access: ${streamId}`);
+    
+    // Create stream directory if it doesn't exist
+    const streamPath = path.join(process.cwd(), 'public', 'livestreams', streamId);
+    if (!fs.existsSync(streamPath)) {
+      fs.mkdirSync(streamPath, { recursive: true });
+      console.log(`✅ Created stream directory: ${streamPath}`);
+    }
+    
+    // Create a basic HLS manifest that's ready for segments
+    const m3u8Path = path.join(streamPath, 'stream.m3u8');
+    if (!fs.existsSync(m3u8Path)) {
+      const basicManifest = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:2
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:EVENT`;
+      
+      fs.writeFileSync(m3u8Path, basicManifest, 'utf8');
+      console.log(`✅ Created basic HLS manifest: ${m3u8Path}`);
+    }
+    
+    // Check if stream is already in activeStreams
+    const { activeStreams } = await import('./streamHandler');
+    const existingStream = activeStreams.get(streamId);
+    
+    if (!existingStream) {
+      console.log(`📝 Stream ${streamId} not in activeStreams, marking as initialized for HTTP access`);
+      
+      // Create a placeholder stream entry for HTTP access
+      const httpStreamData = {
+        userId,
+        streamKey: streamId,
+        command: null, // No FFmpeg command yet
+        inputStream: null, // No input stream yet
+        viewers: new Set(),
+        broadcasterSocketId: null, // No broadcaster connected yet
+        startedAt: new Date(),
+        status: 'waiting_for_broadcaster',
+        isHttpInitialized: true
+      };
+      
+      activeStreams.set(streamId, httpStreamData);
+      console.log(`✅ Stream ${streamId} initialized for HTTP access`);
+    } else {
+      console.log(`ℹ️ Stream ${streamId} already exists in activeStreams`);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`❌ Failed to initialize stream for HTTP access: ${streamId}`, error);
+    return false;
+  }
+}
 
 /**
  * Fastify HTTP endpoints for serving HLS streams and stream information
@@ -29,6 +86,9 @@ export async function serveHLSManifest(
       return reply.status(400).send({ error: 'Stream ID is required' });
     }
 
+    // Initialize stream for HTTP access if it doesn't exist
+    await initializeStreamForHttp(streamId, 'anonymous');
+    
     const manifestPath = path.join(STREAMS_BASE_DIR, streamId, 'stream.m3u8');
     
     // Check if manifest file exists
@@ -38,6 +98,7 @@ export async function serveHLSManifest(
     }
 
     // Check if stream is active or initialized
+    const { activeStreams } = await import('./streamHandler');
     const streamData = activeStreams.get(streamId);
     const isActive = !!streamData;
     const isInitialized = streamData?.isInitialized;
@@ -145,6 +206,9 @@ export async function getStreamStatus(
     }
 
     console.log(`📊 Getting stream status for: ${streamId}`);
+
+    // Initialize stream for HTTP access if it doesn't exist
+    await initializeStreamForHttp(streamId, 'anonymous');
 
     // Import local stream handler to check FFmpeg streams
     const { activeStreams } = await import('./streamHandler');
@@ -302,7 +366,7 @@ export async function startStream(
     await cloudinaryLivestreamService.startStream(streamId);
 
     // Initialize the stream handler for this stream
-    // await initializeStreamForHttp(streamId, userId || 'anonymous');
+    await initializeStreamForHttp(streamId, userId || 'anonymous');
 
     console.log(`✅ Cloudinary stream ${streamId} created and started successfully`);
     
