@@ -56,7 +56,24 @@ node test-view-event-flow.js
 - Stream initialization for viewers
 - Video player readiness
 
-#### Step 3: Test Complete Streaming Pipeline
+#### Step 3: Test Stream Status Detection (NEW!)
+```bash
+cd apps/data-backend/src/services/livestream
+node test-stream-status-detection.js
+```
+
+**Expected Output:**
+- ✅ Stream initialization working
+- ✅ Status monitoring working
+- ✅ Real-time status updates functional
+- ✅ Frontend can detect status changes
+
+**What This Tests:**
+- Real-time stream status monitoring
+- Status changes from 'active' to 'live'
+- Frontend status detection capabilities
+
+#### Step 4: Test Complete Streaming Pipeline
 ```bash
 cd apps/data-backend/src/services/livestream
 node test-complete-streaming.js

@@ -352,7 +352,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       } catch (error) {
         console.error('❌ Error checking stream status:', error);
       }
-    }, 3000); // Check every 3 seconds
+    }, 2000); // Check every 2 seconds for faster response
 
     return () => {
       clearInterval(statusCheckInterval);
@@ -360,6 +360,52 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       leaveStream();
     };
   }, [streamId, isStreamer, joinStream, leaveStream]);
+
+  // Enhanced stream monitoring for broadcasters (to detect when stream becomes active)
+  useEffect(() => {
+    if (!streamId || !isStreamer) return;
+
+    console.log('🎬 Broadcaster mode: Setting up stream monitoring for:', streamId);
+    
+    // Set up periodic stream status checking for broadcasters
+    const statusCheckInterval = setInterval(async () => {
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050';
+        const response = await fetch(`${backendUrl}/livestream/${streamId}/status`);
+        
+        if (response.ok) {
+          const status = await response.json();
+          console.log('📊 Broadcaster stream status check:', status);
+          
+          // Check if stream now has video content (broadcaster is live)
+          if (status.overall?.hasVideoContent) {
+            console.log('🎬 Broadcaster stream is now LIVE with video content!');
+            setIsLive(true);
+            setLoadError(null);
+            
+            // Update the UI to show stream is active
+            if (onStreamStart) {
+              onStreamStart();
+            }
+          } else if (status.overall?.isActive && status.overall?.hasManifest) {
+            console.log('⏳ Broadcaster stream is active but no video content yet');
+            setIsLive(false);
+            setLoadError('Stream is active - waiting for video data...');
+          } else {
+            console.log('❌ Broadcaster stream is not active');
+            setIsLive(false);
+            setLoadError('Stream is not active');
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error checking broadcaster stream status:', error);
+      }
+    }, 2000); // Check every 2 seconds for faster response
+
+    return () => {
+      clearInterval(statusCheckInterval);
+    };
+  }, [streamId, isStreamer, onStreamStart]);
 
   // Enhanced video loading with better error handling
   useEffect(() => {

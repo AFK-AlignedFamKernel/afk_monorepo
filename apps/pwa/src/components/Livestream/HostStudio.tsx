@@ -38,6 +38,10 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   const [screenSharing, setScreenSharing] = useState(false);
   const [currentMediaStream, setCurrentMediaStream] = useState<MediaStream | null>(null);
 
+  // Real-time stream monitoring
+  const [backendStreamStatus, setBackendStreamStatus] = useState<'inactive' | 'active' | 'live' | 'error'>('inactive');
+  const [streamDetails, setStreamDetails] = useState<any>(null);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
 
@@ -67,6 +71,48 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       setError('WebSocket connection failed');
     }
   }, [isConnected, isStreaming, streamStatus]);
+
+  // Real-time stream monitoring for backend status
+  useEffect(() => {
+    if (!streamId || !isConnected) return;
+
+    console.log('🎬 Setting up real-time stream monitoring for:', streamId);
+    
+    const statusCheckInterval = setInterval(async () => {
+      try {
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050';
+        const response = await fetch(`${backendUrl}/livestream/${streamId}/status`);
+        
+        if (response.ok) {
+          const status = await response.json();
+          console.log('📊 HostStudio stream status check:', status);
+          setStreamDetails(status);
+          
+          // Update backend stream status
+          if (status.overall?.hasVideoContent) {
+            console.log('🎬 Stream is LIVE with video content!');
+            setBackendStreamStatus('live');
+          } else if (status.overall?.isActive && status.overall?.hasManifest) {
+            console.log('⏳ Stream is active but waiting for video content');
+            setBackendStreamStatus('active');
+          } else {
+            console.log('❌ Stream is not active');
+            setBackendStreamStatus('inactive');
+          }
+        } else {
+          console.log('❌ Failed to get stream status');
+          setBackendStreamStatus('error');
+        }
+      } catch (error) {
+        console.error('❌ Error checking stream status:', error);
+        setBackendStreamStatus('error');
+      }
+    }, 2000); // Check every 2 seconds
+
+    return () => {
+      clearInterval(statusCheckInterval);
+    };
+  }, [streamId, isConnected]);
 
   // Setup camera capture
   const setupCameraCapture = async (): Promise<MediaStream | null> => {
@@ -274,6 +320,38 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     }
   };
 
+  // Get backend stream status color
+  const getBackendStatusColor = () => {
+    switch (backendStreamStatus) {
+      case 'inactive':
+        return styles.disconnected || styles.errorStatus;
+      case 'active':
+        return styles.readyStatus;
+      case 'live':
+        return styles.liveStatus;
+      case 'error':
+        return styles.errorStatus;
+      default:
+        return styles.idleStatus;
+    }
+  };
+
+  // Get backend stream status text
+  const getBackendStatusText = () => {
+    switch (backendStreamStatus) {
+      case 'inactive':
+        return 'Inactive';
+      case 'active':
+        return 'Active';
+      case 'live':
+        return 'LIVE';
+      case 'error':
+        return 'Error';
+      default:
+        return 'Unknown';
+    }
+  };
+
   return (
     <div className={styles.hostStudio}>
       {/* Header */}
@@ -403,8 +481,8 @@ export const HostStudio: React.FC<HostStudioProps> = ({
               </div>
               <div className={styles.infoItem}>
                 <span className={styles.label}>Stream:</span>
-                <span className={isStreaming ? styles.streaming : styles.notStreaming}>
-                  {isStreaming ? 'Active' : 'Inactive'}
+                <span className={getBackendStatusColor()}>
+                  {getBackendStatusText()}
                 </span>
               </div>
               <div className={styles.infoItem}>
