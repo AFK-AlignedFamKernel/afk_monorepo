@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { tokenDeploy, tokenLaunch, tokenMetadata } from "../schema.js";
+import { sharesTokenUser, tokenDeploy, tokenLaunch, tokenMetadata, tokenTransactions } from "../schema.js";
 import { db } from "../index.js";
 
 /**
@@ -63,6 +63,25 @@ export const getAllLaunchpads = async ({
       name: true,
       symbol: true,
       url: true,
+      initial_pool_supply_dex:true,
+      // Add fields from tokenMetadata relation
+      // metadata: {
+      //   select: {
+      //     name: true,
+      //     symbol: true,
+      //     twitter: true,
+      //     website: true,
+      //     telegram: true,
+      //     image_url: true,
+      //   },
+      // },
+      // Add fields from tokenDeploy relation
+      // tokenDeploy: {
+      //   select: {
+      //     name: true,
+      //     symbol: true,
+      //   },
+      // },
     },
   });
   return launches;
@@ -128,3 +147,89 @@ export const getLaunchpadByAddress = async (memecoinAddress: string) => {
 
   return launchpadArr[0] ?? null;
 };
+
+
+export const getSharesTokenUser = async ({
+  offset = 0,
+  limit = 20,
+}: {
+  offset?: number;
+  limit?: number;
+} = {}) => {
+  const tokens = await db.query.sharesTokenUser.findMany({
+    offset,
+    limit,
+    orderBy: (sharesTokenUser, { desc }) => [desc(sharesTokenUser.created_at)],
+    columns: {
+      owner: true,
+      created_at: true,
+      amount_owned: true,
+      amount_buy: true,
+      amount_sell: true,
+      total_paid: true,
+      is_claimable: true,
+      token_address: true,
+    },
+  });
+  return tokens;
+};
+
+
+export const getSharesTokenUserByMemecoinAddress = async ({
+  offset = 0,
+  limit = 20,
+  memecoinAddress,
+}: {
+  offset?: number;
+  limit?: number;
+  memecoinAddress: string;
+}) => {
+  const tokens = await db.query.sharesTokenUser.findMany({
+    offset,
+    limit,
+    orderBy: (sharesTokenUser, { desc }) => [desc(sharesTokenUser.created_at)],
+    columns: {
+      owner: true,
+      created_at: true,
+      amount_owned: true,
+      amount_buy: true,
+      amount_sell: true,
+      total_paid: true,
+      is_claimable: true,
+      token_address: true,
+    },
+    where: eq(sharesTokenUser.token_address, memecoinAddress),
+  });
+  return tokens;
+};
+
+
+export const getTransactionsByMemecoinAddress = async ({
+  offset = 0,
+  limit = 20,
+  memecoinAddress,
+}: {
+  offset?: number;
+  limit?: number;
+  memecoinAddress: string;
+}) => {
+  const tokens = await db.query.tokenTransactions.findMany({
+    offset,
+    limit,
+    orderBy: (tokenTransactions, { desc }) => [desc(tokenTransactions.created_at)],
+    columns: {
+      memecoin_address: true,
+      created_at: true,
+      amount: true,
+      price: true,
+      quote_amount: true,
+      network: true,
+      transaction_type: true,
+      transaction_hash: true,
+      time_stamp: true,
+    },
+    where: eq(tokenTransactions.memecoin_address, memecoinAddress),
+  });
+  return tokens;
+};
+

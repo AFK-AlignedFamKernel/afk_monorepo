@@ -1,10 +1,8 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
 import prisma from 'indexer-prisma';
-import { HTTPStatus } from '../../utils/http';
-import { isValidStarknetAddress } from '../../utils/starknet';
+import { HTTPStatus } from '../../../utils/http';
+import { isValidStarknetAddress } from '../../../utils/starknet';
 
-import {queries} from 'indexer-v2-db';
-const { getAllLaunchpads, getLaunchpadByAddress, getAllTokens, getSharesTokenUserByMemecoinAddress, getTransactionsByMemecoinAddress } = queries;
 interface DeployLaunchParams {
   launch: string;
   owner_address?: string;
@@ -17,13 +15,44 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
     try {
       const { offset = 0, limit = 20 } = request.query as { offset?: number; limit?: number };
 
-      const launches = await getAllLaunchpads({
-        offset: offset,
-        limit: limit,
+      const launches = await prisma.token_launch.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          liquidity_raised: 'desc',
+        },
+        select: {
+          memecoin_address: true,
+          quote_token: true,
+          price: true,
+          total_supply: true,
+          liquidity_raised: true,
+          // network: true,
+          created_at: true,
+          threshold_liquidity: true,
+          // initial_pool_supply_dex: true,
+          bonding_type: true,
+          total_token_holded: true,
+          block_timestamp: true,
+          is_liquidity_added: true,
+          market_cap: true,
+          name: true,
+          symbol: true,
+          url: true,
+          website: true,
+          twitter: true,
+          telegram: true,
+          image_url: true,
+          // token_deploy: {
+          //   select: {
+          //     name: true,
+          //     symbol: true,
+          //   },
+          // },
+        },
       });
-      console.log("launches", launches);
 
-      const total = await getAllLaunchpads({});
+      const total = await prisma.token_launch.count();
 
       reply.status(HTTPStatus.OK).send({
         data: launches,
@@ -52,7 +81,32 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
         return;
       }
 
-      const launchPool = await getLaunchpadByAddress(launch);
+      const launchPool = await prisma.token_launch.findFirst({
+        where: {
+          memecoin_address: launch,
+        },
+        select: {
+          memecoin_address: true,
+          quote_token: true,
+          price: true,
+          total_supply: true,
+          liquidity_raised: true,
+          network: true,
+          created_at: true,
+          threshold_liquidity: true,
+          bonding_type: true,
+          total_token_holded: true,
+          block_timestamp: true,
+          is_liquidity_added: true,
+          market_cap: true,
+          initial_pool_supply_dex: true,
+          url: true,
+          name: true,
+          symbol: true,
+          image_url: true,
+          description: true,
+        },
+      });
 
       reply.status(HTTPStatus.OK).send({
         data: launchPool,
@@ -76,21 +130,88 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
         return;
       }
 
-      const launchStats = await getLaunchpadByAddress(launch);
-
-
-      const holdings = await getSharesTokenUserByMemecoinAddress({
-        offset: 0,
-        limit: 20,
-        memecoinAddress: launch,
+      const launchStats = await prisma.token_launch.findFirst({
+        where: {
+          memecoin_address: launch,
+        },
+        select: {
+          memecoin_address: true,
+          quote_token: true,
+          price: true,
+          total_supply: true,
+          liquidity_raised: true,
+          network: true,
+          created_at: true,
+          threshold_liquidity: true,
+          bonding_type: true,
+          total_token_holded: true,
+          block_timestamp: true,
+          is_liquidity_added: true,
+          market_cap: true,
+          name: true,
+          symbol: true,
+          url: true,
+          description: true,
+          twitter: true,
+          telegram: true,
+          github: true,
+          website: true,
+          initial_pool_supply_dex: true,
+          ipfs_hash: true,
+          creator_fee_raised: true,
+          creator_fee_percent: true,
+          image_url: true,
+          current_supply: true,
+          token_deploy: {
+            select: {
+              name: true,
+              symbol: true,
+            },
+          },
+          token_metadata: {
+            select: {
+              url: true,
+            },
+          },
+        },
       });
 
 
-      const allTransactions = await getTransactionsByMemecoinAddress({
-        offset: 0,
-        limit: 20,
-        memecoinAddress: launch,
-      })
+      const holdings = await prisma.shares_token_user.findMany({
+        where: { token_address: launch, },
+        select: {
+          owner: true,
+          token_address: true,
+          amount_owned: true,
+          amount_claimed: true,
+          // updated_at: true,
+          // created_at: true,
+        },
+      });
+
+      const allTransactions = await prisma.token_transactions.findMany({
+        where: {
+          memecoin_address: launch,
+        },
+        select: {
+          memecoin_address: true,
+          owner_address: true,
+          amount: true,
+          price: true,
+          coin_received: true,
+          liquidity_raised: true,
+          protocol_fee: true,
+          total_supply: true,
+          network: true,
+          transaction_type: true,
+          created_at: true,
+          quote_amount: true,
+          transaction_hash: true,
+          time_stamp: true,
+          creator_fee_amount: true,
+        },
+      });
+
 
       const intervalMinutes = 5;
       let transformedData: any[] = [];

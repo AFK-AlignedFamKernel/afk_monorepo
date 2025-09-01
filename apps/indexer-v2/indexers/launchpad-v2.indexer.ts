@@ -418,6 +418,8 @@ export default function (config: ApibaraRuntimeConfig & {
           )
         });
 
+        console.log("existingLaunch", existingLaunch);
+
         if (existingLaunch) {
           console.log('Launch already exists, skipping creation:', {
             memecoin_address: existingLaunch.memecoin_address,
@@ -429,6 +431,7 @@ export default function (config: ApibaraRuntimeConfig & {
         const tokenDeployInfo = await db.query.tokenDeploy.findFirst({
           where: eq(tokenDeploy.memecoin_address, event?.args?.memecoin_address)
         });
+        console.log("tokenDeployInfo", tokenDeployInfo);
 
         if (!tokenDeployInfo) {
           console.log('Token deploy not found for launch:', {
@@ -436,6 +439,7 @@ export default function (config: ApibaraRuntimeConfig & {
           });
           return;
         }
+
 
         const launchData = {
           transaction_hash: transactionHash,
@@ -453,7 +457,7 @@ export default function (config: ApibaraRuntimeConfig & {
           is_liquidity_added: event?.args?.is_liquidity_added || false,
           total_token_holded: formatTokenAmount(event?.args?.total_token_holded?.toString() || '0'),
           price: formatTokenAmount(event?.args?.price?.toString() || '0'),
-          bonding_type: event?.args?.bonding_type,
+          bonding_type: event?.args?.bonding_type?.toString() || null,
           initial_pool_supply_dex: formatTokenAmount(event?.args?.initial_pool_supply_dex?.toString() || '0'),
           market_cap: formatTokenAmount(event?.args?.market_cap?.toString() || '0'),
           token_deploy_tx_hash: event?.args?.token_deploy_tx_hash,
