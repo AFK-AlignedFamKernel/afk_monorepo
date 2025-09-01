@@ -132,7 +132,15 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     }
 
     console.log('🎬 Starting stream:', streamKey);
+    
+    // Update local state immediately when starting stream
+    setIsStreaming(true);
+    setStreamKey(streamKey);
+    
+    // Emit start-stream event to backend
     socketRef.current.emit('start-stream', { userId, streamKey });
+    
+    console.log('✅ Stream state updated to streaming');
   }, []);
 
   // Stop streaming
@@ -242,6 +250,12 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       mediaRecorder.start(1000); // Send data every second
       mediaRecorderRef.current = mediaRecorder;
       streamRef.current = mediaStream;
+      
+      // Ensure we're in streaming state when MediaRecorder starts
+      if (streamKeyParam || streamKey) {
+        setIsStreaming(true);
+        console.log('✅ MediaRecorder started - stream is now active');
+      }
       
       console.log('✅ MediaRecorder setup complete');
       

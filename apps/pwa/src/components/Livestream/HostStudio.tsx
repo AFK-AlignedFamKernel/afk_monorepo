@@ -29,7 +29,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   } = useLivestreamWebSocket();
 
   const [isGoingLive, setIsGoingLive] = useState(false);
-  const [streamStatus, setStreamStatus] = useState<'idle' | 'connecting' | 'connected' | 'streaming' | 'error'>('idle');
+  const [streamStatus, setStreamStatus] = useState<'idle' | 'connecting' | 'connected' | 'streaming' | 'error' | 'loading'>('idle');
   const [error, setError] = useState<string | null>(null);
   
   // Media stream states
@@ -60,15 +60,20 @@ export const HostStudio: React.FC<HostStudioProps> = ({
 
   // Update stream status based on WebSocket state
   useEffect(() => {
+    console.log('🔄 WebSocket state changed:', { isConnected, isStreaming, currentStreamStatus: streamStatus });
+    
     if (isConnected && !isStreaming) {
       setStreamStatus('connected');
       setError(null);
+      console.log('✅ Stream status set to: connected');
     } else if (isStreaming) {
       setStreamStatus('streaming');
       setError(null);
+      console.log('🎬 Stream status set to: streaming');
     } else if (!isConnected && streamStatus !== 'idle') {
       setStreamStatus('error');
       setError('WebSocket connection failed');
+      console.log('❌ Stream status set to: error');
     }
   }, [isConnected, isStreaming, streamStatus]);
 
@@ -253,6 +258,11 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       setStreamStatus('streaming');
       console.log('🎥 Live streaming started!');
 
+      // Step 4: Load the actual HLS stream for preview
+      setTimeout(() => {
+        loadHLSStream();
+      }, 1000); // Wait a bit for the stream to start
+
       if (onGoLive) {
         onGoLive();
       }
@@ -263,6 +273,36 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       setStreamStatus('error');
     } finally {
       setIsGoingLive(false);
+    }
+  };
+
+  // Load the actual HLS stream for preview
+  const loadHLSStream = () => {
+    if (!videoRef.current || !streamId) return;
+    
+    try {
+      console.log('🎥 Loading HLS stream for preview:', streamId);
+      
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050';
+      const hlsUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
+      
+      console.log('🔗 HLS URL:', hlsUrl);
+      
+      const video = videoRef.current;
+      
+      // Set HLS stream as source
+      video.src = hlsUrl;
+      video.load();
+      
+      // Try to play the stream
+      video.play().catch(error => {
+        console.warn('🎥 Auto-play failed for HLS stream:', error);
+      });
+      
+      console.log('✅ HLS stream loaded for preview');
+      
+    } catch (error) {
+      console.error('❌ Error loading HLS stream:', error);
     }
   };
 
@@ -305,6 +345,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       case 'connecting': return 'Connecting...';
       case 'connected': return 'Connected - Ready to go live';
       case 'streaming': return 'LIVE - Broadcasting';
+      case 'loading': return 'Loading...';
       case 'error': return 'Error - Check connection';
       default: return 'Unknown status';
     }
@@ -378,10 +419,20 @@ export const HostStudio: React.FC<HostStudioProps> = ({
               muted
               playsInline
             />
-            {!currentMediaStream && (
+            {!currentMediaStream && !isStreaming && (
               <div className={styles.noVideo}>
                 <Icon name="CameraIcon" size={48} />
                 <p>Select camera or screen sharing to begin</p>
+              </div>
+            )}
+            
+            {/* Show stream status when streaming */}
+            {isStreaming && (
+              <div className={styles.streamStatus}>
+                <div className={styles.statusIcon}>🎬</div>
+                <h3>Streaming Live</h3>
+                <p>Your stream is now live and being broadcast!</p>
+                <p>Viewers can access: <code>/livestream/{streamId}/stream.m3u8</code></p>
               </div>
             )}
           </div>
@@ -459,13 +510,57 @@ export const HostStudio: React.FC<HostStudioProps> = ({
             )}
 
             {streamStatus === 'streaming' && (
-              <button
-                className={styles.stopButton}
-                onClick={handleStopStream}
-              >
-                <Icon name="StopIcon" size={20} />
-                Stop Stream
-              </button>
+              <>
+                <button
+                  className={styles.stopButton}
+                  onClick={handleStopStream}
+                >
+                  <Icon name="StopIcon" size={20} />
+                  Stop Stream
+                </button>
+                
+                <button
+                  className={styles.loadStreamButton}
+                  onClick={loadHLSStream}
+                  style={{
+                    marginLeft: '10px',
+                    padding: '8px 16px',
+                    backgroundColor: '#2196F3',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  🔄 Load HLS Stream
+                </button>
+                
+                <button
+                  className={styles.refreshButton}
+                  onClick={() => {
+                    console.log('🔄 Manual refresh requested');
+                    setStreamStatus('loading');
+                    setTimeout(() => {
+                      if (isStreaming) {
+                        setStreamStatus('streaming');
+                      } else if (isConnected) {
+                        setStreamStatus('connected');
+                      }
+                    }, 100);
+                  }}
+                  style={{
+                    marginLeft: '10px',
+                    padding: '8px 16px',
+                    backgroundColor: '#FF9800',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  🔄 Refresh Status
+                </button>
+              </>
             )}
           </div>
 
