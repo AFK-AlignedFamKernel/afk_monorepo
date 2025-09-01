@@ -12,14 +12,15 @@ type StreamSetup = {
   streamKey: string;
 };
 
-const s3Client = new S3Client({
+// Only create S3 client if R2 is properly configured
+const s3Client = isR2Configured() ? new S3Client({
   region: "auto",
   endpoint: config.cloudfare.r2Domain,
   credentials: {
     accessKeyId: config.cloudfare.r2Access,
     secretAccessKey: config.cloudfare.r2Secret,
   },
-});
+}) : null;
 
 export const streamingUrl = (streamKey: string, fileName: string) =>
   `${config.cloudfare.r2Domain}/livestream/${streamKey}/${fileName}`;
@@ -39,6 +40,14 @@ export async function ensureDir(dir: string) {
   } catch {
     await mkdir(dir, { recursive: true });
   }
+}
+
+// Check if R2 configuration is valid
+export function isR2Configured(): boolean {
+  return !!(config.cloudfare.r2Domain && 
+           config.cloudfare.r2Access && 
+           config.cloudfare.r2Secret && 
+           config.cloudfare.r2BucketName);
 }
 
 // Create input stream for FFmpeg
