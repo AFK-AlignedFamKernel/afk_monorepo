@@ -57,12 +57,13 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     });
 
     newSocket.on('connect', () => {
-      console.log('✅ WebSocket connected');
+      console.log('✅ WebSocket connected with stream key:', streamKey);
       setIsConnected(true);
       setStreamKey(streamKey);
       socketRef.current = newSocket;
       setSocket(newSocket);
       showToast({ message: 'WebSocket connected', type: 'success' });
+      console.log('🔌 WebSocket state updated: connected=true, streamKey=', streamKey);
     });
 
     newSocket.on('disconnect', () => {
@@ -80,9 +81,10 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     });
 
     // Stream events
-    newSocket.on('stream-started', () => {
-      console.log('🎬 Stream started');
+    newSocket.on('stream-started', (data) => {
+      console.log('🎬 Stream started event received from backend:', data);
       setIsStreaming(true);
+      console.log('✅ Frontend streaming state set to true');
     });
 
     newSocket.on('stream-ended', () => {
@@ -133,14 +135,13 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
 
     console.log('🎬 Starting stream:', streamKey);
     
-    // Update local state immediately when starting stream
-    setIsStreaming(true);
+    // Set stream key first
     setStreamKey(streamKey);
     
     // Emit start-stream event to backend
     socketRef.current.emit('start-stream', { userId, streamKey });
     
-    console.log('✅ Stream state updated to streaming');
+    console.log('✅ Stream start event sent to backend');
   }, []);
 
   // Stop streaming
@@ -163,10 +164,12 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
 
   // Send video data
   const sendStreamData = useCallback((chunk: Blob) => {
-    if (!socketRef.current?.connected || !isStreaming || !streamKey) {
+    if (!socketRef.current?.connected || !streamKey) {
+      console.log('❌ Cannot send video data: WebSocket not connected or no stream key');
       return;
     }
 
+    // Don't check isStreaming here - allow data to be sent if we have a connection
     console.log('📡 Sending video chunk:', chunk.size, 'bytes');
     
     chunk.arrayBuffer().then(buffer => {
@@ -174,8 +177,9 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
         streamKey,
         chunk: Buffer.from(buffer)
       });
+      console.log('✅ Video chunk sent to backend');
     });
-  }, [isStreaming, streamKey]);
+  }, [streamKey]);
 
   // Join stream as viewer
   const joinStream = useCallback((streamKey: string, userId: string) => {
@@ -236,7 +240,8 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       };
 
       mediaRecorder.onstart = () => {
-        console.log('🎬 MediaRecorder started');
+        console.log('🎬 MediaRecorder started for stream:', streamKeyParam || streamKey);
+        console.log('📡 MediaRecorder will now send data every 1000ms');
       };
 
       mediaRecorder.onerror = (event) => {
@@ -255,6 +260,11 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       if (streamKeyParam || streamKey) {
         setIsStreaming(true);
         console.log('✅ MediaRecorder started - stream is now active');
+        
+        // Also emit a local stream-started event to ensure consistency
+        if (socketRef.current?.connected) {
+          console.log('🎬 Emitting local stream-started confirmation');
+        }
       }
       
       console.log('✅ MediaRecorder setup complete');

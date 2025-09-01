@@ -135,3 +135,7 @@ next-env.d.ts
 
 # prisma
 .prisma
+
+
+/public/livestreams
+/public/livestreams/*

@@ -29,7 +29,30 @@ export async function handleStartStream(
   try {
     console.log('🎬 Starting stream:', data.streamKey);
     
-    // Setup FFmpeg stream
+    // Check if stream already exists and is active
+    const existingStream = activeStreams.get(data.streamKey);
+    if (existingStream && existingStream.status === 'active') {
+      console.log('✅ Stream already active, reusing existing stream:', data.streamKey);
+      
+      // Update the existing stream with new broadcaster info
+      existingStream.broadcasterSocketId = socket.id;
+      existingStream.userId = data.userId;
+      
+      // Join socket to stream room
+      socket.join(data.streamKey);
+      
+      // Send immediate success response
+      socket.emit('stream-started', {
+        streamKey: data.streamKey,
+        status: 'broadcasting',
+        message: 'Stream already active, reusing existing setup'
+      });
+      
+      console.log('✅ Stream reused successfully');
+      return;
+    }
+    
+    // Setup new FFmpeg stream
     const { ffmpegCommand, outputPath, inputStream } = await setupStream({
       streamKey: data.streamKey,
       userId: data.userId,
