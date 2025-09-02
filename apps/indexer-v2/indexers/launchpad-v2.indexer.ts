@@ -700,13 +700,13 @@ export default function (config: ApibaraRuntimeConfig & {
         const result = await fetch(url);
         const data: any = await result.json();
         console.log('Data:', data);
-        if (data.url) {
-          extractedMetadata.url = data.url;
-          extractedMetadata.nostr_id = data.nostr_id;
-          extractedMetadata.twitter = data.twitter;
-          extractedMetadata.telegram = data.telegram;
-          extractedMetadata.github = data.github;
-          extractedMetadata.website = data.website;
+        if (data) {
+          extractedMetadata.url = data?.url;
+          extractedMetadata.nostr_id = data?.nostr_id;
+          extractedMetadata.twitter = data?.twitter;
+          extractedMetadata.telegram = data?.telegram;
+          extractedMetadata.github = data?.github;
+          extractedMetadata.website = data?.website;
         }
       }
 
@@ -773,13 +773,13 @@ export default function (config: ApibaraRuntimeConfig & {
               ${'starknet-sepolia'},
               ${blockTimestamp},
               ${tokenAddress},
-              ${event?.args?.url || null},
-              ${event?.args?.nostr_id || null},
-              ${event?.args?.nostr_event_id || null},
-              ${event?.args?.twitter || null},
-              ${event?.args?.telegram || null},
-              ${event?.args?.github || null},
-              ${event?.args?.website || null},
+              ${extractedMetadata.url || null},
+              ${extractedMetadata.nostr_id || null},
+              ${extractedMetadata.nostr_event_id || null},
+              ${extractedMetadata.twitter || null},
+              ${extractedMetadata.telegram || null},
+              ${extractedMetadata.github || null},
+              ${extractedMetadata.website || null},
               ${new Date()}
             )
           `);
