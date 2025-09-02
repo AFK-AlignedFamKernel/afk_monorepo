@@ -753,7 +753,7 @@ export default function (config: ApibaraRuntimeConfig & {
         await Promise.race([updateTokenDeployPromise, updateTokenDeployTimeout]);
         console.log("Token Deploy Record Updated");
       } catch (error) {
-        console.error('Error or timeout during token launch update:', error);
+        console.error('Error or timeout during token deploy update:', error);
         
       }
       try {
@@ -951,9 +951,16 @@ export default function (config: ApibaraRuntimeConfig & {
         console.log("amountString", amountString);
         console.log("quoteAmountString", quoteAmountString);
         console.log("priceString", priceString);
-        const amount = formatBigIntToFloat(BigInt(amountString));
-        const quoteAmount = formatBigIntToFloat(BigInt(quoteAmountString));
-        const price = formatBigIntToFloat(BigInt(priceString));
+        
+        // Keep original BigInt values for calculations
+        const amountBigInt = BigInt(amountString);
+        const quoteAmountBigInt = BigInt(quoteAmountString);
+        const priceBigInt = BigInt(priceString);
+        
+        // Convert to human-readable strings for display/storage
+        const amount = formatBigIntToFloat(amountBigInt);
+        const quoteAmount = formatBigIntToFloat(quoteAmountBigInt);
+        const price = formatBigIntToFloat(priceBigInt);
         const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
         const timestamp = new Date(Math.max(0, eventTimestampMs));
 
@@ -1066,18 +1073,28 @@ export default function (config: ApibaraRuntimeConfig & {
             return;
           }
 
-          const newSupply = formatBigIntToFloat(BigInt  (currentLaunch.current_supply || '0') - BigInt(amount));
-          const newLiquidityRaised = formatBigIntToFloat (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount));
-          const newTotalTokenHolded = formatBigIntToFloat(BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount));
+          // Use BigInt arithmetic for calculations
+          const currentSupplyBigInt = BigInt(currentLaunch.current_supply || '0');
+          const liquidityRaisedBigInt = BigInt(currentLaunch.liquidity_raised || '0');
+          const totalTokenHoldedBigInt = BigInt(currentLaunch.total_token_holded || '0');
           const initPoolSupplyBigInt = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-          const newLiquidityRaisedBigInt = BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount);
+          const totalSupplyBigInt = BigInt(currentLaunch.total_supply || '0');
+          
+          const newSupplyBigInt = currentSupplyBigInt - amountBigInt;
+          const newLiquidityRaisedBigInt = liquidityRaisedBigInt + quoteAmountBigInt;
+          const newTotalTokenHoldedBigInt = totalTokenHoldedBigInt + amountBigInt;
+          
+          // Convert to human-readable strings for storage
+          const newSupply = formatBigIntToFloat(newSupplyBigInt);
+          const newLiquidityRaised = formatBigIntToFloat(newLiquidityRaisedBigInt);
+          const newTotalTokenHolded = formatBigIntToFloat(newTotalTokenHoldedBigInt);
+          
+          // Calculate price using BigInt arithmetic
+          const priceBuy = initPoolSupplyBigInt > 0n
+            ? formatBigIntToFloat(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
+            : '0';
 
-          const initPoolSupply = formatBigIntToFloat(BigInt(currentLaunch.initial_pool_supply_dex || '0'));
-          const priceBuy = initPoolSupplyBigInt > 0
-          ? formatBigIntToFloat(BigInt(newLiquidityRaisedBigInt / initPoolSupplyBigInt))
-          : '0';
-
-          const marketCap = formatBigIntToFloat(BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
+          const marketCap = formatBigIntToFloat(totalSupplyBigInt * (newLiquidityRaisedBigInt / initPoolSupplyBigInt));
 
           // Fix: Ensure both operands are BigInt for arithmetic, not string
 
@@ -1172,9 +1189,19 @@ export default function (config: ApibaraRuntimeConfig & {
 
         console.log("existingShareholder", existingShareholder);
 
-        const newAmountOwned = existingShareholder ? (BigInt(existingShareholder.amount_owned || '0') + BigInt(amount)) : amount;
-        const newAmountBuy = existingShareholder ? (BigInt(existingShareholder.amount_buy || '0') + BigInt(amount)) : amount;
-        const newTotalPaid = existingShareholder ? (BigInt(existingShareholder.total_paid || '0') + BigInt(quoteAmount)) : quoteAmount;
+        // Use BigInt arithmetic for shareholder calculations
+        const existingAmountOwnedBigInt = existingShareholder ? BigInt(existingShareholder.amount_owned || '0') : 0n;
+        const existingAmountBuyBigInt = existingShareholder ? BigInt(existingShareholder.amount_buy || '0') : 0n;
+        const existingTotalPaidBigInt = existingShareholder ? BigInt(existingShareholder.total_paid || '0') : 0n;
+        
+        const newAmountOwnedBigInt = existingAmountOwnedBigInt + amountBigInt;
+        const newAmountBuyBigInt = existingAmountBuyBigInt + amountBigInt;
+        const newTotalPaidBigInt = existingTotalPaidBigInt + quoteAmountBigInt;
+        
+        // Convert to human-readable strings for storage
+        const newAmountOwned = formatBigIntToFloat(newAmountOwnedBigInt);
+        const newAmountBuy = formatBigIntToFloat(newAmountBuyBigInt);
+        const newTotalPaid = formatBigIntToFloat(newTotalPaidBigInt);
 
 
         try {
@@ -1247,7 +1274,6 @@ export default function (config: ApibaraRuntimeConfig & {
             try {
               await db.insert(sharesTokenUser)
                 .values({
-                  id: randomUUID(),
                   owner: ownerAddress,
                   token_address: tokenAddress,
                   amount_owned: newAmountOwned,
@@ -1365,11 +1391,21 @@ export default function (config: ApibaraRuntimeConfig & {
       const ownerAddress = event?.args?.caller;
       const tokenAddress = event?.args?.key_user;
 
-      const amount = event?.args?.amount?.toString() || '0';
-      const price = event?.args?.price?.toString() || '0';
+      const amountString = event?.args?.amount?.toString() || '0';
+      const priceString = event?.args?.price?.toString() || '0';
       const protocolFee = event?.args?.protocol_fee?.toString() || '0';
       const lastPrice = event?.args?.last_price?.toString() || '0';
-      const quoteAmount = event?.args?.coin_amount?.toString() || '0';
+      const quoteAmountString = event?.args?.coin_amount?.toString() || '0';
+      
+      // Keep original BigInt values for calculations
+      const amountBigInt = BigInt(amountString);
+      const quoteAmountBigInt = BigInt(quoteAmountString);
+      const priceBigInt = BigInt(priceString);
+      
+      // Convert to human-readable strings for display/storage
+      const amount = formatBigIntToFloat(amountBigInt);
+      const quoteAmount = formatBigIntToFloat(quoteAmountBigInt);
+      const price = formatBigIntToFloat(priceBigInt);
 
       const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
       const timestamp = new Date(Math.max(0, eventTimestampMs));
@@ -1389,16 +1425,29 @@ export default function (config: ApibaraRuntimeConfig & {
         const currentLaunch = launchRecord[0];
 
         console.log("currentLaunch", currentLaunch);
-        const newSupply = (BigInt(currentLaunch.current_supply || '0') + BigInt(amount)).toString();
-        const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') - BigInt(quoteAmount)).toString();
-        const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') - BigInt(amount)).toString();
+        
+        // Use BigInt arithmetic for calculations
+        const currentSupplyBigInt = BigInt(currentLaunch.current_supply || '0');
+        const liquidityRaisedBigInt = BigInt(currentLaunch.liquidity_raised || '0');
+        const totalTokenHoldedBigInt = BigInt(currentLaunch.total_token_holded || '0');
+        const initPoolSupplyBigInt = BigInt(currentLaunch.initial_pool_supply_dex || '0');
+        const totalSupplyBigInt = BigInt(currentLaunch.total_supply || '0');
+        
+        const newSupplyBigInt = currentSupplyBigInt + amountBigInt;
+        const newLiquidityRaisedBigInt = liquidityRaisedBigInt - quoteAmountBigInt;
+        const newTotalTokenHoldedBigInt = totalTokenHoldedBigInt - amountBigInt;
+        
+        // Convert to human-readable strings for storage
+        const newSupply = formatBigIntToFloat(newSupplyBigInt);
+        const newLiquidityRaised = formatBigIntToFloat(newLiquidityRaisedBigInt);
+        const newTotalTokenHolded = formatBigIntToFloat(newTotalTokenHoldedBigInt);
 
-        const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-        const priceSell = initPoolSupply > BigInt(0)
-          ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
+        // Calculate price using BigInt arithmetic
+        const priceSell = initPoolSupplyBigInt > 0n
+          ? formatBigIntToFloat(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
           : '0';
 
-        const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceSell)).toString();
+        const marketCap = formatBigIntToFloat(totalSupplyBigInt * (newLiquidityRaisedBigInt / initPoolSupplyBigInt));
 
         console.log('Calculated Values:', {
           newSupply,
@@ -1443,9 +1492,19 @@ export default function (config: ApibaraRuntimeConfig & {
 
         try {
           if (existingShareholder) {
-            const updatedAmountOwned = (BigInt(existingShareholder.amount_owned || '0') - BigInt(amount)).toString();
-            const updatedAmountSell = (BigInt(existingShareholder.amount_sell || '0') + BigInt(amount)).toString();
-            const updatedTotalPaid = (BigInt(existingShareholder.total_paid || '0') - BigInt(quoteAmount)).toString();
+            // Use BigInt arithmetic for shareholder calculations
+            const existingAmountOwnedBigInt = BigInt(existingShareholder.amount_owned || '0');
+            const existingAmountSellBigInt = BigInt(existingShareholder.amount_sell || '0');
+            const existingTotalPaidBigInt = BigInt(existingShareholder.total_paid || '0');
+            
+            const updatedAmountOwnedBigInt = existingAmountOwnedBigInt - amountBigInt;
+            const updatedAmountSellBigInt = existingAmountSellBigInt + amountBigInt;
+            const updatedTotalPaidBigInt = existingTotalPaidBigInt - quoteAmountBigInt;
+            
+            // Convert to human-readable strings for storage
+            const updatedAmountOwned = formatBigIntToFloat(updatedAmountOwnedBigInt);
+            const updatedAmountSell = formatBigIntToFloat(updatedAmountSellBigInt);
+            const updatedTotalPaid = formatBigIntToFloat(updatedTotalPaidBigInt);
 
             try {
               await db.update(sharesTokenUser)
@@ -1471,7 +1530,6 @@ export default function (config: ApibaraRuntimeConfig & {
           } else {
             console.log("Shareholder not found");
             await db.insert(sharesTokenUser).values({
-              id: randomUUID(),
               owner: ownerAddress,
               token_address: tokenAddress,
               amount_owned: amount,
@@ -1549,7 +1607,13 @@ export default function (config: ApibaraRuntimeConfig & {
 
       const ownerAddress = event?.args?.caller;
       const tokenAddress = event?.args?.token_address;
-      const amount = event?.args?.amount?.toString() || '0';
+      const amountString = event?.args?.amount?.toString() || '0';
+      
+      // Keep original BigInt value for calculations
+      const amountBigInt = BigInt(amountString);
+      
+      // Convert to human-readable string for display/storage
+      const amount = formatBigIntToFloat(amountBigInt);
 
       try {
         const existingShareholder = await db.query.sharesTokenUser.findFirst({
@@ -1560,7 +1624,12 @@ export default function (config: ApibaraRuntimeConfig & {
         });
 
         if (existingShareholder) {
-          const updatedAmountOwned = (BigInt(existingShareholder.amount_owned || '0') - BigInt(amount)).toString();
+          // Use BigInt arithmetic for calculations
+          const existingAmountOwnedBigInt = BigInt(existingShareholder.amount_owned || '0');
+          const updatedAmountOwnedBigInt = existingAmountOwnedBigInt - amountBigInt;
+          
+          // Convert to human-readable string for storage
+          const updatedAmountOwned = formatBigIntToFloat(updatedAmountOwnedBigInt);
 
           await db.update(sharesTokenUser)
             .set({

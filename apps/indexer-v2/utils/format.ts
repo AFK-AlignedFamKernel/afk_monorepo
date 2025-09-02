@@ -40,11 +40,11 @@ export const formatBigIntToFloat = (total_amount_float?: BigInt, decimals = 18) 
         const total_amount_nb = Number(total_amount_float) / 10 ** Number(decimals);
 
         console.log("total_amount_nb", total_amount_nb);
-        return total_amount_nb;
+        return total_amount_nb.toString();
     
     } catch (error) {
         console.error("Error formatting float to uint256:", error);
-        return 0;
+        return "0";
     }
 };        
 
