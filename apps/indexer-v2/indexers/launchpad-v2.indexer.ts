@@ -1311,43 +1311,36 @@ export default function (config: ApibaraRuntimeConfig & {
             return;
           }
 
-          // Use BigInt arithmetic for calculations (following old indexer pattern)
-          const currentSupplyBigInt = BigInt(currentLaunch.current_supply || '0');
-          const liquidityRaisedBigInt = BigInt(currentLaunch.liquidity_raised || '0');
-          const totalTokenHoldedBigInt = BigInt(currentLaunch.total_token_holded || '0');
-          const initPoolSupplyBigInt = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-          const totalSupplyBigInt = BigInt(currentLaunch.total_supply || '0');
-          const thresholdLiquidityBigInt = BigInt(currentLaunch.threshold_liquidity || '0');
+          // Work with human-readable numbers only (simplified approach)
+          const currentSupply = Number(currentLaunch.current_supply || '0');
+          const liquidityRaised = Number(currentLaunch.liquidity_raised || '0');
+          const totalTokenHolded = Number(currentLaunch.total_token_holded || '0');
+          const initPoolSupply = Number(currentLaunch.initial_pool_supply_dex || '0');
+          const totalSupply = Number(currentLaunch.total_supply || '0');
+          const thresholdLiquidity = Number(currentLaunch.threshold_liquidity || '0');
           
           // Calculate new values (following old indexer logic)
-          let newSupplyBigInt = currentSupplyBigInt - amountBigInt;
-          let newLiquidityRaisedBigInt = liquidityRaisedBigInt + quoteAmountBigInt;
-          const newTotalTokenHoldedBigInt = totalTokenHoldedBigInt + amountBigInt;
+          let newSupply = currentSupply - Number(amount);
+          let newLiquidityRaised = liquidityRaised + Number(quoteAmount);
+          const newTotalTokenHolded = totalTokenHolded + Number(amount);
           
           // Handle negative supply (following old indexer pattern)
-          if (newSupplyBigInt < 0n) {
-            console.warn(`Buy amount ${formatBigIntToFloat(amountBigInt)} would exceed remaining supply ${formatBigIntToFloat(currentSupplyBigInt)}. Setting supply to 0.`);
-            newSupplyBigInt = 0n;
+          if (newSupply < 0) {
+            console.warn(`Buy amount ${amount} would exceed remaining supply ${currentSupply}. Setting supply to 0.`);
+            newSupply = 0;
           }
           
           // Handle threshold liquidity (following old indexer pattern)
-          if (newLiquidityRaisedBigInt > thresholdLiquidityBigInt && thresholdLiquidityBigInt > 0n) {
-            console.log(`Liquidity raised ${formatBigIntToFloat(newLiquidityRaisedBigInt)} exceeds threshold ${formatBigIntToFloat(thresholdLiquidityBigInt)}. Capping at threshold.`);
-            newLiquidityRaisedBigInt = thresholdLiquidityBigInt;
+          if (newLiquidityRaised > thresholdLiquidity && thresholdLiquidity > 0) {
+            console.log(`Liquidity raised ${newLiquidityRaised} exceeds threshold ${thresholdLiquidity}. Capping at threshold.`);
+            newLiquidityRaised = thresholdLiquidity;
           }
           
-          // Convert to human-readable strings for storage
-          const newSupply = formatBigIntToFloat(newSupplyBigInt);
-          const newLiquidityRaised = formatBigIntToFloat(newLiquidityRaisedBigInt);
-          const newTotalTokenHolded = formatBigIntToFloat(newTotalTokenHoldedBigInt);
-          
           // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
-          const priceBuy = initPoolSupplyBigInt > 0n 
-            ? formatBigIntToFloat(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
-            : '0';
+          const priceBuy = initPoolSupply > 0 ? (newLiquidityRaised / initPoolSupply).toString() : '0';
           
           // Calculate market cap: total_supply * price (following old indexer pattern)
-          const marketCap = formatBigIntToFloat(totalSupplyBigInt * BigInt(priceBuy));
+          const marketCap = (totalSupply * Number(priceBuy)).toString();
 
           // Fix: Ensure both operands are BigInt for arithmetic, not string
 
@@ -1381,8 +1374,8 @@ export default function (config: ApibaraRuntimeConfig & {
                   current_supply: newSupply.toString(),
                   liquidity_raised: newLiquidityRaised.toString(),
                   total_token_holded: newTotalTokenHolded.toString(),
-                  price: priceBuy.toString(),
-                  market_cap: marketCap.toString()
+                  price: priceBuy,
+                  market_cap: marketCap
                 })
                 .where(eq(tokenLaunch.memecoin_address, tokenAddress));
 
@@ -1449,9 +1442,9 @@ export default function (config: ApibaraRuntimeConfig & {
           : Number(amount);
 
         // Handle case where amount owned exceeds total token held (following old indexer pattern)
-        if (newAmountOwned > Number(newTotalTokenHolded)) {
+        if (newAmountOwned > newTotalTokenHolded) {
           console.warn(`Amount owned (${newAmountOwned}) exceeds total token held (${newTotalTokenHolded}). Adjusting amount owned to total token held.`);
-          newAmountOwned = Number(newTotalTokenHolded);
+          newAmountOwned = newTotalTokenHolded;
         }
 
 
@@ -1596,29 +1589,22 @@ export default function (config: ApibaraRuntimeConfig & {
 
         console.log("currentLaunch", currentLaunch);
         
-        // Use BigInt arithmetic for calculations
-        const currentSupplyBigInt = BigInt(currentLaunch.current_supply || '0');
-        const liquidityRaisedBigInt = BigInt(currentLaunch.liquidity_raised || '0');
-        const totalTokenHoldedBigInt = BigInt(currentLaunch.total_token_holded || '0');
-        const initPoolSupplyBigInt = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-        const totalSupplyBigInt = BigInt(currentLaunch.total_supply || '0');
+        // Work with human-readable numbers only (simplified approach)
+        const currentSupply = Number(currentLaunch.current_supply || '0');
+        const liquidityRaised = Number(currentLaunch.liquidity_raised || '0');
+        const totalTokenHolded = Number(currentLaunch.total_token_holded || '0');
+        const initPoolSupply = Number(currentLaunch.initial_pool_supply_dex || '0');
+        const totalSupply = Number(currentLaunch.total_supply || '0');
         
-        const newSupplyBigInt = currentSupplyBigInt + amountBigInt;
-        const newLiquidityRaisedBigInt = liquidityRaisedBigInt - quoteAmountBigInt;
-        const newTotalTokenHoldedBigInt = totalTokenHoldedBigInt - amountBigInt;
-        
-        // Convert to human-readable strings for storage
-        const newSupply = formatBigIntToFloat(newSupplyBigInt);
-        const newLiquidityRaised = formatBigIntToFloat(newLiquidityRaisedBigInt);
-        const newTotalTokenHolded = formatBigIntToFloat(newTotalTokenHoldedBigInt);
+        const newSupply = currentSupply + Number(amount);
+        const newLiquidityRaised = Math.max(0, liquidityRaised - Number(quoteAmount)); // Ensure non-negative
+        const newTotalTokenHolded = Math.max(0, totalTokenHolded - Number(amount)); // Ensure non-negative
 
         // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
-        const priceSell = initPoolSupplyBigInt > 0n 
-          ? formatBigIntToFloat(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
-          : '0';
+        const priceSell = initPoolSupply > 0 ? (newLiquidityRaised / initPoolSupply).toString() : '0';
         
         // Calculate market cap: total_supply * price (following old indexer pattern)
-        const marketCap = formatBigIntToFloat(totalSupplyBigInt * BigInt(priceSell));
+        const marketCap = (totalSupply * Number(priceSell)).toString();
 
         console.log('Calculated Values:', {
           newSupply,
