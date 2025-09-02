@@ -1196,6 +1196,8 @@ export default function (config: ApibaraRuntimeConfig & {
         console.log("amount", amount);
         console.log("quoteAmount", quoteAmount);
         console.log("price", price);
+
+        let newTotalTokenHoldedOverZero = 0;
         try {
           const launchRecord = await db.execute<{
             current_supply: string;
@@ -1203,6 +1205,7 @@ export default function (config: ApibaraRuntimeConfig & {
             total_token_holded: string;
             initial_pool_supply_dex: string;
             total_supply: string;
+            threshold_liquidity: string;
           }>(sql`
             SELECT 
               current_supply,
@@ -1236,6 +1239,7 @@ export default function (config: ApibaraRuntimeConfig & {
               liquidity_raised: '0',
               total_token_holded: '0',
               initial_pool_supply_dex: bondingCurveDefaults.dexPoolSupply,
+              threshold_liquidity: '0',
               total_supply: formatTokenAmount(totalSupply),
               price: '0',
               market_cap: '0',
@@ -1295,6 +1299,7 @@ export default function (config: ApibaraRuntimeConfig & {
                 total_token_holded: string;
                 initial_pool_supply_dex: string;
                 total_supply: string;
+                threshold_liquidity: string;
               };
             } catch (error) {
               console.error('Failed to create default launch record:', {
@@ -1318,12 +1323,13 @@ export default function (config: ApibaraRuntimeConfig & {
           const initPoolSupply = Number(currentLaunch.initial_pool_supply_dex || '0');
           const totalSupply = Number(currentLaunch.total_supply || '0');
           const thresholdLiquidity = Number(currentLaunch.threshold_liquidity || '0');
-          
+                    
           // Calculate new values (following old indexer logic)
           let newSupply = currentSupply - Number(amount);
           let newLiquidityRaised = liquidityRaised + Number(quoteAmount);
           const newTotalTokenHolded = totalTokenHolded + Number(amount);
           
+          newTotalTokenHoldedOverZero = newTotalTokenHolded + Number(amount);
           // Handle negative supply (following old indexer pattern)
           if (newSupply < 0) {
             console.warn(`Buy amount ${amount} would exceed remaining supply ${currentSupply}. Setting supply to 0.`);
@@ -1343,12 +1349,12 @@ export default function (config: ApibaraRuntimeConfig & {
           const marketCap = (totalSupply * Number(priceBuy)).toString();
 
           // Fix: Ensure both operands are BigInt for arithmetic, not string
-
+  
        
           console.log("Calculated values for launch update:", {
             newSupply: newSupply,
             newLiquidityRaised: newLiquidityRaised.toString(),
-            newTotalTokenHolded: newTotalTokenHolded,
+            newTotalTokenHolded: newTotalTokenHoldedOverZero,
             priceBuy: priceBuy,
             marketCap: marketCap
           });
@@ -1435,16 +1441,16 @@ export default function (config: ApibaraRuntimeConfig & {
         });
 
         console.log("existingShareholder", existingShareholder);
-
+   
         // Calculate new amount owned (following old indexer logic)
         let newAmountOwned = existingShareholder
           ? Number(existingShareholder.amount_owned || '0') + Number(amount)
           : Number(amount);
 
         // Handle case where amount owned exceeds total token held (following old indexer pattern)
-        if (newAmountOwned > newTotalTokenHolded) {
-          console.warn(`Amount owned (${newAmountOwned}) exceeds total token held (${newTotalTokenHolded}). Adjusting amount owned to total token held.`);
-          newAmountOwned = newTotalTokenHolded;
+        if (newAmountOwned > newTotalTokenHoldedOverZero && newTotalTokenHoldedOverZero > 0) {
+          console.warn(`Amount owned (${newAmountOwned}) exceeds total token held (${newTotalTokenHoldedOverZero}). Adjusting amount owned to total token held.`);
+          newAmountOwned = newTotalTokenHoldedOverZero;
         }
 
 
