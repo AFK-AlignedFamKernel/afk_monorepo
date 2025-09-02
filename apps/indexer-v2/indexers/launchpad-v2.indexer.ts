@@ -1094,7 +1094,11 @@ export default function (config: ApibaraRuntimeConfig & {
             ? formatBigIntToFloat(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
             : '0';
 
-          const marketCap = formatBigIntToFloat(totalSupplyBigInt * (newLiquidityRaisedBigInt / initPoolSupplyBigInt));
+          // Calculate market cap: (totalSupply * newLiquidityRaised) / initPoolSupply
+          // We need to handle the division carefully to avoid precision issues
+          const marketCap = initPoolSupplyBigInt > 0n
+            ? formatBigIntToFloat((totalSupplyBigInt * newLiquidityRaisedBigInt) / initPoolSupplyBigInt)
+            : '0';
 
           // Fix: Ensure both operands are BigInt for arithmetic, not string
 
@@ -1274,6 +1278,7 @@ export default function (config: ApibaraRuntimeConfig & {
             try {
               await db.insert(sharesTokenUser)
                 .values({
+                  id: randomUUID(),
                   owner: ownerAddress,
                   token_address: tokenAddress,
                   amount_owned: newAmountOwned,
@@ -1447,7 +1452,11 @@ export default function (config: ApibaraRuntimeConfig & {
           ? formatBigIntToFloat(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
           : '0';
 
-        const marketCap = formatBigIntToFloat(totalSupplyBigInt * (newLiquidityRaisedBigInt / initPoolSupplyBigInt));
+        // Calculate market cap: (totalSupply * newLiquidityRaised) / initPoolSupply
+        // We need to handle the division carefully to avoid precision issues
+        const marketCap = initPoolSupplyBigInt > 0n
+          ? formatBigIntToFloat((totalSupplyBigInt * newLiquidityRaisedBigInt) / initPoolSupplyBigInt)
+          : '0';
 
         console.log('Calculated Values:', {
           newSupply,
@@ -1530,6 +1539,7 @@ export default function (config: ApibaraRuntimeConfig & {
           } else {
             console.log("Shareholder not found");
             await db.insert(sharesTokenUser).values({
+              id: randomUUID(),
               owner: ownerAddress,
               token_address: tokenAddress,
               amount_owned: amount,
