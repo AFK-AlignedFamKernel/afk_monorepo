@@ -17,7 +17,7 @@ import {
 } from 'indexer-v2-db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
-import { formatBigIntToFloat, formatFloatToUint256 } from '@/utils/format';
+import { formatBigIntToFloat, formatFloatToUint256, formatFloatToBigInt } from '@/utils/format';
 
 // Event selectors
 const CREATE_TOKEN = hash.getSelectorFromName('CreateToken') as `0x${string}`;
@@ -95,28 +95,7 @@ const calculateBondingCurveDefaults = (totalSupply: string) => {
   }
 };
 
-// Helper function to convert float string back to BigInt (with decimals)
-const floatStringToBigInt = (floatStr: string, decimals: number = 18): bigint => {
-  try {
-    if (!floatStr || floatStr === '0' || floatStr === 'NaN' || floatStr === 'Infinity') {
-      return 0n;
-    }
-    
-    const floatValue = parseFloat(floatStr);
-    if (isNaN(floatValue) || !isFinite(floatValue)) {
-      return 0n;
-    }
-    
-    // Convert to BigInt by multiplying by 10^decimals
-    const multiplier = BigInt(10 ** decimals);
-    const scaledValue = Math.floor(floatValue * (10 ** decimals));
-    
-    return BigInt(scaledValue);
-  } catch (error) {
-    console.error('Error converting float string to BigInt:', error, floatStr);
-    return 0n;
-  }
-};
+
 
 // Helper function to calculate price based on bonding curve
 const calculateBondingCurvePrice = (
@@ -142,19 +121,19 @@ const calculateBondingCurvePrice = (
     
     // Check if the strings contain decimal points (formatted floats) or are raw BigInt strings
     if (liquidityRaised.includes('.') || liquidityRaised.includes('e-') || liquidityRaised.includes('e+')) {
-      liquidityRaisedBigInt = floatStringToBigInt(liquidityRaised);
+      liquidityRaisedBigInt = formatFloatToBigInt(liquidityRaised);
     } else {
       liquidityRaisedBigInt = BigInt(liquidityRaised);
     }
     
     if (initialPoolSupply.includes('.') || initialPoolSupply.includes('e-') || initialPoolSupply.includes('e+')) {
-      initialPoolSupplyBigInt = floatStringToBigInt(initialPoolSupply);
+      initialPoolSupplyBigInt = formatFloatToBigInt(initialPoolSupply);
     } else {
       initialPoolSupplyBigInt = BigInt(initialPoolSupply);
     }
     
     if (totalSupply.includes('.') || totalSupply.includes('e-') || totalSupply.includes('e+')) {
-      totalSupplyBigInt = floatStringToBigInt(totalSupply);
+      totalSupplyBigInt = formatFloatToBigInt(totalSupply);
     } else {
       totalSupplyBigInt = BigInt(totalSupply);
     }
@@ -782,9 +761,9 @@ export default function (config: ApibaraRuntimeConfig & {
         // Calculate initial price and market cap
         const liquidityRaised = formatTokenAmount(event?.args?.liquidity_raised?.toString() || '0');
         const { price, marketCap } = calculateBondingCurvePrice(
-          liquidityRaised,
-          initialPoolSupply,
-          formatTokenAmount(totalSupply)
+          event?.args?.liquidity_raised?.toString() || '0',
+          bondingCurveDefaults.dexPoolSupplyBigInt.toString(),
+          totalSupply
         );
         
         const launchData = {
@@ -814,10 +793,10 @@ export default function (config: ApibaraRuntimeConfig & {
 
         // Validate bonding curve parameters
         const validation = validateBondingCurveParameters(
-          formatTokenAmount(totalSupply),
-          currentSupply,
-          initialPoolSupply,
-          liquidityRaised
+          totalSupply,
+          bondingCurveDefaults.userPurchasableSupplyBigInt.toString(),
+          bondingCurveDefaults.dexPoolSupplyBigInt.toString(),
+          event?.args?.liquidity_raised?.toString() || '0'
         );
         
         if (!validation.isValid) {
@@ -1344,10 +1323,11 @@ export default function (config: ApibaraRuntimeConfig & {
           const newTotalTokenHolded = formatBigIntToFloat(newTotalTokenHoldedBigInt);
           
           // Calculate price and market cap using the improved bonding curve calculation
+          // Pass the raw BigInt values as strings, not the formatted float strings
           const { price: priceBuy, marketCap } = calculateBondingCurvePrice(
-            newLiquidityRaised,
-            formatBigIntToFloat(initPoolSupplyBigInt),
-            formatBigIntToFloat(totalSupplyBigInt)
+            newLiquidityRaisedBigInt.toString(),
+            initPoolSupplyBigInt.toString(),
+            totalSupplyBigInt.toString()
           );
 
           // Fix: Ensure both operands are BigInt for arithmetic, not string
@@ -1698,10 +1678,11 @@ export default function (config: ApibaraRuntimeConfig & {
         const newTotalTokenHolded = formatBigIntToFloat(newTotalTokenHoldedBigInt);
 
         // Calculate price and market cap using the improved bonding curve calculation
+        // Pass the raw BigInt values as strings, not the formatted float strings
         const { price: priceSell, marketCap } = calculateBondingCurvePrice(
-          newLiquidityRaised,
-          formatBigIntToFloat(initPoolSupplyBigInt),
-          formatBigIntToFloat(totalSupplyBigInt)
+          newLiquidityRaisedBigInt.toString(),
+          initPoolSupplyBigInt.toString(),
+          totalSupplyBigInt.toString()
         );
 
         console.log('Calculated Values:', {
