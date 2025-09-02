@@ -50,7 +50,39 @@ const formatTokenAmount = (amount: string, decimals: number = 18): string => {
   }
 };
 
+// Helper function to add timeout to database operations
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T> => {
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error(`Database operation timed out after ${timeoutMs}ms`)), timeoutMs);
+  });
+  
+  return Promise.race([promise, timeoutPromise]);
+};
 
+// Helper function to retry database operations
+const withRetry = async <T>(
+  operation: () => Promise<T>, 
+  maxRetries: number = 3, 
+  delayMs: number = 1000
+): Promise<T> => {
+  let lastError: any;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      lastError = error;
+      console.log(`Database operation attempt ${attempt} failed:`, error.message);
+      
+      if (attempt < maxRetries) {
+        console.log(`Retrying in ${delayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  
+  throw lastError;
+};
 
 export default function (config: ApibaraRuntimeConfig & {
   startingBlock: number,
@@ -125,6 +157,15 @@ export default function (config: ApibaraRuntimeConfig & {
         " | finality: ",
         finality,
       );
+
+      // // Database health check - ensure database is responsive
+      // try {
+      //   await db.execute(sql`SELECT 1`);
+      //   console.log("Database connection healthy");
+      // } catch (dbHealthError) {
+      //   console.error("Database connection unhealthy:", dbHealthError);
+      //   // Continue processing but log the issue
+      // }
 
       console.log("timestamp", header.timestamp);
 
@@ -373,7 +414,7 @@ export default function (config: ApibaraRuntimeConfig & {
         
         // Use raw SQL for better performance and avoid hanging
         try {
-          await db.execute(sql`
+          const rawSqlPromise = db.execute(sql`
             INSERT INTO token_deploy (
               transaction_hash,
               network,
@@ -403,13 +444,17 @@ export default function (config: ApibaraRuntimeConfig & {
             )
             ON CONFLICT (transaction_hash) DO NOTHING
           `);
+          const rawSqlTimeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Raw SQL insert timed out after 10s')), 10000);
+          });
+          await Promise.race([rawSqlPromise, rawSqlTimeoutPromise]);
           console.log('Token Deploy Record Created successfully via raw SQL');
         } catch (sqlError: any) {
           console.error('Raw SQL insert failed:', sqlError);
           
           // Fallback to drizzle insert
           try {
-            await db.insert(tokenDeploy).values({
+            const drizzlePromise = db.insert(tokenDeploy).values({
               transaction_hash: transactionHash,
               network: 'starknet-sepolia',
               block_timestamp: blockTimestamp,
@@ -423,6 +468,10 @@ export default function (config: ApibaraRuntimeConfig & {
               is_launched: false,
               nostr_id: event?.args?.nostr_id,
             });
+            const drizzleTimeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('Drizzle insert timed out after 10s')), 10000);
+            });
+            await Promise.race([drizzlePromise, drizzleTimeoutPromise]);
             console.log('Token Deploy Record Created successfully via drizzle fallback');
           } catch (drizzleError: any) {
             console.error('Drizzle insert failed:', drizzleError);
