@@ -970,7 +970,6 @@ export default function (config: ApibaraRuntimeConfig & {
         const updateTokenDeployPromise = db.update(tokenDeploy)
           .set({
             url: extractedMetadata.url,
-            twitter: extractedMetadata.twitter,
             telegram: extractedMetadata.telegram,
             github: extractedMetadata.github,
             website: extractedMetadata.website,
@@ -1210,6 +1209,7 @@ export default function (config: ApibaraRuntimeConfig & {
               liquidity_raised,
               total_token_holded,
               initial_pool_supply_dex,
+              threshold_liquidity,
               total_supply
             FROM token_launch 
             WHERE memecoin_address = ${tokenAddress}
@@ -1618,9 +1618,9 @@ export default function (config: ApibaraRuntimeConfig & {
         try {
           await db.update(tokenLaunch)
             .set({
-              current_supply: newSupply,
-              liquidity_raised: newLiquidityRaised,
-              total_token_holded: newTotalTokenHolded,
+              current_supply: newSupply.toString(),
+              liquidity_raised: newLiquidityRaised.toString(),
+              total_token_holded: newTotalTokenHolded.toString(),
               price: priceSell,
               market_cap: marketCap,
             })
