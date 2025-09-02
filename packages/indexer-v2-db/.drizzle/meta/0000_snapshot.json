@@ -1,5 +1,5 @@
 {
-  "id": "defd240e-ea61-4bb1-b009-2526a743e1c6",
+  "id": "437c1756-a45f-4760-8018-61c21ec26f60",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -848,6 +848,18 @@
         },
         "url": {
           "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nostr_id": {
+          "name": "nostr_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nostr_event_id": {
+          "name": "nostr_event_id",
           "type": "text",
           "primaryKey": false,
           "notNull": false
