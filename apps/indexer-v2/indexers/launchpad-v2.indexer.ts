@@ -55,32 +55,32 @@ const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number = 5000): Pr
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => reject(new Error(`Database operation timed out after ${timeoutMs}ms`)), timeoutMs);
   });
-  
+
   return Promise.race([promise, timeoutPromise]);
 };
 
 // Helper function to retry database operations
 const withRetry = async <T>(
-  operation: () => Promise<T>, 
-  maxRetries: number = 3, 
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
   delayMs: number = 1000
 ): Promise<T> => {
   let lastError: any;
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error: any) {
       lastError = error;
       console.log(`Database operation attempt ${attempt} failed:`, error.message);
-      
+
       if (attempt < maxRetries) {
         console.log(`Retrying in ${delayMs}ms...`);
         await new Promise(resolve => setTimeout(resolve, delayMs));
       }
     }
   }
-  
+
   throw lastError;
 };
 
@@ -411,7 +411,7 @@ export default function (config: ApibaraRuntimeConfig & {
       try {
         // Insert token deploy record using drizzle
         console.log('Attempting to insert token deploy record...');
-        
+
         // Use raw SQL for better performance and avoid hanging
         try {
           const rawSqlPromise = db.execute(sql`
@@ -451,7 +451,7 @@ export default function (config: ApibaraRuntimeConfig & {
           console.log('Token Deploy Record Created successfully via raw SQL');
         } catch (sqlError: any) {
           console.error('Raw SQL insert failed:', sqlError);
-          
+
           // Fallback to drizzle insert
           try {
             const drizzlePromise = db.insert(tokenDeploy).values({
@@ -511,11 +511,13 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
+
+      const tokenAddress = event?.args?.token_address || event?.args?.memecoin_address;
       try {
         const existingLaunch = await db.query.tokenLaunch.findFirst({
           where: or(
             eq(tokenLaunch.transaction_hash, transactionHash),
-            eq(tokenLaunch.memecoin_address, event?.args?.memecoin_address)
+            eq(tokenLaunch.memecoin_address, tokenAddress)
           )
         });
 
@@ -530,24 +532,32 @@ export default function (config: ApibaraRuntimeConfig & {
         }
 
         const tokenDeployInfo = await db.query.tokenDeploy.findFirst({
-          where: eq(tokenDeploy.memecoin_address, event?.args?.memecoin_address)
+          where: eq(tokenDeploy.memecoin_address, tokenAddress)
         });
         console.log("tokenDeployInfo", tokenDeployInfo);
 
         if (!tokenDeployInfo) {
           console.log('Token deploy not found for launch:', {
-            memecoin_address: event?.args?.memecoin_address
+            memecoin_address: tokenAddress
           });
           // return;
         }
 
 
+        console.log("Bonding type", event?.args?.bonding_type?.toString() || null);
+
+        console.log("event args CreateLaunch", event?.args);
+
+        const caller = event?.args?.caller || event?.args?.owner;
+
+        const bondingType = event?.args?.bonding_type["_tag"] || event?.args?.bonding_type?.toString() || null;
+        console.log("Bonding type", bondingType);
         const launchData = {
           transaction_hash: transactionHash,
           network: 'starknet-sepolia',
           block_timestamp: blockTimestamp,
-          memecoin_address: event?.args?.memecoin_address,
-          owner_address: event?.args?.owner,
+          memecoin_address: tokenAddress,
+          owner_address: caller,
           name: tokenDeployInfo?.name || null,
           symbol: tokenDeployInfo?.symbol || null,
           quote_token: event?.args?.quote_token,
@@ -558,7 +568,7 @@ export default function (config: ApibaraRuntimeConfig & {
           is_liquidity_added: event?.args?.is_liquidity_added || false,
           total_token_holded: formatTokenAmount(event?.args?.total_token_holded?.toString() || '0'),
           price: formatTokenAmount(event?.args?.price?.toString() || '0'),
-          bonding_type: event?.args?.bonding_type?.toString() || null,
+          bonding_type: bondingType,
           initial_pool_supply_dex: formatTokenAmount(event?.args?.initial_pool_supply_dex?.toString() || '0'),
           market_cap: formatTokenAmount(event?.args?.market_cap?.toString() || '0'),
           token_deploy_tx_hash: event?.args?.token_deploy_tx_hash,
@@ -595,7 +605,7 @@ export default function (config: ApibaraRuntimeConfig & {
       } catch (dbError: any) {
         if (dbError.code === '23505') {
           console.log('Launch already exists (unique constraint violation):', {
-            memecoin_address: event?.args?.memecoin_address,
+            memecoin_address: tokenAddress,
             transaction_hash: transactionHash
           });
         } else {
