@@ -538,7 +538,7 @@ export default function (config: ApibaraRuntimeConfig & {
           console.log('Token deploy not found for launch:', {
             memecoin_address: event?.args?.memecoin_address
           });
-          return;
+          // return;
         }
 
 
@@ -548,8 +548,8 @@ export default function (config: ApibaraRuntimeConfig & {
           block_timestamp: blockTimestamp,
           memecoin_address: event?.args?.memecoin_address,
           owner_address: event?.args?.owner,
-          name: tokenDeployInfo.name || null,
-          symbol: tokenDeployInfo.symbol || null,
+          name: tokenDeployInfo?.name || null,
+          symbol: tokenDeployInfo?.symbol || null,
           quote_token: event?.args?.quote_token,
           total_supply: formatTokenAmount(event?.args?.total_supply?.toString() || '0'),
           threshold_liquidity: formatTokenAmount(event?.args?.threshold_liquidity?.toString() || '0'),
@@ -567,14 +567,25 @@ export default function (config: ApibaraRuntimeConfig & {
 
         console.log('Processed Launch Data:', launchData);
 
-        await db.insert(tokenLaunch).values(launchData);
+        const promise = await db.insert(tokenLaunch).values(launchData);
+        const promiseTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Drizzle insert timed out after 10s')), 10000);
+        });
         console.log('Token Launch Record Created');
+        const drizzleTimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Drizzle insert timed out after 10s')), 10000);
+        });
+        await Promise.race([promise, promiseTimeoutPromise]);
 
-        await db.update(tokenDeploy)
+        const promise2 = db.update(tokenDeploy)
           .set({ is_launched: true })
           .where(eq(tokenDeploy.transaction_hash, event?.args?.token_deploy_tx_hash));
 
         console.log('Token Deploy Updated to Launched');
+        const promise2TimeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Drizzle update timed out after 10s')), 10000);
+        });
+        await Promise.race([promise2, promise2TimeoutPromise]);
       } catch (dbError: any) {
         if (dbError.code === '23505') {
           console.log('Launch already exists (unique constraint violation):', {
