@@ -167,9 +167,14 @@ const calculateBondingCurvePrice = (
     }
     
     console.log('Bonding curve price calculated:', {
-      liquidityRaised: formatBigIntToFloat(liquidityRaisedBigInt),
-      initialPoolSupply: formatBigIntToFloat(initialPoolSupplyBigInt),
-      totalSupply: formatBigIntToFloat(totalSupplyBigInt),
+      inputLiquidityRaised: liquidityRaised,
+      inputInitialPoolSupply: initialPoolSupply,
+      inputTotalSupply: totalSupply,
+      liquidityRaisedBigInt: liquidityRaisedBigInt.toString(),
+      initialPoolSupplyBigInt: initialPoolSupplyBigInt.toString(),
+      totalSupplyBigInt: totalSupplyBigInt.toString(),
+      priceBigInt: priceBigInt.toString(),
+      marketCapBigInt: marketCapBigInt.toString(),
       price,
       marketCap
     });
@@ -1306,29 +1311,43 @@ export default function (config: ApibaraRuntimeConfig & {
             return;
           }
 
-          // Use BigInt arithmetic for calculations
+          // Use BigInt arithmetic for calculations (following old indexer pattern)
           const currentSupplyBigInt = BigInt(currentLaunch.current_supply || '0');
           const liquidityRaisedBigInt = BigInt(currentLaunch.liquidity_raised || '0');
           const totalTokenHoldedBigInt = BigInt(currentLaunch.total_token_holded || '0');
           const initPoolSupplyBigInt = BigInt(currentLaunch.initial_pool_supply_dex || '0');
           const totalSupplyBigInt = BigInt(currentLaunch.total_supply || '0');
+          const thresholdLiquidityBigInt = BigInt(currentLaunch.threshold_liquidity || '0');
           
-          const newSupplyBigInt = currentSupplyBigInt - amountBigInt;
-          const newLiquidityRaisedBigInt = liquidityRaisedBigInt + quoteAmountBigInt;
+          // Calculate new values (following old indexer logic)
+          let newSupplyBigInt = currentSupplyBigInt - amountBigInt;
+          let newLiquidityRaisedBigInt = liquidityRaisedBigInt + quoteAmountBigInt;
           const newTotalTokenHoldedBigInt = totalTokenHoldedBigInt + amountBigInt;
+          
+          // Handle negative supply (following old indexer pattern)
+          if (newSupplyBigInt < 0n) {
+            console.warn(`Buy amount ${formatBigIntToFloat(amountBigInt)} would exceed remaining supply ${formatBigIntToFloat(currentSupplyBigInt)}. Setting supply to 0.`);
+            newSupplyBigInt = 0n;
+          }
+          
+          // Handle threshold liquidity (following old indexer pattern)
+          if (newLiquidityRaisedBigInt > thresholdLiquidityBigInt && thresholdLiquidityBigInt > 0n) {
+            console.log(`Liquidity raised ${formatBigIntToFloat(newLiquidityRaisedBigInt)} exceeds threshold ${formatBigIntToFloat(thresholdLiquidityBigInt)}. Capping at threshold.`);
+            newLiquidityRaisedBigInt = thresholdLiquidityBigInt;
+          }
           
           // Convert to human-readable strings for storage
           const newSupply = formatBigIntToFloat(newSupplyBigInt);
           const newLiquidityRaised = formatBigIntToFloat(newLiquidityRaisedBigInt);
           const newTotalTokenHolded = formatBigIntToFloat(newTotalTokenHoldedBigInt);
           
-          // Calculate price and market cap using the improved bonding curve calculation
-          // Pass the raw BigInt values as strings, not the formatted float strings
-          const { price: priceBuy, marketCap } = calculateBondingCurvePrice(
-            newLiquidityRaisedBigInt.toString(),
-            initPoolSupplyBigInt.toString(),
-            totalSupplyBigInt.toString()
-          );
+          // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
+          const priceBuy = initPoolSupplyBigInt > 0n 
+            ? formatBigIntToFloat(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
+            : '0';
+          
+          // Calculate market cap: total_supply * price (following old indexer pattern)
+          const marketCap = formatBigIntToFloat(totalSupplyBigInt * BigInt(priceBuy));
 
           // Fix: Ensure both operands are BigInt for arithmetic, not string
 
@@ -1414,6 +1433,7 @@ export default function (config: ApibaraRuntimeConfig & {
           return;
         }
 
+        // Find existing shareholder (following old indexer pattern)
         const existingShareholder = await db.query.sharesTokenUser.findFirst({
           where: and(
             eq(sharesTokenUser.owner, ownerAddress),
@@ -1423,132 +1443,47 @@ export default function (config: ApibaraRuntimeConfig & {
 
         console.log("existingShareholder", existingShareholder);
 
-        // Use BigInt arithmetic for shareholder calculations
-        const existingAmountOwnedBigInt = existingShareholder ? BigInt(existingShareholder.amount_owned || '0') : 0n;
-        const existingAmountBuyBigInt = existingShareholder ? BigInt(existingShareholder.amount_buy || '0') : 0n;
-        const existingTotalPaidBigInt = existingShareholder ? BigInt(existingShareholder.total_paid || '0') : 0n;
-        
-        const newAmountOwnedBigInt = existingAmountOwnedBigInt + amountBigInt;
-        const newAmountBuyBigInt = existingAmountBuyBigInt + amountBigInt;
-        const newTotalPaidBigInt = existingTotalPaidBigInt + quoteAmountBigInt;
-        
-        // Convert to human-readable strings for storage
-        const newAmountOwned = formatBigIntToFloat(newAmountOwnedBigInt);
-        const newAmountBuy = formatBigIntToFloat(newAmountBuyBigInt);
-        const newTotalPaid = formatBigIntToFloat(newTotalPaidBigInt);
+        // Calculate new amount owned (following old indexer logic)
+        let newAmountOwned = existingShareholder
+          ? Number(existingShareholder.amount_owned || '0') + Number(amount)
+          : Number(amount);
+
+        // Handle case where amount owned exceeds total token held (following old indexer pattern)
+        if (newAmountOwned > Number(newTotalTokenHolded)) {
+          console.warn(`Amount owned (${newAmountOwned}) exceeds total token held (${newTotalTokenHolded}). Adjusting amount owned to total token held.`);
+          newAmountOwned = Number(newTotalTokenHolded);
+        }
 
 
+        // Update or create shareholder record (following old indexer pattern)
         try {
-          if (existingShareholder) {
-            console.log("existingShareholder found to update");
-
-            // Use raw SQL for better performance and avoid schema issues
-            try {
-              await db.update(sharesTokenUser)
-                .set({
-                  amount_owned: newAmountOwned,
-                  amount_buy: newAmountBuy,
-                  total_paid: newTotalPaid,
-                  is_claimable: false,
-                })
-                .where(and(
-                  eq(sharesTokenUser.owner, ownerAddress),
-                  eq(sharesTokenUser.token_address, tokenAddress)
-                ));
-              console.log("Shareholder Record Updated via drizzle fallback");
-              // await db.execute(sql`
-              //   UPDATE shares_token_user 
-              //   SET 
-              //     amount_owned = ${newAmountOwned},
-              //     amount_buy = ${newAmountBuy},
-              //     total_paid = ${newTotalPaid},
-              //     is_claimable = true
-              //   WHERE owner = ${ownerAddress} AND token_address = ${tokenAddress}
-              // `).execute().then(() => {
-              //   console.log("Shareholder Record Updated via raw SQL");
-              // }).catch((error: any) => {
-              //   console.error('Failed to update shareholder via raw SQL:', {
-              //     error: error,
-              //   });
-              // });
-              console.log("Shareholder Record Updated via raw SQL");
-            } catch (updateError: any) {
-              console.error('Failed to update shareholder via raw SQL:', {
-                error: updateError,
-                code: updateError.code,
-                message: updateError.message,
-                detail: updateError.detail
-              });
-
-              // Fallback to drizzle update
-              try {
-                await db.update(sharesTokenUser)
-                  .set({
-                    amount_owned: newAmountOwned,
-                    amount_buy: newAmountBuy,
-                    total_paid: newTotalPaid,
-                    is_claimable: true,
-                  })
-                  .where(and(
-                    eq(sharesTokenUser.owner, ownerAddress),
-                    eq(sharesTokenUser.token_address, tokenAddress)
-                  ));
-                console.log("Shareholder Record Updated via drizzle fallback");
-              } catch (drizzleError: any) {
-                console.error('Failed to update shareholder via drizzle fallback:', {
-                  error: drizzleError,
-                  code: drizzleError.code,
-                  message: drizzleError.message,
-                  detail: drizzleError.detail
-                });
-              }
-            }
-          } else {
-            console.log("Shareholder not found");
-            try {
-              await db.insert(sharesTokenUser)
-                .values({
-                  id: randomUUID(),
-                  owner: ownerAddress,
-                  token_address: tokenAddress,
-                  amount_owned: newAmountOwned,
-                  amount_buy: newAmountBuy,
-                  total_paid: newTotalPaid,
-                  is_claimable: true,
-                })
-                .onConflictDoUpdate({
-                  target: [sharesTokenUser.owner, sharesTokenUser.token_address],
-                  set: {
-                    amount_owned: newAmountOwned,
-                    amount_buy: newAmountBuy,
-                    total_paid: newTotalPaid,
-                    is_claimable: true,
-                  },
-                });
-              console.log("Shareholder Record Created");
-            } catch (insertError: any) {
-              console.error('Failed to create shareholder:', {
-                error: insertError,
-                code: insertError.code,
-                message: insertError.message,
-                detail: insertError.detail
-              });
-            }
-          }
-        } catch (error: any) {
-          if (error.code === '23505') {
-            console.log('Shareholder already exists (unique constraint violation):', {
+          await db.insert(sharesTokenUser)
+            .values({
+              id: `${ownerAddress}_${tokenAddress}`, // Use same ID format as old indexer
               owner: ownerAddress,
-              token_address: tokenAddress
+              token_address: tokenAddress,
+              amount_owned: newAmountOwned.toString(),
+              amount_buy: amount, // Track individual buy amount
+              total_paid: quoteAmount, // Track total paid in quote token
+              is_claimable: true,
+            })
+            .onConflictDoUpdate({
+              target: [sharesTokenUser.owner, sharesTokenUser.token_address],
+              set: {
+                amount_owned: newAmountOwned.toString(),
+                amount_buy: amount,
+                total_paid: quoteAmount,
+                is_claimable: true,
+              },
             });
-          } else {
-            console.error('Database error in handleBuyTokenEvent:', {
-              error: error,
-              code: error.code,
-              message: error.message,
-              detail: error.detail
-            });
-          }
+          console.log("Shareholder Record Updated/Created");
+        } catch (error: any) {
+          console.error('Failed to update/create shareholder:', {
+            error: error,
+            code: error.code,
+            message: error.message,
+            detail: error.detail
+          });
         }
         console.log('Shareholder Record Updated');
 
@@ -1677,13 +1612,13 @@ export default function (config: ApibaraRuntimeConfig & {
         const newLiquidityRaised = formatBigIntToFloat(newLiquidityRaisedBigInt);
         const newTotalTokenHolded = formatBigIntToFloat(newTotalTokenHoldedBigInt);
 
-        // Calculate price and market cap using the improved bonding curve calculation
-        // Pass the raw BigInt values as strings, not the formatted float strings
-        const { price: priceSell, marketCap } = calculateBondingCurvePrice(
-          newLiquidityRaisedBigInt.toString(),
-          initPoolSupplyBigInt.toString(),
-          totalSupplyBigInt.toString()
-        );
+        // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
+        const priceSell = initPoolSupplyBigInt > 0n 
+          ? formatBigIntToFloat(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
+          : '0';
+        
+        // Calculate market cap: total_supply * price (following old indexer pattern)
+        const marketCap = formatBigIntToFloat(totalSupplyBigInt * BigInt(priceSell));
 
         console.log('Calculated Values:', {
           newSupply,
@@ -1726,59 +1661,39 @@ export default function (config: ApibaraRuntimeConfig & {
         console.log("existingShareholder", existingShareholder);
 
 
+        // Update shareholder record for sell (following old indexer pattern)
         try {
           if (existingShareholder) {
-            // Use BigInt arithmetic for shareholder calculations
-            const existingAmountOwnedBigInt = BigInt(existingShareholder.amount_owned || '0');
-            const existingAmountSellBigInt = BigInt(existingShareholder.amount_sell || '0');
-            const existingTotalPaidBigInt = BigInt(existingShareholder.total_paid || '0');
+            // Calculate new amount owned after sell
+            const updatedAmountOwned = Math.max(0, Number(existingShareholder.amount_owned || '0') - Number(amount));
             
-            const updatedAmountOwnedBigInt = existingAmountOwnedBigInt - amountBigInt;
-            const updatedAmountSellBigInt = existingAmountSellBigInt + amountBigInt;
-            const updatedTotalPaidBigInt = existingTotalPaidBigInt - quoteAmountBigInt;
-            
-            // Convert to human-readable strings for storage
-            const updatedAmountOwned = formatBigIntToFloat(updatedAmountOwnedBigInt);
-            const updatedAmountSell = formatBigIntToFloat(updatedAmountSellBigInt);
-            const updatedTotalPaid = formatBigIntToFloat(updatedTotalPaidBigInt);
-
-            try {
-              await db.update(sharesTokenUser)
-                .set({
-                  amount_owned: updatedAmountOwned,
-                  amount_sell: updatedAmountSell,
-                  total_paid: updatedTotalPaid,
-                  is_claimable: updatedAmountOwned !== '0',
-                })
-                .where(and(
-                  eq(sharesTokenUser.owner, ownerAddress),
-                  eq(sharesTokenUser.token_address, tokenAddress)
-                ));
-              console.log('Shareholder Record Updated');
-            } catch (updateError: any) {
-              console.error('Failed to update shareholder:', {
-                error: updateError,
-                code: updateError.code,
-                message: updateError.message,
-                detail: updateError.detail
-              });
-            }
+            await db.update(sharesTokenUser)
+              .set({
+                amount_owned: updatedAmountOwned.toString(),
+                amount_sell: amount, // Track individual sell amount
+                total_paid: quoteAmount, // Track amount received in quote token
+                is_claimable: updatedAmountOwned > 0,
+              })
+              .where(and(
+                eq(sharesTokenUser.owner, ownerAddress),
+                eq(sharesTokenUser.token_address, tokenAddress)
+              ));
+            console.log('Shareholder Record Updated for Sell');
           } else {
-            console.log("Shareholder not found");
+            console.log("Shareholder not found for sell - creating new record");
             await db.insert(sharesTokenUser).values({
-              id: randomUUID(),
+              id: `${ownerAddress}_${tokenAddress}`,
               owner: ownerAddress,
               token_address: tokenAddress,
-              amount_owned: amount,
+              amount_owned: '0', // No tokens owned after sell
               amount_sell: amount,
               total_paid: quoteAmount,
               is_claimable: false,
             });
-            console.log("Shareholder Record Created");
+            console.log("Shareholder Record Created for Sell");
           }
-
         } catch (error: any) {
-          console.error('Failed to update shareholder:', {
+          console.error('Failed to update shareholder for sell:', {
             error: error,
             code: error.code,
             message: error.message,
