@@ -95,6 +95,29 @@ const calculateBondingCurveDefaults = (totalSupply: string) => {
   }
 };
 
+// Helper function to convert float string back to BigInt (with decimals)
+const floatStringToBigInt = (floatStr: string, decimals: number = 18): bigint => {
+  try {
+    if (!floatStr || floatStr === '0' || floatStr === 'NaN' || floatStr === 'Infinity') {
+      return 0n;
+    }
+    
+    const floatValue = parseFloat(floatStr);
+    if (isNaN(floatValue) || !isFinite(floatValue)) {
+      return 0n;
+    }
+    
+    // Convert to BigInt by multiplying by 10^decimals
+    const multiplier = BigInt(10 ** decimals);
+    const scaledValue = Math.floor(floatValue * (10 ** decimals));
+    
+    return BigInt(scaledValue);
+  } catch (error) {
+    console.error('Error converting float string to BigInt:', error, floatStr);
+    return 0n;
+  }
+};
+
 // Helper function to calculate price based on bonding curve
 const calculateBondingCurvePrice = (
   liquidityRaised: string,
@@ -112,9 +135,29 @@ const calculateBondingCurvePrice = (
       return { price: '0', marketCap: '0' };
     }
     
-    const liquidityRaisedBigInt = BigInt(liquidityRaised);
-    const initialPoolSupplyBigInt = BigInt(initialPoolSupply);
-    const totalSupplyBigInt = BigInt(totalSupply);
+    // Convert string inputs to BigInt, handling both raw BigInt strings and formatted float strings
+    let liquidityRaisedBigInt: bigint;
+    let initialPoolSupplyBigInt: bigint;
+    let totalSupplyBigInt: bigint;
+    
+    // Check if the strings contain decimal points (formatted floats) or are raw BigInt strings
+    if (liquidityRaised.includes('.') || liquidityRaised.includes('e-') || liquidityRaised.includes('e+')) {
+      liquidityRaisedBigInt = floatStringToBigInt(liquidityRaised);
+    } else {
+      liquidityRaisedBigInt = BigInt(liquidityRaised);
+    }
+    
+    if (initialPoolSupply.includes('.') || initialPoolSupply.includes('e-') || initialPoolSupply.includes('e+')) {
+      initialPoolSupplyBigInt = floatStringToBigInt(initialPoolSupply);
+    } else {
+      initialPoolSupplyBigInt = BigInt(initialPoolSupply);
+    }
+    
+    if (totalSupply.includes('.') || totalSupply.includes('e-') || totalSupply.includes('e+')) {
+      totalSupplyBigInt = floatStringToBigInt(totalSupply);
+    } else {
+      totalSupplyBigInt = BigInt(totalSupply);
+    }
     
     // Validate that values are non-negative
     if (liquidityRaisedBigInt < 0n || initialPoolSupplyBigInt < 0n || totalSupplyBigInt < 0n) {
