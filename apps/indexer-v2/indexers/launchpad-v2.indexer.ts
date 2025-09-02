@@ -51,6 +51,166 @@ const formatTokenAmount = (amount: string, decimals: number = 18): string => {
   }
 };
 
+// Bonding curve constants
+const DEX_POOL_PERCENTAGE = 20; // 20% of total supply goes to DEX pool
+const USER_PURCHASABLE_PERCENTAGE = 80; // 80% of total supply is purchasable by users
+
+// Helper function to calculate default bonding curve values
+const calculateBondingCurveDefaults = (totalSupply: string) => {
+  try {
+    const totalSupplyBigInt = BigInt(totalSupply);
+    
+    // Calculate 20% for DEX pool (initial_pool_supply_dex)
+    const dexPoolSupply = (totalSupplyBigInt * BigInt(DEX_POOL_PERCENTAGE)) / BigInt(100);
+    
+    // Calculate 80% for user purchasable supply (current_supply starts at this value)
+    const userPurchasableSupply = (totalSupplyBigInt * BigInt(USER_PURCHASABLE_PERCENTAGE)) / BigInt(100);
+    
+    // Convert to human-readable strings
+    const dexPoolSupplyFormatted = formatBigIntToFloat(dexPoolSupply);
+    const userPurchasableSupplyFormatted = formatBigIntToFloat(userPurchasableSupply);
+    
+    console.log('Bonding curve defaults calculated:', {
+      totalSupply: formatBigIntToFloat(totalSupplyBigInt),
+      dexPoolSupply: dexPoolSupplyFormatted,
+      userPurchasableSupply: userPurchasableSupplyFormatted,
+      dexPoolPercentage: DEX_POOL_PERCENTAGE,
+      userPurchasablePercentage: USER_PURCHASABLE_PERCENTAGE
+    });
+    
+    return {
+      dexPoolSupply: dexPoolSupplyFormatted,
+      userPurchasableSupply: userPurchasableSupplyFormatted,
+      dexPoolSupplyBigInt: dexPoolSupply,
+      userPurchasableSupplyBigInt: userPurchasableSupply
+    };
+  } catch (error) {
+    console.error('Error calculating bonding curve defaults:', error);
+    return {
+      dexPoolSupply: '0',
+      userPurchasableSupply: '0',
+      dexPoolSupplyBigInt: 0n,
+      userPurchasableSupplyBigInt: 0n
+    };
+  }
+};
+
+// Helper function to calculate price based on bonding curve
+const calculateBondingCurvePrice = (
+  liquidityRaised: string,
+  initialPoolSupply: string,
+  totalSupply: string
+): { price: string; marketCap: string } => {
+  try {
+    // Validate inputs
+    if (!liquidityRaised || !initialPoolSupply || !totalSupply) {
+      console.warn('Invalid inputs for bonding curve price calculation:', {
+        liquidityRaised,
+        initialPoolSupply,
+        totalSupply
+      });
+      return { price: '0', marketCap: '0' };
+    }
+    
+    const liquidityRaisedBigInt = BigInt(liquidityRaised);
+    const initialPoolSupplyBigInt = BigInt(initialPoolSupply);
+    const totalSupplyBigInt = BigInt(totalSupply);
+    
+    // Validate that values are non-negative
+    if (liquidityRaisedBigInt < 0n || initialPoolSupplyBigInt < 0n || totalSupplyBigInt < 0n) {
+      console.warn('Negative values detected in bonding curve calculation:', {
+        liquidityRaised: liquidityRaisedBigInt.toString(),
+        initialPoolSupply: initialPoolSupplyBigInt.toString(),
+        totalSupply: totalSupplyBigInt.toString()
+      });
+      return { price: '0', marketCap: '0' };
+    }
+    
+    // Price = liquidity_raised / initial_pool_supply_dex
+    // Avoid division by zero
+    const priceBigInt = initialPoolSupplyBigInt > 0n 
+      ? liquidityRaisedBigInt / initialPoolSupplyBigInt 
+      : 0n;
+    
+    // Market cap = total_supply * price
+    const marketCapBigInt = totalSupplyBigInt * priceBigInt;
+    
+    const price = formatBigIntToFloat(priceBigInt);
+    const marketCap = formatBigIntToFloat(marketCapBigInt);
+    
+    // Validate results
+    if (price === 'NaN' || marketCap === 'NaN' || price === 'Infinity' || marketCap === 'Infinity') {
+      console.warn('Invalid calculation results:', { price, marketCap });
+      return { price: '0', marketCap: '0' };
+    }
+    
+    console.log('Bonding curve price calculated:', {
+      liquidityRaised: formatBigIntToFloat(liquidityRaisedBigInt),
+      initialPoolSupply: formatBigIntToFloat(initialPoolSupplyBigInt),
+      totalSupply: formatBigIntToFloat(totalSupplyBigInt),
+      price,
+      marketCap
+    });
+    
+    return { price, marketCap };
+  } catch (error) {
+    console.error('Error calculating bonding curve price:', error);
+    return { price: '0', marketCap: '0' };
+  }
+};
+
+// Helper function to validate bonding curve parameters
+const validateBondingCurveParameters = (
+  totalSupply: string,
+  currentSupply: string,
+  initialPoolSupply: string,
+  liquidityRaised: string
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+  
+  try {
+    const totalSupplyBigInt = BigInt(totalSupply);
+    const currentSupplyBigInt = BigInt(currentSupply);
+    const initialPoolSupplyBigInt = BigInt(initialPoolSupply);
+    const liquidityRaisedBigInt = BigInt(liquidityRaised);
+    
+    // Check for negative values
+    if (totalSupplyBigInt < 0n) errors.push('Total supply cannot be negative');
+    if (currentSupplyBigInt < 0n) errors.push('Current supply cannot be negative');
+    if (initialPoolSupplyBigInt < 0n) errors.push('Initial pool supply cannot be negative');
+    if (liquidityRaisedBigInt < 0n) errors.push('Liquidity raised cannot be negative');
+    
+    // Check that current supply doesn't exceed total supply
+    if (currentSupplyBigInt > totalSupplyBigInt) {
+      errors.push('Current supply cannot exceed total supply');
+    }
+    
+    // Check that initial pool supply is reasonable (should be 20% of total supply)
+    const expectedPoolSupply = (totalSupplyBigInt * BigInt(DEX_POOL_PERCENTAGE)) / BigInt(100);
+    const poolSupplyTolerance = expectedPoolSupply / BigInt(10); // 10% tolerance
+    
+    if (Math.abs(Number(initialPoolSupplyBigInt - expectedPoolSupply)) > Number(poolSupplyTolerance)) {
+      errors.push(`Initial pool supply (${formatBigIntToFloat(initialPoolSupplyBigInt)}) should be approximately ${DEX_POOL_PERCENTAGE}% of total supply (${formatBigIntToFloat(expectedPoolSupply)})`);
+    }
+    
+    // Check that current supply is reasonable (should be 80% of total supply initially)
+    const expectedUserSupply = (totalSupplyBigInt * BigInt(USER_PURCHASABLE_PERCENTAGE)) / BigInt(100);
+    const userSupplyTolerance = expectedUserSupply / BigInt(10); // 10% tolerance
+    
+    if (Math.abs(Number(currentSupplyBigInt - expectedUserSupply)) > Number(userSupplyTolerance) && currentSupplyBigInt > 0n) {
+      console.warn(`Current supply (${formatBigIntToFloat(currentSupplyBigInt)}) differs from expected user purchasable supply (${formatBigIntToFloat(expectedUserSupply)})`);
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  } catch (error) {
+    errors.push(`Validation error: ${error}`);
+    return { isValid: false, errors };
+  }
+};
+
 
 
 // Helper function to add timeout to database operations
@@ -555,6 +715,35 @@ export default function (config: ApibaraRuntimeConfig & {
 
         const bondingType = event?.args?.bonding_type["_tag"] || event?.args?.bonding_type?.toString() || null;
         console.log("Bonding type", bondingType);
+        
+        // Get total supply from event or token deploy info
+        const totalSupplyFromEvent = event?.args?.total_supply?.toString() || '0';
+        const totalSupplyFromDeploy = tokenDeployInfo?.total_supply || '0';
+        const totalSupply = totalSupplyFromEvent !== '0' ? totalSupplyFromEvent : totalSupplyFromDeploy;
+        
+        // Calculate default bonding curve values if not provided in event
+        const bondingCurveDefaults = calculateBondingCurveDefaults(totalSupply);
+        
+        // Use event values if available, otherwise use calculated defaults
+        const currentSupplyFromEvent = event?.args?.current_supply?.toString() || '0';
+        const initialPoolSupplyFromEvent = event?.args?.initial_pool_supply_dex?.toString() || '0';
+        
+        const currentSupply = currentSupplyFromEvent !== '0' 
+          ? formatTokenAmount(currentSupplyFromEvent) 
+          : bondingCurveDefaults.userPurchasableSupply;
+          
+        const initialPoolSupply = initialPoolSupplyFromEvent !== '0' 
+          ? formatTokenAmount(initialPoolSupplyFromEvent) 
+          : bondingCurveDefaults.dexPoolSupply;
+        
+        // Calculate initial price and market cap
+        const liquidityRaised = formatTokenAmount(event?.args?.liquidity_raised?.toString() || '0');
+        const { price, marketCap } = calculateBondingCurvePrice(
+          liquidityRaised,
+          initialPoolSupply,
+          formatTokenAmount(totalSupply)
+        );
+        
         const launchData = {
           transaction_hash: transactionHash,
           network: 'starknet-sepolia',
@@ -564,21 +753,35 @@ export default function (config: ApibaraRuntimeConfig & {
           name: tokenDeployInfo?.name || null,
           symbol: tokenDeployInfo?.symbol || null,
           quote_token: event?.args?.quote_token,
-          total_supply: formatTokenAmount(event?.args?.total_supply?.toString() || '0'),
+          total_supply: formatTokenAmount(totalSupply),
           threshold_liquidity: formatTokenAmount(event?.args?.threshold_liquidity?.toString() || '0'),
-          current_supply: formatTokenAmount(event?.args?.current_supply?.toString() || '0'),
-          liquidity_raised: formatTokenAmount(event?.args?.liquidity_raised?.toString() || '0'),
+          current_supply: currentSupply,
+          liquidity_raised: liquidityRaised,
           is_liquidity_added: event?.args?.is_liquidity_added || false,
           total_token_holded: formatTokenAmount(event?.args?.total_token_holded?.toString() || '0'),
-          price: formatTokenAmount(event?.args?.price?.toString() || '0'),
+          price: price,
           bonding_type: bondingType,
-          initial_pool_supply_dex: formatTokenAmount(event?.args?.initial_pool_supply_dex?.toString() || '0'),
-          market_cap: formatTokenAmount(event?.args?.market_cap?.toString() || '0'),
+          initial_pool_supply_dex: initialPoolSupply,
+          market_cap: marketCap,
           token_deploy_tx_hash: event?.args?.token_deploy_tx_hash,
           created_at: new Date(),
         };
 
         console.log('Processed Launch Data:', launchData);
+
+        // Validate bonding curve parameters
+        const validation = validateBondingCurveParameters(
+          formatTokenAmount(totalSupply),
+          currentSupply,
+          initialPoolSupply,
+          liquidityRaised
+        );
+        
+        if (!validation.isValid) {
+          console.warn('Bonding curve validation failed:', validation.errors);
+        } else {
+          console.log('Bonding curve validation passed');
+        }
 
         // Insert token launch with timeout, but don't crash on error/timeout
         try {
@@ -991,14 +1194,22 @@ export default function (config: ApibaraRuntimeConfig & {
           if (!launchRecord || launchRecord.rows.length === 0) {
             console.log('Launch record not found for token:', tokenAddress);
 
+            // Get total supply from token deploy if available
+            const tokenDeployInfo = await db.query.tokenDeploy.findFirst({
+              where: eq(tokenDeploy.memecoin_address, tokenAddress)
+            });
+            
+            const totalSupply = tokenDeployInfo?.total_supply || '1000000000000000000000000'; // Default 1M tokens
+            const bondingCurveDefaults = calculateBondingCurveDefaults(totalSupply);
+            
             const defaultLaunch = {
               memecoin_address: tokenAddress,
               owner_address: ownerAddress,
-              current_supply: '0',
+              current_supply: bondingCurveDefaults.userPurchasableSupply,
               liquidity_raised: '0',
               total_token_holded: '0',
-              initial_pool_supply_dex: '0',
-              total_supply: '0',
+              initial_pool_supply_dex: bondingCurveDefaults.dexPoolSupply,
+              total_supply: formatTokenAmount(totalSupply),
               price: '0',
               market_cap: '0',
               network: 'starknet-sepolia',
@@ -1089,16 +1300,12 @@ export default function (config: ApibaraRuntimeConfig & {
           const newLiquidityRaised = formatBigIntToFloat(newLiquidityRaisedBigInt);
           const newTotalTokenHolded = formatBigIntToFloat(newTotalTokenHoldedBigInt);
           
-          // Calculate price using BigInt arithmetic
-          const priceBuy = initPoolSupplyBigInt > 0n
-            ? formatBigIntToFloat(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
-            : '0';
-
-          // Calculate market cap: (totalSupply * newLiquidityRaised) / initPoolSupply
-          // We need to handle the division carefully to avoid precision issues
-          const marketCap = initPoolSupplyBigInt > 0n
-            ? formatBigIntToFloat((totalSupplyBigInt * newLiquidityRaisedBigInt) / initPoolSupplyBigInt)
-            : '0';
+          // Calculate price and market cap using the improved bonding curve calculation
+          const { price: priceBuy, marketCap } = calculateBondingCurvePrice(
+            newLiquidityRaised,
+            formatBigIntToFloat(initPoolSupplyBigInt),
+            formatBigIntToFloat(totalSupplyBigInt)
+          );
 
           // Fix: Ensure both operands are BigInt for arithmetic, not string
 
@@ -1447,16 +1654,12 @@ export default function (config: ApibaraRuntimeConfig & {
         const newLiquidityRaised = formatBigIntToFloat(newLiquidityRaisedBigInt);
         const newTotalTokenHolded = formatBigIntToFloat(newTotalTokenHoldedBigInt);
 
-        // Calculate price using BigInt arithmetic
-        const priceSell = initPoolSupplyBigInt > 0n
-          ? formatBigIntToFloat(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
-          : '0';
-
-        // Calculate market cap: (totalSupply * newLiquidityRaised) / initPoolSupply
-        // We need to handle the division carefully to avoid precision issues
-        const marketCap = initPoolSupplyBigInt > 0n
-          ? formatBigIntToFloat((totalSupplyBigInt * newLiquidityRaisedBigInt) / initPoolSupplyBigInt)
-          : '0';
+        // Calculate price and market cap using the improved bonding curve calculation
+        const { price: priceSell, marketCap } = calculateBondingCurvePrice(
+          newLiquidityRaised,
+          formatBigIntToFloat(initPoolSupplyBigInt),
+          formatBigIntToFloat(totalSupplyBigInt)
+        );
 
         console.log('Calculated Values:', {
           newSupply,

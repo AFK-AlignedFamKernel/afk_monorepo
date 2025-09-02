@@ -167,6 +167,9 @@ export const tokenDeploy = pgTable('token_deploy', {
   url: text('url'),
   nostr_id: text('nostr_id'),
   nostr_event_id: text('nostr_event_id'),
+  telegram: text('telegram'),
+  github: text('github'),
+  website: text('website'),
 });
 
 export const tokenLaunch = pgTable('token_launch', {
@@ -191,6 +194,10 @@ export const tokenLaunch = pgTable('token_launch', {
   created_at: timestamp('created_at').defaultNow(),
   url: text('url'),
   token_deploy_tx_hash: text('token_deploy_tx_hash').unique(),
+  twitter: text('twitter'),
+  telegram: text('telegram'),
+  github: text('github'),
+  website: text('website'),
 });
 
 export const tokenMetadata = pgTable('token_metadata', {

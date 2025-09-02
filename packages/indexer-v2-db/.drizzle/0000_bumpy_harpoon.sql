@@ -122,6 +122,9 @@ CREATE TABLE IF NOT EXISTS "token_deploy" (
 	"url" text,
 	"nostr_id" text,
 	"nostr_event_id" text,
+	"telegram" text,
+	"github" text,
+	"website" text,
 	CONSTRAINT "token_deploy_memecoin_address_unique" UNIQUE("memecoin_address")
 );
 --> statement-breakpoint
@@ -147,6 +150,10 @@ CREATE TABLE IF NOT EXISTS "token_launch" (
 	"created_at" timestamp DEFAULT now(),
 	"url" text,
 	"token_deploy_tx_hash" text,
+	"twitter" text,
+	"telegram" text,
+	"github" text,
+	"website" text,
 	CONSTRAINT "token_launch_memecoin_address_unique" UNIQUE("memecoin_address"),
 	CONSTRAINT "token_launch_token_deploy_tx_hash_unique" UNIQUE("token_deploy_tx_hash")
 );
