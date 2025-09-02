@@ -1032,7 +1032,8 @@ export default function (config: ApibaraRuntimeConfig & {
           // Update launch record in background without blocking
           (async () => {
             try {
-              const updateResult = await db.execute(sql`
+              console.log("Updating launch record");
+              const updateResultPromiseQuery =  db.execute(sql`
                 UPDATE token_launch 
                 SET 
                   current_supply = ${newSupply},
@@ -1044,6 +1045,25 @@ export default function (config: ApibaraRuntimeConfig & {
                 RETURNING *
               `);
 
+              const updateResultPromise = db.update(tokenLaunch)
+                .set({
+                  current_supply: newSupply,
+                  liquidity_raised: newLiquidityRaised,
+                  total_token_holded: newTotalTokenHolded,
+                  price: priceBuy,
+                  market_cap: marketCap
+                })
+                .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+
+              console.log("Update resultPromise");
+              const updateTimeout = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Drizzle update timed out after 10s')), 10000);
+              });
+              await Promise.race([updateResultPromise, updateTimeout]);
+
+              const updateResult = await updateResultPromise;
+
+              console.log("Update result", updateResult);
               if (!updateResult || updateResult.rows.length === 0) {
                 console.error('Update operation returned no result:', {
                   tokenAddress,
@@ -1162,6 +1182,7 @@ export default function (config: ApibaraRuntimeConfig & {
               }
             }
           } else {
+            console.log("Shareholder not found");
             try {
               await db.insert(sharesTokenUser)
                 .values({
