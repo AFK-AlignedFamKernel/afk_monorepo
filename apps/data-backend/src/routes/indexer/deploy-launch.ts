@@ -85,12 +85,16 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
         memecoinAddress: launch,
       });
 
+      console.log("holdings", holdings);
+
 
       const allTransactions = await getTransactionsByMemecoinAddress({
         offset: 0,
         limit: 20,
         memecoinAddress: launch,
       })
+
+      console.log("allTransactions", allTransactions);
 
       const intervalMinutes = 5;
       let transformedData: any[] = [];
