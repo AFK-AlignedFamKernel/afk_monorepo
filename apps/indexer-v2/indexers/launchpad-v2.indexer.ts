@@ -50,6 +50,17 @@ const formatTokenAmount = (amount: string, decimals: number = 18): string => {
   }
 };
 
+
+const formatTokenAmountBigInt = (amount: BigInt, decimals: number = 18): string => {
+  try {
+    return formatUnits(amount, decimals).toString();
+  } catch (error) {
+    console.error('Error formatting token amount:', error);
+    return '0';
+  }
+};
+
+
 // Helper function to add timeout to database operations
 const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T> => {
   const timeoutPromise = new Promise<never>((_, reject) => {
@@ -939,12 +950,15 @@ export default function (config: ApibaraRuntimeConfig & {
         const ownerAddress = event?.args?.caller;
         const tokenAddress = event?.args?.token_address;
 
-        const amount = event?.args?.amount?.toString() || '0';
-        const price = event?.args?.price?.toString() || '0';
+        const amountString = event?.args?.amount?.toString() || '0';
+        const priceString  = event?.args?.price?.toString() || '0';
         const protocolFee = event?.args?.protocol_fee?.toString() || '0';
         const lastPrice = event?.args?.last_price?.toString() || '0';
-        const quoteAmount = event?.args?.quote_amount?.toString() || '0';
+        const quoteAmountString = event?.args?.quote_amount?.toString() || '0';
 
+        const amount = formatTokenAmount(amountString);
+        const quoteAmount = formatTokenAmount(quoteAmountString);
+        const price = formatTokenAmount(priceString);
         const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
         const timestamp = new Date(Math.max(0, eventTimestampMs));
 
@@ -1054,17 +1068,22 @@ export default function (config: ApibaraRuntimeConfig & {
             return;
           }
 
-          const newSupply = (BigInt(currentLaunch.current_supply || '0') - BigInt(amount)).toString();
-          const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
-          const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount)).toString();
+          const newSupply = formatTokenAmountBigInt(BigInt(currentLaunch.current_supply || '0') - BigInt(amount));
+          const newLiquidityRaised = formatTokenAmountBigInt(BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount));
+          const newTotalTokenHolded = formatTokenAmountBigInt(BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount));
 
-          const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-          const priceBuy = initPoolSupply > BigInt(0)
-            ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
+          const initPoolSupply = formatTokenAmountBigInt(BigInt(currentLaunch.initial_pool_supply_dex || '0'));
+        
+
+          const marketCap = formatTokenAmountBigInt(BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
+
+          // Fix: Ensure both operands are BigInt for arithmetic, not string
+          const initPoolSupplyBigInt = BigInt(currentLaunch.initial_pool_supply_dex || '0');
+          const newLiquidityRaisedBigInt = BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount);
+
+          const priceBuy = initPoolSupplyBigInt > 0n
+            ? formatTokenAmountBigInt(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
             : '0';
-
-          const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
-
           console.log("Calculated values for launch update:", {
             newSupply,
             newLiquidityRaised,
