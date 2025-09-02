@@ -711,12 +711,56 @@ export default function (config: ApibaraRuntimeConfig & {
       }
 
       try {
+        
+        const updateTokenLaunchPromise = db.update(tokenLaunch)
+          .set({
+            url: extractedMetadata.url,
+            twitter: extractedMetadata.twitter,
+            telegram: extractedMetadata.telegram,
+            github: extractedMetadata.github,
+            website: extractedMetadata.website,
+          })
+          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+
+        const updateTokenLaunchTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Drizzle update timed out after 10s')), 10000);
+        });
+        await Promise.race([updateTokenLaunchPromise, updateTokenLaunchTimeout]);
+        console.log("Token Launch Record Updated");
+      } catch (error) {
+        console.error('Error or timeout during token launch update:', error);
+        
+      }
+
+      try {
+        
+        const updateTokenDeployPromise = db.update(tokenDeploy)
+          .set({
+            url: extractedMetadata.url,
+            twitter: extractedMetadata.twitter,
+            telegram: extractedMetadata.telegram,
+            github: extractedMetadata.github,
+            website: extractedMetadata.website,
+          })
+          .where(eq(tokenDeploy.memecoin_address, tokenAddress));
+
+        const updateTokenDeployTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Drizzle update timed out after 10s')), 10000);
+        });
+        await Promise.race([updateTokenDeployPromise, updateTokenDeployTimeout]);
+        console.log("Token Deploy Record Updated");
+      } catch (error) {
+        console.error('Error or timeout during token launch update:', error);
+        
+      }
+      try {
         // Check if metadata already exists using raw SQL
         const existingMetadataResult = await db.execute(sql`
           SELECT memecoin_address, transaction_hash FROM token_metadata 
           WHERE transaction_hash = ${transactionHash} OR memecoin_address = ${tokenAddress}
           LIMIT 1
         `);
+        
 
         if (existingMetadataResult.rows.length > 0) {
           const existingMetadata = existingMetadataResult.rows[0];
