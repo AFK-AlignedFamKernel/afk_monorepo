@@ -17,6 +17,7 @@ import {
 } from 'indexer-v2-db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
+import { formatBigIntToFloat, formatFloatToUint256 } from '@/utils/format';
 
 // Event selectors
 const CREATE_TOKEN = hash.getSelectorFromName('CreateToken') as `0x${string}`;
@@ -50,15 +51,6 @@ const formatTokenAmount = (amount: string, decimals: number = 18): string => {
   }
 };
 
-
-const formatTokenAmountBigInt = (amount: BigInt, decimals: number = 18): string => {
-  try {
-    return formatUnits(amount, decimals).toString();
-  } catch (error) {
-    console.error('Error formatting token amount:', error);
-    return '0';
-  }
-};
 
 
 // Helper function to add timeout to database operations
@@ -956,12 +948,18 @@ export default function (config: ApibaraRuntimeConfig & {
         const lastPrice = event?.args?.last_price?.toString() || '0';
         const quoteAmountString = event?.args?.quote_amount?.toString() || '0';
 
-        const amount = formatTokenAmount(amountString);
-        const quoteAmount = formatTokenAmount(quoteAmountString);
-        const price = formatTokenAmount(priceString);
+        console.log("amountString", amountString);
+        console.log("quoteAmountString", quoteAmountString);
+        console.log("priceString", priceString);
+        const amount = formatBigIntToFloat(BigInt(amountString));
+        const quoteAmount = formatBigIntToFloat(BigInt(quoteAmountString));
+        const price = formatBigIntToFloat(BigInt(priceString));
         const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
         const timestamp = new Date(Math.max(0, eventTimestampMs));
 
+        console.log("amount", amount);
+        console.log("quoteAmount", quoteAmount);
+        console.log("price", price);
         try {
           const launchRecord = await db.execute<{
             current_supply: string;
@@ -1068,28 +1066,28 @@ export default function (config: ApibaraRuntimeConfig & {
             return;
           }
 
-          const newSupply = formatTokenAmountBigInt(BigInt(currentLaunch.current_supply || '0') - BigInt(amount));
-          const newLiquidityRaised = formatTokenAmountBigInt(BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount));
-          const newTotalTokenHolded = formatTokenAmountBigInt(BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount));
+          const newSupply = formatBigIntToFloat(BigInt  (currentLaunch.current_supply || '0') - BigInt(amount));
+          const newLiquidityRaised = formatBigIntToFloat (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount));
+          const newTotalTokenHolded = formatBigIntToFloat(BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount));
           const initPoolSupplyBigInt = BigInt(currentLaunch.initial_pool_supply_dex || '0');
           const newLiquidityRaisedBigInt = BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount);
 
-          const initPoolSupply = formatTokenAmountBigInt(BigInt(currentLaunch.initial_pool_supply_dex || '0'));
-          const priceBuy = initPoolSupplyBigInt > 0n
-          ? formatTokenAmountBigInt(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
+          const initPoolSupply = formatBigIntToFloat(BigInt(currentLaunch.initial_pool_supply_dex || '0'));
+          const priceBuy = initPoolSupplyBigInt > 0
+          ? formatBigIntToFloat(BigInt(newLiquidityRaisedBigInt / initPoolSupplyBigInt))
           : '0';
 
-          const marketCap = formatTokenAmountBigInt(BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
+          const marketCap = formatBigIntToFloat(BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
 
           // Fix: Ensure both operands are BigInt for arithmetic, not string
 
        
           console.log("Calculated values for launch update:", {
-            newSupply,
-            newLiquidityRaised,
-            newTotalTokenHolded,
-            priceBuy,
-            marketCap
+            newSupply: newSupply,
+            newLiquidityRaised: newLiquidityRaised.toString(),
+            newTotalTokenHolded: newTotalTokenHolded,
+            priceBuy: priceBuy,
+            marketCap: marketCap
           });
 
           // Update launch record in background without blocking
@@ -1110,11 +1108,11 @@ export default function (config: ApibaraRuntimeConfig & {
 
               const updateResultPromise = db.update(tokenLaunch)
                 .set({
-                  current_supply: newSupply,
-                  liquidity_raised: newLiquidityRaised,
-                  total_token_holded: newTotalTokenHolded,
-                  price: priceBuy,
-                  market_cap: marketCap
+                  current_supply: newSupply.toString(),
+                  liquidity_raised: newLiquidityRaised.toString(),
+                  total_token_holded: newTotalTokenHolded.toString(),
+                  price: priceBuy.toString(),
+                  market_cap: marketCap.toString()
                 })
                 .where(eq(tokenLaunch.memecoin_address, tokenAddress));
 
@@ -1174,9 +1172,9 @@ export default function (config: ApibaraRuntimeConfig & {
 
         console.log("existingShareholder", existingShareholder);
 
-        const newAmountOwned = existingShareholder ? (BigInt(existingShareholder.amount_owned || '0') + BigInt(amount)).toString() : amount;
-        const newAmountBuy = existingShareholder ? (BigInt(existingShareholder.amount_buy || '0') + BigInt(amount)).toString() : amount;
-        const newTotalPaid = existingShareholder ? (BigInt(existingShareholder.total_paid || '0') + BigInt(quoteAmount)).toString() : quoteAmount;
+        const newAmountOwned = existingShareholder ? (BigInt(existingShareholder.amount_owned || '0') + BigInt(amount)) : amount;
+        const newAmountBuy = existingShareholder ? (BigInt(existingShareholder.amount_buy || '0') + BigInt(amount)) : amount;
+        const newTotalPaid = existingShareholder ? (BigInt(existingShareholder.total_paid || '0') + BigInt(quoteAmount)) : quoteAmount;
 
 
         try {
