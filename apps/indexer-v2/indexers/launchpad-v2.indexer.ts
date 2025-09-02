@@ -1071,19 +1071,19 @@ export default function (config: ApibaraRuntimeConfig & {
           const newSupply = formatTokenAmountBigInt(BigInt(currentLaunch.current_supply || '0') - BigInt(amount));
           const newLiquidityRaised = formatTokenAmountBigInt(BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount));
           const newTotalTokenHolded = formatTokenAmountBigInt(BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount));
+          const initPoolSupplyBigInt = BigInt(currentLaunch.initial_pool_supply_dex || '0');
+          const newLiquidityRaisedBigInt = BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount);
 
           const initPoolSupply = formatTokenAmountBigInt(BigInt(currentLaunch.initial_pool_supply_dex || '0'));
-        
+          const priceBuy = initPoolSupplyBigInt > 0n
+          ? formatTokenAmountBigInt(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
+          : '0';
 
           const marketCap = formatTokenAmountBigInt(BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
 
           // Fix: Ensure both operands are BigInt for arithmetic, not string
-          const initPoolSupplyBigInt = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-          const newLiquidityRaisedBigInt = BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount);
 
-          const priceBuy = initPoolSupplyBigInt > 0n
-            ? formatTokenAmountBigInt(newLiquidityRaisedBigInt / initPoolSupplyBigInt)
-            : '0';
+       
           console.log("Calculated values for launch update:", {
             newSupply,
             newLiquidityRaised,
