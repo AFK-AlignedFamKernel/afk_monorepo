@@ -21,8 +21,8 @@
     "@apibara/starknet": "2.1.0-beta.39",
     "@electric-sql/pglite": "^0.2.14",
     "apibara": "2.1.0-beta.39",
-    "drizzle-orm": "^0.40.1",
-    "drizzle-kit": "^0.29.0",
+    "drizzle-orm": "^0.44.5",
+    "drizzle-kit": "^0.31.4",
     "indexer-v2-db": "workspace:*",
     "starknet": "^6.11.0",
     "viem": "^2.22.9"
