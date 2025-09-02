@@ -7,7 +7,7 @@ export default {
   out: './.drizzle',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.INDEXER_V2_DATABASE_URL,
+    url: process.env.POSTGRES_CONNECTION_STRING || process.env.INDEXER_V2_DATABASE_URL,
   },
  } satisfies Config;
 
@@ -16,6 +16,6 @@ export default {
 //   out: './.drizzle',
 //   dialect: 'postgresql',
 //   dbCredentials: {
-//     url: process.env.INDEXER_V2_DATABASE_URL,
+//     url: process.env.POSTGRES_CONNECTION_STRING || process.env.INDEXER_V2_DATABASE_URL,
 //   },
 // }) satisfies Config;
