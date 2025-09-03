@@ -1375,23 +1375,23 @@ export default function (config: ApibaraRuntimeConfig & {
                 RETURNING *
               `);
 
-              const updateResultPromise = db.update(tokenLaunch)
-                .set({
-                  current_supply: newSupply.toString(),
-                  liquidity_raised: newLiquidityRaised.toString(),
-                  total_token_holded: newTotalTokenHolded.toString(),
-                  price: priceBuy,
-                  market_cap: marketCap
-                })
-                .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+              // const updateResultPromise = await db.update(tokenLaunch)
+              //   .set({
+              //     current_supply: newSupply.toString(),
+              //     liquidity_raised: newLiquidityRaised.toString(),
+              //     total_token_holded: newTotalTokenHolded.toString(),
+              //     price: priceBuy,
+              //     market_cap: marketCap
+              //   })
+              //   .where(eq(tokenLaunch.memecoin_address, tokenAddress));
 
               console.log("Update resultPromise");
               const updateTimeout = new Promise((_, reject) => {
                 setTimeout(() => reject(new Error('Drizzle update timed out after 10s')), 10000);
               });
-              await Promise.race([updateResultPromise, updateTimeout]);
+              await Promise.race([updateResultPromiseQuery, updateTimeout]);
 
-              const updateResult = await updateResultPromise;
+              const updateResult = await updateResultPromiseQuery;
 
               console.log("Update result", updateResult);
               if (!updateResult || updateResult.rows.length === 0) {
@@ -1458,7 +1458,6 @@ export default function (config: ApibaraRuntimeConfig & {
         try {
           await db.insert(sharesTokenUser)
             .values({
-              id: `${ownerAddress}_${tokenAddress}`, // Use same ID format as nestjs indexer
               owner: ownerAddress,
               token_address: tokenAddress,
               amount_owned: newAmountOwned.toString(),
@@ -1467,7 +1466,7 @@ export default function (config: ApibaraRuntimeConfig & {
               is_claimable: true,
             })
             .onConflictDoUpdate({
-              target: [sharesTokenUser.id], // Use ID as unique constraint like nestjs indexer
+              target: [sharesTokenUser.owner, sharesTokenUser.token_address], // Use unique index for conflict resolution
               set: {
                 amount_owned: newAmountOwned.toString(),
                 amount_buy: amount,
@@ -1660,14 +1659,16 @@ export default function (config: ApibaraRuntimeConfig & {
                 total_paid: quoteAmount, // Track amount received in quote token
                 is_claimable: updatedAmountOwned > 0,
               })
-              .where(eq(sharesTokenUser.id, `${ownerAddress}_${tokenAddress}`));
+              .where(and(
+                eq(sharesTokenUser.owner, ownerAddress),
+                eq(sharesTokenUser.token_address, tokenAddress)
+              ));
             console.log('Shareholder Record Updated for Sell');
           } else {
             console.log("Shareholder not found for sell - this shouldn't happen");
             // If no existing shareholder, this might be an error case
             // But we'll still create a record with 0 amount owned
             await db.insert(sharesTokenUser).values({
-              id: `${ownerAddress}_${tokenAddress}`,
               owner: ownerAddress,
               token_address: tokenAddress,
               amount_owned: '0', // No tokens owned after sell
@@ -1771,7 +1772,10 @@ export default function (config: ApibaraRuntimeConfig & {
               amount_claimed: updatedAmountClaimed,
               is_claimable: updatedAmountOwned !== '0',
             })
-            .where(eq(sharesTokenUser.id, `${ownerAddress}_${tokenAddress}`));
+            .where(and(
+              eq(sharesTokenUser.owner, ownerAddress),
+              eq(sharesTokenUser.token_address, tokenAddress)
+            ));
 
           console.log('Shareholder Record Updated for Claim');
         } else {
