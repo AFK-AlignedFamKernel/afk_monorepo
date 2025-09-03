@@ -103,13 +103,10 @@ export async function updateProposalResult(
 export async function upsertProposalVote(proposalVoteData: ProposalVoteData) {
   try {
     const { db } = useDrizzleStorage();
-  return db
-    .insert(daoProposalVote)
-    .values(proposalVoteData)
-    .onConflictDoUpdate({
-      target: [daoProposalVote.contractAddress, daoProposalVote.proposalId, daoProposalVote.voter],
-      set: { totalVotes: proposalVoteData.totalVotes },
-    });
+    return db
+      .insert(daoProposalVote)
+      .values(proposalVoteData)
+      .onConflictDoNothing();
   } catch (error) {
     console.log("error upsertProposalVote", error);
   }

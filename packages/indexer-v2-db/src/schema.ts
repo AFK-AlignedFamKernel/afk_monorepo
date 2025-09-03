@@ -8,73 +8,49 @@ export const daoCreation = pgTable('dao_creation', {
   hash: text('hash'),
   creator: text('creator'),
   tokenAddress: text('token_address'),
-  contractAddress: text('contract_address').notNull(),
+  contractAddress: text('contract_address').notNull().unique(),
   starknetAddress: text('starknet_address'),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
+});
+
+export const daoProposal = pgTable('dao_proposal', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  contractAddress: text('contract_address').notNull(),
+  proposalId: bigint('proposal_id', { mode: 'bigint' }).notNull(),
+  creator: text('creator').notNull(),
+  createdAt: integer('created_at'),
+  endAt: integer('end_at'),
+  isCanceled: boolean('is_canceled').default(false),
+  result: text('result'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
 }, (table) => ({
-  contractAddressIdx: uniqueIndex('dao_creation_contract_address_idx').on(table.contractAddress)
+  uniqueProposal: uniqueIndex('dao_proposal_unique_idx').on(table.contractAddress, table.proposalId)
 }));
 
-export const daoProposal = pgTable(
-  'dao_proposal',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    contractAddress: text('contract_address').notNull(),
-    proposalId: bigint('proposal_id', { mode: 'bigint' }).notNull(),
-    creator: text('creator').notNull(),
-    createdAt: integer('created_at'),
-    endAt: integer('end_at'),
-    isCanceled: boolean('is_canceled').default(false),
-    result: text('result'),
-    created_at: timestamp('created_at').defaultNow(),
-    updated_at: timestamp('updated_at').defaultNow(),
-  },
-  (table) => ({
-    proposalKey: primaryKey({ name: 'dao_proposal_pkey', columns: [table.contractAddress, table.proposalId] }),
-    daoFk: foreignKey({
-      name: 'dao_proposal_contract_address_fkey',
-      columns: [table.contractAddress],
-      foreignColumns: [daoCreation.contractAddress],
-    }).onDelete('cascade'),
-  }),
-);
-
-export const daoProposalVote = pgTable(
-  'dao_proposal_vote',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    contractAddress: text('contract_address').notNull(),
-    proposalId: bigint('proposal_id', { mode: 'bigint' }).notNull(),
-    voter: text('voter').notNull(),
-    vote: text('vote'),
-    votes: bigint('votes', { mode: 'bigint' }),
-    totalVotes: bigint('total_votes', { mode: 'bigint' }),
-    votedAt: integer('voted_at'),
-    created_at: timestamp('created_at').defaultNow(),
-    updated_at: timestamp('updated_at').defaultNow(),
-  },
-  (table) => ({
-    voteKey: primaryKey({ name: 'dao_proposal_vote_pkey', columns: [table.contractAddress, table.proposalId, table.voter] }),
-    proposalFk: foreignKey({
-      name: 'dao_proposal_vote_proposal_fkey',
-      columns: [table.contractAddress, table.proposalId],
-      foreignColumns: [daoProposal.contractAddress, daoProposal.proposalId],
-    }).onDelete('cascade'),
-  }),
-);
+export const daoProposalVote = pgTable('dao_proposal_vote', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  contractAddress: text('contract_address').notNull(),
+  proposalId: bigint('proposal_id', { mode: 'bigint' }).notNull(),
+  voter: text('voter').notNull(),
+  vote: text('vote'),
+  votes: bigint('votes', { mode: 'bigint' }),
+  totalVotes: bigint('total_votes', { mode: 'bigint' }),
+  votedAt: integer('voted_at'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  uniqueVote: uniqueIndex('dao_proposal_vote_unique_idx').on(table.contractAddress, table.proposalId, table.voter)
+}));
 
 
-// Add relations
+// Simplified relations without foreign key constraints
 export const daoCreationRelations = relations(daoCreation, ({ many }) => ({
   proposals: many(daoProposal),
 }));
 
-export const daoProposalRelations = relations(daoProposal, ({ one, many }) => ({
-  dao: one(daoCreation, {
-    fields: [daoProposal.contractAddress],
-    references: [daoCreation.contractAddress],
-  }),
+export const daoProposalRelations = relations(daoProposal, ({ many }) => ({
   votes: many(daoProposalVote),
 }));
 

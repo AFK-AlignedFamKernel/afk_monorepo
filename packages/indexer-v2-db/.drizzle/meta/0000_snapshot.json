@@ -1,5 +1,5 @@
 {
-  "id": "f9dda55a-4818-4b9d-a5d8-9ce5b7982dd5",
+  "id": "8621c981-76ca-4c3e-885b-0b91c2c9cb31",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -253,26 +253,18 @@
           "default": "now()"
         }
       },
-      "indexes": {
-        "dao_creation_contract_address_idx": {
-          "name": "dao_creation_contract_address_idx",
-          "columns": [
-            {
-              "expression": "contract_address",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "dao_creation_contract_address_unique": {
+          "name": "dao_creation_contract_address_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "contract_address"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -340,31 +332,31 @@
           "default": "now()"
         }
       },
-      "indexes": {},
-      "foreignKeys": {
-        "dao_proposal_contract_address_fkey": {
-          "name": "dao_proposal_contract_address_fkey",
-          "tableFrom": "dao_proposal",
-          "tableTo": "dao_creation",
-          "columnsFrom": [
-            "contract_address"
-          ],
-          "columnsTo": [
-            "contract_address"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "dao_proposal_pkey": {
-          "name": "dao_proposal_pkey",
+      "indexes": {
+        "dao_proposal_unique_idx": {
+          "name": "dao_proposal_unique_idx",
           "columns": [
-            "contract_address",
-            "proposal_id"
-          ]
+            {
+              "expression": "contract_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "proposal_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -438,34 +430,37 @@
           "default": "now()"
         }
       },
-      "indexes": {},
-      "foreignKeys": {
-        "dao_proposal_vote_proposal_fkey": {
-          "name": "dao_proposal_vote_proposal_fkey",
-          "tableFrom": "dao_proposal_vote",
-          "tableTo": "dao_proposal",
-          "columnsFrom": [
-            "contract_address",
-            "proposal_id"
-          ],
-          "columnsTo": [
-            "contract_address",
-            "proposal_id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "dao_proposal_vote_pkey": {
-          "name": "dao_proposal_vote_pkey",
+      "indexes": {
+        "dao_proposal_vote_unique_idx": {
+          "name": "dao_proposal_vote_unique_idx",
           "columns": [
-            "contract_address",
-            "proposal_id",
-            "voter"
-          ]
+            {
+              "expression": "contract_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "proposal_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "voter",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},

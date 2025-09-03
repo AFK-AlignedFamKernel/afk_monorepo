@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS "dao_creation" (
 	"contract_address" text NOT NULL,
 	"starknet_address" text,
 	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp DEFAULT now()
+	"updated_at" timestamp DEFAULT now(),
+	CONSTRAINT "dao_creation_contract_address_unique" UNIQUE("contract_address")
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "dao_proposal" (
@@ -49,8 +50,7 @@ CREATE TABLE IF NOT EXISTS "dao_proposal" (
 	"end_at" integer,
 	"is_canceled" boolean DEFAULT false,
 	"result" text,
-	"updated_at" timestamp DEFAULT now(),
-	CONSTRAINT "dao_proposal_pkey" PRIMARY KEY("contract_address","proposal_id")
+	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "dao_proposal_vote" (
@@ -63,8 +63,7 @@ CREATE TABLE IF NOT EXISTS "dao_proposal_vote" (
 	"total_votes" bigint,
 	"voted_at" integer,
 	"created_at" timestamp DEFAULT now(),
-	"updated_at" timestamp DEFAULT now(),
-	CONSTRAINT "dao_proposal_vote_pkey" PRIMARY KEY("contract_address","proposal_id","voter")
+	"updated_at" timestamp DEFAULT now()
 );
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "epoch_state" (
@@ -222,23 +221,12 @@ CREATE TABLE IF NOT EXISTS "user_profile" (
 );
 --> statement-breakpoint
 DO $$ BEGIN
- ALTER TABLE "dao_proposal" ADD CONSTRAINT "dao_proposal_contract_address_fkey" FOREIGN KEY ("contract_address") REFERENCES "public"."dao_creation"("contract_address") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
- ALTER TABLE "dao_proposal_vote" ADD CONSTRAINT "dao_proposal_vote_proposal_fkey" FOREIGN KEY ("contract_address","proposal_id") REFERENCES "public"."dao_proposal"("contract_address","proposal_id") ON DELETE cascade ON UPDATE no action;
-EXCEPTION
- WHEN duplicate_object THEN null;
-END $$;
---> statement-breakpoint
-DO $$ BEGIN
  ALTER TABLE "epoch_state" ADD CONSTRAINT "epoch_state_contract_address_contract_state_contract_address_fk" FOREIGN KEY ("contract_address") REFERENCES "public"."contract_state"("contract_address") ON DELETE no action ON UPDATE no action;
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
-CREATE UNIQUE INDEX IF NOT EXISTS "dao_creation_contract_address_idx" ON "dao_creation" USING btree ("contract_address");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "dao_proposal_unique_idx" ON "dao_proposal" USING btree ("contract_address","proposal_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "dao_proposal_vote_unique_idx" ON "dao_proposal_vote" USING btree ("contract_address","proposal_id","voter");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "epoch_contract_unique_idx" ON "epoch_state" USING btree ("epoch_index","contract_address");--> statement-breakpoint
 CREATE UNIQUE INDEX IF NOT EXISTS "shares_token_user_owner_token_idx" ON "shares_token_user" USING btree ("owner","token_address");
