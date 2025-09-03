@@ -159,29 +159,23 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
         return;
       }
 
-      const intervalMinutes = 5;
+      const { interval = 5, limit = 100 } = request.query as { interval?: number; limit?: number };
+      const intervalMinutes = interval;
       let transformedData: any[] = [];
 
       try {
         console.log("candles launch", launch);
-        const candles = await prisma.candlesticks.findMany({
-          where: { token_address: launch, interval_minutes: intervalMinutes },
-          orderBy: { timestamp: 'asc' },
-          select: {
-            open: true,
-            close: true,
-            high: true,
-            low: true,
-            timestamp: true,
-          },
+        const candles = await getCandlesticksByMemecoinAddress({
+          memecoinAddress: launch,
+          intervalMinutes: intervalMinutes,
+          limit: limit,
         });
 
         console.log("candles", candles);
 
         if (candles.length === 0) {
-
+          console.log("No candlesticks found for token:", launch);
         } else {
-
           transformedData = candles.map((candle) => ({
             open: candle.open,
             close: candle.close,
@@ -191,15 +185,16 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           }));
         }
 
-
       } catch (error) {
-        console.error('Error generating candles:', error);
+        console.error('Error fetching candles:', error);
       }
 
       console.log("transformedData", transformedData);
 
       const response = {
         candles: transformedData,
+        interval: intervalMinutes,
+        count: transformedData.length,
       };
 
       reply.status(HTTPStatus.OK).send({
@@ -208,6 +203,100 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
 
     } catch (error) {
       console.error('Error deploying launch:', error);
+      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
+    }
+  });
+
+  // New dedicated candlesticks route with more options
+  fastify.get<{
+    Params: DeployLaunchParams;
+  }>('/deploy-launch/candlesticks/:launch', async (request, reply) => {
+    try {
+      const { launch } = request.params;
+      if (!isValidStarknetAddress(launch)) {
+        reply.status(HTTPStatus.BadRequest).send({
+          code: HTTPStatus.BadRequest,
+          message: 'Invalid token address',
+        });
+        return;
+      }
+
+      const { 
+        interval = 5, 
+        limit = 100, 
+        offset = 0,
+        startDate,
+        endDate 
+      } = request.query as { 
+        interval?: number; 
+        limit?: number; 
+        offset?: number;
+        startDate?: string;
+        endDate?: string;
+      };
+
+      const intervalMinutes = interval;
+      let transformedData: any[] = [];
+
+      try {
+        console.log("Fetching candlesticks for launch:", launch);
+        
+        // Validate interval
+        if (![5, 10, 60].includes(intervalMinutes)) {
+          reply.status(HTTPStatus.BadRequest).send({
+            code: HTTPStatus.BadRequest,
+            message: 'Invalid interval. Must be 5, 10, or 60 minutes.',
+          });
+          return;
+        }
+
+        const candles = await getCandlesticksByMemecoinAddress({
+          memecoinAddress: launch,
+          intervalMinutes: intervalMinutes,
+          limit: limit,
+          offset: offset,
+        });
+
+        console.log("Found candlesticks:", candles.length);
+
+        if (candles.length === 0) {
+          console.log("No candlesticks found for token:", launch);
+        } else {
+          transformedData = candles.map((candle) => ({
+            open: candle.open,
+            close: candle.close,
+            low: candle.low,
+            high: candle.high,
+            timestamp: candle.timestamp,
+            interval_minutes: candle.interval_minutes,
+          }));
+        }
+
+      } catch (error) {
+        console.error('Error fetching candlesticks:', error);
+        reply.status(HTTPStatus.InternalServerError).send({ 
+          message: 'Error fetching candlesticks data.' 
+        });
+        return;
+      }
+
+      const response = {
+        candlesticks: transformedData,
+        meta: {
+          token_address: launch,
+          interval_minutes: intervalMinutes,
+          count: transformedData.length,
+          offset: offset,
+          limit: limit,
+        },
+      };
+
+      reply.status(HTTPStatus.OK).send({
+        data: response,
+      });
+
+    } catch (error) {
+      console.error('Error in candlesticks route:', error);
       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });

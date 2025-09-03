@@ -11,7 +11,7 @@ export const generateCandlesticks = async (tokenAddress: string): Promise<void> 
   try {
     console.log(`Starting candlestick generation for token: ${tokenAddress}`);
     
-    const intervals = [5, 10, 60];
+    const intervals = [5, 15, 60];
 
     // Fetch all transactions for the token, ordered by timestamp
     const transactions = await db
@@ -37,7 +37,11 @@ export const generateCandlesticks = async (tokenAddress: string): Promise<void> 
 
       for (const transaction of transactions) {
         const price = Number(transaction.price);
-        if (!isValidPrice(price)) continue;
+        console.log("price", price);
+        if (!isValidPrice(price)) {
+          console.log("price is not valid", price);
+          continue;
+        }
 
         const intervalStart = getIntervalStart(
           transaction.time_stamp || new Date(),
@@ -73,6 +77,7 @@ export const generateCandlesticks = async (tokenAddress: string): Promise<void> 
       }
     }
 
+    console.log("candlesByInterval", candlesByInterval);
     // Save candlesticks to database
     for (const interval of intervals) {
       const candles = candlesByInterval[interval];
