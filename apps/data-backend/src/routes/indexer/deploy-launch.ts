@@ -4,7 +4,7 @@ import { HTTPStatus } from '../../utils/http';
 import { isValidStarknetAddress } from '../../utils/starknet';
 
 import {queries} from 'indexer-v2-db';
-const { getAllLaunchpads, getLaunchpadByAddress, getAllTokens, getSharesTokenUserByMemecoinAddress, getTransactionsByMemecoinAddress } = queries;
+const { getAllLaunchpads, getLaunchpadByAddress, getAllTokens, getSharesTokenUserByMemecoinAddress, getTransactionsByMemecoinAddress, getCandlesticksByMemecoinAddress } = queries;
 interface DeployLaunchParams {
   launch: string;
   owner_address?: string;
@@ -101,24 +101,17 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
 
       try {
         console.log("candles launch", launch);
-        const candles = await prisma.candlesticks.findMany({
-          where: { token_address: launch, interval_minutes: intervalMinutes },
-          orderBy: { timestamp: 'asc' },
-          select: {
-            open: true,
-            close: true,
-            high: true,
-            low: true,
-            timestamp: true,
-          },
+        const candles = await getCandlesticksByMemecoinAddress({
+          memecoinAddress: launch,
+          intervalMinutes: intervalMinutes,
+          limit: 1000, // Get more candles for stats
         });
 
         console.log("candles", candles);
 
         if (candles.length === 0) {
-
+          console.log("No candlesticks found for token:", launch);
         } else {
-
           transformedData = candles.map((candle) => ({
             open: candle.open,
             close: candle.close,
@@ -128,9 +121,8 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           }));
         }
 
-
       } catch (error) {
-        console.error('Error generating candles:', error);
+        console.error('Error fetching candles:', error);
       }
 
       console.log("transformedData", transformedData);
