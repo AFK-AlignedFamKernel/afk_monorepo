@@ -365,7 +365,8 @@ export default function (config: ApibaraRuntimeConfig & {
 
       console.log("events length", events?.length);
       for (const event of events) {
-        if (event.transactionHash) {
+        try {
+          if (event.transactionHash) {
           logger.log(`Found event ${event.keys[0]}`);
 
           logger.log("event sanitized", encode.sanitizeHex(event.keys[0]));
@@ -487,8 +488,13 @@ export default function (config: ApibaraRuntimeConfig & {
               await handleCreatorFeeDistributedEvent(decodedEvent, header, event);
             }
           } catch (error: any) {
-            logger.error(`Error processing event: ${error.message}`);
+            logger.error(`Error processing event (continuing with next event): ${error.message}`);
+            // Don't throw - let indexer continue processing other events
           }
+          }
+        } catch (eventError: any) {
+          logger.error(`Error processing individual event (continuing with next event): ${eventError.message}`);
+          // Don't throw - let indexer continue processing other events
         }
       }
     }
@@ -1363,7 +1369,7 @@ export default function (config: ApibaraRuntimeConfig & {
             marketCap: marketCap
           });
 
-          // Update launch record in background without blocking
+          // Update launch record with timeout handling - don't block indexer
           try {
             console.log("Updating launch record");
             const updateResultPromiseQuery = db.execute(sql`
@@ -1377,43 +1383,17 @@ export default function (config: ApibaraRuntimeConfig & {
                 WHERE memecoin_address = ${tokenAddress}
               `);
 
-            // const updateResultPromise = await db.update(tokenLaunch)
-            //   .set({
-            //     current_supply: newSupply.toString(),
-            //     liquidity_raised: newLiquidityRaised.toString(),
-            //     total_token_holded: newTotalTokenHolded.toString(),
-            //     price: priceBuy,
-            //     market_cap: marketCap
-            //   })
-            //   .where(eq(tokenLaunch.memecoin_address, tokenAddress));
-
             console.log("Update resultPromise");
             const updateTimeout = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error("Drizzle update timed out after 10s")), 10000);
+              setTimeout(() => reject(new Error("Drizzle update timed out after 5s")), 5000);
             });
-            await Promise.race([updateResultPromiseQuery, updateTimeout]);
-
-            const updateResult = await updateResultPromiseQuery;
-
+            
+            const updateResult = await Promise.race([updateResultPromiseQuery, updateTimeout]);
             console.log("Update result", updateResult);
-            if (!updateResult || updateResult.rows.length === 0) {
-              console.error('Update operation returned no result:', {
-                tokenAddress,
-                newSupply,
-                newLiquidityRaised,
-                newTotalTokenHolded,
-                priceBuy,
-                marketCap
-              });
-            } else {
-              console.log('Launch Record Updated');
-            }
+            console.log('Launch Record Updated');
           } catch (updateError: any) {
-            console.error('Failed to update launch record:', {
-              error: updateError,
-              code: updateError.code,
-              message: updateError.message,
-              detail: updateError.detail,
+            console.error('Failed to update launch record (continuing with indexer):', {
+              error: updateError.message,
               tokenAddress,
               newSupply,
               newLiquidityRaised,
@@ -1421,6 +1401,7 @@ export default function (config: ApibaraRuntimeConfig & {
               priceBuy,
               marketCap
             });
+            // Don't throw - let indexer continue processing other events
           }
 
         } catch (launchError: any) {
@@ -1455,13 +1436,10 @@ export default function (config: ApibaraRuntimeConfig & {
           newAmountOwned = newTotalTokenHoldedOverZero;
         }
 
-        // Update or create shareholder record (following nestjs indexer pattern)
+        // Update or create shareholder record with timeout handling - don't block indexer
         try {
-
-          // const updateOrInsertPromise = db.insert(sharesTokenUser)
-
           console.log("update or insert shareholder record");
-          const updateOrInsertPromise = await db.insert(sharesTokenUser)
+          const updateOrInsertPromise = db.insert(sharesTokenUser)
             .values({
               owner: ownerAddress,
               token_address: tokenAddress,
@@ -1482,24 +1460,25 @@ export default function (config: ApibaraRuntimeConfig & {
 
           console.log("update or insert shareholder record timeout");
           const updateTimeout = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error("Drizzle update timed out after 10s")), 10000);
+            setTimeout(() => reject(new Error("Drizzle update timed out after 5s")), 5000);
           });
           await Promise.race([updateOrInsertPromise, updateTimeout]);
           console.log("Shareholder Record Updated/Created");
         } catch (error: any) {
-          console.error('Failed to update/create shareholder:', {
-            error: error,
-            code: error.code,
-            message: error.message,
-            detail: error.detail
+          console.error('Failed to update/create shareholder (continuing with indexer):', {
+            error: error.message,
+            ownerAddress,
+            tokenAddress,
+            newAmountOwned
           });
+          // Don't throw - let indexer continue processing other events
         }
         console.log('Shareholder Record Updated');
 
-        // Use upsert pattern to prevent duplicates (following nestjs indexer pattern)
+        // Use upsert pattern to prevent duplicates with timeout handling - don't block indexer
         try {
           console.log("insert token transaction");
-          await db.insert(tokenTransactions)
+          const insertPromise = db.insert(tokenTransactions)
             .values({
               transfer_id: transferId,
               network: 'starknet-sepolia',
@@ -1517,16 +1496,21 @@ export default function (config: ApibaraRuntimeConfig & {
               created_at: new Date(),
             })
             .onConflictDoNothing(); // Prevent duplicates
-        } catch (error: any) {
-          console.error('Failed to insert buy transaction:', {
-            error: error,
-            code: error.code,
-            message: error.message,
-            detail: error.detail
+
+          const insertTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Drizzle insert timed out after 5s")), 5000);
           });
+          await Promise.race([insertPromise, insertTimeout]);
+          console.log('Transaction Record Created');
+        } catch (error: any) {
+          console.error('Failed to insert buy transaction (continuing with indexer):', {
+            error: error.message,
+            transferId,
+            transactionHash
+          });
+          // Don't throw - let indexer continue processing other events
         }
 
-        console.log('Transaction Record Created');
       } catch (dbError: any) {
         if (dbError.code === '23505') {
           console.log('Transaction already exists (unique constraint violation):', {
@@ -1534,13 +1518,13 @@ export default function (config: ApibaraRuntimeConfig & {
             transaction_hash: transactionHash
           });
         } else {
-          console.error('Database error in handleBuyTokenEvent:', {
-            error: dbError,
-            code: dbError.code,
-            message: dbError.message,
-            detail: dbError.detail
+          console.error('Database error in handleBuyTokenEvent (continuing with indexer):', {
+            error: dbError.message,
+            transfer_id: transferId,
+            transaction_hash: transactionHash
           });
         }
+        // Don't throw - let indexer continue processing other events
       }
     } catch (error) {
       console.error("Error in handleBuyTokenEvent:", error);
@@ -1627,7 +1611,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
 
         try {
-          await db.update(tokenLaunch)
+          const updatePromise = db.update(tokenLaunch)
             .set({
               current_supply: newSupply.toString(),
               liquidity_raised: newLiquidityRaised.toString(),
@@ -1636,14 +1620,18 @@ export default function (config: ApibaraRuntimeConfig & {
               market_cap: marketCap,
             })
             .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+          
+          const updateTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Drizzle update timed out after 5s")), 5000);
+          });
+          await Promise.race([updatePromise, updateTimeout]);
           console.log('Launch Record Updated');
         } catch (error: any) {
-          console.error('Failed to update launch record:', {
-            error: error,
-            code: error.code,
-            message: error.message,
-            detail: error.detail
+          console.error('Failed to update launch record (continuing with indexer):', {
+            error: error.message,
+            tokenAddress
           });
+          // Don't throw - let indexer continue processing other events
         }
 
 
@@ -1658,13 +1646,13 @@ export default function (config: ApibaraRuntimeConfig & {
         console.log("existingShareholder", existingShareholder);
 
 
-        // Update shareholder record for sell (following nestjs indexer pattern)
+        // Update shareholder record for sell with timeout handling - don't block indexer
         try {
           if (existingShareholder) {
             // Calculate new amount owned after sell - subtract the amount being sold
             const updatedAmountOwned = Math.max(0, Number(existingShareholder.amount_owned || '0') - Number(amount));
 
-            await db.update(sharesTokenUser)
+            const updatePromise = db.update(sharesTokenUser)
               .set({
                 amount_owned: updatedAmountOwned.toString(),
                 amount_sell: amount, // Track individual sell amount
@@ -1675,12 +1663,17 @@ export default function (config: ApibaraRuntimeConfig & {
                 eq(sharesTokenUser.owner, ownerAddress),
                 eq(sharesTokenUser.token_address, tokenAddress)
               ));
+            
+            const updateTimeout = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error("Drizzle update timed out after 5s")), 5000);
+            });
+            await Promise.race([updatePromise, updateTimeout]);
             console.log('Shareholder Record Updated for Sell');
           } else {
             console.log("Shareholder not found for sell - this shouldn't happen");
             // If no existing shareholder, this might be an error case
             // But we'll still create a record with 0 amount owned
-            await db.insert(sharesTokenUser).values({
+            const insertPromise = db.insert(sharesTokenUser).values({
               owner: ownerAddress,
               token_address: tokenAddress,
               amount_owned: '0', // No tokens owned after sell
@@ -1688,19 +1681,24 @@ export default function (config: ApibaraRuntimeConfig & {
               total_paid: quoteAmount,
               is_claimable: false,
             });
+            
+            const insertTimeout = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error("Drizzle insert timed out after 5s")), 5000);
+            });
+            await Promise.race([insertPromise, insertTimeout]);
             console.log("Shareholder Record Created for Sell (unexpected case)");
           }
         } catch (error: any) {
-          console.error('Failed to update shareholder for sell:', {
-            error: error,
-            code: error.code,
-            message: error.message,
-            detail: error.detail
+          console.error('Failed to update shareholder for sell (continuing with indexer):', {
+            error: error.message,
+            ownerAddress,
+            tokenAddress
           });
+          // Don't throw - let indexer continue processing other events
         }
-        // Use upsert pattern to prevent duplicates (following nestjs indexer pattern)
+        // Use upsert pattern to prevent duplicates with timeout handling - don't block indexer
         try {
-          await db.insert(tokenTransactions)
+          const insertPromise = db.insert(tokenTransactions)
             .values({
               transfer_id: transferId,
               network: 'starknet-sepolia',
@@ -1718,18 +1716,27 @@ export default function (config: ApibaraRuntimeConfig & {
               created_at: new Date(),
             })
             .onConflictDoNothing(); // Prevent duplicates
-        } catch (error: any) {
-          console.error('Failed to insert sell transaction:', {
-            error: error,
-            code: error.code,
-            message: error.message,
-            detail: error.detail
+
+          const insertTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Drizzle insert timed out after 5s")), 5000);
           });
+          await Promise.race([insertPromise, insertTimeout]);
+          console.log('Transaction Record Created');
+        } catch (error: any) {
+          console.error('Failed to insert sell transaction (continuing with indexer):', {
+            error: error.message,
+            transferId,
+            transactionHash
+          });
+          // Don't throw - let indexer continue processing other events
         }
 
-        console.log('Transaction Record Created');
-      } catch (dbError) {
-        console.error('Database error in handleSellTokenEvent:', dbError);
+      } catch (dbError: any) {
+        console.error('Database error in handleSellTokenEvent (continuing with indexer):', {
+          error: dbError.message,
+          tokenAddress
+        });
+        // Don't throw - let indexer continue processing other events
       }
     } catch (error) {
       console.error("Error in handleSellTokenEvent:", error);
