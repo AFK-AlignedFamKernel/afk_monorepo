@@ -11,7 +11,7 @@ export const generateCandlesticks = async (tokenAddress: string): Promise<void> 
   try {
     console.log(`Starting candlestick generation for token: ${tokenAddress}`);
     
-    const intervals = [5, 15, 60];
+    const intervals = [5, 10, 60];
 
     // Fetch all transactions for the token, ordered by timestamp
     const transactions = await db
@@ -26,6 +26,17 @@ export const generateCandlesticks = async (tokenAddress: string): Promise<void> 
     }
 
     console.log(`Found ${transactions.length} transactions for token ${tokenAddress}`);
+    
+    // Debug: Log first few transactions to understand the structure
+    if (transactions.length > 0) {
+      console.log("Sample transactions:", transactions.slice(0, 3).map(t => ({
+        transfer_id: t.transfer_id,
+        price: t.price,
+        transaction_type: t.transaction_type,
+        time_stamp: t.time_stamp,
+        amount: t.amount
+      })));
+    }
 
     const candlesByInterval: Record<number, any[]> = {};
     intervals.forEach((interval) => (candlesByInterval[interval] = []));
@@ -34,14 +45,59 @@ export const generateCandlesticks = async (tokenAddress: string): Promise<void> 
     for (const interval of intervals) {
       let currentCandle = null;
       const intervalMs = interval * 60 * 1000;
+      let validTransactionsCount = 0;
 
       for (const transaction of transactions) {
-        const price = Number(transaction.price);
-        console.log("price", price);
-        if (!isValidPrice(price)) {
-          console.log("price is not valid", price);
+        let price: number;
+        
+        // Try to get price from different sources
+        if (transaction.price && transaction.price !== null && transaction.price !== undefined) {
+          price = Number(transaction.price);
+        } else if (transaction.last_price && transaction.last_price !== null && transaction.last_price !== undefined) {
+          price = Number(transaction.last_price);
+          console.log("Using last_price as fallback:", transaction.last_price);
+        } else if (transaction.quote_amount && transaction.amount && 
+                   transaction.quote_amount !== '0' && transaction.amount !== '0') {
+          // Calculate price from quote_amount / amount
+          const quoteAmount = Number(transaction.quote_amount);
+          const amount = Number(transaction.amount);
+          if (amount > 0) {
+            price = quoteAmount / amount;
+            console.log("Calculated price from quote_amount/amount:", price);
+          } else {
+            console.log("Skipping transaction with zero amount:", transaction.transfer_id);
+            continue;
+          }
+        } else {
+          console.log("Skipping transaction with no valid price data:", {
+            transfer_id: transaction.transfer_id,
+            price: transaction.price,
+            last_price: transaction.last_price,
+            quote_amount: transaction.quote_amount,
+            amount: transaction.amount
+          });
           continue;
         }
+
+        console.log("Processing transaction:", {
+          transfer_id: transaction.transfer_id,
+          price: price,
+          raw_price: transaction.price,
+          last_price: transaction.last_price,
+          transaction_type: transaction.transaction_type,
+          timestamp: transaction.time_stamp
+        });
+        
+        if (!isValidPrice(price)) {
+          console.log("Price is not valid:", {
+            price: price,
+            raw_price: transaction.price,
+            transfer_id: transaction.transfer_id
+          });
+          continue;
+        }
+
+        validTransactionsCount++;
 
         const intervalStart = getIntervalStart(
           transaction.time_stamp || new Date(),
@@ -75,6 +131,8 @@ export const generateCandlesticks = async (tokenAddress: string): Promise<void> 
       if (currentCandle) {
         candlesByInterval[interval].push(currentCandle);
       }
+
+      console.log(`Interval ${interval}m: Processed ${validTransactionsCount} valid transactions out of ${transactions.length} total`);
     }
 
     console.log("candlesByInterval", candlesByInterval);
@@ -137,7 +195,9 @@ export const generateCandlesticksAsync = (tokenAddress: string): void => {
  * @returns boolean indicating if the value is valid
  */
 const isValidPrice = (value: number): boolean => {
-  return Number.isFinite(value) && value > 0;
+  // Allow 0 prices as they might be valid in certain trading scenarios
+  // Only reject NaN, Infinity, or negative values
+  return Number.isFinite(value) && value >= 0;
 };
 
 /**
