@@ -1589,11 +1589,11 @@ export default function (config: ApibaraRuntimeConfig & {
       const ownerAddress = event?.args?.caller;
       const tokenAddress = event?.args?.key_user;
 
-      const amountString = event?.args?.amount?.toString() || '0';
+      const quoteAmountString = event?.args?.amount?.toString() || '0';
       const priceString = event?.args?.price?.toString() || '0';
       const protocolFee = event?.args?.protocol_fee?.toString() || '0';
       const lastPrice = event?.args?.last_price?.toString() || '0';
-      const quoteAmountString = event?.args?.coin_amount?.toString() || '0';
+      const amountString = event?.args?.coin_amount?.toString() || '0';
 
       // Keep original BigInt values for calculations
       const amountBigInt = BigInt(amountString);
