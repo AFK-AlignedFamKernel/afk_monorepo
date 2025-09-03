@@ -245,12 +245,59 @@ const validateBondingCurveParameters = (
 
 
 // Helper function to add timeout to database operations
-const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number = 5000): Promise<T> => {
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number = 3000): Promise<T> => {
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => reject(new Error(`Database operation timed out after ${timeoutMs}ms`)), timeoutMs);
   });
 
   return Promise.race([promise, timeoutPromise]);
+};
+
+// Circuit breaker to prevent database operations from blocking the indexer
+let dbFailureCount = 0;
+let lastDbFailureTime = 0;
+const DB_FAILURE_THRESHOLD = 5;
+const DB_RECOVERY_TIME = 30000; // 30 seconds
+
+const isDbCircuitOpen = (): boolean => {
+  const now = Date.now();
+  if (dbFailureCount >= DB_FAILURE_THRESHOLD) {
+    if (now - lastDbFailureTime < DB_RECOVERY_TIME) {
+      return true; // Circuit is open
+    } else {
+      // Reset circuit breaker after recovery time
+      dbFailureCount = 0;
+      lastDbFailureTime = 0;
+      return false;
+    }
+  }
+  return false;
+};
+
+// Helper function to make database operations completely non-blocking
+const nonBlockingDbOperation = async <T>(
+  operation: () => Promise<T>,
+  operationName: string,
+  timeoutMs: number = 2000
+): Promise<T | null> => {
+  // Check circuit breaker
+  if (isDbCircuitOpen()) {
+    console.warn(`Database circuit breaker is open, skipping ${operationName}`);
+    return null;
+  }
+
+  try {
+    const result = await withTimeout(operation(), timeoutMs);
+    // Reset failure count on success
+    dbFailureCount = 0;
+    return result;
+  } catch (error: any) {
+    dbFailureCount++;
+    lastDbFailureTime = Date.now();
+    console.error(`Non-blocking DB operation failed (${operationName}):`, error.message);
+    console.warn(`DB failure count: ${dbFailureCount}/${DB_FAILURE_THRESHOLD}`);
+    return null; // Return null instead of throwing
+  }
 };
 
 // Helper function to retry database operations
@@ -364,9 +411,14 @@ export default function (config: ApibaraRuntimeConfig & {
       console.log("timestamp", header.timestamp);
 
       console.log("events length", events?.length);
+      let processedEvents = 0;
       for (const event of events) {
         try {
           if (event.transactionHash) {
+            processedEvents++;
+            if (processedEvents % 10 === 0) {
+              console.log(`Processed ${processedEvents}/${events?.length} events`);
+            }
           logger.log(`Found event ${event.keys[0]}`);
 
           logger.log("event sanitized", encode.sanitizeHex(event.keys[0]));
@@ -440,7 +492,10 @@ export default function (config: ApibaraRuntimeConfig & {
                 event,
                 eventName: 'afk_launchpad::types::launchpad_types::BuyToken',
               });
-              await handleBuyTokenEvent(decodedEvent, header, event);
+              // Fire and forget - don't await to prevent blocking
+              handleBuyTokenEvent(decodedEvent, header, event).catch(error => {
+                console.error('BuyToken event handler failed:', error.message);
+              });
             }
             if (event?.keys[0] == encode.sanitizeHex(SELL_TOKEN)) {
               console.log("event Sell");
@@ -449,7 +504,10 @@ export default function (config: ApibaraRuntimeConfig & {
                 event,
                 eventName: 'afk_launchpad::types::launchpad_types::SellToken',
               });
-              await handleSellTokenEvent(decodedEvent, header, event);
+              // Fire and forget - don't await to prevent blocking
+              handleSellTokenEvent(decodedEvent, header, event).catch(error => {
+                console.error('SellToken event handler failed:', error.message);
+              });
             }
             if (event?.keys[0] == encode.sanitizeHex(TOKEN_CLAIMED)) {
               console.log("event TokenClaimed");
@@ -497,6 +555,7 @@ export default function (config: ApibaraRuntimeConfig & {
           // Don't throw - let indexer continue processing other events
         }
       }
+      console.log(`Completed processing ${processedEvents} events in this block`);
     }
   });
 
@@ -1369,10 +1428,10 @@ export default function (config: ApibaraRuntimeConfig & {
             marketCap: marketCap
           });
 
-          // Update launch record with timeout handling - don't block indexer
-          try {
-            console.log("Updating launch record");
-            const updateResultPromiseQuery = db.execute(sql`
+          // Update launch record with non-blocking approach
+          console.log("Updating launch record");
+          const updateResult = await nonBlockingDbOperation(
+            () => db.execute(sql`
                 UPDATE token_launch 
                 SET 
                   current_supply = ${newSupply},
@@ -1381,27 +1440,16 @@ export default function (config: ApibaraRuntimeConfig & {
                   price = ${priceBuy},
                   market_cap = ${marketCap}
                 WHERE memecoin_address = ${tokenAddress}
-              `);
-
-            console.log("Update resultPromise");
-            const updateTimeout = new Promise((_, reject) => {
-              setTimeout(() => reject(new Error("Drizzle update timed out after 5s")), 5000);
-            });
-            
-            const updateResult = await Promise.race([updateResultPromiseQuery, updateTimeout]);
+              `),
+            'update_launch_record',
+            2000
+          );
+          
+          if (updateResult) {
             console.log("Update result", updateResult);
             console.log('Launch Record Updated');
-          } catch (updateError: any) {
-            console.error('Failed to update launch record (continuing with indexer):', {
-              error: updateError.message,
-              tokenAddress,
-              newSupply,
-              newLiquidityRaised,
-              newTotalTokenHolded,
-              priceBuy,
-              marketCap
-            });
-            // Don't throw - let indexer continue processing other events
+          } else {
+            console.log('Launch record update failed or timed out - continuing');
           }
 
         } catch (launchError: any) {
@@ -1436,10 +1484,10 @@ export default function (config: ApibaraRuntimeConfig & {
           newAmountOwned = newTotalTokenHoldedOverZero;
         }
 
-        // Update or create shareholder record with timeout handling - don't block indexer
-        try {
-          console.log("update or insert shareholder record");
-          const updateOrInsertPromise = db.insert(sharesTokenUser)
+        // Update or create shareholder record with non-blocking approach
+        console.log("update or insert shareholder record");
+        const shareholderResult = await nonBlockingDbOperation(
+          () => db.insert(sharesTokenUser)
             .values({
               owner: ownerAddress,
               token_address: tokenAddress,
@@ -1456,29 +1504,22 @@ export default function (config: ApibaraRuntimeConfig & {
                 total_paid: quoteAmount,
                 is_claimable: false,
               },
-            });
-
-          console.log("update or insert shareholder record timeout");
-          const updateTimeout = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error("Drizzle update timed out after 5s")), 5000);
-          });
-          await Promise.race([updateOrInsertPromise, updateTimeout]);
+            }),
+          'update_shareholder_record',
+          2000
+        );
+        
+        if (shareholderResult) {
           console.log("Shareholder Record Updated/Created");
-        } catch (error: any) {
-          console.error('Failed to update/create shareholder (continuing with indexer):', {
-            error: error.message,
-            ownerAddress,
-            tokenAddress,
-            newAmountOwned
-          });
-          // Don't throw - let indexer continue processing other events
+        } else {
+          console.log('Shareholder record update failed or timed out - continuing');
         }
         console.log('Shareholder Record Updated');
 
-        // Use upsert pattern to prevent duplicates with timeout handling - don't block indexer
-        try {
-          console.log("insert token transaction");
-          const insertPromise = db.insert(tokenTransactions)
+        // Use upsert pattern to prevent duplicates with non-blocking approach
+        console.log("insert token transaction");
+        const transactionResult = await nonBlockingDbOperation(
+          () => db.insert(tokenTransactions)
             .values({
               transfer_id: transferId,
               network: 'starknet-sepolia',
@@ -1495,20 +1536,15 @@ export default function (config: ApibaraRuntimeConfig & {
               transaction_type: 'buy',
               created_at: new Date(),
             })
-            .onConflictDoNothing(); // Prevent duplicates
-
-          const insertTimeout = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error("Drizzle insert timed out after 5s")), 5000);
-          });
-          await Promise.race([insertPromise, insertTimeout]);
+            .onConflictDoNothing(), // Prevent duplicates
+          'insert_transaction_record',
+          2000
+        );
+        
+        if (transactionResult) {
           console.log('Transaction Record Created');
-        } catch (error: any) {
-          console.error('Failed to insert buy transaction (continuing with indexer):', {
-            error: error.message,
-            transferId,
-            transactionHash
-          });
-          // Don't throw - let indexer continue processing other events
+        } else {
+          console.log('Transaction record insert failed or timed out - continuing');
         }
 
       } catch (dbError: any) {
