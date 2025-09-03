@@ -1,5 +1,5 @@
 {
-  "id": "8621c981-76ca-4c3e-885b-0b91c2c9cb31",
+  "id": "ddb949be-feb1-42b5-a3b0-66bf088cb2cc",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -594,21 +594,7 @@
           "with": {}
         }
       },
-      "foreignKeys": {
-        "epoch_state_contract_address_contract_state_contract_address_fk": {
-          "name": "epoch_state_contract_address_contract_state_contract_address_fk",
-          "tableFrom": "epoch_state",
-          "tableTo": "contract_state",
-          "columnsFrom": [
-            "contract_address"
-          ],
-          "columnsTo": [
-            "contract_address"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1345,18 +1331,37 @@
           "default": "now()"
         }
       },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "user_epoch_state_nostr_id_epoch_index_contract_address_pk": {
-          "name": "user_epoch_state_nostr_id_epoch_index_contract_address_pk",
+      "indexes": {
+        "user_epoch_state_unique_idx": {
+          "name": "user_epoch_state_unique_idx",
           "columns": [
-            "nostr_id",
-            "epoch_index",
-            "contract_address"
-          ]
+            {
+              "expression": "nostr_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "epoch_index",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "contract_address",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},

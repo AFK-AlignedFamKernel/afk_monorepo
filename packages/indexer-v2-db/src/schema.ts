@@ -94,7 +94,7 @@ export const contractState = pgTable('contract_state', {
 export const epochState = pgTable('epoch_state', {
   id: uuid('id').primaryKey().defaultRandom(),
   epoch_index: text('epoch_index').notNull(),
-  contract_address: text('contract_address').notNull().references(() => contractState.contract_address),
+  contract_address: text('contract_address').notNull(),
   total_ai_score: decimal('total_ai_score', { precision: 30, scale: 18 }).default('0'),
   total_vote_score: decimal('total_vote_score', { precision: 30, scale: 18 }).default('0'),
   total_amount_deposit: decimal('total_amount_deposit', { precision: 30, scale: 18 }).default('0'),
@@ -137,7 +137,7 @@ export const userEpochState = pgTable('user_epoch_state', {
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 }, (table) => ({
-  pk: primaryKey({ columns: [table.nostr_id, table.epoch_index, table.contract_address] }),
+  uniqueUserEpoch: uniqueIndex('user_epoch_state_unique_idx').on(table.nostr_id, table.epoch_index, table.contract_address)
 }));
 
 export const indexerCursor = pgTable('indexer_cursor', {
@@ -245,23 +245,18 @@ export const sharesTokenUser = pgTable('shares_token_user', {
   uniqueOwnerToken: uniqueIndex('shares_token_user_owner_token_idx').on(table.owner, table.token_address)
 }));
 
-// Relations
+// Simplified relations without foreign key constraints
 export const contractStateRelations = relations(contractState, ({ many }) => ({
   epochs: many(epochState),
   userProfiles: many(userProfile),
 }));
 
-export const epochStateRelations = relations(epochState, ({ one, many }) => ({
-  contract: one(contractState, {
-    fields: [epochState.contract_address],
-    references: [contractState.contract_address],
-  }),
+export const epochStateRelations = relations(epochState, ({ many }) => ({
   userEpochStates: many(userEpochState),
 }));
 
 export const userProfileRelations = relations(userProfile, ({ many }) => ({
   epochStates: many(userEpochState),
-  contractStates: many(contractState),
 }));
 
 export const userEpochStateRelations = relations(userEpochState, ({ one }) => ({
