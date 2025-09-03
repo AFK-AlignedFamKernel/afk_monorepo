@@ -18,6 +18,7 @@ import {
 import { eq, and, or } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { formatBigIntToFloat, formatFloatToUint256, formatFloatToBigInt } from '@/utils/format';
+import { generateCandlesticksAsync } from '../services/launchpad/candlestick.service';
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -1547,6 +1548,9 @@ export default function (config: ApibaraRuntimeConfig & {
           console.log('Transaction record insert failed or timed out - continuing');
         }
 
+        // Generate candlesticks asynchronously (non-blocking)
+        generateCandlesticksAsync(tokenAddress);
+
       } catch (dbError: any) {
         if (dbError.code === '23505') {
           console.log('Transaction already exists (unique constraint violation):', {
@@ -1766,6 +1770,9 @@ export default function (config: ApibaraRuntimeConfig & {
           });
           // Don't throw - let indexer continue processing other events
         }
+
+        // Generate candlesticks asynchronously (non-blocking)
+        generateCandlesticksAsync(tokenAddress);
 
       } catch (dbError: any) {
         console.error('Database error in handleSellTokenEvent (continuing with indexer):', {

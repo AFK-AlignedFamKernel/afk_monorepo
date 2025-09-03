@@ -245,6 +245,21 @@ export const sharesTokenUser = pgTable('shares_token_user', {
   uniqueOwnerToken: uniqueIndex('shares_token_user_owner_token_idx').on(table.owner, table.token_address)
 }));
 
+export const candlesticks = pgTable('candlesticks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  token_address: text('token_address').notNull(),
+  interval_minutes: integer('interval_minutes').notNull(),
+  timestamp: timestamp('timestamp').notNull(),
+  open: decimal('open', { precision: 30, scale: 18 }).notNull(),
+  high: decimal('high', { precision: 30, scale: 18 }).notNull(),
+  low: decimal('low', { precision: 30, scale: 18 }).notNull(),
+  close: decimal('close', { precision: 30, scale: 18 }).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  uniqueCandlestick: uniqueIndex('candlesticks_token_interval_timestamp_idx').on(table.token_address, table.interval_minutes, table.timestamp)
+}));
+
 // Simplified relations without foreign key constraints
 export const contractStateRelations = relations(contractState, ({ many }) => ({
   epochs: many(epochState),
@@ -311,6 +326,13 @@ export const sharesTokenUserRelations = relations(sharesTokenUser, ({ one }) => 
   }),
 }));
 
+export const candlesticksRelations = relations(candlesticks, ({ one }) => ({
+  token: one(tokenLaunch, {
+    fields: [candlesticks.token_address],
+    references: [tokenLaunch.memecoin_address],
+  }),
+}));
+
 // Add proper type exports
 export type ContractState = typeof contractState.$inferSelect;
 export type NewContractState = typeof contractState.$inferInsert;
@@ -347,5 +369,8 @@ export type NewTokenTransaction = typeof tokenTransactions.$inferInsert;
 
 export type SharesTokenUser = typeof sharesTokenUser.$inferSelect;
 export type NewSharesTokenUser = typeof sharesTokenUser.$inferInsert;
+
+export type Candlestick = typeof candlesticks.$inferSelect;
+export type NewCandlestick = typeof candlesticks.$inferInsert;
 
 
