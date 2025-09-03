@@ -1,5 +1,5 @@
 {
-  "id": "94036e77-76b5-4ee1-9d80-4daeceffa2ff",
+  "id": "f9dda55a-4818-4b9d-a5d8-9ce5b7982dd5",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -717,6 +717,13 @@
         },
         "amount_sell": {
           "name": "amount_sell",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'0'"
+        },
+        "amount_claimed": {
+          "name": "amount_claimed",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

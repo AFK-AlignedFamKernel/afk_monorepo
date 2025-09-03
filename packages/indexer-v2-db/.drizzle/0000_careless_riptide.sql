@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS "shares_token_user" (
 	"amount_owned" text DEFAULT '0',
 	"amount_buy" text DEFAULT '0',
 	"amount_sell" text DEFAULT '0',
+	"amount_claimed" text DEFAULT '0',
 	"total_paid" text DEFAULT '0',
 	"is_claimable" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now()

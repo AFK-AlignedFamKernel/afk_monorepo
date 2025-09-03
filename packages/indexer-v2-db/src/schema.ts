@@ -239,6 +239,7 @@ export const sharesTokenUser = pgTable('shares_token_user', {
   amount_owned: text('amount_owned').default('0'),
   amount_buy: text('amount_buy').default('0'),
   amount_sell: text('amount_sell').default('0'),
+  amount_claimed: text('amount_claimed').default('0'),
   total_paid: text('total_paid').default('0'),
   is_claimable: boolean('is_claimable').default(false),
   created_at: timestamp('created_at').defaultNow(),
