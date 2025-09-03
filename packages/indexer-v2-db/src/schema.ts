@@ -64,6 +64,28 @@ export const daoProposalVote = pgTable(
   }),
 );
 
+
+// Add relations
+export const daoCreationRelations = relations(daoCreation, ({ many }) => ({
+  proposals: many(daoProposal),
+}));
+
+export const daoProposalRelations = relations(daoProposal, ({ one, many }) => ({
+  dao: one(daoCreation, {
+    fields: [daoProposal.contractAddress],
+    references: [daoCreation.contractAddress],
+  }),
+  votes: many(daoProposalVote),
+}));
+
+export const daoProposalVoteRelations = relations(daoProposalVote, ({ one }) => ({
+  proposal: one(daoProposal, {
+    fields: [daoProposalVote.contractAddress, daoProposalVote.proposalId],
+    references: [daoProposal.contractAddress, daoProposal.proposalId],
+  }),
+}));
+
+
 export const contractState = pgTable('contract_state', {
   id: uuid('id').primaryKey().defaultRandom(),
   contract_address: text('contract_address').notNull().unique(),
@@ -274,26 +296,6 @@ export const userEpochStateRelations = relations(userEpochState, ({ one }) => ({
   user: one(userProfile, {
     fields: [userEpochState.nostr_id],
     references: [userProfile.nostr_id],
-  }),
-}));
-
-// Add relations
-export const daoCreationRelations = relations(daoCreation, ({ many }) => ({
-  proposals: many(daoProposal),
-}));
-
-export const daoProposalRelations = relations(daoProposal, ({ one, many }) => ({
-  dao: one(daoCreation, {
-    fields: [daoProposal.contractAddress],
-    references: [daoCreation.contractAddress],
-  }),
-  votes: many(daoProposalVote),
-}));
-
-export const daoProposalVoteRelations = relations(daoProposalVote, ({ one }) => ({
-  proposal: one(daoProposal, {
-    fields: [daoProposalVote.contractAddress, daoProposalVote.proposalId],
-    references: [daoProposal.contractAddress, daoProposal.proposalId],
   }),
 }));
 
