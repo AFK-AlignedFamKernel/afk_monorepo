@@ -19,6 +19,10 @@ import { eq, and, or } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { formatBigIntToFloat, formatFloatToUint256, formatFloatToBigInt } from '@/utils/format';
 
+import dotenv from 'dotenv';
+dotenv.config();
+
+
 // Event selectors
 const CREATE_TOKEN = hash.getSelectorFromName('CreateToken') as `0x${string}`;
 const CREATE_LAUNCH = hash.getSelectorFromName('CreateLaunch') as `0x${string}`;
@@ -59,17 +63,17 @@ const USER_PURCHASABLE_PERCENTAGE = 80; // 80% of total supply is purchasable by
 const calculateBondingCurveDefaults = (totalSupply: string) => {
   try {
     const totalSupplyBigInt = BigInt(totalSupply);
-    
+
     // Calculate 20% for DEX pool (initial_pool_supply_dex)
     const dexPoolSupply = (totalSupplyBigInt * BigInt(DEX_POOL_PERCENTAGE)) / BigInt(100);
-    
+
     // Calculate 80% for user purchasable supply (current_supply starts at this value)
     const userPurchasableSupply = (totalSupplyBigInt * BigInt(USER_PURCHASABLE_PERCENTAGE)) / BigInt(100);
-    
+
     // Convert to human-readable strings
     const dexPoolSupplyFormatted = formatBigIntToFloat(dexPoolSupply);
     const userPurchasableSupplyFormatted = formatBigIntToFloat(userPurchasableSupply);
-    
+
     console.log('Bonding curve defaults calculated:', {
       totalSupply: formatBigIntToFloat(totalSupplyBigInt),
       dexPoolSupply: dexPoolSupplyFormatted,
@@ -77,7 +81,7 @@ const calculateBondingCurveDefaults = (totalSupply: string) => {
       dexPoolPercentage: DEX_POOL_PERCENTAGE,
       userPurchasablePercentage: USER_PURCHASABLE_PERCENTAGE
     });
-    
+
     return {
       dexPoolSupply: dexPoolSupplyFormatted,
       userPurchasableSupply: userPurchasableSupplyFormatted,
@@ -113,31 +117,31 @@ const calculateBondingCurvePrice = (
       });
       return { price: '0', marketCap: '0' };
     }
-    
+
     // Convert string inputs to BigInt, handling both raw BigInt strings and formatted float strings
     let liquidityRaisedBigInt: bigint;
     let initialPoolSupplyBigInt: bigint;
     let totalSupplyBigInt: bigint;
-    
+
     // Check if the strings contain decimal points (formatted floats) or are raw BigInt strings
     if (liquidityRaised.includes('.') || liquidityRaised.includes('e-') || liquidityRaised.includes('e+')) {
       liquidityRaisedBigInt = formatFloatToBigInt(liquidityRaised);
     } else {
       liquidityRaisedBigInt = BigInt(liquidityRaised);
     }
-    
+
     if (initialPoolSupply.includes('.') || initialPoolSupply.includes('e-') || initialPoolSupply.includes('e+')) {
       initialPoolSupplyBigInt = formatFloatToBigInt(initialPoolSupply);
     } else {
       initialPoolSupplyBigInt = BigInt(initialPoolSupply);
     }
-    
+
     if (totalSupply.includes('.') || totalSupply.includes('e-') || totalSupply.includes('e+')) {
       totalSupplyBigInt = formatFloatToBigInt(totalSupply);
     } else {
       totalSupplyBigInt = BigInt(totalSupply);
     }
-    
+
     // Validate that values are non-negative
     if (liquidityRaisedBigInt < 0n || initialPoolSupplyBigInt < 0n || totalSupplyBigInt < 0n) {
       console.warn('Negative values detected in bonding curve calculation:', {
@@ -147,25 +151,25 @@ const calculateBondingCurvePrice = (
       });
       return { price: '0', marketCap: '0' };
     }
-    
+
     // Price = liquidity_raised / initial_pool_supply_dex
     // Avoid division by zero
-    const priceBigInt = initialPoolSupplyBigInt > 0n 
-      ? liquidityRaisedBigInt / initialPoolSupplyBigInt 
+    const priceBigInt = initialPoolSupplyBigInt > 0n
+      ? liquidityRaisedBigInt / initialPoolSupplyBigInt
       : 0n;
-    
+
     // Market cap = total_supply * price
     const marketCapBigInt = totalSupplyBigInt * priceBigInt;
-    
+
     const price = formatBigIntToFloat(priceBigInt);
     const marketCap = formatBigIntToFloat(marketCapBigInt);
-    
+
     // Validate results
     if (price === 'NaN' || marketCap === 'NaN' || price === 'Infinity' || marketCap === 'Infinity') {
       console.warn('Invalid calculation results:', { price, marketCap });
       return { price: '0', marketCap: '0' };
     }
-    
+
     console.log('Bonding curve price calculated:', {
       inputLiquidityRaised: liquidityRaised,
       inputInitialPoolSupply: initialPoolSupply,
@@ -178,7 +182,7 @@ const calculateBondingCurvePrice = (
       price,
       marketCap
     });
-    
+
     return { price, marketCap };
   } catch (error) {
     console.error('Error calculating bonding curve price:', error);
@@ -194,40 +198,40 @@ const validateBondingCurveParameters = (
   liquidityRaised: string
 ): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
-  
+
   try {
     const totalSupplyBigInt = BigInt(totalSupply);
     const currentSupplyBigInt = BigInt(currentSupply);
     const initialPoolSupplyBigInt = BigInt(initialPoolSupply);
     const liquidityRaisedBigInt = BigInt(liquidityRaised);
-    
+
     // Check for negative values
     if (totalSupplyBigInt < 0n) errors.push('Total supply cannot be negative');
     if (currentSupplyBigInt < 0n) errors.push('Current supply cannot be negative');
     if (initialPoolSupplyBigInt < 0n) errors.push('Initial pool supply cannot be negative');
     if (liquidityRaisedBigInt < 0n) errors.push('Liquidity raised cannot be negative');
-    
+
     // Check that current supply doesn't exceed total supply
     if (currentSupplyBigInt > totalSupplyBigInt) {
       errors.push('Current supply cannot exceed total supply');
     }
-    
+
     // Check that initial pool supply is reasonable (should be 20% of total supply)
     const expectedPoolSupply = (totalSupplyBigInt * BigInt(DEX_POOL_PERCENTAGE)) / BigInt(100);
     const poolSupplyTolerance = expectedPoolSupply / BigInt(10); // 10% tolerance
-    
+
     if (Math.abs(Number(initialPoolSupplyBigInt - expectedPoolSupply)) > Number(poolSupplyTolerance)) {
       errors.push(`Initial pool supply (${formatBigIntToFloat(initialPoolSupplyBigInt)}) should be approximately ${DEX_POOL_PERCENTAGE}% of total supply (${formatBigIntToFloat(expectedPoolSupply)})`);
     }
-    
+
     // Check that current supply is reasonable (should be 80% of total supply initially)
     const expectedUserSupply = (totalSupplyBigInt * BigInt(USER_PURCHASABLE_PERCENTAGE)) / BigInt(100);
     const userSupplyTolerance = expectedUserSupply / BigInt(10); // 10% tolerance
-    
+
     if (Math.abs(Number(currentSupplyBigInt - expectedUserSupply)) > Number(userSupplyTolerance) && currentSupplyBigInt > 0n) {
       console.warn(`Current supply (${formatBigIntToFloat(currentSupplyBigInt)}) differs from expected user purchasable supply (${formatBigIntToFloat(expectedUserSupply)})`);
     }
-    
+
     return {
       isValid: errors.length === 0,
       errors
@@ -742,27 +746,27 @@ export default function (config: ApibaraRuntimeConfig & {
 
         const bondingType = event?.args?.bonding_type["_tag"] || event?.args?.bonding_type?.toString() || null;
         console.log("Bonding type", bondingType);
-        
+
         // Get total supply from event or token deploy info
         const totalSupplyFromEvent = event?.args?.total_supply?.toString() || '0';
         const totalSupplyFromDeploy = tokenDeployInfo?.total_supply || '0';
         const totalSupply = totalSupplyFromEvent !== '0' ? totalSupplyFromEvent : totalSupplyFromDeploy;
-        
+
         // Calculate default bonding curve values if not provided in event
         const bondingCurveDefaults = calculateBondingCurveDefaults(totalSupply);
-        
+
         // Use event values if available, otherwise use calculated defaults
         const currentSupplyFromEvent = event?.args?.current_supply?.toString() || '0';
         const initialPoolSupplyFromEvent = event?.args?.initial_pool_supply_dex?.toString() || '0';
-        
-        const currentSupply = currentSupplyFromEvent !== '0' 
-          ? formatTokenAmount(currentSupplyFromEvent) 
+
+        const currentSupply = currentSupplyFromEvent !== '0'
+          ? formatTokenAmount(currentSupplyFromEvent)
           : bondingCurveDefaults.userPurchasableSupply;
-          
-        const initialPoolSupply = initialPoolSupplyFromEvent !== '0' 
-          ? formatTokenAmount(initialPoolSupplyFromEvent) 
+
+        const initialPoolSupply = initialPoolSupplyFromEvent !== '0'
+          ? formatTokenAmount(initialPoolSupplyFromEvent)
           : bondingCurveDefaults.dexPoolSupply;
-        
+
         // Calculate initial price and market cap
         const liquidityRaised = formatTokenAmount(event?.args?.liquidity_raised?.toString() || '0');
         const { price, marketCap } = calculateBondingCurvePrice(
@@ -770,7 +774,7 @@ export default function (config: ApibaraRuntimeConfig & {
           bondingCurveDefaults.dexPoolSupplyBigInt.toString(),
           totalSupply
         );
-        
+
         const launchData = {
           transaction_hash: transactionHash,
           network: 'starknet-sepolia',
@@ -803,7 +807,7 @@ export default function (config: ApibaraRuntimeConfig & {
           bondingCurveDefaults.dexPoolSupplyBigInt.toString(),
           event?.args?.liquidity_raised?.toString() || '0'
         );
-        
+
         if (!validation.isValid) {
           console.warn('Bonding curve validation failed:', validation.errors);
         } else {
@@ -944,7 +948,7 @@ export default function (config: ApibaraRuntimeConfig & {
       }
 
       try {
-        
+
         const updateTokenLaunchPromise = db.update(tokenLaunch)
           .set({
             url: extractedMetadata.url,
@@ -962,11 +966,11 @@ export default function (config: ApibaraRuntimeConfig & {
         console.log("Token Launch Record Updated");
       } catch (error) {
         console.error('Error or timeout during token launch update:', error);
-        
+
       }
 
       try {
-        
+
         const updateTokenDeployPromise = db.update(tokenDeploy)
           .set({
             url: extractedMetadata.url,
@@ -983,7 +987,7 @@ export default function (config: ApibaraRuntimeConfig & {
         console.log("Token Deploy Record Updated");
       } catch (error) {
         console.error('Error or timeout during token deploy update:', error);
-        
+
       }
       try {
         // Check if metadata already exists using raw SQL
@@ -992,7 +996,7 @@ export default function (config: ApibaraRuntimeConfig & {
           WHERE transaction_hash = ${transactionHash} OR memecoin_address = ${tokenAddress}
           LIMIT 1
         `);
-        
+
 
         if (existingMetadataResult.rows.length > 0) {
           const existingMetadata = existingMetadataResult.rows[0];
@@ -1172,7 +1176,7 @@ export default function (config: ApibaraRuntimeConfig & {
         const tokenAddress = event?.args?.token_address;
 
         const amountString = event?.args?.amount?.toString() || '0';
-        const priceString  = event?.args?.price?.toString() || '0';
+        const priceString = event?.args?.price?.toString() || '0';
         const protocolFee = event?.args?.protocol_fee?.toString() || '0';
         const lastPrice = event?.args?.last_price?.toString() || '0';
         const quoteAmountString = event?.args?.quote_amount?.toString() || '0';
@@ -1180,12 +1184,12 @@ export default function (config: ApibaraRuntimeConfig & {
         console.log("amountString", amountString);
         console.log("quoteAmountString", quoteAmountString);
         console.log("priceString", priceString);
-        
+
         // Keep original BigInt values for calculations
         const amountBigInt = BigInt(amountString);
         const quoteAmountBigInt = BigInt(quoteAmountString);
         const priceBigInt = BigInt(priceString);
-        
+
         // Convert to human-readable strings for display/storage
         const amount = formatBigIntToFloat(amountBigInt);
         const quoteAmount = formatBigIntToFloat(quoteAmountBigInt);
@@ -1228,10 +1232,10 @@ export default function (config: ApibaraRuntimeConfig & {
             const tokenDeployInfo = await db.query.tokenDeploy.findFirst({
               where: eq(tokenDeploy.memecoin_address, tokenAddress)
             });
-            
+
             const totalSupply = tokenDeployInfo?.total_supply || '1000000000000000000000000'; // Default 1M tokens
             const bondingCurveDefaults = calculateBondingCurveDefaults(totalSupply);
-            
+
             const defaultLaunch = {
               memecoin_address: tokenAddress,
               owner_address: ownerAddress,
@@ -1323,34 +1327,34 @@ export default function (config: ApibaraRuntimeConfig & {
           const initPoolSupply = Number(currentLaunch.initial_pool_supply_dex || '0');
           const totalSupply = Number(currentLaunch.total_supply || '0');
           const thresholdLiquidity = Number(currentLaunch.threshold_liquidity || '0');
-                    
+
           // Calculate new values (following old indexer logic)
           let newSupply = currentSupply - Number(amount);
           let newLiquidityRaised = liquidityRaised + Number(quoteAmount);
           const newTotalTokenHolded = totalTokenHolded + Number(amount);
-          
+
           newTotalTokenHoldedOverZero = newTotalTokenHolded + Number(amount);
           // Handle negative supply (following old indexer pattern)
           if (newSupply < 0) {
             console.warn(`Buy amount ${amount} would exceed remaining supply ${currentSupply}. Setting supply to 0.`);
             newSupply = 0;
           }
-          
+
           // Handle threshold liquidity (following old indexer pattern)
           if (newLiquidityRaised > thresholdLiquidity && thresholdLiquidity > 0) {
             console.log(`Liquidity raised ${newLiquidityRaised} exceeds threshold ${thresholdLiquidity}. Capping at threshold.`);
             newLiquidityRaised = thresholdLiquidity;
           }
-          
+
           // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
           const priceBuy = initPoolSupply > 0 ? (newLiquidityRaised / initPoolSupply).toString() : '0';
-          
+
           // Calculate market cap: total_supply * price (following old indexer pattern)
           const marketCap = (totalSupply * Number(priceBuy)).toString();
 
           // Fix: Ensure both operands are BigInt for arithmetic, not string
-  
-       
+
+
           console.log("Calculated values for launch update:", {
             newSupply: newSupply,
             newLiquidityRaised: newLiquidityRaised.toString(),
@@ -1360,10 +1364,9 @@ export default function (config: ApibaraRuntimeConfig & {
           });
 
           // Update launch record in background without blocking
-          (async () => {
-            try {
-              console.log("Updating launch record");
-              const updateResultPromiseQuery =  db.execute(sql`
+          try {
+            console.log("Updating launch record");
+            const updateResultPromiseQuery = db.execute(sql`
                 UPDATE token_launch 
                 SET 
                   current_supply = ${newSupply},
@@ -1372,46 +1375,29 @@ export default function (config: ApibaraRuntimeConfig & {
                   price = ${priceBuy},
                   market_cap = ${marketCap}
                 WHERE memecoin_address = ${tokenAddress}
-                RETURNING *
               `);
 
-              // const updateResultPromise = await db.update(tokenLaunch)
-              //   .set({
-              //     current_supply: newSupply.toString(),
-              //     liquidity_raised: newLiquidityRaised.toString(),
-              //     total_token_holded: newTotalTokenHolded.toString(),
-              //     price: priceBuy,
-              //     market_cap: marketCap
-              //   })
-              //   .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+            // const updateResultPromise = await db.update(tokenLaunch)
+            //   .set({
+            //     current_supply: newSupply.toString(),
+            //     liquidity_raised: newLiquidityRaised.toString(),
+            //     total_token_holded: newTotalTokenHolded.toString(),
+            //     price: priceBuy,
+            //     market_cap: marketCap
+            //   })
+            //   .where(eq(tokenLaunch.memecoin_address, tokenAddress));
 
-              console.log("Update resultPromise");
-              const updateTimeout = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('Drizzle update timed out after 10s')), 10000);
-              });
-              await Promise.race([updateResultPromiseQuery, updateTimeout]);
+            console.log("Update resultPromise");
+            const updateTimeout = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error("Drizzle update timed out after 10s")), 10000);
+            });
+            await Promise.race([updateResultPromiseQuery, updateTimeout]);
 
-              const updateResult = await updateResultPromiseQuery;
+            const updateResult = await updateResultPromiseQuery;
 
-              console.log("Update result", updateResult);
-              if (!updateResult || updateResult.rows.length === 0) {
-                console.error('Update operation returned no result:', {
-                  tokenAddress,
-                  newSupply,
-                  newLiquidityRaised,
-                  newTotalTokenHolded,
-                  priceBuy,
-                  marketCap
-                });
-              } else {
-                console.log('Launch Record Updated');
-              }
-            } catch (updateError: any) {
-              console.error('Failed to update launch record:', {
-                error: updateError,
-                code: updateError.code,
-                message: updateError.message,
-                detail: updateError.detail,
+            console.log("Update result", updateResult);
+            if (!updateResult || updateResult.rows.length === 0) {
+              console.error('Update operation returned no result:', {
                 tokenAddress,
                 newSupply,
                 newLiquidityRaised,
@@ -1419,8 +1405,24 @@ export default function (config: ApibaraRuntimeConfig & {
                 priceBuy,
                 marketCap
               });
+            } else {
+              console.log('Launch Record Updated');
             }
-          })();
+          } catch (updateError: any) {
+            console.error('Failed to update launch record:', {
+              error: updateError,
+              code: updateError.code,
+              message: updateError.message,
+              detail: updateError.detail,
+              tokenAddress,
+              newSupply,
+              newLiquidityRaised,
+              newTotalTokenHolded,
+              priceBuy,
+              marketCap
+            });
+          }
+
         } catch (launchError: any) {
           console.error('Error fetching/updating launch record:', {
             error: launchError,
@@ -1441,7 +1443,7 @@ export default function (config: ApibaraRuntimeConfig & {
         });
 
         console.log("existingShareholder", existingShareholder);
-   
+
         // Calculate new amount owned (following old indexer logic)
         let newAmountOwned = existingShareholder
           ? Number(existingShareholder.amount_owned || '0') + Number(amount)
@@ -1453,17 +1455,20 @@ export default function (config: ApibaraRuntimeConfig & {
           newAmountOwned = newTotalTokenHoldedOverZero;
         }
 
-
         // Update or create shareholder record (following nestjs indexer pattern)
         try {
-          await db.insert(sharesTokenUser)
+
+          // const updateOrInsertPromise = db.insert(sharesTokenUser)
+
+          console.log("update or insert shareholder record");
+          const updateOrInsertPromise = await db.insert(sharesTokenUser)
             .values({
               owner: ownerAddress,
               token_address: tokenAddress,
               amount_owned: newAmountOwned.toString(),
               amount_buy: amount, // Track individual buy amount
               total_paid: quoteAmount, // Track total paid in quote token
-              is_claimable: true,
+              is_claimable: false,
             })
             .onConflictDoUpdate({
               target: [sharesTokenUser.owner, sharesTokenUser.token_address], // Use unique index for conflict resolution
@@ -1474,6 +1479,12 @@ export default function (config: ApibaraRuntimeConfig & {
                 is_claimable: false,
               },
             });
+
+          console.log("update or insert shareholder record timeout");
+          const updateTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Drizzle update timed out after 10s")), 10000);
+          });
+          await Promise.race([updateOrInsertPromise, updateTimeout]);
           console.log("Shareholder Record Updated/Created");
         } catch (error: any) {
           console.error('Failed to update/create shareholder:', {
@@ -1487,6 +1498,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
         // Use upsert pattern to prevent duplicates (following nestjs indexer pattern)
         try {
+          console.log("insert token transaction");
           await db.insert(tokenTransactions)
             .values({
               transfer_id: transferId,
@@ -1558,12 +1570,12 @@ export default function (config: ApibaraRuntimeConfig & {
       const protocolFee = event?.args?.protocol_fee?.toString() || '0';
       const lastPrice = event?.args?.last_price?.toString() || '0';
       const quoteAmountString = event?.args?.coin_amount?.toString() || '0';
-      
+
       // Keep original BigInt values for calculations
       const amountBigInt = BigInt(amountString);
       const quoteAmountBigInt = BigInt(quoteAmountString);
       const priceBigInt = BigInt(priceString);
-      
+
       // Convert to human-readable strings for display/storage
       const amount = formatBigIntToFloat(amountBigInt);
       const quoteAmount = formatBigIntToFloat(quoteAmountBigInt);
@@ -1587,21 +1599,21 @@ export default function (config: ApibaraRuntimeConfig & {
         const currentLaunch = launchRecord[0];
 
         console.log("currentLaunch", currentLaunch);
-        
+
         // Work with human-readable numbers only (simplified approach)
         const currentSupply = Number(currentLaunch.current_supply || '0');
         const liquidityRaised = Number(currentLaunch.liquidity_raised || '0');
         const totalTokenHolded = Number(currentLaunch.total_token_holded || '0');
         const initPoolSupply = Number(currentLaunch.initial_pool_supply_dex || '0');
         const totalSupply = Number(currentLaunch.total_supply || '0');
-        
+
         const newSupply = currentSupply + Number(amount);
         const newLiquidityRaised = Math.max(0, liquidityRaised - Number(quoteAmount)); // Ensure non-negative
         const newTotalTokenHolded = Math.max(0, totalTokenHolded - Number(amount)); // Ensure non-negative
 
         // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
         const priceSell = initPoolSupply > 0 ? (newLiquidityRaised / initPoolSupply).toString() : '0';
-        
+
         // Calculate market cap: total_supply * price (following old indexer pattern)
         const marketCap = (totalSupply * Number(priceSell)).toString();
 
@@ -1651,7 +1663,7 @@ export default function (config: ApibaraRuntimeConfig & {
           if (existingShareholder) {
             // Calculate new amount owned after sell - subtract the amount being sold
             const updatedAmountOwned = Math.max(0, Number(existingShareholder.amount_owned || '0') - Number(amount));
-            
+
             await db.update(sharesTokenUser)
               .set({
                 amount_owned: updatedAmountOwned.toString(),
@@ -1740,10 +1752,10 @@ export default function (config: ApibaraRuntimeConfig & {
       const ownerAddress = event?.args?.caller;
       const tokenAddress = event?.args?.token_address;
       const amountString = event?.args?.amount?.toString() || '0';
-      
+
       // Keep original BigInt value for calculations
       const amountBigInt = BigInt(amountString);
-      
+
       // Convert to human-readable string for display/storage
       const amount = formatBigIntToFloat(amountBigInt);
 
@@ -1761,7 +1773,7 @@ export default function (config: ApibaraRuntimeConfig & {
           const existingAmountClaimedBigInt = BigInt(existingShareholder.amount_claimed || '0');
           const updatedAmountOwnedBigInt = existingAmountOwnedBigInt - amountBigInt;
           const updatedAmountClaimedBigInt = existingAmountClaimedBigInt + amountBigInt;
-          
+
           // Convert to human-readable strings for storage
           const updatedAmountOwned = formatBigIntToFloat(updatedAmountOwnedBigInt);
           const updatedAmountClaimed = formatBigIntToFloat(updatedAmountClaimedBigInt);
