@@ -94,6 +94,11 @@ export async function setupStream(data: StreamSetup) {
       "-ac", "2",            // Stereo audio
       "-b:a", "128k",        // Audio bitrate
       "-af", "aresample=44100", // Resample audio
+      // Handle video-only streams gracefully
+      "-map", "0:v:0",       // Map video stream
+      "-map", "0:a:0?",      // Map audio stream if available (optional)
+      "-shortest",           // End when shortest stream ends
+      "-avoid_negative_ts", "make_zero", // Handle timestamp issues
       
       // Video quality and encoding - HLS optimized
       "-preset",

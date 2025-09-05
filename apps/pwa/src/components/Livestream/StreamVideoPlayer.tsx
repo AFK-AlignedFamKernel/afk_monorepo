@@ -552,7 +552,15 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
               debug: false,
               enableWorker: true,
               lowLatencyMode: true,
-              backBufferLength: 90
+              backBufferLength: 90,
+              // Be more tolerant of video-only streams
+              maxBufferLength: 30,
+              maxMaxBufferLength: 60,
+              liveSyncDurationCount: 3,
+              liveMaxLatencyDurationCount: 5,
+              // Handle missing audio gracefully
+              audioPreference: 'main',
+              audioTrackSwitching: false
             });
             
             hls.loadSource(streamingUrl);
@@ -566,7 +574,8 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
               if (data.audioTracks && data.audioTracks.length > 0) {
                 console.log(`🎵 Found ${data.audioTracks.length} audio tracks`);
               } else {
-                console.warn('⚠️ No audio tracks found in HLS stream');
+                console.warn('⚠️ No audio tracks found in HLS stream - this is normal for video-only streams');
+                // Don't treat this as an error - video-only streams are valid
               }
               
               setIsLoading(false);
@@ -594,7 +603,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
                   break;
                 case Hls.ErrorTypes.MEDIA_ERROR:
                   if (data.details === 'DEMUXER_ERROR_DETECTED_HLS') {
-                    console.log('🔄 HLS demuxer error - stream may be missing audio, trying to recover...');
+                    console.log('🔄 HLS demuxer error - stream may be video-only, trying to recover...');
                     setLoadError('Stream format issue - attempting to recover...');
                     setTimeout(() => {
                       hls.recoverMediaError();
