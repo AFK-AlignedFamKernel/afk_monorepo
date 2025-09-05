@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Fix Test - HLS Stream</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .video-container {
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        video {
+            width: 100%;
+            height: 400px;
+            background: #000;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        .error {
+            background: #f44336;
+        }
+        .warning {
+            background: #ff9800;
+        }
+        .success {
+            background: #4CAF50;
+        }
+        .info {
+            background: #2196F3;
+        }
+        .log {
+            background: #333;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .stream-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .info-card {
+            background: #333;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .info-card h3 {
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+        }
+        .info-card p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Audio Fix Test - HLS Stream</h1>
+            <p>Testing the fixed FFmpeg configuration for audio encoding</p>
+        </div>
+
+        <div class="test-section">
+            <h2>Stream Configuration</h2>
+            <div class="stream-info">
+                <div class="info-card">
+                    <h3>Stream URL</h3>
+                    <p id="streamUrl">http://localhost:5050/livestream/3cae611eb0efaf3a03791b20d5a51a54/stream.m3u8</p>
+                </div>
+                <div class="info-card">
+                    <h3>Expected Audio</h3>
+                    <p>Codec: AAC</p>
+                    <p>Sample Rate: 44.1kHz</p>
+                    <p>Channels: Stereo (2)</p>
+                    <p>Bitrate: 128kbps</p>
+                </div>
+                <div class="info-card">
+                    <h3>Expected Video</h3>
+                    <p>Codec: H.264</p>
+                    <p>Resolution: 1280x720</p>
+                    <p>Profile: Baseline</p>
+                    <p>Level: 3.0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Video Player</h2>
+            <div class="video-container">
+                <video id="video" controls autoplay playsinline muted>
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <div class="controls">
+                <button onclick="loadVideo()">Load Video</button>
+                <button onclick="playVideo()">Play</button>
+                <button onclick="pauseVideo()">Pause</button>
+                <button onclick="checkStreamInfo()">Check Stream Info</button>
+                <button onclick="testAudio()">Test Audio</button>
+                <button onclick="clearLog()">Clear Log</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Stream Analysis</h2>
+            <div id="streamAnalysis" class="log">Click "Check Stream Info" to analyze the stream...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Log</h2>
+            <div id="log" class="log">Ready to test audio fix...</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        let hls = null;
+        const video = document.getElementById('video');
+        const log = document.getElementById('log');
+        const streamAnalysis = document.getElementById('streamAnalysis');
+
+        function logMessage(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('log');
+            const className = type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : 'info';
+            logElement.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('streamAnalysis').innerHTML = 'Click "Check Stream Info" to analyze the stream...';
+        }
+
+        function loadVideo() {
+            logMessage('🔄 Loading video with HLS.js...', 'info');
+            
+            const streamUrl = 'http://localhost:5050/livestream/3cae611eb0efaf3a03791b20d5a51a54/stream.m3u8';
+            
+            if (Hls.isSupported()) {
+                logMessage('✅ HLS.js is supported, using HLS.js player', 'success');
+                
+                if (hls) {
+                    hls.destroy();
+                }
+                
+                hls = new Hls({
+                    debug: true,
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 90
+                });
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                    logMessage('📋 HLS manifest parsed successfully', 'success');
+                    logMessage(`📊 Found ${data.levels.length} quality levels`, 'info');
+                    
+                    if (data.audioTracks && data.audioTracks.length > 0) {
+                        logMessage(`🎵 Found ${data.audioTracks.length} audio tracks`, 'success');
+                        data.audioTracks.forEach((track, index) => {
+                            logMessage(`🎵 Audio track ${index}: ${track.name || 'Unknown'} (${track.lang || 'Unknown language'})`, 'info');
+                        });
+                    } else {
+                        logMessage('⚠️ No audio tracks found in HLS stream', 'warning');
+                    }
+                });
+                
+                hls.on(Hls.Events.ERROR, function (event, data) {
+                    logMessage(`❌ HLS.js error: ${data.type} - ${data.details}`, 'error');
+                    
+                    if (data.fatal) {
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                logMessage('🔄 Fatal network error, trying to recover...', 'warning');
+                                setTimeout(() => {
+                                    hls.startLoad();
+                                }, 1000);
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                logMessage('🔄 Fatal media error, trying to recover...', 'warning');
+                                setTimeout(() => {
+                                    hls.recoverMediaError();
+                                }, 1000);
+                                break;
+                            default:
+                                logMessage('❌ Fatal error, cannot recover', 'error');
+                                hls.destroy();
+                                break;
+                        }
+                    }
+                });
+                
+                hls.loadSource(streamUrl);
+                hls.attachMedia(video);
+                
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                logMessage('✅ Native HLS support detected, using native player', 'success');
+                video.src = streamUrl;
+            } else {
+                logMessage('❌ HLS is not supported in this browser', 'error');
+            }
+        }
+
+        function playVideo() {
+            video.play().then(() => {
+                logMessage('▶️ Video started playing', 'success');
+            }).catch(error => {
+                logMessage(`❌ Play failed: ${error.message}`, 'error');
+            });
+        }
+
+        function pauseVideo() {
+            video.pause();
+            logMessage('⏸️ Video paused', 'info');
+        }
+
+        async function checkStreamInfo() {
+            logMessage('🔍 Checking stream information...', 'info');
+            
+            try {
+                const streamUrl = 'http://localhost:5050/livestream/3cae611eb0efaf3a03791b20d5a51a54/stream.m3u8';
+                
+                // Check manifest
+                const manifestResponse = await fetch(streamUrl);
+                const manifest = await manifestResponse.text();
+                
+                logMessage('📋 Manifest fetched successfully', 'success');
+                logMessage(`📄 Manifest content:\n${manifest}`, 'info');
+                
+                // Parse manifest for segments
+                const lines = manifest.split('\n');
+                const segments = lines.filter(line => line.endsWith('.ts'));
+                
+                logMessage(`📊 Found ${segments.length} segments in manifest`, 'info');
+                
+                if (segments.length > 0) {
+                    // Check first segment
+                    const firstSegment = segments[0];
+                    logMessage(`🔍 Checking first segment: ${firstSegment}`, 'info');
+                    
+                    try {
+                        const segmentResponse = await fetch(`http://localhost:5050/livestream/3cae611eb0efaf3a03791b20d5a51a54/${firstSegment}`);
+                        if (segmentResponse.ok) {
+                            logMessage('✅ First segment is accessible', 'success');
+                            
+                            // Try to get segment info using a simple probe
+                            logMessage('🔍 Segment analysis would require server-side ffprobe...', 'info');
+                        } else {
+                            logMessage(`❌ First segment not accessible: ${segmentResponse.status}`, 'error');
+                        }
+                    } catch (error) {
+                        logMessage(`❌ Error checking segment: ${error.message}`, 'error');
+                    }
+                }
+                
+            } catch (error) {
+                logMessage(`❌ Error checking stream: ${error.message}`, 'error');
+            }
+        }
+
+        function testAudio() {
+            logMessage('🎵 Testing audio capabilities...', 'info');
+            
+            if (video.audioTracks && video.audioTracks.length > 0) {
+                logMessage(`🎵 Found ${video.audioTracks.length} audio tracks`, 'success');
+                video.audioTracks.forEach((track, index) => {
+                    logMessage(`🎵 Track ${index}: ${track.label || 'Unknown'} (${track.language || 'Unknown'})`, 'info');
+                });
+            } else {
+                logMessage('⚠️ No audio tracks detected in video element', 'warning');
+            }
+            
+            // Check if video has audio
+            if (video.mozHasAudio !== undefined) {
+                logMessage(`🎵 Mozilla audio detection: ${video.mozHasAudio}`, 'info');
+            }
+            
+            // Try to enable audio
+            video.muted = false;
+            logMessage('🔊 Unmuted video for audio testing', 'info');
+        }
+
+        // Auto-load video on page load
+        window.addEventListener('load', () => {
+            logMessage('🚀 Page loaded, starting audio fix test...', 'info');
+            loadVideo();
+        });
+    </script>
+</body>
+</html>
