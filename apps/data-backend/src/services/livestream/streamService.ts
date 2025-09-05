@@ -88,91 +88,46 @@ export async function setupStream(data: StreamSetup) {
     .videoCodec("libx264")
     .audioCodec("aac")
     .outputOptions([
-      // Audio specific settings - CRITICAL for HLS compatibility
-      // Note: audioCodec("aac") above already sets the codec
-      "-ar", "44100",        // Sample rate
-      "-ac", "2",            // Stereo audio
-      "-b:a", "128k",        // Audio bitrate
-      "-af", "aresample=44100", // Resample audio
-      // Handle video-only streams gracefully
-      "-map", "0:v:0",       // Map video stream
-      "-map", "0:a:0?",      // Map audio stream if available (optional)
-      "-shortest",           // End when shortest stream ends
-      "-avoid_negative_ts", "make_zero", // Handle timestamp issues
+      // Basic video settings
+      "-preset", "ultrafast",  // Use ultrafast for live streaming
+      "-crf", "28",            // Higher CRF for better compatibility
+      "-maxrate", "2500k",     // Reasonable bitrate
+      "-bufsize", "5000k",     // Buffer size should be 2x maxrate
+      "-pix_fmt", "yuv420p",   // Standard pixel format
+      "-profile:v", "baseline", // Baseline profile for compatibility
+      "-level", "3.1",         // Level 3.1 for better compatibility
       
-      // Video quality and encoding - HLS optimized
-      "-preset",
-      "fast", // Changed from ultrafast for better quality
-      "-crf",
-      "23", // Changed from 28 for better quality
-      "-maxrate",
-      "2000k", // Reduced from 2500k to prevent VBV underflow
-      "-bufsize",
-      "4000k", // Reduced from 5000k to match maxrate
-      "-profile:v",
-      "baseline",
-      "-level",
-      "3.0",
-      "-pix_fmt",
-      "yuv420p",
-      // Additional VBV control
-      "-rc-lookahead",
-      "30",
-      "-me_method",
-      "hex",
-      "-subq",
-      "6",
-
-      // Scaling and resolution - handled by video codec settings
-      // "-vf", "scale=1280:720", // Removed duplicate scaling
-
-      // HLS specific settings - CRITICAL for proper HLS generation
-      "-hls_time",
-      "2",
-      "-hls_list_size",
-      "0",
-      "-hls_flags",
-      "delete_segments+append_list+independent_segments",
-      "-hls_segment_filename",
-      join(streamPath, "segment_%d.ts"),
-      "-hls_allow_cache",
-      "0",
-      "-hls_start_number_source",
-      "datetime",
-
-      // Keyframe interval - reduced for faster segment generation
-      "-g",
-      "30", // Changed from 60 for faster keyframe generation
-
-      // Additional optimization
-      "-sc_threshold",
-      "0",
-      "-movflags",
-      "+faststart",
-
-      // Force keyframe generation
-      "-force_key_frames",
-      "expr:gte(t,n_forced*2)", // Changed back to 2 for better quality
-
-      // Better compatibility
-      "-profile:v",
-      "baseline",
-      "-level",
-      "3.0",
-
-      // Additional settings for better live streaming
-      "-tune",
-      "zerolatency",
-      "-probesize",
-      "32",
-      "-analyzeduration",
-      "0",
+      // Audio settings - only if audio is present
+      "-ar", "44100",          // Sample rate
+      "-ac", "2",              // Stereo
+      "-b:a", "128k",          // Audio bitrate
       
-      // VBV underflow prevention
-      "-x264opts",
-      "vbv-maxrate=2000:vbv-bufsize=4000:ratetol=1.0",
-      "-nal-hrd",
-      "cbr"
+      // Stream mapping - let FFmpeg auto-detect streams
+      "-map", "0:v:0",         // Map first video stream
+      "-map", "0:a:0?",        // Map first audio stream if available
+      
+      // HLS specific settings
+      "-hls_time", "2",        // 2-second segments
+      "-hls_list_size", "0",   // Keep all segments in playlist
+      "-hls_flags", "independent_segments", // Only use independent segments
+      "-hls_segment_filename", join(streamPath, "segment_%d.ts"),
+      "-hls_allow_cache", "0", // Don't allow caching
+      
+      // Keyframe settings
+      "-g", "60",              // Keyframe every 2 seconds (30fps * 2)
+      "-keyint_min", "60",     // Minimum keyframe interval
+      "-sc_threshold", "0",    // Disable scene change detection
+      
+      // Live streaming optimizations
+      "-tune", "zerolatency",  // Zero latency tuning
+      "-probesize", "32",      // Small probe size
+      "-analyzeduration", "0", // No analysis delay
+      
+      // Timestamp handling
+      "-avoid_negative_ts", "make_zero",
+      
+      // Additional compatibility
+      "-movflags", "+faststart"
     ]);
 
   // Add event listeners for better debugging
@@ -238,7 +193,8 @@ export async function setupStream(data: StreamSetup) {
 #EXT-X-VERSION:3
 #EXT-X-TARGETDURATION:2
 #EXT-X-MEDIA-SEQUENCE:0
-#EXT-X-PLAYLIST-TYPE:EVENT`;
+#EXT-X-PLAYLIST-TYPE:EVENT
+`;
   
   try {
     await writeFile(outputPath, initialManifest, 'utf8');
@@ -355,6 +311,14 @@ async function updateAndUploadM3u8(localM3u8Path: string, streamKey: string) {
 
     // Remove any existing ENDLIST tag - we don't want to end the stream prematurely
     content = content.replace(/#EXT-X-ENDLIST[\r\n]*/g, '');
+    
+    // Ensure proper line endings
+    content = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    
+    // Ensure the file ends with a newline
+    if (!content.endsWith('\n')) {
+      content += '\n';
+    }
 
     await writeFile(localM3u8Path, content, "utf8");
     await uploadFileToR2(config.cloudfare.r2BucketName, localM3u8Path, streamKey, "m3u8");
