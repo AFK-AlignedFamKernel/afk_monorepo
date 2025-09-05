@@ -122,12 +122,12 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   // Debug: Log the event data to see what we have
   useEffect(() => {
     console.log('🔍 Event data in LivestreamMain:', {
-      event,
-      isConnected,
-
-      eventId: currentStreamId,
+      currentStreamId,
+      eventId: currentStreamId || '',
       eventLoading,
       eventError,
+      hasEvent: !!event,
+      isConnected,
       isWebSocketStreaming,
       streamKey,
       eventKeys: event ? Object.keys(event) : 'NO_EVENT',
