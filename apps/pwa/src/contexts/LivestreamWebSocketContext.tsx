@@ -164,20 +164,30 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
 
   // Send video data
   const sendStreamData = useCallback((chunk: Blob) => {
-    if (!socketRef.current?.connected || !streamKey) {
-      console.log('❌ Cannot send video data: WebSocket not connected or no stream key');
+    if (!socketRef.current?.connected) {
+      console.log('❌ Cannot send video data: WebSocket not connected');
+      return;
+    }
+
+    if (!streamKey) {
+      console.log('❌ Cannot send video data: No stream key');
       return;
     }
 
     // Don't check isStreaming here - allow data to be sent if we have a connection
-    console.log('📡 Sending video chunk:', chunk.size, 'bytes');
+    console.log('📡 Sending video chunk:', chunk.size, 'bytes to stream:', streamKey);
     
     chunk.arrayBuffer().then(buffer => {
+      const bufferData = Buffer.from(buffer);
+      console.log('📡 Buffer size:', bufferData.length, 'bytes');
+      
       socketRef.current?.emit('stream-data', {
         streamKey,
-        chunk: Buffer.from(buffer)
+        chunk: bufferData
       });
-      console.log('✅ Video chunk sent to backend');
+      console.log('✅ Video chunk sent to backend for stream:', streamKey);
+    }).catch(error => {
+      console.error('❌ Error converting chunk to buffer:', error);
     });
   }, [streamKey]);
 
@@ -234,8 +244,10 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
 
       mediaRecorder.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
-          console.log('📡 MediaRecorder data available:', event.data.size, 'bytes');
+          console.log('📡 MediaRecorder data available:', event.data.size, 'bytes for stream:', currentStreamKey);
           sendStreamData(event.data);
+        } else {
+          console.warn('⚠️ MediaRecorder data available but empty or invalid:', event.data);
         }
       };
 

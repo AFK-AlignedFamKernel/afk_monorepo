@@ -13,6 +13,7 @@ export { LivestreamMain } from './LivestreamMain';
 export { HostStudio } from './HostStudio';
 export { ExternalUrlExample } from './ExternalUrlExample';
 export { ExternalUrlTest } from './ExternalUrlTest';
+export { StreamDebugger } from './StreamDebugger';
 
 interface LivestreamProps {
   streamKey: string;
