@@ -498,7 +498,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     }
   };
 
-  // Enhanced video loading with better error handling
+  // Simplified video loading - match HTML test approach
   useEffect(() => {
     if (streamingUrl) {
       console.log('🎥 Setting streaming URL:', streamingUrl);
@@ -506,24 +506,8 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       const urlType = detectUrlType(streamingUrl);
       console.log('🔍 Detected URL type:', urlType);
       
-      // For internal HLS streams, check if stream is ready
-      if (urlType === 'internal-hls') {
-        // Always try to load internal HLS streams, even if status is not_started
-        // The stream might be active but status not updated yet
-        console.log('🎥 Internal HLS stream detected, checking availability...');
-        setLoadError(null); // Clear any previous errors
-        
-        // Check if stream is actually available
-        checkStreamAvailability(streamingUrl).then(isAvailable => {
-          if (isAvailable) {
-            console.log('✅ Stream is available, proceeding with load');
-            setLoadError(null);
-          } else {
-            console.log('⚠️ Stream not available yet, but will attempt to load anyway');
-            setLoadError('Stream is starting up, please wait...');
-          }
-        });
-      }
+      // Clear any previous errors
+      setLoadError(null);
       
       if (videoRef.current) {
         // Add event listeners for better debugging
@@ -549,18 +533,11 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           
           if (Hls.isSupported()) {
             const hls = new Hls({
-              debug: false,
+              debug: true, // Enable debug like the working HTML test
               enableWorker: true,
               lowLatencyMode: true,
-              backBufferLength: 90,
-              // Be more tolerant of video-only streams
-              maxBufferLength: 30,
-              maxMaxBufferLength: 60,
-              liveSyncDurationCount: 3,
-              liveMaxLatencyDurationCount: 5,
-              // Handle missing audio gracefully
-              // audioPreference: 'main',
-              audioTrackSwitching: false
+              backBufferLength: 90
+              // Remove invalid audioTrackSwitching property
             });
             
             hls.loadSource(streamingUrl);
@@ -586,48 +563,21 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             hls.on(Hls.Events.ERROR, function (event, data) {
               console.error('❌ HLS.js error:', data.type, data.details);
               
-              // Handle non-fatal errors
-              if (!data.fatal) {
-                console.warn('⚠️ Non-fatal HLS error:', data.details);
-                return;
-              }
-              
-              // Handle fatal errors with better recovery
-              switch (data.type) {
-                case Hls.ErrorTypes.NETWORK_ERROR:
-                  console.log('🔄 Fatal network error, trying to recover...');
-                  setLoadError('Network error - attempting to reconnect...');
-                  setTimeout(() => {
+              if (data.fatal) {
+                switch (data.type) {
+                  case Hls.ErrorTypes.NETWORK_ERROR:
+                    console.log('🔄 Fatal network error, trying to recover...');
                     hls.startLoad();
-                  }, 1000);
-                  break;
-                case Hls.ErrorTypes.MEDIA_ERROR:
-                  if (data.details === 'DEMUXER_ERROR_DETECTED_HLS') {
-                    console.log('🔄 HLS demuxer error - stream may be video-only, trying to recover...');
-                    setLoadError('Stream format issue - attempting to recover...');
-                    setTimeout(() => {
-                      hls.recoverMediaError();
-                    }, 1000);
-                  } else {
-                    console.log('🔄 Media error, trying to recover...');
-                    setLoadError('Media error - attempting to recover...');
-                    setTimeout(() => {
-                      hls.recoverMediaError();
-                    }, 1000);
-                  }
-                  break;
-                case Hls.ErrorTypes.MUX_ERROR:
-                  console.log('🔄 Mux error, trying to recover...');
-                  setLoadError('Stream format error - attempting to recover...');
-                  setTimeout(() => {
-                    hls.startLoad();
-                  }, 2000);
-                  break;
-                default:
-                  console.error('❌ Fatal error, cannot recover:', data.details);
-                  setLoadError(`Stream error: ${data.details}. Please refresh the page.`);
-                  hls.destroy();
-                  break;
+                    break;
+                  case Hls.ErrorTypes.MEDIA_ERROR:
+                    console.log('🔄 Fatal media error, trying to recover...');
+                    hls.recoverMediaError();
+                    break;
+                  default:
+                    console.error('❌ Fatal error, cannot recover');
+                    hls.destroy();
+                    break;
+                }
               }
             });
             
@@ -790,41 +740,34 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         video.addEventListener('stalled', handleStalled);
         video.addEventListener('progress', handleProgress);
         
-        // Set the source
-        video.src = streamingUrl;
-        console.log('✅ Video source set to:', streamingUrl);
+        // For HLS streams, the source is set by HLS.js
+        if (!isHLS) {
+          // Set the source for non-HLS streams
+          video.src = streamingUrl;
+          console.log('✅ Video source set to:', streamingUrl);
+          video.load();
+        }
         
         // Log the video element state
-        console.log('🎥 Video element state after setting source:', {
+        console.log('🎥 Video element state after setup:', {
           src: video.src,
           readyState: video.readyState,
           networkState: video.networkState,
           error: video.error,
           currentSrc: video.currentSrc,
-          urlType
+          urlType,
+          isHLS
         });
         
-        // Load the video
-        video.load();
-        
-        // For external URLs, try to play immediately
-        // For internal URLs, wait for stream to be ready
-        if (urlType === 'external-hls' || urlType === 'external-other') {
-          console.log('🌐 External URL detected, attempting immediate playback');
+        // Try to play after a short delay to allow HLS to initialize
+        setTimeout(() => {
           video.play().catch(error => {
-            console.warn('🎥 Auto-play failed for external URL:', error);
-            // For external URLs, don't treat autoplay failure as an error
+            console.warn('🎥 Auto-play failed:', error);
             if (error.name === 'NotAllowedError') {
               console.log('ℹ️ Autoplay blocked by browser, user interaction required');
-              setLoadError('Click to play external stream');
             }
           });
-        } else {
-          // Internal stream - try to play but don't worry about autoplay failure
-          video.play().catch(error => {
-            console.warn('🎥 Auto-play failed for internal stream:', error);
-          });
-        }
+        }, 1000);
         
         // Cleanup function
         return () => {
