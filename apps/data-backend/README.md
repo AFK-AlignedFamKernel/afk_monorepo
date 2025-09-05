@@ -35,6 +35,9 @@ Init all db corresponding after setup POSTGREES_DB for both: prisma-db, indexer-
 sudo lsof -t -i:5050
 
 sudo kill -9 [ID_RECEIVED_BEFORE]
+
+sudo kill -9 $(sudo lsof -t -i:5050)
+
 ```
 
 

@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HLS Error Diagnosis Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+        .stream-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .stream-id {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .manifest-url {
+            font-size: 12px;
+            color: #888;
+            word-break: break-all;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        button:hover { background: #45a049; }
+        button:disabled { background: #666; cursor: not-allowed; }
+        .primary { background: #2196F3; }
+        .primary:hover { background: #1976D2; }
+        .danger { background: #f44336; }
+        .danger:hover { background: #d32f2f; }
+        .warning { background: #ff9800; }
+        .warning:hover { background: #f57c00; }
+        
+        .status-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .status-card {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .status-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .status-value {
+            color: #888;
+        }
+        .status-value.success { color: #4CAF50; }
+        .status-value.error { color: #f44336; }
+        .status-value.warning { color: #ff9800; }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        video {
+            width: 100%;
+            height: auto;
+            min-height: 400px;
+            background: #000;
+        }
+        
+        .error-analysis {
+            background: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .error-header {
+            background: #333;
+            padding: 10px 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .error-content {
+            padding: 15px;
+        }
+        .error-item {
+            background: #333;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid #f44336;
+        }
+        .error-item.warning {
+            border-left-color: #ff9800;
+        }
+        .error-item.success {
+            border-left-color: #4CAF50;
+        }
+        .error-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .error-description {
+            font-size: 12px;
+            color: #ccc;
+        }
+        
+        .log-container {
+            background: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .log-header {
+            background: #333;
+            padding: 10px 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .log {
+            height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+        .log-entry.info { color: #2196F3; }
+        .log-entry.success { color: #4CAF50; }
+        .log-entry.error { color: #f44336; }
+        .log-entry.warning { color: #ff9800; }
+        .log-entry.debug { color: #888; }
+        
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #4CAF50;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="stream-info">
+            <div class="stream-id">HLS Error Diagnosis Tool</div>
+            <div class="manifest-url" id="manifestUrl">http://localhost:5050/livestream/d0c914f7d474fd3f3cdbb1b50ef434bd/stream.m3u8</div>
+        </div>
+        <div class="controls">
+            <button onclick="startDiagnosis()" class="primary">🔍 Start Diagnosis</button>
+            <button onclick="testManifest()" class="primary">📋 Test Manifest</button>
+            <button onclick="testSegments()" class="warning">🎬 Test Segments</button>
+            <button onclick="testHLSPlayback()" class="primary">▶️ Test HLS Playback</button>
+            <button onclick="analyzeErrors()" class="warning">🔍 Analyze Errors</button>
+            <button onclick="clearLog()" class="danger">🗑️ Clear Log</button>
+        </div>
+    </div>
+
+    <div class="status-panel">
+        <div class="status-card">
+            <div class="status-title">Stream Status</div>
+            <div class="status-item">
+                <span>Backend Server:</span>
+                <span class="status-value" id="backendStatus">Not checked</span>
+            </div>
+            <div class="status-item">
+                <span>Manifest Status:</span>
+                <span class="status-value" id="manifestStatus">Not checked</span>
+            </div>
+            <div class="status-item">
+                <span>Segments Available:</span>
+                <span class="status-value" id="segmentsStatus">Not checked</span>
+            </div>
+            <div class="status-item">
+                <span>HLS Support:</span>
+                <span class="status-value" id="hlsSupport">Not checked</span>
+            </div>
+        </div>
+        
+        <div class="status-card">
+            <div class="status-title">Error Analysis</div>
+            <div class="status-item">
+                <span>Total Errors:</span>
+                <span class="status-value" id="totalErrors">0</span>
+            </div>
+            <div class="status-item">
+                <span>Critical Errors:</span>
+                <span class="status-value" id="criticalErrors">0</span>
+            </div>
+            <div class="status-item">
+                <span>Network Errors:</span>
+                <span class="status-value" id="networkErrors">0</span>
+            </div>
+            <div class="status-item">
+                <span>Media Errors:</span>
+                <span class="status-value" id="mediaErrors">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="video-container">
+        <video id="video" controls muted playsinline>
+            <source src="" type="application/x-mpegURL">
+            Your browser does not support HLS video playback.
+        </video>
+    </div>
+
+    <div class="error-analysis">
+        <div class="error-header">
+            <span>Error Analysis Results</span>
+            <span id="errorCount">0 errors found</span>
+        </div>
+        <div class="error-content" id="errorContent">
+            <div style="text-align: center; color: #888; padding: 20px;">
+                Click "Start Diagnosis" to begin error analysis
+            </div>
+        </div>
+    </div>
+
+    <div class="log-container">
+        <div class="log-header">
+            <span>Diagnosis Log</span>
+            <span id="logCount">0 entries</span>
+        </div>
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const manifestUrl = document.getElementById('manifestUrl').textContent;
+        const video = document.getElementById('video');
+        
+        let logCount = 0;
+        let allErrors = [];
+        let hls = null;
+        let diagnosisComplete = false;
+
+        function logMessage(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            log.appendChild(logEntry);
+            log.scrollTop = log.scrollHeight;
+            logCount++;
+            document.getElementById('logCount').textContent = `${logCount} entries`;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function updateStatus(elementId, value, type = '') {
+            const element = document.getElementById(elementId);
+            element.textContent = value;
+            element.className = `status-value ${type}`;
+        }
+
+        function addError(title, description, type = 'error', category = 'general') {
+            allErrors.push({ title, description, type, category, timestamp: new Date().toISOString() });
+            updateErrorDisplay();
+        }
+
+        function updateErrorDisplay() {
+            const errorContent = document.getElementById('errorContent');
+            const errorCount = document.getElementById('errorCount');
+            
+            if (allErrors.length === 0) {
+                errorContent.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">No errors found</div>';
+                errorCount.textContent = '0 errors found';
+                return;
+            }
+            
+            errorCount.textContent = `${allErrors.length} errors found`;
+            
+            let html = '';
+            allErrors.forEach((error, index) => {
+                html += `
+                    <div class="error-item ${error.type}">
+                        <div class="error-title">${error.title}</div>
+                        <div class="error-description">${error.description}</div>
+                    </div>
+                `;
+            });
+            errorContent.innerHTML = html;
+            
+            // Update error counts
+            const criticalErrors = allErrors.filter(e => e.type === 'error').length;
+            const networkErrors = allErrors.filter(e => e.category === 'network').length;
+            const mediaErrors = allErrors.filter(e => e.category === 'media').length;
+            
+            updateStatus('totalErrors', allErrors.length);
+            updateStatus('criticalErrors', criticalErrors, criticalErrors > 0 ? 'error' : '');
+            updateStatus('networkErrors', networkErrors, networkErrors > 0 ? 'error' : '');
+            updateStatus('mediaErrors', mediaErrors, mediaErrors > 0 ? 'error' : '');
+        }
+
+        function clearLog() {
+            log.innerHTML = '';
+            logCount = 0;
+            document.getElementById('logCount').textContent = '0 entries';
+            allErrors = [];
+            updateErrorDisplay();
+        }
+
+        async function startDiagnosis() {
+            logMessage('🔍 Starting comprehensive HLS error diagnosis...', 'info');
+            allErrors = [];
+            diagnosisComplete = false;
+            
+            // Test backend server
+            await testBackendServer();
+            
+            // Test manifest
+            await testManifest();
+            
+            // Test segments
+            await testSegments();
+            
+            // Test HLS support
+            await testHLSSupport();
+            
+            // Test HLS playback
+            await testHLSPlayback();
+            
+            // Analyze results
+            await analyzeErrors();
+            
+            diagnosisComplete = true;
+            logMessage('✅ Diagnosis complete', 'success');
+        }
+
+        async function testBackendServer() {
+            logMessage('🌐 Testing backend server...', 'info');
+            
+            try {
+                const response = await fetch('http://localhost:5050/health');
+                if (response.ok) {
+                    updateStatus('backendStatus', 'Online', 'success');
+                    logMessage('✅ Backend server is online', 'success');
+                } else {
+                    updateStatus('backendStatus', 'Error', 'error');
+                    addError('Backend Server Error', `Server returned ${response.status}`, 'error', 'network');
+                    logMessage(`❌ Backend server error: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('backendStatus', 'Offline', 'error');
+                addError('Backend Server Offline', `Cannot connect to backend: ${error.message}`, 'error', 'network');
+                logMessage(`❌ Backend server offline: ${error.message}`, 'error');
+            }
+        }
+
+        async function testManifest() {
+            logMessage('📋 Testing HLS manifest...', 'info');
+            
+            try {
+                const response = await fetch(manifestUrl);
+                if (!response.ok) {
+                    addError('Manifest Not Found', `HTTP ${response.status}: ${response.statusText}`, 'error', 'network');
+                    updateStatus('manifestStatus', 'Not Found', 'error');
+                    logMessage(`❌ Manifest not found: ${response.status}`, 'error');
+                    return;
+                }
+                
+                const manifest = await response.text();
+                logMessage('✅ Manifest loaded successfully', 'success');
+                
+                // Parse manifest
+                const lines = manifest.split('\n');
+                const segments = lines.filter(line => line.endsWith('.ts'));
+                const hasEndList = manifest.includes('#EXT-X-ENDLIST');
+                const targetDuration = manifest.match(/#EXT-X-TARGETDURATION:(\d+)/);
+                const mediaSequence = manifest.match(/#EXT-X-MEDIA-SEQUENCE:(\d+)/);
+                
+                updateStatus('manifestStatus', 'Loaded', 'success');
+                updateStatus('segmentsStatus', `${segments.length} segments`);
+                
+                logMessage(`📊 Manifest analysis: ${segments.length} segments, ${hasEndList ? 'VOD' : 'Live'} stream`, 'info');
+                
+                if (segments.length === 0) {
+                    addError('No Segments in Manifest', 'Manifest contains no video segments', 'error', 'media');
+                    logMessage('⚠️ No segments found in manifest', 'warning');
+                }
+                
+                if (targetDuration) {
+                    logMessage(`⏱️ Target duration: ${targetDuration[1]} seconds`, 'info');
+                }
+                
+                if (mediaSequence) {
+                    logMessage(`🔢 Media sequence: ${mediaSequence[1]}`, 'info');
+                }
+                
+            } catch (error) {
+                addError('Manifest Load Error', `Failed to load manifest: ${error.message}`, 'error', 'network');
+                updateStatus('manifestStatus', 'Error', 'error');
+                logMessage(`❌ Manifest load error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSegments() {
+            logMessage('🎬 Testing HLS segments...', 'info');
+            
+            try {
+                const response = await fetch(manifestUrl);
+                const manifest = await response.text();
+                const lines = manifest.split('\n');
+                const segments = lines.filter(line => line.endsWith('.ts'));
+                
+                if (segments.length === 0) {
+                    addError('No Segments Available', 'No segments found in manifest', 'error', 'media');
+                    updateStatus('segmentsStatus', 'None', 'error');
+                    return;
+                }
+                
+                let accessibleSegments = 0;
+                let totalSize = 0;
+                let failedSegments = 0;
+                
+                // Test first 10 segments
+                const testSegments = segments.slice(0, Math.min(10, segments.length));
+                
+                for (let i = 0; i < testSegments.length; i++) {
+                    const segmentUrl = manifestUrl.replace('stream.m3u8', testSegments[i]);
+                    try {
+                        const segmentResponse = await fetch(segmentUrl, { method: 'HEAD' });
+                        if (segmentResponse.ok) {
+                            accessibleSegments++;
+                            const contentLength = segmentResponse.headers.get('content-length');
+                            if (contentLength) {
+                                totalSize += parseInt(contentLength);
+                            }
+                            logMessage(`✅ Segment ${i + 1}/${testSegments.length}: ${testSegments[i]} accessible`, 'success');
+                        } else {
+                            failedSegments++;
+                            addError(`Segment ${testSegments[i]} Not Accessible`, `HTTP ${segmentResponse.status}`, 'error', 'network');
+                            logMessage(`❌ Segment ${i + 1}/${testSegments.length}: ${testSegments[i]} failed (${segmentResponse.status})`, 'error');
+                        }
+                    } catch (error) {
+                        failedSegments++;
+                        addError(`Segment ${testSegments[i]} Error`, `Network error: ${error.message}`, 'error', 'network');
+                        logMessage(`❌ Segment ${i + 1}/${testSegments.length}: ${testSegments[i]} error: ${error.message}`, 'error');
+                    }
+                }
+                
+                const successRate = (accessibleSegments / testSegments.length) * 100;
+                updateStatus('segmentsStatus', `${accessibleSegments}/${testSegments.length} accessible`, 
+                    successRate > 80 ? 'success' : successRate > 50 ? 'warning' : 'error');
+                
+                logMessage(`📊 Segment test: ${accessibleSegments}/${testSegments.length} accessible (${successRate.toFixed(1)}%)`, 
+                    successRate > 80 ? 'success' : 'warning');
+                
+                if (successRate < 50) {
+                    addError('Low Segment Accessibility', `Only ${successRate.toFixed(1)}% of segments are accessible`, 'error', 'network');
+                }
+                
+            } catch (error) {
+                addError('Segment Test Error', `Failed to test segments: ${error.message}`, 'error', 'network');
+                updateStatus('segmentsStatus', 'Error', 'error');
+                logMessage(`❌ Segment test error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testHLSSupport() {
+            logMessage('🎥 Testing HLS support...', 'info');
+            
+            if (Hls.isSupported()) {
+                updateStatus('hlsSupport', 'HLS.js Supported', 'success');
+                logMessage('✅ HLS.js is supported', 'success');
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                updateStatus('hlsSupport', 'Native HLS', 'success');
+                logMessage('✅ Native HLS support detected', 'success');
+            } else {
+                addError('HLS Not Supported', 'Browser does not support HLS playback', 'error', 'media');
+                updateStatus('hlsSupport', 'Not Supported', 'error');
+                logMessage('❌ HLS is not supported in this browser', 'error');
+            }
+        }
+
+        async function testHLSPlayback() {
+            logMessage('▶️ Testing HLS playback...', 'info');
+            
+            if (!Hls.isSupported() && !video.canPlayType('application/vnd.apple.mpegurl')) {
+                addError('HLS Playback Not Supported', 'Browser cannot play HLS streams', 'error', 'media');
+                return;
+            }
+            
+            try {
+                if (Hls.isSupported()) {
+                    if (hls) {
+                        hls.destroy();
+                    }
+                    
+                    hls = new Hls({
+                        debug: true,
+                        enableWorker: true,
+                        lowLatencyMode: true,
+                        backBufferLength: 90
+                    });
+                    
+                    hls.loadSource(manifestUrl);
+                    hls.attachMedia(video);
+                    
+                    // HLS.js event listeners
+                    hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                        logMessage('📋 HLS manifest parsed successfully', 'success');
+                        logMessage(`📊 Found ${data.levels.length} quality levels`, 'info');
+                    });
+                    
+                    hls.on(Hls.Events.ERROR, function (event, data) {
+                        logMessage(`❌ HLS.js error: ${data.type} - ${data.details}`, 'error');
+                        
+                        if (data.fatal) {
+                            addError(`HLS Fatal Error: ${data.type}`, data.details, 'error', 'media');
+                            
+                            switch (data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    addError('HLS Network Error', 'Fatal network error occurred', 'error', 'network');
+                                    logMessage('🔄 Fatal network error, trying to recover...', 'warning');
+                                    hls.startLoad();
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    addError('HLS Media Error', 'Fatal media error occurred', 'error', 'media');
+                                    logMessage('🔄 Fatal media error, trying to recover...', 'warning');
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    addError('HLS Unknown Error', 'Unknown fatal error occurred', 'error', 'media');
+                                    logMessage('❌ Fatal error, cannot recover', 'error');
+                                    hls.destroy();
+                                    break;
+                            }
+                        } else {
+                            addError(`HLS Non-Fatal Error: ${data.type}`, data.details, 'warning', 'media');
+                        }
+                    });
+                    
+                } else {
+                    video.src = manifestUrl;
+                    video.load();
+                }
+                
+                // Video event listeners
+                video.addEventListener('loadstart', () => {
+                    logMessage('🎬 Video load started', 'info');
+                });
+                
+                video.addEventListener('loadedmetadata', () => {
+                    logMessage('📊 Video metadata loaded', 'success');
+                });
+                
+                video.addEventListener('canplay', () => {
+                    logMessage('▶️ Video can play', 'success');
+                });
+                
+                video.addEventListener('error', (e) => {
+                    const error = video.error;
+                    if (error) {
+                        addError(`Video Error: ${error.code}`, error.message, 'error', 'media');
+                        logMessage(`❌ Video error: ${error.code} - ${error.message}`, 'error');
+                    }
+                });
+                
+                video.addEventListener('waiting', () => {
+                    logMessage('⏳ Video waiting for data', 'warning');
+                });
+                
+                video.addEventListener('stalled', () => {
+                    addError('Video Stalled', 'Video playback stalled', 'warning', 'media');
+                    logMessage('⚠️ Video stalled', 'warning');
+                });
+                
+            } catch (error) {
+                addError('HLS Playback Error', `Failed to initialize HLS playback: ${error.message}`, 'error', 'media');
+                logMessage(`❌ HLS playback error: ${error.message}`, 'error');
+            }
+        }
+
+        async function analyzeErrors() {
+            logMessage('🔍 Analyzing errors...', 'info');
+            
+            if (allErrors.length === 0) {
+                logMessage('✅ No errors found - stream should work correctly', 'success');
+                return;
+            }
+            
+            const criticalErrors = allErrors.filter(e => e.type === 'error');
+            const networkErrors = allErrors.filter(e => e.category === 'network');
+            const mediaErrors = allErrors.filter(e => e.category === 'media');
+            
+            logMessage(`📊 Error analysis: ${allErrors.length} total, ${criticalErrors.length} critical`, 'info');
+            logMessage(`🌐 Network errors: ${networkErrors.length}`, networkErrors.length > 0 ? 'warning' : 'info');
+            logMessage(`🎥 Media errors: ${mediaErrors.length}`, mediaErrors.length > 0 ? 'warning' : 'info');
+            
+            // Provide recommendations
+            if (networkErrors.length > 0) {
+                logMessage('💡 Recommendation: Check network connectivity and server status', 'info');
+            }
+            
+            if (mediaErrors.length > 0) {
+                logMessage('💡 Recommendation: Check video format compatibility and HLS support', 'info');
+            }
+            
+            if (criticalErrors.length > 0) {
+                logMessage('💡 Recommendation: Fix critical errors before attempting playback', 'warning');
+            }
+        }
+
+        // Auto-start diagnosis on page load
+        window.addEventListener('load', () => {
+            logMessage('🚀 HLS Error Diagnosis Tool loaded', 'info');
+            logMessage('💡 Click "Start Diagnosis" to begin comprehensive error analysis', 'info');
+        });
+    </script>
+</body>
+</html>

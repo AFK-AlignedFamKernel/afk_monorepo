@@ -40,6 +40,19 @@ export const setupWebSocket = (io: Server) => {
       socket.emit('stream-error', error);
     });
 
+    // New stream status events
+    streamEvents.on(STREAM_EVENTS.STREAM_INITIALIZED, (data) => {
+      socket.to(data.streamKey).emit('stream-initialized', data);
+    });
+
+    streamEvents.on(STREAM_EVENTS.STREAM_STARTED, (data) => {
+      socket.to(data.streamKey).emit('stream-started', data);
+    });
+
+    streamEvents.on(STREAM_EVENTS.STREAM_READY, (data) => {
+      socket.to(data.streamKey).emit('stream-ready', data);
+    });
+
     //Handle Screen and camera stream
     socket.on('start-stream', (data) => handleStartStream(socket, data));
 

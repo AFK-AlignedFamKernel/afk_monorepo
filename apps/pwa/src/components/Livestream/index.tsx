@@ -1,8 +1,19 @@
+"use client";
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEditEvent, useGetSingleEvent } from 'afk_nostr_sdk';
 import { Socket } from 'socket.io-client';
-import styles from './styles.module.css';
+import styles from './styles.module.scss';
+
+// Export all components
+export { StudioModule } from './StudioModule';
+export { LiveChat } from './LiveChat';
+export { StreamVideoPlayer } from './StreamVideoPlayer';
+export { LivestreamMain } from './LivestreamMain';
+export { HostStudio } from './HostStudio';
+export { ExternalUrlExample } from './ExternalUrlExample';
+export { ExternalUrlTest } from './ExternalUrlTest';
+export { StreamDebugger } from './StreamDebugger';
 
 interface LivestreamProps {
   streamKey: string;

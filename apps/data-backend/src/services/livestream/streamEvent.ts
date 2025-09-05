@@ -11,4 +11,7 @@ export const STREAM_EVENTS = {
   STREAM_END: 'stream-end',
   VIEWER_COUNT: 'viewer-count',
   STREAM_ERROR: 'stream-error',
+  STREAM_INITIALIZED: 'stream-initialized',
+  STREAM_STARTED: 'stream-started',
+  STREAM_READY: 'stream-ready',
 } as const;

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NIP53 Event Data Flow Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .test-section {
+            background: #2a2a2a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .log {
+            background: #333;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .error {
+            color: #f44336;
+        }
+        .success {
+            color: #4CAF50;
+        }
+        .warning {
+            color: #ff9800;
+        }
+        .info {
+            color: #2196F3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 NIP53 Event Data Flow Test</h1>
+        
+        <div class="test-section">
+            <h2>Test Configuration</h2>
+            <div>
+                <label>Stream ID (Event ID):</label>
+                <input type="text" id="streamId" value="0b928aa418b869f48761d10486abdb5b" style="width: 300px; padding: 5px; margin: 5px;">
+            </div>
+            <div>
+                <label>Backend URL:</label>
+                <input type="text" id="backendUrl" value="http://localhost:5050" style="width: 300px; padding: 5px; margin: 5px;">
+            </div>
+            <button onclick="testEventData()">🔍 Test Event Data</button>
+            <button onclick="testStreamingUrl()">🎥 Test Streaming URL</button>
+            <button onclick="testStreamVideoPlayer()">📺 Test StreamVideoPlayer</button>
+            <button onclick="clearLog()">🗑️ Clear Log</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Event Data Analysis</h2>
+            <div id="eventAnalysis" class="log">Click "Test Event Data" to analyze...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>Streaming URL Analysis</h2>
+            <div id="streamingUrlAnalysis" class="log">Click "Test Streaming URL" to analyze...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>StreamVideoPlayer Test</h2>
+            <div id="playerTest" class="log">Click "Test StreamVideoPlayer" to analyze...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Log</h2>
+            <div id="log" class="log">Ready to test NIP53 event data flow...</div>
+        </div>
+    </div>
+
+    <script>
+        function logMessage(message, type = 'info', targetId = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById(targetId);
+            const className = type === 'error' ? 'error' : type === 'warning' ? 'warning' : type === 'success' ? 'success' : 'info';
+            logElement.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`[${timestamp}] ${message}`);
+        }
+
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            document.getElementById('eventAnalysis').innerHTML = 'Click "Test Event Data" to analyze...';
+            document.getElementById('streamingUrlAnalysis').innerHTML = 'Click "Test Streaming URL" to analyze...';
+            document.getElementById('playerTest').innerHTML = 'Click "Test StreamVideoPlayer" to analyze...';
+        }
+
+        async function testEventData() {
+            const streamId = document.getElementById('streamId').value;
+            const backendUrl = document.getElementById('backendUrl').value;
+            
+            logMessage('🔍 Testing event data retrieval...', 'info', 'eventAnalysis');
+            
+            try {
+                // Test 1: Check if event exists in backend
+                logMessage(`📡 Checking event in backend: ${streamId}`, 'info', 'eventAnalysis');
+                
+                const eventResponse = await fetch(`${backendUrl}/api/events/${streamId}`);
+                if (eventResponse.ok) {
+                    const eventData = await eventResponse.json();
+                    logMessage('✅ Event found in backend', 'success', 'eventAnalysis');
+                    logMessage(`📄 Event data: ${JSON.stringify(eventData, null, 2)}`, 'info', 'eventAnalysis');
+                    
+                    // Analyze NIP53 tags
+                    if (eventData.tags) {
+                        logMessage('🏷️ Analyzing NIP53 tags...', 'info', 'eventAnalysis');
+                        const streamingTag = eventData.tags.find(tag => tag[0] === 'streaming');
+                        if (streamingTag) {
+                            logMessage(`✅ Found streaming tag: ${streamingTag[1]}`, 'success', 'eventAnalysis');
+                        } else {
+                            logMessage('⚠️ No streaming tag found', 'warning', 'eventAnalysis');
+                        }
+                        
+                        const statusTag = eventData.tags.find(tag => tag[0] === 'status');
+                        if (statusTag) {
+                            logMessage(`✅ Found status tag: ${statusTag[1]}`, 'success', 'eventAnalysis');
+                        } else {
+                            logMessage('⚠️ No status tag found', 'warning', 'eventAnalysis');
+                        }
+                    } else {
+                        logMessage('⚠️ No tags found in event', 'warning', 'eventAnalysis');
+                    }
+                    
+                    // Check content
+                    if (eventData.content) {
+                        logMessage(`📝 Event content: ${eventData.content}`, 'info', 'eventAnalysis');
+                        try {
+                            const contentData = JSON.parse(eventData.content);
+                            logMessage(`📝 Parsed content: ${JSON.stringify(contentData, null, 2)}`, 'info', 'eventAnalysis');
+                        } catch (e) {
+                            logMessage('⚠️ Content is not JSON', 'warning', 'eventAnalysis');
+                        }
+                    }
+                    
+                } else {
+                    logMessage(`❌ Event not found in backend: ${eventResponse.status}`, 'error', 'eventAnalysis');
+                }
+                
+                // Test 2: Check if stream exists
+                logMessage(`🎬 Checking stream existence: ${streamId}`, 'info', 'eventAnalysis');
+                const streamResponse = await fetch(`${backendUrl}/livestream/${streamId}/stream.m3u8`);
+                if (streamResponse.ok) {
+                    logMessage('✅ Stream manifest exists', 'success', 'eventAnalysis');
+                } else {
+                    logMessage(`❌ Stream manifest not found: ${streamResponse.status}`, 'error', 'eventAnalysis');
+                }
+                
+            } catch (error) {
+                logMessage(`❌ Error testing event data: ${error.message}`, 'error', 'eventAnalysis');
+            }
+        }
+
+        async function testStreamingUrl() {
+            const streamId = document.getElementById('streamId').value;
+            const backendUrl = document.getElementById('backendUrl').value;
+            
+            logMessage('🎥 Testing streaming URL computation...', 'info', 'streamingUrlAnalysis');
+            
+            try {
+                // Simulate the LivestreamMain logic
+                const eventResponse = await fetch(`${backendUrl}/api/events/${streamId}`);
+                if (!eventResponse.ok) {
+                    logMessage(`❌ Event not found: ${eventResponse.status}`, 'error', 'streamingUrlAnalysis');
+                    return;
+                }
+                
+                const event = await eventResponse.json();
+                logMessage('✅ Event retrieved successfully', 'success', 'streamingUrlAnalysis');
+                
+                // Extract streaming URL using the same logic as LivestreamMain
+                const extractedUrl = extractStreamingUrlFromEvent(event, streamId);
+                logMessage(`🔍 Extracted streaming URL: ${extractedUrl || 'null'}`, 'info', 'streamingUrlAnalysis');
+                
+                if (extractedUrl) {
+                    // Test URL accessibility
+                    logMessage(`🌐 Testing URL accessibility: ${extractedUrl}`, 'info', 'streamingUrlAnalysis');
+                    const urlResponse = await fetch(extractedUrl, { method: 'HEAD' });
+                    if (urlResponse.ok) {
+                        logMessage('✅ Streaming URL is accessible', 'success', 'streamingUrlAnalysis');
+                    } else {
+                        logMessage(`❌ Streaming URL not accessible: ${urlResponse.status}`, 'error', 'streamingUrlAnalysis');
+                    }
+                } else {
+                    logMessage('⚠️ No streaming URL found in event', 'warning', 'streamingUrlAnalysis');
+                    
+                    // Fallback to internal stream
+                    const fallbackUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
+                    logMessage(`🔄 Testing fallback URL: ${fallbackUrl}`, 'info', 'streamingUrlAnalysis');
+                    const fallbackResponse = await fetch(fallbackUrl, { method: 'HEAD' });
+                    if (fallbackResponse.ok) {
+                        logMessage('✅ Fallback URL is accessible', 'success', 'streamingUrlAnalysis');
+                    } else {
+                        logMessage(`❌ Fallback URL not accessible: ${fallbackResponse.status}`, 'error', 'streamingUrlAnalysis');
+                    }
+                }
+                
+            } catch (error) {
+                logMessage(`❌ Error testing streaming URL: ${error.message}`, 'error', 'streamingUrlAnalysis');
+            }
+        }
+
+        async function testStreamVideoPlayer() {
+            const streamId = document.getElementById('streamId').value;
+            const backendUrl = document.getElementById('backendUrl').value;
+            
+            logMessage('📺 Testing StreamVideoPlayer component logic...', 'info', 'playerTest');
+            
+            try {
+                // Simulate the complete flow
+                const eventResponse = await fetch(`${backendUrl}/api/events/${streamId}`);
+                if (!eventResponse.ok) {
+                    logMessage(`❌ Event not found: ${eventResponse.status}`, 'error', 'playerTest');
+                    return;
+                }
+                
+                const event = await eventResponse.json();
+                const streamingUrl = extractStreamingUrlFromEvent(event, streamId);
+                
+                logMessage(`🎯 StreamVideoPlayer props:`, 'info', 'playerTest');
+                logMessage(`  - streamingUrl: ${streamingUrl || 'undefined'}`, 'info', 'playerTest');
+                logMessage(`  - streamId: ${streamId}`, 'info', 'playerTest');
+                logMessage(`  - isStreamer: false`, 'info', 'playerTest');
+                
+                if (streamingUrl) {
+                    const urlType = detectUrlType(streamingUrl, backendUrl);
+                    logMessage(`🔍 URL type detected: ${urlType}`, 'info', 'playerTest');
+                    
+                    if (urlType === 'external-hls' || urlType === 'external-other') {
+                        logMessage('🌐 External URL - should skip WebSocket join', 'info', 'playerTest');
+                    } else {
+                        logMessage('🏠 Internal URL - should join WebSocket', 'info', 'playerTest');
+                    }
+                    
+                    // Test video loading
+                    logMessage('🎥 Testing video element loading...', 'info', 'playerTest');
+                    const video = document.createElement('video');
+                    video.src = streamingUrl;
+                    video.load();
+                    
+                    video.addEventListener('loadstart', () => {
+                        logMessage('✅ Video load started', 'success', 'playerTest');
+                    });
+                    
+                    video.addEventListener('loadedmetadata', () => {
+                        logMessage('✅ Video metadata loaded', 'success', 'playerTest');
+                    });
+                    
+                    video.addEventListener('error', (e) => {
+                        logMessage(`❌ Video error: ${e.target.error?.message || 'Unknown error'}`, 'error', 'playerTest');
+                    });
+                    
+                } else {
+                    logMessage('⚠️ No streaming URL - StreamVideoPlayer will show error', 'warning', 'playerTest');
+                }
+                
+            } catch (error) {
+                logMessage(`❌ Error testing StreamVideoPlayer: ${error.message}`, 'error', 'playerTest');
+            }
+        }
+
+        // Helper functions (copied from LivestreamMain.tsx)
+        function extractStreamingUrlFromEvent(event, streamId) {
+            if (!event) return null;
+            
+            console.log('🔍 Extracting streaming URL from event:', {
+                eventKeys: Object.keys(event || {}),
+                hasTags: !!event?.tags,
+                hasContent: !!event?.content,
+                streamingUrlField: event?.streamingUrl,
+                streamId
+            });
+            
+            // First check the streamingUrl field (if it exists)
+            if (event.streamingUrl) {
+                console.log('✅ Found streaming URL in streamingUrl field:', event.streamingUrl);
+                return event.streamingUrl;
+            }
+            
+            // Check NIP-53 streaming tag
+            if (event.tags) {
+                console.log('🏷️ Checking event tags:', event.tags);
+                
+                const streamingTag = event.tags.find(tag => tag[0] === 'streaming');
+                if (streamingTag) {
+                    console.log('✅ Found NIP-53 streaming tag:', streamingTag);
+                    return streamingTag[1];
+                }
+                
+                // Fallback to other common streaming tags
+                const fallbackTags = ['streaming_url', 'stream_url', 'url', 'rtmp', 'hls'];
+                for (const tagName of fallbackTags) {
+                    const tag = event.tags.find(tag => tag[0] === tagName);
+                    if (tag) {
+                        console.log(`🔄 Found streaming URL in fallback tag ${tagName}:`, tag);
+                        return tag[1];
+                    }
+                }
+                
+                console.log('⚠️ No streaming tags found in event');
+            }
+            
+            // Check content as last resort
+            if (event.content) {
+                try {
+                    const contentData = JSON.parse(event.content);
+                    if (contentData.streamingUrl) {
+                        console.log('✅ Found streaming URL in content:', contentData.streamingUrl);
+                        return contentData.streamingUrl;
+                    }
+                } catch (e) {
+                    // Content is not JSON, ignore
+                }
+            }
+            
+            return null;
+        }
+
+        function detectUrlType(url, backendUrl) {
+            // Check if it's our internal HLS stream
+            if (url.includes(`${backendUrl}/livestream/`) && url.endsWith('.m3u8')) {
+                return 'internal-hls';
+            }
+            
+            // Check if it's an external HLS stream
+            if (url.endsWith('.m3u8') || url.includes('m3u8')) {
+                return 'external-hls';
+            }
+            
+            // Check for other external streaming platforms
+            if (url.includes('youtube.com') || url.includes('youtu.be') || 
+                url.includes('twitch.tv') || url.includes('vimeo.com') ||
+                url.includes('facebook.com') || url.includes('instagram.com') ||
+                url.includes('tiktok.com') || url.includes('dailymotion.com')) {
+                return 'external-other';
+            }
+            
+            // Default to external-other for unknown URLs
+            return 'external-other';
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            logMessage('🚀 NIP53 Event Data Flow Test loaded', 'info');
+            logMessage('💡 Click the test buttons to analyze the data flow', 'info');
+        });
+    </script>
+</body>
+</html>

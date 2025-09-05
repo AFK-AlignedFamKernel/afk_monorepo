@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple HLS Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        video {
+            width: 100%;
+            max-width: 600px;
+            background: #000;
+            border-radius: 8px;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #45a049; }
+        button:disabled { background: #666; cursor: not-allowed; }
+        .log {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .status {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #5a2d2d;
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+        .error.show { display: block; }
+    </style>
+</head>
+<body>
+    <h1>🎥 Simple HLS Stream Test</h1>
+    
+    <div class="status">
+        <strong>Stream ID:</strong> d0c914f7d474fd3f3cdbb1b50ef434bd<br>
+        <strong>Manifest URL:</strong> http://localhost:5050/livestream/d0c914f7d474fd3f3cdbb1b50ef434bd/stream.m3u8
+    </div>
+
+    <video id="video" controls muted playsinline>
+        <source src="http://localhost:5050/livestream/d0c914f7d474fd3f3cdbb1b50ef434bd/stream.m3u8" type="application/x-mpegURL">
+        Your browser does not support HLS video playback.
+    </video>
+
+    <div class="controls">
+        <button onclick="loadVideo()">🔄 Load Video</button>
+        <button onclick="playVideo()" id="playBtn">▶️ Play</button>
+        <button onclick="pauseVideo()" id="pauseBtn" disabled>⏸️ Pause</button>
+        <button onclick="checkManifest()">📋 Check Manifest</button>
+        <button onclick="getAllSegments()">📦 Get All Segments</button>
+        <button onclick="getLiveData()">🔴 Get Live Data</button>
+        <button onclick="getOlderSegments()">⏮️ Get Older Segments</button>
+        <button onclick="clearLog()">🗑️ Clear Log</button>
+    </div>
+
+    <div class="error" id="errorMessage"></div>
+
+    <div class="log" id="log"></div>
+
+    <script>
+        const video = document.getElementById('video');
+        const log = document.getElementById('log');
+        const manifestUrl = 'http://localhost:5050/livestream/d0c914f7d474fd3f3cdbb1b50ef434bd/stream.m3u8';
+        let hls = null;
+        let allSegments = [];
+        let currentSegmentIndex = 0;
+
+        function logMessage(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            log.innerHTML += logEntry + '<br>';
+            log.scrollTop = log.scrollHeight;
+            console.log(logEntry);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            setTimeout(() => errorDiv.classList.remove('show'), 5000);
+        }
+
+        function clearLog() {
+            log.innerHTML = '';
+        }
+
+        function loadVideo() {
+            logMessage('🔄 Loading HLS video...');
+            
+            if (Hls.isSupported()) {
+                logMessage('✅ HLS.js is supported, using HLS.js player');
+                
+                if (hls) {
+                    hls.destroy();
+                }
+                
+                hls = new Hls({
+                    debug: true,
+                    enableWorker: true,
+                    lowLatencyMode: true
+                });
+                
+                hls.loadSource(manifestUrl);
+                hls.attachMedia(video);
+                
+                hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+                    logMessage('📋 HLS manifest parsed successfully');
+                    logMessage(`📊 Found ${data.levels.length} quality levels`);
+                });
+                
+                hls.on(Hls.Events.ERROR, function (event, data) {
+                    logMessage(`❌ HLS.js error: ${data.type} - ${data.details}`, 'error');
+                    if (data.fatal) {
+                        switch (data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                logMessage('🔄 Fatal network error, trying to recover...', 'warning');
+                                hls.startLoad();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                logMessage('🔄 Fatal media error, trying to recover...', 'warning');
+                                hls.recoverMediaError();
+                                break;
+                            default:
+                                logMessage('❌ Fatal error, cannot recover', 'error');
+                                hls.destroy();
+                                break;
+                        }
+                    }
+                });
+                
+            } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                logMessage('✅ Native HLS support detected');
+                video.src = manifestUrl;
+                video.load();
+            } else {
+                logMessage('❌ HLS is not supported in this browser', 'error');
+                showError('HLS is not supported in this browser. Please use a modern browser or install HLS.js.');
+            }
+        }
+
+        function playVideo() {
+            logMessage('▶️ Attempting to play video...');
+            video.play().then(() => {
+                logMessage('✅ Video started playing successfully');
+                document.getElementById('playBtn').disabled = true;
+                document.getElementById('pauseBtn').disabled = false;
+            }).catch(error => {
+                logMessage(`❌ Failed to play video: ${error.message}`, 'error');
+                showError(`Play failed: ${error.message}`);
+            });
+        }
+
+        function pauseVideo() {
+            video.pause();
+            logMessage('⏸️ Video paused');
+            document.getElementById('playBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+        }
+
+        async function checkManifest() {
+            logMessage('📋 Checking HLS manifest...');
+            try {
+                const response = await fetch(manifestUrl);
+                if (response.ok) {
+                    const manifest = await response.text();
+                    logMessage('✅ Manifest loaded successfully');
+                    logMessage(`📄 Manifest content:\n${manifest}`);
+                } else {
+                    logMessage(`❌ Failed to load manifest: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                logMessage(`❌ Error checking manifest: ${error.message}`, 'error');
+            }
+        }
+
+        async function getAllSegments() {
+            logMessage('📦 Fetching all video segments...');
+            
+            try {
+                const response = await fetch(manifestUrl);
+                const manifest = await response.text();
+                const lines = manifest.split('\n');
+                const segments = lines.filter(line => line.endsWith('.ts'));
+                
+                allSegments = segments;
+                currentSegmentIndex = 0;
+                
+                logMessage(`📋 Found ${segments.length} segments in manifest`);
+                
+                if (segments.length === 0) {
+                    logMessage('⚠️ No segments found - stream may not be active', 'error');
+                    return;
+                }
+                
+                let totalSize = 0;
+                let successfulSegments = 0;
+                let failedSegments = 0;
+                
+                logMessage(`🔄 Downloading ${segments.length} segments...`);
+                
+                for (let i = 0; i < segments.length; i++) {
+                    const segmentUrl = manifestUrl.replace('stream.m3u8', segments[i]);
+                    try {
+                        const segmentResponse = await fetch(segmentUrl);
+                        if (segmentResponse.ok) {
+                            const blob = await segmentResponse.blob();
+                            const size = blob.size;
+                            totalSize += size;
+                            successfulSegments++;
+                            
+                            logMessage(`✅ Segment ${i + 1}/${segments.length}: ${segments[i]} (${(size / 1024).toFixed(1)} KB)`);
+                            
+                            // Store segment data for potential playback
+                            allSegments[i] = {
+                                name: segments[i],
+                                url: segmentUrl,
+                                size: size,
+                                blob: blob,
+                                data: await blob.arrayBuffer()
+                            };
+                        } else {
+                            logMessage(`❌ Segment ${i + 1}/${segments.length}: ${segments[i]} failed (${segmentResponse.status})`, 'error');
+                            failedSegments++;
+                        }
+                    } catch (error) {
+                        logMessage(`❌ Segment ${i + 1}/${segments.length}: ${segments[i]} error: ${error.message}`, 'error');
+                        failedSegments++;
+                    }
+                }
+                
+                logMessage(`📊 Download complete: ${successfulSegments} successful, ${failedSegments} failed`, 
+                    successfulSegments > 0 ? 'success' : 'error');
+                logMessage(`📦 Total size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+                
+            } catch (error) {
+                logMessage(`❌ Failed to get all segments: ${error.message}`, 'error');
+            }
+        }
+
+        async function getLiveData() {
+            logMessage('🔴 Getting current live data...');
+            
+            try {
+                // Get current manifest
+                const response = await fetch(manifestUrl);
+                const manifest = await response.text();
+                const lines = manifest.split('\n');
+                const segments = lines.filter(line => line.endsWith('.ts'));
+                
+                if (segments.length === 0) {
+                    logMessage('⚠️ No live data available - stream not active', 'error');
+                    return;
+                }
+                
+                // Get the latest segment (last one in the list)
+                const latestSegment = segments[segments.length - 1];
+                const latestSegmentUrl = manifestUrl.replace('stream.m3u8', latestSegment);
+                
+                logMessage(`🎬 Latest segment: ${latestSegment}`);
+                
+                try {
+                    const segmentResponse = await fetch(latestSegmentUrl);
+                    if (segmentResponse.ok) {
+                        const blob = await segmentResponse.blob();
+                        const size = blob.size;
+                        
+                        logMessage(`✅ Latest segment downloaded: ${(size / 1024).toFixed(1)} KB`);
+                        logMessage(`📊 Live data size: ${(size / 1024 / 1024).toFixed(2)} MB`);
+                        
+                        // Store latest segment data
+                        allSegments[allSegments.length] = {
+                            name: latestSegment,
+                            url: latestSegmentUrl,
+                            size: size,
+                            blob: blob,
+                            data: await blob.arrayBuffer(),
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        currentSegmentIndex = allSegments.length - 1;
+                    } else {
+                        logMessage(`❌ Failed to get latest segment: ${segmentResponse.status}`, 'error');
+                    }
+                } catch (error) {
+                    logMessage(`❌ Error getting latest segment: ${error.message}`, 'error');
+                }
+                
+            } catch (error) {
+                logMessage(`❌ Failed to get live data: ${error.message}`, 'error');
+            }
+        }
+
+        async function getOlderSegments() {
+            logMessage('⏮️ Getting older segments...');
+            
+            if (allSegments.length === 0) {
+                logMessage('⚠️ No segments loaded yet. Use "Get All Segments" first.', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(manifestUrl);
+                const manifest = await response.text();
+                const lines = manifest.split('\n');
+                const segments = lines.filter(line => line.endsWith('.ts'));
+                
+                if (segments.length === 0) {
+                    logMessage('⚠️ No segments in manifest', 'error');
+                    return;
+                }
+                
+                // Get segments before the current index
+                const olderSegments = segments.slice(0, currentSegmentIndex);
+                
+                if (olderSegments.length === 0) {
+                    logMessage('ℹ️ No older segments available');
+                    return;
+                }
+                
+                logMessage(`🔄 Getting ${olderSegments.length} older segments...`);
+                
+                let totalSize = 0;
+                let successfulSegments = 0;
+                
+                for (let i = 0; i < olderSegments.length; i++) {
+                    const segmentUrl = manifestUrl.replace('stream.m3u8', olderSegments[i]);
+                    try {
+                        const segmentResponse = await fetch(segmentUrl);
+                        if (segmentResponse.ok) {
+                            const blob = await segmentResponse.blob();
+                            const size = blob.size;
+                            totalSize += size;
+                            successfulSegments++;
+                            
+                            logMessage(`✅ Older segment ${i + 1}/${olderSegments.length}: ${olderSegments[i]} (${(size / 1024).toFixed(1)} KB)`);
+                            
+                            // Store older segment data
+                            allSegments[i] = {
+                                name: olderSegments[i],
+                                url: segmentUrl,
+                                size: size,
+                                blob: blob,
+                                data: await blob.arrayBuffer(),
+                                timestamp: new Date().toISOString()
+                            };
+                        } else {
+                            logMessage(`❌ Older segment ${i + 1}/${olderSegments.length}: ${olderSegments[i]} failed (${segmentResponse.status})`, 'error');
+                        }
+                    } catch (error) {
+                        logMessage(`❌ Older segment ${i + 1}/${olderSegments.length}: ${olderSegments[i]} error: ${error.message}`, 'error');
+                    }
+                }
+                
+                logMessage(`📊 Older segments download complete: ${successfulSegments} successful`, 
+                    successfulSegments > 0 ? 'success' : 'error');
+                logMessage(`📦 Total older segments size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+                
+            } catch (error) {
+                logMessage(`❌ Failed to get older segments: ${error.message}`, 'error');
+            }
+        }
+
+        // Video event listeners
+        video.addEventListener('loadstart', () => {
+            logMessage('🎬 Video load started');
+        });
+
+        video.addEventListener('loadedmetadata', () => {
+            logMessage('📊 Video metadata loaded');
+            logMessage(`📏 Video dimensions: ${video.videoWidth}x${video.videoHeight}`);
+            logMessage(`⏱️ Video duration: ${video.duration} seconds`);
+        });
+
+        video.addEventListener('loadeddata', () => {
+            logMessage('📦 Video data loaded');
+        });
+
+        video.addEventListener('canplay', () => {
+            logMessage('▶️ Video can play');
+        });
+
+        video.addEventListener('canplaythrough', () => {
+            logMessage('🎯 Video can play through');
+        });
+
+        video.addEventListener('play', () => {
+            logMessage('▶️ Video started playing');
+        });
+
+        video.addEventListener('pause', () => {
+            logMessage('⏸️ Video paused');
+        });
+
+        video.addEventListener('ended', () => {
+            logMessage('🏁 Video ended');
+        });
+
+        video.addEventListener('error', (e) => {
+            const error = video.error;
+            if (error) {
+                const errorMessage = `Video error: ${error.code} - ${error.message}`;
+                logMessage(`❌ ${errorMessage}`, 'error');
+                showError(errorMessage);
+            }
+        });
+
+        video.addEventListener('waiting', () => {
+            logMessage('⏳ Video waiting for data');
+        });
+
+        video.addEventListener('stalled', () => {
+            logMessage('⚠️ Video stalled');
+        });
+
+        video.addEventListener('progress', () => {
+            if (video.buffered.length > 0) {
+                const buffered = video.buffered.end(video.buffered.length - 1);
+                const duration = video.duration;
+                const percent = duration > 0 ? (buffered / duration * 100).toFixed(1) : 0;
+                logMessage(`📊 Buffered: ${percent}% (${buffered.toFixed(1)}s / ${duration.toFixed(1)}s)`);
+            }
+        });
+
+        // Auto-load on page load
+        window.addEventListener('load', () => {
+            logMessage('🚀 Page loaded, starting HLS test...');
+            loadVideo();
+        });
+    </script>
+</body>
+</html>
