@@ -1,5 +1,5 @@
 import { signAsync } from '@noble/secp256k1';
-import { NDKEvent, NDKFilter } from '@nostr-dev-kit/ndk';
+import { NDKEvent, NDKFilter, NDKKind } from '@nostr-dev-kit/ndk';
 import { useInfiniteQuery, UseInfiniteQueryResult, useMutation, useQuery, UseMutationResult, InfiniteData } from '@tanstack/react-query';
 
 import { useNostrContext } from '../../context';
@@ -375,7 +375,7 @@ export const useGetLiveEvents = (options?: UseLiveEventsOptions): UseInfiniteQue
       const baseFilter: NDKFilter = {
         kinds: [LIVE_EVENT_KIND as any],
         since: sinceTimestamp,
-        until: pageParam || Math.round(Date.now() / 1000),
+        // until: pageParam || Math.round(Date.now() / 1000),
         limit: options?.limit || 20,
       };
 

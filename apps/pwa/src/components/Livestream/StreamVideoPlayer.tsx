@@ -45,6 +45,15 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
 
   // Handle different stream statuses
   const renderStreamStatus = () => {
+    // For external URLs, don't show status overlays as they should work immediately
+    if (streamingUrl) {
+      const urlType = detectUrlType(streamingUrl);
+      if (urlType === 'external-hls' || urlType === 'external-other') {
+        // External URLs should work immediately, no status overlay needed
+        return null;
+      }
+    }
+
     if (streamStatus === 'loading') {
       return (
         <div className={styles.statusOverlay}>
@@ -407,26 +416,65 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     };
   }, [streamId, isStreamer, onStreamStart]);
 
+  // Helper function to detect URL type
+  const detectUrlType = (url: string): 'internal-hls' | 'external-hls' | 'external-other' => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
+    
+    // Check if it's our internal HLS stream
+    if (url.includes(`${backendUrl}/livestream/`) && url.endsWith('.m3u8')) {
+      return 'internal-hls';
+    }
+    
+    // Check if it's an external HLS stream
+    if (url.endsWith('.m3u8') || url.includes('m3u8')) {
+      return 'external-hls';
+    }
+    
+    // Check for other external streaming platforms
+    if (url.includes('youtube.com') || url.includes('youtu.be') || 
+        url.includes('twitch.tv') || url.includes('vimeo.com') ||
+        url.includes('facebook.com') || url.includes('instagram.com') ||
+        url.includes('tiktok.com') || url.includes('dailymotion.com')) {
+      return 'external-other';
+    }
+    
+    // Default to external-other for unknown URLs
+    return 'external-other';
+  };
+
   // Enhanced video loading with better error handling
   useEffect(() => {
     if (streamingUrl) {
       console.log('🎥 Setting streaming URL:', streamingUrl);
       
-      // Don't set isLive immediately - wait for actual content
-      if (streamStatus === 'not_started' || streamStatus === 'loading') {
-        console.log('⏳ Stream not ready yet, waiting for broadcaster...');
-        setLoadError('Stream is waiting for broadcaster to connect...');
-        return;
+      const urlType = detectUrlType(streamingUrl);
+      console.log('🔍 Detected URL type:', urlType);
+      
+      // For internal HLS streams, check if stream is ready
+      if (urlType === 'internal-hls') {
+        if (streamStatus === 'not_started' || streamStatus === 'loading') {
+          console.log('⏳ Internal stream not ready yet, waiting for broadcaster...');
+          setLoadError('Stream is waiting for broadcaster to connect...');
+          return;
+        }
       }
       
       if (videoRef.current) {
         // Add event listeners for better debugging
         const video = videoRef.current;
         
-        // Set proper HLS attributes for better compatibility
-        video.setAttribute('data-stream-type', 'hls');
-        video.setAttribute('data-stream-id', streamId || 'unknown');
-        video.setAttribute('crossorigin', 'anonymous');
+        // Set attributes based on URL type
+        if (urlType === 'internal-hls') {
+          video.setAttribute('data-stream-type', 'hls');
+          video.setAttribute('data-stream-id', streamId || 'unknown');
+          video.setAttribute('crossorigin', 'anonymous');
+        } else if (urlType === 'external-hls') {
+          video.setAttribute('data-stream-type', 'external-hls');
+          video.setAttribute('crossorigin', 'anonymous');
+        } else {
+          video.setAttribute('data-stream-type', 'external-other');
+          // For external platforms, we might need different handling
+        }
         
         const handleLoadStart = () => {
           console.log('🎥 Video load started');
@@ -442,7 +490,15 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           console.log('🎥 Video can play');
           setIsLoading(false);
           setLoadError(null);
-          setIsLive(true); // Only set live when we can actually play
+          
+          // For external URLs, set live immediately as they're already broadcasting
+          if (urlType === 'external-hls' || urlType === 'external-other') {
+            console.log('🌐 External stream detected, setting live immediately');
+            setIsLive(true);
+          } else {
+            // For internal streams, only set live when we can actually play
+            setIsLive(true);
+          }
         };
         
         const handleError = (e: Event) => {
@@ -456,18 +512,30 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             };
             console.error('Video error details:', errorDetails);
             
-            // Set user-friendly error message
+            // Set user-friendly error message based on URL type
             let errorMessage = 'Failed to load stream';
             switch (target.error.code) {
               case MediaError.MEDIA_ERR_NETWORK:
-                errorMessage = 'Network error - stream may not be started';
+                if (urlType === 'external-other') {
+                  errorMessage = 'Network error - external stream may be unavailable';
+                } else {
+                  errorMessage = 'Network error - stream may not be started';
+                }
                 break;
               case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-                errorMessage = 'Stream not found or not started';
+                if (urlType === 'external-other') {
+                  errorMessage = 'External stream format not supported by browser';
+                } else {
+                  errorMessage = 'Stream not found or not started';
+                }
                 break;
               case MediaError.MEDIA_ERR_DECODE:
                 if (target.error.message.includes('DEMUXER_ERROR_DETECTED_HLS')) {
-                  errorMessage = 'HLS manifest error - stream is waiting for broadcaster';
+                  if (urlType === 'external-hls') {
+                    errorMessage = 'External HLS stream format error';
+                  } else {
+                    errorMessage = 'HLS manifest error - stream is waiting for broadcaster';
+                  }
                 } else {
                   errorMessage = 'Video decode error - stream format issue';
                 }
@@ -494,16 +562,31 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           readyState: video.readyState,
           networkState: video.networkState,
           error: video.error,
-          currentSrc: video.currentSrc
+          currentSrc: video.currentSrc,
+          urlType
         });
         
         // Load the video
         video.load();
         
-        // Try to play
-        video.play().catch(error => {
-          console.warn('🎥 Auto-play failed:', error);
-        });
+        // For external URLs, try to play immediately
+        // For internal URLs, wait for stream to be ready
+        if (urlType === 'external-hls' || urlType === 'external-other') {
+          console.log('🌐 External URL detected, attempting immediate playback');
+          video.play().catch(error => {
+            console.warn('🎥 Auto-play failed for external URL:', error);
+            // For external URLs, don't treat autoplay failure as an error
+            if (error.name === 'NotAllowedError') {
+              console.log('ℹ️ Autoplay blocked by browser, user interaction required');
+              setLoadError('Click to play external stream');
+            }
+          });
+        } else {
+          // Internal stream - try to play but don't worry about autoplay failure
+          video.play().catch(error => {
+            console.warn('🎥 Auto-play failed for internal stream:', error);
+          });
+        }
         
         // Cleanup function
         return () => {
@@ -794,6 +877,20 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
                 <p>⏳ The stream is ready but waiting for the broadcaster to go live...</p>
                 <p>Please wait for the host to start streaming.</p>
               </div>
+            ) : loadError.includes('Click to play external stream') ? (
+              <button 
+                className={styles.retryButton}
+                onClick={() => {
+                  setLoadError(null);
+                  if (videoRef.current) {
+                    videoRef.current.play().catch(error => {
+                      console.warn('Manual play failed:', error);
+                    });
+                  }
+                }}
+              >
+                Play Stream
+              </button>
             ) : (
               <button 
                 className={styles.retryButton}

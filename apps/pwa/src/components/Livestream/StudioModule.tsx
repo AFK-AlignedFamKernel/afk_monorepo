@@ -151,7 +151,8 @@ const RenderEventCard: React.FC<{
   streamKey: string;
   recordingUrl?: string;
   onNavigateToHostStudio?: (streamId: string) => void;
-}> = ({ event, pubKey, handleNavigation, handleNavigateToStreamView, streamKey, recordingUrl, onNavigateToHostStudio }) => {
+  onViewEventFromNostr?: (streamId: string) => void;
+}> = ({ event, pubKey, handleNavigation, handleNavigateToStreamView, streamKey, recordingUrl, onNavigateToHostStudio, onViewEventFromNostr }) => {
   const isStreamer = false;
   const isOwner = event?.participants.findIndex(
     (item) => item.pubkey === pubKey && item.role === 'Host'
