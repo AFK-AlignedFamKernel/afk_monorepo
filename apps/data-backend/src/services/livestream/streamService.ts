@@ -89,11 +89,11 @@ export async function setupStream(data: StreamSetup) {
     .audioCodec("aac")
     .outputOptions([
       // Audio specific settings
-      "-acodec", "aac",
-      "-ar", "44100",        // Sample rate
-      "-ac", "2",            // Stereo audio
-      "-b:a", "128k",        // Audio bitrate
-      "-af", "aresample=44100", // Resample audio
+      // "-acodec", "aac",
+      // "-ar", "44100",        // Sample rate
+      // "-ac", "2",            // Stereo audio
+      // "-b:a", "128k",        // Audio bitrate
+      // "-af", "aresample=44100", // Resample audio
       
       // Video quality and encoding
       "-preset",

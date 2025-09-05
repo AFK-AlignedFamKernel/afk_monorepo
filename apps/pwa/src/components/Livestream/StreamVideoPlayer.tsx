@@ -482,6 +482,22 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     return 'external-other';
   };
 
+  // Function to check if stream is actually available
+  const checkStreamAvailability = async (url: string): Promise<boolean> => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      if (response.ok) {
+        const manifest = await fetch(url).then(r => r.text());
+        const segments = manifest.split('\n').filter(line => line.endsWith('.ts'));
+        return segments.length > 0;
+      }
+      return false;
+    } catch (error) {
+      console.warn('⚠️ Stream availability check failed:', error);
+      return false;
+    }
+  };
+
   // Enhanced video loading with better error handling
   useEffect(() => {
     if (streamingUrl) {
@@ -492,11 +508,21 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       
       // For internal HLS streams, check if stream is ready
       if (urlType === 'internal-hls') {
-        if (streamStatus === 'not_started' || streamStatus === 'loading') {
-          console.log('⏳ Internal stream not ready yet, waiting for broadcaster...');
-          setLoadError('Stream is waiting for broadcaster to connect...');
-          return;
-        }
+        // Always try to load internal HLS streams, even if status is not_started
+        // The stream might be active but status not updated yet
+        console.log('🎥 Internal HLS stream detected, checking availability...');
+        setLoadError(null); // Clear any previous errors
+        
+        // Check if stream is actually available
+        checkStreamAvailability(streamingUrl).then(isAvailable => {
+          if (isAvailable) {
+            console.log('✅ Stream is available, proceeding with load');
+            setLoadError(null);
+          } else {
+            console.log('⚠️ Stream not available yet, but will attempt to load anyway');
+            setLoadError('Stream is starting up, please wait...');
+          }
+        });
       }
       
       if (videoRef.current) {
@@ -542,22 +568,41 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             
             hls.on(Hls.Events.ERROR, function (event, data) {
               console.error('❌ HLS.js error:', data.type, data.details);
-              if (data.fatal) {
-                switch (data.type) {
-                  case Hls.ErrorTypes.NETWORK_ERROR:
-                    console.log('🔄 Fatal network error, trying to recover...');
+              
+              // Handle non-fatal errors
+              if (!data.fatal) {
+                console.warn('⚠️ Non-fatal HLS error:', data.details);
+                return;
+              }
+              
+              // Handle fatal errors with better recovery
+              switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  console.log('🔄 Fatal network error, trying to recover...');
+                  setLoadError('Network error - attempting to reconnect...');
+                  setTimeout(() => {
                     hls.startLoad();
-                    break;
-                  case Hls.ErrorTypes.MEDIA_ERROR:
-                    console.log('🔄 Fatal media error, trying to recover...');
+                  }, 1000);
+                  break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  console.log('🔄 Fatal media error, trying to recover...');
+                  setLoadError('Media error - attempting to recover...');
+                  setTimeout(() => {
                     hls.recoverMediaError();
-                    break;
-                  default:
-                    console.error('❌ Fatal error, cannot recover');
-                    setLoadError(`HLS error: ${data.details}`);
-                    hls.destroy();
-                    break;
-                }
+                  }, 1000);
+                  break;
+                case Hls.ErrorTypes.MUX_ERROR:
+                  console.log('🔄 Mux error, trying to recover...');
+                  setLoadError('Stream format error - attempting to recover...');
+                  setTimeout(() => {
+                    hls.startLoad();
+                  }, 2000);
+                  break;
+                default:
+                  console.error('❌ Fatal error, cannot recover:', data.details);
+                  setLoadError(`Stream error: ${data.details}. Please refresh the page.`);
+                  hls.destroy();
+                  break;
               }
             });
             
@@ -605,14 +650,13 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           console.log('🎥 Video can play');
           setIsLoading(false);
           setLoadError(null);
+          setIsLive(true); // Set live when video can play
           
-          // For external URLs, set live immediately as they're already broadcasting
+          // For external URLs, they're already broadcasting
           if (urlType === 'external-hls' || urlType === 'external-other') {
             console.log('🌐 External stream detected, setting live immediately');
-            setIsLive(true);
           } else {
-            // For internal streams, only set live when we can actually play
-            setIsLive(true);
+            console.log('🎬 Internal stream is now live');
           }
         };
         
@@ -666,26 +710,30 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             }
             setLoadError(errorMessage);
             
-            // For HLS demuxer errors, try to reload after a delay (but only once)
+            // For HLS demuxer errors, try to reload after a delay
             if (target.error.message.includes('DEMUXER_ERROR_DETECTED_HLS') && urlType === 'internal-hls') {
               // Check if we've already retried to prevent infinite loops
               const retryKey = `hls_retry_${streamId}`;
-              const hasRetried = sessionStorage.getItem(retryKey);
+              const retryCount = parseInt(sessionStorage.getItem(retryKey) || '0');
+              const maxRetries = 3;
               
-              if (!hasRetried) {
-                console.log('🔄 HLS demuxer error detected, will retry in 3 seconds...');
-                sessionStorage.setItem(retryKey, 'true');
+              if (retryCount < maxRetries) {
+                console.log(`🔄 HLS demuxer error detected, will retry in 3 seconds... (${retryCount + 1}/${maxRetries})`);
+                sessionStorage.setItem(retryKey, (retryCount + 1).toString());
+                setLoadError(`Stream error - retrying in 3 seconds... (${retryCount + 1}/${maxRetries})`);
                 
                 setTimeout(() => {
                   if (videoRef.current && streamingUrl) {
                     console.log('🔄 Retrying HLS stream load...');
+                    // Clear the error and try again
+                    setLoadError(null);
                     videoRef.current.src = streamingUrl;
                     videoRef.current.load();
                   }
                 }, 3000);
               } else {
-                console.log('🔄 HLS retry already attempted, not retrying again');
-                setLoadError('HLS stream failed to load after retry. Please refresh the page.');
+                console.log('🔄 Max retries reached, not retrying again');
+                setLoadError('Stream failed to load after multiple attempts. Please refresh the page or check if the stream is active.');
               }
             }
           }
@@ -1051,6 +1099,18 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
               <div className={styles.waitingMessage}>
                 <p>⏳ The stream is ready but waiting for the broadcaster to go live...</p>
                 <p>Please wait for the host to start streaming.</p>
+                <button 
+                  className={styles.retryButton}
+                  onClick={() => {
+                    setLoadError(null);
+                    if (streamingUrl && videoRef.current) {
+                      videoRef.current.src = streamingUrl;
+                      videoRef.current.load();
+                    }
+                  }}
+                >
+                  Check Again
+                </button>
               </div>
             ) : loadError.includes('Click to play external stream') ? (
               <button 
@@ -1066,19 +1126,38 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
               >
                 Play Stream
               </button>
+            ) : loadError.includes('retrying') ? (
+              <div className={styles.waitingMessage}>
+                <p>🔄 Attempting to reconnect to the stream...</p>
+                <p>Please wait while we try to fix the connection.</p>
+              </div>
             ) : (
-              <button 
-                className={styles.retryButton}
-                onClick={() => {
-                  setLoadError(null);
-                  if (streamingUrl && videoRef.current) {
-                    videoRef.current.src = streamingUrl;
-                    videoRef.current.load();
-                  }
-                }}
-              >
-                Retry
-              </button>
+              <div className={styles.waitingMessage}>
+                <button 
+                  className={styles.retryButton}
+                  onClick={() => {
+                    // Clear retry count and try again
+                    if (streamId) {
+                      sessionStorage.removeItem(`hls_retry_${streamId}`);
+                    }
+                    setLoadError(null);
+                    if (streamingUrl && videoRef.current) {
+                      videoRef.current.src = streamingUrl;
+                      videoRef.current.load();
+                    }
+                  }}
+                >
+                  Retry Stream
+                </button>
+                <button 
+                  className={styles.retryButton}
+                  onClick={() => {
+                    window.location.reload();
+                  }}
+                >
+                  Refresh Page
+                </button>
+              </div>
             )}
           </div>
         </div>
