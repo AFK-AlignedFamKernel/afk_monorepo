@@ -517,6 +517,8 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         
         const handleLoadStart = () => {
           console.log('🎥 Video load started');
+          console.log('🎥 Video source:', video.src);
+          console.log('🎥 Video currentSrc:', video.currentSrc);
           setIsLoading(true);
           setLoadError(null);
         };
@@ -527,6 +529,17 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         
         const handleCanPlay = () => {
           console.log('🎥 Video can play');
+          console.log('🎥 Video details:', {
+            videoWidth: video.videoWidth,
+            videoHeight: video.videoHeight,
+            duration: video.duration,
+            readyState: video.readyState,
+            networkState: video.networkState,
+            currentTime: video.currentTime,
+            paused: video.paused,
+            muted: video.muted,
+            volume: video.volume
+          });
           setIsLoading(false);
           setLoadError(null);
           
