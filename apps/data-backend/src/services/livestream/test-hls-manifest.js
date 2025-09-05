@@ -71,11 +71,11 @@ async function testHLSManifest() {
     console.log(`  Manifests (.m3u8): ${manifests.length}`);
     
     // Step 4: Validate segments
+    let validSegments = 0;
     if (segments.length > 0) {
       console.log('\n🔍 Step 4: Validating segments...');
       
       let totalSize = 0;
-      let validSegments = 0;
       
       segments.forEach(segment => {
         const segmentPath = path.join(streamPath, segment);

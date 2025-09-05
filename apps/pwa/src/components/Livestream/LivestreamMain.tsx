@@ -90,6 +90,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   // Check if stream is actually available and handle initialization
   const [streamStatus, setStreamStatus] = useState<'loading' | 'available' | 'not_started' | 'error'>('loading');
   const [streamStatusData, setStreamStatusData] = useState<any>(null);
+  const [streamStartRetries, setStreamStartRetries] = useState(0);
 
   const { showModal, showToast } = useUIStore();
   const { data: event, isLoading: eventLoading, isError: eventError } = useGetSingleEvent({
@@ -252,6 +253,9 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       setStreamStatus('loading');
       return;
     }
+
+    // Reset retry counter when stream ID changes
+    setStreamStartRetries(0);
 
     // Skip status checking for external URLs - they should render directly
     if (eventStreamingUrl && isExternalUrl(eventStreamingUrl)) {
@@ -750,10 +754,17 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
               onStreamError={(error) => {
                 console.log('🚨 Stream error in StreamVideoPlayer:', error);
                 if (error.includes('Stream not found') || error.includes('not started')) {
-                  showToast({ message: 'Stream not started. Attempting to start...', type: 'warning' });
-                  // Retry starting the stream
-                  if (currentStreamId) {
-                    setTimeout(() => startStreamOnBackend(currentStreamId), 1000);
+                  // Limit retries to prevent infinite loops
+                  if (streamStartRetries < 3) {
+                    setStreamStartRetries(prev => prev + 1);
+                    showToast({ message: `Stream not started. Attempting to start... (${streamStartRetries + 1}/3)`, type: 'warning' });
+                    // Retry starting the stream
+                    if (currentStreamId) {
+                      setTimeout(() => startStreamOnBackend(currentStreamId), 1000);
+                    }
+                  } else {
+                    showToast({ message: 'Stream failed to start after multiple attempts. Please refresh the page.', type: 'error' });
+                    setStreamStatus('error');
                   }
                 }
               }}

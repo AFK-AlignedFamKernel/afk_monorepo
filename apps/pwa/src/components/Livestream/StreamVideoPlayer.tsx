@@ -584,16 +584,27 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             }
             setLoadError(errorMessage);
             
-            // For HLS demuxer errors, try to reload after a delay
+            // For HLS demuxer errors, try to reload after a delay (but only once)
             if (target.error.message.includes('DEMUXER_ERROR_DETECTED_HLS') && urlType === 'internal-hls') {
-              console.log('🔄 HLS demuxer error detected, will retry in 3 seconds...');
-              setTimeout(() => {
-                if (videoRef.current && streamingUrl) {
-                  console.log('🔄 Retrying HLS stream load...');
-                  videoRef.current.src = streamingUrl;
-                  videoRef.current.load();
-                }
-              }, 3000);
+              // Check if we've already retried to prevent infinite loops
+              const retryKey = `hls_retry_${streamId}`;
+              const hasRetried = sessionStorage.getItem(retryKey);
+              
+              if (!hasRetried) {
+                console.log('🔄 HLS demuxer error detected, will retry in 3 seconds...');
+                sessionStorage.setItem(retryKey, 'true');
+                
+                setTimeout(() => {
+                  if (videoRef.current && streamingUrl) {
+                    console.log('🔄 Retrying HLS stream load...');
+                    videoRef.current.src = streamingUrl;
+                    videoRef.current.load();
+                  }
+                }, 3000);
+              } else {
+                console.log('🔄 HLS retry already attempted, not retrying again');
+                setLoadError('HLS stream failed to load after retry. Please refresh the page.');
+              }
             }
           }
         };
