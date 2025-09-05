@@ -256,6 +256,16 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       return;
     }
 
+    // Skip status checking for external URLs
+    if (event) {
+      const eventStreamingUrl = extractStreamingUrlFromEvent(event, currentStreamId);
+      if (eventStreamingUrl && isExternalUrl(eventStreamingUrl)) {
+        console.log('🌐 External URL detected, skipping status check');
+        setStreamStatus('available'); // External URLs are assumed to be available
+        return;
+      }
+    }
+
     console.log('🔄 Stream ID changed, checking status for:', currentStreamId);
 
     const checkStreamStatus = async () => {
@@ -337,7 +347,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
         clearInterval(statusInterval);
       }
     };
-  }, [currentStreamId, streamStatus]);
+  }, [currentStreamId, streamStatus, event]);
 
   //   useEffect(() => {
   //     if (currentStreamId) {

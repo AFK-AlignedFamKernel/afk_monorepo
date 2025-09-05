@@ -11,6 +11,7 @@ export { LiveChat } from './LiveChat';
 export { StreamVideoPlayer } from './StreamVideoPlayer';
 export { LivestreamMain } from './LivestreamMain';
 export { HostStudio } from './HostStudio';
+export { ExternalUrlExample } from './ExternalUrlExample';
 
 interface LivestreamProps {
   streamKey: string;
