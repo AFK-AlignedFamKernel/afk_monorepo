@@ -59,6 +59,35 @@ export function createInputStream() {
   });
 }
 
+// Create multiple quality variants for adaptive bitrate streaming
+export async function createQualityVariants(streamPath: string, data: StreamSetup) {
+  const qualities = [
+    { name: "720p", width: 1280, height: 720, bitrate: "2500k", audioBitrate: "128k" },
+    { name: "480p", width: 854, height: 480, bitrate: "1500k", audioBitrate: "96k" },
+    { name: "360p", width: 640, height: 360, bitrate: "800k", audioBitrate: "64k" }
+  ];
+
+  const masterPlaylist = `#EXTM3U
+#EXT-X-VERSION:6
+#EXT-X-INDEPENDENT-SEGMENTS
+
+#EXT-X-STREAM-INF:BANDWIDTH=2500000,RESOLUTION=1280x720,CODECS="avc1.640028,mp4a.40.2"
+720p/stream.m3u8
+
+#EXT-X-STREAM-INF:BANDWIDTH=1500000,RESOLUTION=854x480,CODECS="avc1.64001f,mp4a.40.2"
+480p/stream.m3u8
+
+#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360,CODECS="avc1.64001e,mp4a.40.2"
+360p/stream.m3u8
+`;
+
+  const masterPlaylistPath = join(streamPath, "master.m3u8");
+  await writeFile(masterPlaylistPath, masterPlaylist, 'utf8');
+  console.log('✅ Master playlist created for adaptive bitrate streaming');
+  
+  return masterPlaylistPath;
+}
+
 // Handle stream setup
 export async function setupStream(data: StreamSetup) {
   const streamPath = join(
@@ -88,46 +117,58 @@ export async function setupStream(data: StreamSetup) {
     .videoCodec("libx264")
     .audioCodec("aac")
     .outputOptions([
-      // Basic video settings
-      "-preset", "ultrafast",  // Use ultrafast for live streaming
-      "-crf", "28",            // Higher CRF for better compatibility
-      "-maxrate", "2500k",     // Reasonable bitrate
-      "-bufsize", "5000k",     // Buffer size should be 2x maxrate
-      "-pix_fmt", "yuv420p",   // Standard pixel format
-      "-profile:v", "baseline", // Baseline profile for compatibility
-      "-level", "3.1",         // Level 3.1 for better compatibility
+      // === VIDEO QUALITY SETTINGS (Industry Standard) ===
+      "-preset", "veryfast",           // Balance between speed and quality
+      "-crf", "23",                    // High quality (18-28 range, 23 is excellent)
+      "-maxrate", "4000k",             // Maximum bitrate for 1080p
+      "-bufsize", "8000k",             // Buffer size (2x maxrate for stability)
+      "-pix_fmt", "yuv420p",           // Standard pixel format
+      "-profile:v", "high",            // High profile for better quality
+      "-level", "4.1",                 // Level 4.1 for 1080p support
       
-      // Audio settings - only if audio is present
-      "-ar", "44100",          // Sample rate
-      "-ac", "2",              // Stereo
-      "-b:a", "128k",          // Audio bitrate
+      // === RESOLUTION AND FRAME RATE ===
+      "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2", // Scale to 1080p
+      "-r", "30",                      // Force 30fps output
+      "-g", "60",                      // Keyframe every 2 seconds (30fps * 2)
+      "-keyint_min", "30",             // Minimum keyframe interval
       
-      // Stream mapping - let FFmpeg auto-detect streams
-      "-map", "0:v:0",         // Map first video stream
-      "-map", "0:a:0?",        // Map first audio stream if available
+      // === AUDIO SETTINGS (High Quality) ===
+      "-ar", "48000",                  // Professional sample rate
+      "-ac", "2",                      // Stereo
+      "-b:a", "192k",                  // High quality audio bitrate
+      "-acodec", "aac",                // AAC codec
+      "-strict", "experimental",       // Allow experimental codecs
       
-      // HLS specific settings
-      "-hls_time", "2",        // 2-second segments
-      "-hls_list_size", "0",   // Keep all segments in playlist
-      "-hls_flags", "independent_segments", // Only use independent segments
+      // === STREAM MAPPING ===
+      "-map", "0:v:0",                 // Map first video stream
+      "-map", "0:a:0?",                // Map first audio stream if available
+      
+      // === HLS OPTIMIZATION ===
+      "-hls_time", "2",                // 2-second segments
+      "-hls_list_size", "0",           // Keep all segments in playlist
+      "-hls_flags", "independent_segments+delete_segments", // Independent segments with cleanup
       "-hls_segment_filename", join(streamPath, "segment_%d.ts"),
-      "-hls_allow_cache", "0", // Don't allow caching
+      "-hls_allow_cache", "0",         // No caching for live streams
+      "-hls_start_number_source", "datetime", // Start numbering from current time
       
-      // Keyframe settings
-      "-g", "60",              // Keyframe every 2 seconds (30fps * 2)
-      "-keyint_min", "60",     // Minimum keyframe interval
-      "-sc_threshold", "0",    // Disable scene change detection
+      // === LIVE STREAMING OPTIMIZATIONS ===
+      "-tune", "zerolatency",          // Zero latency for live streaming
+      "-probesize", "32M",             // Larger probe size for better detection
+      "-analyzeduration", "10M",       // Analysis duration for better quality
+      "-fflags", "+genpts+igndts",     // Generate timestamps, ignore DTS
       
-      // Live streaming optimizations
-      "-tune", "zerolatency",  // Zero latency tuning
-      "-probesize", "32",      // Small probe size
-      "-analyzeduration", "0", // No analysis delay
+      // === ENCODING OPTIMIZATIONS ===
+      "-x264opts", "no-scenecut:keyint=60:min-keyint=30:8x8dct=1:aq-mode=2:aq-strength=0.8:deblock=0,0:ref=2:bframes=0:weightp=1:subme=6:mixed-refs=1:me=hex:merange=16:trellis=1:psy-rd=1.0,0.0:rc-lookahead=30:me_range=16:qcomp=0.6:qmin=10:qmax=51:qdiff=4:bf=0:8x8dct=1:me=hex:subme=6:me_range=16:trellis=1:psy-rd=1.0,0.0:aq-mode=2:aq-strength=0.8:deblock=0,0:ref=2:bframes=0:weightp=1:subme=6:mixed-refs=1:me=hex:merange=16:trellis=1:psy-rd=1.0,0.0:rc-lookahead=30",
       
-      // Timestamp handling
-      "-avoid_negative_ts", "make_zero",
+      // === TIMESTAMP AND SYNC ===
+      "-avoid_negative_ts", "make_zero", // Handle negative timestamps
+      "-vsync", "cfr",                 // Constant frame rate
+      "-async", "1",                   // Audio sync
       
-      // Additional compatibility
-      "-movflags", "+faststart"
+      // === ADDITIONAL COMPATIBILITY ===
+      "-movflags", "+faststart",       // Fast start for web playback
+      "-f", "hls",                     // Force HLS format
+      "-threads", "0"                  // Use all available CPU threads
     ]);
 
   // Add event listeners for better debugging
@@ -190,10 +231,11 @@ export async function setupStream(data: StreamSetup) {
 
   // Create initial manifest that's ready for segments (without ENDLIST)
   const initialManifest = `#EXTM3U
-#EXT-X-VERSION:3
+#EXT-X-VERSION:6
 #EXT-X-TARGETDURATION:2
 #EXT-X-MEDIA-SEQUENCE:0
 #EXT-X-PLAYLIST-TYPE:EVENT
+#EXT-X-INDEPENDENT-SEGMENTS
 `;
   
   try {
