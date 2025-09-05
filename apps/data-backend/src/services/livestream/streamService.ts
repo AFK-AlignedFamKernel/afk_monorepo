@@ -102,19 +102,26 @@ export async function setupStream(data: StreamSetup) {
       
       // Video quality and encoding - HLS optimized
       "-preset",
-      "ultrafast", // Changed from medium for faster encoding
+      "fast", // Changed from ultrafast for better quality
       "-crf",
-      "28", // Changed from 23 for faster encoding
+      "23", // Changed from 28 for better quality
       "-maxrate",
-      "2500k",
+      "2000k", // Reduced from 2500k to prevent VBV underflow
       "-bufsize",
-      "5000k",
+      "4000k", // Reduced from 5000k to match maxrate
       "-profile:v",
       "baseline",
       "-level",
       "3.0",
       "-pix_fmt",
       "yuv420p",
+      // Additional VBV control
+      "-rc-lookahead",
+      "30",
+      "-me_method",
+      "hex",
+      "-subq",
+      "6",
 
       // Scaling and resolution - handled by video codec settings
       // "-vf", "scale=1280:720", // Removed duplicate scaling
@@ -145,7 +152,7 @@ export async function setupStream(data: StreamSetup) {
 
       // Force keyframe generation
       "-force_key_frames",
-      "expr:gte(t,n_forced*1)", // Changed from 2 for more frequent keyframes
+      "expr:gte(t,n_forced*2)", // Changed back to 2 for better quality
 
       // Better compatibility
       "-profile:v",
@@ -159,7 +166,13 @@ export async function setupStream(data: StreamSetup) {
       "-probesize",
       "32",
       "-analyzeduration",
-      "0"
+      "0",
+      
+      // VBV underflow prevention
+      "-x264opts",
+      "vbv-maxrate=2000:vbv-bufsize=4000:ratetol=1.0",
+      "-nal-hrd",
+      "cbr"
     ]);
 
   // Add event listeners for better debugging
