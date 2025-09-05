@@ -561,6 +561,14 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
               console.log('📋 HLS manifest parsed successfully');
               console.log(`📊 Found ${data.levels.length} quality levels`);
+              
+              // Check if audio tracks are available
+              if (data.audioTracks && data.audioTracks.length > 0) {
+                console.log(`🎵 Found ${data.audioTracks.length} audio tracks`);
+              } else {
+                console.warn('⚠️ No audio tracks found in HLS stream');
+              }
+              
               setIsLoading(false);
               setLoadError(null);
               setIsLive(true);
@@ -585,11 +593,19 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
                   }, 1000);
                   break;
                 case Hls.ErrorTypes.MEDIA_ERROR:
-                  console.log('🔄 Fatal media error, trying to recover...');
-                  setLoadError('Media error - attempting to recover...');
-                  setTimeout(() => {
-                    hls.recoverMediaError();
-                  }, 1000);
+                  if (data.details === 'DEMUXER_ERROR_DETECTED_HLS') {
+                    console.log('🔄 HLS demuxer error - stream may be missing audio, trying to recover...');
+                    setLoadError('Stream format issue - attempting to recover...');
+                    setTimeout(() => {
+                      hls.recoverMediaError();
+                    }, 1000);
+                  } else {
+                    console.log('🔄 Media error, trying to recover...');
+                    setLoadError('Media error - attempting to recover...');
+                    setTimeout(() => {
+                      hls.recoverMediaError();
+                    }, 1000);
+                  }
                   break;
                 case Hls.ErrorTypes.MUX_ERROR:
                   console.log('🔄 Mux error, trying to recover...');

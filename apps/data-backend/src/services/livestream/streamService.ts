@@ -88,14 +88,14 @@ export async function setupStream(data: StreamSetup) {
     .videoCodec("libx264")
     .audioCodec("aac")
     .outputOptions([
-      // Audio specific settings
-      // "-acodec", "aac",
-      // "-ar", "44100",        // Sample rate
-      // "-ac", "2",            // Stereo audio
-      // "-b:a", "128k",        // Audio bitrate
-      // "-af", "aresample=44100", // Resample audio
+      // Audio specific settings - CRITICAL for HLS compatibility
+      "-acodec", "aac",
+      "-ar", "44100",        // Sample rate
+      "-ac", "2",            // Stereo audio
+      "-b:a", "128k",        // Audio bitrate
+      "-af", "aresample=44100", // Resample audio
       
-      // Video quality and encoding
+      // Video quality and encoding - HLS optimized
       "-preset",
       "ultrafast", // Changed from medium for faster encoding
       "-crf",
@@ -104,20 +104,30 @@ export async function setupStream(data: StreamSetup) {
       "2500k",
       "-bufsize",
       "5000k",
+      "-profile:v",
+      "baseline",
+      "-level",
+      "3.0",
+      "-pix_fmt",
+      "yuv420p",
 
       // Scaling and resolution
       "-vf",
       "scale=1280:720",
 
-      // HLS specific settings
+      // HLS specific settings - CRITICAL for proper HLS generation
       "-hls_time",
       "2",
       "-hls_list_size",
       "0",
       "-hls_flags",
-      "delete_segments+append_list",
+      "delete_segments+append_list+independent_segments",
       "-hls_segment_filename",
       join(streamPath, "segment_%d.ts"),
+      "-hls_allow_cache",
+      "0",
+      "-hls_start_number_source",
+      "datetime",
 
       // Keyframe interval - reduced for faster segment generation
       "-g",
