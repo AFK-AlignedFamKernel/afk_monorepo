@@ -63,9 +63,18 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
         <div className="flex justify-between items-center text-sm">
 
           {token?.image_url && (token?.image_url !== "" && token?.image_url !== null && token?.image_url !== undefined) && (
-            <Image 
-            unoptimized 
-            src={token?.image_url} alt={token.name} width={50} height={50}
+            <Image
+              unoptimized
+              src={token?.image_url} alt={token.name} width={50} height={50}
+              className="rounded-lg"
+            />
+          )}
+
+
+          {token?.url && (token?.url !== "" && token?.url !== null && token?.url !== undefined) && (
+            <Image
+              unoptimized
+              src={token?.url} alt={token.name} width={50} height={50}
               className="rounded-lg"
             />
           )}

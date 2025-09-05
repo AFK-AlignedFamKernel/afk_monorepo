@@ -17,6 +17,12 @@ import {
 } from 'indexer-v2-db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
+import { formatBigIntToFloat, formatFloatToUint256, formatFloatToBigInt } from '@/utils/format';
+import { generateCandlesticksAsync } from '../services/launchpad/candlestick.service';
+
+import dotenv from 'dotenv';
+dotenv.config();
+
 
 // Event selectors
 const CREATE_TOKEN = hash.getSelectorFromName('CreateToken') as `0x${string}`;
@@ -48,6 +54,276 @@ const formatTokenAmount = (amount: string, decimals: number = 18): string => {
     console.error('Error formatting token amount:', error);
     return '0';
   }
+};
+
+// Bonding curve constants
+const DEX_POOL_PERCENTAGE = 20; // 20% of total supply goes to DEX pool
+const USER_PURCHASABLE_PERCENTAGE = 80; // 80% of total supply is purchasable by users
+
+// Helper function to calculate default bonding curve values
+const calculateBondingCurveDefaults = (totalSupply: string) => {
+  try {
+    const totalSupplyBigInt = BigInt(totalSupply);
+
+    // Calculate 20% for DEX pool (initial_pool_supply_dex)
+    const dexPoolSupply = (totalSupplyBigInt * BigInt(DEX_POOL_PERCENTAGE)) / BigInt(100);
+
+    // Calculate 80% for user purchasable supply (current_supply starts at this value)
+    const userPurchasableSupply = (totalSupplyBigInt * BigInt(USER_PURCHASABLE_PERCENTAGE)) / BigInt(100);
+
+    // Convert to human-readable strings
+    const dexPoolSupplyFormatted = formatBigIntToFloat(dexPoolSupply);
+    const userPurchasableSupplyFormatted = formatBigIntToFloat(userPurchasableSupply);
+
+    console.log('Bonding curve defaults calculated:', {
+      totalSupply: formatBigIntToFloat(totalSupplyBigInt),
+      dexPoolSupply: dexPoolSupplyFormatted,
+      userPurchasableSupply: userPurchasableSupplyFormatted,
+      dexPoolPercentage: DEX_POOL_PERCENTAGE,
+      userPurchasablePercentage: USER_PURCHASABLE_PERCENTAGE
+    });
+
+    return {
+      dexPoolSupply: dexPoolSupplyFormatted,
+      userPurchasableSupply: userPurchasableSupplyFormatted,
+      dexPoolSupplyBigInt: dexPoolSupply,
+      userPurchasableSupplyBigInt: userPurchasableSupply
+    };
+  } catch (error) {
+    console.error('Error calculating bonding curve defaults:', error);
+    return {
+      dexPoolSupply: '0',
+      userPurchasableSupply: '0',
+      dexPoolSupplyBigInt: 0n,
+      userPurchasableSupplyBigInt: 0n
+    };
+  }
+};
+
+
+
+// Helper function to calculate price based on bonding curve
+const calculateBondingCurvePrice = (
+  liquidityRaised: string,
+  initialPoolSupply: string,
+  totalSupply: string
+): { price: string; marketCap: string } => {
+  try {
+    // Validate inputs
+    if (!liquidityRaised || !initialPoolSupply || !totalSupply) {
+      console.warn('Invalid inputs for bonding curve price calculation:', {
+        liquidityRaised,
+        initialPoolSupply,
+        totalSupply
+      });
+      return { price: '0', marketCap: '0' };
+    }
+
+    // Convert string inputs to BigInt, handling both raw BigInt strings and formatted float strings
+    let liquidityRaisedBigInt: bigint;
+    let initialPoolSupplyBigInt: bigint;
+    let totalSupplyBigInt: bigint;
+
+    // Check if the strings contain decimal points (formatted floats) or are raw BigInt strings
+    if (liquidityRaised.includes('.') || liquidityRaised.includes('e-') || liquidityRaised.includes('e+')) {
+      liquidityRaisedBigInt = formatFloatToBigInt(liquidityRaised);
+    } else {
+      liquidityRaisedBigInt = BigInt(liquidityRaised);
+    }
+
+    if (initialPoolSupply.includes('.') || initialPoolSupply.includes('e-') || initialPoolSupply.includes('e+')) {
+      initialPoolSupplyBigInt = formatFloatToBigInt(initialPoolSupply);
+    } else {
+      initialPoolSupplyBigInt = BigInt(initialPoolSupply);
+    }
+
+    if (totalSupply.includes('.') || totalSupply.includes('e-') || totalSupply.includes('e+')) {
+      totalSupplyBigInt = formatFloatToBigInt(totalSupply);
+    } else {
+      totalSupplyBigInt = BigInt(totalSupply);
+    }
+
+    // Validate that values are non-negative
+    if (liquidityRaisedBigInt < 0n || initialPoolSupplyBigInt < 0n || totalSupplyBigInt < 0n) {
+      console.warn('Negative values detected in bonding curve calculation:', {
+        liquidityRaised: liquidityRaisedBigInt.toString(),
+        initialPoolSupply: initialPoolSupplyBigInt.toString(),
+        totalSupply: totalSupplyBigInt.toString()
+      });
+      return { price: '0', marketCap: '0' };
+    }
+
+    // Price = liquidity_raised / initial_pool_supply_dex
+    // Avoid division by zero
+    const priceBigInt = initialPoolSupplyBigInt > 0n
+      ? liquidityRaisedBigInt / initialPoolSupplyBigInt
+      : 0n;
+
+    // Market cap = total_supply * price
+    const marketCapBigInt = totalSupplyBigInt * priceBigInt;
+
+    const price = formatBigIntToFloat(priceBigInt);
+    const marketCap = formatBigIntToFloat(marketCapBigInt);
+
+    // Validate results
+    if (price === 'NaN' || marketCap === 'NaN' || price === 'Infinity' || marketCap === 'Infinity') {
+      console.warn('Invalid calculation results:', { price, marketCap });
+      return { price: '0', marketCap: '0' };
+    }
+
+    console.log('Bonding curve price calculated:', {
+      inputLiquidityRaised: liquidityRaised,
+      inputInitialPoolSupply: initialPoolSupply,
+      inputTotalSupply: totalSupply,
+      liquidityRaisedBigInt: liquidityRaisedBigInt.toString(),
+      initialPoolSupplyBigInt: initialPoolSupplyBigInt.toString(),
+      totalSupplyBigInt: totalSupplyBigInt.toString(),
+      priceBigInt: priceBigInt.toString(),
+      marketCapBigInt: marketCapBigInt.toString(),
+      price,
+      marketCap
+    });
+
+    return { price, marketCap };
+  } catch (error) {
+    console.error('Error calculating bonding curve price:', error);
+    return { price: '0', marketCap: '0' };
+  }
+};
+
+// Helper function to validate bonding curve parameters
+const validateBondingCurveParameters = (
+  totalSupply: string,
+  currentSupply: string,
+  initialPoolSupply: string,
+  liquidityRaised: string
+): { isValid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  try {
+    const totalSupplyBigInt = BigInt(totalSupply);
+    const currentSupplyBigInt = BigInt(currentSupply);
+    const initialPoolSupplyBigInt = BigInt(initialPoolSupply);
+    const liquidityRaisedBigInt = BigInt(liquidityRaised);
+
+    // Check for negative values
+    if (totalSupplyBigInt < 0n) errors.push('Total supply cannot be negative');
+    if (currentSupplyBigInt < 0n) errors.push('Current supply cannot be negative');
+    if (initialPoolSupplyBigInt < 0n) errors.push('Initial pool supply cannot be negative');
+    if (liquidityRaisedBigInt < 0n) errors.push('Liquidity raised cannot be negative');
+
+    // Check that current supply doesn't exceed total supply
+    if (currentSupplyBigInt > totalSupplyBigInt) {
+      errors.push('Current supply cannot exceed total supply');
+    }
+
+    // Check that initial pool supply is reasonable (should be 20% of total supply)
+    const expectedPoolSupply = (totalSupplyBigInt * BigInt(DEX_POOL_PERCENTAGE)) / BigInt(100);
+    const poolSupplyTolerance = expectedPoolSupply / BigInt(10); // 10% tolerance
+
+    if (Math.abs(Number(initialPoolSupplyBigInt - expectedPoolSupply)) > Number(poolSupplyTolerance)) {
+      errors.push(`Initial pool supply (${formatBigIntToFloat(initialPoolSupplyBigInt)}) should be approximately ${DEX_POOL_PERCENTAGE}% of total supply (${formatBigIntToFloat(expectedPoolSupply)})`);
+    }
+
+    // Check that current supply is reasonable (should be 80% of total supply initially)
+    const expectedUserSupply = (totalSupplyBigInt * BigInt(USER_PURCHASABLE_PERCENTAGE)) / BigInt(100);
+    const userSupplyTolerance = expectedUserSupply / BigInt(10); // 10% tolerance
+
+    if (Math.abs(Number(currentSupplyBigInt - expectedUserSupply)) > Number(userSupplyTolerance) && currentSupplyBigInt > 0n) {
+      console.warn(`Current supply (${formatBigIntToFloat(currentSupplyBigInt)}) differs from expected user purchasable supply (${formatBigIntToFloat(expectedUserSupply)})`);
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  } catch (error) {
+    errors.push(`Validation error: ${error}`);
+    return { isValid: false, errors };
+  }
+};
+
+
+
+// Helper function to add timeout to database operations
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs: number = 3000): Promise<T> => {
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error(`Database operation timed out after ${timeoutMs}ms`)), timeoutMs);
+  });
+
+  return Promise.race([promise, timeoutPromise]);
+};
+
+// Circuit breaker to prevent database operations from blocking the indexer
+let dbFailureCount = 0;
+let lastDbFailureTime = 0;
+const DB_FAILURE_THRESHOLD = 5;
+const DB_RECOVERY_TIME = 30000; // 30 seconds
+
+const isDbCircuitOpen = (): boolean => {
+  const now = Date.now();
+  if (dbFailureCount >= DB_FAILURE_THRESHOLD) {
+    if (now - lastDbFailureTime < DB_RECOVERY_TIME) {
+      return true; // Circuit is open
+    } else {
+      // Reset circuit breaker after recovery time
+      dbFailureCount = 0;
+      lastDbFailureTime = 0;
+      return false;
+    }
+  }
+  return false;
+};
+
+// Helper function to make database operations completely non-blocking
+const nonBlockingDbOperation = async <T>(
+  operation: () => Promise<T>,
+  operationName: string,
+  timeoutMs: number = 2000
+): Promise<T | null> => {
+  // Check circuit breaker
+  if (isDbCircuitOpen()) {
+    console.warn(`Database circuit breaker is open, skipping ${operationName}`);
+    return null;
+  }
+
+  try {
+    const result = await withTimeout(operation(), timeoutMs);
+    // Reset failure count on success
+    dbFailureCount = 0;
+    return result;
+  } catch (error: any) {
+    dbFailureCount++;
+    lastDbFailureTime = Date.now();
+    console.error(`Non-blocking DB operation failed (${operationName}):`, error.message);
+    console.warn(`DB failure count: ${dbFailureCount}/${DB_FAILURE_THRESHOLD}`);
+    return null; // Return null instead of throwing
+  }
+};
+
+// Helper function to retry database operations
+const withRetry = async <T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  delayMs: number = 1000
+): Promise<T> => {
+  let lastError: any;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      lastError = error;
+      console.log(`Database operation attempt ${attempt} failed:`, error.message);
+
+      if (attempt < maxRetries) {
+        console.log(`Retrying in ${delayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+
+  throw lastError;
 };
 
 export default function (config: ApibaraRuntimeConfig & {
@@ -124,11 +400,26 @@ export default function (config: ApibaraRuntimeConfig & {
         finality,
       );
 
+      // // Database health check - ensure database is responsive
+      // try {
+      //   await db.execute(sql`SELECT 1`);
+      //   console.log("Database connection healthy");
+      // } catch (dbHealthError) {
+      //   console.error("Database connection unhealthy:", dbHealthError);
+      //   // Continue processing but log the issue
+      // }
+
       console.log("timestamp", header.timestamp);
 
       console.log("events length", events?.length);
+      let processedEvents = 0;
       for (const event of events) {
-        if (event.transactionHash) {
+        try {
+          if (event.transactionHash) {
+            processedEvents++;
+            if (processedEvents % 10 === 0) {
+              console.log(`Processed ${processedEvents}/${events?.length} events`);
+            }
           logger.log(`Found event ${event.keys[0]}`);
 
           logger.log("event sanitized", encode.sanitizeHex(event.keys[0]));
@@ -153,12 +444,23 @@ export default function (config: ApibaraRuntimeConfig & {
               || encode.sanitizeHex(event?.keys[0].slice(4)) == encode.sanitizeHex(CREATE_LAUNCH).slice(4)
             ) {
               console.log("event CreateLaunch");
-              const decodedEvent = decodeEvent({
-                abi: launchpadABI as Abi,
-                event,
-                eventName: 'afk_launchpad::types::launchpad_types::CreateLaunch',
-              });
-              await handleCreateLaunch(decodedEvent, header, event);
+              try {
+                const decodedEvent = decodeEvent({
+                  abi: launchpadABI as Abi,
+                  event,
+                  eventName: 'afk_launchpad::types::launchpad_types::CreateLaunch',
+                });
+                await handleCreateLaunch(decodedEvent, header, event);
+              } catch (decodeError) {
+                console.error("Failed to decode CreateLaunch event:", decodeError);
+                // Try to handle with raw event data by creating a mock decoded event
+                const mockEvent = { args: {} };
+                try {
+                  await handleCreateLaunch(mockEvent, header, event);
+                } catch (rawError) {
+                  console.error("Failed to handle CreateLaunch event with raw data:", rawError);
+                }
+              }
             }
             if (event?.keys[0] == encode.sanitizeHex(METADATA_COIN_ADDED)) {
               console.log("event Metadata");
@@ -191,7 +493,10 @@ export default function (config: ApibaraRuntimeConfig & {
                 event,
                 eventName: 'afk_launchpad::types::launchpad_types::BuyToken',
               });
-              await handleBuyTokenEvent(decodedEvent, header, event);
+              // Fire and forget - don't await to prevent blocking
+              handleBuyTokenEvent(decodedEvent, header, event).catch(error => {
+                console.error('BuyToken event handler failed:', error.message);
+              });
             }
             if (event?.keys[0] == encode.sanitizeHex(SELL_TOKEN)) {
               console.log("event Sell");
@@ -200,7 +505,10 @@ export default function (config: ApibaraRuntimeConfig & {
                 event,
                 eventName: 'afk_launchpad::types::launchpad_types::SellToken',
               });
-              await handleSellTokenEvent(decodedEvent, header, event);
+              // Fire and forget - don't await to prevent blocking
+              handleSellTokenEvent(decodedEvent, header, event).catch(error => {
+                console.error('SellToken event handler failed:', error.message);
+              });
             }
             if (event?.keys[0] == encode.sanitizeHex(TOKEN_CLAIMED)) {
               console.log("event TokenClaimed");
@@ -239,10 +547,16 @@ export default function (config: ApibaraRuntimeConfig & {
               await handleCreatorFeeDistributedEvent(decodedEvent, header, event);
             }
           } catch (error: any) {
-            logger.error(`Error processing event: ${error.message}`);
+            logger.error(`Error processing event (continuing with next event): ${error.message}`);
+            // Don't throw - let indexer continue processing other events
           }
+          }
+        } catch (eventError: any) {
+          logger.error(`Error processing individual event (continuing with next event): ${eventError.message}`);
+          // Don't throw - let indexer continue processing other events
         }
       }
+      console.log(`Completed processing ${processedEvents} events in this block`);
     }
   });
 
@@ -357,24 +671,72 @@ export default function (config: ApibaraRuntimeConfig & {
       try {
         // Insert token deploy record using drizzle
         console.log('Attempting to insert token deploy record...');
+
+        // Use raw SQL for better performance and avoid hanging
         try {
-          await db.insert(tokenDeploy).values({
-            transaction_hash: transactionHash,
-            network: 'starknet-sepolia',
-            block_timestamp: blockTimestamp,
-            memecoin_address: tokenAddress,
-            owner_address: ownerAddress,
-            name: name,
-            symbol: symbol,
-            initial_supply: initialSupply,
-            total_supply: totalSupply,
-            created_at: new Date(),
-            is_launched: false,
+          const rawSqlPromise = db.execute(sql`
+            INSERT INTO token_deploy (
+              transaction_hash,
+              network,
+              block_timestamp,
+              memecoin_address,
+              owner_address,
+              name,
+              symbol,
+              initial_supply,
+              total_supply,
+              created_at,
+              is_launched,
+              nostr_id
+            ) VALUES (
+              ${transactionHash},
+              ${'starknet-sepolia'},
+              ${blockTimestamp},
+              ${tokenAddress},
+              ${ownerAddress},
+              ${name},
+              ${symbol},
+              ${initialSupply},
+              ${totalSupply},
+              ${new Date()},
+              ${false},
+              ${event?.args?.nostr_id || null}
+            )
+            ON CONFLICT (transaction_hash) DO NOTHING
+          `);
+          const rawSqlTimeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Raw SQL insert timed out after 10s')), 10000);
           });
-          console.log('Token Deploy Record Created successfully');
-        } catch (insertError: any) {
-          console.error('Drizzle insert failed:', insertError);
-          throw insertError; // Re-throw to be caught by outer catch
+          await Promise.race([rawSqlPromise, rawSqlTimeoutPromise]);
+          console.log('Token Deploy Record Created successfully via raw SQL');
+        } catch (sqlError: any) {
+          console.error('Raw SQL insert failed:', sqlError);
+
+          // Fallback to drizzle insert
+          try {
+            const drizzlePromise = db.insert(tokenDeploy).values({
+              transaction_hash: transactionHash,
+              network: 'starknet-sepolia',
+              block_timestamp: blockTimestamp,
+              memecoin_address: tokenAddress,
+              owner_address: ownerAddress,
+              name: name,
+              symbol: symbol,
+              initial_supply: initialSupply,
+              total_supply: totalSupply,
+              created_at: new Date(),
+              is_launched: false,
+              nostr_id: event?.args?.nostr_id,
+            });
+            const drizzleTimeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('Drizzle insert timed out after 10s')), 10000);
+            });
+            await Promise.race([drizzlePromise, drizzleTimeoutPromise]);
+            console.log('Token Deploy Record Created successfully via drizzle fallback');
+          } catch (drizzleError: any) {
+            console.error('Drizzle insert failed:', drizzleError);
+            throw drizzleError; // Re-throw to be caught by outer catch
+          }
         }
       } catch (dbError: any) {
         if (dbError.code === '23505') {
@@ -409,13 +771,17 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
+
+      const tokenAddress = event?.args?.token_address || event?.args?.memecoin_address;
       try {
         const existingLaunch = await db.query.tokenLaunch.findFirst({
           where: or(
             eq(tokenLaunch.transaction_hash, transactionHash),
-            eq(tokenLaunch.memecoin_address, event?.args?.memecoin_address)
+            eq(tokenLaunch.memecoin_address, tokenAddress)
           )
         });
+
+        console.log("existingLaunch", existingLaunch);
 
         if (existingLaunch) {
           console.log('Launch already exists, skipping creation:', {
@@ -426,53 +792,123 @@ export default function (config: ApibaraRuntimeConfig & {
         }
 
         const tokenDeployInfo = await db.query.tokenDeploy.findFirst({
-          where: eq(tokenDeploy.memecoin_address, event?.args?.memecoin_address)
+          where: eq(tokenDeploy.memecoin_address, tokenAddress)
         });
+        console.log("tokenDeployInfo", tokenDeployInfo);
 
         if (!tokenDeployInfo) {
           console.log('Token deploy not found for launch:', {
-            memecoin_address: event?.args?.memecoin_address
+            memecoin_address: tokenAddress
           });
-          return;
+          // return;
         }
+
+
+        console.log("Bonding type", event?.args?.bonding_type?.toString() || null);
+
+        console.log("event args CreateLaunch", event?.args);
+
+        const caller = event?.args?.caller || event?.args?.owner;
+
+        const bondingType = event?.args?.bonding_type["_tag"] || event?.args?.bonding_type?.toString() || null;
+        console.log("Bonding type", bondingType);
+
+        // Get total supply from event or token deploy info
+        const totalSupplyFromEvent = event?.args?.total_supply?.toString() || '0';
+        const totalSupplyFromDeploy = tokenDeployInfo?.total_supply || '0';
+        const totalSupply = totalSupplyFromEvent !== '0' ? totalSupplyFromEvent : totalSupplyFromDeploy;
+
+        // Calculate default bonding curve values if not provided in event
+        const bondingCurveDefaults = calculateBondingCurveDefaults(totalSupply);
+
+        // Use event values if available, otherwise use calculated defaults
+        const currentSupplyFromEvent = event?.args?.current_supply?.toString() || '0';
+        const initialPoolSupplyFromEvent = event?.args?.initial_pool_supply_dex?.toString() || '0';
+
+        const currentSupply = currentSupplyFromEvent !== '0'
+          ? formatTokenAmount(currentSupplyFromEvent)
+          : bondingCurveDefaults.userPurchasableSupply;
+
+        const initialPoolSupply = initialPoolSupplyFromEvent !== '0'
+          ? formatTokenAmount(initialPoolSupplyFromEvent)
+          : bondingCurveDefaults.dexPoolSupply;
+
+        // Calculate initial price and market cap
+        const liquidityRaised = formatTokenAmount(event?.args?.liquidity_raised?.toString() || '0');
+        const { price, marketCap } = calculateBondingCurvePrice(
+          event?.args?.liquidity_raised?.toString() || '0',
+          bondingCurveDefaults.dexPoolSupplyBigInt.toString(),
+          totalSupply
+        );
 
         const launchData = {
           transaction_hash: transactionHash,
           network: 'starknet-sepolia',
           block_timestamp: blockTimestamp,
-          memecoin_address: event?.args?.memecoin_address,
-          owner_address: event?.args?.owner,
-          name: tokenDeployInfo.name || null,
-          symbol: tokenDeployInfo.symbol || null,
+          memecoin_address: tokenAddress,
+          owner_address: caller,
+          name: tokenDeployInfo?.name || null,
+          symbol: tokenDeployInfo?.symbol || null,
           quote_token: event?.args?.quote_token,
-          total_supply: formatTokenAmount(event?.args?.total_supply?.toString() || '0'),
+          total_supply: formatTokenAmount(totalSupply),
           threshold_liquidity: formatTokenAmount(event?.args?.threshold_liquidity?.toString() || '0'),
-          current_supply: formatTokenAmount(event?.args?.current_supply?.toString() || '0'),
-          liquidity_raised: formatTokenAmount(event?.args?.liquidity_raised?.toString() || '0'),
+          current_supply: currentSupply,
+          liquidity_raised: liquidityRaised,
           is_liquidity_added: event?.args?.is_liquidity_added || false,
           total_token_holded: formatTokenAmount(event?.args?.total_token_holded?.toString() || '0'),
-          price: formatTokenAmount(event?.args?.price?.toString() || '0'),
-          bonding_type: event?.args?.bonding_type,
-          initial_pool_supply_dex: formatTokenAmount(event?.args?.initial_pool_supply_dex?.toString() || '0'),
-          market_cap: formatTokenAmount(event?.args?.market_cap?.toString() || '0'),
+          price: price,
+          bonding_type: bondingType,
+          initial_pool_supply_dex: initialPoolSupply,
+          market_cap: marketCap,
           token_deploy_tx_hash: event?.args?.token_deploy_tx_hash,
           created_at: new Date(),
         };
 
         console.log('Processed Launch Data:', launchData);
 
-        await db.insert(tokenLaunch).values(launchData);
-        console.log('Token Launch Record Created');
+        // Validate bonding curve parameters
+        const validation = validateBondingCurveParameters(
+          totalSupply,
+          bondingCurveDefaults.userPurchasableSupplyBigInt.toString(),
+          bondingCurveDefaults.dexPoolSupplyBigInt.toString(),
+          event?.args?.liquidity_raised?.toString() || '0'
+        );
 
-        await db.update(tokenDeploy)
-          .set({ is_launched: true })
-          .where(eq(tokenDeploy.transaction_hash, event?.args?.token_deploy_tx_hash));
+        if (!validation.isValid) {
+          console.warn('Bonding curve validation failed:', validation.errors);
+        } else {
+          console.log('Bonding curve validation passed');
+        }
 
-        console.log('Token Deploy Updated to Launched');
+        // Insert token launch with timeout, but don't crash on error/timeout
+        try {
+          const insertPromise = db.insert(tokenLaunch).values(launchData);
+          const insertTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Drizzle insert timed out after 10s')), 10000);
+          });
+          await Promise.race([insertPromise, insertTimeout]);
+          console.log('Token Launch Record Created');
+        } catch (err) {
+          console.error('Error or timeout during token launch insert:', err);
+        }
+
+        // Update token deploy to launched with timeout, but don't crash on error/timeout
+        try {
+          const updatePromise = db.update(tokenDeploy)
+            .set({ is_launched: true })
+            .where(eq(tokenDeploy.transaction_hash, event?.args?.token_deploy_tx_hash));
+          const updateTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Drizzle update timed out after 10s')), 10000);
+          });
+          await Promise.race([updatePromise, updateTimeout]);
+          console.log('Token Deploy Updated to Launched');
+        } catch (err) {
+          console.error('Error or timeout during token deploy update:', err);
+        }
       } catch (dbError: any) {
         if (dbError.code === '23505') {
           console.log('Launch already exists (unique constraint violation):', {
-            memecoin_address: event?.args?.memecoin_address,
+            memecoin_address: tokenAddress,
             transaction_hash: transactionHash
           });
         } else {
@@ -488,6 +924,8 @@ export default function (config: ApibaraRuntimeConfig & {
       console.error("Error in handleCreateLaunch:", error);
     }
   }
+
+
 
   async function handleMetadataEvent(event: any, header: any, rawEvent: any) {
     try {
@@ -565,16 +1003,58 @@ export default function (config: ApibaraRuntimeConfig & {
         const result = await fetch(url);
         const data: any = await result.json();
         console.log('Data:', data);
-        if (data.url) {
-          extractedMetadata.url = data.url;
-          extractedMetadata.nostr_id = data.nostr_id;
-          extractedMetadata.twitter = data.twitter;
-          extractedMetadata.telegram = data.telegram;
-          extractedMetadata.github = data.github;
-          extractedMetadata.website = data.website;
+        if (data) {
+          extractedMetadata.url = data?.url;
+          extractedMetadata.nostr_id = data?.nostr_id;
+          extractedMetadata.twitter = data?.twitter;
+          extractedMetadata.telegram = data?.telegram;
+          extractedMetadata.github = data?.github;
+          extractedMetadata.website = data?.website;
         }
       }
 
+      try {
+
+        const updateTokenLaunchPromise = db.update(tokenLaunch)
+          .set({
+            url: extractedMetadata.url,
+            twitter: extractedMetadata.twitter,
+            telegram: extractedMetadata.telegram,
+            github: extractedMetadata.github,
+            website: extractedMetadata.website,
+          })
+          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+
+        const updateTokenLaunchTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Drizzle update timed out after 10s')), 10000);
+        });
+        await Promise.race([updateTokenLaunchPromise, updateTokenLaunchTimeout]);
+        console.log("Token Launch Record Updated");
+      } catch (error) {
+        console.error('Error or timeout during token launch update:', error);
+
+      }
+
+      try {
+
+        const updateTokenDeployPromise = db.update(tokenDeploy)
+          .set({
+            url: extractedMetadata.url,
+            telegram: extractedMetadata.telegram,
+            github: extractedMetadata.github,
+            website: extractedMetadata.website,
+          })
+          .where(eq(tokenDeploy.memecoin_address, tokenAddress));
+
+        const updateTokenDeployTimeout = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Drizzle update timed out after 10s')), 10000);
+        });
+        await Promise.race([updateTokenDeployPromise, updateTokenDeployTimeout]);
+        console.log("Token Deploy Record Updated");
+      } catch (error) {
+        console.error('Error or timeout during token deploy update:', error);
+
+      }
       try {
         // Check if metadata already exists using raw SQL
         const existingMetadataResult = await db.execute(sql`
@@ -582,6 +1062,7 @@ export default function (config: ApibaraRuntimeConfig & {
           WHERE transaction_hash = ${transactionHash} OR memecoin_address = ${tokenAddress}
           LIMIT 1
         `);
+
 
         if (existingMetadataResult.rows.length > 0) {
           const existingMetadata = existingMetadataResult.rows[0];
@@ -638,13 +1119,13 @@ export default function (config: ApibaraRuntimeConfig & {
               ${'starknet-sepolia'},
               ${blockTimestamp},
               ${tokenAddress},
-              ${event?.args?.url || null},
-              ${event?.args?.nostr_id || null},
-              ${event?.args?.nostr_event_id || null},
-              ${event?.args?.twitter || null},
-              ${event?.args?.telegram || null},
-              ${event?.args?.github || null},
-              ${event?.args?.website || null},
+              ${extractedMetadata.url || null},
+              ${extractedMetadata.nostr_id || null},
+              ${extractedMetadata.nostr_event_id || null},
+              ${extractedMetadata.twitter || null},
+              ${extractedMetadata.telegram || null},
+              ${extractedMetadata.github || null},
+              ${extractedMetadata.website || null},
               ${new Date()}
             )
           `);
@@ -760,15 +1241,33 @@ export default function (config: ApibaraRuntimeConfig & {
         const ownerAddress = event?.args?.caller;
         const tokenAddress = event?.args?.token_address;
 
-        const amount = event?.args?.amount?.toString() || '0';
-        const price = event?.args?.price?.toString() || '0';
+        const amountString = event?.args?.amount?.toString() || '0';
+        const priceString = event?.args?.price?.toString() || '0';
         const protocolFee = event?.args?.protocol_fee?.toString() || '0';
         const lastPrice = event?.args?.last_price?.toString() || '0';
-        const quoteAmount = event?.args?.quote_amount?.toString() || '0';
+        const quoteAmountString = event?.args?.quote_amount?.toString() || '0';
 
+        console.log("amountString", amountString);
+        console.log("quoteAmountString", quoteAmountString);
+        console.log("priceString", priceString);
+
+        // Keep original BigInt values for calculations
+        const amountBigInt = BigInt(amountString);
+        const quoteAmountBigInt = BigInt(quoteAmountString);
+        const priceBigInt = BigInt(priceString);
+
+        // Convert to human-readable strings for display/storage
+        const amount = formatBigIntToFloat(amountBigInt);
+        const quoteAmount = formatBigIntToFloat(quoteAmountBigInt);
+        const price = formatBigIntToFloat(priceBigInt);
         const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
         const timestamp = new Date(Math.max(0, eventTimestampMs));
 
+        console.log("amount", amount);
+        console.log("quoteAmount", quoteAmount);
+        console.log("price", price);
+
+        let newTotalTokenHoldedOverZero = 0;
         try {
           const launchRecord = await db.execute<{
             current_supply: string;
@@ -776,12 +1275,14 @@ export default function (config: ApibaraRuntimeConfig & {
             total_token_holded: string;
             initial_pool_supply_dex: string;
             total_supply: string;
+            threshold_liquidity: string;
           }>(sql`
             SELECT 
               current_supply,
               liquidity_raised,
               total_token_holded,
               initial_pool_supply_dex,
+              threshold_liquidity,
               total_supply
             FROM token_launch 
             WHERE memecoin_address = ${tokenAddress}
@@ -793,14 +1294,23 @@ export default function (config: ApibaraRuntimeConfig & {
           if (!launchRecord || launchRecord.rows.length === 0) {
             console.log('Launch record not found for token:', tokenAddress);
 
+            // Get total supply from token deploy if available
+            const tokenDeployInfo = await db.query.tokenDeploy.findFirst({
+              where: eq(tokenDeploy.memecoin_address, tokenAddress)
+            });
+
+            const totalSupply = tokenDeployInfo?.total_supply || '1000000000000000000000000'; // Default 1M tokens
+            const bondingCurveDefaults = calculateBondingCurveDefaults(totalSupply);
+
             const defaultLaunch = {
               memecoin_address: tokenAddress,
               owner_address: ownerAddress,
-              current_supply: '0',
+              current_supply: bondingCurveDefaults.userPurchasableSupply,
               liquidity_raised: '0',
               total_token_holded: '0',
-              initial_pool_supply_dex: '0',
-              total_supply: '0',
+              initial_pool_supply_dex: bondingCurveDefaults.dexPoolSupply,
+              threshold_liquidity: '0',
+              total_supply: formatTokenAmount(totalSupply),
               price: '0',
               market_cap: '0',
               network: 'starknet-sepolia',
@@ -859,6 +1369,7 @@ export default function (config: ApibaraRuntimeConfig & {
                 total_token_holded: string;
                 initial_pool_supply_dex: string;
                 total_supply: string;
+                threshold_liquidity: string;
               };
             } catch (error) {
               console.error('Failed to create default launch record:', {
@@ -875,32 +1386,53 @@ export default function (config: ApibaraRuntimeConfig & {
             return;
           }
 
-          const newSupply = (BigInt(currentLaunch.current_supply || '0') - BigInt(amount)).toString();
-          const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') + BigInt(quoteAmount)).toString();
-          const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') + BigInt(amount)).toString();
+          // Work with human-readable numbers only (simplified approach)
+          const currentSupply = Number(currentLaunch.current_supply || '0');
+          const liquidityRaised = Number(currentLaunch.liquidity_raised || '0');
+          const totalTokenHolded = Number(currentLaunch.total_token_holded || '0');
+          const initPoolSupply = Number(currentLaunch.initial_pool_supply_dex || '0');
+          const totalSupply = Number(currentLaunch.total_supply || '0');
+          const thresholdLiquidity = Number(currentLaunch.threshold_liquidity || '0');
 
-          const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-          const priceBuy = initPoolSupply > BigInt(0)
-            ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
-            : '0';
+          // Calculate new values (following old indexer logic)
+          let newSupply = currentSupply - Number(amount);
+          let newLiquidityRaised = liquidityRaised + Number(quoteAmount);
+          const newTotalTokenHolded = totalTokenHolded + Number(amount);
 
-          const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceBuy)).toString();
+          newTotalTokenHoldedOverZero = newTotalTokenHolded + Number(amount);
+          // Handle negative supply (following old indexer pattern)
+          if (newSupply < 0) {
+            console.warn(`Buy amount ${amount} would exceed remaining supply ${currentSupply}. Setting supply to 0.`);
+            newSupply = 0;
+          }
+
+          // Handle threshold liquidity (following old indexer pattern)
+          if (newLiquidityRaised > thresholdLiquidity && thresholdLiquidity > 0) {
+            console.log(`Liquidity raised ${newLiquidityRaised} exceeds threshold ${thresholdLiquidity}. Capping at threshold.`);
+            newLiquidityRaised = thresholdLiquidity;
+          }
+
+          // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
+          const priceBuy = initPoolSupply > 0 ? (newLiquidityRaised / initPoolSupply).toString() : '0';
+
+          // Calculate market cap: total_supply * price (following old indexer pattern)
+          const marketCap = (totalSupply * Number(priceBuy)).toString();
+
+          // Fix: Ensure both operands are BigInt for arithmetic, not string
+
 
           console.log("Calculated values for launch update:", {
-            newSupply,
-            newLiquidityRaised,
-            newTotalTokenHolded,
-            priceBuy,
-            marketCap
+            newSupply: newSupply,
+            newLiquidityRaised: newLiquidityRaised.toString(),
+            newTotalTokenHolded: newTotalTokenHoldedOverZero,
+            priceBuy: priceBuy,
+            marketCap: marketCap
           });
 
-          // Don't block here, run the update in the background with a 10s timeout
-          (async () => {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 10_000); // 10 seconds
-
-            try {
-              const updateResult = await db.execute(sql`
+          // Update launch record with non-blocking approach
+          console.log("Updating launch record");
+          const updateResult = await nonBlockingDbOperation(
+            () => db.execute(sql`
                 UPDATE token_launch 
                 SET 
                   current_supply = ${newSupply},
@@ -909,58 +1441,18 @@ export default function (config: ApibaraRuntimeConfig & {
                   price = ${priceBuy},
                   market_cap = ${marketCap}
                 WHERE memecoin_address = ${tokenAddress}
-                RETURNING *
-              `);
+              `),
+            'update_launch_record',
+            2000
+          );
+          
+          if (updateResult) {
+            console.log("Update result", updateResult);
+            console.log('Launch Record Updated');
+          } else {
+            console.log('Launch record update failed or timed out - continuing');
+          }
 
-              if (!updateResult || updateResult.rows.length === 0) {
-                console.error('Update operation returned no result:', {
-                  tokenAddress,
-                  newSupply,
-                  newLiquidityRaised,
-                  newTotalTokenHolded,
-                  priceBuy,
-                  marketCap
-                });
-              } else {
-                console.log('Launch Record Updated');
-              }
-            } catch (updateError: any) {
-
-              db.execute(sql`
-                UPDATE token_launch 
-                SET 
-                  current_supply = ${newSupply},
-                  liquidity_raised = ${newLiquidityRaised},
-                  total_token_holded = ${newTotalTokenHolded},
-                  price = ${priceBuy},
-                  market_cap = ${marketCap}
-                WHERE memecoin_address = ${tokenAddress}
-                RETURNING *
-              `);
-              if (updateError.name === 'AbortError') {
-                console.error('Update launch record timed out after 10s:', {
-                  tokenAddress,
-                  newSupply,
-                  newLiquidityRaised,
-                  newTotalTokenHolded,
-                  priceBuy,
-                  marketCap
-                });
-              } else {
-                console.error('Failed to update launch record:', {
-                  error: updateError,
-                  tokenAddress,
-                  newSupply,
-                  newLiquidityRaised,
-                  newTotalTokenHolded,
-                  priceBuy,
-                  marketCap
-                });
-              }
-            } finally {
-              clearTimeout(timeout);
-            }
-          })();
         } catch (launchError: any) {
           console.error('Error fetching/updating launch record:', {
             error: launchError,
@@ -972,6 +1464,7 @@ export default function (config: ApibaraRuntimeConfig & {
           return;
         }
 
+        // Find existing shareholder (following old indexer pattern)
         const existingShareholder = await db.query.sharesTokenUser.findFirst({
           where: and(
             eq(sharesTokenUser.owner, ownerAddress),
@@ -981,141 +1474,83 @@ export default function (config: ApibaraRuntimeConfig & {
 
         console.log("existingShareholder", existingShareholder);
 
-        const newAmountOwned = existingShareholder ? (BigInt(existingShareholder.amount_owned || '0') + BigInt(amount)).toString() : amount;
-        const newAmountBuy = existingShareholder ? (BigInt(existingShareholder.amount_buy || '0') + BigInt(amount)).toString() : amount;
-        const newTotalPaid = existingShareholder ? (BigInt(existingShareholder.total_paid || '0') + BigInt(quoteAmount)).toString() : quoteAmount;
+        // Calculate new amount owned (following old indexer logic)
+        let newAmountOwned = existingShareholder
+          ? Number(existingShareholder.amount_owned || '0') + Number(amount)
+          : Number(amount);
 
+        // Handle case where amount owned exceeds total token held (following old indexer pattern)
+        if (newAmountOwned > newTotalTokenHoldedOverZero && newTotalTokenHoldedOverZero > 0) {
+          console.warn(`Amount owned (${newAmountOwned}) exceeds total token held (${newTotalTokenHoldedOverZero}). Adjusting amount owned to total token held.`);
+          newAmountOwned = newTotalTokenHoldedOverZero;
+        }
 
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 10_000); // 10 seconds
-
-
-          if (existingShareholder) {
-
-
-            try {
-
-              console.log("existingShareholder found to update");
-
-                const executePromise =  db.execute(sql`
-                UPDATE shares_token_user 
-                SET 
-                  amount_owned = ${newAmountOwned},
-                  amount_buy = ${newAmountBuy},
-                  total_paid = ${newTotalPaid},
-                  is_claimable = true
-                WHERE owner = ${ownerAddress} AND token_address = ${tokenAddress}
-              `);
-
-              console.log("Shareholder Record Updated");
-
-              const updatePromise = db.update(sharesTokenUser)
-                .set({
-                  amount_owned: newAmountOwned,
-                  amount_buy: newAmountBuy,
-                  total_paid: newTotalPaid,
-                  is_claimable: true,
-                })
-                .where(and(
-                  eq(sharesTokenUser.owner, ownerAddress),
-                  eq(sharesTokenUser.token_address, tokenAddress)
-                ));
-
-              // Enforce a 10s timeout: if exceeded, throw and crash
-              const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Update shareholder timed out after 10s')), 10_000)
-              );
-
-              // If timeout occurs, this will throw and crash the process
-              await Promise.race([updatePromise, timeoutPromise]);
-            } catch (error: any) {
-              console.error('Failed to update shareholder:', {
-                error: error,
-                code: error.code,
-                message: error.message,
-                detail: error.detail
-              });
-
-            } finally {
-              clearTimeout(timeout);
-            }
-          } else {
-
-            await db.insert(sharesTokenUser)
-              .values({
-                id: randomUUID(),
-                owner: ownerAddress,
-                token_address: tokenAddress,
-                amount_owned: newAmountOwned,
-                amount_buy: newAmountBuy,
-                total_paid: newTotalPaid,
-                is_claimable: true,
-              })
-              .onConflictDoUpdate({
-                target: [sharesTokenUser.owner, sharesTokenUser.token_address],
-                set: {
-                  amount_owned: newAmountOwned,
-                  amount_buy: newAmountBuy,
-                  total_paid: newTotalPaid,
-                  is_claimable: true,
-                },
-              });
-            clearTimeout(timeout);
-          }
-        } catch (error: any) {
-          if (error.code === '23505') {
-            console.log('Shareholder already exists (unique constraint violation):', {
+        // Update or create shareholder record with non-blocking approach
+        console.log("update or insert shareholder record");
+        const shareholderResult = await nonBlockingDbOperation(
+          () => db.insert(sharesTokenUser)
+            .values({
               owner: ownerAddress,
-              token_address: tokenAddress
-            });
-          } else {
-            console.error('Database error in handleBuyTokenEvent:', {
-              error: error,
-              code: error.code,
-              message: error.message,
-              detail: error.detail
-            });
-          }
+              token_address: tokenAddress,
+              amount_owned: newAmountOwned.toString(),
+              amount_buy: amount, // Track individual buy amount
+              total_paid: quoteAmount, // Track total paid in quote token
+              is_claimable: false,
+            })
+            .onConflictDoUpdate({
+              target: [sharesTokenUser.owner, sharesTokenUser.token_address], // Use unique index for conflict resolution
+              set: {
+                amount_owned: newAmountOwned.toString(),
+                amount_buy: amount,
+                total_paid: quoteAmount,
+                is_claimable: false,
+              },
+            }),
+          'update_shareholder_record',
+          2000
+        );
+        
+        if (shareholderResult) {
+          console.log("Shareholder Record Updated/Created");
+        } else {
+          console.log('Shareholder record update failed or timed out - continuing');
         }
         console.log('Shareholder Record Updated');
 
-        // Use raw SQL to avoid schema mismatch issues
-        await db.execute(sql`
-          INSERT INTO token_transactions (
-            transfer_id,
-            network,
-            block_timestamp,
-            transaction_hash,
-            memecoin_address,
-            owner_address,
-            last_price,
-            quote_amount,
-            price,
-            amount,
-            protocol_fee,
-            time_stamp,
-            transaction_type,
-            created_at
-          ) VALUES (
-            ${transferId},
-            ${'starknet-sepolia'},
-            ${blockTimestamp},
-            ${transactionHash},
-            ${tokenAddress},
-            ${ownerAddress},
-            ${lastPrice},
-            ${quoteAmount},
-            ${price},
-            ${amount},
-            ${protocolFee},
-            ${timestamp},
-            ${'buy'},
-            ${new Date()}
-          )
-        `);
+        // Use upsert pattern to prevent duplicates with non-blocking approach
+        console.log("insert token transaction");
+        const transactionResult = await nonBlockingDbOperation(
+          () => db.insert(tokenTransactions)
+            .values({
+              transfer_id: transferId,
+              network: 'starknet-sepolia',
+              block_timestamp: blockTimestamp,
+              transaction_hash: transactionHash,
+              memecoin_address: tokenAddress,
+              owner_address: ownerAddress,
+              last_price: lastPrice,
+              quote_amount: quoteAmount,
+              price: price,
+              amount: amount,
+              protocol_fee: protocolFee,
+              time_stamp: timestamp,
+              transaction_type: 'buy',
+              created_at: new Date(),
+            })
+            .onConflictDoNothing(), // Prevent duplicates
+          'insert_transaction_record',
+          2000
+        );
+        
+        if (transactionResult) {
+          console.log('Transaction Record Created');
+        } else {
+          console.log('Transaction record insert failed or timed out - continuing');
+        }
 
-        console.log('Transaction Record Created');
+        // Generate candlesticks asynchronously (non-blocking)
+        generateCandlesticksAsync(tokenAddress);
+
       } catch (dbError: any) {
         if (dbError.code === '23505') {
           console.log('Transaction already exists (unique constraint violation):', {
@@ -1123,13 +1558,13 @@ export default function (config: ApibaraRuntimeConfig & {
             transaction_hash: transactionHash
           });
         } else {
-          console.error('Database error in handleBuyTokenEvent:', {
-            error: dbError,
-            code: dbError.code,
-            message: dbError.message,
-            detail: dbError.detail
+          console.error('Database error in handleBuyTokenEvent (continuing with indexer):', {
+            error: dbError.message,
+            transfer_id: transferId,
+            transaction_hash: transactionHash
           });
         }
+        // Don't throw - let indexer continue processing other events
       }
     } catch (error) {
       console.error("Error in handleBuyTokenEvent:", error);
@@ -1154,11 +1589,21 @@ export default function (config: ApibaraRuntimeConfig & {
       const ownerAddress = event?.args?.caller;
       const tokenAddress = event?.args?.key_user;
 
-      const amount = event?.args?.amount?.toString() || '0';
-      const price = event?.args?.price?.toString() || '0';
+      const quoteAmountString = event?.args?.amount?.toString() || '0';
+      const priceString = event?.args?.price?.toString() || '0';
       const protocolFee = event?.args?.protocol_fee?.toString() || '0';
       const lastPrice = event?.args?.last_price?.toString() || '0';
-      const quoteAmount = event?.args?.coin_amount?.toString() || '0';
+      const amountString = event?.args?.coin_amount?.toString() || '0';
+
+      // Keep original BigInt values for calculations
+      const amountBigInt = BigInt(amountString);
+      const quoteAmountBigInt = BigInt(quoteAmountString);
+      const priceBigInt = BigInt(priceString);
+
+      // Convert to human-readable strings for display/storage
+      const amount = formatBigIntToFloat(amountBigInt);
+      const quoteAmount = formatBigIntToFloat(quoteAmountBigInt);
+      const price = formatBigIntToFloat(priceBigInt);
 
       const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
       const timestamp = new Date(Math.max(0, eventTimestampMs));
@@ -1178,16 +1623,23 @@ export default function (config: ApibaraRuntimeConfig & {
         const currentLaunch = launchRecord[0];
 
         console.log("currentLaunch", currentLaunch);
-        const newSupply = (BigInt(currentLaunch.current_supply || '0') + BigInt(amount)).toString();
-        const newLiquidityRaised = (BigInt(currentLaunch.liquidity_raised || '0') - BigInt(quoteAmount)).toString();
-        const newTotalTokenHolded = (BigInt(currentLaunch.total_token_holded || '0') - BigInt(amount)).toString();
 
-        const initPoolSupply = BigInt(currentLaunch.initial_pool_supply_dex || '0');
-        const priceSell = initPoolSupply > BigInt(0)
-          ? (BigInt(newLiquidityRaised) / initPoolSupply).toString()
-          : '0';
+        // Work with human-readable numbers only (simplified approach)
+        const currentSupply = Number(currentLaunch.current_supply || '0');
+        const liquidityRaised = Number(currentLaunch.liquidity_raised || '0');
+        const totalTokenHolded = Number(currentLaunch.total_token_holded || '0');
+        const initPoolSupply = Number(currentLaunch.initial_pool_supply_dex || '0');
+        const totalSupply = Number(currentLaunch.total_supply || '0');
 
-        const marketCap = (BigInt(currentLaunch.total_supply || '0') * BigInt(priceSell)).toString();
+        const newSupply = currentSupply + Number(amount);
+        const newLiquidityRaised = Math.max(0, liquidityRaised - Number(quoteAmount)); // Ensure non-negative
+        const newTotalTokenHolded = Math.max(0, totalTokenHolded - Number(amount)); // Ensure non-negative
+
+        // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
+        const priceSell = initPoolSupply > 0 ? (newLiquidityRaised / initPoolSupply).toString() : '0';
+
+        // Calculate market cap: total_supply * price (following old indexer pattern)
+        const marketCap = (totalSupply * Number(priceSell)).toString();
 
         console.log('Calculated Values:', {
           newSupply,
@@ -1200,27 +1652,26 @@ export default function (config: ApibaraRuntimeConfig & {
 
         try {
           const updatePromise = db.update(tokenLaunch)
-          .set({
-            current_supply: newSupply,
-            liquidity_raised: newLiquidityRaised,
-            total_token_holded: newTotalTokenHolded,
-            price: priceSell,
-            market_cap: marketCap,
-          })
-          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
-
-          const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Update launch record timed out after 10s')), 10_000)
-          );
-
-          await Promise.race([updatePromise, timeoutPromise]);
-        } catch (error: any) {
-          console.error('Failed to update launch record:', {
-            error: error,
-            code: error.code,
-            message: error.message,
-            detail: error.detail
+            .set({
+              current_supply: newSupply.toString(),
+              liquidity_raised: newLiquidityRaised.toString(),
+              total_token_holded: newTotalTokenHolded.toString(),
+              price: priceSell,
+              market_cap: marketCap,
+            })
+            .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+          
+          const updateTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Drizzle update timed out after 5s")), 5000);
           });
+          await Promise.race([updatePromise, updateTimeout]);
+          console.log('Launch Record Updated');
+        } catch (error: any) {
+          console.error('Failed to update launch record (continuing with indexer):', {
+            error: error.message,
+            tokenAddress
+          });
+          // Don't throw - let indexer continue processing other events
         }
 
 
@@ -1234,92 +1685,101 @@ export default function (config: ApibaraRuntimeConfig & {
         });
         console.log("existingShareholder", existingShareholder);
 
-   
+
+        // Update shareholder record for sell with timeout handling - don't block indexer
         try {
           if (existingShareholder) {
-            const updatedAmountOwned = (BigInt(existingShareholder.amount_owned || '0') - BigInt(amount)).toString();
-            const updatedAmountSell = (BigInt(existingShareholder.amount_sell || '0') + BigInt(amount)).toString();
-            const updatedTotalPaid = (BigInt(existingShareholder.total_paid || '0') - BigInt(quoteAmount)).toString();
-  
-            const updatePromise = await db.update(sharesTokenUser)
+            // Calculate new amount owned after sell - subtract the amount being sold
+            const updatedAmountOwned = Math.max(0, Number(existingShareholder.amount_owned || '0') - Number(amount));
+
+            const updatePromise = db.update(sharesTokenUser)
               .set({
-                amount_owned: updatedAmountOwned,
-                amount_sell: updatedAmountSell,
-                total_paid: updatedTotalPaid,
-                is_claimable: updatedAmountOwned !== '0',
+                amount_owned: updatedAmountOwned.toString(),
+                amount_sell: amount, // Track individual sell amount
+                total_paid: quoteAmount, // Track amount received in quote token
+                is_claimable: updatedAmountOwned > 0,
               })
               .where(and(
                 eq(sharesTokenUser.owner, ownerAddress),
                 eq(sharesTokenUser.token_address, tokenAddress)
               ));
-
-            const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('Update shareholder timed out after 10s')), 10_000)
-            );
-
-            await Promise.race([updatePromise, timeoutPromise]);
-  
-            console.log('Shareholder Record Updated');
+            
+            const updateTimeout = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error("Drizzle update timed out after 5s")), 5000);
+            });
+            await Promise.race([updatePromise, updateTimeout]);
+            console.log('Shareholder Record Updated for Sell');
           } else {
-            console.log("Shareholder not found");
-            await db.insert(sharesTokenUser).values({
-              id: randomUUID(),
+            console.log("Shareholder not found for sell - this shouldn't happen");
+            // If no existing shareholder, this might be an error case
+            // But we'll still create a record with 0 amount owned
+            const insertPromise = db.insert(sharesTokenUser).values({
               owner: ownerAddress,
               token_address: tokenAddress,
-              amount_owned: amount,
+              amount_owned: '0', // No tokens owned after sell
               amount_sell: amount,
               total_paid: quoteAmount,
               is_claimable: false,
             });
-            console.log("Shareholder Record Created");
+            
+            const insertTimeout = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error("Drizzle insert timed out after 5s")), 5000);
+            });
+            await Promise.race([insertPromise, insertTimeout]);
+            console.log("Shareholder Record Created for Sell (unexpected case)");
           }
-  
         } catch (error: any) {
-          console.error('Failed to update shareholder:', {
-            error: error,
-            code: error.code,
-            message: error.message,
-            detail: error.detail
+          console.error('Failed to update shareholder for sell (continuing with indexer):', {
+            error: error.message,
+            ownerAddress,
+            tokenAddress
           });
+          // Don't throw - let indexer continue processing other events
         }
-        // Use raw SQL to avoid schema mismatch issues
-        await db.execute(sql`
-          INSERT INTO token_transactions (
-            transfer_id,
-            network,
-            block_timestamp,
-            transaction_hash,
-            memecoin_address,
-            owner_address,
-            last_price,
-            quote_amount,
-            price,
-            amount,
-            protocol_fee,
-            time_stamp,
-            transaction_type,
-            created_at
-          ) VALUES (
-            ${transferId},
-            ${'starknet-sepolia'},
-            ${blockTimestamp},
-            ${transactionHash},
-            ${tokenAddress},
-            ${ownerAddress},
-            ${lastPrice},
-            ${quoteAmount},
-            ${price},
-            ${amount},
-            ${protocolFee},
-            ${timestamp},
-            ${'sell'},
-            ${new Date()}
-          )
-        `);
+        // Use upsert pattern to prevent duplicates with timeout handling - don't block indexer
+        try {
+          const insertPromise = db.insert(tokenTransactions)
+            .values({
+              transfer_id: transferId,
+              network: 'starknet-sepolia',
+              block_timestamp: blockTimestamp,
+              transaction_hash: transactionHash,
+              memecoin_address: tokenAddress,
+              owner_address: ownerAddress,
+              last_price: lastPrice,
+              quote_amount: quoteAmount,
+              price: price,
+              amount: amount,
+              protocol_fee: protocolFee,
+              time_stamp: timestamp,
+              transaction_type: 'sell',
+              created_at: new Date(),
+            })
+            .onConflictDoNothing(); // Prevent duplicates
 
-        console.log('Transaction Record Created');
-      } catch (dbError) {
-        console.error('Database error in handleSellTokenEvent:', dbError);
+          const insertTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Drizzle insert timed out after 5s")), 5000);
+          });
+          await Promise.race([insertPromise, insertTimeout]);
+          console.log('Transaction Record Created');
+        } catch (error: any) {
+          console.error('Failed to insert sell transaction (continuing with indexer):', {
+            error: error.message,
+            transferId,
+            transactionHash
+          });
+          // Don't throw - let indexer continue processing other events
+        }
+
+        // Generate candlesticks asynchronously (non-blocking)
+        generateCandlesticksAsync(tokenAddress);
+
+      } catch (dbError: any) {
+        console.error('Database error in handleSellTokenEvent (continuing with indexer):', {
+          error: dbError.message,
+          tokenAddress
+        });
+        // Don't throw - let indexer continue processing other events
       }
     } catch (error) {
       console.error("Error in handleSellTokenEvent:", error);
@@ -1341,7 +1801,13 @@ export default function (config: ApibaraRuntimeConfig & {
 
       const ownerAddress = event?.args?.caller;
       const tokenAddress = event?.args?.token_address;
-      const amount = event?.args?.amount?.toString() || '0';
+      const amountString = event?.args?.amount?.toString() || '0';
+
+      // Keep original BigInt value for calculations
+      const amountBigInt = BigInt(amountString);
+
+      // Convert to human-readable string for display/storage
+      const amount = formatBigIntToFloat(amountBigInt);
 
       try {
         const existingShareholder = await db.query.sharesTokenUser.findFirst({
@@ -1352,11 +1818,20 @@ export default function (config: ApibaraRuntimeConfig & {
         });
 
         if (existingShareholder) {
-          const updatedAmountOwned = (BigInt(existingShareholder.amount_owned || '0') - BigInt(amount)).toString();
+          // Use BigInt arithmetic for calculations
+          const existingAmountOwnedBigInt = BigInt(existingShareholder.amount_owned || '0');
+          const existingAmountClaimedBigInt = BigInt(existingShareholder.amount_claimed || '0');
+          const updatedAmountOwnedBigInt = existingAmountOwnedBigInt - amountBigInt;
+          const updatedAmountClaimedBigInt = existingAmountClaimedBigInt + amountBigInt;
+
+          // Convert to human-readable strings for storage
+          const updatedAmountOwned = formatBigIntToFloat(updatedAmountOwnedBigInt);
+          const updatedAmountClaimed = formatBigIntToFloat(updatedAmountClaimedBigInt);
 
           await db.update(sharesTokenUser)
             .set({
               amount_owned: updatedAmountOwned,
+              amount_claimed: updatedAmountClaimed,
               is_claimable: updatedAmountOwned !== '0',
             })
             .where(and(
@@ -1365,34 +1840,35 @@ export default function (config: ApibaraRuntimeConfig & {
             ));
 
           console.log('Shareholder Record Updated for Claim');
+        } else {
+          console.log("Shareholder not found for claim - this shouldn't happen");
         }
 
         const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
-        // Use raw SQL to avoid schema mismatch issues
-        await db.execute(sql`
-          INSERT INTO token_transactions (
-            transfer_id,
-            network,
-            block_timestamp,
-            transaction_hash,
-            memecoin_address,
-            owner_address,
-            amount,
-            transaction_type,
-            created_at
-          ) VALUES (
-            ${transferId},
-            ${'starknet-sepolia'},
-            ${blockTimestamp},
-            ${transactionHash},
-            ${tokenAddress},
-            ${ownerAddress},
-            ${amount},
-            ${'claim'},
-            ${new Date()}
-          )
-        `);
+        // Use upsert pattern to prevent duplicates (following nestjs indexer pattern)
+        try {
+          await db.insert(tokenTransactions)
+            .values({
+              transfer_id: transferId,
+              network: 'starknet-sepolia',
+              block_timestamp: blockTimestamp,
+              transaction_hash: transactionHash,
+              memecoin_address: tokenAddress,
+              owner_address: ownerAddress,
+              amount: amount,
+              transaction_type: 'claim',
+              created_at: new Date(),
+            })
+            .onConflictDoNothing(); // Prevent duplicates
+        } catch (error: any) {
+          console.error('Failed to insert claim transaction:', {
+            error: error,
+            code: error.code,
+            message: error.message,
+            detail: error.detail
+          });
+        }
 
         console.log('Claim Transaction Record Created');
       } catch (dbError: any) {
@@ -1451,15 +1927,26 @@ export default function (config: ApibaraRuntimeConfig & {
 
         const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
-        await db.insert(tokenTransactions).values({
-          transfer_id: transferId,
-          network: 'starknet-sepolia',
-          block_timestamp: blockTimestamp,
-          transaction_hash: transactionHash,
-          memecoin_address: tokenAddress,
-          transaction_type: 'liquidity_created',
-          created_at: new Date(),
-        });
+        try {
+          await db.insert(tokenTransactions)
+            .values({
+              transfer_id: transferId,
+              network: 'starknet-sepolia',
+              block_timestamp: blockTimestamp,
+              transaction_hash: transactionHash,
+              memecoin_address: tokenAddress,
+              transaction_type: 'liquidity_created',
+              created_at: new Date(),
+            })
+            .onConflictDoNothing(); // Prevent duplicates
+        } catch (error: any) {
+          console.error('Failed to insert liquidity created transaction:', {
+            error: error,
+            code: error.code,
+            message: error.message,
+            detail: error.detail
+          });
+        }
 
         console.log('Liquidity Created Transaction Record Created');
       } catch (dbError: any) {
@@ -1514,15 +2001,26 @@ export default function (config: ApibaraRuntimeConfig & {
 
         const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
-        await db.insert(tokenTransactions).values({
-          transfer_id: transferId,
-          network: 'starknet-sepolia',
-          block_timestamp: blockTimestamp,
-          transaction_hash: transactionHash,
-          memecoin_address: tokenAddress,
-          transaction_type: 'liquidity_can_be_added',
-          created_at: new Date(),
-        });
+        try {
+          await db.insert(tokenTransactions)
+            .values({
+              transfer_id: transferId,
+              network: 'starknet-sepolia',
+              block_timestamp: blockTimestamp,
+              transaction_hash: transactionHash,
+              memecoin_address: tokenAddress,
+              transaction_type: 'liquidity_can_be_added',
+              created_at: new Date(),
+            })
+            .onConflictDoNothing(); // Prevent duplicates
+        } catch (error: any) {
+          console.error('Failed to insert liquidity can be added transaction:', {
+            error: error,
+            code: error.code,
+            message: error.message,
+            detail: error.detail
+          });
+        }
 
         console.log('Liquidity Can Be Added Transaction Record Created');
       } catch (dbError: any) {
@@ -1564,15 +2062,26 @@ export default function (config: ApibaraRuntimeConfig & {
       try {
         const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
-        await db.insert(tokenTransactions).values({
-          transfer_id: transferId,
-          network: 'starknet-sepolia',
-          block_timestamp: blockTimestamp,
-          transaction_hash: transactionHash,
-          memecoin_address: tokenAddress,
-          transaction_type: 'creator_fee_distributed',
-          created_at: new Date(),
-        });
+        try {
+          await db.insert(tokenTransactions)
+            .values({
+              transfer_id: transferId,
+              network: 'starknet-sepolia',
+              block_timestamp: blockTimestamp,
+              transaction_hash: transactionHash,
+              memecoin_address: tokenAddress,
+              transaction_type: 'creator_fee_distributed',
+              created_at: new Date(),
+            })
+            .onConflictDoNothing(); // Prevent duplicates
+        } catch (error: any) {
+          console.error('Failed to insert creator fee distributed transaction:', {
+            error: error,
+            code: error.code,
+            message: error.message,
+            detail: error.detail
+          });
+        }
 
         console.log('Creator Fee Distributed Transaction Record Created');
       } catch (dbError: any) {

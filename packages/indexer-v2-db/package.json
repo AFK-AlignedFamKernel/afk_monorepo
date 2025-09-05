@@ -24,10 +24,10 @@
   },
   "dependencies": {
     "dotenv": "^16.4.5",
-    "drizzle-orm": "^0.40.1"
+    "drizzle-orm": "^0.44.5"
   },
   "peerDependencies": {
-    "drizzle-kit": "^0.29.0",
+    "drizzle-kit": "^0.31.4",
     "pg": "^8.13.1"
   },
   "devDependencies": {

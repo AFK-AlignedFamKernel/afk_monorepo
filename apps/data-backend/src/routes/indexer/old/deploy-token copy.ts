@@ -1,10 +1,8 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
 import prisma from 'indexer-prisma';
-import { HTTPStatus } from '../../utils/http';
-import { isValidStarknetAddress } from '../../utils/starknet';
+import { HTTPStatus } from '../../../utils/http';
+import { isValidStarknetAddress } from '../../../utils/starknet';
 
-import {queries} from 'indexer-v2-db';
-const { getAllLaunchpads, getLaunchpadByAddress, getAllTokens, getSharesTokenUserByMemecoinAddress, getTransactionsByMemecoinAddress, getTokenFullInfo } = queries;
 interface DeployTokenParams {
   token: string;
   owner_address?: string;
@@ -13,9 +11,38 @@ interface DeployTokenParams {
 async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions) {
   fastify.get('/deploy', async (request, reply) => {
     try {
-      const deploys = await getAllTokens({
-        offset: 0,
-        limit: 20,
+      const deploys = await prisma.token_deploy.findMany({
+        select: {
+          memecoin_address: true,
+          owner_address: true,
+          name: true,
+          symbol: true,
+          total_supply: true,
+          network: true,
+          created_at: true,
+          is_launched: true,
+          block_timestamp: true,
+          url: true,
+          nostr_id: true,
+          description: true,
+          // token_metadata:{
+          //   select:{
+          //     url:true,
+          //   }
+          // },
+
+        },
+        // orderBy: {
+        //   block_timestamp: 'desc'
+        // },
+        // include: {
+        //   token_metadata: {
+        //     select: {
+        //       url: true,
+        //       nostr_id: true
+        //     }
+        //   }
+        // }
       });
 
       reply.status(HTTPStatus.OK).send({
@@ -40,10 +67,22 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
         return;
       }
 
-      const deploys = await getTokenFullInfo(token);
-
-      reply.status(HTTPStatus.OK).send({
-        data: deploys,
+      const deploys = await prisma.token_deploy.findMany({
+        where: { memecoin_address: token },
+        select: {
+          memecoin_address: true,
+          owner_address: true,
+          name: true,
+          symbol: true,
+          total_supply: true,
+          network: true,
+          created_at: true,
+          is_launched: true,
+          block_timestamp: true,
+          url: true,
+          nostr_id: true,
+          description: true,
+        },
       });
 
       reply.status(HTTPStatus.OK).send({
@@ -68,31 +107,23 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
         return;
       }
 
-
-      const deploys = await getAllTokens({
-        offset: 0,
-        limit: 20,
+      const deploys = await prisma.token_deploy.findMany({
+        where: { owner_address: owner_address },
+        select: {
+          memecoin_address: true,
+          owner_address: true,
+          name: true,
+          symbol: true,
+          total_supply: true,
+          network: true,
+          created_at: true,
+          is_launched: true,
+          block_timestamp: true,
+          url: true,
+          nostr_id: true,
+          description: true,
+        },
       });
-
-      console.log("deploys", deploys);
-
-      // const deploys = await prisma.token_deploy.findMany({
-      //   where: { owner_address: owner_address },
-      //   select: {
-      //     memecoin_address: true,
-      //     owner_address: true,
-      //     name: true,
-      //     symbol: true,
-      //     total_supply: true,
-      //     network: true,
-      //     created_at: true,
-      //     is_launched: true,
-      //     block_timestamp: true,
-      //     url: true,
-      //     nostr_id: true,
-      //     description: true,
-      //   },
-      // });
 
       reply.status(HTTPStatus.OK).send({
         data: deploys,
