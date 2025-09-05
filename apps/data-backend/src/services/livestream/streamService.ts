@@ -122,68 +122,39 @@ export async function setupStream(data: StreamSetup) {
       "-analyzeduration", "50M",      // Much larger analysis duration
       "-probesize", "100M",           // Much larger probe size
       "-f", "webm",                   // Force WebM format
-      "-thread_queue_size", "1024",   // Large thread queue for buffering
-      "-reconnect", "1",              // Enable reconnection
-      "-reconnect_streamed", "1",     // Reconnect streamed input
-      "-reconnect_delay_max", "2",    // Max delay for reconnection
-      "-live", "1"                    // Enable live input mode
+      "-thread_queue_size", "1024"    // Large thread queue for buffering
     ])
     .format("hls")
     .videoCodec("libx264")
     .audioCodec("aac")
     .outputOptions([
-      // === VIDEO QUALITY SETTINGS (Industry Standard) ===
-      "-preset", "veryfast",           // Balance between speed and quality
-      "-crf", "23",                    // High quality (18-28 range, 23 is excellent)
-      "-maxrate", "4000k",             // Maximum bitrate for 1080p
-      "-bufsize", "8000k",             // Buffer size (2x maxrate for stability)
+      // === BASIC VIDEO SETTINGS ===
+      "-preset", "veryfast",           // Fast encoding
+      "-crf", "23",                    // Good quality
       "-pix_fmt", "yuv420p",           // Standard pixel format
-      "-profile:v", "high",            // High profile for better quality
-      "-level", "4.1",                 // Level 4.1 for 1080p support
       
       // === RESOLUTION AND FRAME RATE ===
       "-vf", "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2", // Scale to 1080p
-      "-r", "30",                      // Force 30fps output
-      "-g", "60",                      // Keyframe every 2 seconds (30fps * 2)
-      "-keyint_min", "30",             // Minimum keyframe interval
+      "-r", "30",                      // 30fps output
+      "-g", "60",                      // Keyframe every 2 seconds
       
-      // === AUDIO SETTINGS (High Quality) ===
-      "-ar", "48000",                  // Professional sample rate
+      // === AUDIO SETTINGS ===
+      "-ar", "48000",                  // Sample rate
       "-ac", "2",                      // Stereo
-      "-b:a", "192k",                  // High quality audio bitrate
-      "-acodec", "aac",                // AAC codec
-      "-strict", "experimental",       // Allow experimental codecs
+      "-b:a", "128k",                  // Audio bitrate
       
-      // === STREAM MAPPING ===
-      "-map", "0:v:0",                 // Map first video stream
-      "-map", "0:a:0?",                // Map first audio stream if available
-      
-      // === HLS OPTIMIZATION ===
+      // === HLS SETTINGS ===
       "-hls_time", "2",                // 2-second segments
-      "-hls_list_size", "0",           // Keep all segments in playlist
-      "-hls_flags", "independent_segments+delete_segments", // Independent segments with cleanup
+      "-hls_list_size", "0",           // Keep all segments
+      "-hls_flags", "independent_segments", // Independent segments
       "-hls_segment_filename", join(streamPath, "segment_%d.ts"),
-      "-hls_allow_cache", "0",         // No caching for live streams
-      "-hls_start_number_source", "datetime", // Start numbering from current time
       
-      // === LIVE STREAMING OPTIMIZATIONS ===
-      "-tune", "zerolatency",          // Zero latency for live streaming
-      "-probesize", "32M",             // Larger probe size for better detection
-      "-analyzeduration", "10M",       // Analysis duration for better quality
-      "-fflags", "+genpts+igndts",     // Generate timestamps, ignore DTS
+      // === LIVE STREAMING ===
+      "-tune", "zerolatency",          // Low latency
+      "-fps_mode", "cfr",             // Constant frame rate
       
-      // === ENCODING OPTIMIZATIONS ===
-      "-x264opts", "no-scenecut:keyint=60:min-keyint=30:8x8dct=1:aq-mode=2:aq-strength=0.8:deblock=0,0:ref=2:bframes=0:weightp=1:subme=6:mixed-refs=1:me=hex:merange=16:trellis=1:psy-rd=1.0,0.0:rc-lookahead=30:me_range=16:qcomp=0.6:qmin=10:qmax=51:qdiff=4:bf=0:8x8dct=1:me=hex:subme=6:me_range=16:trellis=1:psy-rd=1.0,0.0:aq-mode=2:aq-strength=0.8:deblock=0,0:ref=2:bframes=0:weightp=1:subme=6:mixed-refs=1:me=hex:merange=16:trellis=1:psy-rd=1.0,0.0:rc-lookahead=30",
-      
-      // === TIMESTAMP AND SYNC ===
-      "-avoid_negative_ts", "make_zero", // Handle negative timestamps
-      "-vsync", "cfr",                 // Constant frame rate
-      "-async", "1",                   // Audio sync
-      
-      // === ADDITIONAL COMPATIBILITY ===
-      "-movflags", "+faststart",       // Fast start for web playback
-      "-f", "hls",                     // Force HLS format
-      "-threads", "0"                  // Use all available CPU threads
+      // === COMPATIBILITY ===
+      "-f", "hls"                      // HLS format
     ]);
 
   // Add event listeners for better debugging
