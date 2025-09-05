@@ -88,6 +88,13 @@ export async function setupStream(data: StreamSetup) {
     .videoCodec("libx264")
     .audioCodec("aac")
     .outputOptions([
+      // Audio specific settings
+      "-acodec", "aac",
+      "-ar", "44100",        // Sample rate
+      "-ac", "2",            // Stereo audio
+      "-b:a", "128k",        // Audio bitrate
+      "-af", "aresample=44100", // Resample audio
+      
       // Video quality and encoding
       "-preset",
       "ultrafast", // Changed from medium for faster encoding
@@ -145,6 +152,26 @@ export async function setupStream(data: StreamSetup) {
   ffmpegCommand.on('start', (commandLine) => {
     console.log('🎬 FFmpeg started with command:', commandLine);
     console.log('📡 FFmpeg is now processing video input stream');
+  });
+
+  // Monitor audio processing
+  ffmpegCommand.on('stderr', (stderrLine) => {
+    if (stderrLine.includes('Audio:')) {
+      console.log('🎵 Audio detected:', stderrLine);
+    }
+    if (stderrLine.includes('No audio')) {
+      console.warn('⚠️ No audio detected in input stream');
+    }
+    if (stderrLine.includes('Stream #0:1')) {
+      console.log('🎵 Audio stream info:', stderrLine);
+    }
+  });
+
+  // Monitor progress for audio bitrate
+  ffmpegCommand.on('progress', (progress) => {
+    if (progress.currentKbps) {
+      console.log('Current keyframe bitrate:', progress.currentKbps, 'kbps');
+    }
   });
 
   ffmpegCommand.on('progress', (progress) => {
