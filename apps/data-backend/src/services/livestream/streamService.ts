@@ -110,8 +110,11 @@ export async function setupStream(data: StreamSetup) {
 
   console.log('🎬 Creating FFmpeg command with options...');
   
+  // Use temporary WebM file instead of input stream
+  const tempWebmPath = join(streamPath, "temp.webm");
+  
   const ffmpegCommand = ffmpeg()
-    .input(inputStream)
+    .input(tempWebmPath)              // Use temporary WebM file
     .inputFormat("webm")              // Keep WebM format
     .inputOptions([
       "-fflags", "+genpts+igndts",    // Generate timestamps, ignore DTS
@@ -122,7 +125,8 @@ export async function setupStream(data: StreamSetup) {
       "-thread_queue_size", "1024",   // Large thread queue for buffering
       "-reconnect", "1",              // Enable reconnection
       "-reconnect_streamed", "1",     // Reconnect streamed input
-      "-reconnect_delay_max", "2"     // Max delay for reconnection
+      "-reconnect_delay_max", "2",    // Max delay for reconnection
+      "-live", "1"                    // Enable live input mode
     ])
     .format("hls")
     .videoCodec("libx264")
@@ -245,10 +249,30 @@ export async function setupStream(data: StreamSetup) {
     console.log('🔍 FFmpeg stderr:', stderrLine);
   });
 
-  // Start FFmpeg processing
-  console.log('🎬 Starting FFmpeg processing...');
+  // Start FFmpeg processing when temp file has data
+  console.log('🎬 Waiting for WebM data to accumulate...');
   console.log('📁 Output path:', outputPath);
-  ffmpegCommand.output(outputPath).run();
+  console.log('📁 Temp WebM path:', tempWebmPath);
+  
+  // Wait for temp file to exist and have data
+  const waitForData = async () => {
+    try {
+      const stats = await import('fs').then(fs => fs.promises.stat(tempWebmPath));
+      if (stats.size > 0) {
+        console.log('🎬 Temp WebM file has data, starting FFmpeg...');
+        ffmpegCommand.output(outputPath).run();
+      } else {
+        console.log('⏳ Temp WebM file exists but is empty, waiting...');
+        setTimeout(waitForData, 1000);
+      }
+    } catch (error) {
+      console.log('⏳ Temp WebM file not ready yet, waiting...');
+      setTimeout(waitForData, 1000);
+    }
+  };
+  
+  // Start checking for data after a short delay
+  setTimeout(waitForData, 1000);
 
   // Set up file watcher for HLS segments
   watcherFn(streamPath, data, outputPath);

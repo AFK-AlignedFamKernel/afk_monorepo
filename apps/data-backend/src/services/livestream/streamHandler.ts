@@ -130,7 +130,7 @@ export async function handleStartStream(
 /**
  * Handle video data from WebSocket - simplified version
  */
-export function handleStreamData(socket: Socket, data: { streamKey: string; chunk: Buffer }) {
+export async function handleStreamData(socket: Socket, data: { streamKey: string; chunk: Buffer }) {
   const stream = activeStreams.get(data.streamKey);
 
   if (!stream?.inputStream) {
@@ -153,21 +153,22 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
     stream.chunkAccumulator = Buffer.concat([stream.chunkAccumulator, chunk]);
     console.log(`📦 Accumulated chunks: ${stream.chunkAccumulator.length} bytes total`);
     
-    // Push accumulated data to FFmpeg input stream
-    if (stream.inputStream && !stream.inputStream.destroyed) {
-      stream.inputStream.push(stream.chunkAccumulator);
-      console.log(`✅ Accumulated data sent to FFmpeg: ${stream.chunkAccumulator.length} bytes`);
+    // Write accumulated data to a temporary file for FFmpeg to process
+    const tempWebmPath = path.join(process.cwd(), 'public', 'livestreams', data.streamKey, 'temp.webm');
+    
+    try {
+      // Append chunk to temporary WebM file
+      await fs.promises.appendFile(tempWebmPath, chunk);
+      console.log(`✅ Chunk appended to temp file: ${chunk.length} bytes`);
       
-      // Reset accumulator after sending
-      stream.chunkAccumulator = Buffer.alloc(0);
-      
-      // Check if FFmpeg is still running
-      if (stream.command && stream.command.killed) {
-        console.log('⚠️ FFmpeg process was killed, attempting to restart...');
-        // Could restart FFmpeg here if needed
+      // If this is the first chunk, start FFmpeg processing
+      if (stream.chunkAccumulator.length === chunk.length) {
+        console.log('🎬 First chunk received, starting FFmpeg processing...');
+        // FFmpeg will be started by the stream setup after delay
       }
-    } else {
-      console.log('❌ Input stream is destroyed or not available');
+      
+    } catch (error) {
+      console.error('❌ Error writing chunk to temp file:', error);
     }
     
     // Check for generated HLS segments
