@@ -559,7 +559,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
               liveSyncDurationCount: 3,
               liveMaxLatencyDurationCount: 5,
               // Handle missing audio gracefully
-              audioPreference: 'main',
+              // audioPreference: 'main',
               audioTrackSwitching: false
             });
             
