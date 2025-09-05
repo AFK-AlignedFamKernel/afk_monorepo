@@ -80,8 +80,9 @@ export async function handleStartStream(
 
     // FFmpeg event handlers
     ffmpegCommand
-      .on('start', () => {
+      .on('start', (commandLine) => {
         console.log('🎬 FFmpeg started for:', data.streamKey);
+        console.log('🎬 FFmpeg command:', commandLine);
         streamData.status = 'broadcasting';
         
         // Notify broadcaster
@@ -91,10 +92,14 @@ export async function handleStartStream(
         });
       })
       .on('progress', (progress) => {
-        console.log('📊 FFmpeg progress:', progress.frames, 'frames');
+        console.log('📊 FFmpeg progress:', progress.frames, 'frames,', progress.percent, '%');
+      })
+      .on('stderr', (stderrLine) => {
+        console.log('📝 FFmpeg stderr:', stderrLine);
       })
       .on('error', (err) => {
         console.error('❌ FFmpeg error:', err.message);
+        console.error('❌ FFmpeg full error:', err);
         streamData.status = 'error';
         socket.emit('stream-error', { error: err.message });
       })
@@ -132,6 +137,14 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
     if (stream.inputStream && !stream.inputStream.destroyed) {
       stream.inputStream.push(chunk);
       console.log(`✅ Chunk sent to FFmpeg: ${chunk.length} bytes`);
+      
+      // Check if FFmpeg is still running
+      if (stream.command && stream.command.killed) {
+        console.log('⚠️ FFmpeg process was killed, attempting to restart...');
+        // Could restart FFmpeg here if needed
+      }
+    } else {
+      console.log('❌ Input stream is destroyed or not available');
     }
     
     // Check for generated HLS segments
@@ -139,16 +152,30 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
     if (fs.existsSync(streamPath)) {
       const files = fs.readdirSync(streamPath);
       const segments = files.filter(file => file.endsWith('.ts'));
+      const manifest = files.filter(file => file.endsWith('.m3u8'));
+      
+      console.log(`📁 Stream directory contents: ${files.length} files (${segments.length} segments, ${manifest.length} manifests)`);
       
       if (segments.length > 0) {
         console.log(`🎯 HLS segments found: ${segments.length} for ${data.streamKey}`);
+        
+        // Check segment sizes
+        segments.forEach(segment => {
+          const segmentPath = path.join(streamPath, segment);
+          const stats = fs.statSync(segmentPath);
+          console.log(`📄 Segment ${segment}: ${stats.size} bytes`);
+        });
         
         // Notify viewers of new content
         socket.to(data.streamKey).emit('stream-segments-updated', {
           streamKey: data.streamKey,
           segmentCount: segments.length
         });
+      } else {
+        console.log('⚠️ No HLS segments found yet - FFmpeg may not be processing data');
       }
+    } else {
+      console.log('❌ Stream directory does not exist:', streamPath);
     }
     
   } catch (error) {

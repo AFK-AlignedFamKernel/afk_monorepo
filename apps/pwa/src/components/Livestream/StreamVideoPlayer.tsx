@@ -573,7 +573,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
                   if (urlType === 'external-hls') {
                     errorMessage = 'External HLS stream format error';
                   } else {
-                    errorMessage = 'HLS manifest error - stream is waiting for broadcaster';
+                    errorMessage = 'HLS manifest error - stream is waiting for broadcaster or segments are empty';
                   }
                 } else {
                   errorMessage = 'Video decode error - stream format issue';
@@ -583,6 +583,18 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
                 errorMessage = `Stream error: ${target.error.message}`;
             }
             setLoadError(errorMessage);
+            
+            // For HLS demuxer errors, try to reload after a delay
+            if (target.error.message.includes('DEMUXER_ERROR_DETECTED_HLS') && urlType === 'internal-hls') {
+              console.log('🔄 HLS demuxer error detected, will retry in 3 seconds...');
+              setTimeout(() => {
+                if (videoRef.current && streamingUrl) {
+                  console.log('🔄 Retrying HLS stream load...');
+                  videoRef.current.src = streamingUrl;
+                  videoRef.current.load();
+                }
+              }, 3000);
+            }
           }
         };
         
