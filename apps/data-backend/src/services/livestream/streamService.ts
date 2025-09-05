@@ -110,7 +110,7 @@ export async function setupStream(data: StreamSetup) {
       "-hls_flags",
       "delete_segments+append_list",
       "-hls_segment_filename",
-      join(streamPath, "segment_%d.ts"),
+      join(streamPath, "segment%d.ts"),
 
       // Keyframe interval - reduced for faster segment generation
       "-g",

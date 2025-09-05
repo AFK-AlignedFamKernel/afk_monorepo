@@ -26,7 +26,7 @@ async function testHLSManifest() {
     // Step 1: Check local manifest file
     console.log('\n📁 Step 1: Checking local manifest file...');
     
-    const streamPath = path.join(process.cwd(), 'public', 'livestreams', STREAM_ID);
+    const streamPath = path.join(process.cwd(), '..', '..', '..', 'public', 'livestreams', STREAM_ID);
     const manifestPath = path.join(streamPath, 'stream.m3u8');
     
     console.log('📁 Stream directory:', streamPath);
@@ -140,6 +140,10 @@ async function testHLSManifest() {
       console.log('  3. FFmpeg codec configuration is wrong');
     } else {
       console.log('✅ HLS stream appears to be working correctly');
+      console.log('🔧 However, the manifest may be pointing to wrong segments');
+      console.log('  1. Check if manifest references the correct segment names');
+      console.log('  2. Ensure segments are being generated with consistent naming');
+      console.log('  3. Verify FFmpeg is updating the manifest properly');
     }
     
     console.log('\n✅ HLS manifest test completed!');
