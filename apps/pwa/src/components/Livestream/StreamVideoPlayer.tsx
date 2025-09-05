@@ -352,8 +352,14 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     // Join the stream as a viewer (only for internal streams)
     joinStream(streamId, 'viewer-' + Date.now());
     
-    // Set up periodic stream status checking
+    // Set up periodic stream status checking (only if not already live)
     const statusCheckInterval = setInterval(async () => {
+      // Only check if we're not already live to prevent unnecessary requests
+      if (isLive) {
+        console.log('🎬 Stream is already live, skipping status check');
+        return;
+      }
+      
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050';
         const response = await fetch(`${backendUrl}/livestream/${streamId}/status`);
@@ -388,14 +394,14 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       } catch (error) {
         console.error('❌ Error checking stream status:', error);
       }
-    }, 2000); // Check every 2 seconds for faster response
+    }, 5000); // Check every 5 seconds to reduce load
 
     return () => {
       clearInterval(statusCheckInterval);
       console.log('👋 Viewer leaving stream:', streamId);
       leaveStream();
     };
-  }, [streamId, isStreamer, joinStream, leaveStream]);
+  }, [streamId, isStreamer, joinStream, leaveStream, isLive]);
 
   // Enhanced stream monitoring for broadcasters (to detect when stream becomes active)
   useEffect(() => {
@@ -403,8 +409,14 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
 
     console.log('🎬 Broadcaster mode: Setting up stream monitoring for:', streamId);
     
-    // Set up periodic stream status checking for broadcasters
+    // Set up periodic stream status checking for broadcasters (only if not already live)
     const statusCheckInterval = setInterval(async () => {
+      // Only check if we're not already live to prevent unnecessary requests
+      if (isLive) {
+        console.log('🎬 Broadcaster stream is already live, skipping status check');
+        return;
+      }
+      
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050';
         const response = await fetch(`${backendUrl}/livestream/${streamId}/status`);
@@ -436,12 +448,12 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       } catch (error) {
         console.error('❌ Error checking broadcaster stream status:', error);
       }
-    }, 2000); // Check every 2 seconds for faster response
+    }, 5000); // Check every 5 seconds to reduce load
 
     return () => {
       clearInterval(statusCheckInterval);
     };
-  }, [streamId, isStreamer, onStreamStart]);
+  }, [streamId, isStreamer, onStreamStart, isLive]);
 
   // Helper function to detect URL type
   const detectUrlType = (url: string): 'internal-hls' | 'external-hls' | 'external-other' => {

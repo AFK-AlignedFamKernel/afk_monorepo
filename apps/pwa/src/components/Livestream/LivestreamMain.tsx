@@ -152,6 +152,12 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     return !url.includes(backendUrl);
   };
 
+  // Memoize the event streaming URL extraction to prevent repeated calls
+  const eventStreamingUrl = React.useMemo(() => {
+    if (!event) return null;
+    return extractStreamingUrlFromEvent(event, currentStreamId);
+  }, [event, currentStreamId]);
+
   // Compute streaming URL - ALWAYS prioritize NIP-53 event data first
   const streamingUrl = React.useMemo(() => {
     console.log('🔗 Computing streaming URL with:', {
@@ -159,20 +165,18 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       streamKey,
       currentStreamId,
       streamStatus,
-      event,
+      hasEvent: !!event,
       eventLoading: eventLoading,
       eventError: eventError,
+      eventStreamingUrl,
       backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050"
     });
 
     // PRIORITY 1: Always check NIP-53 event first - this is the highest priority
-    if (event) {
-      const eventStreamingUrl = extractStreamingUrlFromEvent(event, currentStreamId);
-      if (eventStreamingUrl) {
-        console.log('✅ Found streaming URL in NIP-53 event:', eventStreamingUrl);
-        console.log('🔍 URL type:', isExternalUrl(eventStreamingUrl) ? 'external' : 'internal');
-        return eventStreamingUrl;
-      }
+    if (eventStreamingUrl) {
+      console.log('✅ Found streaming URL in NIP-53 event:', eventStreamingUrl);
+      console.log('🔍 URL type:', isExternalUrl(eventStreamingUrl) ? 'external' : 'internal');
+      return eventStreamingUrl;
     }
 
     // PRIORITY 2: Only if no event URL found, check WebSocket streaming context (internal only)
@@ -205,7 +209,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
 
     console.log('⚠️ No streaming URL found in event or WebSocket context');
     return null;
-  }, [isWebSocketStreaming, streamKey, streamStatus, event, currentStreamId, eventLoading, eventError]);
+  }, [isWebSocketStreaming, streamKey, streamStatus, eventStreamingUrl, currentStreamId, eventLoading, eventError]);
 
   // Update streaming state when WebSocket streaming changes
   useEffect(() => {
@@ -250,13 +254,10 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     }
 
     // Skip status checking for external URLs - they should render directly
-    if (event) {
-      const eventStreamingUrl = extractStreamingUrlFromEvent(event, currentStreamId);
-      if (eventStreamingUrl && isExternalUrl(eventStreamingUrl)) {
-        console.log('🌐 External URL detected in NIP-53 event, skipping status check and WebSocket integration');
-        setStreamStatus('available'); // External URLs are assumed to be available
-        return;
-      }
+    if (eventStreamingUrl && isExternalUrl(eventStreamingUrl)) {
+      console.log('🌐 External URL detected in NIP-53 event, skipping status check and WebSocket integration');
+      setStreamStatus('available'); // External URLs are assumed to be available
+      return;
     }
 
     console.log('🔄 Stream ID changed, checking status for:', currentStreamId);
@@ -325,14 +326,14 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
 
     // Set up periodic status checking for streams that aren't started yet
     let statusInterval: NodeJS.Timeout | null = null;
-    if (currentStreamId) {
+    if (currentStreamId && streamStatus !== 'available') {
       statusInterval = setInterval(() => {
-        // Only check if we're not already in a loading state
-        if (streamStatus !== 'loading') {
+        // Only check if we're not already available and not loading
+        if (streamStatus === 'not_started' || streamStatus === 'error') {
           console.log('🔄 Periodic status check for:', currentStreamId);
           checkStreamStatus();
         }
-      }, 5000); // Check every 5 seconds for faster response
+      }, 10000); // Check every 10 seconds to reduce load
     }
 
     return () => {
@@ -340,7 +341,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
         clearInterval(statusInterval);
       }
     };
-  }, [currentStreamId, streamStatus, event]);
+  }, [currentStreamId, streamStatus, eventStreamingUrl]);
 
   //   useEffect(() => {
   //     if (currentStreamId) {
