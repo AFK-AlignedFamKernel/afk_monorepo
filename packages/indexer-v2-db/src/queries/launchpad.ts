@@ -1,5 +1,5 @@
-import { eq } from "drizzle-orm";
-import { tokenDeploy, tokenLaunch, tokenMetadata } from "../schema.js";
+import { eq, and } from "drizzle-orm";
+import { sharesTokenUser, tokenDeploy, tokenLaunch, tokenMetadata, tokenTransactions, candlesticks } from "../schema.js";
 import { db } from "../index.js";
 
 /**
@@ -63,6 +63,25 @@ export const getAllLaunchpads = async ({
       name: true,
       symbol: true,
       url: true,
+      initial_pool_supply_dex:true,
+      // Add fields from tokenMetadata relation
+      // metadata: {
+      //   select: {
+      //     name: true,
+      //     symbol: true,
+      //     twitter: true,
+      //     website: true,
+      //     telegram: true,
+      //     image_url: true,
+      //   },
+      // },
+      // Add fields from tokenDeploy relation
+      // tokenDeploy: {
+      //   select: {
+      //     name: true,
+      //     symbol: true,
+      //   },
+      // },
     },
   });
   return launches;
@@ -128,3 +147,196 @@ export const getLaunchpadByAddress = async (memecoinAddress: string) => {
 
   return launchpadArr[0] ?? null;
 };
+
+
+export const getSharesTokenUser = async ({
+  offset = 0,
+  limit = 20,
+}: {
+  offset?: number;
+  limit?: number;
+} = {}) => {
+  const tokens = await db.query.sharesTokenUser.findMany({
+    offset,
+    limit,
+    orderBy: (sharesTokenUser, { desc }) => [desc(sharesTokenUser.created_at)],
+    columns: {
+      owner: true,
+      created_at: true,
+      amount_owned: true,
+      amount_buy: true,
+      amount_sell: true,
+      amount_claimed: true,
+      total_paid: true,
+      is_claimable: true,
+      token_address: true,
+    },
+  });
+  return tokens;
+};
+
+
+export const getSharesTokenUserByMemecoinAddress = async ({
+  offset = 0,
+  limit = 20,
+  memecoinAddress,
+}: {
+  offset?: number;
+  limit?: number;
+  memecoinAddress: string;
+}) => {
+  const tokens = await db.query.sharesTokenUser.findMany({
+    offset,
+    limit,
+    orderBy: (sharesTokenUser, { desc }) => [desc(sharesTokenUser.created_at)],
+    columns: {
+      owner: true,
+      created_at: true,
+      amount_owned: true,
+      amount_buy: true,
+      amount_sell: true,
+      amount_claimed: true,
+      total_paid: true,
+      is_claimable: true,
+      token_address: true,
+    },
+    where: eq(sharesTokenUser.token_address, memecoinAddress),
+  });
+  return tokens;
+};
+
+
+export const getTransactionsByMemecoinAddress = async ({
+  offset = 0,
+  limit = 20,
+  memecoinAddress,
+}: {
+  offset?: number;
+  limit?: number;
+  memecoinAddress: string;
+}) => {
+  const tokens = await db.query.tokenTransactions.findMany({
+    offset,
+    limit,
+    orderBy: (tokenTransactions, { desc }) => [desc(tokenTransactions.created_at)],
+    columns: {
+      memecoin_address: true,
+      created_at: true,
+      amount: true,
+      price: true,
+      quote_amount: true,
+      network: true,
+      transaction_type: true,
+      transaction_hash: true,
+      time_stamp: true,
+    },
+    where: eq(tokenTransactions.memecoin_address, memecoinAddress),
+  });
+  return tokens;
+};
+
+/**
+ * Get candlesticks for a specific token with optional interval filtering.
+ * @param memecoinAddress - The memecoin address to query.
+ * @param intervalMinutes - Optional interval in minutes (5, 10, 60). If not provided, returns all intervals.
+ * @param offset - The number of records to skip.
+ * @param limit - The number of records to return.
+ * @returns An array of candlestick data.
+ */
+export const getCandlesticksByMemecoinAddress = async ({
+  memecoinAddress,
+  intervalMinutes,
+  offset = 0,
+  limit = 100,
+}: {
+  memecoinAddress: string;
+  intervalMinutes?: number;
+  offset?: number;
+  limit?: number;
+}) => {
+  const whereCondition = intervalMinutes 
+    ? and(
+        eq(candlesticks.token_address, memecoinAddress),
+        eq(candlesticks.interval_minutes, intervalMinutes)
+      )
+    : eq(candlesticks.token_address, memecoinAddress);
+
+  const candles = await db
+    .select({
+      token_address: candlesticks.token_address,
+      interval_minutes: candlesticks.interval_minutes,
+      timestamp: candlesticks.timestamp,
+      open: candlesticks.open,
+      high: candlesticks.high,
+      low: candlesticks.low,
+      close: candlesticks.close,
+      created_at: candlesticks.created_at,
+      updated_at: candlesticks.updated_at,
+    })
+    .from(candlesticks)
+    .where(whereCondition)
+    .orderBy(candlesticks.timestamp)
+    .offset(offset)
+    .limit(limit);
+
+  return candles;
+};
+
+/**
+ * Get candlesticks for a specific token with date range filtering.
+ * @param memecoinAddress - The memecoin address to query.
+ * @param intervalMinutes - Interval in minutes (5, 10, 60).
+ * @param startDate - Optional start date for filtering.
+ * @param endDate - Optional end date for filtering.
+ * @param offset - The number of records to skip.
+ * @param limit - The number of records to return.
+ * @returns An array of candlestick data.
+ */
+export const getCandlesticksByDateRange = async ({
+  memecoinAddress,
+  intervalMinutes,
+  startDate,
+  endDate,
+  offset = 0,
+  limit = 100,
+}: {
+  memecoinAddress: string;
+  intervalMinutes: number;
+  startDate?: Date;
+  endDate?: Date;
+  offset?: number;
+  limit?: number;
+}) => {
+  let whereCondition = and(
+    eq(candlesticks.token_address, memecoinAddress),
+    eq(candlesticks.interval_minutes, intervalMinutes)
+  );
+
+  if (startDate && endDate) {
+    whereCondition = and(
+      whereCondition,
+      // Add date range conditions if needed
+    );
+  }
+
+  const candles = await db
+    .select({
+      token_address: candlesticks.token_address,
+      interval_minutes: candlesticks.interval_minutes,
+      timestamp: candlesticks.timestamp,
+      open: candlesticks.open,
+      high: candlesticks.high,
+      low: candlesticks.low,
+      close: candlesticks.close,
+      created_at: candlesticks.created_at,
+      updated_at: candlesticks.updated_at,
+    })
+    .from(candlesticks)
+    .where(whereCondition)
+    .orderBy(candlesticks.timestamp)
+    .offset(offset)
+    .limit(limit);
+
+  return candles;
+};
+

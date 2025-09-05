@@ -1,10 +1,8 @@
 import type { FastifyInstance, RouteOptions } from 'fastify';
 import prisma from 'indexer-prisma';
-import { HTTPStatus } from '../../utils/http';
-import { isValidStarknetAddress } from '../../utils/starknet';
+import { HTTPStatus } from '../../../utils/http';
+import { isValidStarknetAddress } from '../../../utils/starknet';
 
-import {queries} from 'indexer-v2-db';
-const { getAllLaunchpads, getLaunchpadByAddress, getAllTokens, getSharesTokenUserByMemecoinAddress, getTransactionsByMemecoinAddress, getCandlesticksByMemecoinAddress } = queries;
 interface DeployLaunchParams {
   launch: string;
   owner_address?: string;
@@ -17,13 +15,44 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
     try {
       const { offset = 0, limit = 20 } = request.query as { offset?: number; limit?: number };
 
-      const launches = await getAllLaunchpads({
-        offset: offset,
-        limit: limit,
+      const launches = await prisma.token_launch.findMany({
+        skip: offset,
+        take: limit,
+        orderBy: {
+          liquidity_raised: 'desc',
+        },
+        select: {
+          memecoin_address: true,
+          quote_token: true,
+          price: true,
+          total_supply: true,
+          liquidity_raised: true,
+          // network: true,
+          created_at: true,
+          threshold_liquidity: true,
+          // initial_pool_supply_dex: true,
+          bonding_type: true,
+          total_token_holded: true,
+          block_timestamp: true,
+          is_liquidity_added: true,
+          market_cap: true,
+          name: true,
+          symbol: true,
+          url: true,
+          website: true,
+          twitter: true,
+          telegram: true,
+          image_url: true,
+          // token_deploy: {
+          //   select: {
+          //     name: true,
+          //     symbol: true,
+          //   },
+          // },
+        },
       });
-      console.log("launches", launches);
 
-      const total = await getAllLaunchpads({});
+      const total = await prisma.token_launch.count();
 
       reply.status(HTTPStatus.OK).send({
         data: launches,
@@ -52,7 +81,32 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
         return;
       }
 
-      const launchPool = await getLaunchpadByAddress(launch);
+      const launchPool = await prisma.token_launch.findFirst({
+        where: {
+          memecoin_address: launch,
+        },
+        select: {
+          memecoin_address: true,
+          quote_token: true,
+          price: true,
+          total_supply: true,
+          liquidity_raised: true,
+          network: true,
+          created_at: true,
+          threshold_liquidity: true,
+          bonding_type: true,
+          total_token_holded: true,
+          block_timestamp: true,
+          is_liquidity_added: true,
+          market_cap: true,
+          initial_pool_supply_dex: true,
+          url: true,
+          name: true,
+          symbol: true,
+          image_url: true,
+          description: true,
+        },
+      });
 
       reply.status(HTTPStatus.OK).send({
         data: launchPool,
@@ -76,42 +130,112 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
         return;
       }
 
-      const launchStats = await getLaunchpadByAddress(launch);
-
-
-      const holdings = await getSharesTokenUserByMemecoinAddress({
-        offset: 0,
-        limit: 20,
-        memecoinAddress: launch,
+      const launchStats = await prisma.token_launch.findFirst({
+        where: {
+          memecoin_address: launch,
+        },
+        select: {
+          memecoin_address: true,
+          quote_token: true,
+          price: true,
+          total_supply: true,
+          liquidity_raised: true,
+          network: true,
+          created_at: true,
+          threshold_liquidity: true,
+          bonding_type: true,
+          total_token_holded: true,
+          block_timestamp: true,
+          is_liquidity_added: true,
+          market_cap: true,
+          name: true,
+          symbol: true,
+          url: true,
+          description: true,
+          twitter: true,
+          telegram: true,
+          github: true,
+          website: true,
+          initial_pool_supply_dex: true,
+          ipfs_hash: true,
+          creator_fee_raised: true,
+          creator_fee_percent: true,
+          image_url: true,
+          current_supply: true,
+          token_deploy: {
+            select: {
+              name: true,
+              symbol: true,
+            },
+          },
+          token_metadata: {
+            select: {
+              url: true,
+            },
+          },
+        },
       });
 
-      console.log("holdings", holdings);
 
+      const holdings = await prisma.shares_token_user.findMany({
+        where: { token_address: launch, },
+        select: {
+          owner: true,
+          token_address: true,
+          amount_owned: true,
+          amount_claimed: true,
+          // updated_at: true,
+          // created_at: true,
+        },
+      });
 
-      const allTransactions = await getTransactionsByMemecoinAddress({
-        offset: 0,
-        limit: 20,
-        memecoinAddress: launch,
-      })
+      const allTransactions = await prisma.token_transactions.findMany({
+        where: {
+          memecoin_address: launch,
+        },
+        select: {
+          memecoin_address: true,
+          owner_address: true,
+          amount: true,
+          price: true,
+          coin_received: true,
+          liquidity_raised: true,
+          protocol_fee: true,
+          total_supply: true,
+          network: true,
+          transaction_type: true,
+          created_at: true,
+          quote_amount: true,
+          transaction_hash: true,
+          time_stamp: true,
+          creator_fee_amount: true,
+        },
+      });
 
-      console.log("allTransactions", allTransactions);
 
       const intervalMinutes = 5;
       let transformedData: any[] = [];
 
       try {
         console.log("candles launch", launch);
-        const candles = await getCandlesticksByMemecoinAddress({
-          memecoinAddress: launch,
-          intervalMinutes: intervalMinutes,
-          limit: 1000, // Get more candles for stats
+        const candles = await prisma.candlesticks.findMany({
+          where: { token_address: launch, interval_minutes: intervalMinutes },
+          orderBy: { timestamp: 'asc' },
+          select: {
+            open: true,
+            close: true,
+            high: true,
+            low: true,
+            timestamp: true,
+          },
         });
 
         console.log("candles", candles);
 
         if (candles.length === 0) {
-          console.log("No candlesticks found for token:", launch);
+
         } else {
+
           transformedData = candles.map((candle) => ({
             open: candle.open,
             close: candle.close,
@@ -121,8 +245,9 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           }));
         }
 
+
       } catch (error) {
-        console.error('Error fetching candles:', error);
+        console.error('Error generating candles:', error);
       }
 
       console.log("transformedData", transformedData);
@@ -159,23 +284,29 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
         return;
       }
 
-      const { interval = 5, limit = 100 } = request.query as { interval?: number; limit?: number };
-      const intervalMinutes = interval;
+      const intervalMinutes = 5;
       let transformedData: any[] = [];
 
       try {
         console.log("candles launch", launch);
-        const candles = await getCandlesticksByMemecoinAddress({
-          memecoinAddress: launch,
-          intervalMinutes: intervalMinutes,
-          limit: limit,
+        const candles = await prisma.candlesticks.findMany({
+          where: { token_address: launch, interval_minutes: intervalMinutes },
+          orderBy: { timestamp: 'asc' },
+          select: {
+            open: true,
+            close: true,
+            high: true,
+            low: true,
+            timestamp: true,
+          },
         });
 
         console.log("candles", candles);
 
         if (candles.length === 0) {
-          console.log("No candlesticks found for token:", launch);
+
         } else {
+
           transformedData = candles.map((candle) => ({
             open: candle.open,
             close: candle.close,
@@ -185,16 +316,15 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
           }));
         }
 
+
       } catch (error) {
-        console.error('Error fetching candles:', error);
+        console.error('Error generating candles:', error);
       }
 
       console.log("transformedData", transformedData);
 
       const response = {
         candles: transformedData,
-        interval: intervalMinutes,
-        count: transformedData.length,
       };
 
       reply.status(HTTPStatus.OK).send({
@@ -203,100 +333,6 @@ async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions
 
     } catch (error) {
       console.error('Error deploying launch:', error);
-      reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
-    }
-  });
-
-  // New dedicated candlesticks route with more options
-  fastify.get<{
-    Params: DeployLaunchParams;
-  }>('/deploy-launch/candlesticks/:launch', async (request, reply) => {
-    try {
-      const { launch } = request.params;
-      if (!isValidStarknetAddress(launch)) {
-        reply.status(HTTPStatus.BadRequest).send({
-          code: HTTPStatus.BadRequest,
-          message: 'Invalid token address',
-        });
-        return;
-      }
-
-      const { 
-        interval = 5, 
-        limit = 100, 
-        offset = 0,
-        startDate,
-        endDate 
-      } = request.query as { 
-        interval?: number; 
-        limit?: number; 
-        offset?: number;
-        startDate?: string;
-        endDate?: string;
-      };
-
-      const intervalMinutes = interval;
-      let transformedData: any[] = [];
-
-      try {
-        console.log("Fetching candlesticks for launch:", launch);
-        
-        // Validate interval
-        if (![5, 10, 60].includes(intervalMinutes)) {
-          reply.status(HTTPStatus.BadRequest).send({
-            code: HTTPStatus.BadRequest,
-            message: 'Invalid interval. Must be 5, 10, or 60 minutes.',
-          });
-          return;
-        }
-
-        const candles = await getCandlesticksByMemecoinAddress({
-          memecoinAddress: launch,
-          intervalMinutes: intervalMinutes,
-          limit: limit,
-          offset: offset,
-        });
-
-        console.log("Found candlesticks:", candles.length);
-
-        if (candles.length === 0) {
-          console.log("No candlesticks found for token:", launch);
-        } else {
-          transformedData = candles.map((candle) => ({
-            open: candle.open,
-            close: candle.close,
-            low: candle.low,
-            high: candle.high,
-            timestamp: candle.timestamp,
-            interval_minutes: candle.interval_minutes,
-          }));
-        }
-
-      } catch (error) {
-        console.error('Error fetching candlesticks:', error);
-        reply.status(HTTPStatus.InternalServerError).send({ 
-          message: 'Error fetching candlesticks data.' 
-        });
-        return;
-      }
-
-      const response = {
-        candlesticks: transformedData,
-        meta: {
-          token_address: launch,
-          interval_minutes: intervalMinutes,
-          count: transformedData.length,
-          offset: offset,
-          limit: limit,
-        },
-      };
-
-      reply.status(HTTPStatus.OK).send({
-        data: response,
-      });
-
-    } catch (error) {
-      console.error('Error in candlesticks route:', error);
       reply.status(HTTPStatus.InternalServerError).send({ message: 'Internal server error.' });
     }
   });

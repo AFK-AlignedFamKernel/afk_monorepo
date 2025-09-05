@@ -1350,17 +1350,7 @@ export const ABI = [
         "kind": "data"
       },
       {
-        "name": "price",
-        "type": "core::integer::u256",
-        "kind": "data"
-      },
-      {
         "name": "total_supply",
-        "type": "core::integer::u256",
-        "kind": "data"
-      },
-      {
-        "name": "slope",
         "type": "core::integer::u256",
         "kind": "data"
       },
@@ -1373,7 +1363,12 @@ export const ABI = [
         "name": "bonding_type",
         "type": "afk_launchpad::types::launchpad_types::BondingType",
         "kind": "data"
-      }
+      },
+      {
+        "name": "owner",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
     ]
   },
   {

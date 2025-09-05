@@ -8,61 +8,59 @@ export const daoCreation = pgTable('dao_creation', {
   hash: text('hash'),
   creator: text('creator'),
   tokenAddress: text('token_address'),
-  contractAddress: text('contract_address').notNull(),
+  contractAddress: text('contract_address').notNull().unique(),
   starknetAddress: text('starknet_address'),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
+});
+
+export const daoProposal = pgTable('dao_proposal', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  contractAddress: text('contract_address').notNull(),
+  proposalId: bigint('proposal_id', { mode: 'bigint' }).notNull(),
+  creator: text('creator').notNull(),
+  createdAt: integer('created_at'),
+  endAt: integer('end_at'),
+  isCanceled: boolean('is_canceled').default(false),
+  result: text('result'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
 }, (table) => ({
-  contractAddressIdx: uniqueIndex('dao_creation_contract_address_idx').on(table.contractAddress)
+  uniqueProposal: uniqueIndex('dao_proposal_unique_idx').on(table.contractAddress, table.proposalId)
 }));
 
-export const daoProposal = pgTable(
-  'dao_proposal',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    contractAddress: text('contract_address').notNull(),
-    proposalId: bigint('proposal_id', { mode: 'bigint' }).notNull(),
-    creator: text('creator').notNull(),
-    createdAt: integer('created_at'),
-    endAt: integer('end_at'),
-    isCanceled: boolean('is_canceled').default(false),
-    result: text('result'),
-    created_at: timestamp('created_at').defaultNow(),
-    updated_at: timestamp('updated_at').defaultNow(),
-  },
-  (table) => ({
-    proposalKey: primaryKey({ name: 'dao_proposal_pkey', columns: [table.contractAddress, table.proposalId] }),
-    daoFk: foreignKey({
-      name: 'dao_proposal_contract_address_fkey',
-      columns: [table.contractAddress],
-      foreignColumns: [daoCreation.contractAddress],
-    }).onDelete('cascade'),
-  }),
-);
+export const daoProposalVote = pgTable('dao_proposal_vote', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  contractAddress: text('contract_address').notNull(),
+  proposalId: bigint('proposal_id', { mode: 'bigint' }).notNull(),
+  voter: text('voter').notNull(),
+  vote: text('vote'),
+  votes: bigint('votes', { mode: 'bigint' }),
+  totalVotes: bigint('total_votes', { mode: 'bigint' }),
+  votedAt: integer('voted_at'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  uniqueVote: uniqueIndex('dao_proposal_vote_unique_idx').on(table.contractAddress, table.proposalId, table.voter)
+}));
 
-export const daoProposalVote = pgTable(
-  'dao_proposal_vote',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    contractAddress: text('contract_address').notNull(),
-    proposalId: bigint('proposal_id', { mode: 'bigint' }).notNull(),
-    voter: text('voter').notNull(),
-    vote: text('vote'),
-    votes: bigint('votes', { mode: 'bigint' }),
-    totalVotes: bigint('total_votes', { mode: 'bigint' }),
-    votedAt: integer('voted_at'),
-    created_at: timestamp('created_at').defaultNow(),
-    updated_at: timestamp('updated_at').defaultNow(),
-  },
-  (table) => ({
-    voteKey: primaryKey({ name: 'dao_proposal_vote_pkey', columns: [table.contractAddress, table.proposalId, table.voter] }),
-    proposalFk: foreignKey({
-      name: 'dao_proposal_vote_proposal_fkey',
-      columns: [table.contractAddress, table.proposalId],
-      foreignColumns: [daoProposal.contractAddress, daoProposal.proposalId],
-    }).onDelete('cascade'),
+
+// Simplified relations without foreign key constraints
+export const daoCreationRelations = relations(daoCreation, ({ many }) => ({
+  proposals: many(daoProposal),
+}));
+
+export const daoProposalRelations = relations(daoProposal, ({ many }) => ({
+  votes: many(daoProposalVote),
+}));
+
+export const daoProposalVoteRelations = relations(daoProposalVote, ({ one }) => ({
+  proposal: one(daoProposal, {
+    fields: [daoProposalVote.contractAddress, daoProposalVote.proposalId],
+    references: [daoProposal.contractAddress, daoProposal.proposalId],
   }),
-);
+}));
+
 
 export const contractState = pgTable('contract_state', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -96,7 +94,7 @@ export const contractState = pgTable('contract_state', {
 export const epochState = pgTable('epoch_state', {
   id: uuid('id').primaryKey().defaultRandom(),
   epoch_index: text('epoch_index').notNull(),
-  contract_address: text('contract_address').notNull().references(() => contractState.contract_address),
+  contract_address: text('contract_address').notNull(),
   total_ai_score: decimal('total_ai_score', { precision: 30, scale: 18 }).default('0'),
   total_vote_score: decimal('total_vote_score', { precision: 30, scale: 18 }).default('0'),
   total_amount_deposit: decimal('total_amount_deposit', { precision: 30, scale: 18 }).default('0'),
@@ -139,7 +137,7 @@ export const userEpochState = pgTable('user_epoch_state', {
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 }, (table) => ({
-  pk: primaryKey({ columns: [table.nostr_id, table.epoch_index, table.contract_address] }),
+  uniqueUserEpoch: uniqueIndex('user_epoch_state_unique_idx').on(table.nostr_id, table.epoch_index, table.contract_address)
 }));
 
 export const indexerCursor = pgTable('indexer_cursor', {
@@ -165,6 +163,11 @@ export const tokenDeploy = pgTable('token_deploy', {
   created_at: timestamp('created_at').defaultNow(),
   is_launched: boolean('is_launched').default(false),
   url: text('url'),
+  nostr_id: text('nostr_id'),
+  nostr_event_id: text('nostr_event_id'),
+  telegram: text('telegram'),
+  github: text('github'),
+  website: text('website'),
 });
 
 export const tokenLaunch = pgTable('token_launch', {
@@ -189,6 +192,10 @@ export const tokenLaunch = pgTable('token_launch', {
   created_at: timestamp('created_at').defaultNow(),
   url: text('url'),
   token_deploy_tx_hash: text('token_deploy_tx_hash').unique(),
+  twitter: text('twitter'),
+  telegram: text('telegram'),
+  github: text('github'),
+  website: text('website'),
 });
 
 export const tokenMetadata = pgTable('token_metadata', {
@@ -230,6 +237,7 @@ export const sharesTokenUser = pgTable('shares_token_user', {
   amount_owned: text('amount_owned').default('0'),
   amount_buy: text('amount_buy').default('0'),
   amount_sell: text('amount_sell').default('0'),
+  amount_claimed: text('amount_claimed').default('0'),
   total_paid: text('total_paid').default('0'),
   is_claimable: boolean('is_claimable').default(false),
   created_at: timestamp('created_at').defaultNow(),
@@ -237,23 +245,33 @@ export const sharesTokenUser = pgTable('shares_token_user', {
   uniqueOwnerToken: uniqueIndex('shares_token_user_owner_token_idx').on(table.owner, table.token_address)
 }));
 
-// Relations
+export const candlesticks = pgTable('candlesticks', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  token_address: text('token_address').notNull(),
+  interval_minutes: integer('interval_minutes').notNull(),
+  timestamp: timestamp('timestamp').notNull(),
+  open: decimal('open', { precision: 30, scale: 18 }).notNull(),
+  high: decimal('high', { precision: 30, scale: 18 }).notNull(),
+  low: decimal('low', { precision: 30, scale: 18 }).notNull(),
+  close: decimal('close', { precision: 30, scale: 18 }).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  uniqueCandlestick: uniqueIndex('candlesticks_token_interval_timestamp_idx').on(table.token_address, table.interval_minutes, table.timestamp)
+}));
+
+// Simplified relations without foreign key constraints
 export const contractStateRelations = relations(contractState, ({ many }) => ({
   epochs: many(epochState),
   userProfiles: many(userProfile),
 }));
 
-export const epochStateRelations = relations(epochState, ({ one, many }) => ({
-  contract: one(contractState, {
-    fields: [epochState.contract_address],
-    references: [contractState.contract_address],
-  }),
+export const epochStateRelations = relations(epochState, ({ many }) => ({
   userEpochStates: many(userEpochState),
 }));
 
 export const userProfileRelations = relations(userProfile, ({ many }) => ({
   epochStates: many(userEpochState),
-  contractStates: many(contractState),
 }));
 
 export const userEpochStateRelations = relations(userEpochState, ({ one }) => ({
@@ -264,26 +282,6 @@ export const userEpochStateRelations = relations(userEpochState, ({ one }) => ({
   user: one(userProfile, {
     fields: [userEpochState.nostr_id],
     references: [userProfile.nostr_id],
-  }),
-}));
-
-// Add relations
-export const daoCreationRelations = relations(daoCreation, ({ many }) => ({
-  proposals: many(daoProposal),
-}));
-
-export const daoProposalRelations = relations(daoProposal, ({ one, many }) => ({
-  dao: one(daoCreation, {
-    fields: [daoProposal.contractAddress],
-    references: [daoCreation.contractAddress],
-  }),
-  votes: many(daoProposalVote),
-}));
-
-export const daoProposalVoteRelations = relations(daoProposalVote, ({ one }) => ({
-  proposal: one(daoProposal, {
-    fields: [daoProposalVote.contractAddress, daoProposalVote.proposalId],
-    references: [daoProposal.contractAddress, daoProposal.proposalId],
   }),
 }));
 
@@ -328,6 +326,13 @@ export const sharesTokenUserRelations = relations(sharesTokenUser, ({ one }) => 
   }),
 }));
 
+export const candlesticksRelations = relations(candlesticks, ({ one }) => ({
+  token: one(tokenLaunch, {
+    fields: [candlesticks.token_address],
+    references: [tokenLaunch.memecoin_address],
+  }),
+}));
+
 // Add proper type exports
 export type ContractState = typeof contractState.$inferSelect;
 export type NewContractState = typeof contractState.$inferInsert;
@@ -364,5 +369,8 @@ export type NewTokenTransaction = typeof tokenTransactions.$inferInsert;
 
 export type SharesTokenUser = typeof sharesTokenUser.$inferSelect;
 export type NewSharesTokenUser = typeof sharesTokenUser.$inferInsert;
+
+export type Candlestick = typeof candlesticks.$inferSelect;
+export type NewCandlestick = typeof candlesticks.$inferInsert;
 
 
