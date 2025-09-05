@@ -4,6 +4,7 @@ import { Icon } from '../small/icon-component';
 import { useVideoElement } from '@/hooks/useVideoElement';
 import { useLivestreamWebSocket } from '@/contexts/LivestreamWebSocketContext';
 import styles from './styles.module.scss';
+import Hls from 'hls.js';
 
 interface StreamVideoPlayerProps {
   streamingUrl?: string;
@@ -515,6 +516,68 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           // For external platforms, we might need different handling
         }
         
+        // Check for HLS support and use HLS.js if needed
+        const isHLS = urlType === 'internal-hls' || urlType === 'external-hls';
+        if (isHLS) {
+          console.log('🎥 Using HLS.js for HLS stream playback');
+          
+          if (Hls.isSupported()) {
+            const hls = new Hls({
+              debug: false,
+              enableWorker: true,
+              lowLatencyMode: true,
+              backBufferLength: 90
+            });
+            
+            hls.loadSource(streamingUrl);
+            hls.attachMedia(video);
+            
+            hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+              console.log('📋 HLS manifest parsed successfully');
+              console.log(`📊 Found ${data.levels.length} quality levels`);
+              setIsLoading(false);
+              setLoadError(null);
+              setIsLive(true);
+            });
+            
+            hls.on(Hls.Events.ERROR, function (event, data) {
+              console.error('❌ HLS.js error:', data.type, data.details);
+              if (data.fatal) {
+                switch (data.type) {
+                  case Hls.ErrorTypes.NETWORK_ERROR:
+                    console.log('🔄 Fatal network error, trying to recover...');
+                    hls.startLoad();
+                    break;
+                  case Hls.ErrorTypes.MEDIA_ERROR:
+                    console.log('🔄 Fatal media error, trying to recover...');
+                    hls.recoverMediaError();
+                    break;
+                  default:
+                    console.error('❌ Fatal error, cannot recover');
+                    setLoadError(`HLS error: ${data.details}`);
+                    hls.destroy();
+                    break;
+                }
+              }
+            });
+            
+            // Store HLS instance for cleanup
+            (video as any).hls = hls;
+          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            console.log('🎥 Using native HLS support');
+            video.src = streamingUrl;
+            video.load();
+          } else {
+            console.error('❌ HLS is not supported in this browser');
+            setLoadError('HLS is not supported in this browser. Please use a modern browser.');
+            return;
+          }
+        } else {
+          // Non-HLS streams
+          video.src = streamingUrl;
+          video.load();
+        }
+        
         const handleLoadStart = () => {
           console.log('🎥 Video load started');
           console.log('🎥 Video source:', video.src);
@@ -525,10 +588,6 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         
         const handleLoadedMetadata = () => {
           console.log('🎥 Video metadata loaded');
-        };
-        
-        const handleCanPlay = () => {
-          console.log('🎥 Video can play');
           console.log('🎥 Video details:', {
             videoWidth: video.videoWidth,
             videoHeight: video.videoHeight,
@@ -540,6 +599,10 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             muted: video.muted,
             volume: video.volume
           });
+        };
+        
+        const handleCanPlay = () => {
+          console.log('🎥 Video can play');
           setIsLoading(false);
           setLoadError(null);
           
@@ -551,6 +614,12 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             // For internal streams, only set live when we can actually play
             setIsLive(true);
           }
+        };
+        
+        const handleCanPlayThrough = () => {
+          console.log('🎯 Video can play through');
+          setIsLoading(false);
+          setLoadError(null);
         };
         
         const handleError = (e: Event) => {
@@ -622,10 +691,31 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           }
         };
         
+        const handleWaiting = () => {
+          console.log('⏳ Video waiting for data');
+        };
+        
+        const handleStalled = () => {
+          console.log('⚠️ Video stalled');
+        };
+        
+        const handleProgress = () => {
+          if (video.buffered.length > 0) {
+            const buffered = video.buffered.end(video.buffered.length - 1);
+            const duration = video.duration;
+            const percent = duration > 0 ? (buffered / duration * 100).toFixed(1) : 0;
+            console.log(`📊 Buffered: ${percent}% (${buffered.toFixed(1)}s / ${duration.toFixed(1)}s)`);
+          }
+        };
+        
         video.addEventListener('loadstart', handleLoadStart);
         video.addEventListener('loadedmetadata', handleLoadedMetadata);
         video.addEventListener('canplay', handleCanPlay);
+        video.addEventListener('canplaythrough', handleCanPlayThrough);
         video.addEventListener('error', handleError);
+        video.addEventListener('waiting', handleWaiting);
+        video.addEventListener('stalled', handleStalled);
+        video.addEventListener('progress', handleProgress);
         
         // Set the source
         video.src = streamingUrl;
@@ -668,7 +758,17 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           video.removeEventListener('loadstart', handleLoadStart);
           video.removeEventListener('loadedmetadata', handleLoadedMetadata);
           video.removeEventListener('canplay', handleCanPlay);
+          video.removeEventListener('canplaythrough', handleCanPlayThrough);
           video.removeEventListener('error', handleError);
+          video.removeEventListener('waiting', handleWaiting);
+          video.removeEventListener('stalled', handleStalled);
+          video.removeEventListener('progress', handleProgress);
+          
+          // Cleanup HLS instance
+          if ((video as any).hls) {
+            (video as any).hls.destroy();
+            (video as any).hls = null;
+          }
         };
       }
     } else if (recordingUrl) {
