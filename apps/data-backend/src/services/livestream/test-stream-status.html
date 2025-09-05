@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Status Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .status-card {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .status-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #4CAF50;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+        }
+        .status-value {
+            color: #888;
+        }
+        .status-value.success { color: #4CAF50; }
+        .status-value.error { color: #f44336; }
+        .status-value.warning { color: #ff9800; }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #45a049; }
+        .primary { background: #2196F3; }
+        .primary:hover { background: #1976D2; }
+        
+        .log {
+            background: #333;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        
+        .error {
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Stream Status Test</h1>
+    
+    <div class="status-card">
+        <div class="status-title">Backend Server Status</div>
+        <div class="status-item">
+            <span>Server Running:</span>
+            <span class="status-value" id="serverStatus">Checking...</span>
+        </div>
+        <div class="status-item">
+            <span>Health Check:</span>
+            <span class="status-value" id="healthStatus">Checking...</span>
+        </div>
+    </div>
+
+    <div class="status-card">
+        <div class="status-title">Stream Status</div>
+        <div class="status-item">
+            <span>Stream ID:</span>
+            <span class="status-value">d0c914f7d474fd3f3cdbb1b50ef434bd</span>
+        </div>
+        <div class="status-item">
+            <span>Manifest Exists:</span>
+            <span class="status-value" id="manifestExists">Checking...</span>
+        </div>
+        <div class="status-item">
+            <span>Manifest Content:</span>
+            <span class="status-value" id="manifestContent">Checking...</span>
+        </div>
+        <div class="status-item">
+            <span>Segments Count:</span>
+            <span class="status-value" id="segmentsCount">Checking...</span>
+        </div>
+        <div class="status-item">
+            <span>FFmpeg Process:</span>
+            <span class="status-value" id="ffmpegProcess">Checking...</span>
+        </div>
+    </div>
+
+    <div class="status-card">
+        <div class="status-title">Actions</div>
+        <button onclick="checkAllStatus()">🔄 Check All Status</button>
+        <button onclick="checkManifest()" class="primary">📋 Check Manifest</button>
+        <button onclick="checkSegments()" class="primary">🎬 Check Segments</button>
+        <button onclick="clearLog()">🗑️ Clear Log</button>
+    </div>
+
+    <div class="log" id="log"></div>
+
+    <script>
+        const log = document.getElementById('log');
+        const streamId = 'd0c914f7d474fd3f3cdbb1b50ef434bd';
+        const baseUrl = 'http://localhost:5050';
+
+        function logMessage(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            log.innerHTML += logEntry + '<br>';
+            log.scrollTop = log.scrollHeight;
+            console.log(logEntry);
+        }
+
+        function updateStatus(elementId, value, type = '') {
+            const element = document.getElementById(elementId);
+            element.textContent = value;
+            element.className = `status-value ${type}`;
+        }
+
+        function clearLog() {
+            log.innerHTML = '';
+        }
+
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${baseUrl}/health`);
+                if (response.ok) {
+                    updateStatus('serverStatus', 'Running', 'success');
+                    updateStatus('healthStatus', 'OK', 'success');
+                    logMessage('✅ Backend server is running');
+                } else {
+                    updateStatus('serverStatus', 'Error', 'error');
+                    updateStatus('healthStatus', 'Failed', 'error');
+                    logMessage('❌ Backend server health check failed', 'error');
+                }
+            } catch (error) {
+                updateStatus('serverStatus', 'Not Running', 'error');
+                updateStatus('healthStatus', 'Failed', 'error');
+                logMessage(`❌ Backend server not accessible: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkManifest() {
+            try {
+                const response = await fetch(`${baseUrl}/livestream/${streamId}/stream.m3u8`);
+                if (response.ok) {
+                    const manifest = await response.text();
+                    updateStatus('manifestExists', 'Yes', 'success');
+                    
+                    // Parse manifest
+                    const lines = manifest.split('\n');
+                    const segments = lines.filter(line => line.endsWith('.ts'));
+                    const hasEndList = manifest.includes('#EXT-X-ENDLIST');
+                    
+                    updateStatus('segmentsCount', `${segments.length} segments`, segments.length > 0 ? 'success' : 'warning');
+                    updateStatus('manifestContent', hasEndList ? 'VOD' : 'Live', hasEndList ? 'warning' : 'success');
+                    
+                    logMessage(`✅ Manifest loaded: ${segments.length} segments, ${hasEndList ? 'VOD' : 'Live'} stream`);
+                    logMessage(`📄 Manifest content:\n${manifest}`);
+                    
+                    if (segments.length === 0) {
+                        logMessage('⚠️ No segments found - stream may not be active', 'warning');
+                    }
+                } else {
+                    updateStatus('manifestExists', 'No', 'error');
+                    updateStatus('segmentsCount', '0', 'error');
+                    logMessage(`❌ Manifest not found: ${response.status} ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                updateStatus('manifestExists', 'Error', 'error');
+                logMessage(`❌ Error checking manifest: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkSegments() {
+            try {
+                const response = await fetch(`${baseUrl}/livestream/${streamId}/stream.m3u8`);
+                if (response.ok) {
+                    const manifest = await response.text();
+                    const lines = manifest.split('\n');
+                    const segments = lines.filter(line => line.endsWith('.ts'));
+                    
+                    let accessibleSegments = 0;
+                    let totalSize = 0;
+                    
+                    logMessage(`🔍 Checking ${segments.length} segments...`);
+                    
+                    for (let i = 0; i < Math.min(segments.length, 5); i++) {
+                        const segmentUrl = `${baseUrl}/livestream/${streamId}/${segments[i]}`;
+                        try {
+                            const segmentResponse = await fetch(segmentUrl, { method: 'HEAD' });
+                            if (segmentResponse.ok) {
+                                accessibleSegments++;
+                                const contentLength = segmentResponse.headers.get('content-length');
+                                if (contentLength) {
+                                    totalSize += parseInt(contentLength);
+                                }
+                                logMessage(`✅ Segment ${segments[i]} accessible (${contentLength} bytes)`);
+                            } else {
+                                logMessage(`❌ Segment ${segments[i]} not accessible: ${segmentResponse.status}`, 'error');
+                            }
+                        } catch (error) {
+                            logMessage(`❌ Segment ${segments[i]} error: ${error.message}`, 'error');
+                        }
+                    }
+                    
+                    logMessage(`📊 Segment check complete: ${accessibleSegments}/${Math.min(segments.length, 5)} accessible`);
+                    logMessage(`📦 Total size checked: ${(totalSize / 1024 / 1024).toFixed(2)} MB`);
+                    
+                    if (accessibleSegments === 0) {
+                        logMessage('⚠️ No segments are accessible - stream is not active', 'warning');
+                    }
+                } else {
+                    logMessage('❌ Cannot check segments - manifest not found', 'error');
+                }
+            } catch (error) {
+                logMessage(`❌ Error checking segments: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkFFmpegProcess() {
+            // This would require a backend endpoint to check FFmpeg status
+            // For now, we'll infer from segment generation
+            try {
+                const response = await fetch(`${baseUrl}/livestream/${streamId}/stream.m3u8`);
+                if (response.ok) {
+                    const manifest = await response.text();
+                    const lines = manifest.split('\n');
+                    const segments = lines.filter(line => line.endsWith('.ts'));
+                    
+                    if (segments.length > 0) {
+                        updateStatus('ffmpegProcess', 'Running', 'success');
+                        logMessage('✅ FFmpeg appears to be running (segments found)');
+                    } else {
+                        updateStatus('ffmpegProcess', 'Not Running', 'error');
+                        logMessage('❌ FFmpeg not running (no segments found)', 'error');
+                    }
+                } else {
+                    updateStatus('ffmpegProcess', 'Unknown', 'warning');
+                    logMessage('⚠️ Cannot determine FFmpeg status', 'warning');
+                }
+            } catch (error) {
+                updateStatus('ffmpegProcess', 'Error', 'error');
+                logMessage(`❌ Error checking FFmpeg status: ${error.message}`, 'error');
+            }
+        }
+
+        async function checkAllStatus() {
+            logMessage('🚀 Starting comprehensive stream status check...');
+            
+            await checkServerStatus();
+            await checkManifest();
+            await checkSegments();
+            await checkFFmpegProcess();
+            
+            logMessage('✅ Status check complete');
+        }
+
+        // Auto-check on page load
+        window.addEventListener('load', () => {
+            logMessage('🚀 Stream Status Test page loaded');
+            checkAllStatus();
+        });
+    </script>
+</body>
+</html>

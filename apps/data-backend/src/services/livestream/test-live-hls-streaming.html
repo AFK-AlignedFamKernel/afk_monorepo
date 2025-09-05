@@ -219,6 +219,9 @@
             <button onclick="pauseVideo()" id="pauseBtn" disabled>⏸️ Pause</button>
             <button onclick="checkManifest()" class="primary">📋 Check Manifest</button>
             <button onclick="checkSegments()" class="warning">🎬 Check Segments</button>
+            <button onclick="getAllSegments()" class="primary">📦 Get All Segments</button>
+            <button onclick="getLiveData()" class="warning">🔴 Get Live Data</button>
+            <button onclick="getOlderSegments()" class="warning">⏮️ Get Older Segments</button>
             <button onclick="clearLog()" class="danger">🗑️ Clear Log</button>
         </div>
     </div>
@@ -311,6 +314,8 @@
         let lastSegmentCount = 0;
         let hls = null;
         let hlsSupported = false;
+        let allSegments = [];
+        let currentSegmentIndex = 0;
 
         function logMessage(message, type = 'info') {
             const timestamp = new Date().toLocaleTimeString();
@@ -539,6 +544,199 @@
             } catch (error) {
                 logMessage(`❌ Failed to check segments: ${error.message}`, 'error');
                 updateStatus('segmentsStatus', 'Check failed', 'error');
+            }
+        }
+
+        async function getAllSegments() {
+            logMessage('📦 Fetching all video segments...', 'info');
+            
+            try {
+                const response = await fetch(manifestUrl);
+                const manifest = await response.text();
+                const lines = manifest.split('\n');
+                const segments = lines.filter(line => line.endsWith('.ts'));
+                
+                allSegments = segments;
+                currentSegmentIndex = 0;
+                
+                logMessage(`📋 Found ${segments.length} segments in manifest`, 'info');
+                
+                if (segments.length === 0) {
+                    logMessage('⚠️ No segments found - stream may not be active', 'warning');
+                    return;
+                }
+                
+                let totalSize = 0;
+                let successfulSegments = 0;
+                let failedSegments = 0;
+                
+                logMessage(`🔄 Downloading ${segments.length} segments...`, 'info');
+                
+                for (let i = 0; i < segments.length; i++) {
+                    const segmentUrl = manifestUrl.replace('stream.m3u8', segments[i]);
+                    try {
+                        const segmentResponse = await fetch(segmentUrl);
+                        if (segmentResponse.ok) {
+                            const blob = await segmentResponse.blob();
+                            const size = blob.size;
+                            totalSize += size;
+                            successfulSegments++;
+                            
+                            logMessage(`✅ Segment ${i + 1}/${segments.length}: ${segments[i]} (${(size / 1024).toFixed(1)} KB)`, 'success');
+                            
+                            // Store segment data for potential playback
+                            allSegments[i] = {
+                                name: segments[i],
+                                url: segmentUrl,
+                                size: size,
+                                blob: blob,
+                                data: await blob.arrayBuffer()
+                            };
+                        } else {
+                            logMessage(`❌ Segment ${i + 1}/${segments.length}: ${segments[i]} failed (${segmentResponse.status})`, 'error');
+                            failedSegments++;
+                        }
+                    } catch (error) {
+                        logMessage(`❌ Segment ${i + 1}/${segments.length}: ${segments[i]} error: ${error.message}`, 'error');
+                        failedSegments++;
+                    }
+                }
+                
+                logMessage(`📊 Download complete: ${successfulSegments} successful, ${failedSegments} failed`, 
+                    successfulSegments > 0 ? 'success' : 'error');
+                logMessage(`📦 Total size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`, 'info');
+                
+                updateStatus('segmentsStatus', `${successfulSegments}/${segments.length} downloaded`, 
+                    successfulSegments > 0 ? 'success' : 'error');
+                
+            } catch (error) {
+                logMessage(`❌ Failed to get all segments: ${error.message}`, 'error');
+                updateStatus('segmentsStatus', 'Download failed', 'error');
+            }
+        }
+
+        async function getLiveData() {
+            logMessage('🔴 Getting current live data...', 'info');
+            
+            try {
+                // Get current manifest
+                const response = await fetch(manifestUrl);
+                const manifest = await response.text();
+                const lines = manifest.split('\n');
+                const segments = lines.filter(line => line.endsWith('.ts'));
+                
+                if (segments.length === 0) {
+                    logMessage('⚠️ No live data available - stream not active', 'warning');
+                    return;
+                }
+                
+                // Get the latest segment (last one in the list)
+                const latestSegment = segments[segments.length - 1];
+                const latestSegmentUrl = manifestUrl.replace('stream.m3u8', latestSegment);
+                
+                logMessage(`🎬 Latest segment: ${latestSegment}`, 'info');
+                
+                try {
+                    const segmentResponse = await fetch(latestSegmentUrl);
+                    if (segmentResponse.ok) {
+                        const blob = await segmentResponse.blob();
+                        const size = blob.size;
+                        
+                        logMessage(`✅ Latest segment downloaded: ${(size / 1024).toFixed(1)} KB`, 'success');
+                        logMessage(`📊 Live data size: ${(size / 1024 / 1024).toFixed(2)} MB`, 'info');
+                        
+                        // Store latest segment data
+                        allSegments[allSegments.length] = {
+                            name: latestSegment,
+                            url: latestSegmentUrl,
+                            size: size,
+                            blob: blob,
+                            data: await blob.arrayBuffer(),
+                            timestamp: new Date().toISOString()
+                        };
+                        
+                        currentSegmentIndex = allSegments.length - 1;
+                        
+                        updateStatus('segmentsStatus', `Latest: ${latestSegment}`, 'success');
+                    } else {
+                        logMessage(`❌ Failed to get latest segment: ${segmentResponse.status}`, 'error');
+                    }
+                } catch (error) {
+                    logMessage(`❌ Error getting latest segment: ${error.message}`, 'error');
+                }
+                
+            } catch (error) {
+                logMessage(`❌ Failed to get live data: ${error.message}`, 'error');
+            }
+        }
+
+        async function getOlderSegments() {
+            logMessage('⏮️ Getting older segments...', 'info');
+            
+            if (allSegments.length === 0) {
+                logMessage('⚠️ No segments loaded yet. Use "Get All Segments" first.', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch(manifestUrl);
+                const manifest = await response.text();
+                const lines = manifest.split('\n');
+                const segments = lines.filter(line => line.endsWith('.ts'));
+                
+                if (segments.length === 0) {
+                    logMessage('⚠️ No segments in manifest', 'warning');
+                    return;
+                }
+                
+                // Get segments before the current index
+                const olderSegments = segments.slice(0, currentSegmentIndex);
+                
+                if (olderSegments.length === 0) {
+                    logMessage('ℹ️ No older segments available', 'info');
+                    return;
+                }
+                
+                logMessage(`🔄 Getting ${olderSegments.length} older segments...`, 'info');
+                
+                let totalSize = 0;
+                let successfulSegments = 0;
+                
+                for (let i = 0; i < olderSegments.length; i++) {
+                    const segmentUrl = manifestUrl.replace('stream.m3u8', olderSegments[i]);
+                    try {
+                        const segmentResponse = await fetch(segmentUrl);
+                        if (segmentResponse.ok) {
+                            const blob = await segmentResponse.blob();
+                            const size = blob.size;
+                            totalSize += size;
+                            successfulSegments++;
+                            
+                            logMessage(`✅ Older segment ${i + 1}/${olderSegments.length}: ${olderSegments[i]} (${(size / 1024).toFixed(1)} KB)`, 'success');
+                            
+                            // Store older segment data
+                            allSegments[i] = {
+                                name: olderSegments[i],
+                                url: segmentUrl,
+                                size: size,
+                                blob: blob,
+                                data: await blob.arrayBuffer(),
+                                timestamp: new Date().toISOString()
+                            };
+                        } else {
+                            logMessage(`❌ Older segment ${i + 1}/${olderSegments.length}: ${olderSegments[i]} failed (${segmentResponse.status})`, 'error');
+                        }
+                    } catch (error) {
+                        logMessage(`❌ Older segment ${i + 1}/${olderSegments.length}: ${olderSegments[i]} error: ${error.message}`, 'error');
+                    }
+                }
+                
+                logMessage(`📊 Older segments download complete: ${successfulSegments} successful`, 
+                    successfulSegments > 0 ? 'success' : 'error');
+                logMessage(`📦 Total older segments size: ${(totalSize / 1024 / 1024).toFixed(2)} MB`, 'info');
+                
+            } catch (error) {
+                logMessage(`❌ Failed to get older segments: ${error.message}`, 'error');
             }
         }
 
