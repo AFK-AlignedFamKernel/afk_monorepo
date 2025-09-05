@@ -65,15 +65,8 @@ const extractStreamingUrlFromEvent = (event: any, streamId?: string): string | n
     }
   }
   
-  // If no streaming URL found in event but we have a streamId, construct one
-  if (streamId) {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
-    const constructedUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
-    console.log('🔧 Constructing streaming URL from stream ID:', constructedUrl);
-    return constructedUrl;
-  }
-  
-  console.log('❌ No streaming URL found in event and no stream ID provided');
+  // Don't construct URLs as fallback - only return URLs that are actually in the event
+  console.log('❌ No streaming URL found in NIP-53 event');
   return null;
 };
 
@@ -159,7 +152,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     return !url.includes(backendUrl);
   };
 
-  // Compute streaming URL - prioritize WebSocket context, then stream status, then event data
+  // Compute streaming URL - ALWAYS prioritize NIP-53 event data first
   const streamingUrl = React.useMemo(() => {
     console.log('🔗 Computing streaming URL with:', {
       isWebSocketStreaming,
@@ -172,17 +165,17 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050"
     });
 
-    // Priority 1: Extract from NIP-53 event first (this handles external URLs)
+    // PRIORITY 1: Always check NIP-53 event first - this is the highest priority
     if (event) {
       const eventStreamingUrl = extractStreamingUrlFromEvent(event, currentStreamId);
       if (eventStreamingUrl) {
-        console.log('✅ Found streaming URL in event:', eventStreamingUrl);
+        console.log('✅ Found streaming URL in NIP-53 event:', eventStreamingUrl);
         console.log('🔍 URL type:', isExternalUrl(eventStreamingUrl) ? 'external' : 'internal');
         return eventStreamingUrl;
       }
     }
 
-    // Priority 2: WebSocket streaming context (internal only)
+    // PRIORITY 2: Only if no event URL found, check WebSocket streaming context (internal only)
     if (isWebSocketStreaming && streamKey) {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
       const computedUrl = `${backendUrl}/livestream/${streamKey}/stream.m3u8`;
@@ -190,7 +183,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       return computedUrl;
     }
 
-    // Priority 3: If we have a stream ID and it's active (even without video content), construct URL
+    // PRIORITY 3: Only if no event URL found, check stream status (internal only)
     if (currentStreamId && (streamStatus === 'available' || streamStatus === 'loading')) {
       const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5050";
       const computedUrl = `${backendUrl}/livestream/${currentStreamId}/stream.m3u8`;
@@ -198,13 +191,13 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       return computedUrl;
     }
 
-    // Priority 4: If stream is not started yet, return null to show appropriate UI
+    // PRIORITY 4: If stream is not started yet, return null to show appropriate UI
     if (currentStreamId && streamStatus === 'not_started') {
       console.log('⏳ Stream not started yet, will show waiting UI');
       return null;
     }
 
-    // Priority 5: If event is still loading but we have a stream ID, show loading state
+    // PRIORITY 5: If event is still loading but we have a stream ID, show loading state
     if (currentStreamId && eventLoading) {
       console.log('⏳ Event is still loading, will show loading state');
       return null;
@@ -256,11 +249,11 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
       return;
     }
 
-    // Skip status checking for external URLs
+    // Skip status checking for external URLs - they should render directly
     if (event) {
       const eventStreamingUrl = extractStreamingUrlFromEvent(event, currentStreamId);
       if (eventStreamingUrl && isExternalUrl(eventStreamingUrl)) {
-        console.log('🌐 External URL detected, skipping status check');
+        console.log('🌐 External URL detected in NIP-53 event, skipping status check and WebSocket integration');
         setStreamStatus('available'); // External URLs are assumed to be available
         return;
       }

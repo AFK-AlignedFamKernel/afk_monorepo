@@ -148,18 +148,27 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     }
   }, [streamingUrl, recordingUrl, isStreamer, className, isStreaming, streamKey, streamId, streamStatus]);
 
-  // Auto-join stream for viewers when streamId is available
+  // Auto-join stream for viewers when streamId is available (ONLY for internal streams)
   useEffect(() => {
     if (streamId && !isStreamer && !isStreaming) {
-      console.log('👥 Auto-joining stream as viewer:', streamId);
+      // Check if this is an external URL - if so, don't join WebSocket or push events
+      if (streamingUrl) {
+        const urlType = detectUrlType(streamingUrl);
+        if (urlType === 'external-hls' || urlType === 'external-other') {
+          console.log('🌐 External URL detected, skipping WebSocket join and event pushing');
+          return;
+        }
+      }
+      
+      console.log('👥 Auto-joining internal stream as viewer:', streamId);
       console.log('🎯 Current streaming URL:', streamingUrl);
       
-      // Join the WebSocket stream room
+      // Join the WebSocket stream room (only for internal streams)
       joinStream(streamId, 'viewer');
       
       // If we have a streaming URL, set it as the video source
       if (streamingUrl && videoRef.current) {
-        console.log('🎥 Setting HLS stream source for viewer:', streamingUrl);
+        console.log('🎥 Setting internal HLS stream source for viewer:', streamingUrl);
         const video = videoRef.current;
         
         // Set proper HLS attributes
@@ -292,15 +301,24 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     };
   }, []);
 
-  // Cleanup when component unmounts
+  // Cleanup when component unmounts (ONLY for internal streams)
   useEffect(() => {
     return () => {
       if (streamId && !isStreamer) {
-        console.log('👋 Leaving stream as viewer:', streamId);
+        // Check if this is an external URL - if so, don't leave stream
+        if (streamingUrl) {
+          const urlType = detectUrlType(streamingUrl);
+          if (urlType === 'external-hls' || urlType === 'external-other') {
+            console.log('🌐 External URL detected, skipping stream leave');
+            return;
+          }
+        }
+        
+        console.log('👋 Leaving internal stream as viewer:', streamId);
         leaveStream();
       }
     };
-  }, [streamId, isStreamer, leaveStream]);
+  }, [streamId, isStreamer, leaveStream, streamingUrl]);
 
 
   // Use video element hook for stream management
@@ -316,13 +334,22 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     seekTo,
   } = useVideoElement({});
 
-  // Enhanced stream monitoring for viewers
+  // Enhanced stream monitoring for viewers (ONLY for internal streams)
   useEffect(() => {
     if (!streamId || isStreamer) return;
 
-    console.log('👥 Viewer mode: Setting up stream monitoring for:', streamId);
+    // Check if this is an external URL - if so, skip monitoring
+    if (streamingUrl) {
+      const urlType = detectUrlType(streamingUrl);
+      if (urlType === 'external-hls' || urlType === 'external-other') {
+        console.log('🌐 External URL detected, skipping stream monitoring');
+        return;
+      }
+    }
+
+    console.log('👥 Viewer mode: Setting up stream monitoring for internal stream:', streamId);
     
-    // Join the stream as a viewer
+    // Join the stream as a viewer (only for internal streams)
     joinStream(streamId, 'viewer-' + Date.now());
     
     // Set up periodic stream status checking

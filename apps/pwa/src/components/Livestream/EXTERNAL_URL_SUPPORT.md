@@ -43,12 +43,14 @@ const detectUrlType = (url: string): 'internal-hls' | 'external-hls' | 'external
 
 ## URL Priority in LivestreamMain
 
-The streaming URL is computed with the following priority:
+The streaming URL is computed with the following **strict priority**:
 
-1. **NIP-53 event data** - Extracted from event tags or content (handles external URLs)
-2. **WebSocket streaming context** - Internal streams only
-3. **Stream status** - Internal streams only
+1. **NIP-53 event data** - **HIGHEST PRIORITY** - Always checked first, handles both internal and external URLs
+2. **WebSocket streaming context** - Only if no event URL found (internal streams only)
+3. **Stream status** - Only if no event URL found (internal streams only)
 4. **Fallback to null** - Show appropriate UI
+
+**Important**: NIP-53 event streaming URLs always take priority over any other source, including WebSocket context and internal stream construction.
 
 ## Handling Differences
 
@@ -59,16 +61,34 @@ The streaming URL is computed with the following priority:
 - Monitor stream health and viewer count
 
 ### External HLS Streams
-- Direct video loading with HLS support
-- Skip status checking (assume available)
-- No status overlays
-- Immediate playback attempt
+- **Direct video loading** with HLS support
+- **Skip status checking** (assume available)
+- **No WebSocket integration** (no event pushing)
+- **No status overlays**
+- **Immediate playback attempt**
 
 ### External Platform URLs
-- Direct video loading (browser-dependent support)
-- Skip status checking (assume available)
-- No status overlays
-- Handle autoplay restrictions gracefully
+- **Direct video loading** (browser-dependent support)
+- **Skip status checking** (assume available)
+- **No WebSocket integration** (no event pushing)
+- **No status overlays**
+- **Handle autoplay restrictions gracefully**
+
+## Key Behavioral Changes
+
+### External URLs (NIP-53 Event Priority)
+- **No WebSocket joining** - External URLs don't join stream rooms
+- **No event pushing** - External URLs don't push events to backend
+- **No status monitoring** - External URLs skip all status checking
+- **Direct rendering** - External URLs render directly in video player
+- **No cleanup** - External URLs don't trigger stream leave events
+
+### Internal URLs (Fallback Only)
+- **Full WebSocket integration** - Internal URLs join stream rooms
+- **Event pushing** - Internal URLs push events to backend
+- **Status monitoring** - Internal URLs have full status checking
+- **Status overlays** - Internal URLs show loading/waiting states
+- **Cleanup** - Internal URLs properly clean up on unmount
 
 ## Usage Examples
 
