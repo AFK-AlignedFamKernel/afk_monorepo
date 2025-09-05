@@ -286,20 +286,45 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
     }
   }, [streamKey, sendStreamData]);
 
-  // Cleanup
+  // Cleanup - use refs to avoid dependency issues
   const cleanup = useCallback(() => {
+    console.log('🧹 WebSocket cleanup called');
+    
+    // Stop streaming if active
     if (isStreaming && streamKey) {
-      stopStream();
+      console.log('🛑 Stopping active stream during cleanup');
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('end-stream', { streamKey });
+      }
     }
-    disconnect();
-  }, [isStreaming, streamKey, stopStream, disconnect]);
+    
+    // Stop MediaRecorder if active
+    if (mediaRecorderRef.current) {
+      console.log('🛑 Stopping MediaRecorder during cleanup');
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
+    }
+    
+    // Disconnect WebSocket
+    if (socketRef.current) {
+      console.log('🔌 Disconnecting WebSocket during cleanup');
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+    
+    // Reset state
+    setIsConnected(false);
+    setIsStreaming(false);
+    setStreamKey(null);
+    setViewerCount(0);
+  }, []); // No dependencies to prevent infinite loops
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       cleanup();
     };
-  }, [cleanup]);
+  }, []); // Empty dependency array - only run on mount/unmount
 
   const value: LivestreamWebSocketContextType = {
     socket,

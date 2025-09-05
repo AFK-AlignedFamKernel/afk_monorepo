@@ -236,8 +236,6 @@ export async function setupStream(data: StreamSetup) {
 #EXT-X-MEDIA-SEQUENCE:0
 #EXT-X-PLAYLIST-TYPE:EVENT
 #EXT-X-INDEPENDENT-SEGMENTS
-#EXTINF:2.0,
-#EXT-X-DISCONTINUITY
 `;
   
   try {
@@ -247,14 +245,14 @@ export async function setupStream(data: StreamSetup) {
     console.error('❌ Failed to create initial HLS manifest:', writeError);
   }
 
-  // Set up periodic manifest validation
+  // Set up periodic manifest validation (reduced frequency to prevent loops)
   const manifestCheckInterval = setInterval(async () => {
     try {
       await validateAndFixManifest(outputPath);
     } catch (error) {
       console.error('❌ Error in periodic manifest check:', error);
     }
-  }, 5000); // Check every 5 seconds
+  }, 30000); // Check every 30 seconds instead of 5
 
   // Cleanup interval on process exit
   process.on('exit', () => clearInterval(manifestCheckInterval));
@@ -397,6 +395,9 @@ async function updateAndUploadM3u8(localM3u8Path: string, streamKey: string) {
 }
 
 const watcherFn = (streamPath: string, data: { streamKey: string }, outputPath: string) => {
+  // Debounce manifest validation to prevent infinite loops
+  let manifestValidationTimeout: NodeJS.Timeout | null = null;
+  
   const watcher = watch(streamPath, async (eventType, filename) => {
     console.log(`📁 File watcher: ${eventType} - ${filename}`);
     
@@ -406,10 +407,20 @@ const watcherFn = (streamPath: string, data: { streamKey: string }, outputPath: 
       await processSegment(segmentPath, data.streamKey, outputPath);
     }
     
-    // Also watch for manifest updates
+    // Also watch for manifest updates with debouncing
     if (eventType === 'change' && filename === 'stream.m3u8') {
-      console.log('📋 HLS manifest updated, validating...');
-      await validateAndFixManifest(outputPath);
+      console.log('📋 HLS manifest updated, scheduling validation...');
+      
+      // Clear existing timeout
+      if (manifestValidationTimeout) {
+        clearTimeout(manifestValidationTimeout);
+      }
+      
+      // Debounce manifest validation by 1 second
+      manifestValidationTimeout = setTimeout(async () => {
+        console.log('📋 HLS manifest updated, validating...');
+        await validateAndFixManifest(outputPath);
+      }, 1000);
     }
   });
 
@@ -438,8 +449,6 @@ async function validateAndFixManifest(manifestPath: string) {
 #EXT-X-MEDIA-SEQUENCE:0
 #EXT-X-PLAYLIST-TYPE:EVENT
 #EXT-X-INDEPENDENT-SEGMENTS
-#EXTINF:2.0,
-#EXT-X-DISCONTINUITY
 `;
       await writeFile(manifestPath, fixedManifest, 'utf8');
       return;
@@ -450,11 +459,9 @@ async function validateAndFixManifest(manifestPath: string) {
     const segments = lines.filter(line => line.endsWith('.ts'));
     
     if (segments.length === 0) {
-      console.log('⚠️ Manifest has no segments, adding placeholder...');
-      const linesWithPlaceholder = content.split('\n');
-      linesWithPlaceholder.push('#EXTINF:2.0,');
-      linesWithPlaceholder.push('#EXT-X-DISCONTINUITY');
-      await writeFile(manifestPath, linesWithPlaceholder.join('\n'), 'utf8');
+      console.log('⚠️ Manifest has no segments, waiting for FFmpeg to generate them...');
+      // Don't add placeholder content - this causes infinite loops
+      // Just log and wait for actual segments from FFmpeg
     } else {
       console.log(`✅ Manifest has ${segments.length} segments`);
     }

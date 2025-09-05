@@ -402,7 +402,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       console.log('👋 Viewer leaving stream:', streamId);
       leaveStream();
     };
-  }, [streamId, isStreamer, joinStream, leaveStream, isLive]);
+  }, [streamId, isStreamer]); // Remove joinStream, leaveStream, and isLive from dependencies to prevent infinite loops
 
   // Enhanced stream monitoring for broadcasters (to detect when stream becomes active)
   useEffect(() => {
@@ -454,7 +454,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     return () => {
       clearInterval(statusCheckInterval);
     };
-  }, [streamId, isStreamer, onStreamStart, isLive]);
+  }, [streamId, isStreamer]); // Remove onStreamStart and isLive from dependencies to prevent infinite loops
 
   // Helper function to detect URL type
   const detectUrlType = (url: string): 'internal-hls' | 'external-hls' | 'external-other' => {

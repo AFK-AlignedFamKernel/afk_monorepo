@@ -54,9 +54,10 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     }
 
     return () => {
+      console.log('🧹 Cleaning up WebSocket connection');
       cleanup();
     };
-  }, [streamId, connect, cleanup]);
+  }, [streamId]); // Remove connect and cleanup from dependencies to prevent infinite loops
 
   // Update stream status based on WebSocket state
   useEffect(() => {
