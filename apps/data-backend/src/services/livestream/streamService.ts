@@ -89,7 +89,7 @@ export async function setupStream(data: StreamSetup) {
     .audioCodec("aac")
     .outputOptions([
       // Audio specific settings - CRITICAL for HLS compatibility
-      "-acodec", "aac",
+      // Note: audioCodec("aac") above already sets the codec
       "-ar", "44100",        // Sample rate
       "-ac", "2",            // Stereo audio
       "-b:a", "128k",        // Audio bitrate
@@ -111,9 +111,8 @@ export async function setupStream(data: StreamSetup) {
       "-pix_fmt",
       "yuv420p",
 
-      // Scaling and resolution
-      "-vf",
-      "scale=1280:720",
+      // Scaling and resolution - handled by video codec settings
+      // "-vf", "scale=1280:720", // Removed duplicate scaling
 
       // HLS specific settings - CRITICAL for proper HLS generation
       "-hls_time",
