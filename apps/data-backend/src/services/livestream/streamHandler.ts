@@ -66,6 +66,7 @@ export async function handleStartStream(
       streamKey: data.streamKey,
       command: ffmpegCommand,
       inputStream: inputStream,
+      chunkAccumulator: Buffer.alloc(0), // Initialize chunk accumulator
       viewers: new Set(),
       broadcasterSocketId: socket.id,
       startedAt: new Date(),
@@ -100,8 +101,17 @@ export async function handleStartStream(
       .on('error', (err) => {
         console.error('❌ FFmpeg error:', err.message);
         console.error('❌ FFmpeg full error:', err);
+        
+        // Check for specific input format errors
+        if (err.message.includes('Invalid data found when processing input')) {
+          console.error('❌ FFmpeg input format error - WebM chunks may be malformed');
+          console.error('❌ This usually means the input stream format is not compatible');
+        }
+        
         streamData.status = 'error';
-        socket.emit('stream-error', { error: err.message });
+        socket.emit('stream-error', { 
+          error: err.message,
+        });
       })
       .on('end', () => {
         console.log('🏁 FFmpeg ended for:', data.streamKey);
@@ -133,10 +143,23 @@ export function handleStreamData(socket: Socket, data: { streamKey: string; chun
     
     console.log(`📡 Processing chunk: ${chunk.length} bytes for ${data.streamKey}`);
     
-    // Push to FFmpeg input stream
+    // Initialize chunk accumulator if not exists
+    if (!stream.chunkAccumulator) {
+      stream.chunkAccumulator = Buffer.alloc(0);
+      console.log('📦 Initialized chunk accumulator for stream:', data.streamKey);
+    }
+    
+    // Accumulate chunks to create a continuous stream
+    stream.chunkAccumulator = Buffer.concat([stream.chunkAccumulator, chunk]);
+    console.log(`📦 Accumulated chunks: ${stream.chunkAccumulator.length} bytes total`);
+    
+    // Push accumulated data to FFmpeg input stream
     if (stream.inputStream && !stream.inputStream.destroyed) {
-      stream.inputStream.push(chunk);
-      console.log(`✅ Chunk sent to FFmpeg: ${chunk.length} bytes`);
+      stream.inputStream.push(stream.chunkAccumulator);
+      console.log(`✅ Accumulated data sent to FFmpeg: ${stream.chunkAccumulator.length} bytes`);
+      
+      // Reset accumulator after sending
+      stream.chunkAccumulator = Buffer.alloc(0);
       
       // Check if FFmpeg is still running
       if (stream.command && stream.command.killed) {

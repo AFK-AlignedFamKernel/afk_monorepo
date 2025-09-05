@@ -112,7 +112,18 @@ export async function setupStream(data: StreamSetup) {
   
   const ffmpegCommand = ffmpeg()
     .input(inputStream)
-    .inputFormat("webm")
+    .inputFormat("webm")              // Keep WebM format
+    .inputOptions([
+      "-fflags", "+genpts+igndts",    // Generate timestamps, ignore DTS
+      "-avoid_negative_ts", "make_zero", // Handle negative timestamps
+      "-analyzeduration", "50M",      // Much larger analysis duration
+      "-probesize", "100M",           // Much larger probe size
+      "-f", "webm",                   // Force WebM format
+      "-thread_queue_size", "1024",   // Large thread queue for buffering
+      "-reconnect", "1",              // Enable reconnection
+      "-reconnect_streamed", "1",     // Reconnect streamed input
+      "-reconnect_delay_max", "2"     // Max delay for reconnection
+    ])
     .format("hls")
     .videoCodec("libx264")
     .audioCodec("aac")
@@ -175,6 +186,19 @@ export async function setupStream(data: StreamSetup) {
   ffmpegCommand.on('start', (commandLine) => {
     console.log('🎬 FFmpeg started with command:', commandLine);
     console.log('📡 FFmpeg is now processing video input stream');
+  });
+
+  // Add input stream monitoring
+  inputStream.on('data', (chunk) => {
+    console.log('📥 FFmpeg received chunk:', chunk.length, 'bytes');
+  });
+
+  inputStream.on('end', () => {
+    console.log('📥 FFmpeg input stream ended');
+  });
+
+  inputStream.on('error', (error) => {
+    console.error('❌ FFmpeg input stream error:', error);
   });
 
   // Monitor audio processing
