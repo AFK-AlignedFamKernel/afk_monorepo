@@ -618,3 +618,75 @@ export async function healthCheck(
     });
   }
 }
+
+/**
+ * Debug endpoint to check manifest content
+ */
+export async function debugManifest(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { streamId } = request.params as { streamId: string };
+    
+    if (!streamId) {
+      return reply.status(400).send({ error: 'Stream ID is required' });
+    }
+
+    const streamPath = path.join(process.cwd(), 'public', 'livestreams', streamId);
+    const m3u8Path = path.join(streamPath, 'stream.m3u8');
+    
+    console.log(`🔍 Debug manifest request for: ${streamId}`);
+    console.log(`📁 Stream path: ${streamPath}`);
+    console.log(`📄 Manifest path: ${m3u8Path}`);
+    
+    // Check if stream directory exists
+    if (!fs.existsSync(streamPath)) {
+      return reply.status(404).send({ 
+        error: 'Stream directory not found',
+        streamPath,
+        exists: false
+      });
+    }
+    
+    // Check if manifest exists
+    if (!fs.existsSync(m3u8Path)) {
+      return reply.status(404).send({ 
+        error: 'Manifest file not found',
+        m3u8Path,
+        exists: false
+      });
+    }
+    
+    // Read manifest content
+    const manifestContent = fs.readFileSync(m3u8Path, 'utf8');
+    const lines = manifestContent.split('\n');
+    const segments = lines.filter(line => line.endsWith('.ts'));
+    
+    // List all files in stream directory
+    const files = fs.readdirSync(streamPath);
+    const segmentFiles = files.filter(file => file.endsWith('.ts'));
+    
+    const debugInfo = {
+      streamId,
+      streamPath,
+      m3u8Path,
+      manifestExists: true,
+      manifestContent,
+      manifestLines: lines.length,
+      segmentsInManifest: segments.length,
+      segmentFiles: segmentFiles,
+      segmentFilesCount: segmentFiles.length,
+      allFiles: files,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('📊 Debug info:', debugInfo);
+    
+    return reply.send(debugInfo);
+    
+  } catch (error) {
+    console.error('Debug manifest error:', error);
+    return reply.status(500).send({ 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+}

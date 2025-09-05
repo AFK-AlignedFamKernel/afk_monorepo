@@ -236,6 +236,8 @@ export async function setupStream(data: StreamSetup) {
 #EXT-X-MEDIA-SEQUENCE:0
 #EXT-X-PLAYLIST-TYPE:EVENT
 #EXT-X-INDEPENDENT-SEGMENTS
+#EXTINF:2.0,
+#EXT-X-DISCONTINUITY
 `;
   
   try {
@@ -244,6 +246,18 @@ export async function setupStream(data: StreamSetup) {
   } catch (writeError) {
     console.error('❌ Failed to create initial HLS manifest:', writeError);
   }
+
+  // Set up periodic manifest validation
+  const manifestCheckInterval = setInterval(async () => {
+    try {
+      await validateAndFixManifest(outputPath);
+    } catch (error) {
+      console.error('❌ Error in periodic manifest check:', error);
+    }
+  }, 5000); // Check every 5 seconds
+
+  // Cleanup interval on process exit
+  process.on('exit', () => clearInterval(manifestCheckInterval));
 
   console.log('✅ FFmpeg setup completed for stream:', data.streamKey);
 
@@ -312,6 +326,18 @@ async function processSegment(
 ) {
   try {
     if (!(await fileExists(segmentPath))) {
+      console.log('⚠️ Segment file does not exist:', segmentPath);
+      return;
+    }
+
+    console.log(`🎬 Processing segment: ${basename(segmentPath)}`);
+    
+    // Check segment size
+    const stats = await import('fs').then(fs => fs.promises.stat(segmentPath));
+    console.log(`📊 Segment size: ${stats.size} bytes`);
+
+    if (stats.size === 0) {
+      console.log('⚠️ Segment is empty, skipping...');
       return;
     }
 
@@ -372,9 +398,18 @@ async function updateAndUploadM3u8(localM3u8Path: string, streamKey: string) {
 
 const watcherFn = (streamPath: string, data: { streamKey: string }, outputPath: string) => {
   const watcher = watch(streamPath, async (eventType, filename) => {
+    console.log(`📁 File watcher: ${eventType} - ${filename}`);
+    
     if (eventType === 'rename' && filename?.endsWith('.ts')) {
       const segmentPath = join(streamPath, filename);
+      console.log(`🎬 New segment detected: ${filename}`);
       await processSegment(segmentPath, data.streamKey, outputPath);
+    }
+    
+    // Also watch for manifest updates
+    if (eventType === 'change' && filename === 'stream.m3u8') {
+      console.log('📋 HLS manifest updated, validating...');
+      await validateAndFixManifest(outputPath);
     }
   });
 
@@ -382,3 +417,48 @@ const watcherFn = (streamPath: string, data: { streamKey: string }, outputPath: 
   // process.on("exit", () => watcher.close());
   return watcher;
 };
+
+// Validate and fix HLS manifest
+async function validateAndFixManifest(manifestPath: string) {
+  try {
+    if (!(await fileExists(manifestPath))) {
+      console.log('⚠️ Manifest file does not exist');
+      return;
+    }
+
+    const content = await readFile(manifestPath, 'utf8');
+    console.log('📋 Current manifest content:', content);
+
+    // Check if manifest has proper structure
+    if (!content.includes('#EXTM3U') || !content.includes('#EXT-X-VERSION')) {
+      console.log('⚠️ Manifest is malformed, recreating...');
+      const fixedManifest = `#EXTM3U
+#EXT-X-VERSION:6
+#EXT-X-TARGETDURATION:2
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:EVENT
+#EXT-X-INDEPENDENT-SEGMENTS
+#EXTINF:2.0,
+#EXT-X-DISCONTINUITY
+`;
+      await writeFile(manifestPath, fixedManifest, 'utf8');
+      return;
+    }
+
+    // Check if manifest has segments
+    const lines = content.split('\n');
+    const segments = lines.filter(line => line.endsWith('.ts'));
+    
+    if (segments.length === 0) {
+      console.log('⚠️ Manifest has no segments, adding placeholder...');
+      const linesWithPlaceholder = content.split('\n');
+      linesWithPlaceholder.push('#EXTINF:2.0,');
+      linesWithPlaceholder.push('#EXT-X-DISCONTINUITY');
+      await writeFile(manifestPath, linesWithPlaceholder.join('\n'), 'utf8');
+    } else {
+      console.log(`✅ Manifest has ${segments.length} segments`);
+    }
+  } catch (error) {
+    console.error('❌ Error validating manifest:', error);
+  }
+}

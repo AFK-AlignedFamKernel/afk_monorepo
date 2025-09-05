@@ -7,7 +7,8 @@ import {
   healthCheck,
   startStream,
   startLocalStream,
-  stopStream
+  stopStream,
+  debugManifest
 } from './fastifyEndpoints';
 import { cloudinaryLivestreamService } from './cloudinaryService';
 
@@ -46,6 +47,9 @@ export async function registerLivestreamRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({ error: 'Failed to get debug info' });
     }
   });
+
+  // Debug endpoint to check manifest content
+  fastify.get('/livestream/debug/manifest/:streamId', debugManifest);
 
   // Test endpoint to verify WebSocket connection
   fastify.get('/livestream/test/websocket', async (request, reply) => {
