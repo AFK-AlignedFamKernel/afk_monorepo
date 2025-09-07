@@ -1914,15 +1914,18 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      const tokenAddress = event?.args?.token_address;
-      const finalPrice = event?.args?.final_price?.toString() || '0';
-      const finalMarketCap = event?.args?.final_market_cap?.toString() || '0';
+      console.log("events args", event?.args);
+      const tokenAddress = event?.args?.asset;
+     
+      let finalPrice = event?.args?.final_price?.toString() || '0';
+      let finalMarketCap = event?.args?.final_market_cap?.toString() || '0';
 
       try {
         const existingLaunch = await db.query.tokenLaunch.findFirst({
           where: eq(tokenLaunch.memecoin_address, tokenAddress)
         });
 
+        console.log("existingLaunch", existingLaunch);
         if (existingLaunch) {
           await db.update(tokenLaunch)
             .set({
@@ -1934,13 +1937,18 @@ export default function (config: ApibaraRuntimeConfig & {
 
           console.log('Launch Record Updated for Liquidity Creation');
         }
+        const initialPoolSupply = existingLaunch?.initial_pool_supply_dex || '0';
+        const newLiquidityRaised = existingLaunch?.liquidity_raised || '0';
+        finalPrice = Number(initialPoolSupply) > 0 ? (Number(newLiquidityRaised) / Number(initialPoolSupply)).toString() : '0';
+        finalMarketCap = (Number(existingLaunch?.total_supply) * Number(finalPrice)).toString();
 
         const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
         try {
-          await db.insert(tokenTransactions)
-            .values({
-              transfer_id: transferId,
+          withTimeout(async () => {
+            await db.insert(tokenTransactions)
+              .values({
+                transfer_id: transferId,
               network: 'starknet-sepolia',
               block_timestamp: blockTimestamp,
               transaction_hash: transactionHash,
@@ -1949,6 +1957,7 @@ export default function (config: ApibaraRuntimeConfig & {
               created_at: new Date(),
             })
             .onConflictDoNothing(); // Prevent duplicates
+          }, 10000);
         } catch (error: any) {
           console.error('Failed to insert liquidity created transaction:', {
             error: error,
@@ -1992,12 +2001,14 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      const tokenAddress = event?.args?.token_address;
+      const tokenAddress = event?.args?.asset;
 
       try {
         const existingLaunch = await db.query.tokenLaunch.findFirst({
           where: eq(tokenLaunch.memecoin_address, tokenAddress)
         });
+
+        console.log("existingLaunch", existingLaunch);
 
         if (existingLaunch) {
           await db.update(tokenLaunch)
@@ -2012,6 +2023,7 @@ export default function (config: ApibaraRuntimeConfig & {
         const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
         try {
+         withTimeout( async () => {
           await db.insert(tokenTransactions)
             .values({
               transfer_id: transferId,
@@ -2023,6 +2035,7 @@ export default function (config: ApibaraRuntimeConfig & {
               created_at: new Date(),
             })
             .onConflictDoNothing(); // Prevent duplicates
+         }, 10000);
         } catch (error: any) {
           console.error('Failed to insert liquidity can be added transaction:', {
             error: error,
