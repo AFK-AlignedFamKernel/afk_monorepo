@@ -15,6 +15,13 @@
       "when": 1756922904592,
       "tag": "0001_last_hemingway",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1757253826104,
+      "tag": "0002_stale_maverick",
+      "breakpoints": true
     }
   ]
 }

@@ -1259,15 +1259,16 @@ export default function (config: ApibaraRuntimeConfig & {
         // Convert to human-readable strings for display/storage
         const amount = formatBigIntToFloat(amountBigInt);
         const quoteAmount = formatBigIntToFloat(quoteAmountBigInt);
-        const price = formatBigIntToFloat(priceBigInt);
+        // Note: We'll calculate the actual price based on bonding curve below
         const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
         const timestamp = new Date(Math.max(0, eventTimestampMs));
 
+        let price = '0';
         console.log("amount", amount);
         console.log("quoteAmount", quoteAmount);
-        console.log("price", price);
 
         let newTotalTokenHoldedOverZero = 0;
+        let calculatedPrice = '0'; // Will be set based on bonding curve calculation
         try {
           const launchRecord = await db.execute<{
             current_supply: string;
@@ -1412,9 +1413,11 @@ export default function (config: ApibaraRuntimeConfig & {
             newLiquidityRaised = thresholdLiquidity;
           }
 
-          // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
+          // Calculate price using bonding curve formula: Price = liquidity_raised / initial_pool_supply_dex
           const priceBuy = initPoolSupply > 0 ? (newLiquidityRaised / initPoolSupply).toString() : '0';
+          calculatedPrice = priceBuy; // Store for use in transaction
 
+          price = priceBuy;
           // Calculate market cap: total_supply * price (following old indexer pattern)
           const marketCap = (totalSupply * Number(priceBuy)).toString();
 
@@ -1426,7 +1429,9 @@ export default function (config: ApibaraRuntimeConfig & {
             newLiquidityRaised: newLiquidityRaised.toString(),
             newTotalTokenHolded: newTotalTokenHoldedOverZero,
             priceBuy: priceBuy,
-            marketCap: marketCap
+            marketCap: marketCap,
+            initPoolSupply: initPoolSupply,
+            currentLiquidityRaised: liquidityRaised
           });
 
           // Update launch record with non-blocking approach
@@ -1530,7 +1535,7 @@ export default function (config: ApibaraRuntimeConfig & {
               owner_address: ownerAddress,
               last_price: lastPrice,
               quote_amount: quoteAmount,
-              price: price,
+              price: calculatedPrice, // Use calculated price from bonding curve
               amount: amount,
               protocol_fee: protocolFee,
               time_stamp: timestamp,
@@ -1603,10 +1608,12 @@ export default function (config: ApibaraRuntimeConfig & {
       // Convert to human-readable strings for display/storage
       const amount = formatBigIntToFloat(amountBigInt);
       const quoteAmount = formatBigIntToFloat(quoteAmountBigInt);
-      const price = formatBigIntToFloat(priceBigInt);
+      // Note: We'll calculate the actual price based on bonding curve below
 
       const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
       const timestamp = new Date(Math.max(0, eventTimestampMs));
+
+      let calculatedSellPrice = '0'; // Will be set based on bonding curve calculation
 
       try {
         const launchRecord = await db
@@ -1635,18 +1642,21 @@ export default function (config: ApibaraRuntimeConfig & {
         const newLiquidityRaised = Math.max(0, liquidityRaised - Number(quoteAmount)); // Ensure non-negative
         const newTotalTokenHolded = Math.max(0, totalTokenHolded - Number(amount)); // Ensure non-negative
 
-        // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
+        // Calculate price using bonding curve formula: Price = liquidity_raised / initial_pool_supply_dex
         const priceSell = initPoolSupply > 0 ? (newLiquidityRaised / initPoolSupply).toString() : '0';
+        calculatedSellPrice = priceSell; // Store for use in transaction
 
         // Calculate market cap: total_supply * price (following old indexer pattern)
         const marketCap = (totalSupply * Number(priceSell)).toString();
 
-        console.log('Calculated Values:', {
+        console.log('Calculated Values for Sell:', {
           newSupply,
           newLiquidityRaised,
           newTotalTokenHolded,
           priceSell,
-          marketCap
+          marketCap,
+          initPoolSupply,
+          currentLiquidityRaised: liquidityRaised
         });
 
 
@@ -1748,7 +1758,7 @@ export default function (config: ApibaraRuntimeConfig & {
               owner_address: ownerAddress,
               last_price: lastPrice,
               quote_amount: quoteAmount,
-              price: price,
+              price: calculatedSellPrice, // Use calculated price from bonding curve
               amount: amount,
               protocol_fee: protocolFee,
               time_stamp: timestamp,
