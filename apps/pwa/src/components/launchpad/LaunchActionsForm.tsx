@@ -4,6 +4,9 @@ import { feltToAddress } from 'common';
 import { WalletConnectButton } from '../account/WalletConnectButton';
 import { useBuyCoin } from '@/hooks/launchpad/useBuyCoin';
 import { useSellCoin } from '@/hooks/launchpad/useSellCoin';
+import { ButtonSecondary } from '../button/Buttons';
+import { useClaimAndDistribute } from '@/hooks/launchpad/useClaimAndDistribute';
+import { useUIStore } from '@/store/uiStore';
 
 interface LaunchActionsFormProps {
   launch: any;
@@ -27,6 +30,25 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
   const { account } = useAccount();
   const { handleBuyCoins } = useBuyCoin();
   const { handleSellCoins } = useSellCoin();
+  const { handleClaim, handleClaimForFriend } = useClaimAndDistribute();
+  const { showToast } = useUIStore();
+
+  const handleClaimToken = async () => {
+    console.log('Claiming...');
+
+    const tx = await handleClaim(account?.address, launch?.memecoin_address, 0, undefined);
+    if (tx) {
+      showToast({
+        message: 'Claimed',
+        type: "success"
+      });
+    } else {
+      showToast({
+        message: 'Error when claiming',
+        type: "error"
+      });
+    }
+  }
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -161,7 +183,13 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
         {!account && (
           <WalletConnectButton></WalletConnectButton>
         )}
-        
+
+        {launch?.is_liquidity_added &&
+          <div>
+            <ButtonSecondary onClick={() => handleClaimToken()}>Claim Token</ButtonSecondary>
+          </div>
+        }
+
       </div>
 
 

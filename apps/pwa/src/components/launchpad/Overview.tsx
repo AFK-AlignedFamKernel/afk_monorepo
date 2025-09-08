@@ -3,6 +3,9 @@ import React from 'react';
 import { Icon } from '../small/icon-component';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useClaimAndDistribute } from '@/hooks/launchpad/useClaimAndDistribute';
+import { useAccount } from '@starknet-react/core';
+import { ButtonSecondary } from '../button/Buttons';
 // import styles from '@/styles/launchpad.module.scss';
 interface OverviewProps {
   data: any; // Replace with your actual data type
@@ -10,6 +13,29 @@ interface OverviewProps {
 
 export const Overview: React.FC<OverviewProps> = ({ data }) => {
   const { showToast } = useUIStore();
+  const { handleClaim, handleClaimForFriend } = useClaimAndDistribute();
+
+  const { account } = useAccount();
+  const handleClaimToken = async () => {
+    console.log('Claiming...');
+
+    const tx = await handleClaim(account?.address, data?.memecoin_address, 0, undefined);
+    if (tx) {
+      showToast({
+        message: 'Claimed',
+        type: "success"
+      });
+    } else {
+      showToast({
+        message: 'Error when claiming',
+        type: "error"
+      });
+    }
+  }
+
+
+
+
   return (
     <div className="space-y-6 shadow-lg">
       <div className="grid grid-cols-1 gap-6">
@@ -28,6 +54,7 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
               <span>Contract Address</span>
               <span className="font-medium">{data?.memecoin_address?.slice(0, 6) + '...' + data?.memecoin_address?.slice(-4) || 'N/A'}</span>
 
+
               <Icon
                 onClick={() => {
                   navigator.clipboard.writeText(data?.memecoin_address);
@@ -42,11 +69,18 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
               />
             </div>
 
+            {data?.is_liquidity_added &&
+              <div>
+                <ButtonSecondary onClick={() => handleClaimToken()}>Claim Token</ButtonSecondary>
+              </div>
+            }
+
+
             {data?.url && data?.url?.includes('https://') && data?.url?.length > 0 && (
               <div className="flex justify-between">
                 <Image
-                unoptimized
-                src={data?.url} alt="URL" width={100} height={100} />
+                  unoptimized
+                  src={data?.url} alt="URL" width={100} height={100} />
               </div>
             )}
 
@@ -78,7 +112,7 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
                   <Link href={data?.twitter} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600">
                     {/* {data?.twitter} */}
                     <Image unoptimized src="/assets/icons/twitter.svg" alt="twitter" width={16} height={16} className="ml-1" />
-                    </Link>
+                  </Link>
                 </div>
               )}
               {data?.telegram && (
@@ -165,7 +199,7 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
 
             <div className="flex justify-between">
               <span>Price</span>
-              <span className="font-medium">{data?.price && Number(data?.price) > 0 && Number.isFinite(Number(data?.price)) ?  Number(data?.price)?.toFixed(6) : '0'}</span>
+              <span className="font-medium">{data?.price && Number(data?.price) > 0 && Number.isFinite(Number(data?.price)) ? Number(data?.price)?.toFixed(6) : '0'}</span>
             </div>
             <div className="flex justify-between">
               <span>Market Cap</span>
@@ -193,7 +227,7 @@ export const Overview: React.FC<OverviewProps> = ({ data }) => {
         </div>
       </div>
 
- 
+
     </div>
   );
 }; 
