@@ -84,15 +84,6 @@ export const Overview: React.FC<OverviewProps> = ({ data, isOpenLaunch }) => {
               </div>
             }
 
-
-            {data?.url && data?.url?.includes('https://') && data?.url?.length > 0 && (
-              <div className="flex justify-between">
-                <Image
-                  unoptimized
-                  src={data?.url} alt="URL" width={100} height={100} />
-              </div>
-            )}
-
             <div className="flex justify-between">
               <span>Name</span>
               <span className="font-medium">{data?.name || 'N/A'}</span>
