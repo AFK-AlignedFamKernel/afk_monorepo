@@ -626,7 +626,7 @@ pub mod Memecoin {
             }
 
             assert(
-                amount <= self
+                amount <= self.erc20
                     .total_supply()
                     .percent_mul(self.max_percentage_buy_launch.read().into()),
                 'Max buy cap reached',

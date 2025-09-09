@@ -112,7 +112,9 @@ pub mod MemecoinV2 {
 
     use openzeppelin::governance::votes::VotesComponent;
     use openzeppelin::introspection::src5::SRC5Component;
-    use openzeppelin::token::erc20::ERC20Component;
+    // use openzeppelin::token::erc20::ERC20Component;
+    use openzeppelin::token::erc20::{ERC20Component, DefaultConfig};
+
     use openzeppelin::utils::cryptography::nonces::NoncesComponent;
     use openzeppelin::utils::cryptography::snip12::SNIP12Metadata;
     // use core::OptionTrait;
@@ -516,6 +518,7 @@ pub mod MemecoinV2 {
 
             assert(
                 amount <= self
+                    .erc20
                     .total_supply()
                     .percent_mul(self.max_percentage_buy_launch.read().into()),
                 'Max buy cap reached',
