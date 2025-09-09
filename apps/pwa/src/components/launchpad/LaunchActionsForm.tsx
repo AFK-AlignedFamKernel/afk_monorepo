@@ -7,6 +7,7 @@ import { useSellCoin } from '@/hooks/launchpad/useSellCoin';
 import { ButtonSecondary } from '../button/Buttons';
 import { useClaimAndDistribute } from '@/hooks/launchpad/useClaimAndDistribute';
 import { useUIStore } from '@/store/uiStore';
+import { Icon } from '../small/icon-component';
 
 interface LaunchActionsFormProps {
   launch: any;
