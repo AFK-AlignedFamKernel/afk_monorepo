@@ -15,6 +15,7 @@ interface LaunchActionsFormProps {
   userShare?: any;
   loading?: boolean;
   memecoinAddress?: string;
+  onRefresh?: () => void;
 }
 
 export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
@@ -24,6 +25,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
   userShare,
   loading = false,
   memecoinAddress,
+  onRefresh,
 }) => {
   const [amount, setAmount] = useState<string>('');
   const [typeAction, setTypeAction] = useState<'BUY' | 'SELL'>('BUY');
@@ -95,7 +97,7 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
   };
 
   return (
-    <div className="rounded-lg p-6 shadow-sm">
+    <div className="rounded-lg p-6 shadow-sm border border-gray-200 card">
       <div className="flex space-x-4 mb-6">
         <button
           onClick={() => setTypeAction('BUY')}
@@ -180,19 +182,19 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
           </>
         }
 
-        {!account && (
-          <WalletConnectButton></WalletConnectButton>
-        )}
+        <div className="flex justify-end gap-4">
+          {!account && (
+            <WalletConnectButton></WalletConnectButton>
+          )}
+          {onRefresh && (
+            <button onClick={onRefresh}>
+              <Icon name="RefreshIcon" size={16} className="ml-1" />
+            </button>
+          )}
 
-        {launch?.is_liquidity_added &&
-          <div>
-            <ButtonSecondary onClick={() => handleClaimToken()}>Claim Token</ButtonSecondary>
-          </div>
-        }
+        </div>
 
       </div>
-
-
 
     </div>
   );
