@@ -112,9 +112,9 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
 
         {type === 'LAUNCH' && token.threshold_liquidity && (
           <div className="mt-2 w-full">
-            <div className="text-shade-700">
+            {/* <div className="text-shade-700">
               Raised: {token.liquidity_raised?.toFixed(5)}
-            </div>
+            </div> */}
             <div className="relative pt-1">
               <div className="flex mb-2 items-center justify-between">
                 <div className="text-xs text-shade-500 mt-1">
