@@ -23,7 +23,7 @@ import { LAUNCHPAD_ADDRESS } from 'common';
 import dotenv from 'dotenv';
 dotenv.config();
 
-export const ADDRESS_LAUNCHPAD = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] || process.env.LAUNCHPAD_ADDRESS as string;
+export const ADDRESS_LAUNCHPAD = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] || process.env.LAUNCHPAD_ADDRESS as string || "0x64d2deb12d8146d7600289addfb2ec258d8fbc5d51062f5bd3652b4d3b47ac0";
 
 
 // Event selectors
@@ -339,7 +339,7 @@ export default function (config: ApibaraRuntimeConfig & {
   return defineIndexer(StarknetStream)({
     streamUrl: config.streamUrl as string,
     startingCursor: {
-      orderKey: BigInt(config?.startingCursor?.orderKey ?? 1900000),
+      orderKey: BigInt(config?.startingCursor?.orderKey ?? 1962305),
     },
     filter: {
       events: [
