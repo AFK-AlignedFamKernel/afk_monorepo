@@ -19,9 +19,11 @@ import { eq, and, or } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { formatBigIntToFloat, formatFloatToUint256, formatFloatToBigInt } from '@/utils/format';
 import { generateCandlesticksAsync } from '../services/launchpad/candlestick.service';
-
+import { LAUNCHPAD_ADDRESS } from 'common';
 import dotenv from 'dotenv';
 dotenv.config();
+
+export const ADDRESS_LAUNCHPAD = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] || process.env.LAUNCHPAD_ADDRESS as string;
 
 
 // Event selectors
@@ -337,44 +339,44 @@ export default function (config: ApibaraRuntimeConfig & {
   return defineIndexer(StarknetStream)({
     streamUrl: config.streamUrl as string,
     startingCursor: {
-      orderKey: BigInt(config?.startingCursor?.orderKey ?? 533390),
+      orderKey: BigInt(config?.startingCursor?.orderKey ?? 1900000),
     },
     filter: {
       events: [
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [CREATE_TOKEN],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [CREATE_LAUNCH],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [BUY_TOKEN], // 0x00cb205b7506d21e6fe528cd4ae2ce69ae63eb6fc10a2d0234dd39ef3d349797
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [SELL_TOKEN],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [TOKEN_CLAIMED],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [LIQUIDITY_CREATED],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [LIQUIDITY_CAN_BE_ADDED],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [CREATOR_FEE_DISTRIBUTED],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [METADATA_COIN_ADDED],
         },
       ],

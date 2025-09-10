@@ -6,7 +6,7 @@ dotenv.config();
 
 export default defineConfig({
   runtimeConfig: {
-    streamUrl: 'https://starknet-sepolia.preview.apibara.org',
+    streamUrl: process.env.STREAM_URL || 'https://starknet-sepolia.preview.apibara.org',
     startingBlock: process.env.STARTING_BLOCK ? parseInt(process.env.STARTING_BLOCK) : 1000000,
     startingCursor: {
       // orderKey: 1095000,
