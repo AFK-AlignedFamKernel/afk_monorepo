@@ -160,30 +160,30 @@ export const Overview: React.FC<OverviewProps> = ({ data, isOpenLaunch }) => {
                     Progress: {((Number(data?.liquidity_raised ?? 0) / Number(data?.threshold_liquidity)) * 100).toFixed(1)}%
                   </div>
                 </div>
-                <div className="relative w-full h-3 rounded-full overflow-hidden border border-gray-200 shadow-sm">
+                <div className="relative w-full h-3 rounded-full overflow-hidden border border-[var(--border-color)] shadow-sm" style={{ background: 'var(--progress-bg, var(--shade-100))' }}>
                   <div
-                    className={`absolute h-full transition-all duration-300 ease-in-out ${Number(data?.liquidity_raised) <= Number(data?.threshold_liquidity) - Number(data?.threshold_liquidity) * 0.02
-                      ? 'bg-yellow-500'
-                      : 'bg-primary-500'
-                      }`}
+                    className={`absolute h-full transition-all duration-300 ease-in-out`}
                     style={{
                       width: `${Math.min(100, (Number(data?.liquidity_raised ?? 0) / Number(data?.threshold_liquidity)) * 100)}%`,
-                      animation: 'slideProgress 1s ease-in-out'
+                      animation: 'slideProgress 1s ease-in-out',
+                      background: Number(data?.liquidity_raised) <= Number(data?.threshold_liquidity) - Number(data?.threshold_liquidity) * 0.02
+                        ? 'var(--progress-warning, var(--yellow-500))'
+                        : 'var(--progress-main, var(--primary-500))'
                     }}
                   />
                 </div>
                 <style jsx>{`
-                @keyframes slideProgress {
-                  from {
-                    width: 0%;
+                  @keyframes slideProgress {
+                    from {
+                      width: 0%;
+                    }
+                    to {
+                      width: ${Math.min(100, (Number(data?.liquidity_raised ?? 0) / Number(data?.threshold_liquidity)) * 100)}%;
+                    }
                   }
-                  to {
-                    width: ${Math.min(100, (Number(data?.liquidity_raised ?? 0) / Number(data?.threshold_liquidity)) * 100)}%;
-                  }
-                }
-              `}</style>
+                `}</style>
 
-                <div className="text-xs text-gray-500 mt-1">
+                <div className="text-xs mt-1" style={{ color: 'var(--text-secondary, #6b7280)' }}>
                   {Number(data?.liquidity_raised)} / {Number(data?.threshold_liquidity)}
                 </div>
               </div>
