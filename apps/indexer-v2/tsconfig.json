@@ -11,6 +11,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "common/*": [
+        "../../packages/common/src/*"
       ]
     },
     "lib": [

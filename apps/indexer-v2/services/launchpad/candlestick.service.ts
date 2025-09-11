@@ -84,6 +84,8 @@ export const generateCandlesticks = async (tokenAddress: string): Promise<void> 
           price: price,
           raw_price: transaction.price,
           last_price: transaction.last_price,
+          quote_amount: transaction.quote_amount,
+          amount: transaction.amount,
           transaction_type: transaction.transaction_type,
           timestamp: transaction.time_stamp
         });
@@ -195,7 +197,7 @@ export const generateCandlesticksAsync = (tokenAddress: string): void => {
  * @returns boolean indicating if the value is valid
  */
 const isValidPrice = (value: number): boolean => {
-  // Allow 0 prices as they might be valid in certain trading scenarios
+  // Allow 0 prices and very small prices as they might be valid in certain trading scenarios
   // Only reject NaN, Infinity, or negative values
   return Number.isFinite(value) && value >= 0;
 };

@@ -42,7 +42,7 @@ export const Holders: React.FC<HoldersProps> = ({ holders, loading, total_supply
         )}
       </div>
 
-      <div className="rounded-lg shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700">
+      <div className="rounded-lg shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 min-h-[300px] max-h-[300px] overflow-y-auto">
             <thead className=" dark:bg-gray-700/50">

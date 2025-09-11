@@ -1,38 +1,37 @@
 // use afk_launchpad::tokens::erc20::{IERC20};
-// use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
+// use afk_launchpad::tokens::erc20::{ERC20, IERC20Dispatcher, IERC20DispatcherTrait};
 use afk_launchpad::types::launchpad_types::{
-    LiquidityType, LiquidityParameters // SupportedExchanges,
-    //  JediswapLiquidityParameters,
-// EkuboLiquidityParameters,
-//  EkuboPoolParameters
+    LiquidityType, LiquidityParameters // SupportedExchanges, JediswapLiquidityParameters,
+    // EkuboLiquidityParameters, EkuboPoolParameters
 };
 use starknet::ContractAddress;
 
-// #[starknet::interface]
-// pub trait IERC20<TContractState> {
-//     fn name(self: @TContractState) -> felt252;
-//     fn symbol(self: @TContractState) -> felt252;
-//     fn decimals(self: @TContractState) -> u8;
-//     fn total_supply(self: @TContractState) -> u256;
-//     fn totalSupply(self: @TContractState) -> u256;
-//     fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
-//     fn balanceOf(self: @TContractState, account: ContractAddress) -> u256;
-//     fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) ->
-//     u256;
-//     fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
-//     fn transfer_from(
-//         ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount:
-//         u256
-//     ) -> bool;
-//     fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
-//     fn increase_allowance(ref self: TContractState, spender: ContractAddress, added_value: u256);
-//     fn decrease_allowance(
-//         ref self: TContractState, spender: ContractAddress, subtracted_value: u256
-//     );
-// }
+#[starknet::interface]
+pub trait IERC20<TContractState> {
+    fn name(self: @TContractState) -> ByteArray;
+    fn symbol(self: @TContractState) -> ByteArray;
+    fn decimals(self: @TContractState) -> u8;
+    fn total_supply(self: @TContractState) -> u256;
+    fn totalSupply(self: @TContractState) -> u256;
+    fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
+    fn balanceOf(self: @TContractState, account: ContractAddress) -> u256;
+    fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) -> u256;
+    fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
+    fn transfer_from(
+        ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256,
+    ) -> bool;
+    fn transferFrom(
+        ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256,
+    ) -> bool;
+    fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
+    fn increase_allowance(ref self: TContractState, spender: ContractAddress, added_value: u256);
+    fn decrease_allowance(
+        ref self: TContractState, spender: ContractAddress, subtracted_value: u256,
+    );
+}
 
 #[starknet::interface]
-pub trait IMemecoinV2<TContractState> {
+pub trait IMemecoin<TContractState> {
     /// Returns whether the memecoin has been launched.
     ///
     /// # Returns
@@ -98,23 +97,18 @@ pub trait IMemecoinV2<TContractState> {
 
 
 #[starknet::contract]
-pub mod MemecoinV2 {
+pub mod Memecoin {
     use afk_launchpad::errors;
-    // use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher,
-    // IFactoryDispatcherTrait};
-    use afk_launchpad::interfaces::factory::{IFactoryDispatcher, IFactoryDispatcherTrait};
+    use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk_launchpad::math::PercentageMath;
     use core::num::traits::Zero;
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::account::interface;
-    // use openzeppelin::governance::timelock::TimelockControllerComponent;
-
+    use openzeppelin::governance::timelock::TimelockControllerComponent;
     use openzeppelin::governance::votes::VotesComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     // use openzeppelin::token::erc20::ERC20Component;
-    use openzeppelin::token::erc20::{ERC20Component, DefaultConfig};
-
     use openzeppelin::utils::cryptography::nonces::NoncesComponent;
     use openzeppelin::utils::cryptography::snip12::SNIP12Metadata;
     // use core::OptionTrait;
@@ -123,26 +117,24 @@ pub mod MemecoinV2 {
         Map, StoragePathEntry, StoragePointerReadAccess, StoragePointerWriteAccess,
     };
     use starknet::{
-        ContractAddress, // contract_address_const,
-        get_caller_address, // get_tx_info,
+        ContractAddress, contract_address_const, get_caller_address, // get_tx_info,
         get_block_timestamp, get_block_info,
     };
-    use super::{LiquidityType, LiquidityParameters //  SupportedExchanges,
-    //  JediswapLiquidityParameters,
-    // EkuboLiquidityParameters,
-    // EkuboPoolParameters
+    use super::{
+        LiquidityType, LiquidityParameters // SupportedExchanges, JediswapLiquidityParameters,
+        // EkuboLiquidityParameters, EkuboPoolParameters
     };
+    // use super::{IERC20Dispatcher, IERC20DispatcherTrait, IERC20};
 
     component!(path: OwnableComponent, storage: ownable, event: OwnableEvent);
     component!(path: AccessControlComponent, storage: access_control, event: AccessControlEvent);
 
-    // component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
     component!(path: SRC5Component, storage: src5, event: SRC5Event);
+    // component!(path: TimelockControllerComponent, storage: timelock, event: TimelockEvent);
+    // component!(path: NoncesComponent, storage: nonces, event: NoncesEvent);
 
-    component!(path: NoncesComponent, storage: nonces, event: NoncesEvent);
-
-    component!(path: VotesComponent, storage: erc20_votes, event: ERC20VotesEvent);
-    component!(path: ERC20Component, storage: erc20, event: ERC20Event);
+    // component!(path: VotesComponent, storage: erc20_votes, event: ERC20VotesEvent);
+    // component!(path: ERC20Component, storage: erc20, event: ERC20Event);
 
     #[abi(embed_v0)]
     impl SRC5Impl = SRC5Component::SRC5Impl<ContractState>;
@@ -153,26 +145,25 @@ pub mod MemecoinV2 {
     impl OwnableMixinImpl = OwnableComponent::OwnableMixinImpl<ContractState>;
     impl OwnableInternalImpl = OwnableComponent::InternalImpl<ContractState>;
 
-    // Timelock Mixin
+    // // Timelock Mixin
     // #[abi(embed_v0)]
     // impl TimelockMixinImpl =
     //     TimelockControllerComponent::TimelockMixinImpl<ContractState>;
     // impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
 
-    // Nonces
-    #[abi(embed_v0)]
-    impl NoncesImpl = NoncesComponent::NoncesImpl<ContractState>;
+    // // Nonces
+    // #[abi(embed_v0)]
+    // impl NoncesImpl = NoncesComponent::NoncesImpl<ContractState>;
 
+    // // ERC20
+    // #[abi(embed_v0)]
+    // impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
+    // impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
 
-    // ERC20
-    #[abi(embed_v0)]
-    impl ERC20MixinImpl = ERC20Component::ERC20MixinImpl<ContractState>;
-    impl ERC20InternalImpl = ERC20Component::InternalImpl<ContractState>;
-
-    // // // Votes
-    #[abi(embed_v0)]
-    impl VotesImpl = VotesComponent::VotesImpl<ContractState>;
-    impl VotesInternalImpl = VotesComponent::InternalImpl<ContractState>;
+    // // // // Votes
+    // #[abi(embed_v0)]
+    // impl VotesImpl = VotesComponent::VotesImpl<ContractState>;
+    // impl VotesInternalImpl = VotesComponent::InternalImpl<ContractState>;
 
     // Constants.
     /// The minimum maximum percentage of the supply that can be bought at once.
@@ -180,9 +171,10 @@ pub mod MemecoinV2 {
 
     #[storage]
     struct Storage {
-        total_supply_max: u256,
-        description: ByteArray,
-        total_supply_minted: u256,
+        name: ByteArray,
+        symbol: ByteArray,
+        decimals: u8,
+        total_supply: u256,
         creator: ContractAddress,
         owner: ContractAddress,
         factory_contract: ContractAddress,
@@ -190,7 +182,6 @@ pub mod MemecoinV2 {
         allowances: Map<(ContractAddress, ContractAddress), u256>,
         //memecoin
         team_allocation: u256,
-        // tx_hash_tracker: LegacyMap<ContractAddress, felt252>,
         tx_hash_tracker: Map<ContractAddress, felt252>,
         transfer_restriction_delay: u64,
         launch_time: u64,
@@ -206,19 +197,25 @@ pub mod MemecoinV2 {
         src5: SRC5Component::Storage,
         // #[substorage(v0)]
         // timelock: TimelockControllerComponent::Storage,
-        #[substorage(v0)]
-        nonces: NoncesComponent::Storage,
+
+        // #[substorage(v0)]
+        // nonces: NoncesComponent::Storage,
+
         #[substorage(v0)]
         access_control: AccessControlComponent::Storage,
-        #[substorage(v0)]
-        erc20_votes: VotesComponent::Storage,
-        #[substorage(v0)]
-        erc20: ERC20Component::Storage,
+        // #[substorage(v0)]
+    // erc20_votes: VotesComponent::Storage,
+
+        // #[substorage(v0)]
+    // pub erc20: ERC20Component::Storage,
+
     }
 
     #[event]
     #[derive(Drop, starknet::Event)]
     enum Event {
+        Transfer: Transfer,
+        Approval: Approval,
         #[flat]
         OwnableEvent: OwnableComponent::Event,
         #[flat]
@@ -226,13 +223,27 @@ pub mod MemecoinV2 {
         #[flat]
         SRC5Event: SRC5Component::Event,
         // #[flat]
-        // TimelockEvent: TimelockControllerComponent::Event,
-        #[flat]
-        NoncesEvent: NoncesComponent::Event,
-        #[flat]
-        ERC20VotesEvent: VotesComponent::Event,
-        #[flat]
-        ERC20Event: ERC20Component::Event,
+    // TimelockEvent: TimelockControllerComponent::Event,
+    // #[flat]
+    // NoncesEvent: NoncesComponent::Event,
+
+        // #[flat]
+    // ERC20VotesEvent: VotesComponent::Event,
+
+        // #[flat]
+    // ERC20Event: ERC20Component::Event,
+    }
+    #[derive(Drop, starknet::Event)]
+    struct Transfer {
+        from: ContractAddress,
+        to: ContractAddress,
+        value: u256,
+    }
+    #[derive(Drop, starknet::Event)]
+    struct Approval {
+        owner: ContractAddress,
+        spender: ContractAddress,
+        value: u256,
     }
 
     // Required for hash computation.
@@ -248,18 +259,18 @@ pub mod MemecoinV2 {
     // We need to call the `transfer_voting_units` function after
     // every mint, burn and transfer.
     // For this, we use the `after_update` hook of the `ERC20Component::ERC20HooksTrait`.
-    impl ERC20VotesHooksImpl of ERC20Component::ERC20HooksTrait<ContractState> {
-        fn after_update(
-            ref self: ERC20Component::ComponentState<ContractState>,
-            from: ContractAddress,
-            recipient: ContractAddress,
-            amount: u256,
-        ) {
-            let mut contract_state = ERC20Component::HasComponent::get_contract_mut(ref self);
-            contract_state.erc20_votes.transfer_voting_units(from, recipient, amount);
-            // self.erc20_votes.transfer_voting_units(from, recipient, amount)
-        }
-    }
+    // impl ERC20VotesHooksImpl of ERC20Component::ERC20HooksTrait<ContractState> {
+    //     fn after_update(
+    //         ref self: ERC20Component::ComponentState<ContractState>,
+    //         from: ContractAddress,
+    //         recipient: ContractAddress,
+    //         amount: u256
+    //     ) {
+    //         // let mut contract_state = ERC20Component::HasComponent::get_contract_mut(ref self);
+    //         // contract_state.erc20_votes.transfer_voting_units(from, recipient, amount);
+    //         self.erc20_votes.transfer_voting_units(from, recipient, amount)
+    //     }
+    // }
 
     #[constructor]
     fn constructor(
@@ -269,49 +280,145 @@ pub mod MemecoinV2 {
         initial_supply: u256,
         decimals: u8,
         recipient: ContractAddress,
-        factory: ContractAddress,
         owner: ContractAddress,
+        factory: ContractAddress,
     ) {
-        let caller = get_caller_address();
-        // self.name.write(name);
-        // self.symbol.write(symbol);
-        // self.decimals.write(decimals);
-        // self.total_supply.write(initial_supply);
-
+        // let caller = get_caller_address();
+        self.name.write(name);
+        self.symbol.write(symbol);
+        self.decimals.write(decimals);
         assert(!recipient.is_zero(), 'ERC20: mint to the 0 address');
+        self.total_supply.write(initial_supply);
         self.balances.entry(recipient).write(initial_supply);
-        self.erc20.initializer(name, symbol);
-
-        self.erc20.mint(caller, initial_supply);
 
         self.liquidity_type.write(Option::None);
 
         // Initialize the token / internal logic
+        // self.initializer(factory_address: get_caller_address(), :initial_supply,);
         self.initializer(factory_address: factory, :initial_supply);
-
-        self.creator.write(caller.clone());
-        self.owner.write(owner.clone());
-        self.factory_contract.write(factory.clone());
-        let caller = get_caller_address();
-        // self.creator.write(caller);
-        self.ownable.initializer(caller);
 
         // Init Timelock Gov
         // proposers
         // Add params
-        let mut proposers = ArrayTrait::new();
-        let mut executors = ArrayTrait::new();
-        proposers.append(caller);
-        executors.append(caller);
-        // let min_delay = 100_000;
+        // let mut proposers = ArrayTrait::new();
+        // let mut executors = ArrayTrait::new();
+        // proposers.append(caller);
+        // executors.append(caller);
+        // let min_delay=100_000;
         // self.timelock.initializer(min_delay, proposers.span(), executors.span(), caller);
+
+        let caller = get_caller_address();
+        self.creator.write(caller.clone());
+        self.owner.write(owner.clone());
+        self.factory_contract.write(factory.clone());
+        // self.ownable.initializer(caller);
+        self.ownable.initializer(caller);
 
         // Register the contract's support for the ISRC6 interface
         self.src5.register_interface(interface::ISRC6_ID);
+
+        self
+            .emit(
+                Event::Transfer(
+                    Transfer {
+                        from: contract_address_const::<0>(), to: recipient, value: initial_supply,
+                    },
+                ),
+            );
     }
 
     #[abi(embed_v0)]
-    impl MemecoinEntrypoints of super::IMemecoinV2<ContractState> {
+    impl IERC20Impl of super::IERC20<ContractState> {
+        fn name(self: @ContractState) -> ByteArray {
+            self.name.read()
+        }
+
+        fn symbol(self: @ContractState) -> ByteArray {
+            self.symbol.read()
+        }
+
+        fn decimals(self: @ContractState) -> u8 {
+            self.decimals.read()
+        }
+
+        fn total_supply(self: @ContractState) -> u256 {
+            self.total_supply.read()
+        }
+
+        fn totalSupply(self: @ContractState) -> u256 {
+            self.total_supply()
+        }
+
+        fn balance_of(self: @ContractState, account: ContractAddress) -> u256 {
+            self.balances.read(account)
+        }
+
+        fn balanceOf(self: @ContractState, account: ContractAddress) -> u256 {
+            self.balance_of(account)
+        }
+
+        fn allowance(
+            self: @ContractState, owner: ContractAddress, spender: ContractAddress,
+        ) -> u256 {
+            self.allowances.read((owner, spender))
+        }
+
+        fn transfer(ref self: ContractState, recipient: ContractAddress, amount: u256) -> bool {
+            let sender = get_caller_address();
+            self.transfer_helper(sender, recipient, amount);
+            true
+        }
+
+        fn transfer_from(
+            ref self: ContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256,
+        ) -> bool {
+            let caller = get_caller_address();
+            self.spend_allowance(sender, caller, amount);
+            self.transfer_helper(sender, recipient, amount);
+            true
+        }
+
+        fn transferFrom(
+            ref self: ContractState,
+            sender: ContractAddress,
+            recipient: ContractAddress,
+            amount: u256,
+        ) -> bool {
+            self.transfer_from(sender, recipient, amount)
+        }
+
+        fn approve(ref self: ContractState, spender: ContractAddress, amount: u256) -> bool {
+            let caller = get_caller_address();
+            self.approve_helper(caller, spender, amount);
+            true
+        }
+
+        fn increase_allowance(
+            ref self: ContractState, spender: ContractAddress, added_value: u256,
+        ) {
+            let caller = get_caller_address();
+            self
+                .approve_helper(
+                    caller, spender, self.allowances.read((caller, spender)) + added_value,
+                );
+        }
+
+        fn decrease_allowance(
+            ref self: ContractState, spender: ContractAddress, subtracted_value: u256,
+        ) {
+            let caller = get_caller_address();
+            self
+                .approve_helper(
+                    caller, spender, self.allowances.read((caller, spender)) - subtracted_value,
+                );
+        }
+    }
+
+    #[abi(embed_v0)]
+    impl MemecoinEntrypoints of super::IMemecoin<ContractState> {
         // fn owner(self: @ContractState) -> ContractAddress {
         //     self.ownable.owner()
         // }
@@ -348,7 +455,7 @@ pub mod MemecoinV2 {
             max_percentage_buy_launch: u16,
             team_allocation: u256,
         ) {
-            // self.assert_only_factory();
+            self.assert_only_factory();
             assert(!self.is_launched(), errors::ALREADY_LAUNCHED);
             assert(
                 max_percentage_buy_launch >= MIN_MAX_PERCENTAGE_BUY_LAUNCH,
@@ -384,6 +491,7 @@ pub mod MemecoinV2 {
             assert(!recipient.is_zero(), 'ERC20: transfer to 0');
             self.balances.entry(sender).write(self.balances.read(sender) - amount);
             self.balances.entry(recipient).write(self.balances.read(recipient) + amount);
+            self.emit(Transfer { from: sender, to: recipient, value: amount });
         }
         fn spend_allowance(
             ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256,
@@ -398,6 +506,7 @@ pub mod MemecoinV2 {
         ) {
             assert(!spender.is_zero(), 'ERC20: approve from 0');
             self.allowances.entry((owner, spender)).write(amount);
+            self.emit(Approval { owner, spender, value: amount });
         }
     }
 
@@ -517,8 +626,7 @@ pub mod MemecoinV2 {
             }
 
             assert(
-                amount <= self
-                    .erc20
+                amount <= self.erc20
                     .total_supply()
                     .percent_mul(self.max_percentage_buy_launch.read().into()),
                 'Max buy cap reached',

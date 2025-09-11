@@ -19,9 +19,11 @@ import { eq, and, or } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { formatBigIntToFloat, formatFloatToUint256, formatFloatToBigInt } from '@/utils/format';
 import { generateCandlesticksAsync } from '../services/launchpad/candlestick.service';
-
+import { LAUNCHPAD_ADDRESS } from 'common';
 import dotenv from 'dotenv';
 dotenv.config();
+
+export const ADDRESS_LAUNCHPAD = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] || process.env.LAUNCHPAD_ADDRESS as string || "0x64d2deb12d8146d7600289addfb2ec258d8fbc5d51062f5bd3652b4d3b47ac0";
 
 
 // Event selectors
@@ -337,44 +339,44 @@ export default function (config: ApibaraRuntimeConfig & {
   return defineIndexer(StarknetStream)({
     streamUrl: config.streamUrl as string,
     startingCursor: {
-      orderKey: BigInt(config?.startingCursor?.orderKey ?? 533390),
+      orderKey: BigInt(config?.startingCursor?.orderKey ?? 1962305),
     },
     filter: {
       events: [
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [CREATE_TOKEN],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [CREATE_LAUNCH],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [BUY_TOKEN], // 0x00cb205b7506d21e6fe528cd4ae2ce69ae63eb6fc10a2d0234dd39ef3d349797
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [SELL_TOKEN],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [TOKEN_CLAIMED],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [LIQUIDITY_CREATED],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [LIQUIDITY_CAN_BE_ADDED],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [CREATOR_FEE_DISTRIBUTED],
         },
         {
-          address: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548" as `0x${string}`,
+          address: ADDRESS_LAUNCHPAD as `0x${string}`,
           keys: [METADATA_COIN_ADDED],
         },
       ],
@@ -1259,15 +1261,16 @@ export default function (config: ApibaraRuntimeConfig & {
         // Convert to human-readable strings for display/storage
         const amount = formatBigIntToFloat(amountBigInt);
         const quoteAmount = formatBigIntToFloat(quoteAmountBigInt);
-        const price = formatBigIntToFloat(priceBigInt);
+        // Note: We'll calculate the actual price based on bonding curve below
         const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
         const timestamp = new Date(Math.max(0, eventTimestampMs));
 
+        let price = '0';
         console.log("amount", amount);
         console.log("quoteAmount", quoteAmount);
-        console.log("price", price);
 
         let newTotalTokenHoldedOverZero = 0;
+        let calculatedPrice = '0'; // Will be set based on bonding curve calculation
         try {
           const launchRecord = await db.execute<{
             current_supply: string;
@@ -1412,9 +1415,11 @@ export default function (config: ApibaraRuntimeConfig & {
             newLiquidityRaised = thresholdLiquidity;
           }
 
-          // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
+          // Calculate price using bonding curve formula: Price = liquidity_raised / initial_pool_supply_dex
           const priceBuy = initPoolSupply > 0 ? (newLiquidityRaised / initPoolSupply).toString() : '0';
+          calculatedPrice = priceBuy; // Store for use in transaction
 
+          price = priceBuy;
           // Calculate market cap: total_supply * price (following old indexer pattern)
           const marketCap = (totalSupply * Number(priceBuy)).toString();
 
@@ -1426,7 +1431,9 @@ export default function (config: ApibaraRuntimeConfig & {
             newLiquidityRaised: newLiquidityRaised.toString(),
             newTotalTokenHolded: newTotalTokenHoldedOverZero,
             priceBuy: priceBuy,
-            marketCap: marketCap
+            marketCap: marketCap,
+            initPoolSupply: initPoolSupply,
+            currentLiquidityRaised: liquidityRaised
           });
 
           // Update launch record with non-blocking approach
@@ -1530,7 +1537,7 @@ export default function (config: ApibaraRuntimeConfig & {
               owner_address: ownerAddress,
               last_price: lastPrice,
               quote_amount: quoteAmount,
-              price: price,
+              price: calculatedPrice, // Use calculated price from bonding curve
               amount: amount,
               protocol_fee: protocolFee,
               time_stamp: timestamp,
@@ -1603,10 +1610,12 @@ export default function (config: ApibaraRuntimeConfig & {
       // Convert to human-readable strings for display/storage
       const amount = formatBigIntToFloat(amountBigInt);
       const quoteAmount = formatBigIntToFloat(quoteAmountBigInt);
-      const price = formatBigIntToFloat(priceBigInt);
+      // Note: We'll calculate the actual price based on bonding curve below
 
       const eventTimestampMs = event?.args?.timestamp ? Number(event.args.timestamp) * 1000 : blockTimestamp;
       const timestamp = new Date(Math.max(0, eventTimestampMs));
+
+      let calculatedSellPrice = '0'; // Will be set based on bonding curve calculation
 
       try {
         const launchRecord = await db
@@ -1635,18 +1644,21 @@ export default function (config: ApibaraRuntimeConfig & {
         const newLiquidityRaised = Math.max(0, liquidityRaised - Number(quoteAmount)); // Ensure non-negative
         const newTotalTokenHolded = Math.max(0, totalTokenHolded - Number(amount)); // Ensure non-negative
 
-        // Calculate price using old indexer logic: Price = liquidity_raised / initial_pool_supply_dex
+        // Calculate price using bonding curve formula: Price = liquidity_raised / initial_pool_supply_dex
         const priceSell = initPoolSupply > 0 ? (newLiquidityRaised / initPoolSupply).toString() : '0';
+        calculatedSellPrice = priceSell; // Store for use in transaction
 
         // Calculate market cap: total_supply * price (following old indexer pattern)
         const marketCap = (totalSupply * Number(priceSell)).toString();
 
-        console.log('Calculated Values:', {
+        console.log('Calculated Values for Sell:', {
           newSupply,
           newLiquidityRaised,
           newTotalTokenHolded,
           priceSell,
-          marketCap
+          marketCap,
+          initPoolSupply,
+          currentLiquidityRaised: liquidityRaised
         });
 
 
@@ -1748,7 +1760,7 @@ export default function (config: ApibaraRuntimeConfig & {
               owner_address: ownerAddress,
               last_price: lastPrice,
               quote_amount: quoteAmount,
-              price: price,
+              price: calculatedSellPrice, // Use calculated price from bonding curve
               amount: amount,
               protocol_fee: protocolFee,
               time_stamp: timestamp,
@@ -1904,15 +1916,18 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      const tokenAddress = event?.args?.token_address;
-      const finalPrice = event?.args?.final_price?.toString() || '0';
-      const finalMarketCap = event?.args?.final_market_cap?.toString() || '0';
+      console.log("events args", event?.args);
+      const tokenAddress = event?.args?.asset;
+     
+      let finalPrice = event?.args?.final_price?.toString() || '0';
+      let finalMarketCap = event?.args?.final_market_cap?.toString() || '0';
 
       try {
         const existingLaunch = await db.query.tokenLaunch.findFirst({
           where: eq(tokenLaunch.memecoin_address, tokenAddress)
         });
 
+        console.log("existingLaunch", existingLaunch);
         if (existingLaunch) {
           await db.update(tokenLaunch)
             .set({
@@ -1924,13 +1939,18 @@ export default function (config: ApibaraRuntimeConfig & {
 
           console.log('Launch Record Updated for Liquidity Creation');
         }
+        const initialPoolSupply = existingLaunch?.initial_pool_supply_dex || '0';
+        const newLiquidityRaised = existingLaunch?.liquidity_raised || '0';
+        finalPrice = Number(initialPoolSupply) > 0 ? (Number(newLiquidityRaised) / Number(initialPoolSupply)).toString() : '0';
+        finalMarketCap = (Number(existingLaunch?.total_supply) * Number(finalPrice)).toString();
 
         const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
         try {
-          await db.insert(tokenTransactions)
-            .values({
-              transfer_id: transferId,
+          withTimeout(async () => {
+            await db.insert(tokenTransactions)
+              .values({
+                transfer_id: transferId,
               network: 'starknet-sepolia',
               block_timestamp: blockTimestamp,
               transaction_hash: transactionHash,
@@ -1939,6 +1959,7 @@ export default function (config: ApibaraRuntimeConfig & {
               created_at: new Date(),
             })
             .onConflictDoNothing(); // Prevent duplicates
+          }, 10000);
         } catch (error: any) {
           console.error('Failed to insert liquidity created transaction:', {
             error: error,
@@ -1982,12 +2003,14 @@ export default function (config: ApibaraRuntimeConfig & {
         `0x${BigInt(rawEvent.transactionHash).toString(16)}`,
       );
 
-      const tokenAddress = event?.args?.token_address;
+      const tokenAddress = event?.args?.asset;
 
       try {
         const existingLaunch = await db.query.tokenLaunch.findFirst({
           where: eq(tokenLaunch.memecoin_address, tokenAddress)
         });
+
+        console.log("existingLaunch", existingLaunch);
 
         if (existingLaunch) {
           await db.update(tokenLaunch)
@@ -2002,6 +2025,7 @@ export default function (config: ApibaraRuntimeConfig & {
         const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
         try {
+         withTimeout( async () => {
           await db.insert(tokenTransactions)
             .values({
               transfer_id: transferId,
@@ -2013,6 +2037,7 @@ export default function (config: ApibaraRuntimeConfig & {
               created_at: new Date(),
             })
             .onConflictDoNothing(); // Prevent duplicates
+         }, 10000);
         } catch (error: any) {
           console.error('Failed to insert liquidity can be added transaction:', {
             error: error,
