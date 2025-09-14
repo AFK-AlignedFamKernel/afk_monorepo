@@ -144,9 +144,13 @@ export async function getStreamStatus(
     const manifestContent = fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, 'utf8') : null;
     const files = fs.existsSync(streamDir) ? fs.readdirSync(streamDir) : [];
     
+    // Check if stream has been ended (no active stream data but files exist)
+    const isEnded = !streamData && (fs.existsSync(manifestPath) || fs.existsSync(streamDir));
+    
     const status = {
       streamId,
       isActive: !!streamData,
+      isEnded: isEnded,
       manifestExists: fs.existsSync(manifestPath),
       streamDirExists: fs.existsSync(streamDir),
       streamData: streamData ? {
@@ -161,10 +165,11 @@ export async function getStreamStatus(
       manifestContent,
       overall: {
         isActive: !!streamData,
+        isEnded: isEnded,
         hasManifest: fs.existsSync(manifestPath),
         hasStreamDir: fs.existsSync(streamDir),
         // Check if stream actually has video content (not just an empty manifest)
-        hasVideoContent: manifestContent && 
+        hasVideoContent: streamData && manifestContent && 
           !manifestContent.includes('#EXT-X-ENDLIST') &&
           files.some(file => file.endsWith('.ts'))
       }

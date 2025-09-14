@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLivestreamWebSocket } from '@/contexts/LivestreamWebSocketContext';
 import { useAuth } from 'afk_nostr_sdk';
+import { useLiveActivity } from 'afk_nostr_sdk';
 import styles from './styles.module.scss';
 import { Icon } from '../small/icon-component';
 
@@ -28,6 +29,9 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     cleanup
   } = useLivestreamWebSocket();
 
+  // NIP-53 Live Activity management
+  const { createEvent, updateEvent } = useLiveActivity();
+
   const [isGoingLive, setIsGoingLive] = useState(false);
   const [streamStatus, setStreamStatus] = useState<'idle' | 'connecting' | 'connected' | 'streaming' | 'error' | 'loading'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +45,9 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   // Real-time stream monitoring
   const [backendStreamStatus, setBackendStreamStatus] = useState<'inactive' | 'active' | 'live' | 'error'>('inactive');
   const [streamDetails, setStreamDetails] = useState<any>(null);
+
+  // NIP-53 event state
+  const [liveEventId, setLiveEventId] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -66,6 +73,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     if (isConnected && !isStreaming) {
       setStreamStatus('connected');
       setError(null);
+      setBackendStreamStatus('inactive'); // Reset backend status when not streaming
       console.log('✅ Stream status set to: connected');
     } else if (isStreaming) {
       setStreamStatus('streaming');
@@ -74,13 +82,14 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     } else if (!isConnected && streamStatus !== 'idle') {
       setStreamStatus('error');
       setError('WebSocket connection failed');
+      setBackendStreamStatus('error');
       console.log('❌ Stream status set to: error');
     }
   }, [isConnected, isStreaming, streamStatus]);
 
   // Real-time stream monitoring for backend status
   useEffect(() => {
-    if (!streamId || !isConnected) return;
+    if (!streamId || !isConnected || !isStreaming) return;
 
     console.log('🎬 Setting up real-time stream monitoring for:', streamId);
     
@@ -95,7 +104,10 @@ export const HostStudio: React.FC<HostStudioProps> = ({
           setStreamDetails(status);
           
           // Update backend stream status
-          if (status.overall?.hasVideoContent) {
+          if (status.overall?.isEnded) {
+            console.log('🛑 Stream has ended');
+            setBackendStreamStatus('inactive');
+          } else if (status.overall?.hasVideoContent) {
             console.log('🎬 Stream is LIVE with video content!');
             setBackendStreamStatus('live');
           } else if (status.overall?.isActive && status.overall?.hasManifest) {
@@ -118,7 +130,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     return () => {
       clearInterval(statusCheckInterval);
     };
-  }, [streamId, isConnected]);
+  }, [streamId, isConnected, isStreaming]);
 
   // Setup camera capture
   const setupCameraCapture = async (): Promise<MediaStream | null> => {
@@ -245,21 +257,49 @@ export const HostStudio: React.FC<HostStudioProps> = ({
         await setupCameraCapture();
       }
 
-      // Step 1: Start the stream on the backend
+      // Step 1: Create NIP-53 Live Event
+      console.log('📝 Creating NIP-53 live event...');
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050';
+      const streamingUrl = `${backendUrl}/livestream/${streamId}/stream.m3u8`;
+      
+      const liveEventData = {
+        identifier: streamId,
+        title: `Live Stream - ${streamId.slice(0, 8)}`,
+        summary: 'Live streaming session',
+        streamingUrl: streamingUrl,
+        startsAt: Math.floor(Date.now() / 1000),
+        status: 'live' as const,
+        currentParticipants: 1,
+        totalParticipants: 1,
+        participants: [{
+          pubkey: publicKey,
+          role: 'Host' as const,
+          relay: '',
+          proof: ''
+        }],
+        hashtags: ['livestream', 'afk'],
+        relays: []
+      };
+
+      const liveEvent = await createEvent.mutateAsync(liveEventData);
+      setLiveEventId(liveEvent.id);
+      console.log('✅ NIP-53 live event created:', liveEvent.id);
+
+      // Step 2: Start the stream on the backend
       startStream(streamId, publicKey);
       console.log('✅ Stream started on backend');
 
-      // Step 2: Setup MediaRecorder for streaming
+      // Step 3: Setup MediaRecorder for streaming
       if (currentMediaStream) {
         setupMediaStream(currentMediaStream, streamId);
         console.log('✅ MediaRecorder setup complete');
       }
 
-      // Step 3: Start recording
+      // Step 4: Start recording
       setStreamStatus('streaming');
       console.log('🎥 Live streaming started!');
 
-      // Step 4: Load the actual HLS stream for preview
+      // Step 5: Load the actual HLS stream for preview
       setTimeout(() => {
         loadHLSStream();
       }, 1000); // Wait a bit for the stream to start
@@ -308,11 +348,30 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   };
 
   // Handle stop streaming
-  const handleStopStream = () => {
+  const handleStopStream = async () => {
     console.log('🛑 Stopping stream...');
+    
+    // Step 1: Update NIP-53 event to ended status
+    if (liveEventId) {
+      try {
+        console.log('📝 Updating NIP-53 event to ended status...');
+        await updateEvent.mutateAsync({
+          eventId: liveEventId,
+          status: 'ended',
+          endsAt: Math.floor(Date.now() / 1000),
+          currentParticipants: 0
+        });
+        console.log('✅ NIP-53 event updated to ended status');
+      } catch (error) {
+        console.error('❌ Failed to update NIP-53 event:', error);
+      }
+    }
+    
+    // Step 2: Stop the backend stream
     stopStream(publicKey || 'current-user');
     setStreamStatus('connected');
     
+    // Step 3: Clean up media streams
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
       mediaStreamRef.current = null;
@@ -324,11 +383,13 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       videoRef.current.load(); // Reload the video element
     }
 
+    // Step 4: Reset all states
     setCurrentMediaStream(null);
     setCameraEnabled(false);
     setMicrophoneEnabled(false);
     setScreenSharing(false);
     setBackendStreamStatus('inactive');
+    setLiveEventId(null);
   };
 
   // Handle back button
