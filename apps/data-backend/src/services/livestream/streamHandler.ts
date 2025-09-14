@@ -60,6 +60,19 @@ export async function handleStartStream(
 
     console.log('✅ FFmpeg setup complete for:', data.streamKey);
 
+    // Start stream activity monitor
+    const activityMonitor = setInterval(() => {
+      const now = new Date();
+      const timeSinceLastData = now.getTime() - streamData.lastDataReceived.getTime();
+      
+      // If no data received for more than 30 seconds, consider ending the stream
+      if (timeSinceLastData > 30000) {
+        console.log('⚠️ No data received for 30 seconds, ending stream:', data.streamKey);
+        clearInterval(activityMonitor);
+        activeStreams.delete(data.streamKey);
+        socket.emit('stream-ended', { streamKey: data.streamKey });
+      }
+    }, 10000); // Check every 10 seconds
     // Create stream data
     const streamData = {
       userId: data.userId,
@@ -70,7 +83,9 @@ export async function handleStartStream(
       viewers: new Set(),
       broadcasterSocketId: socket.id,
       startedAt: new Date(),
-      status: 'active'
+      lastDataReceived: new Date(),
+      status: 'active',
+      activityMonitor: activityMonitor
     };
     
     activeStreams.set(data.streamKey, streamData);
@@ -78,6 +93,10 @@ export async function handleStartStream(
 
     // Join socket to stream room
     socket.join(data.streamKey);
+
+
+    // Store the interval ID for cleanup
+    streamData.activityMonitor = activityMonitor;
 
     // FFmpeg event handlers
     ffmpegCommand
@@ -115,8 +134,53 @@ export async function handleStartStream(
       })
       .on('end', () => {
         console.log('🏁 FFmpeg ended for:', data.streamKey);
-        activeStreams.delete(data.streamKey);
-        socket.emit('stream-ended', { streamKey: data.streamKey });
+        
+        // Only end the stream if it's not actively receiving data
+        const stream = activeStreams.get(data.streamKey);
+        if (stream && stream.status === 'active') {
+          console.log('⚠️ FFmpeg ended but stream is still active, attempting restart...');
+          
+          // Try to restart FFmpeg if we have recent data
+          setTimeout(async () => {
+            try {
+              const tempWebmPath = path.join(process.cwd(), 'public', 'livestreams', data.streamKey, 'temp.webm');
+              const stats = await fs.promises.stat(tempWebmPath);
+              
+              if (stats.size > 1024) {
+                console.log('🔄 Restarting FFmpeg with existing data...');
+                // Restart FFmpeg with the existing temp file
+                const { ffmpegCommand: newCommand } = await setupStream({
+                  streamKey: data.streamKey,
+                  userId: data.userId,
+                });
+                
+                // Update the stream with new command
+                stream.command = newCommand;
+                stream.status = 'active';
+                
+                newCommand.output(path.join(process.cwd(), 'public', 'livestreams', data.streamKey, 'stream.m3u8')).run();
+              } else {
+                console.log('❌ Not enough data to restart FFmpeg, ending stream');
+                activeStreams.delete(data.streamKey);
+                socket.emit('stream-ended', { streamKey: data.streamKey });
+              }
+            } catch (error) {
+              console.error('❌ Error restarting FFmpeg:', error);
+              activeStreams.delete(data.streamKey);
+              socket.emit('stream-ended', { streamKey: data.streamKey });
+            }
+          }, 2000);
+        } else {
+          console.log('✅ Stream ended normally');
+          
+          // Clean up activity monitor
+          if (stream.activityMonitor) {
+            clearInterval(stream.activityMonitor);
+          }
+          
+          activeStreams.delete(data.streamKey);
+          socket.emit('stream-ended', { streamKey: data.streamKey });
+        }
       });
 
     console.log('✅ Stream setup complete');
@@ -143,6 +207,9 @@ export async function handleStreamData(socket: Socket, data: { streamKey: string
     
     console.log(`📡 Processing chunk: ${chunk.length} bytes for ${data.streamKey}`);
     
+    // Update last data received timestamp
+    stream.lastDataReceived = new Date();
+    
     // Initialize chunk accumulator if not exists
     if (!stream.chunkAccumulator) {
       stream.chunkAccumulator = Buffer.alloc(0);
@@ -157,9 +224,19 @@ export async function handleStreamData(socket: Socket, data: { streamKey: string
     const tempWebmPath = path.join(process.cwd(), 'public', 'livestreams', data.streamKey, 'temp.webm');
     
     try {
-      // Append chunk to temporary WebM file
-      await fs.promises.appendFile(tempWebmPath, chunk);
-      console.log(`✅ Chunk appended to temp file: ${chunk.length} bytes`);
+      // Ensure the directory exists
+      await fs.promises.mkdir(path.dirname(tempWebmPath), { recursive: true });
+      
+      // For the first chunk, create the file; for subsequent chunks, append
+      if (stream.chunkAccumulator.length === chunk.length) {
+        // This is the first chunk - create the file
+        await fs.promises.writeFile(tempWebmPath, chunk);
+        console.log(`✅ First chunk written to temp file: ${chunk.length} bytes`);
+      } else {
+        // This is a subsequent chunk - append to the file
+        await fs.promises.appendFile(tempWebmPath, chunk);
+        console.log(`✅ Chunk appended to temp file: ${chunk.length} bytes`);
+      }
       
       // If this is the first chunk, start FFmpeg processing
       if (stream.chunkAccumulator.length === chunk.length) {
@@ -220,6 +297,11 @@ export async function handleEndStream(
   try {
     console.log('🛑 Ending stream:', data.streamKey);
     
+    // Stop activity monitor
+    if (stream.activityMonitor) {
+      clearInterval(stream.activityMonitor);
+    }
+    
     // Stop FFmpeg
     if (stream.command) {
       stream.command.kill('SIGKILL');
@@ -278,6 +360,12 @@ export function handleDisconnect(socket: Socket) {
   for (const [streamKey, stream] of activeStreams.entries()) {
     if (stream.broadcasterSocketId === socket.id) {
       console.log('🛑 Broadcaster disconnected, ending stream:', streamKey);
+      
+      // Clean up activity monitor
+      if (stream.activityMonitor) {
+        clearInterval(stream.activityMonitor);
+      }
+      
       handleEndStream(socket, { streamKey, userId: stream.userId });
       return;
     }

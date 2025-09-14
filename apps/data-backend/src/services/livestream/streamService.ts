@@ -122,7 +122,10 @@ export async function setupStream(data: StreamSetup) {
       "-analyzeduration", "50M",      // Much larger analysis duration
       "-probesize", "100M",           // Much larger probe size
       "-f", "webm",                   // Force WebM format
-      "-thread_queue_size", "1024"    // Large thread queue for buffering
+      "-thread_queue_size", "1024",   // Large thread queue for buffering
+      "-re",                          // Read input at native frame rate
+      "-ignore_errors",               // Ignore errors and continue processing
+      "-max_delay", "5000000"         // Maximum delay in microseconds
     ])
     .format("hls")
     .videoCodec("libx264")
@@ -229,21 +232,21 @@ export async function setupStream(data: StreamSetup) {
   const waitForData = async () => {
     try {
       const stats = await import('fs').then(fs => fs.promises.stat(tempWebmPath));
-      if (stats.size > 0) {
-        console.log('🎬 Temp WebM file has data, starting FFmpeg...');
+      if (stats.size > 5000) { // Wait for at least 5KB of data
+        console.log('🎬 Temp WebM file has sufficient data, starting FFmpeg...');
         ffmpegCommand.output(outputPath).run();
       } else {
-        console.log('⏳ Temp WebM file exists but is empty, waiting...');
-        setTimeout(waitForData, 1000);
+        console.log('⏳ Temp WebM file exists but has insufficient data, waiting...');
+        setTimeout(waitForData, 3000); // Wait longer between checks
       }
     } catch (error) {
       console.log('⏳ Temp WebM file not ready yet, waiting...');
-      setTimeout(waitForData, 1000);
+      setTimeout(waitForData, 3000); // Wait longer between checks
     }
   };
   
-  // Start checking for data after a short delay
-  setTimeout(waitForData, 1000);
+  // Start checking for data after a longer delay to allow more data to accumulate
+  setTimeout(waitForData, 5000);
 
   // Set up file watcher for HLS segments
   watcherFn(streamPath, data, outputPath);
