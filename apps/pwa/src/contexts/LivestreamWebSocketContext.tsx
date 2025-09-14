@@ -12,7 +12,7 @@ interface LivestreamWebSocketContextType {
   connect: (streamKey: string) => void;
   disconnect: () => void;
   startStream: (streamKey: string, userId: string) => void;
-  stopStream: () => void;
+  stopStream: (userId?: string) => void;
   sendStreamData: (chunk: Blob) => void;
   joinStream: (streamKey: string, userId: string) => void;
   leaveStream: () => void;
@@ -87,9 +87,22 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
       console.log('✅ Frontend streaming state set to true');
     });
 
-    newSocket.on('stream-ended', () => {
-      console.log('🛑 Stream ended');
+    newSocket.on('stream-ended', (data) => {
+      console.log('🛑 Stream ended:', data);
       setIsStreaming(false);
+      setStreamKey(null);
+      
+      // Clean up MediaRecorder
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+        mediaRecorderRef.current = null;
+      }
+      
+      // Clean up media stream
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
     });
 
     newSocket.on('stream-error', (error) => {
@@ -145,13 +158,16 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
   }, []);
 
   // Stop streaming
-  const stopStream = useCallback(() => {
+  const stopStream = useCallback((userId?: string) => {
     if (!socketRef.current?.connected || !streamKey) {
       return;
     }
 
     console.log('🛑 Stopping stream:', streamKey);
-    socketRef.current.emit('end-stream', { streamKey });
+    
+    // Use provided userId or fallback to a default
+    const currentUserId = userId || 'current-user';
+    socketRef.current.emit('end-stream', { streamKey, userId: currentUserId });
     
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();

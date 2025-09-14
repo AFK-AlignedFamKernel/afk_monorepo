@@ -310,7 +310,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   // Handle stop streaming
   const handleStopStream = () => {
     console.log('🛑 Stopping stream...');
-    stopStream();
+    stopStream(publicKey || 'current-user');
     setStreamStatus('connected');
     
     if (mediaStreamRef.current) {
@@ -320,12 +320,15 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     
     if (videoRef.current) {
       videoRef.current.srcObject = null;
+      videoRef.current.src = ''; // Clear the HLS source
+      videoRef.current.load(); // Reload the video element
     }
 
     setCurrentMediaStream(null);
     setCameraEnabled(false);
     setMicrophoneEnabled(false);
     setScreenSharing(false);
+    setBackendStreamStatus('inactive');
   };
 
   // Handle back button

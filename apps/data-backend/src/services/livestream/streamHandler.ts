@@ -292,7 +292,16 @@ export async function handleEndStream(
   data: { streamKey: string; userId: string; }
 ) {
   const stream = activeStreams.get(data.streamKey);
-  if (!stream || stream.userId !== data.userId) return;
+  if (!stream) {
+    console.log('❌ Stream not found for ending:', data.streamKey);
+    return;
+  }
+
+  // Check if the user is authorized to end this stream
+  if (stream.userId !== data.userId && stream.broadcasterSocketId !== socket.id) {
+    console.log('❌ User not authorized to end stream:', data.streamKey, 'userId:', data.userId);
+    return;
+  }
 
   try {
     console.log('🛑 Ending stream:', data.streamKey);
@@ -300,23 +309,42 @@ export async function handleEndStream(
     // Stop activity monitor
     if (stream.activityMonitor) {
       clearInterval(stream.activityMonitor);
+      console.log('✅ Activity monitor stopped');
     }
     
-    // Stop FFmpeg
+    // Stop FFmpeg process
     if (stream.command) {
+      console.log('🛑 Killing FFmpeg process...');
       stream.command.kill('SIGKILL');
+      console.log('✅ FFmpeg process killed');
     }
     
     // Close input stream
     if (stream.inputStream) {
       stream.inputStream.push(null);
+      console.log('✅ Input stream closed');
+    }
+    
+    // Clean up temporary files
+    try {
+      const tempWebmPath = path.join(process.cwd(), 'public', 'livestreams', data.streamKey, 'temp.webm');
+      if (fs.existsSync(tempWebmPath)) {
+        fs.unlinkSync(tempWebmPath);
+        console.log('✅ Temporary WebM file cleaned up');
+      }
+    } catch (cleanupError) {
+      console.warn('⚠️ Error cleaning up temp file:', cleanupError);
     }
     
     // Remove from active streams
     activeStreams.delete(data.streamKey);
     socket.leave(data.streamKey);
     
-    console.log('✅ Stream ended:', data.streamKey);
+    // Emit stream-ended event to all connected clients
+    socket.to(data.streamKey).emit('stream-ended', { streamKey: data.streamKey });
+    socket.emit('stream-ended', { streamKey: data.streamKey });
+    
+    console.log('✅ Stream ended successfully:', data.streamKey);
     
   } catch (error) {
     console.error('❌ Error ending stream:', error);
