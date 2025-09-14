@@ -5,29 +5,15 @@ import { useAuth, useGetLiveEvents, useLiveActivity } from 'afk_nostr_sdk';
 import styles from './styles.module.scss';
 import { Icon } from '../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { EventLivestreamNostr } from '@/store/livestream';
 
-interface Event {
-  identifier: string;
-  eventId: string;
-  title: string;
-  summary: string;
-  status: string;
-  startDate: Date;
-  endDate: Date;
-  hashtags: string[];
-  participants: {
-    role: 'Host' | 'Speaker' | 'Participant';
-    pubkey: string;
-  }[];
-  recordingUrl?: string;
-  streamingUrl?: string;
-}
 
 interface StudioModuleProps {
-  onNavigateToStream?: (streamId: string) => void;
-  onNavigateToStreamView?: (streamId: string, recordingUrl?: string) => void;
-  onNavigateToRecordView?: (streamId: string) => void;
-  onNavigateToHostStudio?: (streamId: string) => void;
+  onNavigateToStream?: (streamId: string, note?:NDKEvent) => void;
+  onNavigateToStreamView?: (streamId: string, recordingUrl?: string, note?:NDKEvent) => void;
+  onNavigateToRecordView?: (streamId: string, note?:NDKEvent) => void;
+  onNavigateToHostStudio?: (streamId: string, note?:NDKEvent) => void;
   onViewEventFromNostr?: (streamId: string) => void;
 }
 
@@ -47,16 +33,16 @@ export const StudioModule: React.FC<StudioModuleProps> = ({
   const queryClient = useQueryClient();
   const [isModalVisible, setModalVisible] = useState(false);
 
-  const handleNavigate = (id: string) => {
-    onNavigateToStream?.(id);
+  const handleNavigate = (id: string, note?:NDKEvent) => {
+    onNavigateToStream?.(id, note);
   };
 
-  const handleNavigateToStreamView = (id: string, recordingUrl?: string) => {
-    onNavigateToStreamView?.(id, recordingUrl);
+  const handleNavigateToStreamView = (id: string, recordingUrl?: string, note?:NDKEvent) => {
+    onNavigateToStreamView?.(id, recordingUrl, note);
   };
 
-  const handleNavigateToRecordView = (id: string) => {
-    onNavigateToRecordView?.(id);
+  const handleNavigateToRecordView = (id: string, note?:NDKEvent) => {
+    onNavigateToRecordView?.(id, note);
   };
 
   if (isPending && isFetching) {
@@ -112,13 +98,13 @@ export const StudioModule: React.FC<StudioModuleProps> = ({
           {data?.pages.flat().map((item: any) => (
             <RenderEventCard
               key={item.eventId}
-              handleNavigateToStreamView={() => handleNavigateToStreamView(item.identifier, item.recordingUrl)}
+              handleNavigateToStreamView={() => handleNavigateToStreamView(item.identifier, item.recordingUrl, item)}
               streamKey={item.identifier}
-              handleNavigation={() => handleNavigate(item.identifier)}
+              handleNavigation={() => handleNavigate(item.identifier, item as NDKEvent)}
               pubKey={publicKey}
               recordingUrl={item.recordingUrl}
               event={item}
-              onNavigateToHostStudio={onNavigateToHostStudio}
+              onNavigateToHostStudio={() => onNavigateToHostStudio?.(item.identifier, item as NDKEvent)}
             />
           ))}
         </div>
@@ -144,14 +130,14 @@ export const StudioModule: React.FC<StudioModuleProps> = ({
 };
 
 const RenderEventCard: React.FC<{
-  event: Event;
+  event: EventLivestreamNostr;
   pubKey: string;
   handleNavigation: () => void;
   handleNavigateToStreamView: () => void;
   streamKey: string;
   recordingUrl?: string;
-  onNavigateToHostStudio?: (streamId: string) => void;
-  onViewEventFromNostr?: (streamId: string) => void;
+  onNavigateToHostStudio?: (streamId: string, note?:NDKEvent) => void;
+  onViewEventFromNostr?: (streamId: string, note?:EventLivestreamNostr | NDKEvent) => void;
 }> = ({ event, pubKey, handleNavigation, handleNavigateToStreamView, streamKey, recordingUrl, onNavigateToHostStudio, onViewEventFromNostr }) => {
   const isStreamer = false;
   const isOwner = event?.participants.findIndex(
@@ -162,7 +148,7 @@ const RenderEventCard: React.FC<{
 
   const handleStartStudio = () => {
     if (onNavigateToHostStudio) {
-      onNavigateToHostStudio(event.identifier);
+      onNavigateToHostStudio(event.identifier, event);
     }
   };
 
@@ -183,7 +169,7 @@ const RenderEventCard: React.FC<{
         onSuccess() {
           // Then use the enhanced VIEW EVENT handler
           if (onViewEventFromNostr) {
-            onViewEventFromNostr(event.identifier);
+            onViewEventFromNostr(event.identifier, event);
           } else {
             // Fallback to old behavior
             handleNavigateToStreamView();
@@ -276,7 +262,7 @@ export const CreateEventModal: React.FC<{ handleModal: () => void }> = ({ handle
   const { publicKey } = useAuth();
   const { createEvent } = useLiveActivity();
 
-  const [newEvent, setNewEvent] = useState<Partial<Event>>({
+  const [newEvent, setNewEvent] = useState<Partial<EventLivestreamNostr>>({
     title: '',
     summary: '',
     hashtags: [],

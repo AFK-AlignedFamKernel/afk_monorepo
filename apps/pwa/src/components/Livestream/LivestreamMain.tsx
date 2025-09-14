@@ -9,6 +9,9 @@ import { useLivestreamWebSocket } from '@/contexts/LivestreamWebSocketContext';
 import styles from './styles.module.scss';
 import { Icon } from '../small/icon-component';
 import { useUIStore } from '@/store/uiStore';
+import { useLivestreamStore } from '@/store/livestream';
+import { NDKEvent } from '@nostr-dev-kit/ndk';
+import { EventLivestreamNostr } from '@/store/livestream';
 
 // Helper function to extract streaming URL from NIP-53 events
 const extractStreamingUrlFromEvent = (event: any, streamId?: string): string | null => {
@@ -99,6 +102,7 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
 
   const { isStreaming: isWebSocketStreaming, streamKey , isConnected } = useLivestreamWebSocket();
 
+  const { noteEvent, setNoteEvent, setCurrentStreamId:setCurrentStreamIdFromStore } = useLivestreamStore();
   // Debug: Log the event query state
   useEffect(() => {
     console.log('🔍 Event query state:', {
@@ -353,16 +357,21 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
   //     }
   //   }, [currentStreamId]);
 
-  const handleNavigateToStream = (id: string) => {
+  const handleNavigateToStream = (id: string, note?:EventLivestreamNostr | NDKEvent) => {
+    setCurrentStreamIdFromStore(id);
     setCurrentStreamId(id);
     setCurrentView('stream');
+    setNoteEvent(note as EventLivestreamNostr);
     console.log('Navigating to stream:', id);
   };
 
-  const handleNavigateToStreamView = (id: string, recordingUrl?: string) => {
+  const handleNavigateToStreamView = (id: string, recordingUrl?: string, note?:EventLivestreamNostr | NDKEvent) => {
     console.log('🚀 handleNavigateToStreamView called with:', { id, recordingUrl });
     setCurrentStreamId(id);
     setCurrentView('stream');
+    setNoteEvent(note as EventLivestreamNostr);
+    setCurrentStreamIdFromStore(id);
+    console.log('Navigating to stream view:', id);
     
     // For viewers, we need to connect to the existing stream, not start a new one
     // The stream should already be running if it's marked as "LIVE"
@@ -381,15 +390,19 @@ export const LivestreamMain: React.FC<LivestreamMainProps> = ({
     }
   };
 
-  const handleNavigateToRecordView = (id: string) => {
+  const handleNavigateToRecordView = (id: string, note?:NDKEvent) => {
     setCurrentStreamId(id);
     setCurrentView('stream');
+    setNoteEvent(note);
+    setCurrentStreamIdFromStore(id);
     console.log('Navigating to record view:', id);
   };
 
-  const handleNavigateToHostStudio = (id: string) => {
+  const handleNavigateToHostStudio = (id: string, note?:NDKEvent) => {
     setCurrentStreamId(id);
     setCurrentView('host-studio');
+    setNoteEvent(note);
+    setCurrentStreamIdFromStore(id);
     console.log('Navigating to host studio:', id);
   };
 

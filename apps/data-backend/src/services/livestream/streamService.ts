@@ -451,6 +451,31 @@ const watcherFn = (streamPath: string, data: { streamKey: string }, outputPath: 
   return watcher;
 };
 
+// End HLS manifest by adding ENDLIST tag
+export async function endHLSManifest(streamKey: string) {
+  try {
+    const manifestPath = join(process.cwd(), 'public', 'livestreams', streamKey, 'stream.m3u8');
+    
+    if (!(await fileExists(manifestPath))) {
+      console.log('⚠️ Manifest file does not exist for ending:', streamKey);
+      return;
+    }
+
+    let content = await readFile(manifestPath, 'utf8');
+    
+    // Add ENDLIST tag if not already present
+    if (!content.includes('#EXT-X-ENDLIST')) {
+      content += '\n#EXT-X-ENDLIST\n';
+      await writeFile(manifestPath, content, 'utf8');
+      console.log('✅ HLS manifest ended with ENDLIST tag for stream:', streamKey);
+    } else {
+      console.log('✅ HLS manifest already has ENDLIST tag for stream:', streamKey);
+    }
+  } catch (error) {
+    console.error('❌ Error ending HLS manifest:', error);
+  }
+}
+
 // Validate and fix HLS manifest
 async function validateAndFixManifest(manifestPath: string) {
   try {

@@ -2,7 +2,7 @@ import { Socket } from 'socket.io';
 import * as fs from 'fs';
 import path from 'path';
 import { streamEvents, STREAM_EVENTS } from './streamEvent';
-import { setupStream } from './streamService';
+import { setupStream, endHLSManifest } from './streamService';
 
 /**
  * Simplified Stream Handler
@@ -132,7 +132,7 @@ export async function handleStartStream(
           error: err.message,
         });
       })
-      .on('end', () => {
+      .on('end', async () => {
         console.log('🏁 FFmpeg ended for:', data.streamKey);
         
         // Only end the stream if it's not actively receiving data
@@ -177,6 +177,9 @@ export async function handleStartStream(
           if (stream.activityMonitor) {
             clearInterval(stream.activityMonitor);
           }
+          
+          // Update HLS manifest to indicate stream has ended
+          await endHLSManifest(data.streamKey);
           
           activeStreams.delete(data.streamKey);
           socket.emit('stream-ended', { streamKey: data.streamKey });
@@ -335,6 +338,9 @@ export async function handleEndStream(
     } catch (cleanupError) {
       console.warn('⚠️ Error cleaning up temp file:', cleanupError);
     }
+
+    // Update HLS manifest to indicate stream has ended
+    await endHLSManifest(data.streamKey);
     
     // Remove from active streams
     activeStreams.delete(data.streamKey);
@@ -343,6 +349,9 @@ export async function handleEndStream(
     // Emit stream-ended event to all connected clients
     socket.to(data.streamKey).emit('stream-ended', { streamKey: data.streamKey });
     socket.emit('stream-ended', { streamKey: data.streamKey });
+    
+    // Also emit via stream events for broader notification
+    streamEvents.emit(STREAM_EVENTS.STREAM_END, { streamKey: data.streamKey });
     
     console.log('✅ Stream ended successfully:', data.streamKey);
     

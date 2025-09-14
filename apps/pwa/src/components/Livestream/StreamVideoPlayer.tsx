@@ -263,12 +263,29 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       }
     };
 
+    const handleStreamEnded = (event: CustomEvent) => {
+      console.log('🛑 Stream ended event received:', event.detail);
+      if (event.detail.streamKey === streamId) {
+        console.log('🛑 Stream ended for this viewer');
+        setIsLive(false);
+        setLoadError('Stream has ended');
+        setViewerCount(0);
+        
+        // Stop the video
+        if (videoRef.current) {
+          videoRef.current.pause();
+          videoRef.current.currentTime = 0;
+        }
+      }
+    };
+
     window.addEventListener('stream-joined', handleStreamJoined as EventListener);
     window.addEventListener('stream-initialized', handleStreamInitialized as EventListener);
     window.addEventListener('stream-segments-updated', handleStreamSegmentsUpdated as EventListener);
     window.addEventListener('stream-data-received', handleStreamData as EventListener);
     window.addEventListener('viewer-joined', handleViewerJoined as EventListener);
     window.addEventListener('viewer-left', handleViewerLeft as EventListener);
+    window.addEventListener('stream-ended', handleStreamEnded as EventListener);
     
     // Add missing event listeners for backend events
     const handleStreamReady = (event: CustomEvent) => {
@@ -297,6 +314,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
       window.removeEventListener('stream-data-received', handleStreamData as EventListener);
       window.removeEventListener('viewer-joined', handleViewerJoined as EventListener);
       window.removeEventListener('viewer-left', handleViewerLeft as EventListener);
+      window.removeEventListener('stream-ended', handleStreamEnded as EventListener);
       window.removeEventListener('stream-ready', handleStreamReady as EventListener);
       window.removeEventListener('stream-error', handleStreamError as EventListener);
     };

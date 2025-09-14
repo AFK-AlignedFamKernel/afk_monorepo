@@ -103,6 +103,10 @@ export const LivestreamWebSocketProvider: React.FC<LivestreamWebSocketProviderPr
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
       }
+
+      // Emit custom event for components to listen to
+      const event = new CustomEvent('stream-ended', { detail: data });
+      window.dispatchEvent(event);
     });
 
     newSocket.on('stream-error', (error) => {

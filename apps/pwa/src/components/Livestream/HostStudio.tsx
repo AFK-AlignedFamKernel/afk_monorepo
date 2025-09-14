@@ -281,9 +281,14 @@ export const HostStudio: React.FC<HostStudioProps> = ({
         relays: []
       };
 
-      const liveEvent = await createEvent.mutateAsync(liveEventData);
-      setLiveEventId(liveEvent.id);
-      console.log('✅ NIP-53 live event created:', liveEvent.id);
+      console.log('✅ NIP-53 live event created:', streamId);
+
+      await updateEvent.mutateAsync({
+        eventId: streamId,
+        status: 'live',
+        startsAt: Math.floor(Date.now() / 1000),
+        currentParticipants: 0
+      });
 
       // Step 2: Start the stream on the backend
       startStream(streamId, publicKey);

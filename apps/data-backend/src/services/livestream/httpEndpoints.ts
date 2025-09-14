@@ -144,8 +144,9 @@ export async function getStreamStatus(
     const manifestContent = fs.existsSync(manifestPath) ? fs.readFileSync(manifestPath, 'utf8') : null;
     const files = fs.existsSync(streamDir) ? fs.readdirSync(streamDir) : [];
     
-    // Check if stream has been ended (no active stream data but files exist)
-    const isEnded = !streamData && (fs.existsSync(manifestPath) || fs.existsSync(streamDir));
+    // Check if stream has been ended (no active stream data but files exist, or manifest has ENDLIST)
+    const isEnded = !streamData && (fs.existsSync(manifestPath) || fs.existsSync(streamDir)) ||
+                   (manifestContent && manifestContent.includes('#EXT-X-ENDLIST'));
     
     const status = {
       streamId,
