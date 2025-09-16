@@ -6,6 +6,10 @@
     "packages/*"
   ],
   "prisma": {},
+  "packageManager": "pnpm@10.16.1",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "build": "turbo run build",
     "build:website": "cd apps/website && pnpm run build",
@@ -95,10 +99,6 @@
     "tsup": "^8.0.2",
     "typescript": "~5.3.3"
   },
-  "engines": {
-    "node": ">=14.0.0"
-  },
-  "packageManager": "pnpm@10.10.0",
   "pnpm": {
     "onlyBuiltDependencies": [
       "@apollo/protobufjs",
