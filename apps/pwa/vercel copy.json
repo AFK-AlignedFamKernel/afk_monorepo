@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm run build:nostr_sdk && cd apps/pwa && pnpm run build",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "env": {
+    "NPM_RC": "shamefully-hoist=true\nregistry=https://registry.npmjs.org/",
+    "PNPM_VERSION": "10.10.0"
+  }
+}
+  
