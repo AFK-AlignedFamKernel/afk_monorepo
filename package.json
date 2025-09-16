@@ -11,6 +11,7 @@
     "node": "22.x"
   },
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "build": "turbo run build",
     "build:website": "cd apps/website && pnpm run build",
     "dev:website": "cd apps/website && pnpm run dev",
