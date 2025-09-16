@@ -38,7 +38,7 @@ export const getTokenFullInfo = async (tokenAddress: string) => {
  */
 export const getAllLaunchpads = async ({
   offset = 0,
-  limit = 20,
+  limit = 10,
 }: {
   offset?: number;
   limit?: number;
@@ -64,6 +64,8 @@ export const getAllLaunchpads = async ({
       symbol: true,
       url: true,
       initial_pool_supply_dex:true,
+      twitter:true,
+      website:true,
       // Add fields from tokenMetadata relation
       // metadata: {
       //   select: {

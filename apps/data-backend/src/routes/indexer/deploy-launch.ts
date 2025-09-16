@@ -15,7 +15,7 @@ interface DeployLaunchByUserParams {
 async function deployLaunchRoute(fastify: FastifyInstance, options: RouteOptions) {
   fastify.get('/deploy-launch', async (request, reply) => {
     try {
-      const { offset = 0, limit = 20 } = request.query as { offset?: number; limit?: number };
+      const { offset = 0, limit = 10 } = request.query as { offset?: number; limit?: number };
 
       const launches = await getAllLaunchpads({
         offset: offset,

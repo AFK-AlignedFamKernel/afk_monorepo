@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-// import { useParams } from 'next/navigation';
-import { Overview } from '@/components/launchpad/Overview';
+import { useParams } from 'next/navigation';
+import { Overview, OverviewLaunch } from '@/components/launchpad/Overview';
 import { Holders } from '@/components/launchpad/Holders';
 import { Transactions } from '@/components/launchpad/Transactions';
 import { LaunchActionsForm } from '@/components/launchpad/LaunchActionsForm';
@@ -23,9 +23,8 @@ interface LaunchpadDetailProps {
   };
 }
 
-export default function LaunchpadDetailPage({params}: LaunchpadDetailProps) {
-  const { address } = params;
-  // const { address } = useParams()
+export default function LaunchpadDetailPage() {
+  const { address } = useParams()
   const { showModal } = useUIStore()
 
   const { account } = useAccount();
@@ -136,7 +135,11 @@ export default function LaunchpadDetailPage({params}: LaunchpadDetailProps) {
   };
 
   const tabs = [
-    { name: 'Overview', component: <Overview data={launchData} /> },
+    {
+      name: 'Overview', component: <><OverviewLaunch data={launchData} isOpenLaunch={true} />
+        {/* <Overview data={launchData} isOpenLaunch={false} /> */}
+      </>
+    },
     { name: 'Holders', component: <Holders holders={holders} loading={loading} total_supply={launchData?.total_supply} /> },
     { name: 'Transactions', component: <Transactions transactions={transactions} loading={loading} /> },
     { name: 'Chart', component: <ChartComponent candleData={chartData as any[]} loading={loading ?? false} tokenName={launchData?.symbol ?? 'Token'} theme={'dark'} /> },
@@ -172,15 +175,20 @@ export default function LaunchpadDetailPage({params}: LaunchpadDetailProps) {
             userShare={userShareMemo}
             loading={actionLoading}
             memecoinAddress={address as string}
+            onRefresh={() => {
+              fetchData();
+              fetchCandles();
+            }}
           />
-          <div className="flex justify-end">
+          {/* <div className="flex justify-end">
             <button onClick={() => {
               fetchData();
               fetchCandles();
             }}>
               <Icon name="RefreshIcon" size={16} className="ml-1" />
             </button>
-          </div>
+          </div> */}
+          <Overview data={launchData} isOpenLaunch={false} />
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-1">
@@ -202,7 +210,7 @@ export default function LaunchpadDetailPage({params}: LaunchpadDetailProps) {
                 ))}
               </div>
 
-              <div className="rounded-xl p-6 shadow-lg transition-colors duration-200">
+              <div className="rounded-xl shadow-lg transition-colors duration-200">
                 {tabs[selectedTab].component}
               </div>
             </div>
