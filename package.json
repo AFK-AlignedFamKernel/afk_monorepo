@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "prisma": {},
-  "packageManager": "pnpm@10.16.1",
+  "packageManager": "pnpm@9.12.3",
   "engines": {
     "node": "22.x"
   },

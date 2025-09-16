@@ -1,7 +1,11 @@
 {
-  "installCommand": "pnpm install .",
+  "buildCommand": "cd ../.. && (pnpm install --frozen-lockfile=false --no-optional || npm install) && (pnpm run build:nostr_sdk || npm run build:nostr_sdk) && cd apps/pwa && (pnpm run build || npm run build)",
+  "installCommand": "cd ../.. && (pnpm install --frozen-lockfile=false --no-optional || npm install)",
   "env": {
-    "PNPM_VERSION": "10.16.1"
+    "NODE_OPTIONS": "--max-old-space-size=4096",
+    "PNPM_VERSION": "9.12.3",
+    "NPM_RC": "shamefully-hoist=true\nregistry=https://registry.npmjs.org/\nstrict-peer-dependencies=false\nauto-install-peers=true",
+    "VERCEL_NODE_VERSION": "22"
   }
 }
   
