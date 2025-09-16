@@ -1,8 +1,9 @@
 {
-  "installCommand": "pnpm install --no-frozen-lockfile",
   "env": {
-    "NPM_RC": "shamefully-hoist=true\nregistry=https://registry.npmjs.org/",
-    "PNPM_VERSION": "10.10.0"
+    "PNPM_VERSION": "10.16.1",
+    "NODE_VERSION": "20",
+    "ENABLE_EXPERIMENTAL_COREPACK": "1"
+
   }
 }
   
