@@ -1,5 +1,5 @@
 {
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm install .",
   "env": {
     "PNPM_VERSION": "10.16.1"
   }
