@@ -28,12 +28,12 @@ export default function DiscoverComponent() {
 
         <div className="flex flex-row gap-2 overflow-x-auto scrollbar-hide rounded-xl p-2 shadow-md justify-start ">
           {[
+            { key: "launchpad", label: "Launchpad" },
             { key: "brand", label: "Brands" },
             { key: "creator", label: "Creators" },
             { key: "channels", label: "Channels" },
-            { key: "launchpad", label: "Tokens" },
-            { key: "chat", label: "Chat" },
-            { key: "communities", label: "Communities" },
+            // { key: "chat", label: "Chat" },
+            // { key: "communities", label: "Communities" },
             { key: "feed", label: "Feed" },
             // { key: "topic", label: "Topics" },
           ].map(tab => (
@@ -42,7 +42,7 @@ export default function DiscoverComponent() {
               className={`px-4 py-2 rounded-full transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-green-400 whitespace-nowrap
                 ${activeTab === tab.key
                   ? "bg-green-500  shadow font-semibold"
-                  :  "hover:bg-gray-200 dark:hover:bg-gray-700"}
+                  : "hover:bg-gray-200 dark:hover:bg-gray-700"}
               `}
               onClick={() => {
                 setActiveTab(tab.key as typeof activeTab);
@@ -86,7 +86,7 @@ export default function DiscoverComponent() {
           <div
           // className="flex flex-row gap-4"
           >
-            <FeedTabs className="w-full" /> 
+            <FeedTabs className="w-full" />
             {/* <MainNostrFeed /> */}
             {/* <AdvancedAlgoFeed /> */}
             {/* <FeedTabs className="w-full" /> */}
