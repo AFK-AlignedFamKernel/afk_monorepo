@@ -1,8 +1,8 @@
 {
-    "env": {
-      "NPM_RC": "shamefully-hoist=true",
-      "PNPM_VERSION": "10.10.0",
-      "installCommand": "pnpm install"
-    }
+  "installCommand": "pnpm install --no-frozen-lockfile",
+  "env": {
+    "NPM_RC": "shamefully-hoist=true\nregistry=https://registry.npmjs.org/",
+    "PNPM_VERSION": "10.10.0"
   }
+}
   

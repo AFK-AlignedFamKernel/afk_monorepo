@@ -1,5 +1,5 @@
 {
-  "installCommand": "pnpm install --frozen-lockfile",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "env": {
     "NPM_RC": "shamefully-hoist=true\nregistry=https://registry.npmjs.org/",
     "PNPM_VERSION": "10.10.0"
