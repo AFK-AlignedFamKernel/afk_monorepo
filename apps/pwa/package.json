@@ -101,7 +101,7 @@
     "typescript": "^5",
     "web-vitals": "^2.1.4"
   },
-  "packageManager": "pnpm@10.10.0",
+  "packageManager": "pnpm@10.16.1",
   "engines": {
     "node": "22.x"
   }

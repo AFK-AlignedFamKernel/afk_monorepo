@@ -1,8 +1,10 @@
 {
-  "installCommand": "pnpm install",
+  "buildCommand": "cd ../.. && pnpm install --no-frozen-lockfile && pnpm run build:nostr_sdk && cd apps/pwa && pnpm run build",
+  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
   "env": {
-    "NPM_RC": "shamefully-hoist=true\nregistry=https://registry.npmjs.org/",
-    "PNPM_VERSION": "10.10.0"
+    "NPM_RC": "shamefully-hoist=true\nregistry=https://registry.npmjs.org/\nstrict-peer-dependencies=false\nauto-install-peers=true",
+    "PNPM_VERSION": "10.16.1",
+    "NODE_OPTIONS": "--max-old-space-size=4096"
   }
 }
   
