@@ -1,7 +1,9 @@
 {
     "env": {
       "PNPM_VERSION": "10.16.1",
-      "installCommand": "pnpm install"
+      "NODE_VERSION": "20",
+      "ENABLE_EXPERIMENTAL_COREPACK": "1",
+      "installCommand": "pnpm install --no-frozen-lockfile"
 
     }
   }
