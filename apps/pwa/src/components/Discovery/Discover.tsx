@@ -19,7 +19,7 @@ export default function DiscoverComponent() {
   // const searchParams = useSearchParams()
   // const query = searchParams.get("query")
 
-  const [activeTab, setActiveTab] = useState<"brand" | "chat" | "creator" | "topic" | "feed" | "launchpad" | "communities" | "channels">("brand");
+  const [activeTab, setActiveTab] = useState<"brand" | "chat" | "creator" | "topic" | "feed" | "launchpad" | "communities" | "channels">("launchpad");
 
   return (
     <div className="flex flex-col gap-1">

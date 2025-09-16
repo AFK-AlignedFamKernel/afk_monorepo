@@ -172,6 +172,7 @@ export default function LaunchpadDetailPage({ address }: LaunchpadDetailProps) {
       <div className="container mx-auto px-4 py-8 lg:grid lg:grid-cols-2 gap-8">
 
         <div className="lg:col-span-1 mb-8">
+          <Overview data={launchData} isOpenLaunch={false} />
 
           <LaunchActionsForm
             launch={launchData}
@@ -193,7 +194,6 @@ export default function LaunchpadDetailPage({ address }: LaunchpadDetailProps) {
               <Icon name="RefreshIcon" size={16} className="ml-1" />
             </button>
           </div> */}
-          <Overview data={launchData} isOpenLaunch={false} />
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-1">
@@ -242,7 +242,14 @@ export default function LaunchpadDetailPage({ address }: LaunchpadDetailProps) {
 
       </div>
 
-      <ChartComponent candleData={chartData as any[]} loading={loading ?? false} tokenName={launchData?.symbol ?? 'Token'} theme={'dark'} />
+      <div
+        className='px-8'
+      >
+
+        <ChartComponent candleData={chartData as any[]} loading={loading ?? false} tokenName={launchData?.symbol ?? 'Token'} theme={'dark'} />
+
+      </div>
+
 
     </main>
   );
