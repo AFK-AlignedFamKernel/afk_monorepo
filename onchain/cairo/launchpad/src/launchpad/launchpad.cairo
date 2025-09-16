@@ -67,8 +67,8 @@ pub mod LaunchpadMarketplace {
     // TODO  Used in V2 and be choose by user
     const ZERO_FEE_AMOUNT: u256 = 0; //0%
     const MIN_FEE_CREATOR: u256 = 100; //1%
-    const MID_FEE_CREATOR: u256 = 500; //5%
-    const MAX_FEE_CREATOR: u256 = 1000; //10%
+    const MID_FEE_CREATOR: u256 = 300; //3%
+    const MAX_FEE_CREATOR: u256 = 500; //5%
 
     const BPS: u256 = 10_000; // 100% = 10_000 bps
 

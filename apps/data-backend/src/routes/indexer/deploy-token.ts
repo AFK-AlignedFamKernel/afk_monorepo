@@ -15,7 +15,7 @@ async function deployTokenRoute(fastify: FastifyInstance, options: RouteOptions)
     try {
       const deploys = await getAllTokens({
         offset: 0,
-        limit: 20,
+        limit: 10,
       });
 
       reply.status(HTTPStatus.OK).send({

@@ -52,7 +52,7 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
       <div className="flex justify-between items-start gap-2">
 
         <div>
-          <h3 className="text-lg font-semibold">{token.name}</h3>
+          <p className="text-lg font-semibold">{token.name}</p>
           <p className="text-sm text-shade-500">{token.symbol}</p>
         </div>
         {type === 'LAUNCH' && token.is_liquidity_added && (
@@ -65,7 +65,7 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
           {token?.image_url && (token?.image_url !== "" && token?.image_url !== null && token?.image_url !== undefined) && (
             <Image
               unoptimized
-              src={token?.image_url} alt={token.name} width={50} height={50}
+              src={token?.image_url} alt={token.name} width={90} height={90}
               className="rounded-lg"
             />
           )}
@@ -74,7 +74,7 @@ export const LaunchpadCard: React.FC<LaunchpadCardProps> = ({ token, type }) => 
           {token?.url && (token?.url !== "" && token?.url !== null && token?.url !== undefined) && (
             <Image
               unoptimized
-              src={token?.url} alt={token.name} width={50} height={50}
+              src={token?.url} alt={token.name} width={90} height={90}
               className="rounded-lg"
             />
           )}

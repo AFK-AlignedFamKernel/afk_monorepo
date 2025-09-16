@@ -38,7 +38,7 @@ export const getTokenFullInfo = async (tokenAddress: string) => {
  */
 export const getAllLaunchpads = async ({
   offset = 0,
-  limit = 20,
+  limit = 10,
 }: {
   offset?: number;
   limit?: number;
@@ -63,7 +63,9 @@ export const getAllLaunchpads = async ({
       name: true,
       symbol: true,
       url: true,
-      initial_pool_supply_dex:true,
+      initial_pool_supply_dex: true,
+      twitter: true,
+      website: true,
       // Add fields from tokenMetadata relation
       // metadata: {
       //   select: {
@@ -110,6 +112,8 @@ export const getAllTokens = async ({
       name: true,
       symbol: true,
       url: true,
+      block_timestamp: true,
+      website:true,
     },
   });
   return tokens;
@@ -254,11 +258,11 @@ export const getCandlesticksByMemecoinAddress = async ({
   offset?: number;
   limit?: number;
 }) => {
-  const whereCondition = intervalMinutes 
+  const whereCondition = intervalMinutes
     ? and(
-        eq(candlesticks.token_address, memecoinAddress),
-        eq(candlesticks.interval_minutes, intervalMinutes)
-      )
+      eq(candlesticks.token_address, memecoinAddress),
+      eq(candlesticks.interval_minutes, intervalMinutes)
+    )
     : eq(candlesticks.token_address, memecoinAddress);
 
   const candles = await db

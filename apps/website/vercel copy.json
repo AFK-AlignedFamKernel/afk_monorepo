@@ -1,0 +1,8 @@
+{
+    "env": {
+      "NPM_RC": "shamefully-hoist=true",
+      "PNPM_VERSION": "10.10.0",
+      "installCommand": "pnpm install"
+    }
+  }
+  

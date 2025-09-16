@@ -168,6 +168,7 @@ export const tokenDeploy = pgTable('token_deploy', {
   telegram: text('telegram'),
   github: text('github'),
   website: text('website'),
+  livestream_id: text('livestream_id'),
 });
 
 export const tokenLaunch = pgTable('token_launch', {
@@ -196,6 +197,7 @@ export const tokenLaunch = pgTable('token_launch', {
   telegram: text('telegram'),
   github: text('github'),
   website: text('website'),
+  livestream_id: text('livestream_id'), 
 });
 
 export const tokenMetadata = pgTable('token_metadata', {
@@ -211,6 +213,7 @@ export const tokenMetadata = pgTable('token_metadata', {
   github: text('github'),
   website: text('website'),
   created_at: timestamp('created_at').defaultNow(),
+  livestream_id: text('livestream_id'),
 });
 
 export const tokenTransactions = pgTable('token_transactions', {
@@ -255,6 +258,7 @@ export const candlesticks = pgTable('candlesticks', {
   high: decimal('high').notNull(),
   low: decimal('low').notNull(),
   close: decimal('close').notNull(),
+  previous_price:decimal('previous_price'),
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 }, (table) => ({
