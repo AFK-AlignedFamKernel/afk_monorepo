@@ -86,7 +86,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "7.2.0",
-    "@types/node": "^20",
+    "@types/node": "^22",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@uniswap/eslint-config": "^1.2.0",
@@ -101,5 +101,8 @@
     "typescript": "^5",
     "web-vitals": "^2.1.4"
   },
-  "packageManager": "pnpm@10.10.0"
+  "packageManager": "pnpm@10.10.0",
+  "engines": {
+    "node": "22.x"
+  }
 }
