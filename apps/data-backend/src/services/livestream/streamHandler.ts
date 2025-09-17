@@ -85,7 +85,8 @@ export async function handleStartStream(
       startedAt: new Date(),
       lastDataReceived: new Date(),
       status: 'active',
-      activityMonitor: activityMonitor
+      activityMonitor: activityMonitor,
+      ffmpegStarted: false // Track if FFmpeg has been started
     };
     
     activeStreams.set(data.streamKey, streamData);
@@ -98,6 +99,9 @@ export async function handleStartStream(
     // Store the interval ID for cleanup
     streamData.activityMonitor = activityMonitor;
 
+    // Don't start FFmpeg immediately - wait for first video data
+    console.log('🎬 FFmpeg command prepared, waiting for video data to start processing');
+    
     // FFmpeg event handlers
     ffmpegCommand
       .on('start', (commandLine) => {
@@ -219,11 +223,7 @@ export async function handleStreamData(socket: Socket, data: { streamKey: string
       console.log('📦 Initialized chunk accumulator for stream:', data.streamKey);
     }
     
-    // Accumulate chunks to create a continuous stream
-    stream.chunkAccumulator = Buffer.concat([stream.chunkAccumulator, chunk]);
-    console.log(`📦 Accumulated chunks: ${stream.chunkAccumulator.length} bytes total`);
-    
-    // Write accumulated data to a temporary file for FFmpeg to process
+    // Write chunk to temporary WebM file
     const tempWebmPath = path.join(process.cwd(), 'public', 'livestreams', data.streamKey, 'temp.webm');
     
     try {
@@ -231,7 +231,7 @@ export async function handleStreamData(socket: Socket, data: { streamKey: string
       await fs.promises.mkdir(path.dirname(tempWebmPath), { recursive: true });
       
       // For the first chunk, create the file; for subsequent chunks, append
-      if (stream.chunkAccumulator.length === chunk.length) {
+      if (stream.chunkAccumulator.length === 0) {
         // This is the first chunk - create the file
         await fs.promises.writeFile(tempWebmPath, chunk);
         console.log(`✅ First chunk written to temp file: ${chunk.length} bytes`);
@@ -241,10 +241,20 @@ export async function handleStreamData(socket: Socket, data: { streamKey: string
         console.log(`✅ Chunk appended to temp file: ${chunk.length} bytes`);
       }
       
-      // If this is the first chunk, start FFmpeg processing
-      if (stream.chunkAccumulator.length === chunk.length) {
-        console.log('🎬 First chunk received, starting FFmpeg processing...');
-        // FFmpeg will be started by the stream setup after delay
+      // Update accumulator for tracking
+      stream.chunkAccumulator = Buffer.concat([stream.chunkAccumulator, chunk]);
+      console.log(`📦 Total chunks processed: ${stream.chunkAccumulator.length} bytes`);
+      
+      // If this is the first chunk and we have enough data, start FFmpeg
+      if (stream.chunkAccumulator.length === chunk.length && chunk.length > 1000) {
+        console.log('🎬 First chunk received with sufficient data, starting FFmpeg processing...');
+        
+        // Start FFmpeg now that we have data
+        if (stream.command && !stream.ffmpegStarted) {
+          console.log('🎬 Starting FFmpeg with first chunk data...');
+          stream.command.run();
+          stream.ffmpegStarted = true;
+        }
       }
       
     } catch (error) {

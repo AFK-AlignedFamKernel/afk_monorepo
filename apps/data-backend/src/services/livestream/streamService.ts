@@ -110,7 +110,7 @@ export async function setupStream(data: StreamSetup) {
 
   console.log('🎬 Creating FFmpeg command with options...');
   
-  // Use temporary WebM file instead of input stream
+  // Use temporary WebM file for input
   const tempWebmPath = join(streamPath, "temp.webm");
   
   const ffmpegCommand = ffmpeg()
@@ -123,9 +123,9 @@ export async function setupStream(data: StreamSetup) {
       "-probesize", "100M",           // Much larger probe size
       "-f", "webm",                   // Force WebM format
       "-thread_queue_size", "1024",   // Large thread queue for buffering
-      "-re",                          // Read input at native frame rate
       "-ignore_errors",               // Ignore errors and continue processing
-      "-max_delay", "5000000"         // Maximum delay in microseconds
+      "-max_delay", "5000000",        // Maximum delay in microseconds
+      "-stream_loop", "-1"            // Loop the input file continuously
     ])
     .format("hls")
     .videoCodec("libx264")
@@ -223,30 +223,9 @@ export async function setupStream(data: StreamSetup) {
     console.log('🔍 FFmpeg stderr:', stderrLine);
   });
 
-  // Start FFmpeg processing when temp file has data
-  console.log('🎬 Waiting for WebM data to accumulate...');
+  // FFmpeg will be started when first video data is received
+  console.log('🎬 FFmpeg command prepared, waiting for video data...');
   console.log('📁 Output path:', outputPath);
-  console.log('📁 Temp WebM path:', tempWebmPath);
-  
-  // Wait for temp file to exist and have data
-  const waitForData = async () => {
-    try {
-      const stats = await import('fs').then(fs => fs.promises.stat(tempWebmPath));
-      if (stats.size > 5000) { // Wait for at least 5KB of data
-        console.log('🎬 Temp WebM file has sufficient data, starting FFmpeg...');
-        ffmpegCommand.output(outputPath).run();
-      } else {
-        console.log('⏳ Temp WebM file exists but has insufficient data, waiting...');
-        setTimeout(waitForData, 3000); // Wait longer between checks
-      }
-    } catch (error) {
-      console.log('⏳ Temp WebM file not ready yet, waiting...');
-      setTimeout(waitForData, 3000); // Wait longer between checks
-    }
-  };
-  
-  // Start checking for data after a longer delay to allow more data to accumulate
-  setTimeout(waitForData, 5000);
 
   // Set up file watcher for HLS segments
   watcherFn(streamPath, data, outputPath);
