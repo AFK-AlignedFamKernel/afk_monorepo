@@ -123,7 +123,6 @@ export async function setupStream(data: StreamSetup) {
       "-probesize", "100M",           // Much larger probe size
       "-f", "webm",                   // Force WebM format
       "-thread_queue_size", "1024",   // Large thread queue for buffering
-      "-ignore_errors",               // Ignore errors and continue processing
       "-max_delay", "5000000",        // Maximum delay in microseconds
       "-stream_loop", "-1"            // Loop the input file continuously
     ])
@@ -158,7 +157,8 @@ export async function setupStream(data: StreamSetup) {
       
       // === COMPATIBILITY ===
       "-f", "hls"                      // HLS format
-    ]);
+    ])
+    .output(outputPath);               // Set the output path
 
   // Add event listeners for better debugging
   ffmpegCommand.on('start', (commandLine) => {
