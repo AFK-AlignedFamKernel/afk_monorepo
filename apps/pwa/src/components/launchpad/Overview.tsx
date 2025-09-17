@@ -44,7 +44,7 @@ export const Overview: React.FC<OverviewProps> = ({ data, isOpenLaunch }) => {
         <div className="rounded-lg p-6 shadow-sm dark:bg-[var(--dark-card-bg)]">
           {/* <h3 className="text-lg font-semibold mb-4">Token Information</h3> */}
           <div className="space-y-3">
-            <div className="flex justify-between items-center cursor-pointer"
+            <div className="flex items-center cursor-pointer gap-3 align-baseline"
               onClick={() => {
                 navigator.clipboard.writeText(data?.memecoin_address);
                 showToast({
@@ -61,21 +61,53 @@ export const Overview: React.FC<OverviewProps> = ({ data, isOpenLaunch }) => {
                     src={data?.url} alt="URL" width={100} height={100} />
                 </div>
               )}
-              <span className="font-medium">{data?.memecoin_address?.slice(0, 6) + '...' + data?.memecoin_address?.slice(-4) || 'N/A'}</span>
+
+              <div>
+
+                <div className="flex justify-between gap-3">
+                  <span>Name</span>
+                  <span className="font-medium">{data?.name || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span>Symbol</span>
+                  <span className="font-medium">{data?.symbol || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span>Total Supply</span>
+                  <span className="font-medium">{Number(data?.total_supply)?.toFixed(2) || 'N/A'}</span>
+                </div>
+              </div>
 
 
-              <Icon
-                onClick={() => {
-                  navigator.clipboard.writeText(data?.memecoin_address);
-                  showToast({
-                    message: 'Address copied',
-                    type: 'success',
-                  });
-                }}
-                name="CopyIcon"
-                size={16}
-                className=""
-              />
+
+
+              {data?.description && (
+                <div className="flex justify-between">
+                  <span>Description</span>
+                  <span className="font-medium">{data?.description || 'N/A'}</span>
+                </div>
+              )}
+
+
+              <div className="flex gap-3">
+                <span className="font-medium">{data?.memecoin_address?.slice(0, 6) + '...' + data?.memecoin_address?.slice(-4) || 'N/A'}</span>
+
+                <Icon
+                  onClick={() => {
+                    navigator.clipboard.writeText(data?.memecoin_address);
+                    showToast({
+                      message: 'Address copied',
+                      type: 'success',
+                    });
+                  }}
+                  name="CopyIcon"
+                  size={16}
+                  className=""
+                />
+
+              </div>
+
+
             </div>
 
             {data?.is_liquidity_added &&
@@ -84,18 +116,8 @@ export const Overview: React.FC<OverviewProps> = ({ data, isOpenLaunch }) => {
               </div>
             }
 
-            <div className="flex justify-between">
-              <span>Name</span>
-              <span className="font-medium">{data?.name || 'N/A'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Symbol</span>
-              <span className="font-medium">{data?.symbol || 'N/A'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Total Supply</span>
-              <span className="font-medium">{Number(data?.total_supply)?.toFixed(2) || 'N/A'}</span>
-            </div>
+
+
 
             {data?.description && (
               <div className="flex justify-between">
@@ -144,6 +166,7 @@ export const Overview: React.FC<OverviewProps> = ({ data, isOpenLaunch }) => {
                 </div>
               )}
             </div>
+
           </div>
         </div>
 

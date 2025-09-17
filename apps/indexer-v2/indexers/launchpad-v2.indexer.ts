@@ -1947,19 +1947,20 @@ export default function (config: ApibaraRuntimeConfig & {
         const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
         try {
-          withTimeout(async () => {
-            await db.insert(tokenTransactions)
+          await withTimeout(
+            db.insert(tokenTransactions)
               .values({
                 transfer_id: transferId,
-              network: 'starknet-sepolia',
-              block_timestamp: blockTimestamp,
-              transaction_hash: transactionHash,
-              memecoin_address: tokenAddress,
-              transaction_type: 'liquidity_created',
-              created_at: new Date(),
-            })
-            .onConflictDoNothing(); // Prevent duplicates
-          }, 10000);
+                network: 'starknet-sepolia',
+                block_timestamp: blockTimestamp,
+                transaction_hash: transactionHash,
+                memecoin_address: tokenAddress,
+                transaction_type: 'liquidity_created',
+                created_at: new Date(),
+              })
+              .onConflictDoNothing(), // Prevent duplicates
+            10000
+          );
         } catch (error: any) {
           console.error('Failed to insert liquidity created transaction:', {
             error: error,
@@ -2025,19 +2026,20 @@ export default function (config: ApibaraRuntimeConfig & {
         const transferId = `${transactionHash}_${rawEvent.eventIndexInTransaction || 0}`;
 
         try {
-         withTimeout( async () => {
-          await db.insert(tokenTransactions)
-            .values({
-              transfer_id: transferId,
-              network: 'starknet-sepolia',
-              block_timestamp: blockTimestamp,
-              transaction_hash: transactionHash,
-              memecoin_address: tokenAddress,
-              transaction_type: 'liquidity_can_be_added',
-              created_at: new Date(),
-            })
-            .onConflictDoNothing(); // Prevent duplicates
-         }, 10000);
+         await withTimeout(
+           db.insert(tokenTransactions)
+             .values({
+               transfer_id: transferId,
+               network: 'starknet-sepolia',
+               block_timestamp: blockTimestamp,
+               transaction_hash: transactionHash,
+               memecoin_address: tokenAddress,
+               transaction_type: 'liquidity_can_be_added',
+               created_at: new Date(),
+             })
+             .onConflictDoNothing(), // Prevent duplicates
+           10000
+         );
         } catch (error: any) {
           console.error('Failed to insert liquidity can be added transaction:', {
             error: error,

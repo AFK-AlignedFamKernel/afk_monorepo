@@ -352,11 +352,11 @@ export const NostrFeed: React.FC<NostrFeedProps> = ({
           );
         })}
 
-        {isLoadingMore && (
-          <div className="flex justify-center items-center py-4">
-            <CryptoLoading />
-          </div>
-        )}
+          {isLoadingMore && (
+            <div className="flex justify-center items-center py-4">
+              <CryptoLoading />
+            </div>
+          )}
 
         {!hasMoreContent && notesData.length > 0 && (
           <div className="py-4 text-center text-gray-500">
