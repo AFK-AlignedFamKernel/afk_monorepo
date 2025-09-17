@@ -89,7 +89,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
 
   // Real-time stream monitoring for backend status
   useEffect(() => {
-    if (!streamId || !isConnected || !isStreaming) return;
+    if (!streamId || !isConnected) return;
 
     console.log('🎬 Setting up real-time stream monitoring for:', streamId);
     
@@ -107,11 +107,14 @@ export const HostStudio: React.FC<HostStudioProps> = ({
           if (status.overall?.isEnded) {
             console.log('🛑 Stream has ended');
             setBackendStreamStatus('inactive');
-          } else if (status.overall?.hasVideoContent) {
-            console.log('🎬 Stream is LIVE with video content!');
+          } else if (status.overall?.hasVideoContent && status.overall?.hasManifest) {
+            console.log('🎬 Stream is LIVE with video content and manifest!');
             setBackendStreamStatus('live');
-          } else if (status.overall?.isActive && status.overall?.hasManifest) {
-            console.log('⏳ Stream is active but waiting for video content');
+          } else if (status.overall?.isActive && status.overall?.hasManifest && !status.overall?.hasVideoContent) {
+            console.log('⏳ Stream is active with manifest but no video content yet');
+            setBackendStreamStatus('active');
+          } else if (status.overall?.isActive && !status.overall?.hasManifest) {
+            console.log('⏳ Stream is active but no manifest yet');
             setBackendStreamStatus('active');
           } else {
             console.log('❌ Stream is not active');
@@ -130,7 +133,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     return () => {
       clearInterval(statusCheckInterval);
     };
-  }, [streamId, isConnected, isStreaming]);
+  }, [streamId, isConnected]);
 
   // Setup camera capture
   const setupCameraCapture = async (): Promise<MediaStream | null> => {
@@ -451,9 +454,9 @@ export const HostStudio: React.FC<HostStudioProps> = ({
   const getBackendStatusText = () => {
     switch (backendStreamStatus) {
       case 'inactive':
-        return 'Inactive';
+        return 'Not Started';
       case 'active':
-        return 'Active';
+        return 'Starting...';
       case 'live':
         return 'LIVE';
       case 'error':
@@ -551,10 +554,25 @@ export const HostStudio: React.FC<HostStudioProps> = ({
             <div className={`${styles.status} ${getStatusColor()}`}>
               {getStatusText()}
             </div>
+            
+            {/* Backend Status */}
+            <div className={`${styles.status} ${getBackendStatusColor()}`}>
+              Backend: {getBackendStatusText()}
+            </div>
+            
             {error && (
               <div className={styles.error}>
                 <Icon name="WalletIcon" size={16} />
                 {error}
+              </div>
+            )}
+            
+            {/* Additional status info */}
+            {streamDetails && (
+              <div className={styles.statusInfo}>
+                <p>Manifest: {streamDetails.overall?.hasManifest ? '✅' : '❌'}</p>
+                <p>Video Content: {streamDetails.overall?.hasVideoContent ? '✅' : '❌'}</p>
+                <p>Active: {streamDetails.overall?.isActive ? '✅' : '❌'}</p>
               </div>
             )}
           </div>

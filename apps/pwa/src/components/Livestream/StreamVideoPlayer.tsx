@@ -372,14 +372,8 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     // Join the stream as a viewer (only for internal streams)
     joinStream(streamId, 'viewer-' + Date.now());
     
-    // Set up periodic stream status checking (only if not already live)
+    // Set up periodic stream status checking
     const statusCheckInterval = setInterval(async () => {
-      // Only check if we're not already live to prevent unnecessary requests
-      if (isLive) {
-        console.log('🎬 Stream is already live, skipping status check');
-        return;
-      }
-      
       try {
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050';
         const response = await fetch(`${backendUrl}/livestream/${streamId}/status`);
@@ -388,9 +382,9 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           const status = await response.json();
           console.log('📊 Stream status check for viewer:', status);
           
-          // Check if stream now has video content
-          if (status.overall?.hasVideoContent) {
-            console.log('🎬 Stream now has video content!');
+          // Check if stream now has video content and segments
+          if (status.overall?.hasVideoContent && status.overall?.hasManifest) {
+            console.log('🎬 Stream now has video content and manifest!');
             setIsLive(true);
             setLoadError(null);
             
@@ -401,20 +395,30 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
               videoRef.current.src = videoUrl;
               videoRef.current.load();
             }
-          } else if (status.overall?.isActive && status.overall?.hasManifest) {
-            console.log('⏳ Stream is active but waiting for video content');
+          } else if (status.overall?.isActive && status.overall?.hasManifest && !status.overall?.hasVideoContent) {
+            console.log('⏳ Stream is active with manifest but no video content yet');
             setIsLive(false);
-            setLoadError('Stream is active - waiting for host to start broadcasting...');
+            setLoadError('Stream is ready but waiting for video data...');
+          } else if (status.overall?.isActive && !status.overall?.hasManifest) {
+            console.log('⏳ Stream is active but no manifest yet');
+            setIsLive(false);
+            setLoadError('Stream is starting up...');
           } else {
             console.log('❌ Stream is not active');
             setIsLive(false);
             setLoadError('Stream is not active or has ended');
           }
+        } else {
+          console.log('❌ Failed to get stream status');
+          setIsLive(false);
+          setLoadError('Unable to check stream status');
         }
       } catch (error) {
         console.error('❌ Error checking stream status:', error);
+        setIsLive(false);
+        setLoadError('Error checking stream status');
       }
-    }, 5000); // Check every 5 seconds to reduce load
+    }, 3000); // Check every 3 seconds for more responsive updates
 
     return () => {
       clearInterval(statusCheckInterval);
@@ -517,38 +521,92 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     }
   };
 
+  // Function to validate HLS manifest before loading
+  const validateHLSManifest = async (url: string): Promise<boolean> => {
+    try {
+      console.log('🔍 Validating HLS manifest:', url);
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.log('❌ HLS manifest not accessible:', response.status);
+        return false;
+      }
+      
+      const manifest = await response.text();
+      console.log('📋 HLS manifest content:', manifest.substring(0, 200) + '...');
+      
+      // Check if manifest has segments
+      const segments = manifest.split('\n').filter(line => line.endsWith('.ts'));
+      const hasSegments = segments.length > 0;
+      
+      console.log(`📊 HLS manifest validation: ${segments.length} segments found`);
+      
+      if (!hasSegments) {
+        console.log('⚠️ HLS manifest is empty - stream not ready');
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.warn('⚠️ HLS manifest validation failed:', error);
+      return false;
+    }
+  };
+
   // Simplified video loading - match HTML test approach
   useEffect(() => {
-    if (streamingUrl) {
-      console.log('🎥 Setting streaming URL:', streamingUrl);
-      
-      const urlType = detectUrlType(streamingUrl);
-      console.log('🔍 Detected URL type:', urlType);
-      
-      // Clear any previous errors
-      setLoadError(null);
-      
-      if (videoRef.current) {
-        // Add event listeners for better debugging
-        const video = videoRef.current;
+    const loadVideo = async () => {
+      if (streamingUrl) {
+        console.log('🎥 Setting streaming URL:', streamingUrl);
         
-        // Set attributes based on URL type
-        if (urlType === 'internal-hls') {
-          video.setAttribute('data-stream-type', 'hls');
-          video.setAttribute('data-stream-id', streamId || 'unknown');
-          video.setAttribute('crossorigin', 'anonymous');
-        } else if (urlType === 'external-hls') {
-          video.setAttribute('data-stream-type', 'external-hls');
-          video.setAttribute('crossorigin', 'anonymous');
-        } else {
-          video.setAttribute('data-stream-type', 'external-other');
-          // For external platforms, we might need different handling
-        }
+        const urlType = detectUrlType(streamingUrl);
+        console.log('🔍 Detected URL type:', urlType);
         
-        // Check for HLS support and use HLS.js if needed
-        const isHLS = urlType === 'internal-hls' || urlType === 'external-hls';
-        if (isHLS) {
-          console.log('🎥 Using HLS.js for HLS stream playback');
+        // Clear any previous errors
+        setLoadError(null);
+        
+        if (videoRef.current) {
+          // Add event listeners for better debugging
+          const video = videoRef.current;
+          
+          // Set attributes based on URL type
+          if (urlType === 'internal-hls') {
+            video.setAttribute('data-stream-type', 'hls');
+            video.setAttribute('data-stream-id', streamId || 'unknown');
+            video.setAttribute('crossorigin', 'anonymous');
+          } else if (urlType === 'external-hls') {
+            video.setAttribute('data-stream-type', 'external-hls');
+            video.setAttribute('crossorigin', 'anonymous');
+          } else {
+            video.setAttribute('data-stream-type', 'external-other');
+            // For external platforms, we might need different handling
+          }
+          
+          // Check for HLS support and use HLS.js if needed
+          const isHLS = urlType === 'internal-hls' || urlType === 'external-hls';
+          if (isHLS) {
+            console.log('🎥 Using HLS.js for HLS stream playback');
+            
+            // For internal streams, validate manifest first
+            if (urlType === 'internal-hls') {
+              const isValid = await validateHLSManifest(streamingUrl);
+              if (!isValid) {
+                console.log('⚠️ HLS manifest not ready, waiting...');
+                setLoadError('Stream is not ready yet. Waiting for host to start broadcasting...');
+                setIsLive(false);
+                
+                // Retry validation after delay
+                setTimeout(async () => {
+                  const retryValid = await validateHLSManifest(streamingUrl);
+                  if (retryValid && videoRef.current) {
+                    console.log('✅ HLS manifest is now ready, loading stream...');
+                    setLoadError(null);
+                    loadHLSStream();
+                  }
+                }, 5000);
+                return;
+              }
+            }
           
           if (Hls.isSupported()) {
             const hls = new Hls({
@@ -581,6 +639,23 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             
             hls.on(Hls.Events.ERROR, function (event, data) {
               console.error('❌ HLS.js error:', data.type, data.details);
+              
+              // Handle specific error types
+              if (data.details === 'levelEmptyError') {
+                console.log('⚠️ Stream manifest is empty - stream may not be ready yet');
+                setLoadError('Stream is not ready yet. Waiting for host to start broadcasting...');
+                setIsLive(false);
+                
+                // Don't treat this as fatal - retry after delay
+                setTimeout(() => {
+                  if (videoRef.current && streamingUrl) {
+                    console.log('🔄 Retrying HLS stream after levelEmptyError...');
+                    hls.loadSource(streamingUrl);
+                    hls.startLoad();
+                  }
+                }, 5000);
+                return;
+              }
               
               if (data.fatal) {
                 switch (data.type) {
@@ -788,31 +863,34 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           });
         }, 1000);
         
-        // Cleanup function
-        return () => {
-          video.removeEventListener('loadstart', handleLoadStart);
-          video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-          video.removeEventListener('canplay', handleCanPlay);
-          video.removeEventListener('canplaythrough', handleCanPlayThrough);
-          video.removeEventListener('error', handleError);
-          video.removeEventListener('waiting', handleWaiting);
-          video.removeEventListener('stalled', handleStalled);
-          video.removeEventListener('progress', handleProgress);
-          
-          // Cleanup HLS instance
-          if ((video as any).hls) {
-            (video as any).hls.destroy();
-            (video as any).hls = null;
-          }
-        };
+          // Cleanup function
+          return () => {
+            video.removeEventListener('loadstart', handleLoadStart);
+            video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+            video.removeEventListener('canplay', handleCanPlay);
+            video.removeEventListener('canplaythrough', handleCanPlayThrough);
+            video.removeEventListener('error', handleError);
+            video.removeEventListener('waiting', handleWaiting);
+            video.removeEventListener('stalled', handleStalled);
+            video.removeEventListener('progress', handleProgress);
+            
+            // Cleanup HLS instance
+            if ((video as any).hls) {
+              (video as any).hls.destroy();
+              (video as any).hls = null;
+            }
+          };
+        }
+      } else if (recordingUrl) {
+        console.log('🎥 Setting recording URL:', recordingUrl);
+        setIsLive(false);
+        if (videoRef.current) {
+          videoRef.current.src = recordingUrl;
+        }
       }
-    } else if (recordingUrl) {
-      console.log('🎥 Setting recording URL:', recordingUrl);
-      setIsLive(false);
-      if (videoRef.current) {
-        videoRef.current.src = recordingUrl;
-      }
-    }
+    };
+
+    loadVideo();
   }, [streamingUrl, recordingUrl, streamId, streamStatus]);
 
   // Error handling function
@@ -968,6 +1046,92 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
 
   const handleVideoClick = () => {
     setShowControls(!showControls);
+  };
+
+  // Function to load HLS stream
+  const loadHLSStream = async () => {
+    if (!videoRef.current || !streamingUrl) return;
+    
+    try {
+      console.log('🎥 Loading HLS stream:', streamingUrl);
+      
+      const urlType = detectUrlType(streamingUrl);
+      if (urlType === 'internal-hls') {
+        const isValid = await validateHLSManifest(streamingUrl);
+        if (!isValid) {
+          console.log('⚠️ HLS manifest not ready, cannot load stream');
+          setLoadError('Stream is not ready yet. Waiting for host to start broadcasting...');
+          return;
+        }
+      }
+      
+      const video = videoRef.current;
+      
+      if (Hls.isSupported()) {
+        const hls = new Hls({
+          debug: true,
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 90
+        });
+        
+        hls.loadSource(streamingUrl);
+        hls.attachMedia(video);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+          console.log('📋 HLS manifest parsed successfully');
+          setIsLoading(false);
+          setLoadError(null);
+          setIsLive(true);
+        });
+        
+        hls.on(Hls.Events.ERROR, function (event, data) {
+          console.error('❌ HLS.js error:', data.type, data.details);
+          
+          if (data.details === 'levelEmptyError') {
+            console.log('⚠️ Stream manifest is empty - stream may not be ready yet');
+            setLoadError('Stream is not ready yet. Waiting for host to start broadcasting...');
+            setIsLive(false);
+            return;
+          }
+          
+          if (data.fatal) {
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                console.log('🔄 Fatal network error, trying to recover...');
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.log('🔄 Fatal media error, trying to recover...');
+                hls.recoverMediaError();
+                break;
+              default:
+                console.error('❌ Fatal error, cannot recover');
+                hls.destroy();
+                break;
+            }
+          }
+        });
+        
+        (video as any).hls = hls;
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        console.log('🎥 Using native HLS support');
+        video.src = streamingUrl;
+        video.load();
+      } else {
+        console.error('❌ HLS is not supported in this browser');
+        setLoadError('HLS is not supported in this browser. Please use a modern browser.');
+      }
+      
+      // Try to play
+      video.play().catch(error => {
+        console.warn('🎥 Auto-play failed:', error);
+      });
+      
+    } catch (error) {
+      console.error('❌ Error loading HLS stream:', error);
+      setLoadError('Failed to load stream');
+    }
   };
 
   return (
