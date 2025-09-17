@@ -59,6 +59,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+}
+
+.backText {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .backButton:hover {
@@ -312,19 +318,22 @@
   background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
   backdrop-filter: blur(8px);
   transition: opacity 0.3s ease;
+  min-height: 60px;
 }
 
 .controlButton {
   background: none;
   border: none;
   color: #fff;
-  padding: 8px;
-  border-radius: 4px;
+  padding: 12px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
 }
 
 .controlButton:hover {
@@ -1144,6 +1153,577 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background-color: var(--surface-color, #1f2937);
+  border-bottom: 1px solid var(--border-color, #374151);
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  min-height: 60px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-color, #ffffff);
+  text-align: center;
+  flex: 1;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: var(--text-color, #fff);
+  background-color: var(--surface-secondary-color, #374151);
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 40px;
+}
+
+.backButton:hover {
+  background-color: var(--surface-hover-color, #4b5563);
+  transform: translateY(-1px);
+}
+
+.backText {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.streamInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  margin: 0 20px;
+}
+
+.streamId {
+  font-size: 12px;
+  color: var(--text-secondary-color, #9ca3af);
+  font-family: monospace;
+  background-color: var(--surface-secondary-color, #374151);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* Content */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 20px;
+  padding: 20px;
+}
+
+.videoSection {
+  flex: 1;
+  position: relative;
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.videoContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 300px;
+}
+
+.videoPreview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: #000;
+  border-radius: 12px;
+}
+
+.noVideo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: var(--text-secondary-color, #9ca3af);
+  text-align: center;
+  z-index: 10;
+}
+
+.noVideo p {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background-color: var(--surface-color, #1f2937);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #374151);
+}
+
+.mediaControls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mediaControlsTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color, #fff);
+  text-align: center;
+}
+
+.mediaButtons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.mediaButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--surface-secondary-color, #374151);
+  border: 2px solid var(--border-color, #4b5563);
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+  color: var(--text-color, #fff);
+  flex: 1;
+  max-width: 120px;
+  min-height: 80px;
+  justify-content: center;
+}
+
+.mediaButton:hover:not(:disabled) {
+  background-color: var(--surface-hover-color, #4b5563);
+  border-color: var(--primary-color, #3b82f6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.mediaButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.mediaButton.active {
+  background-color: var(--primary-color, #3b82f6);
+  border-color: var(--primary-hover-color, #2563eb);
+  color: #fff;
+}
+
+.mediaButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mediaButton span {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+/* Status Section */
+.statusSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.status {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.liveStatus {
+  background-color: var(--error-color, #dc2626);
+  color: #fff;
+}
+
+.readyStatus {
+  background-color: var(--success-color, #10b981);
+  color: #fff;
+}
+
+.errorStatus {
+  background-color: var(--error-color, #dc2626);
+  color: #fff;
+}
+
+.idleStatus {
+  background-color: var(--surface-secondary-color, #6b7280);
+  color: #fff;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--error-color, #dc2626);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 12px;
+  background-color: rgba(220, 38, 38, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+/* Action Buttons */
+.actionButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.goLiveButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background-color: var(--error-color, #dc2626);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-height: 56px;
+  justify-content: center;
+  flex: 1;
+  max-width: 200px;
+}
+
+.goLiveButton:hover:not(:disabled) {
+  background-color: var(--error-hover-color, #b91c1c);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+.goLiveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.stopButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background-color: var(--surface-secondary-color, #6b7280);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-height: 56px;
+  justify-content: center;
+  flex: 1;
+  max-width: 200px;
+}
+
+.stopButton:hover {
+  background-color: var(--surface-hover-color, #4b5563);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Connection Info */
+.connectionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: var(--surface-secondary-color, #374151);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #4b5563);
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--text-secondary-color, #9ca3af);
+  font-weight: 500;
+}
+
+.connected {
+  color: var(--success-color, #10b981);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.disconnected {
+  color: var(--error-color, #dc2626);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Stream Status Overlay */
+.streamStatus {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 24px;
+  border-radius: 12px;
+  text-align: center;
+  z-index: 20;
+  backdrop-filter: blur(8px);
+}
+
+.statusIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.streamStatus h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.streamStatus p {
+  font-size: 14px;
+  margin: 0 0 8px 0;
+  color: var(--text-secondary-color, #9ca3af);
+}
+
+/* Loading Spinner */
+.loadingSpinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mobile-first responsive design */
+@media (max-width: 768px) {
+  .hostStudio {
+    height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+  }
+
+  .header {
+    padding: 12px 16px;
+    min-height: 56px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .backButton {
+    padding: 8px 12px;
+    min-height: 36px;
+  }
+
+  .backText {
+    display: none; /* Hide text on mobile, show only icon */
+  }
+
+  .content {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .videoSection {
+    min-height: 250px;
+  }
+
+  .videoContainer {
+    min-height: 250px;
+  }
+
+  .controls {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .mediaButtons {
+    gap: 8px;
+  }
+
+  .mediaButton {
+    padding: 12px 16px;
+    min-width: 70px;
+    min-height: 70px;
+    max-width: 100px;
+  }
+
+  .mediaButton span {
+    font-size: 11px;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .goLiveButton,
+  .stopButton {
+    width: 100%;
+    max-width: none;
+    padding: 16px 20px;
+    font-size: 16px;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .streamStatus {
+    padding: 16px;
+  }
+
+  .statusIcon {
+    font-size: 36px;
+  }
+
+  .streamStatus h3 {
+    font-size: 18px;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .content {
+    flex-direction: row;
+    height: calc(100vh - 80px);
+  }
+
+  .videoSection {
+    flex: 2;
+    min-height: 400px;
+  }
+
+  .controls {
+    flex: 1;
+    max-width: 300px;
+  }
+
+  .mediaButtons {
+    gap: 10px;
+  }
+
+  .mediaButton {
+    padding: 14px 18px;
+    min-width: 75px;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1025px) {
+  .content {
+    flex-direction: row;
+    height: calc(100vh - 80px);
+  }
+
+  .videoSection {
+    flex: 3;
+    min-height: 500px;
+  }
+
+  .controls {
+    flex: 1;
+    max-width: 350px;
+  }
+
+  .mediaButtons {
+    gap: 12px;
+  }
+
+  .mediaButton {
+    padding: 16px 20px;
+    min-width: 80px;
+  }
+
+  .actionButtons {
+    flex-direction: row;
+  }
 }
 
 /* Studio Header */
@@ -1852,4 +2432,687 @@
   font-size: 16px;
   font-weight: 600;
   color: var(--text-color, #fff);
-} 
+}
+
+/* ========================================
+   RESPONSIVE DESIGN IMPROVEMENTS
+   ======================================== */
+
+/* Mobile-first responsive breakpoints */
+@media (max-width: 480px) {
+  /* Extra small mobile devices */
+  .hostStudio {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .header {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .title {
+    font-size: 18px;
+    order: 2;
+    width: 100%;
+    text-align: center;
+    margin: 8px 0;
+  }
+
+  .backButton {
+    order: 1;
+    padding: 6px;
+  }
+
+  .streamInfo {
+    order: 3;
+    width: 100%;
+    margin: 0;
+  }
+
+  .streamId {
+    font-size: 12px;
+  }
+
+  .content {
+    flex-direction: column;
+    height: calc(100vh - 80px);
+  }
+
+  .videoSection {
+    flex: 1;
+    min-height: 200px;
+    max-height: 50vh;
+  }
+
+  .videoPreview {
+    min-height: 200px;
+    object-fit: cover;
+  }
+
+  .controls {
+    flex: 0 0 auto;
+    padding: 16px;
+    gap: 16px;
+    flex-direction: column;
+  }
+
+  .mediaControls {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .mediaButton {
+    padding: 12px 16px;
+    min-width: 60px;
+    flex: 1;
+    max-width: 120px;
+  }
+
+  .mediaButton span {
+    font-size: 10px;
+  }
+
+  .statusSection {
+    order: 1;
+  }
+
+  .actionButtons {
+    order: 2;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .goLiveButton,
+  .stopButton {
+    width: 100%;
+    padding: 16px;
+    font-size: 16px;
+  }
+
+  .connectionInfo {
+    order: 3;
+    display: none; /* Hide on mobile to save space */
+  }
+
+  .instructions {
+    display: none; /* Hide on mobile to save space */
+  }
+
+  /* Stream Video Player Mobile */
+  .videoContainer {
+    border-radius: 0;
+  }
+
+  .controls {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .controlButton {
+    padding: 6px;
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .progressContainer {
+    margin: 0 8px;
+  }
+
+  .volumeContainer {
+    display: none; /* Hide volume on mobile, use system volume */
+  }
+
+  .streamControls {
+    display: none; /* Hide stream controls on mobile */
+  }
+
+  .liveIndicator {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+
+  .viewerCount {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .statusOverlay {
+    padding: 16px;
+  }
+
+  .statusContent {
+    padding: 20px;
+  }
+
+  .statusIcon {
+    font-size: 32px;
+  }
+
+  .statusContent h3 {
+    font-size: 18px;
+  }
+
+  .statusContent p {
+    font-size: 14px;
+  }
+
+  .retryButton {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* Small mobile devices */
+  .hostStudio {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .header {
+    padding: 16px 20px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .content {
+    flex-direction: column;
+    height: calc(100vh - 100px);
+  }
+
+  .videoSection {
+    flex: 1;
+    min-height: 300px;
+    max-height: 60vh;
+  }
+
+  .controls {
+    padding: 20px;
+    gap: 20px;
+  }
+
+  .mediaControls {
+    gap: 12px;
+  }
+
+  .mediaButton {
+    padding: 14px 18px;
+    min-width: 70px;
+  }
+
+  .actionButtons {
+    flex-direction: row;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .goLiveButton,
+  .stopButton {
+    flex: 1;
+    min-width: 150px;
+    max-width: 200px;
+  }
+
+  .connectionInfo {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .instructions {
+    display: block;
+    font-size: 14px;
+  }
+
+  /* Stream Video Player Tablet */
+  .videoContainer {
+    border-radius: 8px;
+  }
+
+  .controls {
+    padding: 16px;
+  }
+
+  .volumeContainer {
+    display: flex;
+  }
+
+  .volumeSlider {
+    width: 80px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Tablet devices */
+  .hostStudio {
+    height: 100vh;
+  }
+
+  .content {
+    flex-direction: row;
+    height: calc(100vh - 80px);
+  }
+
+  .videoSection {
+    flex: 2;
+    min-height: 400px;
+  }
+
+  .controls {
+    flex: 1;
+    max-width: 400px;
+    padding: 24px;
+  }
+
+  .mediaControls {
+    gap: 16px;
+  }
+
+  .mediaButton {
+    padding: 16px 20px;
+    min-width: 80px;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .goLiveButton,
+  .stopButton {
+    width: 100%;
+  }
+
+  .connectionInfo {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .instructions {
+    display: block;
+  }
+
+  /* Stream Video Player Desktop */
+  .streamView {
+    flex-direction: row;
+  }
+
+  .videoSection {
+    flex: 1;
+  }
+
+  .chatSection {
+    width: 300px;
+  }
+
+  .controls {
+    padding: 20px;
+  }
+
+  .volumeSlider {
+    width: 100px;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* Desktop devices */
+  .hostStudio {
+    height: 100vh;
+  }
+
+  .content {
+    flex-direction: row;
+    height: calc(100vh - 80px);
+  }
+
+  .videoSection {
+    flex: 3;
+    min-height: 500px;
+  }
+
+  .controls {
+    flex: 1;
+    max-width: 500px;
+    padding: 32px;
+  }
+
+  .mediaControls {
+    gap: 20px;
+  }
+
+  .mediaButton {
+    padding: 20px 24px;
+    min-width: 100px;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .goLiveButton,
+  .stopButton {
+    width: 100%;
+    padding: 20px 32px;
+    font-size: 18px;
+  }
+
+  .connectionInfo {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .instructions {
+    display: block;
+    font-size: 16px;
+  }
+
+  /* Stream Video Player Large Desktop */
+  .streamView {
+    flex-direction: row;
+  }
+
+  .videoSection {
+    flex: 1;
+  }
+
+  .chatSection {
+    width: 350px;
+  }
+
+  .controls {
+    padding: 24px;
+  }
+
+  .volumeSlider {
+    width: 120px;
+  }
+}
+
+/* Touch-friendly improvements for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .mediaButton,
+  .controlButton,
+  .goLiveButton,
+  .stopButton,
+  .retryButton {
+    min-height: 44px; /* iOS recommended touch target size */
+    min-width: 44px;
+  }
+
+  .progressBar {
+    height: 8px; /* Larger touch target */
+  }
+
+  .volumeSlider {
+    height: 8px;
+  }
+
+  .backButton,
+  .chatToggleButton {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .liveDot {
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+  }
+
+  .mediaButton.active {
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+  }
+
+  .goLiveButton {
+    box-shadow: 0 0 12px rgba(22, 163, 74, 0.4);
+  }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  .hostStudio {
+    background-color: #000000;
+  }
+
+  .videoContainer {
+    background-color: #000000;
+  }
+
+  .statusOverlay {
+    background-color: rgba(0, 0, 0, 0.9);
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .liveDot,
+  .mediaButton.recording,
+  .goLiveButton {
+    animation: none;
+  }
+
+  .mediaButton:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .goLiveButton:hover:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .hostStudio {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .content {
+    flex-direction: row;
+    height: calc(100vh - 60px);
+  }
+
+  .videoSection {
+    flex: 2;
+    min-height: 200px;
+    max-height: none;
+  }
+
+  .controls {
+    flex: 1;
+    max-width: 300px;
+    padding: 16px;
+  }
+
+  .mediaControls {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .mediaButton {
+    padding: 8px 12px;
+    min-width: 60px;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .connectionInfo {
+    display: none; /* Hide in landscape to save space */
+  }
+
+  .instructions {
+    display: none; /* Hide in landscape to save space */
+  }
+}
+
+/* Print styles */
+@media print {
+  .hostStudio {
+    display: none;
+  }
+}
+
+/* Video Player Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .videoContainer {
+    border-radius: 8px;
+  }
+
+  .video {
+    border-radius: 8px;
+  }
+
+  .controls {
+    padding: 12px;
+    gap: 8px;
+    min-height: 56px;
+  }
+
+  .controlButton {
+    padding: 8px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .progressContainer {
+    margin: 0 8px;
+  }
+
+  .progressBar {
+    height: 6px;
+  }
+
+  .progressBar::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+  }
+
+  .volumeContainer {
+    display: none; /* Hide volume slider on mobile to save space */
+  }
+
+  .volumeSlider {
+    display: none;
+  }
+
+  .timeDisplay {
+    font-size: 11px;
+  }
+
+  .liveIndicator {
+    padding: 6px 10px;
+    border-radius: 16px;
+  }
+
+  .liveText {
+    font-size: 11px;
+  }
+
+  .viewerCount {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+  }
+
+  .statusOverlay {
+    padding: 16px;
+  }
+
+  .statusContent {
+    padding: 16px;
+  }
+
+  .statusIcon {
+    font-size: 36px;
+  }
+
+  .statusContent h3 {
+    font-size: 18px;
+  }
+
+  .statusContent p {
+    font-size: 14px;
+  }
+
+  .retryButton {
+    padding: 12px 20px;
+    font-size: 14px;
+    min-height: 44px;
+  }
+
+  .errorOverlay {
+    padding: 16px;
+  }
+
+  .errorContent {
+    padding: 16px;
+  }
+
+  .errorMessage {
+    font-size: 14px;
+  }
+
+  .waitingMessage {
+    font-size: 14px;
+  }
+
+  .waitingMessage p {
+    margin-bottom: 8px;
+  }
+}
+
+/* Tablet styles for video player */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .controls {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .controlButton {
+    padding: 10px;
+    min-width: 46px;
+    min-height: 46px;
+  }
+
+  .volumeContainer {
+    display: flex;
+  }
+
+  .volumeSlider {
+    width: 50px;
+  }
+}
+
+/* Desktop styles for video player */
+@media (min-width: 1025px) {
+  .controls {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .controlButton {
+    padding: 12px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  .volumeContainer {
+    display: flex;
+  }
+
+  .volumeSlider {
+    width: 60px;
+  }
+}

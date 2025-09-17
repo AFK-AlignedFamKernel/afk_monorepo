@@ -467,13 +467,13 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     <div className={styles.hostStudio}>
       {/* Header */}
       <div className={styles.header}>
-        <button className={styles.backButton} onClick={handleBack}>
-          <Icon name="BackIcon" size={24} />
-          Back
+        <button className={styles.backButton} onClick={handleBack} aria-label="Go back">
+          <Icon name="BackIcon" size={20} />
+          <span className={styles.backText}>Back</span>
         </button>
         <h1 className={styles.title}>Host Studio</h1>
         <div className={styles.streamInfo}>
-          <span className={styles.streamId}>Stream ID: {streamId}</span>
+          <span className={styles.streamId}>{streamId.slice(0, 8)}...</span>
         </div>
       </div>
 
@@ -488,6 +488,7 @@ export const HostStudio: React.FC<HostStudioProps> = ({
               autoPlay
               muted
               playsInline
+              aria-label="Stream preview"
             />
             {!currentMediaStream && !isStreaming && (
               <div className={styles.noVideo}>
@@ -502,7 +503,6 @@ export const HostStudio: React.FC<HostStudioProps> = ({
                 <div className={styles.statusIcon}>🎬</div>
                 <h3>Streaming Live</h3>
                 <p>Your stream is now live and being broadcast!</p>
-                <p>Viewers can access: <code>/livestream/{streamId}/stream.m3u8</code></p>
               </div>
             )}
           </div>
@@ -512,40 +512,42 @@ export const HostStudio: React.FC<HostStudioProps> = ({
         <div className={styles.controls}>
           {/* Media Controls */}
           <div className={styles.mediaControls}>
-            <h3>Media Sources</h3>
+            <h3 className={styles.mediaControlsTitle}>Media Sources</h3>
             <div className={styles.mediaButtons}>
               <button
                 className={`${styles.mediaButton} ${cameraEnabled ? styles.active : ''}`}
                 onClick={switchToCamera}
                 disabled={isStreaming}
+                aria-label={cameraEnabled ? "Camera active" : "Enable camera"}
               >
-                <Icon name="CameraIcon" size={20} />
-                Camera
+                <Icon name="CameraIcon" size={24} />
+                <span>Camera</span>
               </button>
               
               <button
                 className={`${styles.mediaButton} ${screenSharing ? styles.active : ''}`}
                 onClick={switchToScreen}
                 disabled={isStreaming}
+                aria-label={screenSharing ? "Screen sharing active" : "Enable screen sharing"}
               >
-                <Icon name="MonitorIcon" size={20} />
-                Screen Share
+                <Icon name="MonitorIcon" size={24} />
+                <span>Screen</span>
               </button>
               
               <button
                 className={`${styles.mediaButton} ${microphoneEnabled ? styles.active : ''}`}
                 onClick={toggleMicrophone}
                 disabled={!currentMediaStream || isStreaming}
+                aria-label={microphoneEnabled ? "Microphone active" : "Enable microphone"}
               >
-                <Icon name={microphoneEnabled ? "MicIcon" : "MicOffIcon"} size={20} />
-                {microphoneEnabled ? 'Mute' : 'Unmute'}
+                <Icon name={microphoneEnabled ? "MicIcon" : "MicOffIcon"} size={24} />
+                <span>{microphoneEnabled ? 'Mute' : 'Unmute'}</span>
               </button>
             </div>
           </div>
 
           {/* Status Display */}
           <div className={styles.statusSection}>
-            <h3>Stream Status</h3>
             <div className={`${styles.status} ${getStatusColor()}`}>
               {getStatusText()}
             </div>
@@ -564,82 +566,39 @@ export const HostStudio: React.FC<HostStudioProps> = ({
                 className={styles.goLiveButton}
                 onClick={handleGoLive}
                 disabled={isGoingLive}
+                aria-label={isGoingLive ? "Going live..." : "Start streaming"}
               >
                 {isGoingLive ? (
                   <>
-                    <Icon name="LoginIcon" size={20} />
-                    Going Live...
+                    <div className={styles.loadingSpinner}></div>
+                    <span>Going Live...</span>
                   </>
                 ) : (
                   <>
-                    <Icon name="LikeIcon" size={20} />
-                    Go Live
+                    <Icon name="PlayIcon" size={20} />
+                    <span>Go Live</span>
                   </>
                 )}
               </button>
             )}
 
             {streamStatus === 'streaming' && (
-              <>
-                <button
-                  className={styles.stopButton}
-                  onClick={handleStopStream}
-                >
-                  <Icon name="StopIcon" size={20} />
-                  Stop Stream
-                </button>
-                
-                <button
-                  className={styles.loadStreamButton}
-                  onClick={loadHLSStream}
-                  style={{
-                    marginLeft: '10px',
-                    padding: '8px 16px',
-                    backgroundColor: '#2196F3',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  🔄 Load HLS Stream
-                </button>
-                
-                <button
-                  className={styles.refreshButton}
-                  onClick={() => {
-                    console.log('🔄 Manual refresh requested');
-                    setStreamStatus('loading');
-                    setTimeout(() => {
-                      if (isStreaming) {
-                        setStreamStatus('streaming');
-                      } else if (isConnected) {
-                        setStreamStatus('connected');
-                      }
-                    }, 100);
-                  }}
-                  style={{
-                    marginLeft: '10px',
-                    padding: '8px 16px',
-                    backgroundColor: '#FF9800',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  🔄 Refresh Status
-                </button>
-              </>
+              <button
+                className={styles.stopButton}
+                onClick={handleStopStream}
+                aria-label="Stop streaming"
+              >
+                <Icon name="StopIcon" size={20} />
+                <span>Stop Stream</span>
+              </button>
             )}
           </div>
 
-          {/* Connection Info */}
+          {/* Connection Info - Simplified */}
           <div className={styles.connectionInfo}>
-            <h4>Connection Details</h4>
             <div className={styles.infoGrid}>
               <div className={styles.infoItem}>
-                <span className={styles.label}>WebSocket:</span>
+                <span className={styles.label}>Connection:</span>
                 <span className={isConnected ? styles.connected : styles.disconnected}>
                   {isConnected ? 'Connected' : 'Disconnected'}
                 </span>
@@ -650,39 +609,9 @@ export const HostStudio: React.FC<HostStudioProps> = ({
                   {getBackendStatusText()}
                 </span>
               </div>
-              <div className={styles.infoItem}>
-                <span className={styles.label}>Camera:</span>
-                <span className={cameraEnabled ? styles.connected : styles.disconnected}>
-                  {cameraEnabled ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-              <div className={styles.infoItem}>
-                <span className={styles.label}>Screen:</span>
-                <span className={screenSharing ? styles.connected : styles.disconnected}>
-                  {screenSharing ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-              <div className={styles.infoItem}>
-                <span className={styles.label}>Microphone:</span>
-                <span className={microphoneEnabled ? styles.connected : styles.disconnected}>
-                  {microphoneEnabled ? 'Active' : 'Inactive'}
-                </span>
-              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Instructions */}
-      <div className={styles.instructions}>
-        <h3>How to Stream</h3>
-        <ol>
-          <li>Select camera or screen sharing as your media source</li>
-          <li>Allow camera/screen access when prompted</li>
-          <li>Wait for WebSocket connection (green status)</li>
-          <li>Click "Go Live" to start broadcasting</li>
-          <li>Your stream will be available at: <code>/livestream/{streamId}/stream.m3u8</code></li>
-        </ol>
       </div>
     </div>
   );

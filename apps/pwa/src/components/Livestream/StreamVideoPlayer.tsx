@@ -43,6 +43,8 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
   const [viewerCount, setViewerCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [touchStartTime, setTouchStartTime] = useState<number>(0);
+  const [lastTap, setLastTap] = useState<number>(0);
 
   // Handle different stream statuses
   const renderStreamStatus = () => {
@@ -60,7 +62,8 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         <div className={styles.statusOverlay}>
           <div className={styles.statusContent}>
             <div className={styles.loadingSpinner}></div>
-            <p>Checking stream status...</p>
+            <h3>Loading Stream</h3>
+            <p>Please wait while we check the stream status...</p>
           </div>
         </div>
       );
@@ -73,12 +76,11 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             <div className={styles.statusIcon}>📺</div>
             <h3>Stream Not Started</h3>
             <p>The host hasn't started broadcasting yet.</p>
-            <p>Check back later or contact the host.</p>
             <button 
               className={styles.retryButton}
               onClick={onRefreshStatus || (() => window.location.reload())}
             >
-              Refresh
+              Check Again
             </button>
           </div>
         </div>
@@ -91,8 +93,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
           <div className={styles.statusContent}>
             <div className={styles.statusIcon}>⏳</div>
             <h3>Stream Ready</h3>
-            <p>The stream is ready but waiting for the host to go live.</p>
-            <p>Video will appear automatically when broadcasting starts.</p>
+            <p>Waiting for the host to go live...</p>
             <button 
               className={styles.retryButton}
               onClick={onRefreshStatus || (() => window.location.reload())}
@@ -109,13 +110,13 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         <div className={styles.statusOverlay}>
           <div className={styles.statusContent}>
             <div className={styles.statusIcon}>❌</div>
-            <h3>Stream Error</h3>
+            <h3>Connection Error</h3>
             <p>Unable to connect to the stream.</p>
             <button 
               className={styles.retryButton}
               onClick={onRefreshStatus || (() => window.location.reload())}
             >
-              Retry
+              Try Again
             </button>
           </div>
         </div>
@@ -942,6 +943,33 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
     onStreamStop?.();
   };
 
+  // Touch gesture handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartTime(Date.now());
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const touchEndTime = Date.now();
+    const touchDuration = touchEndTime - touchStartTime;
+    const now = Date.now();
+    
+    // Single tap to toggle controls
+    if (touchDuration < 200) {
+      if (now - lastTap < 300) {
+        // Double tap - toggle play/pause
+        handleTogglePlayPause();
+      } else {
+        // Single tap - toggle controls
+        setShowControls(!showControls);
+      }
+      setLastTap(now);
+    }
+  };
+
+  const handleVideoClick = () => {
+    setShowControls(!showControls);
+  };
+
   return (
     <div className={`${styles.videoContainer} ${className || ''}`}>
       <video
@@ -952,12 +980,14 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
         playsInline
         controls={false}
         onContextMenu={(e) => e.preventDefault()}
+        onClick={handleVideoClick}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        aria-label={isStreamer ? "Stream preview" : "Live stream video"}
       />
       
       {/* Stream status overlay */}
       {renderStreamStatus()}
-      
-      {/* Canvas removed - not needed for basic video player */}
 
       {/* Live indicator */}
       {isLive && (
@@ -984,8 +1014,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             className={styles.controlButton}
             aria-label={isPlaying ? 'Pause' : 'Play'}
           >
-            {/* <Icon name={isPlaying ? 'PauseIcon' : 'PlayIcon'} size={20} /> */}
-            {/* <Feather name={isPlaying ? 'pause' : 'play'} size={20} /> */}
+            <Icon name={isPlaying ? 'StopIcon' : 'PlayIcon'} size={24} />
           </button>
 
           {/* Progress bar */}
@@ -1017,8 +1046,7 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
               className={styles.controlButton}
               aria-label={isMuted ? 'Unmute' : 'Mute'}
             >
-              {/* <Icon name={isMuted ? 'VolumeXIcon' : 'Volume2Icon'} size={20} /> */}
-              {/* <Feather name={isMuted ? 'volume-x' : 'volume-2'} size={20} /> */}
+              <Icon name={isMuted ? 'MicOffIcon' : 'MicIcon'} size={24} />
             </button>
             <input
               type="range"
@@ -1028,33 +1056,9 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
               value={volume}
               onChange={handleVolumeChange}
               className={styles.volumeSlider}
+              aria-label="Volume control"
             />
           </div>
-
-          {/* Stream controls for streamers */}
-          {isStreamer && (
-            <div className={styles.streamControls}>
-              {!isPlaying ? (
-                <button
-                  onClick={handleStreamStart}
-                  className={`${styles.streamButton} ${styles.startButton}`}
-                >
-                  {/* <Icon name="PlayIcon" size={16} /> */}
-                  {/* <Feather name="play" size={16} /> */}
-                  Start Stream
-                </button>
-              ) : (
-                <button
-                  onClick={handleStreamStop}
-                  className={`${styles.streamButton} ${styles.stopButton}`}
-                >
-                  <Icon name="ShareIcon" size={16} />
-                  {/* <Feather name="square" size={16} /> */}
-                  Stop Stream
-                </button>
-              )}
-            </div>
-          )}
 
           {/* Fullscreen button */}
           <button
@@ -1062,8 +1066,9 @@ export const StreamVideoPlayer: React.FC<StreamVideoPlayerProps> = ({
             className={styles.controlButton}
             aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
           >
-            {/* <Icon name={isFullscreen ? 'MinimizeIcon' : 'MaximizeIcon'} size={20} /> */}
-            {/* <Feather name={isFullscreen ? 'minimize-2' : 'maximize-2'} size={20} /> */}
+            <span style={{ fontSize: '20px' }}>
+              {isFullscreen ? '⤓' : '⤢'}
+            </span>
           </button>
         </div>
       )}
