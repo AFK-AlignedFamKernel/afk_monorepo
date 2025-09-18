@@ -1595,6 +1595,224 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Streaming Mode Selection */
+.streamingModeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-color, #fff);
+  text-align: center;
+}
+
+.modeSelector {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.modeButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--surface-secondary-color, #374151);
+  border: 2px solid var(--border-color, #4b5563);
+  border-radius: 12px;
+  padding: 20px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  color: var(--text-color, #fff);
+  flex: 1;
+  max-width: 200px;
+  min-height: 100px;
+  justify-content: center;
+}
+
+.modeButton:hover:not(:disabled) {
+  background-color: var(--surface-hover-color, #4b5563);
+  border-color: var(--primary-color, #3b82f6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.modeButton:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.modeButton.active {
+  background-color: var(--primary-color, #3b82f6);
+  border-color: var(--primary-hover-color, #2563eb);
+  color: #fff;
+}
+
+.modeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modeButton span {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.modeButton small {
+  font-size: 11px;
+  color: var(--text-secondary-color, #9ca3af);
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* OBS Controls */
+.obsControls {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.obsSetup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  text-align: center;
+}
+
+.obsInstructions {
+  font-size: 14px;
+  color: var(--text-secondary-color, #9ca3af);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.generateKeyButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background-color: var(--primary-color, #3b82f6);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.generateKeyButton:hover:not(:disabled) {
+  background-color: var(--primary-hover-color, #2563eb);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.generateKeyButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.obsConfig {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.configItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.configLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-color, #fff);
+}
+
+.configInputGroup {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.configInput {
+  flex: 1;
+  padding: 10px 12px;
+  background-color: var(--input-background, #1f2937);
+  border: 1px solid var(--border-color, #374151);
+  border-radius: 6px;
+  color: var(--text-color, #fff);
+  font-size: 14px;
+  font-family: monospace;
+  cursor: text;
+}
+
+.configInput:focus {
+  outline: none;
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.copyButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background-color: var(--surface-secondary-color, #374151);
+  border: 1px solid var(--border-color, #4b5563);
+  border-radius: 6px;
+  color: var(--text-color, #fff);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  min-height: 40px;
+}
+
+.copyButton:hover {
+  background-color: var(--surface-hover-color, #4b5563);
+  border-color: var(--primary-color, #3b82f6);
+}
+
+.obsInstructions h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color, #fff);
+  margin: 0 0 12px 0;
+}
+
+.obsInstructions ol {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-secondary-color, #9ca3af);
+  line-height: 1.6;
+}
+
+.obsInstructions li {
+  margin-bottom: 4px;
+}
+
+.modeInfo {
+  color: var(--text-color, #fff);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 /* Mobile-first responsive design */
 @media (max-width: 768px) {
   .hostStudio {
@@ -2551,6 +2769,72 @@
   .connectionInfo {
     order: 3;
     display: none; /* Hide on mobile to save space */
+  }
+
+  /* Streaming Mode Mobile */
+  .streamingModeSection {
+    margin-bottom: 16px;
+  }
+
+  .modeSelector {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .modeButton {
+    padding: 16px 20px;
+    min-width: 120px;
+    min-height: 80px;
+  }
+
+  .modeButton span {
+    font-size: 12px;
+  }
+
+  .modeButton small {
+    font-size: 10px;
+  }
+
+  /* OBS Controls Mobile */
+  .obsControls {
+    margin-bottom: 16px;
+  }
+
+  .obsSetup {
+    gap: 12px;
+  }
+
+  .generateKeyButton {
+    padding: 12px 20px;
+    font-size: 14px;
+    width: 100%;
+  }
+
+  .configInputGroup {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .configInput {
+    font-size: 12px;
+  }
+
+  .copyButton {
+    align-self: flex-end;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .obsInstructions {
+    font-size: 13px;
+  }
+
+  .obsInstructions h4 {
+    font-size: 14px;
+  }
+
+  .obsInstructions ol {
+    font-size: 12px;
   }
 
   .instructions {

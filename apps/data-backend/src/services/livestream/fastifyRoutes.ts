@@ -167,6 +167,36 @@ export async function registerLivestreamRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // Generate RTMP stream key for OBS
+  fastify.post('/livestream/:streamId/rtmp-key', async (request, reply) => {
+    const { streamId } = request.params as { streamId: string };
+    const { publicKey } = request.body as { publicKey?: string };
+    
+    try {
+      console.log('🔑 Generating RTMP key for stream:', streamId);
+      
+      // Generate a unique stream key
+      const streamKey = `${streamId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Get the RTMP URL from environment or use default
+      const rtmpHost = process.env.RTMP_HOST || 'rtmp://localhost:1935/live';
+      const rtmpUrl = `${rtmpHost}/${streamKey}`;
+      
+      console.log('✅ RTMP key generated:', streamKey);
+      
+      return reply.send({
+        streamId,
+        streamKey,
+        rtmpUrl,
+        message: 'RTMP stream key generated successfully',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('❌ Error generating RTMP key:', error);
+      return reply.status(500).send({ error: 'Failed to generate RTMP key' });
+    }
+  });
+
   // HLS manifest file
   fastify.get('/livestream/:streamId/stream.m3u8', serveHLSManifest);
 

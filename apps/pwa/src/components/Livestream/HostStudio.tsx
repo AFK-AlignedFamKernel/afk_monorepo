@@ -12,6 +12,8 @@ interface HostStudioProps {
   onBack?: () => void;
 }
 
+type StreamingMode = 'direct' | 'obs';
+
 export const HostStudio: React.FC<HostStudioProps> = ({
   streamId,
   onGoLive,
@@ -48,6 +50,12 @@ export const HostStudio: React.FC<HostStudioProps> = ({
 
   // NIP-53 event state
   const [liveEventId, setLiveEventId] = useState<string | null>(null);
+
+  // Streaming mode and OBS configuration
+  const [streamingMode, setStreamingMode] = useState<StreamingMode>('direct');
+  const [streamKey, setStreamKey] = useState<string | null>(null);
+  const [rtmpUrl, setRtmpUrl] = useState<string | null>(null);
+  const [isGeneratingStreamKey, setIsGeneratingStreamKey] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -134,6 +142,66 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       clearInterval(statusCheckInterval);
     };
   }, [streamId, isConnected]);
+
+  // Generate stream key for OBS
+  const generateStreamKey = async () => {
+    if (!streamId) return;
+    
+    try {
+      setIsGeneratingStreamKey(true);
+      console.log('🔑 Generating stream key for:', streamId);
+      
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5050';
+      const response = await fetch(`${backendUrl}/livestream/${streamId}/rtmp-key`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          streamId,
+          publicKey: publicKey || 'anonymous'
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setStreamKey(data.streamKey);
+        setRtmpUrl(data.rtmpUrl);
+        console.log('✅ Stream key generated:', data.streamKey);
+      } else {
+        throw new Error('Failed to generate stream key');
+      }
+    } catch (error) {
+      console.error('❌ Error generating stream key:', error);
+      setError('Failed to generate stream key for OBS');
+    } finally {
+      setIsGeneratingStreamKey(false);
+    }
+  };
+
+  // Copy stream key to clipboard
+  const copyStreamKey = async () => {
+    if (!streamKey) return;
+    
+    try {
+      await navigator.clipboard.writeText(streamKey);
+      console.log('✅ Stream key copied to clipboard');
+    } catch (error) {
+      console.error('❌ Failed to copy stream key:', error);
+    }
+  };
+
+  // Copy RTMP URL to clipboard
+  const copyRtmpUrl = async () => {
+    if (!rtmpUrl) return;
+    
+    try {
+      await navigator.clipboard.writeText(rtmpUrl);
+      console.log('✅ RTMP URL copied to clipboard');
+    } catch (error) {
+      console.error('❌ Failed to copy RTMP URL:', error);
+    }
+  };
 
   // Setup camera capture
   const setupCameraCapture = async (): Promise<MediaStream | null> => {
@@ -255,8 +323,8 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       setError(null);
       console.log('🎬 Going live...');
 
-      // Ensure we have a media stream
-      if (!currentMediaStream) {
+      // For direct mode, ensure we have a media stream
+      if (streamingMode === 'direct' && !currentMediaStream) {
         await setupCameraCapture();
       }
 
@@ -297,8 +365,8 @@ export const HostStudio: React.FC<HostStudioProps> = ({
       startStream(streamId, publicKey);
       console.log('✅ Stream started on backend');
 
-      // Step 3: Setup MediaRecorder for streaming
-      if (currentMediaStream) {
+      // Step 3: Setup MediaRecorder for streaming (only for direct mode)
+      if (streamingMode === 'direct' && currentMediaStream) {
         setupMediaStream(currentMediaStream, streamId);
         console.log('✅ MediaRecorder setup complete');
       }
@@ -379,23 +447,25 @@ export const HostStudio: React.FC<HostStudioProps> = ({
     stopStream(publicKey || 'current-user');
     setStreamStatus('connected');
     
-    // Step 3: Clean up media streams
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop());
-      mediaStreamRef.current = null;
-    }
-    
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-      videoRef.current.src = ''; // Clear the HLS source
-      videoRef.current.load(); // Reload the video element
-    }
+    // Step 3: Clean up media streams (only for direct mode)
+    if (streamingMode === 'direct') {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(track => track.stop());
+        mediaStreamRef.current = null;
+      }
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+        videoRef.current.src = ''; // Clear the HLS source
+        videoRef.current.load(); // Reload the video element
+      }
 
-    // Step 4: Reset all states
-    setCurrentMediaStream(null);
-    setCameraEnabled(false);
-    setMicrophoneEnabled(false);
-    setScreenSharing(false);
+      // Step 4: Reset all states
+      setCurrentMediaStream(null);
+      setCameraEnabled(false);
+      setMicrophoneEnabled(false);
+      setScreenSharing(false);
+    }
     setBackendStreamStatus('inactive');
     setLiveEventId(null);
   };
@@ -493,10 +563,17 @@ export const HostStudio: React.FC<HostStudioProps> = ({
               playsInline
               aria-label="Stream preview"
             />
-            {!currentMediaStream && !isStreaming && (
+            {!currentMediaStream && !isStreaming && streamingMode === 'direct' && (
               <div className={styles.noVideo}>
                 <Icon name="CameraIcon" size={48} />
                 <p>Select camera or screen sharing to begin</p>
+              </div>
+            )}
+            
+            {streamingMode === 'obs' && !isStreaming && (
+              <div className={styles.noVideo}>
+                <Icon name="MonitorIcon" size={48} />
+                <p>Configure OBS with the settings below</p>
               </div>
             )}
             
@@ -513,8 +590,37 @@ export const HostStudio: React.FC<HostStudioProps> = ({
 
         {/* Controls */}
         <div className={styles.controls}>
-          {/* Media Controls */}
-          <div className={styles.mediaControls}>
+          {/* Streaming Mode Selection */}
+          <div className={styles.streamingModeSection}>
+            <h3 className={styles.sectionTitle}>Streaming Mode</h3>
+            <div className={styles.modeSelector}>
+              <button
+                className={`${styles.modeButton} ${streamingMode === 'direct' ? styles.active : ''}`}
+                onClick={() => setStreamingMode('direct')}
+                disabled={isStreaming}
+                aria-label="Direct streaming mode"
+              >
+                <Icon name="CameraIcon" size={24} />
+                <span>Direct Capture</span>
+                <small>Use camera/microphone directly</small>
+              </button>
+              
+              <button
+                className={`${styles.modeButton} ${streamingMode === 'obs' ? styles.active : ''}`}
+                onClick={() => setStreamingMode('obs')}
+                disabled={isStreaming}
+                aria-label="OBS streaming mode"
+              >
+                <Icon name="MonitorIcon" size={24} />
+                <span>OBS Studio</span>
+                <small>Use OBS with RTMP</small>
+              </button>
+            </div>
+          </div>
+
+          {/* Direct Mode Controls */}
+          {streamingMode === 'direct' && (
+            <div className={styles.mediaControls}>
             <h3 className={styles.mediaControlsTitle}>Media Sources</h3>
             <div className={styles.mediaButtons}>
               <button
@@ -548,6 +654,94 @@ export const HostStudio: React.FC<HostStudioProps> = ({
               </button>
             </div>
           </div>
+          )}
+
+          {/* OBS Mode Controls */}
+          {streamingMode === 'obs' && (
+            <div className={styles.obsControls}>
+              <h3 className={styles.mediaControlsTitle}>OBS Configuration</h3>
+              
+              {!streamKey && (
+                <div className={styles.obsSetup}>
+                  <p className={styles.obsInstructions}>
+                    Generate a stream key to configure OBS Studio for streaming.
+                  </p>
+                  <button
+                    className={styles.generateKeyButton}
+                    onClick={generateStreamKey}
+                    disabled={isGeneratingStreamKey}
+                    aria-label="Generate stream key"
+                  >
+                    {isGeneratingStreamKey ? (
+                      <>
+                        <div className={styles.loadingSpinner}></div>
+                        <span>Generating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="SettingsIcon" size={20} />
+                        <span>Generate Stream Key</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {streamKey && rtmpUrl && (
+                <div className={styles.obsConfig}>
+                  <div className={styles.configItem}>
+                    <label className={styles.configLabel}>RTMP URL:</label>
+                    <div className={styles.configInputGroup}>
+                      <input
+                        type="text"
+                        value={rtmpUrl}
+                        readOnly
+                        className={styles.configInput}
+                      />
+                      <button
+                        className={styles.copyButton}
+                        onClick={copyRtmpUrl}
+                        aria-label="Copy RTMP URL"
+                      >
+                        <Icon name="CopyIcon" size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.configItem}>
+                    <label className={styles.configLabel}>Stream Key:</label>
+                    <div className={styles.configInputGroup}>
+                      <input
+                        type="text"
+                        value={streamKey}
+                        readOnly
+                        className={styles.configInput}
+                      />
+                      <button
+                        className={styles.copyButton}
+                        onClick={copyStreamKey}
+                        aria-label="Copy stream key"
+                      >
+                        <Icon name="CopyIcon" size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className={styles.obsInstructions}>
+                    <h4>OBS Setup Instructions:</h4>
+                    <ol>
+                      <li>Open OBS Studio</li>
+                      <li>Go to Settings → Stream</li>
+                      <li>Set Service to "Custom"</li>
+                      <li>Paste the RTMP URL above</li>
+                      <li>Paste the Stream Key above</li>
+                      <li>Click "OK" and start streaming in OBS</li>
+                    </ol>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Status Display */}
           <div className={styles.statusSection}>
@@ -579,7 +773,10 @@ export const HostStudio: React.FC<HostStudioProps> = ({
 
           {/* Action Buttons */}
           <div className={styles.actionButtons}>
-            {streamStatus === 'connected' && currentMediaStream && (
+            {streamStatus === 'connected' && (
+              (streamingMode === 'direct' && currentMediaStream) || 
+              (streamingMode === 'obs' && streamKey)
+            ) && (
               <button
                 className={styles.goLiveButton}
                 onClick={handleGoLive}
@@ -625,6 +822,12 @@ export const HostStudio: React.FC<HostStudioProps> = ({
                 <span className={styles.label}>Stream:</span>
                 <span className={getBackendStatusColor()}>
                   {getBackendStatusText()}
+                </span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.label}>Mode:</span>
+                <span className={styles.modeInfo}>
+                  {streamingMode === 'direct' ? 'Direct' : 'OBS'}
                 </span>
               </div>
             </div>
