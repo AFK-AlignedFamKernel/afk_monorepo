@@ -151,6 +151,9 @@ pub mod LaunchpadMarketplace {
         amount_to_paid_launch: u256,
         is_paid_launch_enable: bool,
         is_create_token_paid: bool,
+
+        is_dex_extension_enabled: bool,
+        class_hash_dex_extension: ClassHash,
         // Stats
         total_token: u64,
         total_launch: u64,
@@ -509,6 +512,20 @@ pub mod LaunchpadMarketplace {
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.accesscontrol._revoke_role(role, contract_address);
+        }
+
+        fn set_is_dex_extension_enabled(
+            ref self: ContractState, is_dex_extension_enabled: bool,
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_dex_extension_enabled.write(is_dex_extension_enabled);
+        }
+
+        fn set_class_hash_dex_extension(
+            ref self: ContractState, class_hash_dex_extension: ClassHash,
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.class_hash_dex_extension.write(class_hash_dex_extension);
         }
 
         // User call
