@@ -28,6 +28,10 @@ pub mod launchpad {
         pub mod launch;
         pub mod linear;
     }
+
+    pub mod extensions {
+        pub mod internal_swap_pool;
+    }
 }
 
 pub mod mocks {

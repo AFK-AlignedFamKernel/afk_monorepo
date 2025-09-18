@@ -471,16 +471,13 @@ pub mod UnrugLiquidity {
                 );
             self
                 .emit(
-                    MetadataCoinAdded {
-                        token_address: coin_address,
-                        // ipfs_hash: metadata.ipfs_hash.clone(),
-                        metadata_url: metadata.url,
-                        // nostr_event_id: metadata.nostr_event_id,
-                        // twitter: metadata.twitter,
-                        // telegram: metadata.telegram,
-                        // github: metadata.github,
-                        // website: metadata.website,
-                        // description: metadata.description,
+                    MetadataCoinAdded { token_address: coin_address, // ipfs_hash: metadata.ipfs_hash.clone(),
+                    metadata_url: metadata.url // nostr_event_id: metadata.nostr_event_id,
+                    // twitter: metadata.twitter,
+                    // telegram: metadata.telegram,
+                    // github: metadata.github,
+                    // website: metadata.website,
+                    // description: metadata.description,
                     },
                 );
         }

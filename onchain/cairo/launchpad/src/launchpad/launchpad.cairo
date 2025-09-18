@@ -151,7 +151,6 @@ pub mod LaunchpadMarketplace {
         amount_to_paid_launch: u256,
         is_paid_launch_enable: bool,
         is_create_token_paid: bool,
-
         is_dex_extension_enabled: bool,
         class_hash_dex_extension: ClassHash,
         // Stats
@@ -514,9 +513,7 @@ pub mod LaunchpadMarketplace {
             self.accesscontrol._revoke_role(role, contract_address);
         }
 
-        fn set_is_dex_extension_enabled(
-            ref self: ContractState, is_dex_extension_enabled: bool,
-        ) {
+        fn set_is_dex_extension_enabled(ref self: ContractState, is_dex_extension_enabled: bool) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.is_dex_extension_enabled.write(is_dex_extension_enabled);
         }
@@ -1108,7 +1105,12 @@ pub mod LaunchpadMarketplace {
             let (id, fees0, fees1) = unrug
                 .collect_fees(coin_address, launch.token_quote.token_address, recipient);
 
-            self.emit(CollectedFees { id: id, caller: caller, fees0: fees0, fees1: fees1, recipient: recipient });
+            self
+                .emit(
+                    CollectedFees {
+                        id: id, caller: caller, fees0: fees0, fees1: fees1, recipient: recipient,
+                    },
+                );
         }
 
         fn collect_fees_owner(ref self: ContractState, coin_address: ContractAddress) {
@@ -1125,7 +1127,13 @@ pub mod LaunchpadMarketplace {
 
             self
                 .emit(
-                    CollectedFees { id: id, caller: caller, fees0: fees0, fees1: fees1, recipient: owner_of_token },
+                    CollectedFees {
+                        id: id,
+                        caller: caller,
+                        fees0: fees0,
+                        fees1: fees1,
+                        recipient: owner_of_token,
+                    },
                 );
         }
 
@@ -1192,10 +1200,7 @@ pub mod LaunchpadMarketplace {
             self.metadata_coins.entry(coin_address).write(metadata_launch.clone());
             self
                 .emit(
-                    MetadataCoinAdded {
-                        token_address: coin_address,
-                        metadata_url: metadata.url,
-                    },
+                    MetadataCoinAdded { token_address: coin_address, metadata_url: metadata.url },
                 );
         }
 
