@@ -13,6 +13,7 @@ pub trait IISP<TState> {
     fn initialize(
         ref self: TState,
         native_token: ContractAddress,
+        creator: ContractAddress,
         core: ICoreDispatcher,
         fee_percentage_creator: u128,
     );
@@ -108,26 +109,29 @@ pub mod InternalSwapPool {
         protocol_address: ContractAddress,
         factory_address: ContractAddress,
 
+        is_auto_buyback_enabled: bool,
+
     }
 
     #[constructor]
     fn constructor(
         ref self: ContractState,
         owner: ContractAddress,
+        creator: ContractAddress,
         core: ICoreDispatcher,
         native_token: ContractAddress,
         protocol_address: ContractAddress,
         fee_percentage_creator: u256,
         fee_percentage_protocol: u256,
         factory_address: ContractAddress,
+        is_auto_buyback_enabled: bool,
     ) {
         self.initialize_owned(owner);
 
         assert(fee_percentage_protocol > MIN_FEE_PROTOCOL, 'fee_percentage_protocol_too_low');
         assert(fee_percentage_creator < MAX_FEE_CREATOR, 'fee_percentage_too_high');
         assert(fee_percentage_creator > MIN_FEE_CREATOR, 'fee_percentage_too_low');
-        assert(protocol_address != contract_address_const::ZERO(), 'protocol_address_cannot_be_zero');
-        assert(native_token != protocol_address, 'native_token_cannot_be_protocol_address');
+        assert(native_token != protocol_address, 'native_token_error');
 
         // Set ISP fields directly
         self.native_token.write(native_token);
@@ -303,6 +307,7 @@ pub mod InternalSwapPool {
         fn initialize(
             ref self: ContractState,
             native_token: ContractAddress,
+            creator: ContractAddress,
             core: ICoreDispatcher,
             fee_percentage_creator: u128,
         ) {// Already initialized in constructor
