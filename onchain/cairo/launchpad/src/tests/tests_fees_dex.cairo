@@ -464,7 +464,7 @@ mod tests_fees_dex {
         let (token0, token1) = sort_tokens(memecoin.contract_address, erc20.contract_address);
 
 
-        let extension_address = 2009536751849827235075349700447561295678057357382360757432404268535531664887;
+        let extension_address = 3484280499496658570557600636599591252489374221435266594028278042907090484499;
         let pool_key = PoolKey {
             token0: token0,
             token1: token1,
@@ -1103,7 +1103,7 @@ mod tests_fees_dex {
         let fee = fee_percent.try_into().unwrap();
 
 
-        let extension_address = 2009536751849827235075349700447561295678057357382360757432404268535531664887;
+        let extension_address = 3484280499496658570557600636599591252489374221435266594028278042907090484499;
         let pool_key = PoolKey {
             token0: token0.clone(),
             token1: token1.clone(),

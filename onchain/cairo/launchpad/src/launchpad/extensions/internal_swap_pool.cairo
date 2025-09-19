@@ -21,6 +21,8 @@ pub trait IISP<TState> {
     fn accumulate_fees(ref self: TState, pool_key: PoolKey, token: ContractAddress, amount: u128);
     fn get_native_token(self: @TState) -> ContractAddress;
     fn calc_fee(ref self: TState, amount: u128) -> u128;
+    fn calc_total_fee(ref self: TState, amount: u128) -> u128;
+    fn split_fees(ref self: TState, total_fee: u128) -> (u128, u128);
 }
 
 
@@ -58,12 +60,12 @@ pub mod InternalSwapPool {
     use core::serde::Serde;
     use ekubo::components::clear::ClearImpl;
     use ekubo::components::owned::Owned as owned_component;
-    use ekubo::components::shared_locker::consume_callback_data;
     use ekubo::components::upgradeable::{IHasInterface, Upgradeable as upgradeable_component};
     use ekubo::interfaces::core::{
         ICoreDispatcher, ICoreDispatcherTrait, IExtension, IForwardee, SwapParameters,
         UpdatePositionParameters, ILocker
     };
+    use ekubo::components::shared_locker::{call_core_with_callback, consume_callback_data};
     use ekubo::types::bounds::Bounds;
     use ekubo::types::call_points::CallPoints;
     use ekubo::types::delta::Delta;
@@ -94,6 +96,8 @@ pub mod InternalSwapPool {
     const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
     const MID_FEE_PROTOCOL: u256 = 100; //1%
     const MAX_FEE_PROTOCOL: u256 = 1000; //10%
+
+    const BPS: u256 = 10_000; // 100%
 
     #[storage]
     struct Storage {
@@ -204,7 +208,7 @@ pub mod InternalSwapPool {
             pool_key: PoolKey,
             params: SwapParameters,
         ) {
-            call_core_with_callback::<(PoolKey, u128), ()>(core, @(pool_key, params.skip_ahead));
+            // call_core_with_callback::<(PoolKey, u128), ()>(self.core.read(), @(pool_key, params.skip_ahead));
             // panic!("Only from internal_swap_pool");
         }
         fn after_swap(
@@ -292,7 +296,7 @@ pub mod InternalSwapPool {
 
             if result.amount0.sign {
                 // Token0 negative: take fee from amount0
-                let fee = InternalSwapPoolImpl::calc_fee(ref self, result.amount0.mag);
+                let fee = InternalSwapPoolImpl::calc_total_fee(ref self, result.amount0.mag);
                 // Credit fee to internal swap pool owner
                 let owner = self.owned.get_owner();
                 let key = SavedBalanceKey {
@@ -327,7 +331,7 @@ pub mod InternalSwapPool {
                 // new_delta.amount0.mag = result.amount0.mag - total_fee;
             } else if result.amount1.sign {
                 // Token1 negative: take fee from amount1
-                let fee = InternalSwapPoolImpl::calc_fee(ref self, result.amount1.mag);
+                let fee = InternalSwapPoolImpl::calc_total_fee(ref self, result.amount1.mag);
                 // Save fee for amount1
                 let key = SavedBalanceKey {
                     owner: get_contract_address(), token: swap_data.route.pool_key.token1, salt: 1,
@@ -410,6 +414,24 @@ pub mod InternalSwapPool {
                 // Odd: 1%
                 amount / 100
             }
+        }
+
+        // Helper functions for fee calculation and distribution
+        fn calc_total_fee(ref self: ContractState, amount: u128) -> u128 {
+            let creator_percentage = self.fee_percentage_creator.read();
+            let protocol_percentage = self.fee_percentage_protocol.read();
+            let total_fee_percentage = creator_percentage + protocol_percentage;
+            (amount * total_fee_percentage.try_into().unwrap()) / BPS.try_into().unwrap()  // Assuming percentages are in basis points (1% = 100)
+        }
+
+        fn split_fees(ref self: ContractState, total_fee: u128) -> (u128, u128) {
+            let creator_percentage = self.fee_percentage_creator.read();
+            let protocol_percentage = self.fee_percentage_protocol.read();
+            
+            let creator_fee = (total_fee * creator_percentage.try_into().unwrap()) / BPS.try_into().unwrap(); // Assuming percentages are in basis points
+            let protocol_fee = (total_fee * protocol_percentage.try_into().unwrap()) / BPS.try_into().unwrap();
+            
+            (creator_fee, protocol_fee)
         }
         // execute_isp_swap removed; logic is now inlined in forwarded
     }
