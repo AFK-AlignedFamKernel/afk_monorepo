@@ -572,6 +572,42 @@ pub mod UnrugLiquidity {
             token_address
         }
 
+        fn _launch_extension(
+            ref self: ContractState,
+            owner: ContractAddress,
+            creator: ContractAddress,
+            core_dispatcher: ICoreDispatcher,
+            native_token: ContractAddress,
+            protocol_address: ContractAddress,
+            fee_percentage_creator: u256,
+            fee_percentage_protocol: u256,
+            factory_address: ContractAddress,
+            is_auto_buyback_enabled: bool,
+            router_address: ContractAddress,
+            contract_address_salt: felt252,
+        ) -> ContractAddress {
+            let caller = get_caller_address();
+            let mut calldata = array![];
+
+            Serde::serialize(@owner.clone(), ref calldata);
+            Serde::serialize(@creator.clone(), ref calldata);
+            Serde::serialize(@core_dispatcher, ref calldata);
+            Serde::serialize(@native_token, ref calldata);
+            Serde::serialize(@protocol_address, ref calldata);
+            Serde::serialize(@fee_percentage_creator, ref calldata);
+            Serde::serialize(@fee_percentage_protocol, ref calldata);
+            Serde::serialize(@factory_address, ref calldata);
+            Serde::serialize(@is_auto_buyback_enabled, ref calldata);
+            Serde::serialize(@router_address, ref calldata);
+
+            let (extension_address, _) = deploy_syscall(
+                self.ekubo_extension_class_hash.read(), contract_address_salt.clone(), calldata.span(), false,
+            )
+                .unwrap();
+
+            extension_address
+        }
+
         /// Adds liquidity to an Ekubo pool for a given memecoin and quote token pair
         ///
         /// # Arguments
@@ -1070,9 +1106,17 @@ pub mod UnrugLiquidity {
         fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
             let core_address = self.core.read();
             let core = ICoreDispatcher { contract_address: core_address };
+            let ekubo_exchange_address = self.ekubo_exchange_address.read();
+
+            let launchpad_address = self.launchpad_address.read();
+                    
             // let ekubo_core_address = self.core.read();
             // let ekubo_exchange_address = self.ekubo_exchange_address.read();
             // let positions_address = self.positions.read();
+
+            // TODO
+            // Add in ekubo params by user creator owner
+            let is_auto_buyback_enabled = false;
 
             match consume_callback_data::<UnrugCallbackData>(core, data) {
                 UnrugCallbackData::UnrugLaunchCallback(params) => {
@@ -1087,12 +1131,32 @@ pub mod UnrugLiquidity {
                     //     contract_address: launch_params.quote_address,
                     // };
 
+                    let mut extension_address = 0.try_into().unwrap();
+                    let contract_address_salt = launch_params.token_address;
+
+            
+                    if self.is_extensions_enabled.read() {
+                        extension_address = self._launch_extension(
+                            launch_params.owner,
+                            launch_params.owner,
+                            core,
+                            launch_params.quote_address,
+                            launchpad_address,
+                            launch_params.creator_fee_percent,
+                            launch_params.protocol_fee_percent,
+                            launchpad_address,
+                            is_auto_buyback_enabled,
+                            ekubo_exchange_address,
+                            contract_address_salt.try_into().unwrap(),
+                        );
+                    }
+
                     let pool_key = PoolKey {
                         token0: token0,
                         token1: token1,
                         fee: launch_params.pool_params.fee,
                         tick_spacing: launch_params.pool_params.tick_spacing,
-                        extension: 0.try_into().unwrap(),
+                        extension: extension_address.try_into().unwrap(),
                     };
 
                     let initial_tick = launch_params.pool_params.starting_price;
