@@ -34,6 +34,7 @@ pub mod UnrugLiquidity {
         SetJediswapRouterV2, SetJediswapV2Factory, StoredName, SupportedExchanges, Token,
         TokenClaimed, TokenLaunch, TokenQuoteBuyCoin, UnrugCallbackData, UnrugLaunchCallback,
         WithdrawFeesCallback,
+        
         // EkuboLiquidityParameters, DEFAULT_MIN_LOCKTIME, EkuboPoolParameters, CallbackData,
     // BondingType, LaunchCallback MemecoinCreated, MemecoinLaunched
     };
@@ -194,6 +195,7 @@ pub mod UnrugLiquidity {
         TokenClaimed: TokenClaimed,
         MetadataCoinAdded: MetadataCoinAdded,
         FeesCollected: FeesCollected,
+        ExtensionCreated:ExtensionCreated,
         // MemecoinCreated: MemecoinCreated,
         // MemecoinLaunched: MemecoinLaunched,
         #[flat]
@@ -1150,6 +1152,7 @@ pub mod UnrugLiquidity {
                             contract_address_salt.try_into().unwrap(),
                         );
                     }
+                    println!("extension address {:?}", extension_address);
 
                     let pool_key = PoolKey {
                         token0: token0,

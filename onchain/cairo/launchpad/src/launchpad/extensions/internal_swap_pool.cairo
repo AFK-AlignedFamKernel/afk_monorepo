@@ -185,7 +185,7 @@ pub mod InternalSwapPool {
     #[abi(embed_v0)]
     impl InternalSwapPoolHasInterface of IHasInterface<ContractState> {
         fn get_primary_interface_id(self: @ContractState) -> felt252 {
-            selector!("relaunch::contracts::internal_swap_pool::InternalSwapPool")
+            selector!("afk_launchpad::launchpad::extensions::internal_swap_pool")
         }
     }
 
@@ -204,7 +204,7 @@ pub mod InternalSwapPool {
             pool_key: PoolKey,
             params: SwapParameters,
         ) {
-            panic!("Only from internal_swap_pool");
+            // panic!("Only from internal_swap_pool");
         }
         fn after_swap(
             ref self: ContractState,
@@ -244,15 +244,15 @@ pub mod InternalSwapPool {
     }
 
 
-    #[abi(embed_v0)]
-    impl LockedImpl of ILocker<ContractState> {
-        fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
-            let core = self.core.read();
-            let (pool_key, skip_ahead) = consume_callback_data::<(PoolKey, u128)>(core, data);
+    // #[abi(embed_v0)]
+    // impl LockedImpl of ILocker<ContractState> {
+    //     fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
+    //         let core = self.core.read();
+    //         let (pool_key, skip_ahead) = consume_callback_data::<(PoolKey, u128)>(core, data);
 
-            array![].span()
-        }
-    }
+    //         array![].span()
+    //     }
+    // }
 
 
 
@@ -264,11 +264,14 @@ pub mod InternalSwapPool {
         ) -> Span<felt252> {
             let core = self.core.read();
 
+            println!("forwarded");
             // Consume the callback data from router
             let swap_data: Swap = consume_callback_data(core, data);
 
             // Determine if it is token1
             let is_token1 = swap_data.route.pool_key.token1 == swap_data.token_amount.token;
+
+            println!("try swap router core");
 
             // Directly call core.swap here instead of execute_isp_swap
             let result: Delta = core
@@ -284,6 +287,8 @@ pub mod InternalSwapPool {
 
             // Handle fees based on the swap result
             let mut new_delta = result;
+            println!("swap done");
+
             if result.amount0.sign {
                 // Token0 negative: take fee from amount0
                 let fee = InternalSwapPoolImpl::calc_fee(ref self, result.amount0.mag);

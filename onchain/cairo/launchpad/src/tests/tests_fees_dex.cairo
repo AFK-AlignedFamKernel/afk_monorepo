@@ -297,19 +297,16 @@ mod tests_fees_dex {
             unrug_liquidity.contract_address,
         );
         let router = deploy_router(router_class, EKUBO_CORE());
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        start_cheat_caller_address(unrug_liquidity.contract_address, sender_address);
+
+        unrug_liquidity.set_is_extensions_enabled(true);
+        unrug_liquidity.set_ekubo_extension_class_hash(internal_swap_pool_class.class_hash);
+        stop_cheat_caller_address(unrug_liquidity.contract_address);
+
         (sender_address, erc20, launchpad, router   )
     }
-    // fn deploy_internal_swap_pool(
-    //     class: ContractClass,
-    //     admin: ContractAddress,
-    //     router_address: ContractAddress,
-    // ) -> IInternalSwapPoolDispatcher {
-    //     let mut calldata = array![admin.into()];
-    //     calldata.append_serde(router_address);
-    //     let (contract_address, _) = class.deploy(@calldata).unwrap();
-    //     IInternalSwapPoolDispatcher { contract_address }
-    // }
 
 
     fn deploy_unrug_liquidity(
@@ -481,6 +478,7 @@ mod tests_fees_dex {
         let mut router_node = RouteNode {
             pool_key: pool_key,
             sqrt_ratio_limit: MIN_SQRT_RATIO, // We can ignore slippage in testing, as our router is just a mock
+            // sqrt_ratio_limit: sqrt_ratio_limit, // We can ignore slippage in testing, as our router is just a mock
             skip_ahead: 0,
         };
 
@@ -1102,12 +1100,14 @@ mod tests_fees_dex {
 
         let fee = fee_percent.try_into().unwrap();
 
+
+        let extension_address = 2009536751849827235075349700447561295678057357382360757432404268535531664887;
         let pool_key = PoolKey {
             token0: token0.clone(),
             token1: token1.clone(),
             fee: fee.clone(),
             tick_spacing: tick_spacing.try_into().unwrap(),
-            extension: 0.try_into().unwrap(),
+            extension: extension_address.try_into().unwrap(),
         };
 
         let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
@@ -1129,13 +1129,17 @@ mod tests_fees_dex {
 
         let min_tick: u128 = MIN_TICK_U128;
         let max_tick: u128 = MAX_TICK_U128;
+        println!("aligned_min_tick");
 
         let aligned_min_tick = align_tick_with_max_tick_and_min_tick(min_tick, tick_spacing);
+        println!("aligned_max_tick");
+
         let aligned_max_tick = align_tick_with_max_tick_and_min_tick(max_tick, tick_spacing);
         let mut full_range_bounds = Bounds {
             lower: i129 { mag: aligned_min_tick, sign: true },
             upper: i129 { mag: aligned_max_tick, sign: false },
         };
+        println!("aligned_max_tick");
         let initial_position: GetTokenInfoResult = position_dispatcher
             .get_token_info(position_id, pool_key, full_range_bounds);
         println!("Amount0 {:?}", initial_position.amount0);
