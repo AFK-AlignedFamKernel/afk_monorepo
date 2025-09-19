@@ -33,7 +33,9 @@ pub mod UnrugLiquidity {
         MetadataCoinAdded, MetadataLaunch, MetadataLaunchParams, SellToken, SetJediswapNFTRouterV2,
         SetJediswapRouterV2, SetJediswapV2Factory, StoredName, SupportedExchanges, Token,
         TokenClaimed, TokenLaunch, TokenQuoteBuyCoin, UnrugCallbackData, UnrugLaunchCallback,
-        WithdrawFeesCallback,
+        WithdrawFeesCallback, 
+        ExtensionCreated,
+
         
         // EkuboLiquidityParameters, DEFAULT_MIN_LOCKTIME, EkuboPoolParameters, CallbackData,
     // BondingType, LaunchCallback MemecoinCreated, MemecoinLaunched

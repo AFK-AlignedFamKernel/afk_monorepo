@@ -463,12 +463,14 @@ mod tests_fees_dex {
 
         let (token0, token1) = sort_tokens(memecoin.contract_address, erc20.contract_address);
 
+
+        let extension_address = 2009536751849827235075349700447561295678057357382360757432404268535531664887;
         let pool_key = PoolKey {
             token0: token0,
             token1: token1,
             tick_spacing: tick_spacing,
             fee: fee_percent,
-            extension: 0.try_into().unwrap(),
+            extension: extension_address.try_into().unwrap(),
         };
 
         let mut sqrt_ratio_limit : u256 = MIN_SQRT_RATIO;

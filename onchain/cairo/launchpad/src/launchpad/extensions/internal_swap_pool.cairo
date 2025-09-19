@@ -204,6 +204,7 @@ pub mod InternalSwapPool {
             pool_key: PoolKey,
             params: SwapParameters,
         ) {
+            call_core_with_callback::<(PoolKey, u128), ()>(core, @(pool_key, params.skip_ahead));
             // panic!("Only from internal_swap_pool");
         }
         fn after_swap(
