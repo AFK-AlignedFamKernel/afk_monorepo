@@ -157,6 +157,8 @@ pub mod LaunchpadMarketplace {
         total_token: u64,
         total_launch: u64,
         is_coin_launched: Map<ContractAddress, bool>,
+
+        math_lib_class_hash: ClassHash,
         // TODO check edge case supply for Bonding curve
         // HIGH SECURITY RISK
         // EDGE CASE SUPPLY AND THRESHOLD
@@ -284,6 +286,11 @@ pub mod LaunchpadMarketplace {
         self.creator_fee_percent.write(MIN_FEE_CREATOR);
         // Unrug Liquitidy to deposit through Ekubo
         self.unrug_liquidity_address.write(unrug_liquidity_address);
+
+
+        let math_lib_class_hash:ClassHash =
+            0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
+        self.math_lib_class_hash.write(math_lib_class_hash);
     }
 
     #[abi(embed_v0)]
@@ -1530,7 +1537,7 @@ pub mod LaunchpadMarketplace {
             // let class_hash:ClassHash =
             // 0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
             let class_hash: ClassHash =
-                0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3
+                self.math_lib_class_hash.read()
                 .try_into()
                 .unwrap();
 

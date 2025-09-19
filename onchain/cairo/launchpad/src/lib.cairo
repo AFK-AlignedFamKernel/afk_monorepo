@@ -74,4 +74,6 @@ pub mod tests {
     // pub mod linear_tests;
     // pub mod liquidity_tests;
     pub mod unrug_tests;
+
+    pub mod tests_fees_dex;
 }
