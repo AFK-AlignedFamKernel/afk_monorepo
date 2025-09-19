@@ -436,6 +436,8 @@ mod unrug_tests {
             lp_supply: lp_meme_supply,
             lp_quote_supply: lp_quote_supply,
             caller: OWNER(),
+            creator_fee_percent: 0,
+            protocol_fee_percent: 0,
             pool_params: EkuboPoolParameters {
                 fee: fee.clone(),
                 tick_spacing: tick_spacing.clone(),

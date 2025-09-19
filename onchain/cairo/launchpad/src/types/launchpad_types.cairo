@@ -224,6 +224,8 @@ pub struct EkuboUnrugLaunchParameters {
     pub lp_quote_supply: u256,
     pub pool_params: EkuboPoolParameters,
     pub caller: ContractAddress,
+    pub creator_fee_percent: u256,
+    pub protocol_fee_percent: u256,
 }
 
 #[derive(Copy, Drop, Serde, PartialEq)]

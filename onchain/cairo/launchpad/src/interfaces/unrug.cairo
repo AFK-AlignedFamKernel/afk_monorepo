@@ -95,6 +95,6 @@ pub trait IUnrugLiquidity<TContractState> {
     fn set_launchpad_address(ref self: TContractState, launchpad_address: ContractAddress);
 
 
-    set_is_extensions_enabled(ref self: TContractState, is_extensions_enabled: bool);
-    set_ekubo_extension_class_hash(ref self: TContractState, ekubo_extension_class_hash: ClassHash);
+    fn set_is_extensions_enabled(ref self: TContractState, is_extensions_enabled: bool);
+    fn set_ekubo_extension_class_hash(ref self: TContractState, ekubo_extension_class_hash: ClassHash);
 }
