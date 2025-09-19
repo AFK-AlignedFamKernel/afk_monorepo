@@ -83,8 +83,8 @@ pub mod UnrugLiquidity {
     const MID_FEE_PROTOCOL: u256 = 100; //1%
 
     const MIN_FEE_CREATOR: u256 = 100; //1%
-    const MID_FEE_CREATOR: u256 = 1000; //10%
-    const MAX_FEE_CREATOR: u256 = 5000; //50%
+    const MID_FEE_CREATOR: u256 = 300; //3%
+    const MAX_FEE_CREATOR: u256 = 500; //5%
 
     const BPS: u256 = 10_000; // 100% = 10_000 bps
     const SCALE_FACTOR: u256 =
@@ -167,6 +167,10 @@ pub mod UnrugLiquidity {
         address_ekubo_router: ContractAddress,
         liquidity_per_token: Map<ContractAddress, EkuboLPStore>,
         token_owner: Map<ContractAddress, ContractAddress>,
+
+        // Extensions
+        is_extensions_enabled: bool,
+        ekubo_extension_class_hash: ClassHash,
         #[substorage(v0)]
         accesscontrol: AccessControlComponent::Storage,
         #[substorage(v0)]
@@ -240,6 +244,15 @@ pub mod UnrugLiquidity {
     #[abi(embed_v0)]
     impl UnrugLiquidity of IUnrugLiquidity<ContractState> {
         // ADMIN
+        fn set_is_extensions_enabled(ref self: ContractState, is_extensions_enabled: bool) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_extensions_enabled.write(is_extensions_enabled);
+        }
+
+        fn set_ekubo_extension_class_hash(ref self: ContractState, ekubo_extension_class_hash: ClassHash) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.ekubo_extension_class_hash.write(ekubo_extension_class_hash);
+        }
 
         fn set_launchpad_address(ref self: ContractState, launchpad_address: ContractAddress) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);

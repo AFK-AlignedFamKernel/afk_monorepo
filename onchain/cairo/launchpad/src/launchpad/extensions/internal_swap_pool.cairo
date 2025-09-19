@@ -62,7 +62,7 @@ pub mod InternalSwapPool {
     use ekubo::components::upgradeable::{IHasInterface, Upgradeable as upgradeable_component};
     use ekubo::interfaces::core::{
         ICoreDispatcher, ICoreDispatcherTrait, IExtension, IForwardee, SwapParameters,
-        UpdatePositionParameters,
+        UpdatePositionParameters, ILocker
     };
     use ekubo::types::bounds::Bounds;
     use ekubo::types::call_points::CallPoints;
@@ -240,6 +240,19 @@ pub mod InternalSwapPool {
             delta: Delta,
         ) {}
     }
+
+
+    #[abi(embed_v0)]
+    impl LockedImpl of ILocker<ContractState> {
+        fn locked(ref self: ContractState, id: u32, data: Span<felt252>) -> Span<felt252> {
+            let core = self.core.read();
+            let (pool_key, skip_ahead) = consume_callback_data::<(PoolKey, u128)>(core, data);
+
+            array![].span()
+        }
+    }
+
+
 
     // Core ISP logic - handles forwarded calls from router
     #[abi(embed_v0)]
