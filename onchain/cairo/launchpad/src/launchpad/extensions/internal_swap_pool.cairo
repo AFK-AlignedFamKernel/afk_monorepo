@@ -294,6 +294,31 @@ pub mod InternalSwapPool {
                 };
                 core.save(key, fee);
                 new_delta.amount0.mag = result.amount0.mag - fee;
+
+                // let total_fee = InternalSwapPoolImpl::calc_total_fee(ref self, result.amount0.mag);
+                // let (creator_fee, protocol_fee) = InternalSwapPoolImpl::split_fees(ref self, total_fee);
+                
+                // // Send creator fee to creator address
+                // if creator_fee > 0 {
+                //     let creator_key = SavedBalanceKey {
+                //         owner: self.creator.read(), 
+                //         token: swap_data.route.pool_key.token0, 
+                //         salt: 0,
+                //     };
+                //     core.save(creator_key, creator_fee);
+                // }
+                
+                // // Send protocol fee to protocol address
+                // if protocol_fee > 0 {
+                //     let protocol_key = SavedBalanceKey {
+                //         owner: self.protocol_address.read(), 
+                //         token: swap_data.route.pool_key.token0, 
+                //         salt: 0,
+                //     };
+                //     core.save(protocol_key, protocol_fee);
+                // }
+                
+                // new_delta.amount0.mag = result.amount0.mag - total_fee;
             } else if result.amount1.sign {
                 // Token1 negative: take fee from amount1
                 let fee = InternalSwapPoolImpl::calc_fee(ref self, result.amount1.mag);
@@ -307,6 +332,33 @@ pub mod InternalSwapPool {
                 // Accumulate as protocol fees using ekubo core
                 core.accumulate_as_fees(swap_data.route.pool_key, 0, fee);
                 new_delta.amount1.mag = result.amount1.mag - fee;
+
+
+                // let total_fee = InternalSwapPoolImpl::calc_total_fee(ref self, result.amount1.mag);
+                // let (creator_fee, protocol_fee) = InternalSwapPoolImpl::split_fees(ref self, total_fee);
+                
+                // // Send creator fee to creator address
+                // if creator_fee > 0 {
+                //     let creator_key = SavedBalanceKey {
+                //         owner: self.creator.read(), 
+                //         token: swap_data.route.pool_key.token1, 
+                //         salt: 1,
+                //     };
+                //     core.save(creator_key, creator_fee);
+                // }
+                
+                // // Send protocol fee to protocol address
+                // if protocol_fee > 0 {
+                //     let protocol_key = SavedBalanceKey {
+                //         owner: self.protocol_address.read(), 
+                //         token: swap_data.route.pool_key.token1, 
+                //         salt: 1,
+                //     };
+                //     core.save(protocol_key, protocol_fee);
+                // }
+                
+                // new_delta.amount1.mag = result.amount1.mag - total_fee;
+                
             }
 
             // Serialize and return the modified delta
