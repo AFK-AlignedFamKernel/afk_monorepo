@@ -92,8 +92,8 @@ pub mod InternalSwapPool {
     const MAX_FEE_CREATOR: u256 = 500; //5%
 
     const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
-    const MAX_FEE_PROTOCOL: u256 = 1000; //10%
     const MID_FEE_PROTOCOL: u256 = 100; //1%
+    const MAX_FEE_PROTOCOL: u256 = 1000; //10%
 
     #[storage]
     struct Storage {
@@ -104,12 +104,13 @@ pub mod InternalSwapPool {
         core: ICoreDispatcher,
         native_token: ContractAddress,
         creator:ContractAddress,
-        fee_percentage_creator: u256,
+        fee_percentage_creator: u256, 
         fee_percentage_protocol: u256,
         protocol_address: ContractAddress,
         factory_address: ContractAddress,
-
         is_auto_buyback_enabled: bool,
+
+        router_address: ContractAddress,
 
     }
 
@@ -125,6 +126,7 @@ pub mod InternalSwapPool {
         fee_percentage_protocol: u256,
         factory_address: ContractAddress,
         is_auto_buyback_enabled: bool,
+        router_address: ContractAddress,
     ) {
         self.initialize_owned(owner);
 
@@ -142,7 +144,7 @@ pub mod InternalSwapPool {
         self.creator.write(creator);
         self.fee_percentage_creator.write(fee_percentage_creator);
         self.fee_percentage_protocol.write(fee_percentage_protocol);
-
+        self.router_address.write(router_address);
         // Set call points - minimal requirements for ISP
         core
             .set_call_points(
