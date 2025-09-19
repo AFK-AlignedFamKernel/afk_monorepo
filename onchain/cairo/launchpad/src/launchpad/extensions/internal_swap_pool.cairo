@@ -14,7 +14,7 @@ pub trait IISP<TState> {
         ref self: TState,
         native_token: ContractAddress,
         core: ICoreDispatcher,
-        fee_percentage: u128,
+        fee_percentage_creator: u128,
     );
     fn can_use_prefill(self: @TState, pool_key: PoolKey, params: SwapParameters) -> bool;
     fn accumulate_fees(ref self: TState, pool_key: PoolKey, token: ContractAddress, amount: u128);
@@ -84,6 +84,16 @@ pub mod InternalSwapPool {
     #[abi(embed_v0)]
     impl Upgradeable = upgradeable_component::UpgradeableImpl<ContractState>;
 
+    // TODO  Used in V2 and be choose by user
+    const ZERO_FEE_AMOUNT: u256 = 0; //0%
+    const MIN_FEE_CREATOR: u256 = 100; //1%
+    const MID_FEE_CREATOR: u256 = 300; //3%
+    const MAX_FEE_CREATOR: u256 = 500; //5%
+
+    const MIN_FEE_PROTOCOL: u256 = 10; //0.1%
+    const MAX_FEE_PROTOCOL: u256 = 1000; //10%
+    const MID_FEE_PROTOCOL: u256 = 100; //1%
+
     #[storage]
     struct Storage {
         #[substorage(v0)]
@@ -92,7 +102,12 @@ pub mod InternalSwapPool {
         owned: owned_component::Storage,
         core: ICoreDispatcher,
         native_token: ContractAddress,
-        fee_percentage: u256,
+        creator:ContractAddress,
+        fee_percentage_creator: u256,
+        fee_percentage_protocol: u256,
+        protocol_address: ContractAddress,
+        factory_address: ContractAddress,
+
     }
 
     #[constructor]
@@ -101,13 +116,28 @@ pub mod InternalSwapPool {
         owner: ContractAddress,
         core: ICoreDispatcher,
         native_token: ContractAddress,
+        protocol_address: ContractAddress,
+        fee_percentage_creator: u256,
+        fee_percentage_protocol: u256,
+        factory_address: ContractAddress,
     ) {
         self.initialize_owned(owner);
+
+        assert(fee_percentage_protocol > MIN_FEE_PROTOCOL, 'fee_percentage_protocol_too_low');
+        assert(fee_percentage_creator < MAX_FEE_CREATOR, 'fee_percentage_too_high');
+        assert(fee_percentage_creator > MIN_FEE_CREATOR, 'fee_percentage_too_low');
+        assert(protocol_address != contract_address_const::ZERO(), 'protocol_address_cannot_be_zero');
+        assert(native_token != protocol_address, 'native_token_cannot_be_protocol_address');
 
         // Set ISP fields directly
         self.native_token.write(native_token);
         self.core.write(core);
-        self.fee_percentage.write(30); // 0.3%
+        self.fee_percentage_creator.write(fee_percentage_creator); // 0.3%
+        self.protocol_address.write(protocol_address);
+        self.factory_address.write(factory_address);
+        self.creator.write(creator);
+        self.fee_percentage_creator.write(fee_percentage_creator);
+        self.fee_percentage_protocol.write(fee_percentage_protocol);
 
         // Set call points - minimal requirements for ISP
         core
@@ -274,7 +304,7 @@ pub mod InternalSwapPool {
             ref self: ContractState,
             native_token: ContractAddress,
             core: ICoreDispatcher,
-            fee_percentage: u128,
+            fee_percentage_creator: u128,
         ) {// Already initialized in constructor
         }
 
