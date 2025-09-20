@@ -9,7 +9,7 @@ use core::num::traits::{Zero};
 use afk_launchpad::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
 use snforge_std::{
     declare, DeclareResultTrait, ContractClassTrait, ContractClass};
-use starknet::{ContractAddress, get_contract_address, contract_address_const};
+use starknet::{ContractAddress, get_contract_address, contract_address_const, get_caller_address};
 use afk_launchpad::mocks::router_lite::{
     IRouterLiteDispatcher, IRouterLiteDispatcherTrait, RouteNode, TokenAmount,
 };
@@ -18,32 +18,36 @@ use afk_launchpad::launchpad::extensions::internal_swap_pool::{InternalSwapPool,
 };
 use starknet::syscalls::deploy_syscall;
 
+  // Math
+  fn pow_256(self: u256, mut exponent: u8) -> u256 {
+    if self.is_zero() {
+        return 0;
+    }
+    let mut result = 1;
+    let mut base = self;
 
-fn deploy_erc20(
-    class: ContractClass,
-    name: felt252,
-    symbol: felt252,
-    initial_supply: u256,
-    recipient: ContractAddress,
-) -> IERC20Dispatcher {
-    let mut calldata = array![];
+    loop {
+        if exponent & 1 == 1 {
+            result = result * base;
+        }
 
-    name.serialize(ref calldata);
-    symbol.serialize(ref calldata);
-    (2 * initial_supply).serialize(ref calldata);
-    recipient.serialize(ref calldata);
-    18_u8.serialize(ref calldata);
+        exponent = exponent / 2;
+        if exponent == 0 {
+            break result;
+        }
 
-    let (contract_address, _) = class.deploy(@calldata).unwrap();
-
-    IERC20Dispatcher { contract_address }
+        base = base * base;
+    }
 }
 
 
+fn DEFAULT_10K_SUPPLY() -> u256 {
+    10_000_u256 * pow_256(10, 18)
+}
 fn deploy_token(
     class: ContractClass,
-    name: felt252,
-    symbol: felt252,
+    name: ByteArray,
+    symbol: ByteArray,
     initial_supply: u256,
     decimals: u8,
     recipient: ContractAddress,
@@ -54,9 +58,9 @@ fn deploy_token(
 
     name.serialize(ref calldata);
     symbol.serialize(ref calldata);
-    (2 * initial_supply).serialize(ref calldata);
-    recipient.serialize(ref calldata);
+    initial_supply.serialize(ref calldata);
     decimals.serialize(ref calldata);
+    recipient.serialize(ref calldata);
     owner.serialize(ref calldata);
     factory.serialize(ref calldata);
     let (contract_address, _) = class.deploy(@calldata).unwrap();
@@ -64,15 +68,15 @@ fn deploy_token(
     IERC20Dispatcher { contract_address }
 }
 
-fn deploy_token(
-    class: @ContractClass, recipient: ContractAddress, amount: u256
-) -> IERC20Dispatcher {
-    let (contract_address, _) = class
-        .deploy(@array![recipient.into(), amount.low.into(), amount.high.into()])
-        .expect('Deploy token failed');
+// fn deploy_token(
+//     class: @ContractClass, recipient: ContractAddress, amount: u256
+// ) -> IERC20Dispatcher {
+//     let (contract_address, _) = class
+//         .deploy(@array![recipient.into(), amount.low.into(), amount.high.into()])
+//         .expect('Deploy token failed');
 
-    IERC20Dispatcher { contract_address }
-}
+//     IERC20Dispatcher { contract_address }
+// }
 
 fn deploy_extension(
     class: @ContractClass,
@@ -103,7 +107,7 @@ fn deploy_extension(
     Serde::serialize(@router_address, ref calldata);
 
     let (extension_address, _) = deploy_syscall(
-       class, contract_address_salt.clone(), calldata.span(), false,
+       *class.class_hash, contract_address_salt.clone(), calldata.span(), false,
     )
         .unwrap();
 
@@ -113,8 +117,8 @@ fn deploy_extension(
 
 fn deploy_erc20(
     class: ContractClass,
-    name: felt252,
-    symbol: felt252,
+    name: ByteArray,
+    symbol: ByteArray,
     initial_supply: u256,
     recipient: ContractAddress,
 ) -> IERC20Dispatcher {
@@ -132,7 +136,7 @@ fn deploy_erc20(
 }
 
 
-fn deploy_router(class: ContractClass, ekubo_core: ContractAddress) -> IRouterLiteDispatcher {
+fn deploy_router(class: ContractClass, ekubo_core: ICoreDispatcher) -> IRouterLiteDispatcher {
     let mut calldata = array![];
     Serde::serialize(@ekubo_core, ref calldata);
     let (contract_address, _) = class.deploy(@calldata).unwrap();
@@ -140,7 +144,8 @@ fn deploy_router(class: ContractClass, ekubo_core: ContractAddress) -> IRouterLi
 }
 
 fn deploy_internal_swap_pool(
-    class: @ContractClass, owner: ContractAddress, 
+    class: @ContractClass, 
+    owner: ContractAddress, 
     core: ICoreDispatcher,
     native_token: ContractAddress,
     protocol_address: ContractAddress,
@@ -161,8 +166,9 @@ fn deploy_internal_swap_pool(
     let contract_address = deploy_extension(
         class, 
         owner, 
+        owner, 
         core_dispatcher, 
-        native_token
+        native_token,
         protocol_address,
         fee_percentage_creator,
         fee_percentage_protocol,
@@ -171,8 +177,14 @@ fn deploy_internal_swap_pool(
         router_address,
         contract_address_salt
     );
-    println!("extension contract_address: {}", contract_address);
+    println!("extension contract_address: {:?}", contract_address);
     IExtensionDispatcher { contract_address }
+}
+
+fn ekubo_core_contract_address() -> ContractAddress {
+    contract_address_const::<
+        0x00000005dd3D2F4429AF886cD1a3b08289DBcEa99A294197E9eB43b0e0325b4b
+    >()
 }
 
 fn ekubo_core() -> ICoreDispatcher {
@@ -204,15 +216,20 @@ fn setup() -> (PoolKey, IExtensionDispatcher) {
 
     let name = "Test Token";
     let symbol = "TTT";
-    let initial_supply = 1000000000000000000000000000;
+    let initial_supply = DEFAULT_10K_SUPPLY();
     let recipient = owner;
     let factory = get_contract_address();
     let decimals = 18;
     let contract_address_salt = 0.try_into().unwrap();
+
+    let name_2 = "Test Token 2";
+    let symbol_2 = "TTT2";
+    println!("deploy token 0");
     // Deploy tokens to owner (the test contract itself)
-    let token0 = deploy_token(test_token_class, name, symbol, initial_supply, decimals, recipient, owner, factory);
-    let token1 = deploy_token(test_token_class, name, symbol, initial_supply, decimals, recipient, owner, factory);
-    
+    let token0 = deploy_token(*test_token_class, name, symbol, initial_supply, decimals, recipient, owner, factory);
+    println!("deploy token 1");
+  
+    let token1 = deploy_token(*test_token_class, name_2, symbol_2, initial_supply, decimals, recipient, owner, factory);
     // Sort tokens by address (inline implementation)
     let (tokenA, tokenB) = {
         let addr0 = token0.contract_address;
@@ -226,11 +243,12 @@ fn setup() -> (PoolKey, IExtensionDispatcher) {
 
 
     let protocol_address = get_contract_address();
-    let fee_percentage_creator = 100;
-    let fee_percentage_protocol = 100;
+    let fee_percentage_creator = 100_u256;
+    let fee_percentage_protocol = 100_u256;
     let factory_address = get_contract_address();
     let is_auto_buyback_enabled = false;
     let router_address = get_contract_address();
+    println!("deploy internal swap pool");
     // Deploy InternalSwapPool once and get both interfaces
     let internal_swap_pool_extension = deploy_internal_swap_pool(
         internal_swap_pool_class,
@@ -259,9 +277,11 @@ fn setup() -> (PoolKey, IExtensionDispatcher) {
 }
 
 #[test]
-#[fork("mainnet")]
+#[fork("Mainnet")]
 fn test_isp_swap_token0_for_token1() {
     let (pool_key, _) = setup();
+
+    println!("initialize pool");
     ekubo_core().initialize_pool(pool_key, Zero::zero());
     
     // Transfer tokens and mint position (your existing code)
@@ -277,15 +297,17 @@ fn test_isp_swap_token0_for_token1() {
         },
         0
     );
+
     
     // // Deploy the router
-    // let router_class = declare("IRouterLite").unwrap().contract_class();
-    // let router = deploy_router(
-    //     router_class, 
-    //     // get_contract_address(), 
-    //     ekubo_core(),
-    //     // pool_key.token0
-    // );
+    let router_class = declare("RouterLite").unwrap().contract_class();
+    println!("deploy router");
+    let router = deploy_router(
+        *router_class, 
+        // get_contract_address(), 
+        ekubo_core(),
+        // pool_key.token0
+    );
     
     // // Prepare swap parameters
     // let amount_in: u128 = 100_00;
@@ -294,12 +316,14 @@ fn test_isp_swap_token0_for_token1() {
     //     amount: i129 { mag: amount_in, sign: false }, // Exact input (positive)
     // };
 
-    // // Get current pool price
+    // println!("get pool price");
+    // // // Get current pool price
     // let pool_price = ekubo_core().get_pool_price(pool_key);
-    // let current_sqrt_price = pool_price.sqrt_ratio;
-    // println!("Current sqrt price: {}", current_sqrt_price);
+    // // let current_sqrt_price = pool_price.sqrt_ratio;
+    // println!("Current sqrt price: {}", pool_price.sqrt_ratio);
+    // // println!("Current sqrt price: {}", current_sqrt_price);
 
-    // // Determine trade direction
+    // // // Determine trade direction
     // let _is_token1 = pool_key.token1 == token_amount.token;
     // // -5% 323268248574891540290205877060179800883 'INSUFFICIENT_TF_BALANCE'
     // // 0% 340282366920938463463374607431768211456 Success
@@ -318,15 +342,20 @@ fn test_isp_swap_token0_for_token1() {
     //     token_amount,
     // };
 
+    // println!("get balance before");
+
     // let balance_before = IERC20Dispatcher{ contract_address: pool_key.token0 }
     //     .balanceOf(get_contract_address());
 
+    // println!("balance before: {:?}", balance_before);
+    // println!("transfer tokens to router");
     // // Transfer tokens to router to spend
     // IERC20Dispatcher{ contract_address: pool_key.token0 }
     //     .transfer(router.contract_address, amount_in.into());
 
+    // println!("execute swap");
     // // Execute the swap
-    // router.swap(swap_data);
+    // router.swap(route, token_amount);
 
     // let balance_after = IERC20Dispatcher{ contract_address: pool_key.token0 }
     //     .balanceOf(get_contract_address());

@@ -136,7 +136,7 @@ pub mod InternalSwapPool {
 
         assert(fee_percentage_protocol > MIN_FEE_PROTOCOL, 'fee_percentage_protocol_too_low');
         assert(fee_percentage_creator < MAX_FEE_CREATOR, 'fee_percentage_too_high');
-        assert(fee_percentage_creator > MIN_FEE_CREATOR, 'fee_percentage_too_low');
+        assert(fee_percentage_creator >= ZERO_FEE_AMOUNT, 'fee_percentage_too_low');
         assert(native_token != protocol_address, 'native_token_error');
 
         // Set ISP fields directly
