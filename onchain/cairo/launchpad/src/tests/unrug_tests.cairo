@@ -267,6 +267,10 @@ mod unrug_tests {
         // );
 
         start_cheat_caller_address(unrug_liq.contract_address, OWNER());
+        start_cheat_caller_address(unrug_liq.contract_address, sender_address);
+
+        // stop_cheat_caller_address(unrug_liq.contract_address);
+
         (sender_address, erc20, unrug_liq)
     }
 
@@ -315,6 +319,10 @@ mod unrug_tests {
 
     fn declare_memecoin() -> @ContractClass {
         declare("Memecoin").unwrap().contract_class()
+    }
+
+    fn declare_internal_swap_pool() -> @ContractClass {
+        declare("InternalSwapPool").unwrap().contract_class()
     }
 
     fn deploy_erc20(
@@ -497,119 +505,183 @@ mod unrug_tests {
         ); // 340282366920938463463374607431768211456
         println!("tick {:?}", pool_price.tick); // { mag: 0, sign: false } strange
         // No need to check +2% percent
-    //     let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
-    //     let liquidity = core.get_pool_liquidity(pool_key);
-    //     let price = core.get_pool_price(pool_key);
-    //     let reserve_memecoin = IERC20Dispatcher { contract_address: token_address }
-    //         .balance_of(core.contract_address);
-    //     let reserve_quote = IERC20Dispatcher { contract_address: quote_token.contract_address
-    //     }
-    //         .balance_of(core.contract_address);
-    //     println!("Liquidity: {}", liquidity);
+  
+  
+
     }
 
-    // #[test]
-    // #[fork("Mainnet")]
-    // fn test_add_liquidity_ekubo_and_check() {
-    //     let (sender, erc20, unrug_liq) = request_fixture();
-    //     start_cheat_caller_address(unrug_liq.contract_address, OWNER());
-    //     let token_address = unrug_liq
-    //         .create_token(
-    //             symbol: SYMBOL(),
-    //             name: NAME(),
-    //             initial_supply: DEFAULT_INITIAL_SUPPLY(),
-    //             contract_address_salt: SALT()
-    //         );
-    //     start_cheat_caller_address(unrug_liq.contract_address, OWNER());
+    #[test]
+    #[fork("Mainnet")]
+    fn test_add_liquidity_ekubo_with_extension() {
+        let (sender, erc20, unrug_liq) = request_fixture();
+        
+        start_cheat_caller_address(unrug_liq.contract_address, OWNER());
+        let internal_swap_pool_class = declare_internal_swap_pool();
 
-    //     println!("token_address ekubo launch: {:?}", token_address);
-    //     println!(
-    //         "Balance of unrug_liq: {:?}",
-    //         IERC20Dispatcher { contract_address: token_address }
-    //             .balance_of(unrug_liq.contract_address)
-    //     );
+        unrug_liq.set_is_extensions_enabled(true);
+        unrug_liq.set_ekubo_extension_class_hash(*internal_swap_pool_class.class_hash);
+        stop_cheat_caller_address(unrug_liq.contract_address);
 
-    //     let starting_price = i129 { sign: true, mag: 4600158 };
-    //     let memecoin = IERC20Dispatcher { contract_address: token_address };
-    //     let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20.contract_address };
 
-    //     let total_supply: u256 = memecoin.total_supply();
-    //     let total_token_holded: u256 = total_supply / LIQUIDITY_RATIO;
+        let token_address = unrug_liq
+            .create_token(
+                symbol: SYMBOL(),
+                name: NAME(),
+                initial_supply: DEFAULT_INITIAL_SUPPLY(),
+                contract_address_salt: SALT(),
+            );
+        start_cheat_caller_address(unrug_liq.contract_address, OWNER());
 
-    //     let lp_meme_supply = total_supply - total_token_holded;
-    //     let lp_quote_supply = 100_u256;
-    //     println!("lp_meme_supply {:?}", lp_meme_supply);
+        println!("token_address ekubo launch: {:?}", token_address);
+        println!(
+            "Balance of unrug_liq: {:?}",
+            IERC20Dispatcher { contract_address: token_address }
+                .balance_of(unrug_liq.contract_address),
+        );
 
-    //     // Check initial balances
-    //     let initial_memecoin_balance = memecoin.balance_of(OWNER());
-    //     let initial_quote_balance = erc20_dispatcher.balance_of(OWNER());
-    //     println!("Initial memecoin balance of OWNER: {:?}", initial_memecoin_balance);
-    //     println!("Initial quote balance of OWNER: {:?}", initial_quote_balance);
+        let starting_price = i129 { sign: true, mag: 4600158 };
+        let memecoin = IERC20Dispatcher { contract_address: token_address };
+        let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20.contract_address };
 
-    //     start_cheat_caller_address(erc20.contract_address, sender);
-    //     erc20_dispatcher.transfer(OWNER(), lp_quote_supply);
-    //     stop_cheat_caller_address(erc20.contract_address);
+        let total_supply: u256 = memecoin.total_supply();
+        let total_token_holded: u256 = total_supply / LIQUIDITY_RATIO;
 
-    //     start_cheat_caller_address(erc20.contract_address, OWNER());
-    //     erc20_dispatcher.approve(unrug_liq.contract_address, lp_quote_supply);
-    //     stop_cheat_caller_address(erc20.contract_address);
+        let lp_meme_supply = total_supply - total_token_holded;
+        let lp_quote_supply = 100_u256;
+        println!("lp_meme_supply {:?}", lp_meme_supply);
 
-    //     start_cheat_caller_address(memecoin.contract_address, OWNER());
-    //     memecoin.approve(unrug_liq.contract_address, lp_meme_supply);
-    //     stop_cheat_caller_address(memecoin.contract_address);
+        start_cheat_caller_address(erc20.contract_address, sender);
+        erc20_dispatcher.transfer(OWNER(), lp_quote_supply);
+        stop_cheat_caller_address(erc20.contract_address);
 
-    //     let params: EkuboUnrugLaunchParameters = EkuboUnrugLaunchParameters {
-    //         owner: OWNER(),
-    //         token_address: token_address,
-    //         quote_address: erc20.contract_address,
-    //         lp_supply: lp_meme_supply,
-    //         lp_quote_supply: lp_quote_supply,
-    //         caller: OWNER(),
-    //         pool_params: EkuboPoolParameters {
-    //             fee: 0xc49ba5e353f7d00000000000000000,
-    //             tick_spacing: 5982,
-    //             starting_price,
-    //             bound: 88719042,
-    //         }
-    //     };
+        start_cheat_caller_address(erc20.contract_address, OWNER());
+        erc20_dispatcher.approve(unrug_liq.contract_address, lp_quote_supply);
+        stop_cheat_caller_address(erc20.contract_address);
 
-    //     println!("add liquidity ekubo");
-    //     stop_cheat_caller_address(unrug_liq.contract_address);
+        start_cheat_caller_address(memecoin.contract_address, OWNER());
+        memecoin.approve(unrug_liq.contract_address, lp_meme_supply);
+        stop_cheat_caller_address(memecoin.contract_address);
 
-    //     // Get Ekubo core contract address
-    //     // let ekubo_core = unrug_liq.get_core_ekubo_address();
-    //     let ekubo_core = EKUBO_CORE();
+        let fee = 0xc49ba5e353f7d00000000000000000;
+        let tick_spacing = 5982;
+        let bound = 5982;
+        let quote_address = erc20.contract_address.clone();
 
-    //     // Check balances before adding liquidity
-    //     let ekubo_memecoin_balance_before = memecoin.balance_of(ekubo_core);
-    //     let ekubo_quote_balance_before = erc20_dispatcher.balance_of(ekubo_core);
-    //     println!("Ekubo memecoin balance before: {:?}", ekubo_memecoin_balance_before);
-    //     println!("Ekubo quote balance before: {:?}", ekubo_quote_balance_before);
+        let (token0, token1) = sort_tokens(memecoin.contract_address, erc20.contract_address);
+        let is_token1_quote = token1 == erc20.contract_address;
+        let sqrt_ratio = calculate_sqrt_ratio(lp_quote_supply, lp_meme_supply);
 
-    //     let (position_id, ekubo_lp) = unrug_liq.launch_on_ekubo(token_address, params);
+        // println!("sqrt_ratio after assert {}", sqrt_ratio.clone());
+        // Define the minimum and maximum sqrt ratios
+        // Convert to a tick value
+        let mut call_data: Array<felt252> = array![];
+        Serde::serialize(@sqrt_ratio, ref call_data);
 
-    //     // Check balances after adding liquidity
-    //     let ekubo_memecoin_balance_after = memecoin.balance_of(ekubo_core);
-    //     let ekubo_quote_balance_after = erc20_dispatcher.balance_of(ekubo_core);
-    //     println!("Ekubo memecoin balance after: {:?}", ekubo_memecoin_balance_after);
-    //     println!("Ekubo quote balance after: {:?}", ekubo_quote_balance_after);
+        // let class_hash:ClassHash =
+        // 0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
+        let class_hash: ClassHash =
+            0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3
+            .try_into()
+            .unwrap();
 
-    //     // Verify tokens were transferred
-    //     assert(ekubo_memecoin_balance_after == ekubo_memecoin_balance_before + lp_meme_supply,
-    //     'Wrong memecoin transfer');
-    //     assert(ekubo_quote_balance_after == ekubo_quote_balance_before + lp_quote_supply, 'Wrong
-    //     quote transfer');
+        let mut res = library_call_syscall(
+            class_hash, selector!("sqrt_ratio_to_tick"), call_data.span(),
+        )
+            .unwrap_syscall();
 
-    //     // Check ERC721 position ownership
-    //     let positions_contract = unrug_liq.get_position_ekubo_address();
-    //     let positions = IPositionsDispatcher { contract_address: positions_contract };
-    //     // let position_owner = positions.owner_of(position_id.try_into().unwrap());
-    //     // assert(position_owner == OWNER(), 'Wrong position owner');
-    //     assert(position_owner == unrug_liq.contract_address, 'Wrong position owner');
+        let starting_price = Serde::<i129>::deserialize(ref res).unwrap();
+        let bound_spacing: u128 = calculate_bound_mag(
+            fee.clone(), tick_spacing.clone().try_into().unwrap(), starting_price,
+        );
+        // Align the min and max ticks with the spacing
+        let min_tick = MIN_TICK_U128.try_into().unwrap();
+        let max_tick = MAX_TICK_U128.try_into().unwrap();
 
-    //     println!("Position ID: {:?}", position_id);
-    //     println!("Position owner: {:?}", position_owner);
-    // }
+        let aligned_min_tick = align_tick_with_max_tick_and_min_tick(min_tick, tick_spacing);
+        let aligned_max_tick = align_tick_with_max_tick_and_min_tick(max_tick, tick_spacing);
+
+        let aligned_bound_spacing = (aligned_min_tick / tick_spacing)
+            * tick_spacing.try_into().unwrap();
+
+        // Full range bounds
+        let mut full_range_bounds = Bounds {
+            lower: i129 { mag: aligned_bound_spacing, sign: true },
+            upper: i129 { mag: aligned_bound_spacing, sign: false },
+        };
+
+        let params: EkuboUnrugLaunchParameters = EkuboUnrugLaunchParameters {
+            // owner: unrug_liq.contract_address,
+            owner: OWNER(),
+            token_address: token_address.clone(),
+            quote_address: erc20.contract_address.clone(),
+            lp_supply: lp_meme_supply,
+            lp_quote_supply: lp_quote_supply,
+            caller: OWNER(),
+            creator_fee_percent: 0,
+            protocol_fee_percent: 0,
+            pool_params: EkuboPoolParameters {
+                fee: fee.clone(),
+                tick_spacing: tick_spacing.clone(),
+                starting_price,
+                bound: bound.clone(),
+                bounds: full_range_bounds,
+                bound_spacing: bound_spacing,
+            },
+        };
+        println!("add liquidity ekubo");
+        stop_cheat_caller_address(unrug_liq.contract_address);
+        unrug_liq.launch_on_ekubo(token_address, params);
+
+        let pool_key = PoolKey {
+            token0: token_address,
+            token1: erc20.contract_address.clone(),
+            fee: fee.try_into().unwrap().clone(),
+            tick_spacing: tick_spacing.try_into().unwrap(),
+            extension: 0.try_into().unwrap(),
+        };
+
+        let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
+        let liquidity = core.get_pool_liquidity(pool_key);
+        let price = core.get_pool_price(pool_key);
+        let reserve_memecoin = memecoin.balance_of(core.contract_address);
+        // let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
+        //     .balance_of(core.contract_address);
+
+        let reserve_quote = IERC20Dispatcher { contract_address: quote_address }
+            .balance_of(EKUBO_POSITIONS());
+
+        println!("reserve_memecoin {:?}", reserve_memecoin);
+        println!("reserve_quote {:?}", reserve_quote);
+
+        assert(
+            reserve_memecoin >= PercentageMath::percent_mul(lp_quote_supply, 9940),
+            'reserve too low meme',
+        );
+
+        assert(
+            reserve_quote >= PercentageMath::percent_mul(lp_quote_supply, 9900),
+            'reserve too low quote',
+        );
+
+        let position_dispatcher = IPositionsDispatcher { contract_address: EKUBO_POSITIONS() };
+        let (token0, token1) = sort_tokens(token_address, erc20.contract_address);
+        let pool_key: PoolKey = PoolKey {
+            token0: token0,
+            token1: token1,
+            fee: 0xc49ba5e353f7d00000000000000000,
+            tick_spacing: 5928,
+            extension: 0.try_into().unwrap(),
+        };
+        let pool_price = position_dispatcher.get_pool_price(pool_key);
+        println!(
+            "sqrt_ratio {:?}", pool_price.sqrt_ratio,
+        ); // 340282366920938463463374607431768211456
+        println!("tick {:?}", pool_price.tick); // { mag: 0, sign: false } strange
+        // No need to check +2% percent
+  
+  
+
+    }
 
     #[test]
     #[fork(url: "https://starknet-sepolia.public.blastapi.io/rpc/v0_7", block_number: 158847)]

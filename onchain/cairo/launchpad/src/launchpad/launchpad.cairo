@@ -220,8 +220,8 @@ pub mod LaunchpadMarketplace {
         // Still not test
         self.is_paid_create_token_enable.write(false);
         self.is_paid_launch_enable.write(false);
-        self.amount_to_paid_launch.write(1_u256);
-        self.amount_to_paid_create_token.write(1_u256);
+        self.amount_to_paid_launch.write(0_u256);
+        self.amount_to_paid_create_token.write(0_u256);
 
         // TODO
         // Fees protocol to true by default
