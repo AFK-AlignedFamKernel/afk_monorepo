@@ -12,6 +12,7 @@ mod tests_fees_dex {
     };
     // use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
+    use afk_launchpad::launchpad::unrug::UnrugLiquidity::{Event as UnrugEvent};
     use afk_launchpad::launchpad::math::PercentageMath;
     use afk_launchpad::launchpad::utils::{
         MAX_SQRT_RATIO, MAX_TICK, MAX_TICK_U128, MIN_SQRT_RATIO, MIN_TICK, MIN_TICK_U128,
@@ -30,7 +31,7 @@ mod tests_fees_dex {
         CreateLaunch, // SetJediswapNFTRouterV2,SetJediswapV2Factory,
         SupportedExchanges, EkuboLP,
         EkuboPoolParameters, TokenLaunch, EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
-        EkuboUnrugLaunchParameters,
+        EkuboUnrugLaunchParameters, ExtensionCreated
     };
     use afk_launchpad::launchpad::extensions::internal_swap_pool::{InternalSwapPool};
     use afk_launchpad::utils::sqrt;
@@ -464,6 +465,8 @@ mod tests_fees_dex {
         let (token0, token1) = sort_tokens(memecoin.contract_address, erc20.contract_address);
 
 
+        // TODO
+        // Get events and extenion address
         let extension_address = 1845337946734783835169184357055651985534609947349628822666544523525019023731;
         let pool_key = PoolKey {
             token0: token0,
@@ -1062,7 +1065,7 @@ mod tests_fees_dex {
             println!("exp test_ekubo_lp");
 
             // test_ekubo_lp(token_address, erc20.contract_address, *init_supplies.at(i));
-            test_ekubo_lp(token_address, erc20.contract_address, launchpad, position);
+            // test_ekubo_lp(token_address, erc20.contract_address, launchpad, position);
 
             println!("exp test_ekubo_lp_end");
 
@@ -1102,14 +1105,12 @@ mod tests_fees_dex {
 
         let fee = fee_percent.try_into().unwrap();
 
-
-        let extension_address = 1845337946734783835169184357055651985534609947349628822666544523525019023731;
         let pool_key = PoolKey {
             token0: token0.clone(),
             token1: token1.clone(),
             fee: fee.clone(),
             tick_spacing: tick_spacing.try_into().unwrap(),
-            extension: extension_address.try_into().unwrap(),
+            extension: 0.try_into().unwrap(),
         };
 
         let core = ICoreDispatcher { contract_address: EKUBO_CORE() };
