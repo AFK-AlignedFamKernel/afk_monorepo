@@ -347,27 +347,27 @@ fn test_isp_swap_token0_for_token1() {
         token_amount,
     };
 
-    // println!("get balance before");
+    println!("get balance before");
 
-    // let balance_before = IERC20Dispatcher{ contract_address: pool_key.token0 }
-    //     .balanceOf(get_contract_address());
+    let balance_before = IERC20Dispatcher{ contract_address: pool_key.token0 }
+        .balanceOf(get_contract_address());
 
-    // println!("balance before: {:?}", balance_before);
-    // println!("transfer tokens to router");
-    // // Transfer tokens to router to spend
-    // IERC20Dispatcher{ contract_address: pool_key.token0 }
-    //     .transfer(router.contract_address, amount_in.into());
+    println!("balance before: {:?}", balance_before);
+    println!("transfer tokens to router");
+    // Transfer tokens to router to spend
+    IERC20Dispatcher{ contract_address: pool_key.token0 }
+        .transfer(router.contract_address, amount_in.into());
 
-    // println!("execute swap");
-    // // Execute the swap
-    // router.swap(route, token_amount);
+    println!("execute swap");
+    // Execute the swap
+    router.swap(route, token_amount);
 
-    // let balance_after = IERC20Dispatcher{ contract_address: pool_key.token0 }
-    //     .balanceOf(get_contract_address());
+    let balance_after = IERC20Dispatcher{ contract_address: pool_key.token0 }
+        .balanceOf(get_contract_address());
 
-    // assert(
-    //     balance_after == balance_before - amount_in.into(), 'not correct token balance'
-    // );
+    assert(
+        balance_after == balance_before - amount_in.into(), 'not correct token balance'
+    );
 
 }
 
