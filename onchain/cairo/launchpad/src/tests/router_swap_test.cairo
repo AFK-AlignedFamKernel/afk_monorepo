@@ -11,10 +11,13 @@ use snforge_std::{
     declare, DeclareResultTrait, ContractClassTrait, ContractClass};
 use starknet::{ContractAddress, get_contract_address, contract_address_const, get_caller_address};
 use afk_launchpad::mocks::router_lite::{
-    IRouterLiteDispatcher, IRouterLiteDispatcherTrait, RouteNode, TokenAmount,
+    IRouterLiteDispatcher, IRouterLiteDispatcherTrait,IRouterLite
 };
 use afk_launchpad::launchpad::extensions::internal_swap_pool::{InternalSwapPool, Swap, IISPDispatcher, IISPDispatcherTrait,
 // InternalSwapPoolDispatcher, InternalSwapPoolDispatcherTrait,
+};
+use ekubo::interfaces::router::{
+    Delta, Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount,
 };
 use starknet::syscalls::deploy_syscall;
 
@@ -309,38 +312,38 @@ fn test_isp_swap_token0_for_token1() {
         // pool_key.token0
     );
     
-    // // Prepare swap parameters
-    // let amount_in: u128 = 100_00;
-    // let token_amount = TokenAmount {
-    //     token: pool_key.token0,
-    //     amount: i129 { mag: amount_in, sign: false }, // Exact input (positive)
-    // };
+    // Prepare swap parameters
+    let amount_in: u128 = 100_00;
+    let token_amount = TokenAmount {
+        token: pool_key.token0,
+        amount: i129 { mag: amount_in, sign: false }, // Exact input (positive)
+    };
 
-    // println!("get pool price");
-    // // // Get current pool price
-    // let pool_price = ekubo_core().get_pool_price(pool_key);
-    // // let current_sqrt_price = pool_price.sqrt_ratio;
-    // println!("Current sqrt price: {}", pool_price.sqrt_ratio);
-    // // println!("Current sqrt price: {}", current_sqrt_price);
+    println!("get pool price");
+    // // Get current pool price
+    let pool_price = ekubo_core().get_pool_price(pool_key);
+    // let current_sqrt_price = pool_price.sqrt_ratio;
+    println!("Current sqrt price: {}", pool_price.sqrt_ratio);
+    // println!("Current sqrt price: {}", current_sqrt_price);
 
     // // // Determine trade direction
-    // let _is_token1 = pool_key.token1 == token_amount.token;
-    // // -5% 323268248574891540290205877060179800883 'INSUFFICIENT_TF_BALANCE'
-    // // 0% 340282366920938463463374607431768211456 Success
-    // // 5% 357296485266985386636543337803356622028 'LIMIT_DIRECTION'
-    // // 20% 408338840305126156156049528918121853747 'LIMIT_DIRECTION' 
-    // let sqrt_ratio_limit : u256 = 323268248574891540290205877060179800883;
-    // println!("Sqrt price limit: {}", sqrt_ratio_limit);
+    let _is_token1 = pool_key.token1 == token_amount.token;
+    // -5% 323268248574891540290205877060179800883 'INSUFFICIENT_TF_BALANCE'
+    // 0% 340282366920938463463374607431768211456 Success
+    // 5% 357296485266985386636543337803356622028 'LIMIT_DIRECTION'
+    // 20% 408338840305126156156049528918121853747 'LIMIT_DIRECTION' 
+    let sqrt_ratio_limit : u256 = 323268248574891540290205877060179800883;
+    println!("Sqrt price limit: {}", sqrt_ratio_limit);
 
-    // let route = RouteNode {
-    //     pool_key,
-    //     sqrt_ratio_limit,
-    //     skip_ahead: 0,
-    // };
-    // let swap_data = Swap {
-    //     route,
-    //     token_amount,
-    // };
+    let route = RouteNode {
+        pool_key,
+        sqrt_ratio_limit,
+        skip_ahead: 0,
+    };
+    let swap_data = Swap {
+        route,
+        token_amount,
+    };
 
     // println!("get balance before");
 

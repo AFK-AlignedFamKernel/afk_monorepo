@@ -1,26 +1,30 @@
-use ekubo::types::delta::Delta;
+// use ekubo::types::delta::Delta;
 use ekubo::types::i129::i129;
 use ekubo::types::keys::PoolKey;
 use starknet::ContractAddress;
 
-#[derive(Serde, Copy, Drop)]
-pub struct RouteNode {
-    pub pool_key: PoolKey,
-    pub sqrt_ratio_limit: u256,
-    pub skip_ahead: u128,
-}
+use afk_launchpad::launchpad::extensions::internal_swap_pool::{Swap};
+use ekubo::interfaces::router::{
+    Delta, Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount,
+};
+// #[derive(Serde, Copy, Drop)]
+// pub struct RouteNode {
+//     pub pool_key: PoolKey,
+//     pub sqrt_ratio_limit: u256,
+//     pub skip_ahead: u128,
+// }
 
-#[derive(Serde, Copy, Drop)]
-pub struct TokenAmount {
-    pub token: ContractAddress,
-    pub amount: i129,
-}
+// #[derive(Serde, Copy, Drop)]
+// pub struct TokenAmount {
+//     pub token: ContractAddress,
+//     pub amount: i129,
+// }
 
-#[derive(Serde, Drop)]
-pub struct Swap {
-    pub route: Array<RouteNode>,
-    pub token_amount: TokenAmount,
-}
+// #[derive(Serde, Drop)]
+// pub struct Swap {
+//     pub route: Array<RouteNode>,
+//     pub token_amount: TokenAmount,
+// }
 
 #[starknet::interface]
 pub trait IRouterLite<TContractState> {
