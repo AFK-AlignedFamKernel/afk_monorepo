@@ -76,4 +76,5 @@ pub mod tests {
     pub mod unrug_tests;
 
     pub mod tests_fees_dex;
+    pub mod router_swap_test;
 }

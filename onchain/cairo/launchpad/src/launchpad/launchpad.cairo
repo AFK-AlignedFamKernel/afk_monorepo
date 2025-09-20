@@ -1395,6 +1395,7 @@ pub mod LaunchpadMarketplace {
             // let creator_fee_percent = input_creator_fee_percent;
             // let creator_fee_percent = self.creator_fee_percent.read();
 
+            println!("creator_fee_percent {:?}", creator_fee_percent);
             assert(
                 creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= ZERO_FEE_AMOUNT,
                 errors::CREATOR_FEE_OUT_OF_BOUNDS,

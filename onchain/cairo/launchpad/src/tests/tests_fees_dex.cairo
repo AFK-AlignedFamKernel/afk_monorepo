@@ -467,7 +467,7 @@ mod tests_fees_dex {
 
         // TODO
         // Get events and extenion address
-        let extension_address = 1845337946734783835169184357055651985534609947349628822666544523525019023731;
+        let extension_address = 2603522422329680705859784427684762254208545806738679160340153877107326083563;
         let pool_key = PoolKey {
             token0: token0,
             token1: token1,

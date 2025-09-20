@@ -105,8 +105,8 @@ mod edge_cases_tests {
     const MAX_FEE_PROTOCOL: u256 = 1000; //10%
     const MID_FEE_PROTOCOL: u256 = 100; //1%
     const MIN_FEE_CREATOR: u256 = 100; //1%
-    const MID_FEE_CREATOR: u256 = 1000; //10%
-    const MAX_FEE_CREATOR: u256 = 5000; //50%
+    const MID_FEE_CREATOR: u256 =300; //3%
+    const MAX_FEE_CREATOR: u256 = 500; //5%
     // const INITIAL_KEY_PRICE: u256 = 1 / 10_000;
     // const THRESHOLD_LIQUIDITY: u256 = 10;
     // const THRESHOLD_LIQUIDITY: u256 = 10_000;
