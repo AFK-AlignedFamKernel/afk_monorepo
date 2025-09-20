@@ -1,1 +1,8 @@
+afk_launchpad::tests::unrug_tests::unrug_tests::test_launch_on_jediswap
+afk_launchpad::tests::unrug_tests::unrug_tests::test_add_liquidity_ekubo
+afk_launchpad::tests::unrug_tests::unrug_tests::test_add_liquidity_ekubo_with_extension
 afk_launchpad::tests::tests_fees_dex::tests_fees_dex::test_one_position_with_swap
+afk_launchpad::tests::tests_fees_dex::tests_fees_dex::test_end_linear_with_different_supply
+afk_launchpad::tests::edge_cases_tests::edge_cases_tests::test_end_exp_with_different_supply
+afk_launchpad::tests::tests_fees_dex::tests_fees_dex::test_end_exp_with_different_supply
+afk_launchpad::tests::edge_cases_tests::edge_cases_tests::test_end_linear_with_different_supply
