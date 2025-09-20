@@ -28,6 +28,10 @@ pub mod launchpad {
         pub mod launch;
         pub mod linear;
     }
+
+    pub mod extensions {
+        pub mod internal_swap_pool;
+    }
 }
 
 pub mod mocks {
@@ -70,4 +74,7 @@ pub mod tests {
     // pub mod linear_tests;
     // pub mod liquidity_tests;
     pub mod unrug_tests;
+
+    pub mod tests_fees_dex;
+    pub mod router_swap_test;
 }

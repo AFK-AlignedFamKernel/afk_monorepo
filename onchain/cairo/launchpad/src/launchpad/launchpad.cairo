@@ -151,10 +151,14 @@ pub mod LaunchpadMarketplace {
         amount_to_paid_launch: u256,
         is_paid_launch_enable: bool,
         is_create_token_paid: bool,
+        is_dex_extension_enabled: bool,
+        class_hash_dex_extension: ClassHash,
         // Stats
         total_token: u64,
         total_launch: u64,
         is_coin_launched: Map<ContractAddress, bool>,
+
+        math_lib_class_hash: ClassHash,
         // TODO check edge case supply for Bonding curve
         // HIGH SECURITY RISK
         // EDGE CASE SUPPLY AND THRESHOLD
@@ -216,8 +220,8 @@ pub mod LaunchpadMarketplace {
         // Still not test
         self.is_paid_create_token_enable.write(false);
         self.is_paid_launch_enable.write(false);
-        self.amount_to_paid_launch.write(1_u256);
-        self.amount_to_paid_create_token.write(1_u256);
+        self.amount_to_paid_launch.write(0_u256);
+        self.amount_to_paid_create_token.write(0_u256);
 
         // TODO
         // Fees protocol to true by default
@@ -282,6 +286,11 @@ pub mod LaunchpadMarketplace {
         self.creator_fee_percent.write(MIN_FEE_CREATOR);
         // Unrug Liquitidy to deposit through Ekubo
         self.unrug_liquidity_address.write(unrug_liquidity_address);
+
+
+        let math_lib_class_hash:ClassHash =
+            0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
+        self.math_lib_class_hash.write(math_lib_class_hash);
     }
 
     #[abi(embed_v0)]
@@ -509,6 +518,18 @@ pub mod LaunchpadMarketplace {
         ) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.accesscontrol._revoke_role(role, contract_address);
+        }
+
+        fn set_is_dex_extension_enabled(ref self: ContractState, is_dex_extension_enabled: bool) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.is_dex_extension_enabled.write(is_dex_extension_enabled);
+        }
+
+        fn set_class_hash_dex_extension(
+            ref self: ContractState, class_hash_dex_extension: ClassHash,
+        ) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.class_hash_dex_extension.write(class_hash_dex_extension);
         }
 
         // User call
@@ -1091,7 +1112,12 @@ pub mod LaunchpadMarketplace {
             let (id, fees0, fees1) = unrug
                 .collect_fees(coin_address, launch.token_quote.token_address, recipient);
 
-            self.emit(CollectedFees { id: id, caller: caller, fees0: fees0, fees1: fees1, recipient: recipient });
+            self
+                .emit(
+                    CollectedFees {
+                        id: id, caller: caller, fees0: fees0, fees1: fees1, recipient: recipient,
+                    },
+                );
         }
 
         fn collect_fees_owner(ref self: ContractState, coin_address: ContractAddress) {
@@ -1108,7 +1134,13 @@ pub mod LaunchpadMarketplace {
 
             self
                 .emit(
-                    CollectedFees { id: id, caller: caller, fees0: fees0, fees1: fees1, recipient: owner_of_token },
+                    CollectedFees {
+                        id: id,
+                        caller: caller,
+                        fees0: fees0,
+                        fees1: fees1,
+                        recipient: owner_of_token,
+                    },
                 );
         }
 
@@ -1175,10 +1207,7 @@ pub mod LaunchpadMarketplace {
             self.metadata_coins.entry(coin_address).write(metadata_launch.clone());
             self
                 .emit(
-                    MetadataCoinAdded {
-                        token_address: coin_address,
-                        metadata_url: metadata.url,
-                    },
+                    MetadataCoinAdded { token_address: coin_address, metadata_url: metadata.url },
                 );
         }
 
@@ -1366,6 +1395,7 @@ pub mod LaunchpadMarketplace {
             // let creator_fee_percent = input_creator_fee_percent;
             // let creator_fee_percent = self.creator_fee_percent.read();
 
+            println!("creator_fee_percent {:?}", creator_fee_percent);
             assert(
                 creator_fee_percent <= MAX_FEE_CREATOR && creator_fee_percent >= ZERO_FEE_AMOUNT,
                 errors::CREATOR_FEE_OUT_OF_BOUNDS,
@@ -1508,7 +1538,7 @@ pub mod LaunchpadMarketplace {
             // let class_hash:ClassHash =
             // 0x37d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3.try_into().unwrap();
             let class_hash: ClassHash =
-                0x037d63129281c4c42cba74218c809ffc9e6f87ca74e0bdabb757a7f236ca59c3
+                self.math_lib_class_hash.read()
                 .try_into()
                 .unwrap();
 
@@ -1587,6 +1617,8 @@ pub mod LaunchpadMarketplace {
                 lp_quote_supply: lp_quote_supply.clone(),
                 pool_params: pool_params,
                 caller: get_caller_address(),
+                creator_fee_percent: launch.creator_fee_percent,
+                protocol_fee_percent: launch.protocol_fee_percent,
             };
 
             // Approve tokens

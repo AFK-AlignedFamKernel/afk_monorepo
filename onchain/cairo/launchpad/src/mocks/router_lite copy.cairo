@@ -1,30 +1,26 @@
-use ekubo::types::delta::Delta;
-use ekubo::types::i129::i129;
-use ekubo::types::keys::PoolKey;
-use starknet::ContractAddress;
+use ekubo::types::delta::{Delta};
+use ekubo::types::i129::{i129};
+use ekubo::types::keys::{PoolKey};
+use starknet::{ContractAddress};
 
-use afk_launchpad::launchpad::extensions::internal_swap_pool::{Swap};
-use ekubo::interfaces::router::{
-     Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount,
-};
-// #[derive(Serde, Copy, Drop)]
-// pub struct RouteNode {
-//     pub pool_key: PoolKey,
-//     pub sqrt_ratio_limit: u256,
-//     pub skip_ahead: u128,
-// }
+#[derive(Serde, Copy, Drop)]
+pub struct RouteNode {
+    pub pool_key: PoolKey,
+    pub sqrt_ratio_limit: u256,
+    pub skip_ahead: u128,
+}
 
-// #[derive(Serde, Copy, Drop)]
-// pub struct TokenAmount {
-//     pub token: ContractAddress,
-//     pub amount: i129,
-// }
+#[derive(Serde, Copy, Drop)]
+pub struct TokenAmount {
+    pub token: ContractAddress,
+    pub amount: i129,
+}
 
-// #[derive(Serde, Drop)]
-// pub struct Swap {
-//     pub route: Array<RouteNode>,
-//     pub token_amount: TokenAmount,
-// }
+#[derive(Serde, Drop)]
+pub struct Swap {
+    pub route: Array<RouteNode>,
+    pub token_amount: TokenAmount,
+}
 
 #[starknet::interface]
 pub trait IRouterLite<TContractState> {
@@ -35,7 +31,7 @@ pub trait IRouterLite<TContractState> {
     // Does a multihop swap, where the output/input of each hop is passed as input/output of the
     // next swap Note to do exact output swaps, the route must be given in reverse
     fn multihop_swap(
-        ref self: TContractState, route: Array<RouteNode>, token_amount: TokenAmount,
+        ref self: TContractState, route: Array<RouteNode>, token_amount: TokenAmount
     ) -> Array<Delta>;
 
     // Does multiple multihop swaps
@@ -44,16 +40,16 @@ pub trait IRouterLite<TContractState> {
 
 #[starknet::contract]
 pub mod RouterLite {
+    use starknet::storage::{StoragePointerWriteAccess, StoragePointerReadAccess};
     use core::array::{Array, ArrayTrait};
-    use core::option::OptionTrait;
-    use ekubo::components::clear::ClearImpl;
+    use core::option::{OptionTrait};
+    use ekubo::components::clear::{ClearImpl};
     use ekubo::components::shared_locker::{
-        call_core_with_callback, consume_callback_data, handle_delta,
+        consume_callback_data, handle_delta, call_core_with_callback
     };
     use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker, SwapParameters};
-    use starknet::get_contract_address;
-    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
-    use super::{Delta, IRouterLite, RouteNode, Swap, TokenAmount};
+    use starknet::{get_contract_address};
+    use super::{Delta, IRouterLite, RouteNode, TokenAmount, Swap};
 
     #[abi(embed_v0)]
     impl Clear = ekubo::components::clear::ClearImpl<ContractState>;
@@ -96,7 +92,7 @@ pub mod RouterLite {
                                 is_token1: is_token1,
                                 sqrt_ratio_limit: node.sqrt_ratio_limit,
                                 skip_ahead: node.skip_ahead,
-                            },
+                            }
                         );
 
                     deltas.append(delta);
@@ -106,14 +102,14 @@ pub mod RouterLite {
                             if is_token1 {
                                 Option::Some(
                                     TokenAmount {
-                                        token: node.pool_key.token1, amount: delta.amount1,
-                                    },
+                                        token: node.pool_key.token1, amount: delta.amount1
+                                    }
                                 )
                             } else {
                                 Option::Some(
                                     TokenAmount {
-                                        token: node.pool_key.token0, amount: delta.amount0,
-                                    },
+                                        token: node.pool_key.token0, amount: delta.amount0
+                                    }
                                 )
                             }
                     }
@@ -124,7 +120,7 @@ pub mod RouterLite {
                         } else {
                             TokenAmount { amount: -delta.amount1, token: node.pool_key.token1 }
                         };
-                }
+                };
 
                 let recipient = get_contract_address();
 
@@ -133,7 +129,7 @@ pub mod RouterLite {
                 let first = first_swap_amount.unwrap();
                 handle_delta(core, token_amount.token, -token_amount.amount, recipient);
                 handle_delta(core, first.token, first.amount, recipient);
-            }
+            };
 
             let mut serialized: Array<felt252> = array![];
 
@@ -153,7 +149,7 @@ pub mod RouterLite {
 
         #[inline(always)]
         fn multihop_swap(
-            ref self: ContractState, route: Array<RouteNode>, token_amount: TokenAmount,
+            ref self: ContractState, route: Array<RouteNode>, token_amount: TokenAmount
         ) -> Array<Delta> {
             let mut result = self.multi_multihop_swap(array![Swap { route, token_amount }]);
 

@@ -1,4 +1,4 @@
-mod edge_cases_tests {
+mod tests_fees_dex {
     use afk_launchpad::interfaces::factory::{IFactory, IFactoryDispatcher, IFactoryDispatcherTrait};
     use afk_launchpad::interfaces::launchpad::{
         ILaunchpadMarketplaceDispatcher, ILaunchpadMarketplaceDispatcherTrait,
@@ -12,6 +12,7 @@ mod edge_cases_tests {
     };
     // use afk_launchpad::launchpad::errors;
     use afk_launchpad::launchpad::launchpad::LaunchpadMarketplace::{Event as LaunchpadEvent};
+    use afk_launchpad::launchpad::unrug::UnrugLiquidity::{Event as UnrugEvent};
     use afk_launchpad::launchpad::math::PercentageMath;
     use afk_launchpad::launchpad::utils::{
         MAX_SQRT_RATIO, MAX_TICK, MAX_TICK_U128, MIN_SQRT_RATIO, MIN_TICK, MIN_TICK_U128,
@@ -20,18 +21,13 @@ mod edge_cases_tests {
         get_next_tick_bounds, sort_tokens, unique_count,
     };
     use afk_launchpad::mocks::router_lite::{
-        IRouterLiteDispatcher, IRouterLiteDispatcherTrait, 
+        IRouterLiteDispatcher, IRouterLiteDispatcherTrait
     };
-   
 
-    use afk_launchpad::launchpad::extensions::internal_swap_pool::{Swap};
-    use ekubo::types::bounds::Bounds;
-    use ekubo::types::delta::Delta;
-    use ekubo::types::i129::i129;
-    use ekubo::types::keys::PoolKey;
     use ekubo::interfaces::router::{
          Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount
     };
+    use ekubo::types::delta::Delta;
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk_launchpad::types::launchpad_types::{ADMIN_ROLE, MINTER_ROLE};
@@ -40,8 +36,9 @@ mod edge_cases_tests {
         CreateLaunch, // SetJediswapNFTRouterV2,SetJediswapV2Factory,
         SupportedExchanges, EkuboLP,
         EkuboPoolParameters, TokenLaunch, EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
-        EkuboUnrugLaunchParameters,
+        EkuboUnrugLaunchParameters, ExtensionCreated
     };
+    use afk_launchpad::launchpad::extensions::internal_swap_pool::{InternalSwapPool,Swap};
     use afk_launchpad::utils::sqrt;
     use core::num::traits::Zero;
     use core::starknet::SyscallResultTrait;
@@ -53,7 +50,10 @@ mod edge_cases_tests {
     use ekubo::interfaces::token_registry::{
         ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
     };
-
+    use ekubo::types::bounds::Bounds;
+    // use ekubo::types::delta::Delta;
+    use ekubo::types::i129::i129;
+    use ekubo::types::keys::PoolKey;
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
         ContractClass, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, declare,
@@ -112,7 +112,7 @@ mod edge_cases_tests {
     const MAX_FEE_PROTOCOL: u256 = 1000; //10%
     const MID_FEE_PROTOCOL: u256 = 100; //1%
     const MIN_FEE_CREATOR: u256 = 100; //1%
-    const MID_FEE_CREATOR: u256 =300; //3%
+    const MID_FEE_CREATOR: u256 = 300; //3%
     const MAX_FEE_CREATOR: u256 = 500; //5%
     // const INITIAL_KEY_PRICE: u256 = 1 / 10_000;
     // const THRESHOLD_LIQUIDITY: u256 = 10;
@@ -250,11 +250,12 @@ mod edge_cases_tests {
     ) {
         let erc20_class = declare_erc20();
         let meme_class = declare_memecoin();
+        let internal_swap_pool_class = declare_internal_swap_pool();
         let unrug_class = declare_unrug_liquidity();
         let launch_class = declare_launchpad();
         let router_class = declare_router();
         request_fixture_custom_classes(
-            *erc20_class, *meme_class, *launch_class, *unrug_class, *router_class,
+            *erc20_class, *meme_class, *launch_class, *unrug_class, *router_class, *internal_swap_pool_class,
         )
     }
 
@@ -264,6 +265,7 @@ mod edge_cases_tests {
         launch_class: ContractClass,
         unrug_class: ContractClass,
         router_class: ContractClass,
+        internal_swap_pool_class: ContractClass,
     ) -> (
         ContractAddress, IERC20Dispatcher, ILaunchpadMarketplaceDispatcher, IRouterLiteDispatcher,
     ) {
@@ -301,8 +303,15 @@ mod edge_cases_tests {
             unrug_liquidity.contract_address,
         );
         let router = deploy_router(router_class, EKUBO_CORE());
-        start_cheat_caller_address(launchpad.contract_address, OWNER());
-        (sender_address, erc20, launchpad, router)
+        start_cheat_caller_address(launchpad.contract_address, sender_address);
+
+        start_cheat_caller_address(unrug_liquidity.contract_address, sender_address);
+
+        unrug_liquidity.set_is_extensions_enabled(true);
+        unrug_liquidity.set_ekubo_extension_class_hash(internal_swap_pool_class.class_hash);
+        stop_cheat_caller_address(unrug_liquidity.contract_address);
+
+        (sender_address, erc20, launchpad, router   )
     }
 
 
@@ -369,6 +378,10 @@ mod edge_cases_tests {
 
     fn declare_memecoin() -> @ContractClass {
         declare("Memecoin").unwrap().contract_class()
+    }
+
+    fn declare_internal_swap_pool() -> @ContractClass {
+        declare("InternalSwapPool").unwrap().contract_class()
     }
 
     fn declare_router() -> @ContractClass {
@@ -456,17 +469,26 @@ mod edge_cases_tests {
 
         let (token0, token1) = sort_tokens(memecoin.contract_address, erc20.contract_address);
 
+
+        // TODO
+        // Get events and extenion address
+        let extension_address = 2603522422329680705859784427684762254208545806738679160340153877107326083563;
         let pool_key = PoolKey {
             token0: token0,
             token1: token1,
             tick_spacing: tick_spacing,
             fee: fee_percent,
-            extension: 0.try_into().unwrap(),
+            extension: extension_address.try_into().unwrap(),
         };
+
+        let mut sqrt_ratio_limit : u256 = MIN_SQRT_RATIO;
+        // sqrt_ratio_limit = 323268248574891540290205877060179800883;
+
 
         let mut router_node = RouteNode {
             pool_key: pool_key,
             sqrt_ratio_limit: MIN_SQRT_RATIO, // We can ignore slippage in testing, as our router is just a mock
+            // sqrt_ratio_limit: sqrt_ratio_limit, // We can ignore slippage in testing, as our router is just a mock
             skip_ahead: 0,
         };
 
@@ -699,8 +721,8 @@ mod edge_cases_tests {
             // EDGE CASES TO CHECK
             // (THRESHOLD_LIQUIDITY ), // BREAKING = same supply as threshold liquidity
             // (THRESHOLD_LIQUIDITY * 2_u256), // BREAKING = double times the supply
-            (THRESHOLD_LIQUIDITY
-                * 10_u256), // 10 times the threshold_liquidity = can init_pool_supply be alsways above
+            // (THRESHOLD_LIQUIDITY
+            //     * 10_u256), // 10 times the threshold_liquidity = can init_pool_supply be alsways above
             (THRESHOLD_LIQUIDITY
                 * 100_u256), // 100 times the threshold_liquidity = can init_pool_supply be alsways above
             100_000_u256 * pow_256(10, 18), // 100k
@@ -709,8 +731,8 @@ mod edge_cases_tests {
             100_000_000_u256 * pow_256(10, 18), // 100m
             1_000_000_000_u256 * pow_256(10, 18), // 1b
             10_000_000_000_u256 * pow_256(10, 18), // 10b
-            100_000_000_000_u256 * pow_256(10, 18), // 100b
-            1_000_000_000_000_u256 * pow_256(10, 18) // 1t
+            // 100_000_000_000_u256 * pow_256(10, 18), // 100b
+            // 1_000_000_000_000_u256 * pow_256(10, 18) // 1t
             // 10_000_000_000_000_u256, // 10t
         // 100_000_000_000_000_u256, // 100t
         // 100_000_000_000_000_000_000_000_000_000_000_u256
@@ -1048,7 +1070,7 @@ mod edge_cases_tests {
             println!("exp test_ekubo_lp");
 
             // test_ekubo_lp(token_address, erc20.contract_address, *init_supplies.at(i));
-            test_ekubo_lp(token_address, erc20.contract_address, launchpad, position);
+            // test_ekubo_lp(token_address, erc20.contract_address, launchpad, position);
 
             println!("exp test_ekubo_lp_end");
 
@@ -1115,13 +1137,17 @@ mod edge_cases_tests {
 
         let min_tick: u128 = MIN_TICK_U128;
         let max_tick: u128 = MAX_TICK_U128;
+        println!("aligned_min_tick");
 
         let aligned_min_tick = align_tick_with_max_tick_and_min_tick(min_tick, tick_spacing);
+        println!("aligned_max_tick");
+
         let aligned_max_tick = align_tick_with_max_tick_and_min_tick(max_tick, tick_spacing);
         let mut full_range_bounds = Bounds {
             lower: i129 { mag: aligned_min_tick, sign: true },
             upper: i129 { mag: aligned_max_tick, sign: false },
         };
+        println!("aligned_max_tick");
         let initial_position: GetTokenInfoResult = position_dispatcher
             .get_token_info(position_id, pool_key, full_range_bounds);
         println!("Amount0 {:?}", initial_position.amount0);

@@ -153,6 +153,16 @@ pub struct StoredName {
 }
 
 #[derive(Drop, starknet::Event)]
+pub struct ExtensionCreated {
+    #[key]
+    pub caller: ContractAddress,
+    pub extension_address: ContractAddress,
+    pub token_address: ContractAddress,
+    pub quote_address: ContractAddress,
+}
+
+
+#[derive(Drop, starknet::Event)]
 pub struct BuyToken {
     #[key]
     pub caller: ContractAddress,
