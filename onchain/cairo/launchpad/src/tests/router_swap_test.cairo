@@ -2,10 +2,7 @@
 
 use ekubo::interfaces::core::{ICoreDispatcherTrait, ICoreDispatcher, IExtensionDispatcher};
 use ekubo::interfaces::positions::{IPositionsDispatcher, IPositionsDispatcherTrait};
-use ekubo::types::keys::{PoolKey};
-use ekubo::types::bounds::{Bounds};
-use ekubo::types::i129::{i129};
-use core::num::traits::{Zero};
+
 use afk_launchpad::tokens::erc20::{IERC20Dispatcher, IERC20DispatcherTrait};
 use snforge_std::{
     declare, DeclareResultTrait, ContractClassTrait, ContractClass};
@@ -13,11 +10,15 @@ use starknet::{ContractAddress, get_contract_address, contract_address_const, ge
 use afk_launchpad::mocks::router_lite::{
     IRouterLiteDispatcher, IRouterLiteDispatcherTrait,IRouterLite
 };
-use afk_launchpad::launchpad::extensions::internal_swap_pool::{InternalSwapPool, Swap, IISPDispatcher, IISPDispatcherTrait,
+use afk_launchpad::launchpad::extensions::internal_swap_pool::{InternalSwapPool,IISPDispatcher, IISPDispatcherTrait, Swap
 // InternalSwapPoolDispatcher, InternalSwapPoolDispatcherTrait,
 };
+use ekubo::types::keys::{PoolKey};
+use ekubo::types::bounds::{Bounds};
+use ekubo::types::i129::{i129};
+use core::num::traits::{Zero};
 use ekubo::interfaces::router::{
-    Delta, Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount,
+     Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount,
 };
 use starknet::syscalls::deploy_syscall;
 
@@ -340,8 +341,9 @@ fn test_isp_swap_token0_for_token1() {
         sqrt_ratio_limit,
         skip_ahead: 0,
     };
+    let route_array = array![route];
     let swap_data = Swap {
-        route,
+        route:route_array,
         token_amount,
     };
 

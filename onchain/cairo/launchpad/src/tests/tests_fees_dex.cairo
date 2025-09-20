@@ -24,10 +24,10 @@ mod tests_fees_dex {
         IRouterLiteDispatcher, IRouterLiteDispatcherTrait
     };
 
-    use afk_launchpad::launchpad::extensions::internal_swap_pool::{Swap};
     use ekubo::interfaces::router::{
-        Delta, Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount,
+         Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount
     };
+    use ekubo::types::delta::Delta;
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
     use afk_launchpad::types::launchpad_types::{ADMIN_ROLE, MINTER_ROLE};
@@ -38,7 +38,7 @@ mod tests_fees_dex {
         EkuboPoolParameters, TokenLaunch, EkuboLaunchParameters, LaunchParameters, SharesTokenUser,
         EkuboUnrugLaunchParameters, ExtensionCreated
     };
-    use afk_launchpad::launchpad::extensions::internal_swap_pool::{InternalSwapPool};
+    use afk_launchpad::launchpad::extensions::internal_swap_pool::{InternalSwapPool,Swap};
     use afk_launchpad::utils::sqrt;
     use core::num::traits::Zero;
     use core::starknet::SyscallResultTrait;

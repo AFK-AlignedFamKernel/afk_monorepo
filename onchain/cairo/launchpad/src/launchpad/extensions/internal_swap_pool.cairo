@@ -8,7 +8,7 @@ use ekubo::types::i129::i129;
 use ekubo::types::keys::PoolKey;
 use starknet::ContractAddress;
 use ekubo::interfaces::router::{
-    Delta, Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount, Swap
+    Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount
 };
 #[starknet::interface]
 pub trait IISP<TState> {
@@ -44,13 +44,13 @@ pub trait IISP<TState> {
 
 // Swap argument for multi multi-hop swaps
 // After single swap works well change to: pub route: Array<RouteNode>
-// #[derive(Serde, Drop)]
-// pub struct Swap {
-//     pub route: RouteNode,
-//     // pub route: Array<RouteNode>,
+#[derive(Serde, Drop)]
+pub struct Swap {
+    // pub route: RouteNode,
+    pub route: Array<RouteNode>,
 
-//     pub token_amount: TokenAmount,
-// }
+    pub token_amount: TokenAmount,
+}
 
 // Interface for ISP Router
 #[starknet::interface]
@@ -275,22 +275,31 @@ pub mod InternalSwapPool {
 
             println!("forwarded");
             // Consume the callback data from router
-            let swap_data: Swap = consume_callback_data(core, data);
+            let mut swap_data: Swap = consume_callback_data(core, data);
 
             // Determine if it is token1
-            let is_token1 = swap_data.route.pool_key.token1 == swap_data.token_amount.token;
 
             println!("try swap router core");
 
+            let i = 0;
+
+            let token = swap_data.token_amount.token;
+            let token1 = swap_data.route[i].pool_key.token1;
+            let is_token1 = *token1 == token;
+
+            let pool_key = swap_data.route[i].pool_key;
+
+            let skip_ahead = swap_data.route[i].skip_ahead;
+            let sqrt_ratio_limit = swap_data.route[i].sqrt_ratio_limit;
             // Directly call core.swap here instead of execute_isp_swap
             let result: Delta = core
                 .swap(
-                    swap_data.route.pool_key,
+                    *pool_key,
                     SwapParameters {
                         amount: swap_data.token_amount.amount,
                         is_token1: is_token1,
-                        sqrt_ratio_limit: swap_data.route.sqrt_ratio_limit,
-                        skip_ahead: swap_data.route.skip_ahead,
+                        sqrt_ratio_limit: *sqrt_ratio_limit,
+                        skip_ahead: *skip_ahead,
                     },
                 );
 
@@ -308,7 +317,7 @@ pub mod InternalSwapPool {
                 if creator_fee > 0 {
                     let creator_key = SavedBalanceKey {
                         owner: self.creator.read(), 
-                        token: swap_data.route.pool_key.token0, 
+                        token: *pool_key.token0, 
                         salt: 0,
                     };
                     core.save(creator_key, creator_fee);
@@ -318,7 +327,7 @@ pub mod InternalSwapPool {
                 if protocol_fee > 0 {
                     let protocol_key = SavedBalanceKey {
                         owner: self.protocol_address.read(), 
-                        token: swap_data.route.pool_key.token0, 
+                        token: *pool_key.token0, 
                         salt: 0,
                     };
                     core.save(protocol_key, protocol_fee);
@@ -346,7 +355,7 @@ pub mod InternalSwapPool {
                 if creator_fee > 0 {
                     let creator_key = SavedBalanceKey {
                         owner: self.creator.read(), 
-                        token: swap_data.route.pool_key.token1, 
+                        token: *pool_key.token1, 
                         salt: 1,
                     };
                     core.save(creator_key, creator_fee);
@@ -356,7 +365,7 @@ pub mod InternalSwapPool {
                 if protocol_fee > 0 {
                     let protocol_key = SavedBalanceKey {
                         owner: self.protocol_address.read(), 
-                        token: swap_data.route.pool_key.token1, 
+                        token: *pool_key.token1, 
                         salt: 1,
                     };
                     core.save(protocol_key, protocol_fee);
