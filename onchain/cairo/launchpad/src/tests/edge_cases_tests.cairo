@@ -20,7 +20,17 @@ mod edge_cases_tests {
         get_next_tick_bounds, sort_tokens, unique_count,
     };
     use afk_launchpad::mocks::router_lite::{
-        IRouterLiteDispatcher, IRouterLiteDispatcherTrait, RouteNode, TokenAmount,
+        IRouterLiteDispatcher, IRouterLiteDispatcherTrait, 
+    };
+   
+
+    use afk_launchpad::launchpad::extensions::internal_swap_pool::{Swap};
+    use ekubo::types::bounds::Bounds;
+    use ekubo::types::delta::Delta;
+    use ekubo::types::i129::i129;
+    use ekubo::types::keys::PoolKey;
+    use ekubo::interfaces::router::{
+         Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount
     };
     use afk_launchpad::tokens::erc20::{IERC20, IERC20Dispatcher, IERC20DispatcherTrait};
     use afk_launchpad::tokens::memecoin::{IMemecoin, IMemecoinDispatcher, IMemecoinDispatcherTrait};
@@ -43,10 +53,7 @@ mod edge_cases_tests {
     use ekubo::interfaces::token_registry::{
         ITokenRegistryDispatcher, ITokenRegistryDispatcherTrait,
     };
-    use ekubo::types::bounds::Bounds;
-    use ekubo::types::delta::Delta;
-    use ekubo::types::i129::i129;
-    use ekubo::types::keys::PoolKey;
+
     use openzeppelin::utils::serde::SerializedAppend;
     use snforge_std::{
         ContractClass, ContractClassTrait, DeclareResultTrait, EventSpyAssertionsTrait, declare,
@@ -105,8 +112,8 @@ mod edge_cases_tests {
     const MAX_FEE_PROTOCOL: u256 = 1000; //10%
     const MID_FEE_PROTOCOL: u256 = 100; //1%
     const MIN_FEE_CREATOR: u256 = 100; //1%
-    const MID_FEE_CREATOR: u256 = 1000; //10%
-    const MAX_FEE_CREATOR: u256 = 5000; //50%
+    const MID_FEE_CREATOR: u256 =300; //3%
+    const MAX_FEE_CREATOR: u256 = 500; //5%
     // const INITIAL_KEY_PRICE: u256 = 1 / 10_000;
     // const THRESHOLD_LIQUIDITY: u256 = 10;
     // const THRESHOLD_LIQUIDITY: u256 = 10_000;

@@ -17,17 +17,15 @@ pub trait IERC20<TContractState> {
     fn totalSupply(self: @TContractState) -> u256;
     fn balance_of(self: @TContractState, account: ContractAddress) -> u256;
     fn balanceOf(self: @TContractState, account: ContractAddress) -> u256;
-    fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) ->
-    u256;
+    fn allowance(self: @TContractState, owner: ContractAddress, spender: ContractAddress) -> u256;
     fn transfer(ref self: TContractState, recipient: ContractAddress, amount: u256) -> bool;
     fn transfer_from(
-        ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount:
-        u256
+        ref self: TContractState, sender: ContractAddress, recipient: ContractAddress, amount: u256,
     ) -> bool;
     fn approve(ref self: TContractState, spender: ContractAddress, amount: u256) -> bool;
     fn increase_allowance(ref self: TContractState, spender: ContractAddress, added_value: u256);
     fn decrease_allowance(
-        ref self: TContractState, spender: ContractAddress, subtracted_value: u256
+        ref self: TContractState, spender: ContractAddress, subtracted_value: u256,
     );
 }
 
@@ -108,12 +106,11 @@ pub mod Memecoin {
     use openzeppelin::access::accesscontrol::AccessControlComponent;
     use openzeppelin::access::ownable::OwnableComponent;
     use openzeppelin::account::interface;
-
     use openzeppelin::governance::votes::VotesComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     // use openzeppelin::token::erc20::ERC20Component;
     // use openzeppelin::token::erc20::{ERC20Component, ERC20HooksEmptyImpl, DefaultConfig};
-    use openzeppelin::token::erc20::{ERC20Component, DefaultConfig};
+    use openzeppelin::token::erc20::{DefaultConfig, ERC20Component};
     use openzeppelin::utils::cryptography::nonces::NoncesComponent;
     use openzeppelin::utils::cryptography::snip12::SNIP12Metadata;
     // use openzeppelin::governance::timelock::TimelockControllerComponent;
@@ -164,7 +161,6 @@ pub mod Memecoin {
     // impl TimelockMixinImpl = TimelockControllerComponent::TimelockMixinImpl<ContractState>;
     // impl TimelockInternalImpl = TimelockControllerComponent::InternalImpl<ContractState>;
 
-
     // Nonces
     #[abi(embed_v0)]
     impl NoncesImpl = NoncesComponent::NoncesImpl<ContractState>;
@@ -203,18 +199,16 @@ pub mod Memecoin {
         ownable: OwnableComponent::Storage,
         #[substorage(v0)]
         src5: SRC5Component::Storage,
-    
         #[substorage(v0)]
         nonces: NoncesComponent::Storage,
         #[substorage(v0)]
         access_control: AccessControlComponent::Storage,
-   
         #[substorage(v0)]
         erc20: ERC20Component::Storage,
         #[substorage(v0)]
         erc20_votes: VotesComponent::Storage,
         // #[substorage(v0)]
-        // timelock: TimelockControllerComponent::Storage,
+    // timelock: TimelockControllerComponent::Storage,
     }
 
     #[event]
@@ -226,17 +220,14 @@ pub mod Memecoin {
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
-
         #[flat]
         NoncesEvent: NoncesComponent::Event,
-       
         #[flat]
         ERC20Event: ERC20Component::Event,
-
         #[flat]
         ERC20VotesEvent: VotesComponent::Event,
         // #[flat]
-        // TimelockEvent: TimelockControllerComponent::Event,
+    // TimelockEvent: TimelockControllerComponent::Event,
     }
 
     // Required for hash computation.
@@ -255,7 +246,7 @@ pub mod Memecoin {
             ref self: ERC20Component::ComponentState<ContractState>,
             from: ContractAddress,
             recipient: ContractAddress,
-            amount: u256
+            amount: u256,
         ) {
             let mut contract_state = self.get_contract_mut();
             contract_state.erc20_votes.transfer_voting_units(from, recipient, amount);
@@ -271,7 +262,6 @@ pub mod Memecoin {
         decimals: u8,
         recipient: ContractAddress,
         owner: ContractAddress,
-
         factory: ContractAddress,
     ) {
         let caller = get_caller_address();

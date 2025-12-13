@@ -139,6 +139,8 @@ pub trait ILaunchpadMarketplace<TContractState> {
         ref self: TContractState, is_creator_fee_sent_before_graduated: bool,
     );
 
+    fn set_is_dex_extension_enabled(ref self: TContractState, is_dex_extension_enabled: bool);
+    fn set_class_hash_dex_extension(ref self: TContractState, class_hash_dex_extension: ClassHash);
     fn distribute_creator_fee(ref self: TContractState, coin_address: ContractAddress);
 
 

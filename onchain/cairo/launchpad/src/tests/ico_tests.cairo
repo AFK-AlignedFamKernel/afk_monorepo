@@ -111,6 +111,8 @@ mod ico_tests {
             start_time,
             end_time,
             liquidity_lockup,
+            creator_fee_percent: 0,
+            protocol_fee_percent: 0,
         }
     }
 

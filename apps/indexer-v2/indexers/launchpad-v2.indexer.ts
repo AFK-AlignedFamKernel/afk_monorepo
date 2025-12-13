@@ -23,7 +23,7 @@ import { LAUNCHPAD_ADDRESS } from 'common';
 import dotenv from 'dotenv';
 dotenv.config();
 
-export const ADDRESS_LAUNCHPAD = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] || process.env.LAUNCHPAD_ADDRESS as string || "0x64d2deb12d8146d7600289addfb2ec258d8fbc5d51062f5bd3652b4d3b47ac0";
+export const ADDRESS_LAUNCHPAD = LAUNCHPAD_ADDRESS[constants.StarknetChainId.SN_SEPOLIA] || process.env.LAUNCHPAD_ADDRESS as string || "0x2cd57d5721aadeecaa1cb837d02d699116de5f387b7f4b2b2a96cf3a9842adb";
 
 
 // Event selectors
@@ -339,7 +339,7 @@ export default function (config: ApibaraRuntimeConfig & {
   return defineIndexer(StarknetStream)({
     streamUrl: config.streamUrl as string,
     startingCursor: {
-      orderKey: BigInt(config?.startingCursor?.orderKey ?? 1962305),
+      orderKey: BigInt(config?.startingCursor?.orderKey ?? 2230560),
     },
     filter: {
       events: [
@@ -689,7 +689,8 @@ export default function (config: ApibaraRuntimeConfig & {
               total_supply,
               created_at,
               is_launched,
-              nostr_id
+              nostr_id,
+              livestream_id
             ) VALUES (
               ${transactionHash},
               ${'starknet-sepolia'},
@@ -702,7 +703,8 @@ export default function (config: ApibaraRuntimeConfig & {
               ${totalSupply},
               ${new Date()},
               ${false},
-              ${event?.args?.nostr_id || null}
+              ${event?.args?.nostr_id || null},
+              ${event?.args?.livestream_id || null}
             )
             ON CONFLICT (transaction_hash) DO NOTHING
           `);
@@ -729,6 +731,7 @@ export default function (config: ApibaraRuntimeConfig & {
               created_at: new Date(),
               is_launched: false,
               nostr_id: event?.args?.nostr_id,
+              livestream_id: event?.args?.livestream_id,
             });
             const drizzleTimeoutPromise = new Promise((_, reject) => {
               setTimeout(() => reject(new Error('Drizzle insert timed out after 10s')), 10000);
@@ -1017,7 +1020,7 @@ export default function (config: ApibaraRuntimeConfig & {
 
       try {
 
-        const updateTokenLaunchPromise = db.update(tokenLaunch)
+        const updateTokenLaunchPromise = withRetry(() => db.update(tokenLaunch)
           .set({
             url: extractedMetadata.url,
             twitter: extractedMetadata.twitter,
@@ -1025,7 +1028,8 @@ export default function (config: ApibaraRuntimeConfig & {
             github: extractedMetadata.github,
             website: extractedMetadata.website,
           })
-          .where(eq(tokenLaunch.memecoin_address, tokenAddress));
+          .where(eq(tokenLaunch.memecoin_address, tokenAddress)),
+          3, 1000);
 
         const updateTokenLaunchTimeout = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Drizzle update timed out after 10s')), 10000);
@@ -1039,14 +1043,15 @@ export default function (config: ApibaraRuntimeConfig & {
 
       try {
 
-        const updateTokenDeployPromise = db.update(tokenDeploy)
+        const updateTokenDeployPromise = withRetry(() => db.update(tokenDeploy)
           .set({
             url: extractedMetadata.url,
             telegram: extractedMetadata.telegram,
             github: extractedMetadata.github,
             website: extractedMetadata.website,
           })
-          .where(eq(tokenDeploy.memecoin_address, tokenAddress));
+          .where(eq(tokenDeploy.memecoin_address, tokenAddress))
+          , 3, 1000);
 
         const updateTokenDeployTimeout = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Drizzle update timed out after 10s')), 10000);
@@ -1102,7 +1107,7 @@ export default function (config: ApibaraRuntimeConfig & {
         console.log('Starting raw SQL insert...');
         try {
           console.log('Executing INSERT statement...');
-          await db.execute(sql`
+          withTimeout(db.execute(sql`
             INSERT INTO token_metadata (
               transaction_hash,
               network,
@@ -1130,7 +1135,7 @@ export default function (config: ApibaraRuntimeConfig & {
               ${extractedMetadata.website || null},
               ${new Date()}
             )
-          `);
+          `), 10000);
           console.log('Token Metadata Record Created via raw SQL');
         } catch (sqlError: any) {
           console.error('Raw SQL insert failed:', sqlError);

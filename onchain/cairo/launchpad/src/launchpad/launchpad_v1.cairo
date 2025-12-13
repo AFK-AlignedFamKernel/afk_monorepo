@@ -1316,6 +1316,8 @@ pub mod LaunchpadMarketplace {
                 lp_quote_supply: lp_quote_supply.clone(),
                 pool_params: pool_params,
                 caller: get_caller_address(),
+                creator_fee_percent: launch.creator_fee_percent,
+                protocol_fee_percent: launch.protocol_fee_percent,
             };
 
             // Approve tokens

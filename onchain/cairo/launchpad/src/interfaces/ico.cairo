@@ -68,7 +68,9 @@ pub fn default_presale_details() -> PresaleDetails {
         listing_rate: 20, // 1 quote to 20 presale tokens
         start_time: get_block_timestamp(),
         end_time: get_block_timestamp() + 100000,
-        liquidity_lockup: get_block_timestamp() + (60 * 24 * 30 * 30) // in seconds
+        liquidity_lockup: get_block_timestamp() + (60 * 24 * 30 * 30), // in seconds
+        creator_fee_percent: 0,
+        protocol_fee_percent: 0,
     }
 }
 
@@ -100,7 +102,9 @@ pub struct PresaleDetails {
     pub listing_rate: u256,
     pub start_time: u64,
     pub end_time: u64,
-    pub liquidity_lockup: u64 // in hours.
+    pub liquidity_lockup: u64, // in hours.
+    pub creator_fee_percent: u256,
+    pub protocol_fee_percent: u256,
 }
 
 // Give room for precision too.

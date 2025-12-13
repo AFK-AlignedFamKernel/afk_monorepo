@@ -193,6 +193,10 @@ export const LaunchActionsForm: React.FC<LaunchActionsFormProps> = ({
             </button>
           )}
 
+          <ButtonSecondary onClick={handleClaimToken}>
+            Claim
+          </ButtonSecondary>
+
         </div>
 
       </div>

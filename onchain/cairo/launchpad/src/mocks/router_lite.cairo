@@ -3,24 +3,28 @@ use ekubo::types::i129::i129;
 use ekubo::types::keys::PoolKey;
 use starknet::ContractAddress;
 
-#[derive(Serde, Copy, Drop)]
-pub struct RouteNode {
-    pub pool_key: PoolKey,
-    pub sqrt_ratio_limit: u256,
-    pub skip_ahead: u128,
-}
+use afk_launchpad::launchpad::extensions::internal_swap_pool::{Swap};
+use ekubo::interfaces::router::{
+     Depth, IRouterDispatcher, IRouterDispatcherTrait, RouteNode, TokenAmount,
+};
+// #[derive(Serde, Copy, Drop)]
+// pub struct RouteNode {
+//     pub pool_key: PoolKey,
+//     pub sqrt_ratio_limit: u256,
+//     pub skip_ahead: u128,
+// }
 
-#[derive(Serde, Copy, Drop)]
-pub struct TokenAmount {
-    pub token: ContractAddress,
-    pub amount: i129,
-}
+// #[derive(Serde, Copy, Drop)]
+// pub struct TokenAmount {
+//     pub token: ContractAddress,
+//     pub amount: i129,
+// }
 
-#[derive(Serde, Drop)]
-pub struct Swap {
-    pub route: Array<RouteNode>,
-    pub token_amount: TokenAmount,
-}
+// #[derive(Serde, Drop)]
+// pub struct Swap {
+//     pub route: Array<RouteNode>,
+//     pub token_amount: TokenAmount,
+// }
 
 #[starknet::interface]
 pub trait IRouterLite<TContractState> {
@@ -44,9 +48,10 @@ pub mod RouterLite {
     use core::option::OptionTrait;
     use ekubo::components::clear::ClearImpl;
     use ekubo::components::shared_locker::{
-        call_core_with_callback, consume_callback_data, handle_delta,
+        call_core_with_callback, consume_callback_data, handle_delta, 
+        forward_lock
     };
-    use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker, SwapParameters};
+    use ekubo::interfaces::core::{ICoreDispatcher, ICoreDispatcherTrait, ILocker, SwapParameters, IForwardeeDispatcher};
     use starknet::get_contract_address;
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
     use super::{Delta, IRouterLite, RouteNode, Swap, TokenAmount};
@@ -77,6 +82,7 @@ pub mod RouterLite {
                 let mut token_amount = swap.token_amount;
 
                 let mut deltas: Array<Delta> = ArrayTrait::new();
+            
                 // we track this to know how much to pay in the case of exact input and how much to
                 // pull in the case of exact output
                 let mut first_swap_amount: Option<TokenAmount> = Option::None;
@@ -84,6 +90,8 @@ pub mod RouterLite {
                 while let Option::Some(node) = route.pop_front() {
                     let is_token1 = token_amount.token == node.pool_key.token1;
 
+
+                    println!("router core swap");
                     let delta = core
                         .swap(
                             node.pool_key,
@@ -96,6 +104,13 @@ pub mod RouterLite {
                         );
 
                     deltas.append(delta);
+
+
+                    // // TODO: Fix this
+                    // // WARNING
+                    // // Forward to InternalSwapPool extension and get result
+        
+                    // deltas.append(isp_delta);
 
                     if first_swap_amount.is_none() {
                         first_swap_amount =
@@ -120,6 +135,18 @@ pub mod RouterLite {
                         } else {
                             TokenAmount { amount: -delta.amount1, token: node.pool_key.token1 }
                         };
+                
+                    println!("forward to InternalSwapPool extension");
+                    let extension_address = node.pool_key.extension;
+                    println!("node.pool_key.extension: {:?}", extension_address);
+
+                    // let isp_delta: Delta = forward_lock(
+                    //             core,
+                    //             IForwardeeDispatcher { contract_address: extension_address },
+                    //             @deltas
+                    //         );
+
+              
                 }
 
                 let recipient = get_contract_address();
@@ -127,6 +154,8 @@ pub mod RouterLite {
                 outputs.append(deltas);
 
                 let first = first_swap_amount.unwrap();
+
+
                 handle_delta(core, token_amount.token, -token_amount.amount, recipient);
                 handle_delta(core, first.token, first.amount, recipient);
             }

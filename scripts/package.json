@@ -34,6 +34,9 @@
     "run:add_stencil": "ts-node ./run/canvas/add_stencil.ts",
     "run:vote_profile": "ts-node ./run/nostr/vote_profile.ts",
     "run:add_metadata": "ts-node ./run/nostr/add_metadata.ts",
+    "deploy:extension_ekubo": "ts-node ./deploy/extension_ekubo.ts",
+    "run:extension_unrug": "ts-node ./run/admin/extension_unrug.ts",
+    "run:launchpad_change_unrug": "ts-node ./run/admin/launchpad_change_unrug.ts",
     "dev": "ts-node index.ts",
     "relay": "ts-node src/index.ts",
     "relay:dev": "nodemon --ext *"

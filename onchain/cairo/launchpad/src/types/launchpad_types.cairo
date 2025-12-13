@@ -224,6 +224,8 @@ pub struct EkuboUnrugLaunchParameters {
     pub lp_quote_supply: u256,
     pub pool_params: EkuboPoolParameters,
     pub caller: ContractAddress,
+    pub creator_fee_percent: u256,
+    pub protocol_fee_percent: u256,
 }
 
 #[derive(Copy, Drop, Serde, PartialEq)]
@@ -362,6 +364,16 @@ pub struct LockPosition {
 
 // Events of smart contract
 // Emit by Launchpad and Unrug
+
+#[derive(Drop, starknet::Event)]
+pub struct ExtensionCreated {
+    #[key]
+    pub caller: ContractAddress,
+    pub extension_address: ContractAddress,
+    pub token_address: ContractAddress,
+    pub quote_address: ContractAddress,
+}
+
 
 #[derive(Drop, starknet::Event)]
 pub struct BuyToken {

@@ -31,7 +31,7 @@ source = "git+https://github.com/MSGhais/cubit?rev=f59f90ce519dcc56de8daa318b4ed
 [[package]]
 name = "ekubo"
 version = "0.1.0"
-source = "git+https://github.com/EkuboProtocol/abis?rev=edb6de8c9baf515f1053bbab3d86825d54a63bc3#edb6de8c9baf515f1053bbab3d86825d54a63bc3"
+source = "git+https://github.com/EkuboProtocol/abis#f4a16b95967c5596d5a3cd4e0422bb9a2e3eb017"
 
 [[package]]
 name = "openzeppelin"

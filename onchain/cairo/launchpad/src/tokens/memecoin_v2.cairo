@@ -113,8 +113,7 @@ pub mod MemecoinV2 {
     use openzeppelin::governance::votes::VotesComponent;
     use openzeppelin::introspection::src5::SRC5Component;
     // use openzeppelin::token::erc20::ERC20Component;
-    use openzeppelin::token::erc20::{ERC20Component, DefaultConfig};
-
+    use openzeppelin::token::erc20::{DefaultConfig, ERC20Component};
     use openzeppelin::utils::cryptography::nonces::NoncesComponent;
     use openzeppelin::utils::cryptography::snip12::SNIP12Metadata;
     // use core::OptionTrait;

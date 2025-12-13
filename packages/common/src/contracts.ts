@@ -45,6 +45,16 @@ export const UNRUGGABLE_FACTORY_ADDRESS = {
 };
 
 
+export const CLASS_HASH_INTERNAL_SWAP_POOL = {
+  [constants.StarknetChainId.SN_MAIN]: '',
+  // old contract
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0x34e73d4ff75f922484a9208f506e9aa8acfdb333a648ca68cde276d83678aa9",
+  // new launchpad
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548",
+  // Last launchpad
+  [constants.StarknetChainId.SN_SEPOLIA]: "0x72286de6dbf2e811726976a242f006cf1137a2dd7b899690a10c04d0c3ece3e",
+
+};
 
 export const LAUNCHPAD_ADDRESS = {
   [constants.StarknetChainId.SN_MAIN]: '',
@@ -52,8 +62,12 @@ export const LAUNCHPAD_ADDRESS = {
   // [constants.StarknetChainId.SN_SEPOLIA]: "0x34e73d4ff75f922484a9208f506e9aa8acfdb333a648ca68cde276d83678aa9",
   // new launchpad
   // [constants.StarknetChainId.SN_SEPOLIA]: "0xe95cbe6b42011fdc8a0863f89f02d6cad25bc1b5efd967da64ee998012f548",
+  // // Last launchpad
+  // [constants.StarknetChainId.SN_SEPOLIA]: "0x64d2deb12d8146d7600289addfb2ec258d8fbc5d51062f5bd3652b4d3b47ac0",
+
   // Last launchpad
-  [constants.StarknetChainId.SN_SEPOLIA]: "0x64d2deb12d8146d7600289addfb2ec258d8fbc5d51062f5bd3652b4d3b47ac0",
+  [constants.StarknetChainId.SN_SEPOLIA]: "0x2cd57d5721aadeecaa1cb837d02d699116de5f387b7f4b2b2a96cf3a9842adb",
+  
 
 };
 
@@ -214,9 +228,16 @@ export const UNRUGGABLE_LIQUIDITY_ADDRESSES = {
   [constants.StarknetChainId.SN_MAIN]:
     '0x01a46467a9246f45c8c340f1f155266a26a71c07bd55d36e8d1c7d0d438a2dbc',
 
-  [constants.StarknetChainId.SN_SEPOLIA]:
-    '0x59519f8c82fcb0503fda34b30c1758a40bd7da43b96abaab106f5141fa7f53f',
 
+  // WITHOUT EXTENSION ENABLED
+  // [constants.StarknetChainId.SN_SEPOLIA]:
+  //   '0x59519f8c82fcb0503fda34b30c1758a40bd7da43b96abaab106f5141fa7f53f',
+
+  // EXTENSION ENABLED
+  [constants.StarknetChainId.SN_SEPOLIA]:
+    '0x46c877bb1b83e81029b28c9e5bafd00deb1371652df7b764fc61ec099e755b7',
+
+    
 
   // "0x1762c43e814c9e2319e08479df2764fa83436569aefa9a42d4911c43afc5302"
   // "0x3ea02b0aee81e72c4b79cd4205dccc0b0d497ca23162bd0e8f7174d449d7980",
