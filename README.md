@@ -6,7 +6,7 @@
 
 </div>
 
-[Website](https://www.afk-community/) | [Telegram](https://t.me/afk_aligned_fam_kernel) | [Twitter](https://x.com/AFK_AlignedFamK)
+[Website](https://afk-community.xyz/app/feed) | [Telegram](https://t.me/afk_aligned_fam_kernel) | [X (formerly Twitter)](https://x.com/AFK_AlignedFamK)
 
 ## Overview
 
